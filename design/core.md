@@ -22,20 +22,35 @@ MDX File → Frontmatter Extract → MDX Compile → React Component → Route R
 ```
 
 1. **Frontmatter Extract**: Parse YAML frontmatter for metadata (`title`, `description`, `nav_order`, `hidden`, `tags`).
-2. **MDX Compile**: Use `@mdx-js/rollup` to compile MDX to a React component.
-3. **Component Wrap**: Wrap with `DocShell` from `@clarify/renderer` (provides layout, nav, ToC).
-4. **Route Registration**: Map file path to URL path (e.g., `docs/getting-started.mdx` → `/getting-started`).
+2. **OpenAPI Resource Load**: If an `openApi` spec is configured, the plugin parses it into an internal model and makes it available as a virtual module.
+3. **MDX Compile**: Use `@mdx-js/rollup` to compile MDX to a React component. The `<OpenAPI>` component is registered in the MDX scope so authors can embed it anywhere.
+4. **Component Wrap**: Wrap with `DocShell` from `@clarify/renderer` (provides layout, nav, ToC).
+5. **Route Registration**: Map file path to URL path (e.g., `docs/getting-started.mdx` → `/getting-started`).
 
-### 1.2 OpenAPI Ingestion Flow
+### 1.2 OpenAPI Resource Flow
+
+When `openApi` is configured, the plugin parses the spec once at build time and makes it available as a **virtual module** consumed by the `<OpenAPI>` component in MDX pages.
 
 ```
-OpenAPI Spec → Schema Validate → Transform to Internal Model → Generate Pages/Routes
+OpenAPI Spec (yaml/json)
+        │
+        ▼
+  Schema Validate
+        │
+        ▼
+  Transform to Internal Model
+        │
+        ▼
+  virtual:clarify-openapi (virtual module)
+        │
+        ▼
+  <OpenAPI path="/users/{id}" /> inside any MDX page
 ```
 
-1. **Schema Validate**: Validate against OpenAPI 3.0/3.1 using a lightweight validator.
-2. **Transform**: Flatten operations into an internal `ApiOperation` model (method, path, summary, description, parameters, requestBody, responses).
-3. **Page Generation**: For each operation or tag group, generate a page using `ApiEndpointCard` and related components.
-4. **Route Registration**: Mount under `/api` (configurable) with nested routes per tag or operation.
+1. **Schema Validate**: Validate against OpenAPI 3.0/3.1.
+2. **Transform**: Flatten operations into an `OpenAPIResource` model keyed by `operationId`.
+3. **Virtual Module**: Expose the entire spec via `virtual:clarify-openapi` so the renderer can access it at runtime without a server.
+4. **MDX Embed**: Authors use the `<OpenAPI>` component in any MDX page to render any operation, tag, or the full spec.
 
 ---
 
@@ -121,7 +136,8 @@ MDX components are mapped to `@clarify/renderer` primitives via an `MDXProvider`
 | `table` | `DataTable` (styled, responsive) |
 | `a` | `SmartLink` (internal vs external routing) |
 | `img` | `Image` (lazy loading, captions) |
-| Custom `<ApiEndpointCard>` | Direct import from `@clarify/renderer` |
+| `<OpenAPI>` | `OpenAPI` (embedded API reference, see §1.2) |
+| Custom JSX | User-defined via `components` option |
 
 ---
 
@@ -233,7 +249,7 @@ type ClarifyPluginOptions = {
   /** Root directory for MDX content. Default: 'source/content' */
   docsRoot?: string;
 
-  /** Path to OpenAPI spec. Default: undefined (disabled) */
+  /** Path to OpenAPI spec. Parsed once and exposed as virtual:clarify-openapi. Default: undefined */
   openApi?: string;
 
   /** Base path for the docs site. Default: '/' */

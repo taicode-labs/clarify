@@ -16,7 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@clarify/renderer": ["../../packages/renderer/source/index.tsx"],
-      "@clarify/renderer/*": ["../../packages/renderer/source/*"]
+      "@clarify/renderer/*": ["../../packages/renderer/source/*"],
+      "@clarify/vite-plugin": ["../../packages/vite-plugin/source/index.ts"]
     }
   },
   "include": ["source", "vite.config.ts"],

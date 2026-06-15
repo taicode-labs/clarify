@@ -166,6 +166,7 @@ MDX components are mapped to `@clarify/renderer` primitives via `MDXProvider` fr
 | `img` | `Image` | Lazy loading, responsive sizing, caption support |
 | `blockquote` | `Callout` | Styled callout boxes (info, warning, danger, tip) |
 | `hr` | `Divider` | Thematic breaks |
+| `<OpenAPI>` | `OpenAPI` | Embedded API reference (see §7) |
 | Custom JSX | User-defined | Registered via plugin `components` option |
 
 ### 3.1 CodeBlock Architecture
@@ -407,50 +408,125 @@ interface SearchDoc {
 
 ---
 
-## 7. OpenAPI Rendering
+## 7. OpenAPI Rendering (Embedded)
 
-### 7.1 Route Generation
+### 7.1 Philosophy: OpenAPI as a First-Class Citizen
 
-The plugin generates routes under `/api/*`:
+OpenAPI is **not** a separate route system. It is an embedded component (`<OpenAPI>`) available in any MDX page. Authors decide where and how API references appear in their documentation flow.
+
+### 7.2 The `<OpenAPI>` Component
 
 ```tsx
-<Route path="/api" element={<ApiOverviewPage />} />
-<Route path="/api/:tag" element={<ApiTagPage />} />
-<Route path="/api/:tag/:operationId" element={<ApiOperationPage />} />
+import { OpenAPI } from '@clarify/renderer';
+
+// In any MDX page:
+
+// Render a single operation
+<OpenAPI operationId="getUser" />
+
+// Render all operations under a tag
+<OpenAPI tag="Users" />
+
+// Render the full spec (overview page)
+<OpenAPI />
 ```
 
-### 7.2 API Page Components
+#### Props
 
-```tsx
-function ApiOperationPage() {
-  const { tag, operationId } = useParams();
-  const operation = useApiOperation(operationId);
+```typescript
+interface OpenAPIProps {
+  /** Render a specific operation by operationId */
+  operationId?: string;
 
-  return (
-    <DocShell title={operation.summary}>
-      <ApiEndpointCard
-        method={operation.method}
-        path={operation.path}
-        description={operation.description}
-      />
-      {operation.parameters && <ParametersTable parameters={operation.parameters} />}
-      {operation.requestBody && <RequestBodySection body={operation.requestBody} />}
-      <ResponsesSection responses={operation.responses} />
-    </DocShell>
-  );
+  /** Render all operations under a tag */
+  tag?: string;
+
+  /** When true, renders the full spec overview */
+  full?: boolean;
+
+  /** Custom title override */
+  title?: string;
+
+  /** Hide the method/path badge */
+  hideEndpoint?: boolean;
+
+  /** Collapse request/response sections by default */
+  collapsed?: boolean;
 }
 ```
 
-### 7.3 API Component Set
+### 7.3 Data Flow
 
-| Component | Purpose |
-|-----------|---------|
-| `ApiEndpointCard` | Method badge + path + description |
-| `ParametersTable` | Query/path/header params with types and descriptions |
-| `RequestBodySection` | Schema + example for request body |
-| `ResponsesSection` | Status codes + response schemas + examples |
-| `SchemaViewer` | Recursive JSON schema rendering (object, array, primitive) |
-| `CodeExample` | Curl + language SDK examples |
+```
+vite-plugin (build time)
+  │
+  ├─ Parse openapi.yaml → OpenAPIResource model
+  │
+  └─ Emit virtual:clarify-openapi
+        │
+        ▼
+@clarify/renderer (runtime)
+  │
+  ├─ Import spec from virtual:clarify-openapi
+  │
+  └─ <OpenAPI operationId="..."> → lookup operation → render
+```
+
+### 7.4 OpenAPI Component Set
+
+| Component | Purpose | Used By |
+|-----------|---------|---------|
+| `OpenAPI` | Main container, handles props dispatch | `<OpenAPI />` |
+| `ApiEndpointCard` | Method badge + path + description | `OpenAPI` (single op) |
+| `ParametersTable` | Query/path/header params | `ApiEndpointCard` |
+| `RequestBodySection` | Schema + example for request body | `ApiEndpointCard` |
+| `ResponsesSection` | Status codes + response schemas | `ApiEndpointCard` |
+| `SchemaViewer` | Recursive JSON schema rendering | `RequestBodySection`, `ResponsesSection` |
+| `CodeExample` | Curl + language SDK examples | `ApiEndpointCard` |
+| `TagGroup` | Renders all operations under a tag | `OpenAPI` (tag mode) |
+| `SpecOverview` | Full spec summary (tags, versions, servers) | `OpenAPI` (full mode) |
+
+### 7.5 Usage Example in MDX
+
+```mdx
+---
+title: User API Guide
+---
+
+# User API Guide
+
+## Authentication
+
+All user endpoints require a Bearer token.
+
+## Get User by ID
+
+<OpenAPI operationId="getUser" />
+
+## List All Users
+
+<OpenAPI operationId="listUsers" collapsed />
+
+## User Management Overview
+
+For a complete reference, see all user endpoints:
+
+<OpenAPI tag="Users" />
+```
+
+### 7.6 Search Integration
+
+OpenAPI operations are indexed alongside MDX content. Search results for API operations link directly to the MDX page + anchor where the `<OpenAPI>` component is embedded.
+
+```typescript
+interface SearchDoc {
+  id: string;
+  title: string;
+  excerpt: string;
+  path: string;          // e.g., "/user-guide#get-user-by-id"
+  category: 'page' | 'api' | 'heading';
+}
+```
 
 ---
 

@@ -1,23 +1,22 @@
-import { ApiEndpointCard, DocShell } from '@clarify/renderer';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { DocShell } from '@clarify/renderer';
+import { routes } from 'virtual:clarify-routes';
+import { config } from 'virtual:clarify-config';
 
 export default function App() {
   return (
-    <DocShell
-      title="Clarify Docs"
-      subtitle="Compose MDX + interactive React components + OpenAPI from one modern docs workflow."
-    >
-      <section className="grid gap-5 md:grid-cols-2">
-        <ApiEndpointCard
-          method="GET"
-          path="/v1/projects"
-          description="List all projects accessible by the current user."
-        />
-        <ApiEndpointCard
-          method="POST"
-          path="/v1/projects"
-          description="Create a new project with optional metadata and default settings."
-        />
-      </section>
+    <DocShell title={config.title}>
+      <BrowserRouter basename={config.routeBase}>
+        <Routes>
+          {routes.map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={<route.component />}
+            />
+          ))}
+        </Routes>
+      </BrowserRouter>
     </DocShell>
   );
 }
