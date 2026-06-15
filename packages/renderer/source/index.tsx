@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
-import type { ClarifyConfig, RouteItem, RenderOptions } from './types';
-import { App } from './App';
+import type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions } from './types';
+import { AppShell } from './App';
 import { render } from './render';
+import { renderToHTML } from './server';
 
-export type { ClarifyConfig, RouteItem, RenderOptions };
-export { App, render };
+export type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions };
+export { AppShell, render, renderToHTML };
 
 export type DocShellProps = {
   title: string;

@@ -1,10 +1,11 @@
 import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { App } from './App';
+import { hydrateRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { AppShell } from './App';
 import type { RenderOptions } from './types';
 
 /**
- * Clarify 渲染入口。
+ * Clarify 客户端 Hydration 入口。
  * 在文档项目的 main.tsx 中调用：
  * ```ts
  * import { render } from '@clarify/renderer';
@@ -21,9 +22,12 @@ export function render(options: RenderOptions) {
     throw new Error('[clarify] 渲染失败：找不到挂载节点，请确保 HTML 中存在 id="root" 的元素');
   }
 
-  createRoot(target).render(
+  hydrateRoot(
+    target,
     <StrictMode>
-      <App config={config} routes={routes} />
+      <BrowserRouter basename={config.routeBase}>
+        <AppShell config={config} routes={routes} />
+      </BrowserRouter>
     </StrictMode>
   );
 }
