@@ -271,7 +271,157 @@ type ClarifyPluginOptions = {
 
 ---
 
-## 8. Future Roadmap
+## 8. Plugin Hooks API
+
+Clarify exposes a set of **lifecycle hooks** that allow extensions (e.g. translation, search indexing, versioning) to participate in the build-time content processing pipeline. Hooks are registered via the `clarifyPlugin` options in `vite.config.ts`, not through the native Vite plugin system.
+
+### 8.1 Design Principles
+
+| Principle | Description |
+|------|------|
+| **Pure functions first** | Hooks receive a context object and return a modified object without mutating the input. |
+| **Async support** | All hooks are `async` to allow I/O (e.g. reading translation files). |
+| **Composable** | Multiple plugins execute in registration order, chaining output from one to the next. |
+| **Fail fast** | A single hook failure aborts the build with an error that names the offending plugin. |
+
+### 8.2 Hook Definitions
+
+```typescript
+export type ClarifyHookContext = {
+  /** Resolved project configuration */
+  config: ResolvedClarifyOptions;
+  /** Vite config for this build */
+  viteConfig?: ResolvedConfig;
+};
+
+export type ClarifyPage = {
+  path: string;
+  filePath: string;
+  frontmatter: Record<string, unknown>;
+  content: string;
+};
+
+export type ClarifyHooks = {
+  /**
+   * Called after all MDX files have been scanned.
+   * Allows modifying the page list (add/remove/reorder), injecting virtual pages, or reordering routes.
+   */
+  'pages:resolved'?: (
+    pages: ClarifyPage[],
+    ctx: ClarifyHookContext
+  ) => Promise<ClarifyPage[]> | ClarifyPage[];
+
+  /**
+   * Called before a single MDX file is compiled.
+   * Allows modifying frontmatter or raw content (e.g. injecting translated text).
+   */
+  'page:transform'?: (
+    page: ClarifyPage,
+    ctx: ClarifyHookContext
+  ) => Promise<ClarifyPage> | ClarifyPage;
+
+  /**
+   * Called after the route manifest is generated.
+   * Allows modifying navTree, adding redirects, or injecting external links.
+   */
+  'routes:resolved'?: (
+    routes: RouteItem[],
+    navTree: NavNode[],
+    ctx: ClarifyHookContext
+  ) => Promise<{ routes: RouteItem[]; navTree: NavNode[] }> | { routes: RouteItem[]; navTree: NavNode[] };
+
+  /**
+   * Called before virtual modules are generated.
+   * Allows injecting additional virtual modules for MDX pages or the renderer to consume.
+   */
+  'modules:before'?: (
+    modules: Map<string, string>,
+    ctx: ClarifyHookContext
+  ) => Promise<Map<string, string>> | Map<string, string>;
+
+  /**
+   * Called after the dev server starts / build completes.
+   * Suitable for side effects like generating search indexes or translation maps.
+   */
+  'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void;
+};
+
+export type ClarifyPlugin = {
+  /** Plugin name, used for error tracing */
+  name: string;
+  /** Hooks to register */
+  hooks: Partial<ClarifyHooks>;
+};
+```
+
+### 8.3 Registration
+
+```typescript
+// vite.config.ts
+import { clarifyPlugin } from '@clarify/vite-plugin';
+import { i18nPlugin } from '@clarify/plugin-i18n';
+import { searchPlugin } from '@clarify/plugin-search';
+
+export default defineConfig({
+  plugins: [
+    clarifyPlugin({
+      docsRoot: 'source/content',
+      plugins: [
+        i18nPlugin({ defaultLocale: 'zh-CN' }),
+        searchPlugin(),
+      ],
+    }),
+  ],
+});
+```
+
+### 8.4 Example: Documentation Translation Plugin
+
+```typescript
+// @clarify/plugin-i18n
+export function i18nPlugin(options: { defaultLocale: string }): ClarifyPlugin {
+  return {
+    name: 'clarify:i18n',
+    hooks: {
+      async 'pages:resolved'(pages, ctx) {
+        // Generate locale copies for each page
+        const translated: ClarifyPage[] = [];
+        for (const page of pages) {
+          const locale = page.frontmatter.locale ?? options.defaultLocale;
+          const t = await loadTranslations(locale, page.filePath);
+          translated.push({
+            ...page,
+            path: `/${locale}${page.path}`,
+            content: applyTranslations(page.content, t),
+          });
+        }
+        return [...pages, ...translated];
+      },
+    },
+  };
+}
+```
+
+### 8.5 Example: Search Index Plugin
+
+```typescript
+// @clarify/plugin-search
+export function searchPlugin(): ClarifyPlugin {
+  return {
+    name: 'clarify:search',
+    hooks: {
+      async 'build:done'(ctx) {
+        const index = await buildSearchIndex(ctx.config.docRoot);
+        await writeFile('dist/search-index.json', JSON.stringify(index));
+      },
+    },
+  };
+}
+```
+
+---
+
+## 9. Future Roadmap
 
 | Feature | Priority | Notes |
 |---------|----------|-------|

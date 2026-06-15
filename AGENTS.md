@@ -56,11 +56,24 @@ packages/
 - Prefer explicit types over `any`.
 - Keep packages tree-shakeable (avoid side-effectful imports).
 
+## Git & Commit Guidelines
+
+- **All commit messages must be written in English.** Chinese or other languages are not allowed in commit history.
+- Use concise, descriptive commit messages that explain **what** changed and **why**.
+- Follow the [Conventional Commits](https://www.conventionalcommits.org/) style where possible:
+  - `feat:` — new feature
+  - `fix:` — bug fix
+  - `docs:` — documentation only changes
+  - `refactor:` — code change that neither fixes a bug nor adds a feature
+  - `chore:` — build process, tooling, or dependency updates
+- Keep the subject line under 72 characters and use the body for additional context when needed.
+
 ## Common Pitfalls
 
 - **Do not use `npm` or `yarn`**. All commands are `pnpm`.
 - **Do not use `src/`**. The project convention is `source/`.
 - **Build order**: When building an app that depends on a local package, ensure the package is built first, or use a Vite alias to the source to bypass the build dependency.
+- **Do not write commit messages in Chinese**. English is required for all commit history.
 
 ## Resources
 

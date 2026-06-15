@@ -1,12 +1,18 @@
 import type { ReactNode } from 'react';
+import type { ClarifyConfig, RouteItem, RenderOptions } from './types';
+import { App } from './App';
+import { render } from './render';
 
-type DocShellProps = {
+export type { ClarifyConfig, RouteItem, RenderOptions };
+export { App, render };
+
+export type DocShellProps = {
   title: string;
   subtitle?: string;
   children: ReactNode;
 };
 
-type ApiEndpointCardProps = {
+export type ApiEndpointCardProps = {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   path: string;
   description?: string;

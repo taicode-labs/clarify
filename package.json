@@ -4,7 +4,8 @@
   "private": true,
   "description": "An open-source documentation publishing tool built for MDX and OpenAPI.",
   "scripts": {
-    "dev": "pnpm --filter @clarify/docs dev",
+    "dev": "pnpm dev:all",
+    "dev:all": "pnpm --filter @clarify/vite-plugin --filter @clarify/renderer dev & pnpm --filter @clarify/docs dev",
     "dev:docs": "pnpm --filter @clarify/docs dev",
     "dev:www": "pnpm --filter @clarify/www dev",
     "build": "pnpm --recursive --if-present build",

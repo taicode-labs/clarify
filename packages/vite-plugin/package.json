@@ -16,6 +16,7 @@
     "dist"
   ],
   "scripts": {
+    "dev": "tsup source/index.ts --format esm,cjs --dts --watch",
     "build": "tsup source/index.ts --format esm,cjs --dts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

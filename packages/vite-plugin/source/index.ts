@@ -40,6 +40,9 @@ export type ClarifyPluginOptions = {
   /** Custom include/exclude filters for MDX processing. */
   include?: FilterPattern;
   exclude?: FilterPattern;
+
+  /** Clarify 插件扩展。用于注册翻译、搜索等扩展插件。 */
+  plugins?: ClarifyPlugin[];
 };
 
 export type ResolvedClarifyOptions = {
@@ -56,6 +59,51 @@ export type MdxRoute = {
   path: string;
   filePath: string;
   virtualModuleId: string;
+};
+
+// ── Plugin Hooks ───────────────────────────────────────────────────────────────
+
+export type ClarifyHookContext = {
+  config: ResolvedClarifyOptions;
+};
+
+export type ClarifyPage = {
+  path: string;
+  filePath: string;
+  frontmatter: Record<string, unknown>;
+  content: string;
+};
+
+export type ClarifyNavNode = {
+  path: string;
+  title: string;
+  children?: ClarifyNavNode[];
+};
+
+export type ClarifyHooks = {
+  'pages:resolved'?: (
+    pages: ClarifyPage[],
+    ctx: ClarifyHookContext
+  ) => Promise<ClarifyPage[]> | ClarifyPage[];
+  'page:transform'?: (
+    page: ClarifyPage,
+    ctx: ClarifyHookContext
+  ) => Promise<ClarifyPage> | ClarifyPage;
+  'routes:resolved'?: (
+    routes: MdxRoute[],
+    navTree: ClarifyNavNode[],
+    ctx: ClarifyHookContext
+  ) => Promise<{ routes: MdxRoute[]; navTree: ClarifyNavNode[] }> | { routes: MdxRoute[]; navTree: ClarifyNavNode[] };
+  'modules:before'?: (
+    modules: Map<string, string>,
+    ctx: ClarifyHookContext
+  ) => Promise<Map<string, string>> | Map<string, string>;
+  'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void;
+};
+
+export type ClarifyPlugin = {
+  name: string;
+  hooks: Partial<ClarifyHooks>;
 };
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -141,6 +189,25 @@ function generateRoutesModule(routes: MdxRoute[]): string {
 const VIRTUAL_CONFIG = 'virtual:clarify-config';
 const VIRTUAL_ROUTES = 'virtual:clarify-routes';
 
+async function runHooks<K extends keyof ClarifyHooks>(
+  plugins: ClarifyPlugin[],
+  hookName: K,
+  input: Parameters<NonNullable<ClarifyHooks[K]>>[0],
+  ctx: ClarifyHookContext
+): Promise<Parameters<NonNullable<ClarifyHooks[K]>>[0]> {
+  let result = input;
+  for (const plugin of plugins) {
+    const hook = plugin.hooks[hookName] as any;
+    if (!hook) continue;
+    try {
+      result = await hook(result, ctx);
+    } catch (err) {
+      throw new Error(`[clarify] plugin "${plugin.name}" hook "${hookName}" failed: ${err}`);
+    }
+  }
+  return result;
+}
+
 export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
   const root = process.cwd();
   const resolved = resolveOptions(root, options);
@@ -152,6 +219,9 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
   for (const route of routes) {
     pageMap.set(route.virtualModuleId, route.filePath);
   }
+
+  const plugins = options.plugins ?? [];
+  const ctx: ClarifyHookContext = { config: resolved };
 
   const clarifyPlugin: Plugin = {
     name: 'clarify:core',
@@ -177,19 +247,23 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
       }
       return null;
     },
-    load(id) {
+    async load(id) {
       if (id === VIRTUAL_CONFIG) {
         return generateConfigModule(resolved);
       }
       if (id === VIRTUAL_ROUTES) {
+        // TODO: invoke hooks 'routes:resolved' here in future
         return generateRoutesModule(routes);
       }
       const filePath = pageMap.get(id);
       if (filePath) {
-        // Re-export the actual MDX file
+        // TODO: invoke hooks 'page:transform' here in future
         return `export { default } from '${filePath}';`;
       }
       return null;
+    },
+    async buildEnd() {
+      await runHooks(plugins, 'build:done', undefined as any, ctx);
     },
   };
 

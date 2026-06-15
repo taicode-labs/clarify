@@ -1,10 +1,6 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
+import { render } from '@clarify/renderer';
+import { routes } from 'virtual:clarify-routes';
+import { config } from 'virtual:clarify-config';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+render({ config, routes });
