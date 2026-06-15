@@ -2,62 +2,53 @@
 
 ## 概述
 
-**Renderer** 是 Clarify 的客户端运行时。它消费 `@clarify/vite-plugin` 生成的已处理内容（路由、MDX 组件、API 数据），并将其渲染为交互式文档站点。
+**Renderer** 提供 React 组件供 `@clarify/vite-plugin` 生成静态 HTML 页面。它不是客户端运行时；每个页面都在构建时预渲染为独立的 HTML 文件。
 
 ## 渲染理念
 
-- **客户端优先 SPA**：作为 Vite 驱动的单页应用程序运行。无 SSR 水合复杂度。
-- **静态构建时数据**：插件在构建时生成路由清单并预编译 MDX 页面。渲染器在运行时消费这些静态产物。
+- **静态站点生成（SSG）**：每个 MDX 页面在构建时渲染为独立的 HTML 文件。导航和内容展示不需要客户端 JavaScript。
 - **组件驱动 UI**：每个 MDX 元素都映射到 `@clarify/renderer` 原语。整个视觉层可组合且可主题化。
-- **零运行时配置**：所有配置在构建时解析并烘焙到虚拟模块中。无运行时配置解析。
+- **零运行时配置**：所有配置在构建时解析并嵌入到生成的 HTML 中。无运行时配置解析。
 
 ---
 
-## 1. 运行时架构
+## 1. 静态生成架构
 
-### 1.1 入口
+### 1.1 页面模板
+
+每个生成的 HTML 页面使用相同的基础模板。插件将 React 树渲染为字符串并注入模板中。
 
 ```tsx
-// apps/docs/source/main.tsx
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { ClarifyProvider } from '@clarify/renderer';
+// packages/renderer/source/render.tsx
+import { renderToString } from 'react-dom/server';
 import { App } from './App';
-import './index.css';
+import type { ClarifyConfig, RouteItem } from './types';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <ClarifyProvider>
-        <App />
-      </ClarifyProvider>
-    </BrowserRouter>
-  </StrictMode>
-);
+export function renderPage(config: ClarifyConfig, route: RouteItem): string {
+  const html = renderToString(
+    <App config={config} routes={[route]} currentPath={route.path} />
+  );
+  return wrapInTemplate({ config, html, route });
+}
 ```
 
 ### 1.2 应用壳
 
 ```tsx
-// apps/docs/source/App.tsx
-import { Routes, Route } from 'react-router-dom';
-import { Layout, MDXProvider } from '@clarify/renderer';
-import { routes } from 'virtual:clarify-routes';
+// packages/renderer/source/App.tsx
+import type { ClarifyConfig, RouteItem } from './types';
+import { Layout, MDXProvider, PageShell } from '@clarify/renderer';
 
-export default function App() {
+export function App({ config, routes, currentPath }: AppProps) {
+  const route = routes.find(r => r.path === currentPath);
+  if (!route) return <NotFoundPage />;
+
   return (
-    <Layout>
+    <Layout config={config} currentPath={currentPath}>
       <MDXProvider>
-        <Routes>
-          {routes.map(route => (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={<route.component />}
-            />
-          ))}
-        </Routes>
+        <PageShell meta={route.meta}>
+          <route.component />
+        </PageShell>
       </MDXProvider>
     </Layout>
   );
@@ -115,9 +106,9 @@ export const routes: RouteManifest['routes'];
 export const navTree: RouteManifest['navTree'];
 ```
 
-### 2.2 `virtual:clarify-api`
+### 2.2 `virtual:clarify-api`（Phase 2）
 
-API 参考页面的解析 OpenAPI 数据。
+> **OpenAPI 支持计划放在 Phase 2。** 实现后，解析后的 OpenAPI 数据将用于 API 参考页面。
 
 ```typescript
 export interface ApiManifest {
@@ -166,8 +157,7 @@ MDX 组件通过 `@mdx-js/react` 的 `MDXProvider` 映射到 `@clarify/renderer`
 | `img` | `Image` | 懒加载、响应式尺寸、标题支持 |
 | `blockquote` | `Callout` | 样式化提示框（信息、警告、危险、提示） |
 | `hr` | `Divider` | 主题分隔线 |
-| `<OpenAPI>` | `OpenAPI` | 嵌入式 API 参考（见 §7） |
-| 自定义 JSX | 用户定义 | 通过插件 `components` 选项注册 |
+| 自定义 JSX | 用户定义 | 通过插件 `components` 选项注册（Phase 2） |
 
 ### 3.1 CodeBlock 架构
 
@@ -205,7 +195,7 @@ function SmartLink({ href, children }: LinkProps) {
   if (isExternal) {
     return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
   }
-  return <Link to={href}>{children}</Link>;
+  return <a href={href}>{children}</a>;
 }
 ```
 
@@ -218,10 +208,7 @@ function SmartLink({ href, children }: LinkProps) {
 从路由清单中的 `navTree` 生成：
 
 ```tsx
-function Sidebar() {
-  const { navTree } = useClarifyRoutes();
-  const currentPath = useLocation().pathname;
-
+function Sidebar({ navTree, currentPath }: SidebarProps) {
   return (
     <nav className="clarify-sidebar" aria-label="Documentation navigation">
       <div className="clarify-sidebar-header">
@@ -250,7 +237,7 @@ function NavTree({ nodes, currentPath, depth = 0 }: NavTreeProps) {
     <ul className={depth === 0 ? 'clarify-nav-root' : 'clarify-nav-nested'}>
       {nodes.map(node => (
         <li key={node.path} className={isActive(node.path, currentPath) ? 'active' : ''}>
-          <NavLink to={node.path}>{node.title}</NavLink>
+          <a href={node.path}>{node.title}</a>
           {node.children && <NavTree nodes={node.children} currentPath={currentPath} depth={depth + 1} />}
         </li>
       ))}
@@ -357,14 +344,16 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
 ### 6.1 设计目标
 
 - **快速**：即时结果，无需服务器往返。
-- **准确**：跨 MDX 内容、标题和 OpenAPI 描述的全文搜索。
+- **准确**：跨 MDX 内容和标题的全文搜索（Phase 2 支持 OpenAPI 描述）。
 - **轻量**：搜索索引是在构建时生成的压缩 JSON 资源。
 
 ### 6.2 架构
 
 ```
-构建时: 从所有 MDX + API 文档提取文本 → 构建倒排索引 (miniSearch) → 输出 /search-index.json
+构建时: 从所有 MDX 页面提取文本 → 构建倒排索引 (miniSearch) → 输出 /search-index.json
 运行时:   按需加载索引 → 在浏览器中执行查询 → 在模态框中渲染结果
+
+> Phase 2 将索引 OpenAPI 操作。
 ```
 
 ### 6.3 SearchModal
@@ -408,13 +397,15 @@ interface SearchDoc {
 
 ---
 
-## 7. OpenAPI 渲染（嵌入式）
+## 7. OpenAPI 渲染（Phase 2）
+
+> **OpenAPI 支持计划放在 Phase 2。** 下面的设计文档记录了 OpenAPI 实现后的预期架构。
 
 ### 7.1 理念：OpenAPI 作为一等公民
 
-OpenAPI **不是**独立的路由系统。它是一个嵌入式组件（`<OpenAPI>`），在任何 MDX 页面中都可用。作者决定 API 参考在其文档流程中出现的位置和方式。
+OpenAPI 将**不是**独立的路由系统。它将是嵌入式组件（`<OpenAPI>`），在任何 MDX 页面中都可用。作者决定 API 参考在其文档流程中出现的位置和方式。
 
-### 7.2 `<OpenAPI>` 组件
+### 7.2 `<OpenAPI>` 组件（Phase 2）
 
 ```tsx
 import { OpenAPI } from '@clarify/renderer';
@@ -455,7 +446,7 @@ interface OpenAPIProps {
 }
 ```
 
-### 7.3 数据流
+### 7.3 数据流（Phase 2）
 
 ```
 vite-plugin (构建时)
@@ -465,14 +456,14 @@ vite-plugin (构建时)
   └─ 输出 virtual:clarify-openapi
         │
         ▼
-@clarify/renderer (运行时)
+@clarify/renderer (静态生成)
   │
   ├─ 从 virtual:clarify-openapi 导入规范
   │
-  └─ <OpenAPI operationId="..."> → 查找操作 → 渲染
+  └─ <OpenAPI operationId="..."> → 查找操作 → 渲染为 HTML
 ```
 
-### 7.4 OpenAPI 组件集
+### 7.4 OpenAPI 组件集（Phase 2）
 
 | 组件 | 用途 | 使用者 |
 |-----------|---------|---------|
@@ -486,7 +477,7 @@ vite-plugin (构建时)
 | `TagGroup` | 渲染标签下的所有操作 | `OpenAPI`（标签模式） |
 | `SpecOverview` | 完整规范摘要（标签、版本、服务器） | `OpenAPI`（完整模式） |
 
-### 7.5 MDX 中的使用示例
+### 7.5 MDX 中的使用示例（Phase 2）
 
 ```mdx
 ---
@@ -669,7 +660,7 @@ function NotFoundPage() {
   return (
     <DocShell title="Page Not Found">
       <p>The page you are looking for does not exist.</p>
-      <Link to="/">Go to homepage</Link>
+      <a href="/">Go to homepage</a>
     </DocShell>
   );
 }

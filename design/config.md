@@ -2,7 +2,9 @@
 
 Clarify uses **two configuration layers** with a clear boundary. This document defines the ownership, rationale, and interaction between each layer.
 
-> **This is Phase 1 (minimum viable config). Advanced features (i18n, search, custom components, etc.) will be introduced in Phase 2.**
+> **This is Phase 1 (minimum viable config).**
+>
+> Phase 1 scope: **MDX rendering only**, output as **static HTML files (SSG)** for SEO-friendly deployment. OpenAPI, search, i18n, and custom components will be introduced in Phase 2.
 
 ---
 
@@ -28,9 +30,8 @@ Clarify uses **two configuration layers** with a clear boundary. This document d
 | `title` | Site title. Authors change this often. |
 | `description` | Site description, used for SEO. |
 | `logo` | Brand logo path. |
-| `base` | Base URL for the site. Can be overridden by plugin options. |
+| `routeBase` | Base URL for the site. Can be overridden by plugin options. Default: `'/'`. |
 | `theme` | Theme config (Phase 1 only supports `primary` color). |
-| `openApi` | Path to the OpenAPI spec file. |
 
 ### Example
 
@@ -41,8 +42,7 @@ Clarify uses **two configuration layers** with a clear boundary. This document d
   "logo": "/logo.svg",
   "theme": {
     "primary": "#0ea5e9"
-  },
-  "openApi": "./openapi.yaml"
+  }
 }
 ```
 
@@ -50,6 +50,7 @@ Clarify uses **two configuration layers** with a clear boundary. This document d
 
 The following fields are designed but will be implemented in future versions:
 
+- `openApi` (OpenAPI spec path)
 - `favicon`, `socialPreview`
 - `locales` (internationalization)
 - `nav` (navigation structure)
@@ -67,7 +68,11 @@ Plugin options live in `vite.config.ts` as arguments to `clarifyPlugin()`. They 
 | Field | Description |
 |------|------|
 | `docsRoot` | Root directory for content files. Default: `'source/content'`. |
-| `base` | Deployment path, overrides the value in `clarify.json`. |
+| `routeBase` | Deployment path, overrides the value in `clarify.json`. Default: `'/'`. |
+| `outPath` | Output directory for the built site. Overrides Vite's `build.outDir`. Default: `'dist'`. |
+| `include` | Custom include filters for MDX processing. |
+| `exclude` | Custom exclude filters for MDX processing. |
+| `plugins` | Array of Clarify plugin extensions for translation, search, etc. |
 
 ### Example
 
@@ -84,6 +89,8 @@ export default defineConfig({
     tailwindcss(),
     clarifyPlugin({
       docsRoot: 'source/content',
+      routeBase: '/',
+      outPath: 'dist',
     }),
   ],
 });
@@ -108,17 +115,17 @@ vite.config.ts (plugin options) > clarify.json > default values
 
 This allows developers to override author settings without modifying `clarify.json`.
 
-### Example: `base` Override
+### Example: `routeBase` Override
 
 ```json
 // clarify.json
-{ "base": "/docs/" }
+{ "routeBase": "/docs/" }
 ```
 
 ```typescript
 // vite.config.ts
 clarifyPlugin({
-  base: '/staging/docs/', // overrides clarify.json for staging builds
+  routeBase: '/staging/docs/', // overrides clarify.json for staging builds
 });
 ```
 
@@ -155,7 +162,6 @@ Mintlify users have a `docs.json` file. Clarify's `clarify.json` is designed to 
 | `name` | `title` | Same purpose |
 | `description` | `description` | Direct match |
 | `logo` | `logo` | Direct match |
-| `api` | `openApi` | OpenAPI spec path |
 | `colors` | `theme` | `colors.primary` → `theme.primary` |
 
 Unknown Mintlify fields will be accepted and ignored (with a warning). This provides a fast migration path.
@@ -175,7 +181,7 @@ type ConfigError = {
 };
 ```
 
-- **Errors**: Invalid `base` (does not start with `/`), `docsRoot` path does not exist, malformed `nav` structure.
+- **Errors**: Invalid `routeBase` (does not start with `/`), `docsRoot` path does not exist, malformed `nav` structure.
 - **Warnings**: Unknown fields in `clarify.json`, deprecated field names, `openApi` file not found.
 
 Validation results are printed to the console and displayed via Vite's error overlay during development.
@@ -188,7 +194,6 @@ Validation results are printed to the console and displayed via Vite's error ove
 |------------------|--------|
 | "How do I change the site title?" | `clarify.json` |
 | "How do I change the theme color?" | `clarify.json` |
-| "How do I point to my OpenAPI spec?" | `clarify.json` |
 
 | If a developer asks... | Look in |
 |----------------|---------|
