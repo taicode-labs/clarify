@@ -8,13 +8,12 @@ The **Clarify Core** is the engine inside `packages/vite-plugin` that transforms
 
 ## 1. Content Ingestion Pipeline
 
-The engine reads MDX content and generates static HTML pages:
+The engine reads two types of source material:
 
 | Source Type | File Pattern | Parsed By | Output |
 |-------------|--------------|-----------|--------|
-| MDX Pages | `**/*.mdx` | `@mdx-js/rollup` + custom frontmatter parser | React components → static HTML |
-
-> **OpenAPI support is planned for Phase 2.**
+| MDX Pages | `**/*.mdx` | `@mdx-js/rollup` + custom frontmatter parser | React components + metadata |
+| OpenAPI Spec | `openapi.yaml` / `openapi.json` | `swagger-parser` or `openapi-types` | Type-safe API reference data |
 
 ### 1.1 MDX Processing Flow
 
@@ -23,14 +22,14 @@ MDX File → Frontmatter Extract → MDX Compile → React Component → Route R
 ```
 
 1. **Frontmatter Extract**: Parse YAML frontmatter for metadata (`title`, `description`, `nav_order`, `hidden`, `tags`).
-2. **MDX Compile**: Use `@mdx-js/rollup` to compile MDX to a React component.
-3. **Component Wrap**: Wrap with `DocShell` from `@clarify/renderer` (provides layout, nav, ToC).
-4. **Static Render**: Render each page to a standalone HTML file at build time. No client-side JavaScript is required for navigation or content display.
+2. **OpenAPI Resource Load**: If an `openApi` spec is configured, the plugin parses it into an internal model and makes it available as a virtual module.
+3. **MDX Compile**: Use `@mdx-js/rollup` to compile MDX to a React component. The `<OpenAPI>` component is registered in the MDX scope so authors can embed it anywhere.
+4. **Component Wrap**: Wrap with `DocShell` from `@clarify/renderer` (provides layout, nav, ToC).
 5. **Route Registration**: Map file path to URL path (e.g., `docs/getting-started.mdx` → `/getting-started`).
 
-### 1.2 OpenAPI Resource Flow (Phase 2)
+### 1.2 OpenAPI Resource Flow
 
-> **OpenAPI support is planned for Phase 2.** When implemented, the plugin will parse the spec at build time and make it available as a virtual module consumed by the `<OpenAPI>` component in MDX pages.
+When `openApi` is configured, the plugin parses the spec once at build time and makes it available as a **virtual module** consumed by the `<OpenAPI>` component in MDX pages.
 
 ```
 OpenAPI Spec (yaml/json)
@@ -50,8 +49,8 @@ OpenAPI Spec (yaml/json)
 
 1. **Schema Validate**: Validate against OpenAPI 3.0/3.1.
 2. **Transform**: Flatten operations into an `OpenAPIResource` model keyed by `operationId`.
-3. **Virtual Module**: Expose the entire spec via `virtual:clarify-openapi`.
-4. **MDX Embed**: Authors use the `<OpenAPI>` component in any MDX page.
+3. **Virtual Module**: Expose the entire spec via `virtual:clarify-openapi` so the renderer can access it at runtime without a server.
+4. **MDX Embed**: Authors use the `<OpenAPI>` component in any MDX page to render any operation, tag, or the full spec.
 
 ---
 
@@ -78,7 +77,7 @@ content/
 
 ### 2.2 Route Manifest
 
-At build time, the plugin generates a **route manifest** used to produce static HTML pages:
+At build time, the plugin generates a **route manifest** (JSON or inline JS) consumed by the client:
 
 ```typescript
 type RouteManifest = {
@@ -93,35 +92,37 @@ type RouteManifest = {
 ```
 
 This manifest powers:
-- **Static page generation** (one HTML file per route)
-- **Sidebar navigation** (embedded in each page's HTML)
+- **Client-side routing** (React Router or similar)
+- **Sidebar navigation** (generated from navTree)
 - **Table of Contents** (extracted from headings in MDX)
 
 ---
 
 ## 3. Rendering System
 
-### 3.1 Page Lifecycle (Static Generation)
+### 3.1 Page Lifecycle
 
 ```mermaid
 graph LR
-    A[Scan MDX Files] --> B[Compile to React Components]
-    B --> C[Render DocShell + Page]
-    C --> D[Generate Static HTML]
-    D --> E[Emit HTML Files]
+    A[Route Match] --> B[Load Route Manifest]
+    B --> C[Import Virtual Module]
+    C --> D[Render DocShell]
+    D --> E[Inject Page Component]
+    E --> F[Render Sidebar + ToC]
 ```
 
 ### 3.2 Virtual Modules
 
 Vite virtual modules are used to inject generated content at build time:
 
-- `virtual:clarify-routes` — exports the route manifest for static generation.
+- `virtual:clarify-routes` — exports the route manifest and a `Routes` component.
+- `virtual:clarify-api` — exports parsed OpenAPI operations as typed JSON.
 - `virtual:clarify-config` — exports resolved plugin options.
 
 ```typescript
-// Used during static generation
-import { routes } from 'virtual:clarify-routes';
-import { config } from 'virtual:clarify-config';
+// Inside the app
+import { Routes } from 'virtual:clarify-routes';
+import { apiOperations } from 'virtual:clarify-api';
 ```
 
 ### 3.3 Component Mapping
@@ -135,7 +136,8 @@ MDX components are mapped to `@clarify/renderer` primitives via an `MDXProvider`
 | `table` | `DataTable` (styled, responsive) |
 | `a` | `SmartLink` (internal vs external routing) |
 | `img` | `Image` (lazy loading, captions) |
-| Custom JSX | User-defined via `components` option (Phase 2) |
+| `<OpenAPI>` | `OpenAPI` (embedded API reference, see §1.2) |
+| Custom JSX | User-defined via `components` option |
 
 ---
 
@@ -187,12 +189,12 @@ clarifyPlugin({
 ### 5.1 Design Goals
 
 - **Fast**: Instant results, no server required.
-- **Accurate**: Full-text search across MDX content (OpenAPI descriptions in Phase 2).
+- **Accurate**: Full-text search across MDX content and OpenAPI descriptions.
 - **Small**: Search index generated at build time, loaded on demand.
 
 ### 5.2 Implementation Strategy
 
-1. **Index Generation**: At build time, extract text from all MDX pages. Build a compressed inverted index (e.g., using `minisearch` or `flexsearch`). OpenAPI operations will be indexed in Phase 2.
+1. **Index Generation**: At build time, extract text from all MDX pages and OpenAPI operations. Build a compressed inverted index (e.g., using `minisearch` or `flexsearch`).
 2. **Client-Side Search**: Load the index as a JSON asset. Execute queries entirely in the browser using a lightweight search library.
 3. **UI**: Command palette-style modal (`Cmd+K`) with grouped results (Pages, API, Headings).
 
@@ -219,13 +221,14 @@ type SearchDoc = {
 |-------------|----------|
 | MDX content edit | Full page HMR, preserves scroll position |
 | Frontmatter edit | Rebuilds route manifest, updates nav/ToC |
+| OpenAPI spec edit | Regenerates API pages, updates type definitions |
 | Renderer component edit | Component-level HMR via Vite |
 | Plugin config edit | Requires dev server restart (expected) |
 
 ### 6.2 Error Handling
 
 - **MDX syntax errors**: Display a friendly overlay with line numbers (via Vite's error overlay).
-- **Build errors**: Failed static renders are surfaced with page path and stack trace.
+- **Invalid OpenAPI**: Show a warning in the console + a fallback page listing validation errors.
 - **Missing frontmatter**: Use sensible defaults (title from first `# heading`, auto-generated description).
 
 ### 6.3 Build Optimizations
@@ -246,6 +249,9 @@ type ClarifyPluginOptions = {
   /** Root directory for MDX content. Default: 'source/content' */
   docsRoot?: string;
 
+  /** Path to OpenAPI spec. Parsed once and exposed as virtual:clarify-openapi. Default: undefined */
+  openApi?: string;
+
   /** Base path for the docs site. Default: '/' */
   base?: string;
 
@@ -255,14 +261,11 @@ type ClarifyPluginOptions = {
   /** Languages for i18n. Default: ['en'] */
   locales?: string[];
 
-  /** Custom components to inject into MDX scope. Default: {} (Phase 2) */
+  /** Custom components to inject into MDX scope. Default: {} */
   components?: Record<string, React.ComponentType>;
 
-  /** Transform frontmatter before processing. (Phase 2) */
+  /** Transform frontmatter before processing. */
   transformFrontmatter?: (frontmatter: Record<string, unknown>, path: string) => Record<string, unknown>;
-
-  /** Path to OpenAPI spec. Parsed once and exposed as virtual:clarify-openapi. (Phase 2) */
-  openApi?: string;
 };
 ```
 
@@ -440,7 +443,7 @@ export function searchPlugin(): ClarifyPlugin {
 | `vite` | Plugin API, dev server, build pipeline |
 | `@mdx-js/rollup` | MDX compilation |
 | `react` / `react-dom` | UI framework |
-| `react-dom/server` | Static HTML rendering at build time |
+| `react-router-dom` | Client-side routing (or TanStack Router) |
 
 ### Build-Time Dependencies
 
