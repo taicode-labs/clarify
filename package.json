@@ -1,0 +1,20 @@
+{
+  "name": "clarify",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An open-source documentation publishing tool built for MDX and OpenAPI.",
+  "scripts": {
+    "dev": "pnpm --filter @clarify/docs dev",
+    "dev:docs": "pnpm --filter @clarify/docs dev",
+    "dev:www": "pnpm --filter @clarify/www dev",
+    "build": "pnpm --recursive --if-present build",
+    "typecheck": "pnpm --recursive --if-present typecheck",
+    "lint": "pnpm --recursive --if-present lint",
+    "test": "pnpm --recursive --if-present test"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
