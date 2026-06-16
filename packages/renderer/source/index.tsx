@@ -1,3 +1,4 @@
+import './styles.css';
 import type { ReactNode } from 'react';
 import type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions } from './types';
 import { AppShell } from './App';

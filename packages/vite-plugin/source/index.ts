@@ -17,6 +17,8 @@ export * from './types.js'
 
 const VIRTUAL_CONFIG = 'virtual:clarify-config'
 const VIRTUAL_ROUTES = 'virtual:clarify-routes'
+const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-client-entry'
+const CLIENT_ENTRY_PATH = '/@clarify/entry-client'
 
 function createVirtualModulePlugin(
   resolved: ReturnType<typeof resolveOptions>,
@@ -27,7 +29,7 @@ function createVirtualModulePlugin(
     name: 'clarify:virtual',
     enforce: 'pre',
     resolveId(id) {
-      if (id === VIRTUAL_CONFIG || id === VIRTUAL_ROUTES) {
+      if (id === VIRTUAL_CONFIG || id === VIRTUAL_ROUTES || id === VIRTUAL_CLIENT_ENTRY || id === CLIENT_ENTRY_PATH) {
         return id
       }
       if (pageMap.has(id)) {
@@ -42,6 +44,12 @@ function createVirtualModulePlugin(
       if (id === VIRTUAL_ROUTES) {
         // TODO: invoke hooks 'routes:resolved' here in future
         return generateRoutesModule(routes)
+      }
+      if (id === VIRTUAL_CLIENT_ENTRY || id === CLIENT_ENTRY_PATH) {
+        return `import { render } from '@clarify/renderer';
+import { routes, navigation } from '${VIRTUAL_ROUTES}';
+import { config } from '${VIRTUAL_CONFIG}';
+render({ config, routes, navigation });`
       }
       const filePath = pageMap.get(id)
       if (filePath) {
@@ -79,9 +87,9 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
 
   const clarifyCorePlugin: Plugin = {
     name: 'clarify:core',
-    enforce: 'pre',
     config() {
       return {
+        root: '.',
         base: resolved.routeBase,
         build: {
           outDir: resolved.outputDirectory,
@@ -94,6 +102,18 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
     },
     resolveId: virtualModulePlugin.resolveId,
     load: virtualModulePlugin.load,
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        return {
+          html: html.replace(
+            '</body>',
+            `  <script type="module" src="${CLIENT_ENTRY_PATH}"></script>\n  </body>`
+          ),
+          tags: []
+        }
+      }
+    },
     async closeBundle() {
       // ── Phase 1: Static HTML Generation ──
       if (process.env.SKIP_CLARIFY_SSG) {
