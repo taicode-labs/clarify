@@ -13,8 +13,9 @@
     "jsx": "react-jsx",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "dist"
+    "rootDir": "./source",
+    "outDir": "output"
   },
-  "include": ["source"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["source/**/*"],
+  "exclude": ["node_modules", "output"]
 }

@@ -1,0 +1,85 @@
+# 路由规则
+
+Clarify 使用**约定式文件路由**——按照 `source/content` 目录下的文件结构自动生成路由，无需手动配置。
+
+---
+
+## 基本规则
+
+| 文件路径 | 路由路径 |
+|----------|----------|
+| `source/content/index.mdx` | `/` |
+| `source/content/getting-started.mdx` | `/getting-started` |
+| `source/content/guide/installation.mdx` | `/guide/installation` |
+| `source/content/guide/theming.mdx` | `/guide/theming` |
+
+### 索引文件
+
+名为 `index.mdx` 的文件会映射为对应目录的根路径：
+
+```
+source/content/
+├── index.mdx           → /
+├── guide/
+│   ├── index.mdx       → /guide
+│   └── advanced.mdx    → /guide/advanced
+```
+
+### 嵌套目录
+
+子目录会自动反映为 URL 的嵌套路径：
+
+```
+source/content/
+├── api/
+│   ├── index.mdx       → /api
+│   ├── users.mdx       → /api/users
+│   └── posts.mdx       → /api/posts
+```
+
+---
+
+## 文件命名约定
+
+- 文件名中使用连字符 `-` 分隔单词，路由会自动保留：
+  - `getting-started.mdx` → `/getting-started`
+  - `error-handling.mdx` → `/error-handling`
+- 仅支持 `.mdx` 文件，普通 `.md` 文件会被忽略
+- 目录和文件名区分大小写，但建议使用全小写
+
+---
+
+## 特殊文件
+
+### 隐藏页面
+
+在 Phase 2 中，你可以在 frontmatter 中标记页面为隐藏：
+
+```mdx
+---
+title: Draft
+hidden: true
+---
+
+这是隐藏页面，不会出现在导航中，但可以通过 URL 直接访问。
+```
+
+---
+
+## 路由基础路径
+
+如果你的站点部署在子路径下（例如 GitHub Pages 的项目站点），可以通过 `routeBase` 配置调整：
+
+**clarify.json**
+
+```json
+{
+  "routeBase": "/clarify/"
+}
+```
+
+此时所有路由都会自动加上前缀：
+- `/` → `/clarify/`
+- `/getting-started` → `/clarify/getting-started`
+
+客户端路由和静态资源路径会自动同步调整。

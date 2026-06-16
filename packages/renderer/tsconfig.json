@@ -13,8 +13,8 @@
     "jsx": "react-jsx",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "dist"
+    "outDir": "output"
   },
-  "include": ["source"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["source/**/*"],
+  "exclude": ["node_modules", "output"]
 }

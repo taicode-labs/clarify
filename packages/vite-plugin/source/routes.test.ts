@@ -77,7 +77,7 @@ describe('generateConfigModule', () => {
       routeBase: '/',
       theme: { primary: '#fff' },
       docRoot: 'source/content',
-      outPath: 'dist',
+      outPath: 'output',
     };
     const code = generateConfigModule(config);
     expect(code).toBe(`export const config = ${JSON.stringify(config)};`);

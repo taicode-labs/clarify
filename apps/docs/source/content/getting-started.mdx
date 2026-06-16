@@ -1,21 +1,119 @@
-# Getting Started
+# 快速开始
 
-Learn how to use Clarify for your documentation.
+从零开始搭建一个 Clarify 文档站点。
 
-## Installation
+---
+
+## 前置条件
+
+- Node.js ≥ 20
+- pnpm ≥ 9
+
+---
+
+## 安装
+
+### 1. 创建项目
 
 ```bash
-pnpm install @clarify/vite-plugin
+mkdir my-docs && cd my-docs
+pnpm init
 ```
 
-## Setup
+### 2. 安装依赖
 
-Add the plugin to your `vite.config.ts`:
+```bash
+pnpm add -D vite react react-dom react-router-dom @vitejs/plugin-react @tailwindcss/vite typescript
+pnpm add -D @clarify/vite-plugin @clarify/renderer
+```
+
+### 3. 创建配置文件
+
+**vite.config.ts**
 
 ```typescript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { clarifyPlugin } from '@clarify/vite-plugin';
 
 export default defineConfig({
-  plugins: [clarifyPlugin()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    clarifyPlugin(),
+  ],
 });
 ```
+
+**clarify.json**（放在项目根目录）
+
+```json
+{
+  "title": "我的文档",
+  "description": "基于 Clarify 构建的文档站点"
+}
+```
+
+### 4. 创建入口文件
+
+**index.html**
+
+```html
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>我的文档</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/source/main.tsx"></script>
+  </body>
+</html>
+```
+
+**source/main.tsx**
+
+```typescript
+import { render } from '@clarify/renderer';
+import { routes } from 'virtual:clarify-routes';
+import { config } from 'virtual:clarify-config';
+
+render({ config, routes });
+```
+
+### 5. 编写文档
+
+在 `source/content` 目录下创建 `.mdx` 文件：
+
+```bash
+mkdir -p source/content
+echo "# 首页\n\n欢迎来到我的文档！" > source/content/index.mdx
+echo "# 指南\n\n这是指南页面。" > source/content/guide.mdx
+```
+
+### 6. 启动开发服务器
+
+```bash
+npx vite
+```
+
+打开浏览器访问 `http://localhost:5173` 即可看到你的文档站点。
+
+---
+
+## 生产构建
+
+```bash
+npx vite build
+```
+
+构建产物输出到 `output/` 目录，可直接部署到任何静态托管服务（Vercel、Netlify、GitHub Pages 等）。
+
+---
+
+## 下一步
+
+- 了解 [配置系统](/configuration) — 如何自定义站点标题、主题、路由等
+- 了解 [路由规则](/routing) — 文件如何映射为 URL

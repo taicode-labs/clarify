@@ -2,30 +2,30 @@
   "name": "@clarify/renderer",
   "version": "0.1.0",
   "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "output/index.cjs",
+  "module": "output/index.js",
+  "types": "output/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.js"
+      "types": "./output/index.d.ts",
+      "import": "./output/index.js",
+      "require": "./output/index.cjs",
+      "default": "./output/index.js"
     },
     "./server": {
-      "types": "./dist/server.d.ts",
-      "import": "./dist/server.js",
-      "require": "./dist/server.cjs",
-      "default": "./dist/server.js"
+      "types": "./output/server.d.ts",
+      "import": "./output/server.js",
+      "require": "./output/server.cjs",
+      "default": "./output/server.js"
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist"
+    "output"
   ],
   "scripts": {
-    "dev": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts --watch",
-    "build": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts",
+    "dev": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts --watch --outDir output",
+    "build": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts --outDir output",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepare": "pnpm build"
   },

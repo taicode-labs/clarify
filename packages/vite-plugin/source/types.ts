@@ -34,7 +34,7 @@ export type ClarifyPluginOptions = {
   /** Base path for the docs site. Overrides clarify.json if set. Default: '/' */
   routeBase?: string;
 
-  /** Output directory for the built docs site. Overrides Vite's build.outDir. Default: 'dist' */
+  /** Output directory for the built docs site. Overrides Vite's build.outDir. Default: 'output' */
   outPath?: string;
 
   /** Custom include/exclude filters for MDX processing. */

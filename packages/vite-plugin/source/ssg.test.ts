@@ -36,7 +36,7 @@ describe('injectSSRIntoTemplate', () => {
     routeBase: '/',
     theme: {},
     docRoot: 'source/content',
-    outPath: 'dist',
+    outPath: 'output',
   };
 
   const baseTemplate = `<!doctype html>

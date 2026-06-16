@@ -54,7 +54,7 @@ describe('resolveOptions', () => {
       routeBase: '/',
       theme: {},
       docRoot: 'source/content',
-      outPath: 'dist',
+      outPath: 'output',
     });
   });
 

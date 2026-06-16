@@ -1,9 +1,70 @@
-# Welcome to Clarify
+# Clarify
 
-This is the home page powered by Clarify.
+开源文档发布工具，为 MDX 和 OpenAPI 而生。
 
-## Features
+Clarify 让你用熟悉的 Markdown + React 组件编写文档，自动生成为 SEO 友好的静态站点。
 
-- **MDX** support with React components
-- **OpenAPI** integration
-- **File-based routing**
+---
+
+## 核心特性
+
+| 特性 | 说明 |
+|------|------|
+| **MDX 支持** | 在 Markdown 中直接使用 React 组件，支持代码高亮、自定义组件 |
+| **文件路由** | 按照文件目录结构自动生成路由，无需手动配置 |
+| **静态生成 (SSG)** | 构建时为每个页面生成独立的 HTML，首屏加载快且对搜索引擎友好 |
+| **客户端 Hydration** | 首屏静态渲染后，React 接管为单页应用，后续导航无刷新 |
+| **Tailwind CSS** | 内置样式系统，支持主题定制 |
+| **OpenAPI 集成** | 内嵌 API 文档（Phase 2） |
+
+---
+
+## 快速预览
+
+一个典型的 Clarify 文档站点只需两个文件：
+
+**vite.config.ts**
+
+```typescript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import { clarifyPlugin } from '@clarify/vite-plugin';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(),
+    clarifyPlugin(),
+  ],
+});
+```
+
+**clarify.json**
+
+```json
+{
+  "title": "我的文档",
+  "description": "这是 Clarify 驱动的文档站点"
+}
+```
+
+然后在 `source/content` 目录下编写 `.mdx` 文件，Clarify 会自动为你生成路由和页面。
+
+---
+
+## 适合谁用
+
+- **开源项目维护者** — 需要为项目编写文档，希望文档和代码在同一个仓库
+- **技术写作者** — 习惯 Markdown，偶尔需要在文档中嵌入交互组件
+- **团队知识库** — 快速搭建内部文档站点，支持自定义主题
+
+---
+
+## 技术栈
+
+- React 19 + React Router DOM 7
+- Tailwind CSS 4
+- Vite 8
+- MDX 3
+- TypeScript 5（严格模式）

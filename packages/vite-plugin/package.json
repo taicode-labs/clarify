@@ -2,23 +2,23 @@
   "name": "@clarify/vite-plugin",
   "version": "0.1.0",
   "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "output/index.cjs",
+  "module": "output/index.js",
+  "types": "output/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.js"
+      "types": "./output/index.d.ts",
+      "import": "./output/index.js",
+      "require": "./output/index.cjs",
+      "default": "./output/index.js"
     }
   },
   "files": [
-    "dist"
+    "output"
   ],
   "scripts": {
-    "dev": "tsup source/index.ts --format esm,cjs --dts --watch --external @clarify/renderer/server --external react/jsx-runtime",
-    "build": "tsup source/index.ts --format esm,cjs --dts --external @clarify/renderer/server --external react/jsx-runtime",
+    "dev": "tsup source/index.ts --format esm,cjs --dts --watch --outDir output --external @clarify/renderer/server --external react/jsx-runtime",
+    "build": "tsup source/index.ts --format esm,cjs --dts --outDir output --external @clarify/renderer/server --external react/jsx-runtime",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
