@@ -1,10 +1,10 @@
-import { existsSync, readFileSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { build } from 'vite';
-import type { Plugin, InlineConfig } from 'vite';
+import type { Plugin } from 'vite';
 import type { ResolvedClarifyOptions, MdxRoute } from './types.js';
 import { escapeHtml } from './utils.js';
 

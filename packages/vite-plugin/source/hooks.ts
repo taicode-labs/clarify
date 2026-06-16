@@ -13,7 +13,7 @@ export async function runHooks<K extends keyof ClarifyHooks>(
     try {
       result = await hook(result, ctx);
     } catch (err) {
-      throw new Error(`[clarify] plugin "${plugin.name}" hook "${hookName}" failed: ${err}`);
+      throw new Error(`[clarify] plugin "${plugin.name}" hook "${hookName}" failed: ${err}`, { cause: err });
     }
   }
   return result;
