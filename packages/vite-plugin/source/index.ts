@@ -1,8 +1,14 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join, relative } from 'node:path';
-import type { Plugin } from 'vite';
+import { existsSync, readFileSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join, relative, dirname } from 'node:path';
+import { createRequire } from 'node:module';
+import { Script } from 'node:vm';
+
+import type { Plugin, ResolvedConfig } from 'vite';
 import mdxPlugin from '@mdx-js/rollup';
 import type { FilterPattern } from 'vite';
+import { compile } from '@mdx-js/mdx';
+
+const _require = createRequire(import.meta.url);
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Types
@@ -222,6 +228,7 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
 
   const plugins = options.plugins ?? [];
   const ctx: ClarifyHookContext = { config: resolved };
+  let viteConfig: ResolvedConfig;
 
   const clarifyPlugin: Plugin = {
     name: 'clarify:core',
@@ -230,6 +237,7 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
       return {
         build: {
           outDir: resolved.outPath,
+          manifest: true,
         },
         define: {
           __CLARIFY_DOCS_ROOT__: JSON.stringify(resolved.docRoot),
@@ -237,6 +245,9 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
           __CLARIFY_BASE__: JSON.stringify(resolved.routeBase),
         },
       };
+    },
+    configResolved(config) {
+      viteConfig = config;
     },
     resolveId(id) {
       if (id === VIRTUAL_CONFIG || id === VIRTUAL_ROUTES) {
@@ -262,7 +273,104 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
       }
       return null;
     },
-    async buildEnd() {
+    async closeBundle() {
+      // ── Phase 1: Static HTML Generation ──
+      if (process.env.SKIP_CLARIFY_SSG) {
+        await runHooks(plugins, 'build:done', undefined as any, ctx);
+        return;
+      }
+
+      const outDir = viteConfig.build.outDir;
+      const manifestPath = join(outDir, '.vite', 'manifest.json');
+
+      // 1. Load renderToHTML via plain Node ESM (no ssrLoadModule needed)
+      // @ts-ignore resolved at runtime via Node ESM
+      const { renderToHTML } = await import('@clarify/renderer/server');
+
+      // 2. Compile MDX files to function-body and evaluate into React components
+      // @ts-ignore resolved at runtime via Node ESM
+      const jsxRuntime = await import('react/jsx-runtime');
+
+      let routeComponents: Array<{ path: string; component: any }> = [];
+      try {
+        for (const route of routes) {
+          const mdxSource = readFileSync(route.filePath, 'utf-8');
+          const compiled = await compile(mdxSource, {
+            jsxImportSource: 'react',
+            outputFormat: 'function-body',
+          });
+          const code = String(compiled.value).replace(/arguments\[0\]/g, '__mdx_args');
+          const script = new Script(`(function(__mdx_args) { "use strict"; ${code} })({ jsx: jsx, jsxs: jsxs, Fragment: Fragment })`);
+          const mod = script.runInNewContext({
+            jsx: jsxRuntime.jsx,
+            jsxs: jsxRuntime.jsxs,
+            Fragment: jsxRuntime.Fragment,
+          });
+          routeComponents.push({
+            path: route.path,
+            component: (mod as any)?.default ?? (mod as any),
+          });
+        }
+      } catch (err) {
+        console.error('[clarify] Failed to compile/evaluate MDX route modules:', err);
+        await runHooks(plugins, 'build:done', undefined as any, ctx);
+        return;
+      }
+
+      // 3. Read build manifest for client asset paths
+      let clientJsPath = '/source/main.tsx';
+      let clientCssPath: string | undefined;
+      if (existsSync(manifestPath)) {
+        try {
+          const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+          const entry = manifest['index.html'];
+          if (entry) {
+            clientJsPath = '/' + entry.file;
+            if (entry.css?.[0]) {
+              clientCssPath = '/' + entry.css[0];
+            }
+          }
+        } catch {
+          // Fallback: keep default paths
+        }
+      }
+
+      // 4. Render each route to static HTML
+      for (const route of routeComponents) {
+        try {
+          const appHtml = renderToHTML({
+            config: resolved,
+            routes: routeComponents,
+            url: route.path,
+          });
+
+          const cssLink = clientCssPath
+            ? `<link rel="stylesheet" crossorigin href="${clientCssPath}">`
+            : '';
+
+          const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(resolved.title)}</title>
+    ${resolved.description ? `<meta name="description" content="${escapeHtml(resolved.description)}" />` : ''}
+    ${cssLink}
+  </head>
+  <body>
+    <div id="root">${appHtml}</div>
+    <script type="module" src="${clientJsPath}"></script>
+  </body>
+</html>`;
+
+          const outFile = join(outDir, route.path, 'index.html');
+          mkdirSync(dirname(outFile), { recursive: true });
+          writeFileSync(outFile, html, 'utf-8');
+        } catch (err) {
+          console.error(`[clarify] Failed to render route "${route.path}":`, err);
+        }
+      }
+
       await runHooks(plugins, 'build:done', undefined as any, ctx);
     },
   };
@@ -274,6 +382,15 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
   });
 
   return [clarifyPlugin, mdx];
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 export type { Plugin } from 'vite';

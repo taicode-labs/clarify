@@ -10,13 +10,19 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
-    }
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js",
+      "require": "./dist/server.cjs"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup source/index.tsx --format esm,cjs --dts",
+    "build": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "peerDependencies": {

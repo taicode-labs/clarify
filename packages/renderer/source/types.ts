@@ -21,7 +21,7 @@ export type RenderOptions = {
   /** 从 virtual:clarify-routes 导入的路由数组 */
   routes: RouteItem[];
   /** 挂载节点，默认 document.getElementById('root') */
-  container?: Element | DocumentFragment | null;
+  container?: Element | null;
 };
 
 export type ServerRenderOptions = {
