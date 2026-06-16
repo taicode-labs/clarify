@@ -2,6 +2,8 @@ import { rmSync } from 'node:fs'
 import { join } from 'node:path'
 
 import mdxPlugin from '@mdx-js/rollup'
+import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
@@ -19,19 +21,23 @@ export * from './types.js'
 
 const VIRTUAL_CONFIG = 'virtual:clarify-config'
 const VIRTUAL_ROUTES = 'virtual:clarify-routes'
-const CLIENT_ENTRY_PATH = '/@clarify/entry-client'
+const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-entry-client'
+const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 
-const CLIENT_ENTRY_CODE = `import { render } from '@clarify/renderer';
+// The client entry imports renderer's source CSS via the package's "./style.css"
+// export. This path is resolved by Node/Vite via package.json exports to
+// @clarify/renderer/source/styles.css, which contains `@import "tailwindcss"`.
+// Importing it here ensures @tailwindcss/vite (configured in the consumer's
+// Vite config) processes it through the full Tailwind pipeline (theme,
+// content scanning) — instead of using a pre-built CSS file that would lose
+// those capabilities.
+const CLIENT_ENTRY_CODE = `
+import '@clarify/renderer/style.css';
+import { render } from '@clarify/renderer';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
 render({ config, routes, navigation });`
 
-function isVirtualId(id: string, routes: ReturnType<typeof findMdxFiles>): boolean {
-  if (id === VIRTUAL_CONFIG || id === VIRTUAL_ROUTES || id === CLIENT_ENTRY_PATH) {
-    return true
-  }
-  return routes.some(r => r.virtualModuleId === id)
-}
 
 function loadVirtualModule(id: string, projectConfig: ResolvedProjectConfig, generateOptions: ResolvedGenerateOptions, routes: ReturnType<typeof findMdxFiles>,): string | null {
   if (id === VIRTUAL_CONFIG) {
@@ -40,7 +46,7 @@ function loadVirtualModule(id: string, projectConfig: ResolvedProjectConfig, gen
   if (id === VIRTUAL_ROUTES) {
     return generateRoutesModule(routes, projectConfig.pages)
   }
-  if (id === CLIENT_ENTRY_PATH) {
+  if (id === VIRTUAL_CLIENT_ENTRY || id === RESOLVED_CLIENT_ENTRY) {
     return CLIENT_ENTRY_CODE
   }
   const route = routes.find(r => r.virtualModuleId === id)
@@ -85,20 +91,33 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       }
     },
     resolveId(id) {
-      return isVirtualId(id, routes) ? id : null
+      if (id === VIRTUAL_CLIENT_ENTRY || id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
+      if (id === VIRTUAL_CONFIG) return id
+      if (id === VIRTUAL_ROUTES) return id
+      const route = routes.find(r => r.virtualModuleId === id)
+      if (route) return id
+      return null
     },
     load(id) {
       return loadVirtualModule(id, projectConfig, generateOptions, routes)
     },
     transformIndexHtml: {
-      order: 'post',
-      handler(html) {
+      order: 'pre',
+      handler(html, ctx) {
+        // In dev mode, use /@id/ prefix so Vite dev server can resolve the virtual module.
+        // In build mode, use the bare virtual: ID so Vite's HTML build pipeline resolves it via resolveId.
+        const src = ctx.server
+          ? `/@id/${VIRTUAL_CLIENT_ENTRY}`
+          : VIRTUAL_CLIENT_ENTRY
         return {
-          html: html.replace(
-            '</body>',
-            `  <script type="module" src="${CLIENT_ENTRY_PATH}"></script>\n  </body>`
-          ),
-          tags: []
+          html,
+          tags: [
+            {
+              tag: 'script',
+              attrs: { type: 'module', src },
+              injectTo: 'body',
+            },
+          ],
         }
       }
     },
@@ -117,7 +136,19 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
         tempEntryPath = createTempEntryFile(SSR_ENTRY_CODE)
 
         await buildSSRBundle(root, tempEntryPath, ssrOutputDir, [
-          { name: 'clarify:virtual-ssg', resolveId: id => isVirtualId(id, routes) ? id : null, load: id => loadVirtualModule(id, projectConfig, generateOptions, routes) },
+          {
+            name: 'clarify:virtual-ssg',
+            resolveId(id) {
+              if (id === VIRTUAL_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
+              if (id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
+              if (id === VIRTUAL_CONFIG) return id
+              if (id === VIRTUAL_ROUTES) return id
+              const route = routes.find(r => r.virtualModuleId === id)
+              if (route) return id
+              return null
+            },
+            load: id => loadVirtualModule(id, projectConfig, generateOptions, routes),
+          },
           mdx,
         ])
 
@@ -139,7 +170,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
     },
   }
 
-  return [clarifyCorePlugin, mdx]
+  return [react(), tailwindcss(), clarifyCorePlugin, mdx].flat().filter(Boolean) as Plugin[]
 }
 
 export type { Plugin } from 'vite'

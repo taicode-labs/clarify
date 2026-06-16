@@ -18,18 +18,18 @@
       "require": "./output/server.cjs",
       "default": "./output/server.js"
     },
+    "./style.css": "./output/renderer.css",
     "./package.json": "./package.json"
   },
   "files": [
     "output"
   ],
   "scripts": {
-    "dev": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts --watch --outDir output --external tailwindcss",
-    "build": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts --outDir output --external tailwindcss",
+    "dev": "vite build --watch",
+    "build": "vite build",
     "lint": "eslint source/",
     "lint:fix": "eslint source/ --fix",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepare": "pnpm build"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -37,12 +37,16 @@
     "react-router-dom": "^7.0.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.1.11",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^5.0.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.0",
-    "tsup": "^8.5.0",
-    "typescript": "^5.8.3"
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3",
+    "vite": "^8.0.15",
+    "vite-plugin-dts": "^4.5.4"
   }
 }

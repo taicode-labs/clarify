@@ -17,8 +17,8 @@
     "output"
   ],
   "scripts": {
-    "dev": "tsup source/index.ts --format esm,cjs --dts --watch --outDir output --external @clarify/renderer/server --external react/jsx-runtime",
-    "build": "tsup source/index.ts --format esm,cjs --dts --outDir output --external @clarify/renderer/server --external react/jsx-runtime",
+    "dev": "vite build --watch",
+    "build": "vite build",
     "lint": "eslint source/",
     "lint:fix": "eslint source/ --fix",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -27,12 +27,14 @@
   },
   "dependencies": {
     "@mdx-js/rollup": "^3.1.1",
+    "@tailwindcss/vite": "^4.1.11",
+    "@vitejs/plugin-react": "^6.0.2",
     "vite": "^8.0.15"
   },
   "devDependencies": {
     "@mdx-js/mdx": "^3.1.1",
-    "tsup": "^8.5.0",
     "typescript": "^5.8.3",
+    "vite-plugin-dts": "^4.5.4",
     "vitest": "^4.1.9"
   }
 }
