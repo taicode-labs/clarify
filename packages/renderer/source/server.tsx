@@ -1,9 +1,9 @@
-import { StrictMode } from 'react';
-import { renderToString } from 'react-dom/server';
-import { StaticRouter } from 'react-router-dom';
+import { StrictMode } from 'react'
+import { renderToString } from 'react-dom/server'
+import { StaticRouter } from 'react-router-dom'
 
-import { AppShell } from './App';
-import type { ServerRenderOptions } from './types';
+import { AppShell } from './App'
+import type { ServerRenderOptions } from './types'
 
 /**
  * Clarify 服务端渲染入口。
@@ -11,7 +11,7 @@ import type { ServerRenderOptions } from './types';
  * 返回 `div#root` 内部的 HTML，由 vite-plugin 组装为完整的 HTML 文档。
  */
 export function renderToHTML(options: ServerRenderOptions): string {
-  const { config, routes, navigation, url } = options;
+  const { config, routes, navigation, url } = options
 
   return renderToString(
     <StrictMode>
@@ -19,5 +19,5 @@ export function renderToHTML(options: ServerRenderOptions): string {
         <AppShell config={config} routes={routes} navigation={navigation ?? []} />
       </StaticRouter>
     </StrictMode>
-  );
+  )
 }

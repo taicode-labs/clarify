@@ -1,94 +1,94 @@
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { extractFrontmatter } from './frontmatter.js';
-import { findMdxFiles, generateConfigModule, generateRoutesModule, buildNavigation } from './routes.js';
-import type { ResolvedClarifyOptions, MdxRoute } from './types.js';
+import { extractFrontmatter } from './frontmatter.js'
+import { findMdxFiles, generateConfigModule, generateRoutesModule, buildNavigation } from './routes.js'
+import type { ResolvedClarifyOptions, MdxRoute } from './types.js'
 
 describe('findMdxFiles', () => {
-  let tempDir: string;
+  let tempDir: string
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'clarify-test-'));
-  });
+    tempDir = mkdtempSync(join(tmpdir(), 'clarify-test-'))
+  })
 
   afterEach(() => {
-    rmSync(tempDir, { recursive: true, force: true });
-  });
+    rmSync(tempDir, { recursive: true, force: true })
+  })
 
   it('returns empty array when directory does not exist', () => {
-    const result = findMdxFiles(join(tempDir, 'nonexistent'));
-    expect(result).toEqual([]);
-  });
+    const result = findMdxFiles(join(tempDir, 'nonexistent'))
+    expect(result).toEqual([])
+  })
 
   it('discovers flat mdx files', () => {
-    writeFileSync(join(tempDir, 'index.mdx'), '# Home', 'utf-8');
-    writeFileSync(join(tempDir, 'about.mdx'), '# About', 'utf-8');
+    writeFileSync(join(tempDir, 'index.mdx'), '# Home', 'utf-8')
+    writeFileSync(join(tempDir, 'about.mdx'), '# About', 'utf-8')
 
-    const result = findMdxFiles(tempDir);
-    expect(result).toHaveLength(2);
-    expect(result.map(r => r.path)).toContain('/');
-    expect(result.map(r => r.path)).toContain('/about');
-    expect(result.map(r => r.title)).toContain('Home');
-    expect(result.map(r => r.title)).toContain('About');
-  });
+    const result = findMdxFiles(tempDir)
+    expect(result).toHaveLength(2)
+    expect(result.map(r => r.path)).toContain('/')
+    expect(result.map(r => r.path)).toContain('/about')
+    expect(result.map(r => r.title)).toContain('Home')
+    expect(result.map(r => r.title)).toContain('About')
+  })
 
   it('handles nested directories', () => {
-    const guideDir = join(tempDir, 'guide');
-    mkdirSync(guideDir, { recursive: true });
-    writeFileSync(join(tempDir, 'index.mdx'), '# Home', 'utf-8');
-    writeFileSync(join(guideDir, 'getting-started.mdx'), '# GS', 'utf-8');
+    const guideDir = join(tempDir, 'guide')
+    mkdirSync(guideDir, { recursive: true })
+    writeFileSync(join(tempDir, 'index.mdx'), '# Home', 'utf-8')
+    writeFileSync(join(guideDir, 'getting-started.mdx'), '# GS', 'utf-8')
 
-    const result = findMdxFiles(tempDir);
-    expect(result).toHaveLength(2);
-    expect(result.map(r => r.path)).toContain('/');
-    expect(result.map(r => r.path)).toContain('/guide/getting-started');
-    expect(result.map(r => r.title)).toContain('Home');
-    expect(result.map(r => r.title)).toContain('Getting Started');
-  });
+    const result = findMdxFiles(tempDir)
+    expect(result).toHaveLength(2)
+    expect(result.map(r => r.path)).toContain('/')
+    expect(result.map(r => r.path)).toContain('/guide/getting-started')
+    expect(result.map(r => r.title)).toContain('Home')
+    expect(result.map(r => r.title)).toContain('Getting Started')
+  })
 
   it('maps index.mdx to root path', () => {
-    writeFileSync(join(tempDir, 'index.mdx'), '# Home', 'utf-8');
-    const result = findMdxFiles(tempDir);
-    const indexRoute = result.find(r => r.path === '/');
-    expect(indexRoute).toBeDefined();
-    expect(indexRoute?.virtualModuleId).toBe('virtual:clarify-page/index');
-    expect(indexRoute?.title).toBe('Home');
-  });
+    writeFileSync(join(tempDir, 'index.mdx'), '# Home', 'utf-8')
+    const result = findMdxFiles(tempDir)
+    const indexRoute = result.find(r => r.path === '/')
+    expect(indexRoute).toBeDefined()
+    expect(indexRoute?.virtualModuleId).toBe('virtual:clarify-page/index')
+    expect(indexRoute?.title).toBe('Home')
+  })
 
   it('ignores non-mdx files', () => {
-    writeFileSync(join(tempDir, 'readme.txt'), 'text', 'utf-8');
-    writeFileSync(join(tempDir, 'page.md'), '# MD', 'utf-8');
-    const result = findMdxFiles(tempDir);
-    expect(result).toHaveLength(0);
-  });
+    writeFileSync(join(tempDir, 'readme.txt'), 'text', 'utf-8')
+    writeFileSync(join(tempDir, 'page.md'), '# MD', 'utf-8')
+    const result = findMdxFiles(tempDir)
+    expect(result).toHaveLength(0)
+  })
 
   it('generates correct virtualModuleId', () => {
-    const subDir = join(tempDir, 'api', 'auth');
-    mkdirSync(subDir, { recursive: true });
-    writeFileSync(join(subDir, 'login.mdx'), '# Login', 'utf-8');
+    const subDir = join(tempDir, 'api', 'auth')
+    mkdirSync(subDir, { recursive: true })
+    writeFileSync(join(subDir, 'login.mdx'), '# Login', 'utf-8')
 
-    const result = findMdxFiles(tempDir);
-    expect(result).toHaveLength(1);
-    expect(result[0].virtualModuleId).toBe('virtual:clarify-page/api/auth/login');
-  });
+    const result = findMdxFiles(tempDir)
+    expect(result).toHaveLength(1)
+    expect(result[0].virtualModuleId).toBe('virtual:clarify-page/api/auth/login')
+  })
 
   it('extracts frontmatter title', () => {
-    const content = '---\ntitle: My Page\n---\n\n# Hello';
-    writeFileSync(join(tempDir, 'page.mdx'), content, 'utf-8');
-    const result = findMdxFiles(tempDir);
-    expect(result[0].title).toBe('My Page');
-  });
+    const content = '---\ntitle: My Page\n---\n\n# Hello'
+    writeFileSync(join(tempDir, 'page.mdx'), content, 'utf-8')
+    const result = findMdxFiles(tempDir)
+    expect(result[0].title).toBe('My Page')
+  })
 
   it('falls back to filename stem for title', () => {
-    writeFileSync(join(tempDir, 'quick-start.mdx'), '# Hello', 'utf-8');
-    const result = findMdxFiles(tempDir);
-    expect(result[0].title).toBe('Quick Start');
-  });
-});
+    writeFileSync(join(tempDir, 'quick-start.mdx'), '# Hello', 'utf-8')
+    const result = findMdxFiles(tempDir)
+    expect(result[0].title).toBe('Quick Start')
+  })
+})
 
 describe('generateConfigModule', () => {
   it('generates a valid ES module export', () => {
@@ -99,84 +99,84 @@ describe('generateConfigModule', () => {
       theme: { primary: '#fff' },
       documentationRoot: 'source/content',
       outputDirectory: 'output',
-    };
-    const code = generateConfigModule(config);
-    expect(code).toBe(`export const config = ${JSON.stringify(config)};`);
-  });
-});
+    }
+    const code = generateConfigModule(config)
+    expect(code).toBe(`export const config = ${JSON.stringify(config)};`)
+  })
+})
 
 describe('generateRoutesModule', () => {
   it('generates empty routes for empty input', () => {
-    const code = generateRoutesModule([]);
-    expect(code).toContain('export const routes = [');
-    expect(code).toContain('export const navigation = []');
-    expect(code).not.toContain('import');
-  });
+    const code = generateRoutesModule([])
+    expect(code).toContain('export const routes = [')
+    expect(code).toContain('export const navigation = []')
+    expect(code).not.toContain('import')
+  })
 
   it('generates imports and routes array', () => {
     const routes: MdxRoute[] = [
       { path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index' },
       { path: '/about', title: 'About', filePath: '/a/about.mdx', virtualModuleId: 'virtual:clarify-page/about' },
-    ];
-    const code = generateRoutesModule(routes);
-    expect(code).toContain("import Page0 from 'virtual:clarify-page/index';");
-    expect(code).toContain("import Page1 from 'virtual:clarify-page/about';");
-    expect(code).toContain('{ path: "/", title: "Home", component: Page0 }');
-    expect(code).toContain('{ path: "/about", title: "About", component: Page1 }');
-    expect(code).toContain('"title": "About"');
-  });
-});
+    ]
+    const code = generateRoutesModule(routes)
+    expect(code).toContain("import Page0 from 'virtual:clarify-page/index';")
+    expect(code).toContain("import Page1 from 'virtual:clarify-page/about';")
+    expect(code).toContain('{ path: "/", title: "Home", component: Page0 }')
+    expect(code).toContain('{ path: "/about", title: "About", component: Page1 }')
+    expect(code).toContain('"title": "About"')
+  })
+})
 
 describe('extractFrontmatter', () => {
   it('extracts basic frontmatter', () => {
-    const content = '---\ntitle: Hello\ndescription: World\n---\n\n# Body';
-    const fm = extractFrontmatter(content);
-    expect(fm.title).toBe('Hello');
-    expect(fm.description).toBe('World');
-  });
+    const content = '---\ntitle: Hello\ndescription: World\n---\n\n# Body'
+    const fm = extractFrontmatter(content)
+    expect(fm.title).toBe('Hello')
+    expect(fm.description).toBe('World')
+  })
 
   it('returns empty object when no frontmatter', () => {
-    const fm = extractFrontmatter('# Hello');
-    expect(fm).toEqual({});
-  });
+    const fm = extractFrontmatter('# Hello')
+    expect(fm).toEqual({})
+  })
 
   it('trims quotes from values', () => {
-    const content = '---\ntitle: "Quoted"\n---\n';
-    const fm = extractFrontmatter(content);
-    expect(fm.title).toBe('Quoted');
-  });
-});
+    const content = '---\ntitle: "Quoted"\n---\n'
+    const fm = extractFrontmatter(content)
+    expect(fm.title).toBe('Quoted')
+  })
+})
 
 describe('buildNavigation', () => {
   it('returns empty array for only home route', () => {
     const routes: MdxRoute[] = [
       { path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'virtual:clarify-page/index' },
-    ];
-    expect(buildNavigation(routes)).toEqual([]);
-  });
+    ]
+    expect(buildNavigation(routes)).toEqual([])
+  })
 
   it('builds flat navigation', () => {
     const routes: MdxRoute[] = [
       { path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' },
       { path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' },
       { path: '/config', title: 'Config', filePath: 'config.mdx', virtualModuleId: 'v' },
-    ];
-    const tree = buildNavigation(routes);
-    expect(tree).toHaveLength(2);
-    expect(tree.map(n => n.path)).toEqual(['/guide', '/config']);
-    expect(tree[0].title).toBe('Guide');
-  });
+    ]
+    const tree = buildNavigation(routes)
+    expect(tree).toHaveLength(2)
+    expect(tree.map(n => n.path)).toEqual(['/guide', '/config'])
+    expect(tree[0].title).toBe('Guide')
+  })
 
   it('builds nested navigation', () => {
     const routes: MdxRoute[] = [
       { path: '/guide/getting-started', title: 'Getting Started', filePath: 'a.mdx', virtualModuleId: 'v' },
       { path: '/guide/advanced', title: 'Advanced', filePath: 'b.mdx', virtualModuleId: 'v' },
-    ];
-    const tree = buildNavigation(routes);
-    expect(tree).toHaveLength(1);
-    expect(tree[0].path).toBe('/guide');
-    expect(tree[0].title).toBe('Guide');
-    expect(tree[0].children).toHaveLength(2);
-    expect(tree[0].children?.map(c => c.path)).toEqual(['/guide/getting-started', '/guide/advanced']);
-  });
-});
+    ]
+    const tree = buildNavigation(routes)
+    expect(tree).toHaveLength(1)
+    expect(tree[0].path).toBe('/guide')
+    expect(tree[0].title).toBe('Guide')
+    expect(tree[0].children).toHaveLength(2)
+    expect(tree[0].children?.map(c => c.path)).toEqual(['/guide/getting-started', '/guide/advanced'])
+  })
+})

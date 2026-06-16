@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import type { ComponentType } from 'react'
 
 export type NavigationNode = {
   path: string;

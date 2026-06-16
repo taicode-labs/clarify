@@ -1,9 +1,9 @@
-import { StrictMode } from 'react';
-import { hydrateRoot, createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { StrictMode } from 'react'
+import { hydrateRoot, createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 
-import { AppShell } from './App';
-import type { RenderOptions } from './types';
+import { AppShell } from './App'
+import type { RenderOptions } from './types'
 
 /**
  * Clarify 客户端 Hydration 入口。
@@ -16,11 +16,11 @@ import type { RenderOptions } from './types';
  * ```
  */
 export function render(options: RenderOptions) {
-  const { config, routes, navigation, container } = options;
+  const { config, routes, navigation, container } = options
 
-  const target = container ?? document.getElementById('root');
+  const target = container ?? document.getElementById('root')
   if (!target) {
-    throw new Error('[clarify] 渲染失败：找不到挂载节点，请确保 HTML 中存在 id="root" 的元素');
+    throw new Error('[clarify] 渲染失败：找不到挂载节点，请确保 HTML 中存在 id="root" 的元素')
   }
 
   const app = (
@@ -29,7 +29,7 @@ export function render(options: RenderOptions) {
         <AppShell config={config} routes={routes} navigation={navigation ?? []} />
       </BrowserRouter>
     </StrictMode>
-  );
+  )
 
   try {
     hydrateRoot(target as Element, app, {
@@ -38,9 +38,9 @@ export function render(options: RenderOptions) {
         // compilation paths on server (@mdx-js/mdx function-body) vs client
         // (@mdx-js/rollup program). React 19 auto-recovers cleanly.
       },
-    });
+    })
   } catch (err) {
-    console.warn('[clarify] Hydration failed, falling back to client render:', err);
-    createRoot(target as Element).render(app);
+    console.warn('[clarify] Hydration failed, falling back to client render:', err)
+    createRoot(target as Element).render(app)
   }
 }

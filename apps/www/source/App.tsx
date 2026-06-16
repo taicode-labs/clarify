@@ -16,5 +16,5 @@ export default function App() {
         </p>
       </section>
     </main>
-  );
+  )
 }

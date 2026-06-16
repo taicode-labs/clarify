@@ -1,4 +1,4 @@
-import type { FilterPattern } from 'vite';
+import type { FilterPattern } from 'vite'
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Author Config (clarify.json)
