@@ -94,6 +94,9 @@ importers:
       react-router-dom:
         specifier: ^7.0.0
         version: 7.17.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      tailwindcss:
+        specifier: ^4.3.1
+        version: 4.3.1
       tsup:
         specifier: ^8.5.0
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(typescript@5.9.3)

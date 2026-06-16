@@ -6,7 +6,7 @@ import { resolveOptions } from './config.js'
 import { findMdxFiles, generateConfigModule, generateRoutesModule } from './routes.js'
 import { runHooks } from './hooks.js'
 import {
-  generateSSREntryCode,
+  SSR_ENTRY_CODE,
   createTempEntryFile,
   buildSSRBundle,
   renderSSGRoutes,
@@ -17,48 +17,39 @@ export * from './types.js'
 
 const VIRTUAL_CONFIG = 'virtual:clarify-config'
 const VIRTUAL_ROUTES = 'virtual:clarify-routes'
-const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-client-entry'
 const CLIENT_ENTRY_PATH = '/@clarify/entry-client'
 
-function createVirtualModulePlugin(
-  resolved: ReturnType<typeof resolveOptions>,
-  routes: ReturnType<typeof findMdxFiles>,
-  pageMap: Map<string, string>
-): Plugin {
-  return {
-    name: 'clarify:virtual',
-    enforce: 'pre',
-    resolveId(id) {
-      if (id === VIRTUAL_CONFIG || id === VIRTUAL_ROUTES || id === VIRTUAL_CLIENT_ENTRY || id === CLIENT_ENTRY_PATH) {
-        return id
-      }
-      if (pageMap.has(id)) {
-        return id
-      }
-      return null
-    },
-    async load(id) {
-      if (id === VIRTUAL_CONFIG) {
-        return generateConfigModule(resolved)
-      }
-      if (id === VIRTUAL_ROUTES) {
-        // TODO: invoke hooks 'routes:resolved' here in future
-        return generateRoutesModule(routes)
-      }
-      if (id === VIRTUAL_CLIENT_ENTRY || id === CLIENT_ENTRY_PATH) {
-        return `import { render } from '@clarify/renderer';
+const CLIENT_ENTRY_CODE = `import { render } from '@clarify/renderer';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
 render({ config, routes, navigation });`
-      }
-      const filePath = pageMap.get(id)
-      if (filePath) {
-        // TODO: invoke hooks 'page:transform' here in future
-        return `export { default } from '${filePath}';`
-      }
-      return null
-    },
+
+function isVirtualId(id: string, routes: ReturnType<typeof findMdxFiles>): boolean {
+  if (id === VIRTUAL_CONFIG || id === VIRTUAL_ROUTES || id === CLIENT_ENTRY_PATH) {
+    return true
   }
+  return routes.some(r => r.virtualModuleId === id)
+}
+
+function loadVirtualModule(
+  id: string,
+  resolved: ReturnType<typeof resolveOptions>,
+  routes: ReturnType<typeof findMdxFiles>
+): string | null {
+  if (id === VIRTUAL_CONFIG) {
+    return generateConfigModule(resolved)
+  }
+  if (id === VIRTUAL_ROUTES) {
+    return generateRoutesModule(routes)
+  }
+  if (id === CLIENT_ENTRY_PATH) {
+    return CLIENT_ENTRY_CODE
+  }
+  const route = routes.find(r => r.virtualModuleId === id)
+  if (route) {
+    return `export { default } from '${route.filePath}';`
+  }
+  return null
 }
 
 export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
@@ -67,19 +58,10 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
   const documentationRoot = join(root, resolved.documentationRoot)
   const routes = findMdxFiles(documentationRoot)
 
-  // Track which virtual page modules exist
-  const pageMap = new Map<string, string>()
-  for (const route of routes) {
-    pageMap.set(route.virtualModuleId, route.filePath)
-  }
-
   const clarifyPlugins: ClarifyPlugin[] = options.plugins ?? []
   const ctx: ClarifyHookContext = { config: resolved }
   let viteConfig: ResolvedConfig
 
-  const virtualModulePlugin = createVirtualModulePlugin(resolved, routes, pageMap)
-
-  // MDX processing via @mdx-js/rollup
   const mdx = mdxPlugin({
     include: options.include ?? ['**/*.mdx'],
     exclude: options.exclude,
@@ -89,7 +71,6 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
     name: 'clarify:core',
     config() {
       return {
-        root: '.',
         base: resolved.routeBase,
         build: {
           outDir: resolved.outputDirectory,
@@ -100,8 +81,12 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
     configResolved(config) {
       viteConfig = config
     },
-    resolveId: virtualModulePlugin.resolveId,
-    load: virtualModulePlugin.load,
+    resolveId(id) {
+      return isVirtualId(id, routes) ? id : null
+    },
+    load(id) {
+      return loadVirtualModule(id, resolved, routes)
+    },
     transformIndexHtml: {
       order: 'post',
       handler(html) {
@@ -126,11 +111,10 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
       let tempEntryPath: string | undefined
 
       try {
-        const entryCode = generateSSREntryCode()
-        tempEntryPath = createTempEntryFile(entryCode)
+        tempEntryPath = createTempEntryFile(SSR_ENTRY_CODE)
 
         await buildSSRBundle(root, tempEntryPath, ssrOutDir, [
-          virtualModulePlugin,
+          { name: 'clarify:virtual-ssg', resolveId: id => isVirtualId(id, routes) ? id : null, load: id => loadVirtualModule(id, resolved, routes) },
           mdx,
         ])
 

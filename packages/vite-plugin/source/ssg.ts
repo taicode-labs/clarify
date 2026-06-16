@@ -40,15 +40,13 @@ export function injectSSRIntoTemplate(
   return html;
 }
 
-export function generateSSREntryCode(): string {
-  return `import { renderToHTML } from '@clarify/renderer/server';
+export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify/renderer/server';
 import { routes, navigation } from 'virtual:clarify-routes';
 import { config } from 'virtual:clarify-config';
 
 export function render(url) {
   return renderToHTML({ config, routes, navigation, url });
 }`;
-}
 
 export function createTempEntryFile(content: string): string {
   const tempDir = mkdtempSync(join(tmpdir(), 'clarify-ssr-'));
