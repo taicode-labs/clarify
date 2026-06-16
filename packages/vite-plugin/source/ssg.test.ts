@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { readIndexHtml, injectSSRIntoTemplate } from './ssg.js'
-import type { ResolvedClarifyOptions } from './types.js'
+import type { ResolvedProjectConfig} from './types.js'
 
 describe('readIndexHtml', () => {
   let tempDir: string
@@ -32,13 +32,11 @@ describe('readIndexHtml', () => {
 })
 
 describe('injectSSRIntoTemplate', () => {
-  const baseConfig: ResolvedClarifyOptions = {
+  const baseConfig: ResolvedProjectConfig = {
     title: 'Test Docs',
     description: 'A test site',
-    routeBase: '/',
+    routePrefix: '/',
     theme: {},
-    documentationRoot: 'source/content',
-    outputDirectory: 'output',
   }
 
   const baseTemplate = `<!doctype html>

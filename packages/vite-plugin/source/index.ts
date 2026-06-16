@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import mdxPlugin from '@mdx-js/rollup'
 import type { Plugin, ResolvedConfig } from 'vite'
 
-import { resolveOptions } from './config.js'
+import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { runHooks } from './hooks.js'
 import { findMdxFiles, generateConfigModule, generateRoutesModule } from './routes.js'
 import {
@@ -13,7 +13,7 @@ import {
   buildSSRBundle,
   renderSSGRoutes,
 } from './ssg.js'
-import type { ClarifyPluginOptions, ClarifyHookContext, ClarifyPlugin } from './types.js'
+import type { ClarifyGenerateOptions, ClarifyHookContext, ClarifyPlugin, ResolvedProjectConfig, ResolvedGenerateOptions } from './types.js'
 
 export * from './types.js'
 
@@ -33,12 +33,12 @@ function isVirtualId(id: string, routes: ReturnType<typeof findMdxFiles>): boole
   return routes.some(r => r.virtualModuleId === id)
 }
 
-function loadVirtualModule(id: string, resolved: ReturnType<typeof resolveOptions>, routes: ReturnType<typeof findMdxFiles>): string | null {
+function loadVirtualModule(id: string, projectConfig: ResolvedProjectConfig, generateOptions: ResolvedGenerateOptions, routes: ReturnType<typeof findMdxFiles>,): string | null {
   if (id === VIRTUAL_CONFIG) {
-    return generateConfigModule(resolved)
+    return generateConfigModule(projectConfig, generateOptions)
   }
   if (id === VIRTUAL_ROUTES) {
-    return generateRoutesModule(routes, resolved.pages)
+    return generateRoutesModule(routes, projectConfig.pages)
   }
   if (id === CLIENT_ENTRY_PATH) {
     return CLIENT_ENTRY_CODE
@@ -50,14 +50,15 @@ function loadVirtualModule(id: string, resolved: ReturnType<typeof resolveOption
   return null
 }
 
-export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
+export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const root = process.cwd()
-  const resolved = resolveOptions(root, options)
-  const documentationRoot = join(root, resolved.documentationRoot)
+  const projectConfig = resolveProjectConfig(root)
+  const generateOptions = resolveGenerateOptions(options)
+  const documentationRoot = join(root, generateOptions.rootDirectory)
   const routes = findMdxFiles(documentationRoot)
 
   const clarifyPlugins: ClarifyPlugin[] = options.plugins ?? []
-  const ctx: ClarifyHookContext = { config: resolved }
+  const ctx: ClarifyHookContext = { projectConfig, generateOptions }
   let viteConfig: ResolvedConfig
 
   const mdx = mdxPlugin({
@@ -69,9 +70,9 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
     name: 'clarify:core',
     config() {
       return {
-        base: resolved.routeBase,
+        base: projectConfig.routePrefix,
         build: {
-          outDir: resolved.outputDirectory,
+          outDir: generateOptions.outputDirectory,
           manifest: true,
         },
       }
@@ -83,7 +84,7 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
       return isVirtualId(id, routes) ? id : null
     },
     load(id) {
-      return loadVirtualModule(id, resolved, routes)
+      return loadVirtualModule(id, projectConfig, generateOptions, routes)
     },
     transformIndexHtml: {
       order: 'post',
@@ -112,12 +113,12 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
         tempEntryPath = createTempEntryFile(SSR_ENTRY_CODE)
 
         await buildSSRBundle(root, tempEntryPath, ssrOutDir, [
-          { name: 'clarify:virtual-ssg', resolveId: id => isVirtualId(id, routes) ? id : null, load: id => loadVirtualModule(id, resolved, routes) },
+          { name: 'clarify:virtual-ssg', resolveId: id => isVirtualId(id, routes) ? id : null, load: id => loadVirtualModule(id, projectConfig, generateOptions, routes) },
           mdx,
         ])
 
         const ssrBundlePath = join(ssrOutDir, 'entry-server.js')
-        await renderSSGRoutes(routes, resolved, outDir, ssrBundlePath)
+        await renderSSGRoutes(routes, projectConfig, outDir, ssrBundlePath)
       } catch (err) {
         console.error('[clarify] SSG failed:', err)
       } finally {

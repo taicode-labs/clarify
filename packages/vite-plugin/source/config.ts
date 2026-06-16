@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-import type { ClarifyPluginOptions, ClarifyProjectConfig, ResolvedClarifyOptions } from './types.js'
+import type { ClarifyGenerateOptions, ClarifyProjectConfig, ResolvedProjectConfig, ResolvedGenerateOptions } from './types.js'
 
 export function loadProjectConfig(root: string): ClarifyProjectConfig {
   const configPath = join(root, 'clarify.json')
@@ -14,20 +14,25 @@ export function loadProjectConfig(root: string): ClarifyProjectConfig {
   }
 }
 
-export function resolveOptions(root: string, pluginOptions: ClarifyPluginOptions = {}): ResolvedClarifyOptions {
+export function resolveProjectConfig(root: string): ResolvedProjectConfig {
   const projectConfig = loadProjectConfig(root)
   return {
     title: projectConfig.title ?? 'Clarify Docs',
     description: projectConfig.description ?? '',
     logo: projectConfig.logo,
     favicon: projectConfig.favicon,
-    routeBase: pluginOptions.routeBase ?? projectConfig.routeBase ?? '/',
+    routePrefix: projectConfig.routePrefix ?? '/',
     theme: projectConfig.theme ?? {},
-    documentationRoot: pluginOptions.docsRoot ?? 'source/content',
-    outputDirectory: pluginOptions.outPath ?? 'output',
     navbar: projectConfig.navbar,
     banner: projectConfig.banner,
     footer: projectConfig.footer,
     pages: projectConfig.pages,
+  }
+}
+
+export function resolveGenerateOptions(options: ClarifyGenerateOptions = {}): ResolvedGenerateOptions {
+  return {
+    rootDirectory: options.rootDirectory ?? 'source/content',
+    outputDirectory: options.outputDirectory ?? 'output',
   }
 }

@@ -4,12 +4,14 @@ import { runHooks } from './hooks.js'
 import type { ClarifyPlugin, ClarifyHookContext, ClarifyPage } from './types.js'
 
 const mockCtx: ClarifyHookContext = {
-  config: {
+  projectConfig: {
     title: 'Test',
     description: '',
-    routeBase: '/',
+    routePrefix: '/',
     theme: {},
-    documentationRoot: 'source/content',
+  },
+  generateOptions: {
+    rootDirectory: 'source/content',
     outputDirectory: 'output',
   },
 }

@@ -44,7 +44,7 @@ export type ClarifyPagesGroup = {
   pages: ClarifyPagesItem[];
 };
 
-export type ClarifyPagesConfig = ClarifyPagesGroup[];
+export type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree';
 
 export type ClarifyConfig = {
   title: string;
@@ -52,8 +52,8 @@ export type ClarifyConfig = {
   favicon?: ClarifyFaviconConfig;
   theme: { primary?: string };
   description: string;
-  documentationRoot: string;
-  routeBase: string;
+  rootDirectory: string;
+  routePrefix: string;
   outputDirectory: string;
   navbar?: { links?: ClarifyNavbarLink[] };
   banner?: ClarifyBannerConfig;

@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 import { extractFrontmatter } from './frontmatter.js'
-import type { MdxRoute, ResolvedClarifyOptions, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesItem } from './types.js'
+import type { MdxRoute, ResolvedProjectConfig, ResolvedGenerateOptions, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem } from './types.js'
 
 function kebabToTitle(str: string): string {
   return str
@@ -81,8 +81,8 @@ export function buildNavigation(routes: MdxRoute[]): ClarifyNavigationNode[] {
   return root
 }
 
-export function generateConfigModule(config: ResolvedClarifyOptions): string {
-  return `export const config = ${JSON.stringify(config)};`
+export function generateConfigModule(projectConfig: ResolvedProjectConfig, generateOptions: ResolvedGenerateOptions): string {
+  return `export const config = ${JSON.stringify({ ...projectConfig, ...generateOptions })};`
 }
 
 function resolvePageRef(item: ClarifyPagesItem): { pageRef: string; redirect?: string } {
@@ -92,7 +92,7 @@ function resolvePageRef(item: ClarifyPagesItem): { pageRef: string; redirect?: s
 
 export function buildNavigationFromConfig(
   routes: MdxRoute[],
-  config: ClarifyPagesConfig
+  config: ClarifyPagesGroup[]
 ): ClarifyNavigationNode[] {
   const routeMap = new Map(routes.map(r => [r.path, r]))
 
@@ -119,7 +119,7 @@ export function generateRoutesModule(routes: MdxRoute[], pagesConfig?: ClarifyPa
   const imports = routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
   const routesArray = routes.map((r, i) => `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i} }`).join(',\n')
 
-  const navigation = pagesConfig
+  const navigation = pagesConfig && pagesConfig !== 'FileTree'
     ? buildNavigationFromConfig(routes, pagesConfig)
     : buildNavigation(routes)
 

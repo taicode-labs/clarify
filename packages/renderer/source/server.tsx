@@ -15,7 +15,7 @@ export function renderToHTML(options: ServerRenderOptions): string {
 
   return renderToString(
     <StrictMode>
-      <StaticRouter basename={config.routeBase} location={url}>
+      <StaticRouter basename={config.routePrefix} location={url}>
         <AppShell config={config} routes={routes} navigation={navigation ?? []} />
       </StaticRouter>
     </StrictMode>

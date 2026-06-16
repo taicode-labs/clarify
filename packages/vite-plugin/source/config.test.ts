@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { loadProjectConfig, resolveOptions } from './config.js'
+import { loadProjectConfig, resolveProjectConfig, resolveGenerateOptions } from './config.js'
 
 describe('loadProjectConfig', () => {
   let tempDir: string
@@ -23,7 +23,7 @@ describe('loadProjectConfig', () => {
   })
 
   it('parses clarify.json correctly', () => {
-    const config = { title: 'My Docs', description: 'Test docs', routeBase: '/docs' }
+    const config = { title: 'My Docs', description: 'Test docs', routePrefix: '/docs' }
     writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify(config), 'utf-8')
     const result = loadProjectConfig(tempDir)
     expect(result).toEqual(config)
@@ -36,7 +36,7 @@ describe('loadProjectConfig', () => {
   })
 })
 
-describe('resolveOptions', () => {
+describe('resolveProjectConfig', () => {
   let tempDir: string
 
   beforeEach(() => {
@@ -47,16 +47,14 @@ describe('resolveOptions', () => {
     rmSync(tempDir, { recursive: true, force: true })
   })
 
-  it('uses defaults when no config and no options provided', () => {
-    const result = resolveOptions(tempDir)
+  it('uses defaults when no config provided', () => {
+    const result = resolveProjectConfig(tempDir)
     expect(result).toEqual({
       title: 'Clarify Docs',
       description: '',
       logo: undefined,
-      routeBase: '/',
+      routePrefix: '/',
       theme: {},
-      documentationRoot: 'source/content',
-      outputDirectory: 'output',
     })
   })
 
@@ -75,7 +73,7 @@ describe('resolveOptions', () => {
       ] as const,
     }
     writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify(config), 'utf-8')
-    const result = resolveOptions(tempDir)
+    const result = resolveProjectConfig(tempDir)
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
     expect(result.theme).toEqual({ primary: '#333' })
@@ -87,15 +85,23 @@ describe('resolveOptions', () => {
       { group: 'Getting Started', pages: ['index', 'quickstart'] },
       { group: 'Advanced', pages: ['advanced/ssg'] },
     ])
-    expect(result.documentationRoot).toBe('source/content')
+  })
+})
+
+describe('resolveGenerateOptions', () => {
+  it('uses defaults when no options provided', () => {
+    const result = resolveGenerateOptions()
+    expect(result).toEqual({
+      rootDirectory: 'source/content',
+      outputDirectory: 'output',
+    })
   })
 
-  it('plugin options override project config', () => {
-    const config = { title: 'Project Docs', routeBase: '/docs', docsRoot: 'content' }
-    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify(config), 'utf-8')
-    const result = resolveOptions(tempDir, { routeBase: '/api', docsRoot: 'docs' })
-    expect(result.routeBase).toBe('/api')
-    expect(result.documentationRoot).toBe('docs')
-    expect(result.title).toBe('Project Docs')
+  it('applies provided options', () => {
+    const result = resolveGenerateOptions({ rootDirectory: 'docs', outputDirectory: 'dist' })
+    expect(result).toEqual({
+      rootDirectory: 'docs',
+      outputDirectory: 'dist',
+    })
   })
 })

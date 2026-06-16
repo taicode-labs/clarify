@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 import { build } from 'vite'
 import type { Plugin } from 'vite'
 
-import type { ResolvedClarifyOptions, MdxRoute } from './types.js'
+import type { ResolvedProjectConfig, MdxRoute } from './types.js'
 import { escapeHtml } from './utils.js'
 
 export function readIndexHtml(outDir: string): string | undefined {
@@ -19,15 +19,15 @@ export function readIndexHtml(outDir: string): string | undefined {
   }
 }
 
-export function injectSSRIntoTemplate(template: string, appHtml: string, resolved: ResolvedClarifyOptions): string {
+export function injectSSRIntoTemplate(template: string, appHtml: string, projectConfig: ResolvedProjectConfig): string {
   let html = template
 
   // Replace <title>...</title>
-  html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(resolved.title)}</title>`)
+  html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(projectConfig.title)}</title>`)
 
   // Inject description meta if not present and description is set
-  if (resolved.description && !html.includes('name="description"')) {
-    const descriptionMeta = `<meta name="description" content="${escapeHtml(resolved.description)}" />`
+  if (projectConfig.description && !html.includes('name="description"')) {
+    const descriptionMeta = `<meta name="description" content="${escapeHtml(projectConfig.description)}" />`
     html = html.replace('</head>', `  ${descriptionMeta}\n  </head>`)
   }
 
@@ -76,7 +76,7 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
   })
 }
 
-export async function renderSSGRoutes(routes: MdxRoute[], resolved: ResolvedClarifyOptions, outDir: string, ssrBundlePath: string): Promise<void> {
+export async function renderSSGRoutes(routes: MdxRoute[], projectConfig: ResolvedProjectConfig, outDir: string, ssrBundlePath: string): Promise<void> {
   const { render } = await import(pathToFileURL(ssrBundlePath).href)
 
   const template = readIndexHtml(outDir)
@@ -89,7 +89,7 @@ export async function renderSSGRoutes(routes: MdxRoute[], resolved: ResolvedClar
   for (const route of routes) {
     try {
       const appHtml = render(route.path)
-      const finalHtml = injectSSRIntoTemplate(template, appHtml, resolved)
+      const finalHtml = injectSSRIntoTemplate(template, appHtml, projectConfig)
 
       const outFile = join(outDir, route.path, 'index.html')
       mkdirSync(dirname(outFile), { recursive: true })

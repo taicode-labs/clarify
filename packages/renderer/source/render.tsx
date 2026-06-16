@@ -25,7 +25,7 @@ export function render(options: RenderOptions) {
 
   const app = (
     <StrictMode>
-      <BrowserRouter basename={config.routeBase}>
+      <BrowserRouter basename={config.routePrefix}>
         <AppShell config={config} routes={routes} navigation={navigation ?? []} />
       </BrowserRouter>
     </StrictMode>
