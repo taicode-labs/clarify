@@ -15,3 +15,7 @@ declare module 'virtual:clarify-config' {
     outputDirectory: string;
   };
 }
+
+declare module '*.css' {
+  export default string;
+}

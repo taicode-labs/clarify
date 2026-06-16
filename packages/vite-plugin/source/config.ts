@@ -1,5 +1,6 @@
-import { join } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import type { ClarifyPluginOptions, ClarifyProjectConfig, ResolvedClarifyOptions } from './types.js';
 
 export function loadProjectConfig(root: string): ClarifyProjectConfig {
@@ -13,10 +14,7 @@ export function loadProjectConfig(root: string): ClarifyProjectConfig {
   }
 }
 
-export function resolveOptions(
-  root: string,
-  pluginOptions: ClarifyPluginOptions = {}
-): ResolvedClarifyOptions {
+export function resolveOptions(root: string, pluginOptions: ClarifyPluginOptions = {}): ResolvedClarifyOptions {
   const projectConfig = loadProjectConfig(root);
   return {
     title: projectConfig.title ?? 'Clarify Docs',

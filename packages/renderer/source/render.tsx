@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { hydrateRoot, createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+
 import { AppShell } from './App';
 import type { RenderOptions } from './types';
 

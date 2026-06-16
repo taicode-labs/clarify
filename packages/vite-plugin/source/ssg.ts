@@ -1,43 +1,40 @@
-import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { pathToFileURL } from 'node:url';
-import { build } from 'vite';
-import type { Plugin } from 'vite';
-import type { ResolvedClarifyOptions, MdxRoute } from './types.js';
-import { escapeHtml } from './utils.js';
+import { existsSync, readFileSync, mkdirSync, writeFileSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, dirname } from 'node:path'
+import { pathToFileURL } from 'node:url'
+
+import { build } from 'vite'
+import type { Plugin } from 'vite'
+
+import type { ResolvedClarifyOptions, MdxRoute } from './types.js'
+import { escapeHtml } from './utils.js'
 
 export function readIndexHtml(outDir: string): string | undefined {
-  const indexPath = join(outDir, 'index.html');
-  if (!existsSync(indexPath)) return undefined;
+  const indexPath = join(outDir, 'index.html')
+  if (!existsSync(indexPath)) return undefined
   try {
-    return readFileSync(indexPath, 'utf-8');
+    return readFileSync(indexPath, 'utf-8')
   } catch {
-    return undefined;
+    return undefined
   }
 }
 
-export function injectSSRIntoTemplate(
-  template: string,
-  appHtml: string,
-  resolved: ResolvedClarifyOptions
-): string {
-  let html = template;
+export function injectSSRIntoTemplate(template: string, appHtml: string, resolved: ResolvedClarifyOptions): string {
+  let html = template
 
   // Replace <title>...</title>
-  html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(resolved.title)}</title>`);
+  html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(resolved.title)}</title>`)
 
   // Inject description meta if not present and description is set
   if (resolved.description && !html.includes('name="description"')) {
-    const descriptionMeta = `<meta name="description" content="${escapeHtml(resolved.description)}" />`;
-    html = html.replace('</head>', `  ${descriptionMeta}\n  </head>`);
+    const descriptionMeta = `<meta name="description" content="${escapeHtml(resolved.description)}" />`
+    html = html.replace('</head>', `  ${descriptionMeta}\n  </head>`)
   }
 
   // Replace <div id="root">...</div> with SSR rendered content
-  html = html.replace(/<div id="root">[\s\S]*?<\/div>/, `<div id="root">${appHtml}</div>`);
+  html = html.replace(/<div id="root">[\s\S]*?<\/div>/, `<div id="root">${appHtml}</div>`)
 
-  return html;
+  return html
 }
 
 export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify/renderer/server';
@@ -46,21 +43,16 @@ import { config } from 'virtual:clarify-config';
 
 export function render(url) {
   return renderToHTML({ config, routes, navigation, url });
-}`;
+}`
 
 export function createTempEntryFile(content: string): string {
-  const tempDir = mkdtempSync(join(tmpdir(), 'clarify-ssr-'));
-  const entryPath = join(tempDir, 'entry-server.ts');
-  writeFileSync(entryPath, content, 'utf-8');
-  return entryPath;
+  const tempDir = mkdtempSync(join(tmpdir(), 'clarify-ssr-'))
+  const entryPath = join(tempDir, 'entry-server.ts')
+  writeFileSync(entryPath, content, 'utf-8')
+  return entryPath
 }
 
-export async function buildSSRBundle(
-  root: string,
-  ssrEntry: string,
-  ssrOutDir: string,
-  plugins: Plugin[]
-): Promise<void> {
+export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: string, plugins: Plugin[]): Promise<void> {
   await build({
     root,
     configFile: false,
@@ -81,34 +73,29 @@ export async function buildSSRBundle(
         ],
       },
     },
-  });
+  })
 }
 
-export async function renderSSGRoutes(
-  routes: MdxRoute[],
-  resolved: ResolvedClarifyOptions,
-  outDir: string,
-  ssrBundlePath: string
-): Promise<void> {
-  const { render } = await import(pathToFileURL(ssrBundlePath).href);
+export async function renderSSGRoutes(routes: MdxRoute[], resolved: ResolvedClarifyOptions, outDir: string, ssrBundlePath: string): Promise<void> {
+  const { render } = await import(pathToFileURL(ssrBundlePath).href)
 
-  const template = readIndexHtml(outDir);
+  const template = readIndexHtml(outDir)
   if (!template) {
     throw new Error(
       `[clarify] index.html not found in outDir "${outDir}". Make sure Vite build produces it.`
-    );
+    )
   }
 
   for (const route of routes) {
     try {
-      const appHtml = render(route.path);
-      const finalHtml = injectSSRIntoTemplate(template, appHtml, resolved);
+      const appHtml = render(route.path)
+      const finalHtml = injectSSRIntoTemplate(template, appHtml, resolved)
 
-      const outFile = join(outDir, route.path, 'index.html');
-      mkdirSync(dirname(outFile), { recursive: true });
-      writeFileSync(outFile, finalHtml, 'utf-8');
+      const outFile = join(outDir, route.path, 'index.html')
+      mkdirSync(dirname(outFile), { recursive: true })
+      writeFileSync(outFile, finalHtml, 'utf-8')
     } catch (err) {
-      console.error(`[clarify] Failed to render route "${route.path}":`, err);
+      console.error(`[clarify] Failed to render route "${route.path}":`, err)
     }
   }
 }

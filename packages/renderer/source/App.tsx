@@ -1,4 +1,5 @@
 import { Routes, Route, NavLink } from 'react-router-dom'
+
 import type { RouteItem, ClarifyConfig, NavigationNode } from './types'
 
 export type AppShellProps = {
@@ -7,7 +8,9 @@ export type AppShellProps = {
   navigation: NavigationNode[]
 }
 
-function TopNav({ config }: { config: ClarifyConfig }) {
+function TopNav(arg0: { config: ClarifyConfig }) {
+  const { config } = arg0
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="flex h-14 items-center px-4 md:px-6">
@@ -20,7 +23,9 @@ function TopNav({ config }: { config: ClarifyConfig }) {
   )
 }
 
-function SidebarItem({ node, depth = 0 }: { node: NavigationNode; depth?: number }) {
+function SidebarItem(arg0: { node: NavigationNode; depth?: number }) {
+  const { node, depth = 0 } = arg0
+
   const hasChildren = (node.children?.length ?? 0) > 0
   return (
     <li>
@@ -44,7 +49,9 @@ function SidebarItem({ node, depth = 0 }: { node: NavigationNode; depth?: number
   )
 }
 
-function Sidebar({ navigation }: { navigation: NavigationNode[] }) {
+function Sidebar(arg0: { navigation: NavigationNode[] }) {
+  const { navigation } = arg0
+
   return (
     <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-slate-200 bg-white md:block">
       <nav className="p-3">
@@ -58,7 +65,9 @@ function Sidebar({ navigation }: { navigation: NavigationNode[] }) {
   )
 }
 
-export function AppShell({ config, routes, navigation }: AppShellProps) {
+export function AppShell(arg0: AppShellProps) {
+  const { config, routes, navigation } = arg0
+
   return (
     <div className="flex min-h-screen flex-col">
       <TopNav config={config} />

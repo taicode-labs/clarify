@@ -4,6 +4,8 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import * as mdx from 'eslint-plugin-mdx';
+import peculiar from '@yinxulai/eslint-plugin-peculiar';
+import importPlugin from 'eslint-plugin-import-x';
 
 /**
  * Clarify Monorepo ESLint 配置
@@ -53,6 +55,9 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
 
+  // peculiar 推荐规则（函数定义风格）
+  ...peculiar.configs['flat/recommended'],
+
   // MDX 文件基础处理（关闭代码规则）
   {
     files: ['**/*.mdx'],
@@ -74,6 +79,9 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    plugins: {
+      'import-x': importPlugin,
+    },
     rules: {
       // 代码质量
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -86,6 +94,28 @@ export default tseslint.config(
       'eqeqeq': ['error', 'always', { null: 'ignore' }],
       'prefer-const': 'error',
       'no-var': 'error',
+
+      // import 排序：内置库 → 第三方库 → 内部依赖（@clarify/*） → 相对路径
+      'import-x/order': [
+        'error',
+        {
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+          pathGroups: [
+            {
+              pattern: '@clarify/**',
+              group: 'internal',
+              position: 'before',
+            },
+          ],
+          pathGroupsExcludedImportTypes: ['builtin'],
+          'newlines-between': 'always',
+          alphabetize: {
+            order: 'asc',
+            caseInsensitive: true,
+          },
+        },
+      ],
+      'import-x/no-duplicates': 'error',
     },
   },
 

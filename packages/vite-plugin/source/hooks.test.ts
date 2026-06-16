@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { runHooks } from './hooks.js';
 import type { ClarifyPlugin, ClarifyHookContext, ClarifyPage } from './types.js';
 

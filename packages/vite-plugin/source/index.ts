@@ -1,10 +1,12 @@
-import { join } from 'node:path'
 import { rmSync } from 'node:fs'
-import type { Plugin, ResolvedConfig } from 'vite'
+import { join } from 'node:path'
+
 import mdxPlugin from '@mdx-js/rollup'
+import type { Plugin, ResolvedConfig } from 'vite'
+
 import { resolveOptions } from './config.js'
-import { findMdxFiles, generateConfigModule, generateRoutesModule } from './routes.js'
 import { runHooks } from './hooks.js'
+import { findMdxFiles, generateConfigModule, generateRoutesModule } from './routes.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
@@ -31,11 +33,7 @@ function isVirtualId(id: string, routes: ReturnType<typeof findMdxFiles>): boole
   return routes.some(r => r.virtualModuleId === id)
 }
 
-function loadVirtualModule(
-  id: string,
-  resolved: ReturnType<typeof resolveOptions>,
-  routes: ReturnType<typeof findMdxFiles>
-): string | null {
+function loadVirtualModule(id: string, resolved: ReturnType<typeof resolveOptions>, routes: ReturnType<typeof findMdxFiles>): string | null {
   if (id === VIRTUAL_CONFIG) {
     return generateConfigModule(resolved)
   }

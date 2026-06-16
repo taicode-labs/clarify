@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { extractFrontmatter } from './frontmatter.js';
 
 describe('extractFrontmatter', () => {

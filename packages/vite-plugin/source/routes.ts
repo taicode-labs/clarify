@@ -1,7 +1,8 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import type { MdxRoute, ResolvedClarifyOptions, ClarifyNavigationNode } from './types.js';
+
 import { extractFrontmatter } from './frontmatter.js';
+import type { MdxRoute, ResolvedClarifyOptions, ClarifyNavigationNode } from './types.js';
 
 function kebabToTitle(str: string): string {
   return str

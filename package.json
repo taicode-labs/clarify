@@ -21,7 +21,9 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/eslint": "^9.6.1",
+    "@yinxulai/eslint-plugin-peculiar": "^1.0.4",
     "eslint": "^10.5.0",
+    "eslint-plugin-import-x": "^4.16.2",
     "eslint-plugin-mdx": "^3.8.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",

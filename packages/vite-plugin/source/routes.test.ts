@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { findMdxFiles, generateConfigModule, generateRoutesModule, buildNavigation } from './routes.js';
+import { join } from 'node:path';
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
 import { extractFrontmatter } from './frontmatter.js';
+import { findMdxFiles, generateConfigModule, generateRoutesModule, buildNavigation } from './routes.js';
 import type { ResolvedClarifyOptions, MdxRoute } from './types.js';
 
 describe('findMdxFiles', () => {
