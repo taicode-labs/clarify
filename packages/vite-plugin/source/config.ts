@@ -1,0 +1,30 @@
+import { join } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import type { ClarifyPluginOptions, ClarifyProjectConfig, ResolvedClarifyOptions } from './types.js';
+
+export function loadProjectConfig(root: string): ClarifyProjectConfig {
+  const configPath = join(root, 'clarify.json');
+  if (!existsSync(configPath)) return {};
+  try {
+    const content = readFileSync(configPath, 'utf-8');
+    return JSON.parse(content) as ClarifyProjectConfig;
+  } catch {
+    return {};
+  }
+}
+
+export function resolveOptions(
+  root: string,
+  pluginOptions: ClarifyPluginOptions = {}
+): ResolvedClarifyOptions {
+  const projectConfig = loadProjectConfig(root);
+  return {
+    title: projectConfig.title ?? 'Clarify Docs',
+    description: projectConfig.description ?? '',
+    logo: projectConfig.logo,
+    routeBase: pluginOptions.routeBase ?? projectConfig.routeBase ?? '/',
+    theme: projectConfig.theme ?? {},
+    docRoot: pluginOptions.docsRoot ?? 'source/content',
+    outPath: pluginOptions.outPath ?? 'dist',
+  };
+}

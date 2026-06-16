@@ -4,3 +4,4 @@ coverage
 dist
 *.tsbuildinfo
 .vite
+.turbo

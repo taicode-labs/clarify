@@ -4,18 +4,20 @@
   "private": true,
   "description": "An open-source documentation publishing tool built for MDX and OpenAPI.",
   "scripts": {
-    "dev": "pnpm dev:all",
-    "dev:all": "pnpm --filter @clarify/vite-plugin --filter @clarify/renderer dev & pnpm --filter @clarify/docs dev",
-    "dev:docs": "pnpm --filter @clarify/docs dev",
-    "dev:www": "pnpm --filter @clarify/www dev",
-    "build": "pnpm --recursive --if-present build",
-    "typecheck": "pnpm --recursive --if-present typecheck",
+    "dev": "turbo run dev",
+    "dev:docs": "turbo run dev --filter=@clarify/docs",
+    "dev:www": "turbo run dev --filter=@clarify/www",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
     "lint": "pnpm --recursive --if-present lint",
-    "test": "pnpm --recursive --if-present test"
+    "test": "turbo run test"
   },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   },
-  "packageManager": "pnpm@9.0.0"
+  "packageManager": "pnpm@9.0.0",
+  "devDependencies": {
+    "turbo": "^2.9.18"
+  }
 }
