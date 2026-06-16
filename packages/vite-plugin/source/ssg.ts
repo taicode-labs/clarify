@@ -42,11 +42,11 @@ export function injectSSRIntoTemplate(
 
 export function generateSSREntryCode(): string {
   return `import { renderToHTML } from '@clarify/renderer/server';
-import { routes } from 'virtual:clarify-routes';
+import { routes, navigation } from 'virtual:clarify-routes';
 import { config } from 'virtual:clarify-config';
 
 export function render(url) {
-  return renderToHTML({ config, routes, url });
+  return renderToHTML({ config, routes, navigation, url });
 }`;
 }
 

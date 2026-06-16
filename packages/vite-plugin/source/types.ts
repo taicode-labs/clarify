@@ -11,7 +11,7 @@ export type ClarifyProjectConfig = {
   /** Site description. Used in SEO meta tags. */
   description?: string;
 
-  /** Path to site logo image (relative to docsRoot or absolute). */
+  /** Path to site logo image (relative to documentationRoot or absolute). */
   logo?: string;
 
   /** Base path for the docs site. Can be overridden by plugin options. Default: '/' */
@@ -55,8 +55,8 @@ export type ResolvedClarifyOptions = {
   theme: { primary?: string };
   description: string;
   routeBase: string;
-  docRoot: string;
-  outPath: string;
+  documentationRoot: string;
+  outputDirectory: string;
 };
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -67,6 +67,7 @@ export type MdxRoute = {
   path: string;
   filePath: string;
   virtualModuleId: string;
+  title: string;
 };
 
 export type ClarifyPage = {
@@ -76,10 +77,10 @@ export type ClarifyPage = {
   content: string;
 };
 
-export type ClarifyNavNode = {
+export type ClarifyNavigationNode = {
   path: string;
   title: string;
-  children?: ClarifyNavNode[];
+  children?: ClarifyNavigationNode[];
 };
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -101,9 +102,9 @@ export type ClarifyHooks = {
   ) => Promise<ClarifyPage> | ClarifyPage;
   'routes:resolved'?: (
     routes: MdxRoute[],
-    navTree: ClarifyNavNode[],
+    navigation: ClarifyNavigationNode[],
     ctx: ClarifyHookContext
-  ) => Promise<{ routes: MdxRoute[]; navTree: ClarifyNavNode[] }> | { routes: MdxRoute[]; navTree: ClarifyNavNode[] };
+  ) => Promise<{ routes: MdxRoute[]; navigation: ClarifyNavigationNode[] }> | { routes: MdxRoute[]; navigation: ClarifyNavigationNode[] };
   'modules:before'?: (
     modules: Map<string, string>,
     ctx: ClarifyHookContext

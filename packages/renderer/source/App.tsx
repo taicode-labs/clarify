@@ -1,18 +1,77 @@
-import type { ComponentType } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import type { RouteItem, ClarifyConfig } from './types'
+import { Routes, Route, NavLink } from 'react-router-dom'
+import type { RouteItem, ClarifyConfig, NavigationNode } from './types'
 
 export type AppShellProps = {
   config: ClarifyConfig
   routes: RouteItem[]
+  navigation: NavigationNode[]
 }
 
-export function AppShell({ routes }: AppShellProps) {
+function TopNav({ config }: { config: ClarifyConfig }) {
   return (
-    <Routes>
-      {routes.map((route) => (
-        <Route key={route.path} path={route.path} element={<route.component />} />
-      ))}
-    </Routes>
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
+      <div className="flex h-14 items-center px-4 md:px-6">
+        <NavLink to="/" className="flex items-center gap-2 text-lg font-bold text-slate-900 no-underline">
+          {config.logo ? <img src={config.logo} alt="" className="h-6 w-6" /> : null}
+          <span>{config.title}</span>
+        </NavLink>
+      </div>
+    </header>
+  )
+}
+
+function SidebarItem({ node, depth = 0 }: { node: NavigationNode; depth?: number }) {
+  const hasChildren = (node.children?.length ?? 0) > 0
+  return (
+    <li>
+      <NavLink
+        to={node.path}
+        className={({ isActive }) =>
+          `block rounded-md px-3 py-1.5 text-sm transition-colors ${isActive ? 'bg-slate-100 font-medium text-slate-900' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`
+        }
+        style={{ paddingLeft: `${0.75 + depth * 0.75}rem` }}
+      >
+        {node.title}
+      </NavLink>
+      {hasChildren ? (
+        <ul className="mt-0.5 space-y-0.5">
+          {node.children!.map((child) => (
+            <SidebarItem key={child.path} node={child} depth={depth + 1} />
+          ))}
+        </ul>
+      ) : null}
+    </li>
+  )
+}
+
+function Sidebar({ navigation }: { navigation: NavigationNode[] }) {
+  return (
+    <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-slate-200 bg-white md:block">
+      <nav className="p-3">
+        <ul className="space-y-0.5">
+          {navigation.map((node) => (
+            <SidebarItem key={node.path} node={node} />
+          ))}
+        </ul>
+      </nav>
+    </aside>
+  )
+}
+
+export function AppShell({ config, routes, navigation }: AppShellProps) {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <TopNav config={config} />
+      <div className="flex flex-1">
+        <Sidebar navigation={navigation} />
+        <main className="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-10">
+          <Routes>
+            {routes.map((route) => (
+              <Route key={route.path} path={route.path} element={<route.component />} />
+            ))}
+          </Routes>
+        </main>
+      </div>
+    </div>
   )
 }

@@ -24,7 +24,7 @@ export function resolveOptions(
     logo: projectConfig.logo,
     routeBase: pluginOptions.routeBase ?? projectConfig.routeBase ?? '/',
     theme: projectConfig.theme ?? {},
-    docRoot: pluginOptions.docsRoot ?? 'source/content',
-    outPath: pluginOptions.outPath ?? 'output',
+    documentationRoot: pluginOptions.docsRoot ?? 'source/content',
+    outputDirectory: pluginOptions.outPath ?? 'output',
   };
 }

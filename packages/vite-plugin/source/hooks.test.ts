@@ -8,8 +8,8 @@ const mockCtx: ClarifyHookContext = {
     description: '',
     routeBase: '/',
     theme: {},
-    docRoot: 'source/content',
-    outPath: 'output',
+    documentationRoot: 'source/content',
+    outputDirectory: 'output',
   },
 };
 

@@ -56,8 +56,8 @@ function createVirtualModulePlugin(
 export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
   const root = process.cwd()
   const resolved = resolveOptions(root, options)
-  const docRoot = join(root, resolved.docRoot)
-  const routes = findMdxFiles(docRoot)
+  const documentationRoot = join(root, resolved.documentationRoot)
+  const routes = findMdxFiles(documentationRoot)
 
   // Track which virtual page modules exist
   const pageMap = new Map<string, string>()
@@ -84,7 +84,7 @@ export function clarifyPlugin(options: ClarifyPluginOptions = {}): Plugin[] {
       return {
         base: resolved.routeBase,
         build: {
-          outDir: resolved.outPath,
+          outDir: resolved.outputDirectory,
           manifest: true,
         },
       }

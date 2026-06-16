@@ -15,7 +15,7 @@ import type { RenderOptions } from './types';
  * ```
  */
 export function render(options: RenderOptions) {
-  const { config, routes, container } = options;
+  const { config, routes, navigation, container } = options;
 
   const target = container ?? document.getElementById('root');
   if (!target) {
@@ -25,7 +25,7 @@ export function render(options: RenderOptions) {
   const app = (
     <StrictMode>
       <BrowserRouter basename={config.routeBase}>
-        <AppShell config={config} routes={routes} />
+        <AppShell config={config} routes={routes} navigation={navigation ?? []} />
       </BrowserRouter>
     </StrictMode>
   );

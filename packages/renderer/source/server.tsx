@@ -10,12 +10,12 @@ import type { ServerRenderOptions } from './types';
  * 返回 `div#root` 内部的 HTML，由 vite-plugin 组装为完整的 HTML 文档。
  */
 export function renderToHTML(options: ServerRenderOptions): string {
-  const { config, routes, url } = options;
+  const { config, routes, navigation, url } = options;
 
   return renderToString(
     <StrictMode>
       <StaticRouter basename={config.routeBase} location={url}>
-        <AppShell config={config} routes={routes} />
+        <AppShell config={config} routes={routes} navigation={navigation ?? []} />
       </StaticRouter>
     </StrictMode>
   );

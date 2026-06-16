@@ -1,7 +1,7 @@
 declare module 'virtual:clarify-routes' {
   import type { ComponentType } from 'react';
   export const routes: Array<{ path: string; component: ComponentType }>;
-  export const navTree: Array<unknown>;
+  export const navigation: Array<unknown>;
 }
 
 declare module 'virtual:clarify-config' {
@@ -10,8 +10,8 @@ declare module 'virtual:clarify-config' {
     logo?: string;
     theme: { primary?: string };
     description: string;
-    docRoot: string;
+    documentationRoot: string;
     routeBase: string;
-    outPath: string;
+    outputDirectory: string;
   };
 }

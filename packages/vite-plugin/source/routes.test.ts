@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { findMdxFiles, generateConfigModule, generateRoutesModule } from './routes.js';
+import { findMdxFiles, generateConfigModule, generateRoutesModule, buildNavigation } from './routes.js';
+import { extractFrontmatter } from './frontmatter.js';
 import type { ResolvedClarifyOptions, MdxRoute } from './types.js';
 
 describe('findMdxFiles', () => {
@@ -29,6 +30,8 @@ describe('findMdxFiles', () => {
     expect(result).toHaveLength(2);
     expect(result.map(r => r.path)).toContain('/');
     expect(result.map(r => r.path)).toContain('/about');
+    expect(result.map(r => r.title)).toContain('Home');
+    expect(result.map(r => r.title)).toContain('About');
   });
 
   it('handles nested directories', () => {
@@ -41,6 +44,8 @@ describe('findMdxFiles', () => {
     expect(result).toHaveLength(2);
     expect(result.map(r => r.path)).toContain('/');
     expect(result.map(r => r.path)).toContain('/guide/getting-started');
+    expect(result.map(r => r.title)).toContain('Home');
+    expect(result.map(r => r.title)).toContain('Getting Started');
   });
 
   it('maps index.mdx to root path', () => {
@@ -49,6 +54,7 @@ describe('findMdxFiles', () => {
     const indexRoute = result.find(r => r.path === '/');
     expect(indexRoute).toBeDefined();
     expect(indexRoute?.virtualModuleId).toBe('virtual:clarify-page/index');
+    expect(indexRoute?.title).toBe('Home');
   });
 
   it('ignores non-mdx files', () => {
@@ -67,6 +73,19 @@ describe('findMdxFiles', () => {
     expect(result).toHaveLength(1);
     expect(result[0].virtualModuleId).toBe('virtual:clarify-page/api/auth/login');
   });
+
+  it('extracts frontmatter title', () => {
+    const content = '---\ntitle: My Page\n---\n\n# Hello';
+    writeFileSync(join(tempDir, 'page.mdx'), content, 'utf-8');
+    const result = findMdxFiles(tempDir);
+    expect(result[0].title).toBe('My Page');
+  });
+
+  it('falls back to filename stem for title', () => {
+    writeFileSync(join(tempDir, 'quick-start.mdx'), '# Hello', 'utf-8');
+    const result = findMdxFiles(tempDir);
+    expect(result[0].title).toBe('Quick Start');
+  });
 });
 
 describe('generateConfigModule', () => {
@@ -76,8 +95,8 @@ describe('generateConfigModule', () => {
       description: 'Desc',
       routeBase: '/',
       theme: { primary: '#fff' },
-      docRoot: 'source/content',
-      outPath: 'output',
+      documentationRoot: 'source/content',
+      outputDirectory: 'output',
     };
     const code = generateConfigModule(config);
     expect(code).toBe(`export const config = ${JSON.stringify(config)};`);
@@ -88,19 +107,74 @@ describe('generateRoutesModule', () => {
   it('generates empty routes for empty input', () => {
     const code = generateRoutesModule([]);
     expect(code).toContain('export const routes = [');
-    expect(code).toContain('export const navTree = []');
+    expect(code).toContain('export const navigation = []');
     expect(code).not.toContain('import');
   });
 
   it('generates imports and routes array', () => {
     const routes: MdxRoute[] = [
-      { path: '/', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index' },
-      { path: '/about', filePath: '/a/about.mdx', virtualModuleId: 'virtual:clarify-page/about' },
+      { path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index' },
+      { path: '/about', title: 'About', filePath: '/a/about.mdx', virtualModuleId: 'virtual:clarify-page/about' },
     ];
     const code = generateRoutesModule(routes);
     expect(code).toContain("import Page0 from 'virtual:clarify-page/index';");
     expect(code).toContain("import Page1 from 'virtual:clarify-page/about';");
-    expect(code).toContain('{ path: "/", component: Page0 }');
-    expect(code).toContain('{ path: "/about", component: Page1 }');
+    expect(code).toContain('{ path: "/", title: "Home", component: Page0 }');
+    expect(code).toContain('{ path: "/about", title: "About", component: Page1 }');
+    expect(code).toContain('"title": "About"');
+  });
+});
+
+describe('extractFrontmatter', () => {
+  it('extracts basic frontmatter', () => {
+    const content = '---\ntitle: Hello\ndescription: World\n---\n\n# Body';
+    const fm = extractFrontmatter(content);
+    expect(fm.title).toBe('Hello');
+    expect(fm.description).toBe('World');
+  });
+
+  it('returns empty object when no frontmatter', () => {
+    const fm = extractFrontmatter('# Hello');
+    expect(fm).toEqual({});
+  });
+
+  it('trims quotes from values', () => {
+    const content = '---\ntitle: "Quoted"\n---\n';
+    const fm = extractFrontmatter(content);
+    expect(fm.title).toBe('Quoted');
+  });
+});
+
+describe('buildNavigation', () => {
+  it('returns empty array for only home route', () => {
+    const routes: MdxRoute[] = [
+      { path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'virtual:clarify-page/index' },
+    ];
+    expect(buildNavigation(routes)).toEqual([]);
+  });
+
+  it('builds flat navigation', () => {
+    const routes: MdxRoute[] = [
+      { path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' },
+      { path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' },
+      { path: '/config', title: 'Config', filePath: 'config.mdx', virtualModuleId: 'v' },
+    ];
+    const tree = buildNavigation(routes);
+    expect(tree).toHaveLength(2);
+    expect(tree.map(n => n.path)).toEqual(['/guide', '/config']);
+    expect(tree[0].title).toBe('Guide');
+  });
+
+  it('builds nested navigation', () => {
+    const routes: MdxRoute[] = [
+      { path: '/guide/getting-started', title: 'Getting Started', filePath: 'a.mdx', virtualModuleId: 'v' },
+      { path: '/guide/advanced', title: 'Advanced', filePath: 'b.mdx', virtualModuleId: 'v' },
+    ];
+    const tree = buildNavigation(routes);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].path).toBe('/guide');
+    expect(tree[0].title).toBe('Guide');
+    expect(tree[0].children).toHaveLength(2);
+    expect(tree[0].children?.map(c => c.path)).toEqual(['/guide/getting-started', '/guide/advanced']);
   });
 });

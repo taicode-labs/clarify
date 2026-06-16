@@ -53,8 +53,8 @@ describe('resolveOptions', () => {
       logo: undefined,
       routeBase: '/',
       theme: {},
-      docRoot: 'source/content',
-      outPath: 'output',
+      documentationRoot: 'source/content',
+      outputDirectory: 'output',
     });
   });
 
@@ -65,7 +65,7 @@ describe('resolveOptions', () => {
     expect(result.title).toBe('Project Docs');
     expect(result.description).toBe('Desc');
     expect(result.theme).toEqual({ primary: '#333' });
-    expect(result.docRoot).toBe('source/content');
+    expect(result.documentationRoot).toBe('source/content');
   });
 
   it('plugin options override project config', () => {
@@ -73,7 +73,7 @@ describe('resolveOptions', () => {
     writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify(config), 'utf-8');
     const result = resolveOptions(tempDir, { routeBase: '/api', docsRoot: 'docs' });
     expect(result.routeBase).toBe('/api');
-    expect(result.docRoot).toBe('docs');
+    expect(result.documentationRoot).toBe('docs');
     expect(result.title).toBe('Project Docs');
   });
 });
