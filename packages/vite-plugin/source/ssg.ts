@@ -9,8 +9,8 @@ import type { Plugin } from 'vite'
 import type { ResolvedProjectConfig, MdxRoute } from './types.js'
 import { escapeHtml } from './utils.js'
 
-export function readIndexHtml(outDir: string): string | undefined {
-  const indexPath = join(outDir, 'index.html')
+export function readIndexHtml(outputDirectory: string): string | undefined {
+  const indexPath = join(outputDirectory, 'index.html')
   if (!existsSync(indexPath)) return undefined
   try {
     return readFileSync(indexPath, 'utf-8')
@@ -76,13 +76,13 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
   })
 }
 
-export async function renderSSGRoutes(routes: MdxRoute[], projectConfig: ResolvedProjectConfig, outDir: string, ssrBundlePath: string): Promise<void> {
+export async function renderSSGRoutes(routes: MdxRoute[], projectConfig: ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string): Promise<void> {
   const { render } = await import(pathToFileURL(ssrBundlePath).href)
 
-  const template = readIndexHtml(outDir)
+  const template = readIndexHtml(outputDirectory)
   if (!template) {
     throw new Error(
-      `[clarify] index.html not found in outDir "${outDir}". Make sure Vite build produces it.`
+      `[clarify] index.html not found in outputDirectory "${outputDirectory}". Make sure Vite build produces it.`
     )
   }
 
@@ -91,7 +91,7 @@ export async function renderSSGRoutes(routes: MdxRoute[], projectConfig: Resolve
       const appHtml = render(route.path)
       const finalHtml = injectSSRIntoTemplate(template, appHtml, projectConfig)
 
-      const outFile = join(outDir, route.path, 'index.html')
+      const outFile = join(outputDirectory, route.path, 'index.html')
       mkdirSync(dirname(outFile), { recursive: true })
       writeFileSync(outFile, finalHtml, 'utf-8')
     } catch (err) {

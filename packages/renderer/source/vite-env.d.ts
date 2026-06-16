@@ -10,8 +10,8 @@ declare module 'virtual:clarify-config' {
     logo?: string;
     theme: { primary?: string };
     description: string;
-    documentationRoot: string;
-    routeBase: string;
+    rootDirectory: string;
+    routePrefix: string;
     outputDirectory: string;
   };
 }

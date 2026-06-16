@@ -54,8 +54,8 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const root = process.cwd()
   const projectConfig = resolveProjectConfig(root)
   const generateOptions = resolveGenerateOptions(options)
-  const documentationRoot = join(root, generateOptions.rootDirectory)
-  const routes = findMdxFiles(documentationRoot)
+  const contentRoot = join(root, generateOptions.rootDirectory)
+  const routes = findMdxFiles(contentRoot)
 
   const clarifyPlugins: ClarifyPlugin[] = options.plugins ?? []
   const ctx: ClarifyHookContext = { projectConfig, generateOptions }
@@ -105,20 +105,20 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
         return
       }
 
-      const outDir = viteConfig.build.outDir
-      const ssrOutDir = join(outDir, '.ssr')
+      const outputDir = viteConfig.build.outDir
+      const ssrOutputDir = join(outputDir, '.ssr')
       let tempEntryPath: string | undefined
 
       try {
         tempEntryPath = createTempEntryFile(SSR_ENTRY_CODE)
 
-        await buildSSRBundle(root, tempEntryPath, ssrOutDir, [
+        await buildSSRBundle(root, tempEntryPath, ssrOutputDir, [
           { name: 'clarify:virtual-ssg', resolveId: id => isVirtualId(id, routes) ? id : null, load: id => loadVirtualModule(id, projectConfig, generateOptions, routes) },
           mdx,
         ])
 
-        const ssrBundlePath = join(ssrOutDir, 'entry-server.js')
-        await renderSSGRoutes(routes, projectConfig, outDir, ssrBundlePath)
+        const ssrBundlePath = join(ssrOutputDir, 'entry-server.js')
+        await renderSSGRoutes(routes, projectConfig, outputDir, ssrBundlePath)
       } catch (err) {
         console.error('[clarify] SSG failed:', err)
       } finally {

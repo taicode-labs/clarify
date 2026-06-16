@@ -48,7 +48,7 @@ export type ClarifyProjectConfig = {
   /** Site description. Used in SEO meta tags. */
   description?: string
 
-  /** Path to site logo image (relative to documentationRoot or absolute). Supports light/dark mode. */
+  /** Path to site logo image (relative to rootDirectory or absolute). Supports light/dark mode. */
   logo?: ClarifyLogoConfig
 
   /** Favicon path or light/dark variants. */

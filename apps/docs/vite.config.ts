@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     clarifyPlugin({
-      docsRoot: 'source/content',
+      rootDirectory: 'source/content',
     }),
   ],
   server: {
