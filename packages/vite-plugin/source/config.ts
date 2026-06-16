@@ -20,9 +20,15 @@ export function resolveOptions(root: string, pluginOptions: ClarifyPluginOptions
     title: projectConfig.title ?? 'Clarify Docs',
     description: projectConfig.description ?? '',
     logo: projectConfig.logo,
+    favicon: projectConfig.favicon,
     routeBase: pluginOptions.routeBase ?? projectConfig.routeBase ?? '/',
     theme: projectConfig.theme ?? {},
     documentationRoot: pluginOptions.docsRoot ?? 'source/content',
     outputDirectory: pluginOptions.outPath ?? 'output',
+    navbar: projectConfig.navbar,
+    banner: projectConfig.banner,
+    footer: projectConfig.footer,
+    navigation: projectConfig.navigation,
+    redirects: projectConfig.redirects,
   }
 }

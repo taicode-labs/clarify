@@ -12,14 +12,52 @@ export type RouteItem = {
   component: ComponentType;
 };
 
+export type ClarifyLogoConfig = string | { light?: string; dark?: string };
+
+export type ClarifyFaviconConfig = string | { light?: string; dark?: string };
+
+export type ClarifyNavbarLink = {
+  label: string;
+  href: string;
+  external?: boolean;
+};
+
+export type ClarifyBannerConfig = {
+  content: string;
+  dismissible?: boolean;
+};
+
+export type ClarifyFooterConfig = {
+  socials?: Record<string, string>;
+  copyright?: string;
+};
+
+export type ClarifyRedirect = {
+  source: string;
+  destination: string;
+};
+
+export type ClarifyNavigationGroup = {
+  group: string;
+  pages: string[];
+};
+
+export type ClarifyNavigationConfig = ClarifyNavigationGroup[];
+
 export type ClarifyConfig = {
   title: string;
-  logo?: string;
+  logo?: ClarifyLogoConfig;
+  favicon?: ClarifyFaviconConfig;
   theme: { primary?: string };
   description: string;
   documentationRoot: string;
   routeBase: string;
   outputDirectory: string;
+  navbar?: { links?: ClarifyNavbarLink[] };
+  banner?: ClarifyBannerConfig;
+  footer?: ClarifyFooterConfig;
+  navigation?: ClarifyNavigationConfig;
+  redirects?: ClarifyRedirect[];
 };
 
 export type RenderOptions = {

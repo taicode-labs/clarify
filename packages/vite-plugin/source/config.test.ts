@@ -61,12 +61,34 @@ describe('resolveOptions', () => {
   })
 
   it('merges project config with defaults', () => {
-    const config = { title: 'Project Docs', description: 'Desc', theme: { primary: '#333' } }
+    const config = {
+      title: 'Project Docs',
+      description: 'Desc',
+      theme: { primary: '#333' },
+      favicon: '/favicon.svg',
+      navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
+      banner: { content: 'v2 is out', dismissible: true },
+      footer: { copyright: '© 2026' },
+      navigation: [
+        { group: 'Getting Started', pages: ['index', 'quickstart'] },
+        { group: 'Advanced', pages: ['advanced/ssg'] },
+      ] as const,
+      redirects: [{ source: '/old', destination: '/new' }],
+    }
     writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify(config), 'utf-8')
     const result = resolveOptions(tempDir)
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
     expect(result.theme).toEqual({ primary: '#333' })
+    expect(result.favicon).toBe('/favicon.svg')
+    expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
+    expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
+    expect(result.footer).toEqual({ copyright: '© 2026' })
+    expect(result.navigation).toEqual([
+      { group: 'Getting Started', pages: ['index', 'quickstart'] },
+      { group: 'Advanced', pages: ['advanced/ssg'] },
+    ])
+    expect(result.redirects).toEqual([{ source: '/old', destination: '/new' }])
     expect(result.documentationRoot).toBe('source/content')
   })
 

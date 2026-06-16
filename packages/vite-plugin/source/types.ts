@@ -4,6 +4,38 @@ import type { FilterPattern } from 'vite'
 // Author Config (clarify.json)
 // ────────────────────────────────────────────────────────────────────────────────
 
+export type ClarifyLogoConfig = string | { light?: string; dark?: string };
+
+export type ClarifyFaviconConfig = string | { light?: string; dark?: string };
+
+export type ClarifyNavbarLink = {
+  label: string;
+  href: string;
+  external?: boolean;
+};
+
+export type ClarifyBannerConfig = {
+  content: string;
+  dismissible?: boolean;
+};
+
+export type ClarifyFooterConfig = {
+  socials?: Record<string, string>;
+  copyright?: string;
+};
+
+export type ClarifyRedirect = {
+  source: string;
+  destination: string;
+};
+
+export type ClarifyNavigationGroup = {
+  group: string;
+  pages: string[];
+};
+
+export type ClarifyNavigationConfig = ClarifyNavigationGroup[];
+
 export type ClarifyProjectConfig = {
   /** Site title. Used in Header and SEO meta tags. */
   title?: string;
@@ -11,16 +43,39 @@ export type ClarifyProjectConfig = {
   /** Site description. Used in SEO meta tags. */
   description?: string;
 
-  /** Path to site logo image (relative to documentationRoot or absolute). */
-  logo?: string;
+  /** Path to site logo image (relative to documentationRoot or absolute). Supports light/dark mode. */
+  logo?: ClarifyLogoConfig;
+
+  /** Favicon path or light/dark variants. */
+  favicon?: ClarifyFaviconConfig;
 
   /** Base path for the docs site. Can be overridden by plugin options. Default: '/' */
   routeBase?: string;
 
-  /** Theme token overrides. Phase 1 supports primary color only. */
+  /** Theme token overrides. */
   theme?: {
     primary?: string;
   };
+
+  /** Top navigation links. */
+  navbar?: {
+    links?: ClarifyNavbarLink[];
+  };
+
+  /** Announcement banner displayed at the top of the page. */
+  banner?: ClarifyBannerConfig;
+
+  /** Footer configuration. */
+  footer?: ClarifyFooterConfig;
+
+  /** Sidebar navigation. Array of groups with ordered page references.
+   *  If omitted, navigation is auto-generated from the file system.
+   *  Page references are relative paths without .mdx extension, e.g. "index", "advanced/ssg".
+   */
+  navigation?: ClarifyNavigationConfig;
+
+  /** Custom path redirects. */
+  redirects?: ClarifyRedirect[];
 };
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -51,12 +106,18 @@ export type ClarifyPluginOptions = {
 
 export type ResolvedClarifyOptions = {
   title: string;
-  logo?: string;
+  logo?: ClarifyLogoConfig;
+  favicon?: ClarifyFaviconConfig;
   theme: { primary?: string };
   description: string;
   routeBase: string;
   documentationRoot: string;
   outputDirectory: string;
+  navbar?: { links?: ClarifyNavbarLink[] };
+  banner?: ClarifyBannerConfig;
+  footer?: ClarifyFooterConfig;
+  navigation?: ClarifyNavigationConfig;
+  redirects?: ClarifyRedirect[];
 };
 
 // ────────────────────────────────────────────────────────────────────────────────

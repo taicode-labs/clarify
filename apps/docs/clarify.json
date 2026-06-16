@@ -3,5 +3,14 @@
   "description": "开源文档发布工具，为 MDX 和 OpenAPI 而生。",
   "theme": {
     "primary": "#0ea5e9"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/taicode-labs/clarify",
+        "external": true
+      }
+    ]
   }
 }

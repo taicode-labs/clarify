@@ -1,6 +1,6 @@
 import { Routes, Route, NavLink } from 'react-router-dom'
 
-import type { RouteItem, ClarifyConfig, NavigationNode } from './types'
+import type { RouteItem, ClarifyConfig, NavigationNode, ClarifyLogoConfig } from './types'
 
 export type AppShellProps = {
   config: ClarifyConfig
@@ -8,14 +8,21 @@ export type AppShellProps = {
   navigation: NavigationNode[]
 }
 
+function resolveLogoUrl(logo?: ClarifyLogoConfig): string | undefined {
+  if (typeof logo === 'string') return logo
+  if (logo && typeof logo === 'object') return logo.light ?? logo.dark
+  return undefined
+}
+
 function TopNav(arg0: { config: ClarifyConfig }) {
   const { config } = arg0
+  const logoUrl = resolveLogoUrl(config.logo)
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="flex h-14 items-center px-4 md:px-6">
         <NavLink to="/" className="flex items-center gap-2 text-lg font-bold text-slate-900 no-underline">
-          {config.logo ? <img src={config.logo} alt="" className="h-6 w-6" /> : null}
+          {logoUrl ? <img src={logoUrl} alt="" className="h-6 w-6" /> : null}
           <span>{config.title}</span>
         </NavLink>
       </div>

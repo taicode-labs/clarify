@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 import { extractFrontmatter } from './frontmatter.js'
-import type { MdxRoute, ResolvedClarifyOptions, ClarifyNavigationNode } from './types.js'
+import type { MdxRoute, ResolvedClarifyOptions, ClarifyNavigationNode, ClarifyNavigationConfig } from './types.js'
 
 function kebabToTitle(str: string): string {
   return str
@@ -85,11 +85,37 @@ export function generateConfigModule(config: ResolvedClarifyOptions): string {
   return `export const config = ${JSON.stringify(config)};`
 }
 
-export function generateRoutesModule(routes: MdxRoute[]): string {
+export function buildNavigationFromConfig(
+  routes: MdxRoute[],
+  config: ClarifyNavigationConfig
+): ClarifyNavigationNode[] {
+  const routeMap = new Map(routes.map(r => [r.path, r]))
+
+  return config.map(group => {
+    const children = group.pages.map(pageRef => {
+      const path = pageRef === 'index' ? '/' : '/' + pageRef
+      const route = routeMap.get(path)
+      return {
+        path,
+        title: route?.title ?? kebabToTitle(path.split('/').pop() ?? pageRef),
+      }
+    })
+
+    return {
+      path: children[0]?.path ?? '/',
+      title: group.group,
+      children,
+    }
+  })
+}
+
+export function generateRoutesModule(routes: MdxRoute[], navigationConfig?: ClarifyNavigationConfig): string {
   const imports = routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
   const routesArray = routes.map((r, i) => `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i} }`).join(',\n')
 
-  const navigation = buildNavigation(routes)
+  const navigation = navigationConfig
+    ? buildNavigationFromConfig(routes, navigationConfig)
+    : buildNavigation(routes)
 
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
