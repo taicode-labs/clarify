@@ -1,0 +1,7 @@
+{
+  "title": "Clarify",
+  "description": "开源文档发布工具，为 MDX 和 OpenAPI 而生。",
+  "theme": {
+    "primary": "#0ea5e9"
+  }
+}
