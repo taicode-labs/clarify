@@ -72,13 +72,17 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       return {
         base: projectConfig.routePrefix,
         build: {
-          outDir: generateOptions.outputDirectory,
+          ...(generateOptions.outputDirectory ? { outDir: generateOptions.outputDirectory } : {}),
           manifest: true,
         },
       }
     },
     configResolved(config) {
       viteConfig = config
+      // If user didn't specify outputDirectory, read it from Vite's resolved config
+      if (!generateOptions.outputDirectory) {
+        generateOptions.outputDirectory = config.build.outDir
+      }
     },
     resolveId(id) {
       return isVirtualId(id, routes) ? id : null

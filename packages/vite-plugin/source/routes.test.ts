@@ -100,7 +100,7 @@ describe('generateConfigModule', () => {
     }
     const generateOptions: ResolvedGenerateOptions = {
       rootDirectory: 'source/content',
-      outputDirectory: 'output',
+      outputDirectory: 'dist',
     }
     const code = generateConfigModule(projectConfig, generateOptions)
     const expected = { ...projectConfig, ...generateOptions }

@@ -33,6 +33,6 @@ export function resolveProjectConfig(root: string): ResolvedProjectConfig {
 export function resolveGenerateOptions(options: ClarifyGenerateOptions = {}): ResolvedGenerateOptions {
   return {
     rootDirectory: options.rootDirectory ?? 'source/content',
-    outputDirectory: options.outputDirectory ?? 'output',
+    outputDirectory: options.outputDirectory,
   }
 }

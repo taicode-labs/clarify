@@ -87,7 +87,7 @@ export type ClarifyProjectConfig = {
 export type ClarifyGenerateOptions = {
   /** Root directory for MDX content. Default: 'source/content' */
   rootDirectory?: string
-  /** Output directory for the built docs site. Overrides Vite's build.outDir. Default: 'output' */
+  /** Output directory for the built docs site. When omitted, Vite's build.outDir is used. */
   outputDirectory?: string
 
   /** Custom include/exclude filters for MDX processing. */
@@ -117,7 +117,7 @@ export type ResolvedProjectConfig = {
 
 export type ResolvedGenerateOptions = {
   rootDirectory: string
-  outputDirectory: string
+  outputDirectory?: string
 }
 
 // ────────────────────────────────────────────────────────────────────────────────

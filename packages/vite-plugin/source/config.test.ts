@@ -93,15 +93,15 @@ describe('resolveGenerateOptions', () => {
     const result = resolveGenerateOptions()
     expect(result).toEqual({
       rootDirectory: 'source/content',
-      outputDirectory: 'output',
+      outputDirectory: undefined,
     })
   })
 
   it('applies provided options', () => {
-    const result = resolveGenerateOptions({ rootDirectory: 'docs', outputDirectory: 'dist' })
+    const result = resolveGenerateOptions({ rootDirectory: 'docs', outputDirectory: 'build' })
     expect(result).toEqual({
       rootDirectory: 'docs',
-      outputDirectory: 'dist',
+      outputDirectory: 'build',
     })
   })
 })
