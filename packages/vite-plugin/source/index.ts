@@ -38,7 +38,7 @@ function loadVirtualModule(id: string, resolved: ReturnType<typeof resolveOption
     return generateConfigModule(resolved)
   }
   if (id === VIRTUAL_ROUTES) {
-    return generateRoutesModule(routes, resolved.navigation)
+    return generateRoutesModule(routes, resolved.pages)
   }
   if (id === CLIENT_ENTRY_PATH) {
     return CLIENT_ENTRY_CODE

@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { extractFrontmatter } from './frontmatter.js'
 import { findMdxFiles, generateConfigModule, generateRoutesModule, buildNavigation, buildNavigationFromConfig } from './routes.js'
-import type { ResolvedClarifyOptions, MdxRoute, ClarifyNavigationConfig } from './types.js'
+import type { ResolvedClarifyOptions, MdxRoute, ClarifyPagesConfig } from './types.js'
 
 describe('findMdxFiles', () => {
   let tempDir: string
@@ -188,7 +188,7 @@ describe('buildNavigationFromConfig', () => {
       { path: '/quickstart', title: 'Quick Start', filePath: 'quickstart.mdx', virtualModuleId: 'v' },
       { path: '/advanced/ssg', title: 'SSG', filePath: 'ssg.mdx', virtualModuleId: 'v' },
     ]
-    const config: ClarifyNavigationConfig = [
+    const config: ClarifyPagesConfig = [
       { group: 'Getting Started', pages: ['index', 'quickstart'] },
       { group: 'Advanced', pages: ['advanced/ssg'] },
     ]
@@ -202,7 +202,7 @@ describe('buildNavigationFromConfig', () => {
 
   it('falls back to filename title when route not found', () => {
     const routes: MdxRoute[] = []
-    const config: ClarifyNavigationConfig = [
+    const config: ClarifyPagesConfig = [
       { group: 'Missing', pages: ['nonexistent'] },
     ]
     const tree = buildNavigationFromConfig(routes, config)
@@ -218,10 +218,10 @@ describe('generateRoutesModule with navigation config', () => {
       { path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' },
       { path: '/about', title: 'About', filePath: 'about.mdx', virtualModuleId: 'v' },
     ]
-    const navConfig: ClarifyNavigationConfig = [
+    const pagesConfig: ClarifyPagesConfig = [
       { group: 'Docs', pages: ['index', 'about'] },
     ]
-    const code = generateRoutesModule(routes, navConfig)
+    const code = generateRoutesModule(routes, pagesConfig)
     expect(code).toContain('"title": "Docs"')
     expect(code).toContain('"/"')
     expect(code).toContain('"/about"')

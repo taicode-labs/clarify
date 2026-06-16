@@ -28,7 +28,6 @@ export function resolveOptions(root: string, pluginOptions: ClarifyPluginOptions
     navbar: projectConfig.navbar,
     banner: projectConfig.banner,
     footer: projectConfig.footer,
-    navigation: projectConfig.navigation,
-    redirects: projectConfig.redirects,
+    pages: projectConfig.pages,
   }
 }

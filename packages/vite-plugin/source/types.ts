@@ -24,17 +24,21 @@ export type ClarifyFooterConfig = {
   copyright?: string;
 };
 
-export type ClarifyRedirect = {
-  source: string;
-  destination: string;
-};
+export type ClarifyPagesItem =
+  | string
+  | {
+      page: string;
+      /** If set, this navigation item is a redirect entry.
+       *  The value is the destination path. */
+      redirect?: string;
+    };
 
-export type ClarifyNavigationGroup = {
+export type ClarifyPagesGroup = {
   group: string;
-  pages: string[];
+  pages: ClarifyPagesItem[];
 };
 
-export type ClarifyNavigationConfig = ClarifyNavigationGroup[];
+export type ClarifyPagesConfig = ClarifyPagesGroup[];
 
 export type ClarifyProjectConfig = {
   /** Site title. Used in Header and SEO meta tags. */
@@ -68,14 +72,11 @@ export type ClarifyProjectConfig = {
   /** Footer configuration. */
   footer?: ClarifyFooterConfig;
 
-  /** Sidebar navigation. Array of groups with ordered page references.
-   *  If omitted, navigation is auto-generated from the file system.
+  /** Sidebar pages. Array of groups with ordered page references.
+   *  If omitted, pages are auto-generated from the file system.
    *  Page references are relative paths without .mdx extension, e.g. "index", "advanced/ssg".
    */
-  navigation?: ClarifyNavigationConfig;
-
-  /** Custom path redirects. */
-  redirects?: ClarifyRedirect[];
+  pages?: ClarifyPagesConfig;
 };
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -116,8 +117,7 @@ export type ResolvedClarifyOptions = {
   navbar?: { links?: ClarifyNavbarLink[] };
   banner?: ClarifyBannerConfig;
   footer?: ClarifyFooterConfig;
-  navigation?: ClarifyNavigationConfig;
-  redirects?: ClarifyRedirect[];
+  pages?: ClarifyPagesConfig;
 };
 
 // ────────────────────────────────────────────────────────────────────────────────

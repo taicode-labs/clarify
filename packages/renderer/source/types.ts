@@ -32,17 +32,19 @@ export type ClarifyFooterConfig = {
   copyright?: string;
 };
 
-export type ClarifyRedirect = {
-  source: string;
-  destination: string;
-};
+export type ClarifyPagesItem =
+  | string
+  | {
+      page: string;
+      redirect?: string;
+    };
 
-export type ClarifyNavigationGroup = {
+export type ClarifyPagesGroup = {
   group: string;
-  pages: string[];
+  pages: ClarifyPagesItem[];
 };
 
-export type ClarifyNavigationConfig = ClarifyNavigationGroup[];
+export type ClarifyPagesConfig = ClarifyPagesGroup[];
 
 export type ClarifyConfig = {
   title: string;
@@ -56,8 +58,7 @@ export type ClarifyConfig = {
   navbar?: { links?: ClarifyNavbarLink[] };
   banner?: ClarifyBannerConfig;
   footer?: ClarifyFooterConfig;
-  navigation?: ClarifyNavigationConfig;
-  redirects?: ClarifyRedirect[];
+  pages?: ClarifyPagesConfig;
 };
 
 export type RenderOptions = {

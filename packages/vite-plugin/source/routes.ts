@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 import { extractFrontmatter } from './frontmatter.js'
-import type { MdxRoute, ResolvedClarifyOptions, ClarifyNavigationNode, ClarifyNavigationConfig } from './types.js'
+import type { MdxRoute, ResolvedClarifyOptions, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesItem } from './types.js'
 
 function kebabToTitle(str: string): string {
   return str
@@ -85,18 +85,24 @@ export function generateConfigModule(config: ResolvedClarifyOptions): string {
   return `export const config = ${JSON.stringify(config)};`
 }
 
+function resolvePageRef(item: ClarifyPagesItem): { pageRef: string; redirect?: string } {
+  if (typeof item === 'string') return { pageRef: item }
+  return { pageRef: item.page, redirect: item.redirect }
+}
+
 export function buildNavigationFromConfig(
   routes: MdxRoute[],
-  config: ClarifyNavigationConfig
+  config: ClarifyPagesConfig
 ): ClarifyNavigationNode[] {
   const routeMap = new Map(routes.map(r => [r.path, r]))
 
   return config.map(group => {
-    const children = group.pages.map(pageRef => {
+    const children = group.pages.map(item => {
+      const { pageRef, redirect } = resolvePageRef(item)
       const path = pageRef === 'index' ? '/' : '/' + pageRef
       const route = routeMap.get(path)
       return {
-        path,
+        path: redirect ? redirect : path,
         title: route?.title ?? kebabToTitle(path.split('/').pop() ?? pageRef),
       }
     })
@@ -109,12 +115,12 @@ export function buildNavigationFromConfig(
   })
 }
 
-export function generateRoutesModule(routes: MdxRoute[], navigationConfig?: ClarifyNavigationConfig): string {
+export function generateRoutesModule(routes: MdxRoute[], pagesConfig?: ClarifyPagesConfig): string {
   const imports = routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
   const routesArray = routes.map((r, i) => `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i} }`).join(',\n')
 
-  const navigation = navigationConfig
-    ? buildNavigationFromConfig(routes, navigationConfig)
+  const navigation = pagesConfig
+    ? buildNavigationFromConfig(routes, pagesConfig)
     : buildNavigation(routes)
 
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
