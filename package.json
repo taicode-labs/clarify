@@ -9,7 +9,8 @@
     "dev:www": "turbo run dev --filter=@clarify/www",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
-    "lint": "pnpm --recursive --if-present lint",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
     "test": "turbo run test"
   },
   "engines": {
@@ -18,6 +19,14 @@
   },
   "packageManager": "pnpm@9.0.0",
   "devDependencies": {
-    "turbo": "^2.9.18"
+    "@eslint/js": "^10.0.1",
+    "@types/eslint": "^9.6.1",
+    "eslint": "^10.5.0",
+    "eslint-plugin-mdx": "^3.8.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.6.0",
+    "turbo": "^2.9.18",
+    "typescript-eslint": "^8.61.1"
   }
 }

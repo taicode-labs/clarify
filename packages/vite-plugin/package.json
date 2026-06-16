@@ -19,6 +19,8 @@
   "scripts": {
     "dev": "tsup source/index.ts --format esm,cjs --dts --watch --outDir output --external @clarify/renderer/server --external react/jsx-runtime",
     "build": "tsup source/index.ts --format esm,cjs --dts --outDir output --external @clarify/renderer/server --external react/jsx-runtime",
+    "lint": "eslint source/",
+    "lint:fix": "eslint source/ --fix",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"

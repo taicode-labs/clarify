@@ -24,8 +24,10 @@
     "output"
   ],
   "scripts": {
-    "dev": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts --watch --outDir output",
-    "build": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts --outDir output",
+    "dev": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts --watch --outDir output --external tailwindcss",
+    "build": "tsup source/index.tsx source/server.tsx --format esm,cjs --dts --outDir output --external tailwindcss",
+    "lint": "eslint source/",
+    "lint:fix": "eslint source/ --fix",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepare": "pnpm build"
   },
