@@ -1,4 +1,4 @@
-import { Routes, Route, NavLink } from 'react-router-dom'
+import { Routes, Route, NavLink, useLocation } from 'react-router-dom'
 
 import type { RouteItem, ClarifyConfig, NavigationNode, ClarifyLogoConfig } from './types'
 
@@ -32,8 +32,12 @@ function TopNav(arg0: { config: ClarifyConfig }) {
 
 function SidebarItem(arg0: { node: NavigationNode; depth?: number }) {
   const { node, depth = 0 } = arg0
+  const location = useLocation()
 
   const hasChildren = (node.children?.length ?? 0) > 0
+  const hasSections = (node.sections?.length ?? 0) > 0
+  const isCurrentPage = location.pathname === node.path
+
   return (
     <li>
       <NavLink
@@ -45,6 +49,21 @@ function SidebarItem(arg0: { node: NavigationNode; depth?: number }) {
       >
         {node.title}
       </NavLink>
+      {isCurrentPage && hasSections ? (
+        <ul className="mt-0.5 space-y-0.5">
+          {node.sections!.map((section) => (
+            <li key={section.id}>
+              <a
+                href={`#${section.id}`}
+                className="block rounded-md px-3 py-1 text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                style={{ paddingLeft: `${0.75 + (depth + 1) * 0.75}rem` }}
+              >
+                {section.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {hasChildren ? (
         <ul className="mt-0.5 space-y-0.5">
           {node.children!.map((child) => (

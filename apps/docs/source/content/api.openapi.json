@@ -1,0 +1,34 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Clarify API",
+    "description": "Clarify 文档引擎的 REST API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/pages": {
+      "get": {
+        "summary": "获取所有页面",
+        "description": "返回文档站点中的所有页面列表"
+      },
+      "post": {
+        "summary": "创建新页面",
+        "description": "在文档站点中创建一个新页面"
+      }
+    },
+    "/pages/{id}": {
+      "get": {
+        "summary": "获取单个页面",
+        "description": "根据 ID 获取页面详情"
+      },
+      "put": {
+        "summary": "更新页面",
+        "description": "更新指定 ID 的页面内容"
+      },
+      "delete": {
+        "summary": "删除页面",
+        "description": "删除指定 ID 的页面"
+      }
+    }
+  }
+}

@@ -4,12 +4,14 @@ export type NavigationNode = {
   path: string;
   title: string;
   children?: NavigationNode[];
+  sections?: { id: string; title: string }[];
 };
 
 export type RouteItem = {
   path: string;
   title: string;
   component: ComponentType;
+  kind?: 'mdx' | 'openapi';
 };
 
 export type ClarifyLogoConfig = string | { light?: string; dark?: string };

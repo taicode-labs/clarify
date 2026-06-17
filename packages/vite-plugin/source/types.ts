@@ -32,6 +32,11 @@ export type ClarifyPagesItem =
      *  The value is the destination path. */
     redirect?: string
   }
+  | {
+    openapi: string
+    /** Override the page title. Defaults to spec.info.title. */
+    title?: string
+  }
 
 export type ClarifyPagesGroup = {
   group: string
@@ -124,12 +129,23 @@ export type ResolvedGenerateOptions = {
 // Route / Page
 // ────────────────────────────────────────────────────────────────────────────────
 
-export type MdxRoute = {
+export type ContentSection = {
+  id: string
+  title: string
+  level: number
+}
+
+export type ContentRoute = {
   path: string
+  title: string
   filePath: string
   virtualModuleId: string
-  title: string
+  kind: 'mdx' | 'openapi'
+  sections?: ContentSection[]
 }
+
+/** @deprecated Use ContentRoute instead */
+export type MdxRoute = ContentRoute
 
 export type ClarifyPage = {
   path: string
@@ -142,6 +158,7 @@ export type ClarifyNavigationNode = {
   path: string
   title: string
   children?: ClarifyNavigationNode[]
+  sections?: { id: string; title: string }[]
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -151,6 +168,11 @@ export type ClarifyNavigationNode = {
 export type ClarifyHookContext = {
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedGenerateOptions
+}
+
+export type OpenAPISpec = {
+  info?: { title?: string; description?: string; version?: string }
+  paths?: Record<string, Record<string, unknown>>
 }
 
 export type ClarifyHooks = {
@@ -163,10 +185,10 @@ export type ClarifyHooks = {
     ctx: ClarifyHookContext
   ) => Promise<ClarifyPage> | ClarifyPage
   'routes:resolved'?: (
-    routes: MdxRoute[],
+    routes: ContentRoute[],
     navigation: ClarifyNavigationNode[],
     ctx: ClarifyHookContext
-  ) => Promise<{ routes: MdxRoute[]; navigation: ClarifyNavigationNode[] }> | { routes: MdxRoute[]; navigation: ClarifyNavigationNode[] }
+  ) => Promise<{ routes: ContentRoute[]; navigation: ClarifyNavigationNode[] }> | { routes: ContentRoute[]; navigation: ClarifyNavigationNode[] }
   'modules:before'?: (
     modules: Map<string, string>,
     ctx: ClarifyHookContext

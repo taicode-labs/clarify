@@ -1,8 +1,13 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
+import GithubSlugger, { slug } from 'github-slugger'
+import { toString } from 'mdast-util-to-string'
+import { remark } from 'remark'
+import { visit } from 'unist-util-visit'
+
 import { extractFrontmatter } from './frontmatter.js'
-import type { MdxRoute, ResolvedProjectConfig, ResolvedGenerateOptions, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem } from './types.js'
+import type { ContentRoute, ContentSection, OpenAPISpec, ResolvedProjectConfig, ResolvedGenerateOptions, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem } from './types.js'
 
 function kebabToTitle(str: string): string {
   return str
@@ -17,15 +22,58 @@ function extractH1(content: string): string {
   return match ? match[1].trim() : ''
 }
 
-export function findMdxFiles(dir: string, base: string = dir): MdxRoute[] {
-  const routes: MdxRoute[] = []
+/** 从 MDX/Markdown 内容中提取 H2/H3 章节 */
+export function extractMdxSections(content: string): ContentSection[] {
+  const sections: ContentSection[] = []
+  const slugger = new GithubSlugger()
+  const tree = remark.parse(content)
+  visit(tree, 'heading', (node) => {
+    if (node.depth !== 2 && node.depth !== 3) return
+    const title = toString(node)
+    sections.push({ id: slugger.slug(title), title, level: node.depth })
+  })
+  return sections
+}
+
+/** 从 OpenAPI spec 中提取接口列表作为章节 */
+export function extractOpenAPISections(spec: OpenAPISpec): ContentSection[] {
+  const sections: ContentSection[] = []
+  const paths = spec.paths ?? {}
+  for (const [path, methods] of Object.entries(paths)) {
+    for (const [method, op] of Object.entries(methods)) {
+      const title = (op as { summary?: string })?.summary ?? `${method.toUpperCase()} ${path}`
+      sections.push({ id: slug(`${method} ${path}`), title, level: 2 })
+    }
+  }
+  return sections
+}
+
+function readOpenAPISpec(filePath: string): OpenAPISpec | null {
+  try {
+    return JSON.parse(readFileSync(filePath, 'utf-8')) as OpenAPISpec
+  } catch {
+    return null
+  }
+}
+
+function resolveOpenAPIPath(filePath: string, base: string): string {
+  const relativePath = relative(base, filePath)
+  const pathParts = relativePath
+    .replace(/\.openapi\.(json|yaml|yml)$/, '')
+    .split('/')
+  const path = '/' + pathParts.map(p => p === 'index' ? '' : p).filter(Boolean).join('/')
+  return path.replace(/\/+/g, '/').replace(/\/$/, '') || '/'
+}
+
+export function findContentRoutes(dir: string, base: string = dir): ContentRoute[] {
+  const routes: ContentRoute[] = []
   if (!existsSync(dir)) return routes
 
   const entries = readdirSync(dir, { withFileTypes: true })
   for (const entry of entries) {
     const fullPath = join(dir, entry.name)
     if (entry.isDirectory()) {
-      routes.push(...findMdxFiles(fullPath, base))
+      routes.push(...findContentRoutes(fullPath, base))
     } else if (entry.isFile() && entry.name.endsWith('.mdx')) {
       const relativePath = relative(base, fullPath)
       const pathParts = relativePath.replace(/\.mdx$/, '').split('/')
@@ -49,13 +97,33 @@ export function findMdxFiles(dir: string, base: string = dir): MdxRoute[] {
         filePath: fullPath,
         virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx$/, '').replace(/\/+/g, '/'),
         title,
+        kind: 'mdx',
+        sections: extractMdxSections(content),
+      })
+    } else if (entry.isFile() && /\.openapi\.(json|yaml|yml)$/.test(entry.name)) {
+      const cleanPath = resolveOpenAPIPath(fullPath, base)
+      const spec = readOpenAPISpec(fullPath)
+      const title = spec?.info?.title ?? kebabToTitle(cleanPath.split('/').pop() ?? 'API')
+
+      routes.push({
+        path: cleanPath,
+        filePath: fullPath,
+        virtualModuleId: 'virtual:clarify-page/' + relative(base, fullPath).replace(/\.openapi\.(json|yaml|yml)$/, '').replace(/\/+/g, '/'),
+        title,
+        kind: 'openapi',
+        sections: spec ? extractOpenAPISections(spec) : undefined,
       })
     }
   }
   return routes
 }
 
-export function buildNavigation(routes: MdxRoute[]): ClarifyNavigationNode[] {
+/** @deprecated Use findContentRoutes instead */
+export function findMdxFiles(dir: string, base: string = dir): ContentRoute[] {
+  return findContentRoutes(dir, base).filter(r => r.kind === 'mdx')
+}
+
+export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[] {
   const root: ClarifyNavigationNode[] = []
 
   for (const route of routes) {
@@ -71,6 +139,9 @@ export function buildNavigation(routes: MdxRoute[]): ClarifyNavigationNode[] {
         node = { path: pathSoFar, title: i === parts.length - 1 ? route.title : kebabToTitle(parts[i]), children: [] }
         current.push(node)
       }
+      if (i === parts.length - 1 && route.sections) {
+        node.sections = route.sections.map(s => ({ id: s.id, title: s.title }))
+      }
       if (i < parts.length - 1) {
         node.children = node.children ?? []
         current = node.children
@@ -85,25 +156,41 @@ export function generateConfigModule(projectConfig: ResolvedProjectConfig, gener
   return `export const config = ${JSON.stringify({ ...projectConfig, ...generateOptions })};`
 }
 
-function resolvePageRef(item: ClarifyPagesItem): { pageRef: string; redirect?: string } {
+function resolvePageItem(
+  item: ClarifyPagesItem
+): { pageRef?: string; openapiRef?: string; redirect?: string; title?: string } {
   if (typeof item === 'string') return { pageRef: item }
+  if ('openapi' in item) return { openapiRef: item.openapi, title: item.title }
   return { pageRef: item.page, redirect: item.redirect }
 }
 
 export function buildNavigationFromConfig(
-  routes: MdxRoute[],
+  routes: ContentRoute[],
   config: ClarifyPagesGroup[]
 ): ClarifyNavigationNode[] {
   const routeMap = new Map(routes.map(r => [r.path, r]))
 
   return config.map(group => {
     const children = group.pages.map(item => {
-      const { pageRef, redirect } = resolvePageRef(item)
-      const path = pageRef === 'index' ? '/' : '/' + pageRef
+      const { pageRef, openapiRef, redirect, title } = resolvePageItem(item)
+
+      if (openapiRef) {
+        const path = '/' + openapiRef.replace(/\.openapi\.(json|yaml|yml)$/, '')
+        const route = routeMap.get(path)
+        return {
+          path,
+          title: title ?? route?.title ?? kebabToTitle(path.split('/').pop() ?? openapiRef),
+          sections: route?.sections?.map(s => ({ id: s.id, title: s.title })),
+        }
+      }
+
+      const ref = pageRef ?? ''
+      const path = ref === 'index' ? '/' : '/' + ref
       const route = routeMap.get(path)
       return {
         path: redirect ? redirect : path,
-        title: route?.title ?? kebabToTitle(path.split('/').pop() ?? pageRef),
+        title: route?.title ?? kebabToTitle(path.split('/').pop() ?? ref),
+        sections: route?.sections?.map(s => ({ id: s.id, title: s.title })),
       }
     })
 
@@ -115,9 +202,14 @@ export function buildNavigationFromConfig(
   })
 }
 
-export function generateRoutesModule(routes: MdxRoute[], pagesConfig?: ClarifyPagesConfig): string {
+export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: ClarifyPagesConfig): string {
   const imports = routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
-  const routesArray = routes.map((r, i) => `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i} }`).join(',\n')
+  const routesArray = routes.map((r, i) => {
+    const sections = r.sections && r.sections.length > 0
+      ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title })))}`
+      : ''
+    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${sections} }`
+  }).join(',\n')
 
   const navigation = pagesConfig && pagesConfig !== 'FileTree'
     ? buildNavigationFromConfig(routes, pagesConfig)

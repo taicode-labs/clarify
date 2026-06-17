@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.11",
+    "@types/github-slugger": "^2.0.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^5.0.5",
@@ -48,5 +49,8 @@
     "typescript": "^5.8.3",
     "vite": "^8.0.15",
     "vite-plugin-dts": "^4.5.4"
+  },
+  "dependencies": {
+    "github-slugger": "^2.0.0"
   }
 }

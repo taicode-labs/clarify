@@ -1,4 +1,4 @@
-import { rmSync } from 'node:fs'
+import { rmSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import mdxPlugin from '@mdx-js/rollup'
@@ -8,14 +8,14 @@ import type { Plugin, ResolvedConfig } from 'vite'
 
 import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { runHooks } from './hooks.js'
-import { findMdxFiles, generateConfigModule, generateRoutesModule } from './routes.js'
+import { findContentRoutes, generateConfigModule, generateRoutesModule } from './routes.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
   buildSSRBundle,
   renderSSGRoutes,
 } from './ssg.js'
-import type { ClarifyGenerateOptions, ClarifyHookContext, ClarifyPlugin, ResolvedProjectConfig, ResolvedGenerateOptions } from './types.js'
+import type { ClarifyGenerateOptions, ClarifyHookContext, ClarifyPlugin, ContentRoute, ResolvedProjectConfig, ResolvedGenerateOptions } from './types.js'
 
 export * from './types.js'
 
@@ -23,6 +23,12 @@ const VIRTUAL_CONFIG = 'virtual:clarify-config'
 const VIRTUAL_ROUTES = 'virtual:clarify-routes'
 const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-entry-client'
 const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
+
+// Vite recommends prefixing resolved virtual module ids with \0 to prevent
+// other plugins from trying to process them as file paths.
+function resolveVirtualId(id: string): string {
+  return '\0' + id
+}
 
 // The client entry imports renderer's source CSS via the package's "./style.css"
 // export. This path is resolved by Node/Vite via package.json exports to
@@ -38,22 +44,42 @@ import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
 render({ config, routes, navigation });`
 
+function generateOpenAPIModule(filePath: string): string {
+  const spec = readFileSync(filePath, 'utf-8')
+  return `import { createElement } from 'react';
+import { OpenApiPage } from '@clarify/renderer';
+const spec = ${spec};
+export default function OpenApiRoutePage() {
+  return createElement(OpenApiPage, { spec });
+}`
+}
 
-function loadVirtualModule(id: string, projectConfig: ResolvedProjectConfig, generateOptions: ResolvedGenerateOptions, routes: ReturnType<typeof findMdxFiles>,): string | null {
-  if (id === VIRTUAL_CONFIG) {
+function stripVirtualPrefix(id: string): string {
+  return id.startsWith('\0') ? id.slice(1) : id
+}
+
+function loadVirtualModule(
+  id: string,
+  projectConfig: ResolvedProjectConfig,
+  generateOptions: ResolvedGenerateOptions,
+  routes: ContentRoute[],
+): string | null {
+  const bareId = stripVirtualPrefix(id)
+  if (bareId === VIRTUAL_CONFIG) {
     return generateConfigModule(projectConfig, generateOptions)
   }
-  if (id === VIRTUAL_ROUTES) {
+  if (bareId === VIRTUAL_ROUTES) {
     return generateRoutesModule(routes, projectConfig.pages)
   }
-  if (id === VIRTUAL_CLIENT_ENTRY || id === RESOLVED_CLIENT_ENTRY) {
+  if (bareId === VIRTUAL_CLIENT_ENTRY || bareId === RESOLVED_CLIENT_ENTRY) {
     return CLIENT_ENTRY_CODE
   }
-  const route = routes.find(r => r.virtualModuleId === id)
-  if (route) {
-    return `export { default } from '${route.filePath}';`
+  const route = routes.find(r => r.virtualModuleId === bareId)
+  if (!route) return null
+  if (route.kind === 'openapi') {
+    return generateOpenAPIModule(route.filePath)
   }
-  return null
+  return `export { default } from '${route.filePath}';`
 }
 
 export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
@@ -61,7 +87,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const projectConfig = resolveProjectConfig(root)
   const generateOptions = resolveGenerateOptions(options)
   const contentRoot = join(root, generateOptions.rootDirectory)
-  const routes = findMdxFiles(contentRoot)
+  const routes = findContentRoutes(contentRoot)
 
   const clarifyPlugins: ClarifyPlugin[] = options.plugins ?? []
   const ctx: ClarifyHookContext = { projectConfig, generateOptions }
@@ -92,10 +118,10 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
     },
     resolveId(id) {
       if (id === VIRTUAL_CLIENT_ENTRY || id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
-      if (id === VIRTUAL_CONFIG) return id
-      if (id === VIRTUAL_ROUTES) return id
-      const route = routes.find(r => r.virtualModuleId === id)
-      if (route) return id
+      if (id === VIRTUAL_CONFIG || id === resolveVirtualId(VIRTUAL_CONFIG)) return resolveVirtualId(VIRTUAL_CONFIG)
+      if (id === VIRTUAL_ROUTES || id === resolveVirtualId(VIRTUAL_ROUTES)) return resolveVirtualId(VIRTUAL_ROUTES)
+      const route = routes.find(r => r.virtualModuleId === id || r.virtualModuleId === stripVirtualPrefix(id))
+      if (route) return resolveVirtualId(route.virtualModuleId)
       return null
     },
     load(id) {

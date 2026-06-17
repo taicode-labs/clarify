@@ -118,14 +118,14 @@ describe('generateRoutesModule', () => {
 
   it('generates imports and routes array', () => {
     const routes: MdxRoute[] = [
-      { path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index' },
-      { path: '/about', title: 'About', filePath: '/a/about.mdx', virtualModuleId: 'virtual:clarify-page/about' },
+      { path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index', kind: 'mdx' },
+      { path: '/about', title: 'About', filePath: '/a/about.mdx', virtualModuleId: 'virtual:clarify-page/about', kind: 'mdx' },
     ]
     const code = generateRoutesModule(routes)
     expect(code).toContain("import Page0 from 'virtual:clarify-page/index';")
     expect(code).toContain("import Page1 from 'virtual:clarify-page/about';")
-    expect(code).toContain('{ path: "/", title: "Home", component: Page0 }')
-    expect(code).toContain('{ path: "/about", title: "About", component: Page1 }')
+    expect(code).toContain('{ path: "/", title: "Home", component: Page0, kind: \'mdx\' }')
+    expect(code).toContain('{ path: "/about", title: "About", component: Page1, kind: \'mdx\' }')
     expect(code).toContain('"title": "About"')
   })
 })

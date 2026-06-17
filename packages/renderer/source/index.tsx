@@ -2,12 +2,13 @@ import './styles.css'
 import type { ReactNode } from 'react'
 
 import { AppShell } from './App'
+import { OpenApiPage, ApiEndpoint } from './openapi'
 import { render } from './render'
 import { renderToHTML } from './server'
 import type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions } from './types'
 
 export type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions }
-export { AppShell, render, renderToHTML }
+export { AppShell, render, renderToHTML, OpenApiPage, ApiEndpoint }
 
 export type DocShellProps = {
   title: string
@@ -38,10 +39,10 @@ export function DocShell(arg0: DocShellProps) {
 }
 
 export function ApiEndpointCard(arg0: ApiEndpointCardProps) {
-  const { method, path, description } = arg0
+  const { method, path, description, id } = arg0
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article id={id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm scroll-mt-20">
       <div className="flex items-center gap-3">
         <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
           {method}

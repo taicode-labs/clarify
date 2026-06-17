@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 import { build } from 'vite'
 import type { Plugin } from 'vite'
 
-import type { ResolvedProjectConfig, MdxRoute } from './types.js'
+import type { ResolvedProjectConfig, ContentRoute } from './types.js'
 import { escapeHtml } from './utils.js'
 
 export function readIndexHtml(outputDirectory: string): string | undefined {
@@ -76,7 +76,7 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
   })
 }
 
-export async function renderSSGRoutes(routes: MdxRoute[], projectConfig: ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string): Promise<void> {
+export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string): Promise<void> {
   const { render } = await import(pathToFileURL(ssrBundlePath).href)
 
   const template = readIndexHtml(outputDirectory)
