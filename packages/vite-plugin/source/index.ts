@@ -17,7 +17,7 @@ import {
   buildSSRBundle,
   renderSSGRoutes,
 } from './ssg.js'
-import type { ClarifyGenerateOptions, ClarifyHookContext, ClarifyNavigationNode, ClarifyPlugin, NavigationTree, OpenAPISpec } from './types.js'
+import type { ClarifyGenerateOptions, ClarifyHookContext, ClarifyPlugin, NavigationTree, OpenAPISpec } from './types.js'
 import {
   RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
@@ -61,7 +61,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
 
   // Collect OpenAPI specs keyed by virtual module ID for runtime embedding.
   // Specs are populated asynchronously before Vite resolves config.
-  const openApiSpecs: Record<string, OpenAPISpec> = {}
+  const openApis: Record<string, OpenAPISpec> = {}
 
   const clarifyPlugins: ClarifyPlugin[] = options.plugins ?? []
   const ctx: ClarifyHookContext = { projectConfig, generateOptions }
@@ -72,12 +72,12 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   async function resolveRoutesAndSpecs() {
     routes = findLocalizedContentRoutes(contentRoot, projectConfig.i18n)
     enrichRoutesWithRawContent(routes)
-    for (const key of Object.keys(openApiSpecs)) delete openApiSpecs[key]
+    for (const key of Object.keys(openApis)) delete openApis[key]
 
     for (const route of routes.filter(r => r.kind === 'openapi')) {
       const spec = await readOpenAPISpec(route.filePath)
       if (spec) {
-        openApiSpecs[route.virtualModuleId] = spec
+        openApis[route.virtualModuleId] = spec
         route.title = spec.info?.title ?? route.title
         route.sections = extractOpenAPISections(spec)
       } else {
@@ -102,7 +102,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       generateOptions,
       routes,
       navigation: resolvedNavigation,
-      openApiSpecs,
+      openApis,
     })
     virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
   }

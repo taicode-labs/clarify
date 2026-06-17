@@ -40,10 +40,10 @@ export function injectSSRIntoTemplate(template: string, appHtml: string, project
 export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify/renderer/server';
 import { routes, navigation } from 'virtual:clarify-routes';
 import { config } from 'virtual:clarify-config';
-import { openApiSpecs } from 'virtual:clarify-openapi-registry';
+import { openApis } from 'virtual:clarify-openapi-registry';
 
 export function render(url) {
-  return renderToHTML({ config, routes, navigation, openApiSpecs, url });
+  return renderToHTML({ config, routes, navigation, openApis, url });
 }`
 
 export function createTempEntryFile(content: string): string {

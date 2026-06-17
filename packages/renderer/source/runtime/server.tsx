@@ -4,7 +4,7 @@ import { StaticRouter } from 'react-router-dom'
 
 import { AppShell } from '../app/AppShell'
 import { ThemeProvider } from '../components/ThemeProvider'
-import { ClarifyConfigContext, OpenApiSpecsContext } from '../context'
+import { ClarifyConfigContext, OpenApisContext } from '../context'
 import type { ServerRenderOptions } from '../types'
 
 /**
@@ -13,17 +13,17 @@ import type { ServerRenderOptions } from '../types'
  * 返回 `div#root` 内部的 HTML，由 vite-plugin 组装为完整的 HTML 文档。
  */
 export function renderToHTML(options: ServerRenderOptions): string {
-  const { config, routes, navigation, openApiSpecs = {}, url } = options
+  const { config, routes, navigation, openApis = {}, url } = options
 
   return renderToString(
     <StrictMode>
       <StaticRouter basename={config.routePrefix} location={url}>
         <ClarifyConfigContext.Provider value={config}>
-          <OpenApiSpecsContext.Provider value={openApiSpecs}>
+          <OpenApisContext.Provider value={openApis}>
             <ThemeProvider>
               <AppShell config={config} routes={routes} navigation={navigation ?? []} />
             </ThemeProvider>
-          </OpenApiSpecsContext.Provider>
+          </OpenApisContext.Provider>
         </ClarifyConfigContext.Provider>
       </StaticRouter>
     </StrictMode>

@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 
 import { AppShell } from '../app/AppShell'
 import { ThemeProvider } from '../components/ThemeProvider'
-import { ClarifyConfigContext, OpenApiSpecsContext } from '../context'
+import { ClarifyConfigContext, OpenApisContext } from '../context'
 import type { RenderOptions } from '../types'
 
 /**
@@ -27,7 +27,7 @@ function isHydrationDebugEnabled(): boolean {
 }
 
 export function render(options: RenderOptions) {
-  const { config, routes, navigation, openApiSpecs = {}, container } = options
+  const { config, routes, navigation, openApis = {}, container } = options
 
   const target = container ?? document.getElementById('root')
   if (!target) {
@@ -38,11 +38,11 @@ export function render(options: RenderOptions) {
     <StrictMode>
       <BrowserRouter basename={config.routePrefix}>
         <ClarifyConfigContext.Provider value={config}>
-          <OpenApiSpecsContext.Provider value={openApiSpecs}>
+          <OpenApisContext.Provider value={openApis}>
             <ThemeProvider>
               <AppShell config={config} routes={routes} navigation={navigation ?? []} />
             </ThemeProvider>
-          </OpenApiSpecsContext.Provider>
+          </OpenApisContext.Provider>
         </ClarifyConfigContext.Provider>
       </BrowserRouter>
     </StrictMode>

@@ -3,7 +3,7 @@ import { useRef, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { Heading, Prose } from '../components'
-import { useOpenApiSpecs } from '../context'
+import { useOpenApis } from '../context'
 import { Col, Properties, Property, Row } from '../mdx/primitives'
 
 import { getOpenApiOperation, listOpenApiOperations } from './utils'
@@ -736,7 +736,7 @@ function normalizeSpecPath(specPath: string, currentRoutePath?: string): string 
 }
 
 function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenAPISpec | null {
-  const specs = useOpenApiSpecs()
+  const specs = useOpenApis()
   const location = useLocation()
 
   if (spec) return spec

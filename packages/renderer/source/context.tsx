@@ -4,7 +4,7 @@ import type { OpenAPISpec } from './openapi/utils'
 import type { ClarifyConfig } from './types'
 
 export const ClarifyConfigContext = createContext<ClarifyConfig | null>(null)
-export const OpenApiSpecsContext = createContext<Record<string, OpenAPISpec>>({})
+export const OpenApisContext = createContext<Record<string, OpenAPISpec>>({})
 
 export function useClarifyConfig(): ClarifyConfig {
   const config = useContext(ClarifyConfigContext)
@@ -16,6 +16,6 @@ export function useClarifyConfig(): ClarifyConfig {
   return config
 }
 
-export function useOpenApiSpecs(): Record<string, OpenAPISpec> {
-  return useContext(OpenApiSpecsContext)
+export function useOpenApis(): Record<string, OpenAPISpec> {
+  return useContext(OpenApisContext)
 }

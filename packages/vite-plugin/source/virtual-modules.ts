@@ -50,8 +50,8 @@ export function generateRoutesModule(
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
-export function generateOpenAPIRegistryModule(openApiSpecs: Record<string, OpenAPISpec>): string {
-  return `export const openApiSpecs = ${JSON.stringify(openApiSpecs)};`
+export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISpec>): string {
+  return `export const openApis = ${JSON.stringify(openApis)};`
 }
 
 export function generateOpenAPIModule(spec: OpenAPISpec): string {
@@ -69,8 +69,8 @@ import '@clarify/renderer/style.css';
 import { render } from '@clarify/renderer';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
-import { openApiSpecs } from '${VIRTUAL_OPENAPI_REGISTRY}';
-render({ config, routes, navigation, openApiSpecs });`
+import { openApis } from '${VIRTUAL_OPENAPI_REGISTRY}';
+render({ config, routes, navigation, openApis });`
 }
 
 export function buildVirtualModules(args: {
@@ -78,18 +78,18 @@ export function buildVirtualModules(args: {
   generateOptions: ResolvedGenerateOptions
   routes: ContentRoute[]
   navigation?: NavigationTree
-  openApiSpecs: Record<string, OpenAPISpec>
+  openApis: Record<string, OpenAPISpec>
 }): VirtualModules {
   const modules: VirtualModules = new Map()
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.projectConfig.pages, args.navigation, args.projectConfig))
-  modules.set(VIRTUAL_OPENAPI_REGISTRY, generateOpenAPIRegistryModule(args.openApiSpecs))
+  modules.set(VIRTUAL_OPENAPI_REGISTRY, generateOpenAPIRegistryModule(args.openApis))
   modules.set(VIRTUAL_CLIENT_ENTRY, createClientEntryModule())
   modules.set(RESOLVED_CLIENT_ENTRY, createClientEntryModule())
 
   for (const route of args.routes) {
     if (route.kind === 'openapi') {
-      const spec = args.openApiSpecs[route.virtualModuleId]
+      const spec = args.openApis[route.virtualModuleId]
       if (!spec) {
         throw new Error(`OpenAPI spec failed to load for ${route.filePath}`)
       }
