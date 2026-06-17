@@ -389,38 +389,43 @@ function ExamplePicker({
   selectedKey: string
   onSelect: (key: string) => void
 }): ReactNode {
-  const scrollerRef = useRef<HTMLDivElement>(null)
+  const scrollerRef = useRef<HTMLDivElement | null>(null)
 
   if (examples.length <= 1) return null
 
-  const scrollBy = (direction: -1 | 1) => {
-    scrollerRef.current?.scrollBy({ left: direction * 160, behavior: 'smooth' })
+  function scrollBy(direction: 1 | -1) {
+    const el = scrollerRef.current
+    if (!el) return
+    el.scrollBy({ left: direction * Math.max(120, el.clientWidth * 0.6), behavior: 'smooth' })
   }
 
   return (
-    <div className="flex min-w-0 items-center gap-1.5 pt-2 sm:pt-0">
+    <div className="relative -mr-1 flex min-w-0 flex-1 items-center gap-1">
       <button
         type="button"
         aria-label="Scroll examples left"
         onClick={() => scrollBy(-1)}
-        className="grid size-6 shrink-0 place-items-center rounded-full bg-white/5 text-zinc-400 transition hover:bg-white/10 hover:text-zinc-200"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
       >
-        ←
+        <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3">
+          <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 010 1.06L9.06 10l3.73 3.71a.75.75 0 11-1.06 1.06l-4.25-4.24a.75.75 0 010-1.06l4.25-4.24a.75.75 0 011.06 0z" clipRule="evenodd" />
+        </svg>
       </button>
       <div
         ref={scrollerRef}
-        className="scrollbar-none flex max-w-[min(22rem,calc(100vw-8rem))] snap-x gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap scroll-smooth scrollbar-none [&amp;::-webkit-scrollbar]:hidden"
       >
         {examples.map((example) => (
           <button
             key={example.key}
             type="button"
             onClick={() => onSelect(example.key)}
+            title={example.summary}
             className={[
-              'snap-start whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition',
+              'shrink-0 rounded-md px-2 py-0.5 text-xs font-medium transition',
               example.key === selectedKey
-                ? 'bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/30 ring-inset'
-                : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200',
+                ? 'bg-white/10 text-white'
+                : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200',
             ].join(' ')}
           >
             {example.title}
@@ -431,9 +436,11 @@ function ExamplePicker({
         type="button"
         aria-label="Scroll examples right"
         onClick={() => scrollBy(1)}
-        className="grid size-6 shrink-0 place-items-center rounded-full bg-white/5 text-zinc-400 transition hover:bg-white/10 hover:text-zinc-200"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
       >
-        →
+        <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3">
+          <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 010-1.06L10.94 10 7.21 6.29a.75.75 0 111.06-1.06l4.25 4.24a.75.75 0 010 1.06l-4.25 4.24a.75.75 0 01-1.06 0z" clipRule="evenodd" />
+        </svg>
       </button>
     </div>
   )
@@ -480,9 +487,9 @@ function ApiExampleCodeGroup({
   return (
     <div className="my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
       <div className="not-prose">
-        <div className="flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-center gap-x-4 gap-y-2 border-b border-zinc-700 bg-zinc-800 px-4 py-2 dark:border-zinc-800 dark:bg-transparent">
-          <h3 className="mr-auto text-xs font-semibold text-white">{title}</h3>
-          {examples && selectedExampleKey && onSelectExample ? (
+        <div className="flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-center gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
+          <h3 className="shrink-0 py-3 text-xs font-semibold text-white">{title}</h3>
+          {examples && examples.length > 1 && selectedExampleKey && onSelectExample ? (
             <ExamplePicker examples={examples} selectedKey={selectedExampleKey} onSelect={onSelectExample} />
           ) : null}
         </div>
