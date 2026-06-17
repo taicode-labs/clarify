@@ -1,6 +1,7 @@
 {
   "name": "@clarify/renderer",
   "version": "0.1.0",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "main": "output/index.cjs",
   "module": "output/index.js",
@@ -22,6 +23,7 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "LICENSE",
     "output"
   ],
   "scripts": {
