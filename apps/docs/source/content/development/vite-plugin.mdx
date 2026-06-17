@@ -71,7 +71,7 @@ content/
 
 - **索引文件**：`index.mdx` 映射到目录根路径（`/` 或 `/guides/`）
 - **动态段**：v1 不支持；仅支持扁平 + 嵌套静态路由
-- **隐藏页面**：Frontmatter 中设置 `hidden: true` 可从导航中排除，但保留路由可访问性
+- **自定义导航**：通过 `clarify.json` 的 `pages` 字段完全控制侧边栏结构
 
 ### 路由清单
 
@@ -83,7 +83,7 @@ type RouteManifest = {
     path: string;
     componentPath: string;   // 虚拟模块 ID
     meta: PageMeta;          // title、description 等
-    navOrder?: number;
+    pages?: 'FileTree' | Array<{ label: string; items: Array<{ page?: string; openapi?: string; title?: string }> }>;
   }>;
   navTree: NavNode[];        // 层级侧边栏结构
 };

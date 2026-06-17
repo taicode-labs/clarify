@@ -48,7 +48,7 @@ export function extractOpenAPISections(spec: OpenAPISpec): ContentSection[] {
   return sections
 }
 
-function readOpenAPISpec(filePath: string): OpenAPISpec | null {
+export function readOpenAPISpec(filePath: string): OpenAPISpec | null {
   try {
     return JSON.parse(readFileSync(filePath, 'utf-8')) as OpenAPISpec
   } catch {
@@ -152,8 +152,12 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
   return root
 }
 
-export function generateConfigModule(projectConfig: ResolvedProjectConfig, generateOptions: ResolvedGenerateOptions): string {
-  return `export const config = ${JSON.stringify({ ...projectConfig, ...generateOptions })};`
+export function generateConfigModule(
+  projectConfig: ResolvedProjectConfig,
+  generateOptions: ResolvedGenerateOptions,
+  openApiSpecs?: Record<string, OpenAPISpec>
+): string {
+  return `export const config = ${JSON.stringify({ ...projectConfig, ...generateOptions, openApiSpecs })};`
 }
 
 function resolvePageItem(

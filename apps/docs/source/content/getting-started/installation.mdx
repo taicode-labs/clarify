@@ -23,7 +23,7 @@ pnpm init
 ### 2. 安装依赖
 
 ```bash
-pnpm add -D vite react react-dom react-router-dom @vitejs/plugin-react @tailwindcss/vite typescript
+pnpm add -D vite react react-dom react-router-dom @tailwindcss/vite typescript
 pnpm add -D @clarify/vite-plugin @clarify/renderer
 ```
 
@@ -33,14 +33,10 @@ pnpm add -D @clarify/vite-plugin @clarify/renderer
 
 ```typescript
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
 import { clarifyPlugin } from '@clarify/vite-plugin';
 
 export default defineConfig({
   plugins: [
-    react(),
-    tailwindcss(),
     clarifyPlugin(),
   ],
 });
@@ -55,35 +51,7 @@ export default defineConfig({
 }
 ```
 
-### 4. 创建入口文件
-
-**index.html**
-
-```html
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <title>我的文档</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/source/main.tsx"></script>
-  </body>
-</html>
-```
-
-**source/main.tsx**
-
-```typescript
-import { render } from '@clarify/renderer';
-import { routes } from 'virtual:clarify-routes';
-import { config } from 'virtual:clarify-config';
-
-render({ config, routes });
-```
-
-### 5. 编写文档
+### 4. 编写文档
 
 在 `source/content` 目录下创建 `.mdx` 文件：
 

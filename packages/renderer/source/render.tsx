@@ -3,6 +3,7 @@ import { hydrateRoot, createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import { AppShell } from './App'
+import { ClarifyConfigContext } from './context'
 import type { RenderOptions } from './types'
 
 /**
@@ -26,7 +27,9 @@ export function render(options: RenderOptions) {
   const app = (
     <StrictMode>
       <BrowserRouter basename={config.routePrefix}>
-        <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+        <ClarifyConfigContext.Provider value={config}>
+          <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+        </ClarifyConfigContext.Provider>
       </BrowserRouter>
     </StrictMode>
   )

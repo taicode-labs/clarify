@@ -6,13 +6,13 @@
 
 ## 选项列表
 
-### Phase 1 已支持的选项
+### 选项列表
 
 | 选项 | 类型 | 说明 | 默认值 |
 |------|------|------|--------|
-| `docsRoot` | `string` | 内容文件根目录 | `"source/content"` |
-| `routeBase` | `string` | 部署路径，覆盖 `clarify.json` 中的设置 | `"/"` |
-| `outPath` | `string` | 构建输出目录，覆盖 Vite 的 `build.outDir` | `"output"` |
+| `routePrefix` | `string` | 部署路径，覆盖 `clarify.json` 中的设置 | `"/"` |
+| `rootDirectory` | `string` | 内容文件根目录 | `"source/content"` |
+| `outputDirectory` | `string` | 构建输出目录，覆盖 Vite 的 `build.outDir` | `"output"` |
 | `include` | `string \| RegExp \| Array` | MDX 处理包含规则 | `"**/*.mdx"` |
 | `exclude` | `string \| RegExp \| Array` | MDX 处理排除规则 | — |
 | `plugins` | `ClarifyPlugin[]` | 扩展插件数组（翻译、搜索等） | — |
@@ -38,7 +38,7 @@ export default defineConfig({
 
 ```typescript
 clarifyPlugin({
-  docsRoot: 'docs',
+  rootDirectory: 'docs',
 });
 ```
 
@@ -46,8 +46,8 @@ clarifyPlugin({
 
 ```typescript
 clarifyPlugin({
-  routeBase: '/staging/docs/',
-  outPath: 'build',
+  routePrefix: '/staging/docs/',
+  outputDirectory: 'build',
 });
 ```
 
@@ -69,13 +69,17 @@ clarifyPlugin({
 插件选项 > clarify.json > 默认值
 ```
 
-例如，如果 `clarify.json` 中 `routeBase` 为 `"/"`，但插件选项中设置为 `"/staging/"`，最终生效的是 `"/staging/"`。
+例如，如果 `clarify.json` 中 `routePrefix` 为 `"/"`，但插件选项中设置为 `"/staging/"`，最终生效的是 `"/staging/"。
 
 ---
 
-## Phase 2 计划支持的选项
+## 构建行为说明
 
-| 选项 | 类型 | 说明 |
-|------|------|------|
-| `components` | `string` | 自定义 MDX 组件目录 |
-| `transformFrontmatter` | `(fm: Frontmatter) => Frontmatter` | 前置元数据转换函数 |
+`clarifyPlugin` 在构建时会：
+
+1. 扫描 `rootDirectory` 目录，发现所有 `.mdx` 和 `.openapi.json/.openapi.yaml/.openapi.yml` 文件
+2. 为每个文件生成对应的路由和导航结构
+3. 在构建时通过 `renderToString` 生成静态 HTML
+4. 客户端通过 `hydrateRoot` 接管为单页应用
+
+你可以通过 `include`/`exclude` 过滤不需要处理的文件，通过 `plugins` 接入翻译、搜索等扩展功能。

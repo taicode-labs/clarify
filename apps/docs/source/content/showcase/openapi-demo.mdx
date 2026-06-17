@@ -4,44 +4,39 @@
 
 ---
 
-## 示例规范
+## 自动生成的 API 页面
 
-Clarify 可以解析 OpenAPI 3.0/3.1 规范，并将操作渲染为可读的 API 文档。
+将 `api.openapi.json` 放入 `source/content/` 目录后，Clarify 会自动生成路由 `/api`，并使用 `OpenApiPage` 组件渲染完整的 API 文档。页面效果如下：
 
-### 获取所有页面
+```
+标题：Pages API
+版本：1.0.0
 
-**GET** `/pages`
-
-返回文档站点中的所有页面列表。
-
-### 创建新页面
-
-**POST** `/pages`
-
-在文档站点中创建一个新页面。
-
-### 获取单个页面
-
-**GET** `/pages/{id}`
-
-根据 ID 获取页面详情。
-
-### 更新页面
-
-**PUT** `/pages/{id}`
-
-更新指定 ID 的页面内容。
-
-### 删除页面
-
-**DELETE** `/pages/{id}`
-
-删除指定 ID 的页面。
+GET    /pages        获取所有页面
+POST   /pages        创建新页面
+GET    /pages/{id}   获取单个页面
+PUT    /pages/{id}   更新页面
+DELETE /pages/{id}   删除页面
+```
 
 ---
 
-## 当前状态
+## 嵌入单个接口
 
-> OpenAPI 集成功能正在 Phase 2 开发中。本页为静态预览，实际 `<OpenAPI>` 组件渲染效果将在后续版本提供。
+在任意 MDX 页面中，使用 `OpenApiEndpoint` 组件嵌入特定接口。**无需导入，Clarify 的内置组件在 MDX 中可直接使用。**
 
-完整规范文件：[api.openapi.json](/content/api.openapi.json)
+```mdx
+# 页面管理 API
+
+<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+```
+
+渲染效果：
+
+<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+
+---
+
+## 完整规范文件
+
+查看 [api.openapi.json](/content/api.openapi.json) 了解示例规范的完整内容。

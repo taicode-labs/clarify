@@ -26,13 +26,6 @@ anotherKey: another value
 | `title` | `string` | 页面标题 | 建议填写 |
 | `description` | `string` | 页面描述，用于 SEO | 可选 |
 
-### 导航字段
-
-| 字段 | 类型 | 说明 | 默认值 |
-|------|------|------|--------|
-| `navOrder` | `number` | 侧边栏排序权重，数值越小越靠前 | — |
-| `hidden` | `boolean` | 是否隐藏该页面（从导航中移除） | `false` |
-
 ---
 
 ## 示例
@@ -48,34 +41,11 @@ description: 从零开始搭建 Clarify 文档站点
 # 快速开始
 ```
 
-### 调整排序
-
-```mdx
----
-title: 安装
-navOrder: 1
----
-
-# 安装
-```
-
-### 隐藏页面
-
-```mdx
----
-title: 草稿页面
-hidden: true
----
-
-# 这是一篇草稿
-
-此页面不会出现在导航中，但可以通过 URL 直接访问。
-```
-
 ---
 
 ## 字段优先级
 
 - `title` 为空时，Clarify 会尝试从页面第一个 `<h1>` 提取标题
 - `description` 为空时，不会生成对应的 meta 标签
-- `navOrder` 为空的页面按文件名排序
+
+> **注意**：当前版本 Frontmatter 仅支持简单的 `key: value` 字符串键值对，暂不支持 `navOrder`、`hidden` 等高级字段。

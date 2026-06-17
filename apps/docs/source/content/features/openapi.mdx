@@ -1,51 +1,89 @@
 # OpenAPI 集成
 
-> **注意**：OpenAPI 集成功能计划在 Phase 2 中推出，当前版本尚未实现。本节介绍设计目标和预期用法。
+Clarify 原生支持 OpenAPI 规范。将 `.openapi.json`、`.openapi.yaml` 或 `.openapi.yml` 文件放入 `source/content` 目录，Clarify 会自动生成 API 文档页面。
 
 ---
 
-## 目标
+## 使用方式
 
-让 API 文档与产品文档共存于同一个站点，开发者可以在 MDX 页面中直接嵌入交互式 API 参考。
+### 1. 自动路由发现
 
----
+在 `source/content` 目录下放置 OpenAPI 规范文件：
 
-## 预期用法
+```
+source/content/
+├── index.mdx
+├── getting-started.mdx
+└── api.openapi.json      → 自动生成 /api 页面
+```
 
-### 配置 OpenAPI 规范
+Clarify 会在构建时自动发现该文件，并使用 `OpenApiPage` 组件渲染完整的 API 文档页面。
 
-在 `clarify.json` 中指定 OpenAPI 文件路径：
+### 2. 在 `pages` 中显式配置
+
+你也可以在 `clarify.json` 的 `pages` 中手动引用：
 
 ```json
 {
-  "openApi": "./api.openapi.json"
+  "pages": [
+    {
+      "label": "API 文档",
+      "items": [
+        { "openapi": "api.openapi.json", "title": "REST API" }
+      ]
+    }
+  ]
 }
 ```
 
-### 在 MDX 中嵌入 API 文档
+### 3. 在 MDX 中嵌入单个接口（推荐）
+
+Clarify 的所有内置组件在 MDX 中**无需导入即可直接使用**。使用 `OpenApiEndpoint` 组件可以引用已放入 `source/content/` 的 OpenAPI 规范文件：
 
 ```mdx
 # 用户 API
 
-以下是用户相关的接口：
+## 获取用户列表（绝对路径）
 
-<OpenAPI path="/users" />
+<OpenApiEndpoint specPath="/api" path="/users" method="get" />
 
-## 获取单个用户
+## 创建用户（相对路径）
 
-<OpenAPI path="/users/{id}" method="get" />
+<OpenApiEndpoint specPath="api" path="/users" method="post" />
 ```
 
-### 完整 API 文档页面
+`specPath` 支持三种写法：
+
+- **绝对路径**（以 `/` 开头）：从 `source/content` 根目录开始查找，如 `/api` 匹配 `source/content/api.openapi.json`。
+- **相对路径**（不以 `/` 开头）：相对于当前 MDX 文件所在目录，如当前文件在 `features/` 下，`api` 匹配 `source/content/features/api.openapi.json`。
+- **子目录定位**：`specPath="/reference/api"` 匹配 `source/content/reference/api.openapi.json`。
+
+如果你希望手动导入规范对象，也可以使用 `ApiEndpoint` 组件：
 
 ```mdx
----
-title: API 参考
----
+import { ApiEndpoint } from '@clarify/renderer';
+import spec from '../api.openapi.json';
 
-# API 参考
+<ApiEndpoint spec={spec} path="/users" method="get" />
+```
 
-<OpenAPI />
+### 4. 完整 API 文档页面
+
+如果你希望手动创建 API 文档页面（而非使用自动生成的路由），可以在 MDX 中使用 `OpenApiPage`。同样**无需导入**：
+
+```mdx
+# 自定义 API 文档
+
+<OpenApiPage specPath="/api" />
+```
+
+或手动导入：
+
+```mdx
+import { OpenApiPage } from '@clarify/renderer';
+import spec from './api.openapi.json';
+
+<OpenApiPage spec={spec} />
 ```
 
 ---
@@ -54,6 +92,39 @@ title: API 参考
 
 - OpenAPI 3.0.x
 - OpenAPI 3.1.x
+
+---
+
+## 组件 API
+
+### `OpenApiPage`
+
+渲染完整的 OpenAPI 规范文档，包含标题、描述和所有接口列表。
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `spec` | `OpenAPISpec` | OpenAPI 规范对象（手动导入时使用） |
+| `specPath` | `string` | OpenAPI 路径，如 `api`（相对）或 `/api`（绝对），不含扩展名 |
+
+### `ApiEndpoint`
+
+渲染单个 API 接口。需要手动导入规范对象。
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `spec` | `OpenAPISpec` | OpenAPI 规范对象 |
+| `path` | `string` | 接口路径，如 `/users` |
+| `method` | `string` | HTTP 方法，如 `get`、`post` |
+
+### `OpenApiEndpoint`
+
+渲染单个 API 接口，无需导入规范对象。适合在 MDX 中直接嵌入已发现的 OpenAPI 文件中的接口。
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `specPath` | `string` | OpenAPI 路径，如 `api`（相对）或 `/api`（绝对），不含扩展名 |
+| `path` | `string` | 接口路径，如 `/users` |
+| `method` | `string` | HTTP 方法，如 `get`、`post` |
 
 ---
 

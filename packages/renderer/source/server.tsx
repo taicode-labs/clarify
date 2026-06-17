@@ -3,6 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
 
 import { AppShell } from './App'
+import { ClarifyConfigContext } from './context'
 import type { ServerRenderOptions } from './types'
 
 /**
@@ -16,7 +17,9 @@ export function renderToHTML(options: ServerRenderOptions): string {
   return renderToString(
     <StrictMode>
       <StaticRouter basename={config.routePrefix} location={url}>
-        <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+        <ClarifyConfigContext.Provider value={config}>
+          <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+        </ClarifyConfigContext.Provider>
       </StaticRouter>
     </StrictMode>
   )

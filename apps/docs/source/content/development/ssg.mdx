@@ -11,7 +11,7 @@
 |---|------|----------|
 | 1 | 静态部署：每个页面有独立的 HTML 文件 | 构建时 SSR，为每条路由写入 `dist/<route>/index.html` |
 | 2 | 首屏后提供流畅的客户端体验 | 注入 `<script>` 将静态标记注水（hydrate）为 React Router SPA |
-| 3 | 第一期仅支持 MDX 渲染 | Vite 插件扫描 `docsRoot` 下的 `*.mdx`，通过 `@mdx-js/rollup` 编译 |
+| 3 | 支持 MDX 和 OpenAPI 渲染 | Vite 插件扫描 `rootDirectory` 下的 `*.mdx` 和 `*.openapi.*`，通过 `@mdx-js/rollup` 编译 |
 | 4 | 使用 Vite 7（稳定版），后续评估 Rolldown | 仅使用 Vite 7 公开 API，不依赖 Rolldown 专有特性 |
 | 5 | 零中间构建产物 | 所有生成逻辑通过 Vite 虚拟模块在内存中完成，配合 `ssrLoadModule` 执行 |
 | 6 | 通过 Vite 插件使用 Tailwind CSS | 保留用户 `vite.config.ts` 中已有的 `@tailwindcss/vite` |
@@ -27,7 +27,7 @@
 │  1. Vite 打包客户端入口（main.tsx）→ dist/assets/            │
 │                                                             │
 │  2. clarifyPlugin buildEnd()：                              │
-│       a. 扫描 docsRoot 下的 MDX 文件                         │
+│       a. 扫描 rootDirectory 下的 MDX 和 OpenAPI 文件          │
 │       b. 构建路由清单（virtual:clarify-routes）               │
 │       c. 启动临时 Vite 开发服务器                            │
 │       d. ssrLoadModule('@clarify/renderer/server')          │
@@ -83,7 +83,7 @@ Clarify 采用虚拟模块模式实现更清晰的分离：
 Clarify Phase 1 使用**基于文件系统的路由**，并支持可选的 frontmatter 覆盖：
 
 ```
-docsRoot/
+rootDirectory/
 ├── index.mdx           → /
 ├── getting-started.mdx → /getting-started
 ├── guides/
@@ -91,9 +91,9 @@ docsRoot/
 │   └── theming.mdx     → /guides/theming
 ```
 
-- 路由从相对于 `docsRoot` 的文件路径派生
-- Frontmatter `slug` 可覆盖生成的路径
-- Frontmatter `hidden: true` 从导航中移除页面但保留路由
+- 路由从相对于 `rootDirectory` 的文件路径派生
+- 支持 `.mdx` 和 `.openapi.json/.yaml/.yml` 文件
+- 导航结构可通过 `clarify.json` 的 `pages` 字段自定义
 
 ### HTML 模板
 
@@ -134,7 +134,7 @@ Vite 运行正常构建：
 
 在 `clarifyPlugin.buildEnd()` 内部：
 
-1. 扫描 `docsRoot` 以查找 `**/*.mdx`
+1. 扫描 `rootDirectory` 以查找 `**/*.mdx` 和 `**/*.openapi.*`
 2. 对于每个文件，提取 frontmatter（title、description、hidden、slug）
 3. 构建路由清单：
 

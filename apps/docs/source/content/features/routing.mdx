@@ -44,37 +44,33 @@ source/content/
 - 文件名中使用连字符 `-` 分隔单词，路由会自动保留：
   - `getting-started.mdx` → `/getting-started`
   - `error-handling.mdx` → `/error-handling`
-- 仅支持 `.mdx` 文件，普通 `.md` 文件会被忽略
+- 支持 `.mdx` 文件以及 `.openapi.json`、`.openapi.yaml`、`.openapi.yml` 规范文件，普通 `.md` 文件会被忽略
 - 目录和文件名区分大小写，但建议使用全小写
 
 ---
 
-## 特殊文件
+## OpenAPI 规范文件
 
-### 隐藏页面
+Clarify 支持将 OpenAPI 规范文件作为内容文件自动路由：
 
-在 frontmatter 中标记页面为隐藏：
+| 文件路径 | 路由路径 |
+|----------|----------|
+| `source/content/api.openapi.json` | `/api` |
+| `source/content/reference/users.openapi.yaml` | `/reference/users` |
 
-```mdx
----
-title: Draft
-hidden: true
----
-
-这是隐藏页面，不会出现在导航中，但可以通过 URL 直接访问。
-```
+这些文件会被自动渲染为 API 文档页面，无需任何额外配置。
 
 ---
 
 ## 路由基础路径
 
-如果你的站点部署在子路径下（例如 GitHub Pages 的项目站点），可以通过 `routeBase` 配置调整：
+如果你的站点部署在子路径下（例如 GitHub Pages 的项目站点），可以通过 `routePrefix` 配置调整：
 
 **clarify.json**
 
 ```json
 {
-  "routeBase": "/clarify/"
+  "routePrefix": "/clarify/"
 }
 ```
 

@@ -8,7 +8,7 @@ import type { Plugin, ResolvedConfig } from 'vite'
 
 import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { runHooks } from './hooks.js'
-import { findContentRoutes, generateConfigModule, generateRoutesModule } from './routes.js'
+import { findContentRoutes, generateConfigModule, generateRoutesModule, readOpenAPISpec } from './routes.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
@@ -63,10 +63,11 @@ function loadVirtualModule(
   projectConfig: ResolvedProjectConfig,
   generateOptions: ResolvedGenerateOptions,
   routes: ContentRoute[],
+  openApiSpecs?: Record<string, import('./types.js').OpenAPISpec>,
 ): string | null {
   const bareId = stripVirtualPrefix(id)
   if (bareId === VIRTUAL_CONFIG) {
-    return generateConfigModule(projectConfig, generateOptions)
+    return generateConfigModule(projectConfig, generateOptions, openApiSpecs)
   }
   if (bareId === VIRTUAL_ROUTES) {
     return generateRoutesModule(routes, projectConfig.pages)
@@ -89,6 +90,16 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const contentRoot = join(root, generateOptions.rootDirectory)
   const routes = findContentRoutes(contentRoot)
 
+  // Collect OpenAPI specs keyed by virtual module ID for runtime embedding
+  const openApiRoutes = routes.filter(r => r.kind === 'openapi')
+  const openApiSpecs: Record<string, import('./types.js').OpenAPISpec> = {}
+  for (const route of openApiRoutes) {
+    const spec = readOpenAPISpec(route.filePath)
+    if (spec) {
+      openApiSpecs[route.virtualModuleId] = spec
+    }
+  }
+
   const clarifyPlugins: ClarifyPlugin[] = options.plugins ?? []
   const ctx: ClarifyHookContext = { projectConfig, generateOptions }
   let viteConfig: ResolvedConfig
@@ -96,6 +107,8 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const mdx = mdxPlugin({
     include: options.include ?? ['**/*.mdx'],
     exclude: options.exclude,
+    jsxImportSource: 'react',
+    providerImportSource: '@clarify/renderer',
   })
 
   const clarifyCorePlugin: Plugin = {
@@ -125,7 +138,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       return null
     },
     load(id) {
-      return loadVirtualModule(id, projectConfig, generateOptions, routes)
+      return loadVirtualModule(id, projectConfig, generateOptions, routes, openApiSpecs)
     },
     transformIndexHtml: {
       order: 'pre',
@@ -173,7 +186,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
               if (route) return id
               return null
             },
-            load: id => loadVirtualModule(id, projectConfig, generateOptions, routes),
+            load: id => loadVirtualModule(id, projectConfig, generateOptions, routes, openApiSpecs),
           },
           mdx,
         ])
