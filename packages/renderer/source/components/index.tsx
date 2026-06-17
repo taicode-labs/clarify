@@ -3,6 +3,7 @@ import { useInView } from 'framer-motion'
 import { useEffect, useRef } from 'react'
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
 
+export { Code, CodeGroup, Pre } from './Code'
 export { Feedback } from './Feedback'
 export { GridPattern, HeroPattern } from './patterns'
 export { ThemeProvider, useTheme } from './ThemeProvider'

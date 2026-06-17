@@ -84,9 +84,9 @@ Initial dependency candidates:
 
 ### Phase 4 — MDX and content components
 
-- [ ] Migrate reference `mdx.tsx` component mapping.
-- [ ] Integrate `Prose`, `Heading`, `Code`, and API components with Clarify MDX pages.
-- [ ] Ensure existing `DocShell`, `ApiEndpointCard`, `OpenApiPage` either adopt reference styling or remain as compatibility wrappers.
+- [x] Migrate reference `mdx.tsx` component mapping.
+- [x] Integrate `Prose`, `Heading`, `Code`, and API components with Clarify MDX pages.
+- [x] Ensure existing `DocShell`, `ApiEndpointCard`, `OpenApiPage` either adopt reference styling or remain as compatibility wrappers.
 - [ ] Decide whether to port reference MDX build transforms into `packages/vite-plugin`.
 
 ### Phase 5 — Search, theme, and polish

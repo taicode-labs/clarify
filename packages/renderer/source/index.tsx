@@ -1,7 +1,7 @@
 import './styles.css'
 
 import { AppShell } from './app/AppShell'
-import { Button, DocShell, ApiEndpointCard, Feedback, GridPattern, Heading, HeroPattern, Logo, Prose, Tag, ThemeProvider, ThemeToggle, useTheme } from './components'
+import { Button, Code, CodeGroup, DocShell, ApiEndpointCard, Feedback, GridPattern, Heading, HeroPattern, Logo, Pre, Prose, Tag, ThemeProvider, ThemeToggle, useTheme } from './components'
 import { SectionProvider, useSectionStore, type Section } from './components/SectionProvider'
 import { ClarifyConfigContext, OpenApiSpecsContext, useClarifyConfig, useOpenApiSpecs } from './context'
 import { useMDXComponents } from './mdx/components'
@@ -12,4 +12,4 @@ import type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions } fro
 import { remToPx } from './utils/remToPx'
 
 export type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions, Section }
-export { AppShell, render, renderToHTML, OpenApiPage, ApiEndpoint, OpenApiEndpoint, ClarifyConfigContext, OpenApiSpecsContext, useClarifyConfig, useOpenApiSpecs, Button, DocShell, ApiEndpointCard, Feedback, GridPattern, Heading, HeroPattern, Logo, Prose, Tag, ThemeProvider, ThemeToggle, useTheme, SectionProvider, useSectionStore, remToPx, useMDXComponents }
+export { AppShell, render, renderToHTML, OpenApiPage, ApiEndpoint, OpenApiEndpoint, ClarifyConfigContext, OpenApiSpecsContext, useClarifyConfig, useOpenApiSpecs, Button, Code, CodeGroup, DocShell, ApiEndpointCard, Feedback, GridPattern, Heading, HeroPattern, Logo, Pre, Prose, Tag, ThemeProvider, ThemeToggle, useTheme, SectionProvider, useSectionStore, remToPx, useMDXComponents }
