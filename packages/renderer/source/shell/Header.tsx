@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { forwardRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
-import { Button, Logo, ThemeToggle } from '../components'
+import { Logo, ThemeToggle } from '../components'
 import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, ClarifyLogoConfig, NavigationNode, RouteItem } from '../types'
 
 import { MobileNavigation, useIsInsideMobileNavigation, useMobileNavigationStore } from './mobile'
@@ -203,11 +203,6 @@ export const Header = forwardRef<
         <MobileSearch routes={routes} navigation={navigation} />
         <LanguageSwitcher config={config} currentLocale={currentLocale} currentRoute={currentRoute} />
         <ThemeToggle />
-        <div className="hidden min-[416px]:contents">
-          <Button href={localizeHref('/', config, currentLocale)} variant="secondary">
-            {config.title}
-          </Button>
-        </div>
       </div>
     </motion.div>
   )

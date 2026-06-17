@@ -68,7 +68,7 @@ export function ContentActions(arg0: ContentActionsProps) {
   return (
     <div className="sticky top-16 z-20 flex justify-end py-4">
       <Menu as="div" className="relative inline-flex text-xs font-medium">
-        <div className="inline-flex overflow-hidden rounded-full border border-zinc-900/10 bg-white/90 shadow-sm backdrop-blur dark:border-white/10 dark:bg-zinc-900/90">
+        <div className="inline-flex overflow-hidden rounded-full border border-zinc-900/10 bg-white/85 backdrop-blur dark:border-white/10 dark:bg-white/5">
           <button
             type="button"
             onClick={primaryAction.run}
@@ -83,7 +83,7 @@ export function ContentActions(arg0: ContentActionsProps) {
         </div>
         <MenuItems
           anchor="bottom end"
-          className="z-30 mt-2 w-52 origin-top-right rounded-2xl border border-zinc-900/10 bg-white p-1 text-xs shadow-lg ring-1 ring-black/5 transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900 dark:ring-white/10"
+          className="z-30 mt-2 w-52 origin-top-right rounded-2xl border border-zinc-900/10 bg-white p-1 text-xs shadow-md transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900"
         >
           {actions.map((action) => {
             const Icon = copied === action.key ? Check : action.icon
