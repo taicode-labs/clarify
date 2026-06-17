@@ -1,8 +1,8 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 
-import { SectionProvider, type Section } from './SectionProvider'
-import { Sidebar, TopNav } from './shell'
-import type { RouteItem, ClarifyConfig, NavigationNode } from './types'
+import { SectionProvider, type Section } from '../components/SectionProvider'
+import { Sidebar, TopNav } from '../shell'
+import type { RouteItem, ClarifyConfig, NavigationNode } from '../types'
 
 export type AppShellProps = {
   config: ClarifyConfig

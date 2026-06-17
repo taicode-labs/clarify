@@ -3,8 +3,8 @@ import { useInView } from 'framer-motion'
 import { useEffect, useRef } from 'react'
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
 
-import { remToPx } from './remToPx'
 import { useSectionStore } from './SectionProvider'
+import { remToPx } from '../utils/remToPx'
 
 function ArrowIcon(props: ComponentPropsWithoutRef<'svg'>) {
   return (

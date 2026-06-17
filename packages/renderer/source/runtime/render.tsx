@@ -2,9 +2,9 @@ import { StrictMode } from 'react'
 import { hydrateRoot, createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
-import { AppShell } from './App'
-import { ClarifyConfigContext, OpenApiSpecsContext } from './context'
-import type { RenderOptions } from './types'
+import { AppShell } from '../app/AppShell'
+import { ClarifyConfigContext, OpenApiSpecsContext } from '../context'
+import type { RenderOptions } from '../types'
 
 /**
  * Clarify 客户端 Hydration 入口。

@@ -1,7 +1,7 @@
 import { createElement, type ComponentPropsWithoutRef } from 'react'
 
-import { ApiEndpointCard, DocShell, Heading } from './components'
-import { OpenApiPage, ApiEndpoint, OpenApiEndpoint } from './openapi'
+import { ApiEndpointCard, DocShell, Heading } from '../components'
+import { OpenApiPage, ApiEndpoint, OpenApiEndpoint } from '../openapi'
 
 type MdxHeadingProps = ComponentPropsWithoutRef<'h2'> & {
   id: string

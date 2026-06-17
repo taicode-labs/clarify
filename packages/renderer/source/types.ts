@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 
-import type { OpenAPISpec } from './openapi-utils'
+import type { OpenAPISpec } from './openapi/utils'
 
 export type NavigationNode = {
   path: string;

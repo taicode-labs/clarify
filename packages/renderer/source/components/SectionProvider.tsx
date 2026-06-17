@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { createStore, useStore, type StoreApi } from 'zustand'
 
-import { remToPx } from './remToPx'
+import { remToPx } from '../utils/remToPx'
 
 export interface Section {
   id: string

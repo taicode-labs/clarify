@@ -24,6 +24,19 @@ Reference source shape:
 - `src/mdx/`: Next/MDX build-time transforms; migrate later only if needed by Clarify's Vite plugin pipeline.
 - `src/images/`: SDK/logo assets for reference sample content; not needed for core renderer.
 
+## Source organization
+
+The renderer source tree is organized by responsibility:
+
+- `app/`: top-level app shell and route composition.
+- `components/`: portable visual primitives and UI state providers migrated from the reference.
+- `mdx/`: MDX component mapping and MDX-only adapters.
+- `openapi/`: OpenAPI React views and OpenAPI data utilities.
+- `runtime/`: browser hydration and SSR implementation entries.
+- `shell/`: navigation and layout shell components.
+- `utils/`: framework-independent helpers.
+- root files: public package entry (`index.tsx`), compatibility SSR entry (`server.tsx`), shared contexts/types/styles.
+
 ## Migration strategy
 
 ### Phase 0 — Planning and safety rails
@@ -50,6 +63,7 @@ Initial dependency candidates:
 
 ### Phase 2 — Portable primitives
 
+- [x] Establish a responsibility-based `source/` directory structure for continued migration.
 - [x] Copy/adapt low-risk primitives that do not require Next.js: `Button`, `Tag`, `Logo`, `Prose`.
 - [x] Copy/adapt section primitives: `remToPx`, `SectionProvider`.
 - [x] Copy/adapt heading primitive: `Heading`.

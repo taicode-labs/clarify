@@ -2,12 +2,12 @@ import { slug } from 'github-slugger'
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { ApiEndpointCard } from './components'
-import { useOpenApiSpecs } from './context'
-import { getOpenApiOperation, listOpenApiOperations } from './openapi-utils'
-import type { OpenAPIOperation, OpenAPISpec } from './openapi-utils'
+import { ApiEndpointCard } from '../components'
+import { useOpenApiSpecs } from '../context'
+import { getOpenApiOperation, listOpenApiOperations } from './utils'
+import type { OpenAPIOperation, OpenAPISpec } from './utils'
 
-export type { OpenAPIOperation, OpenAPISpec } from './openapi-utils'
+export type { OpenAPIOperation, OpenAPISpec } from './utils'
 
 export type OpenApiPageProps = {
   spec?: OpenAPISpec

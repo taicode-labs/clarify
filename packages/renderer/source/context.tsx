@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 
-import type { OpenAPISpec } from './openapi-utils'
+import type { OpenAPISpec } from './openapi/utils'
 import type { ClarifyConfig } from './types'
 
 export const ClarifyConfigContext = createContext<ClarifyConfig | null>(null)

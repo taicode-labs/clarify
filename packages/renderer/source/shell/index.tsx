@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 
-import type { ClarifyConfig, ClarifyLogoConfig, NavigationNode } from './types'
+import type { ClarifyConfig, ClarifyLogoConfig, NavigationNode } from '../types'
 
 function resolveLogoUrl(logo?: ClarifyLogoConfig): string | undefined {
   if (typeof logo === 'string') return logo
