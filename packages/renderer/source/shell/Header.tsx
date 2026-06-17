@@ -21,16 +21,21 @@ function resolveLocalizedText(text: ClarifyLocalizedText, locale?: string, fallb
   return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
 }
 
+function isExternalHref(href: string): boolean {
+  return /^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//')
+}
+
 function localizeHref(href: string, config: ClarifyConfig, locale?: string): string {
-  if (!locale || !config.i18n || href.startsWith('http') || href.startsWith('#')) return href
+  if (!locale || !config.i18n || isExternalHref(href) || href.startsWith('#')) return href
   if (locale === config.i18n.defaultLocale) return href
   const cleanHref = href === '/' ? '' : href.replace(/^\/+/, '')
   return `/${locale}${cleanHref ? `/${cleanHref}` : ''}`
 }
 
-function localizedRoutePath(config: ClarifyConfig, locale: string, route?: RouteItem): string {
+function localizedRoutePath(config: ClarifyConfig, locale: string, route?: RouteItem): string | undefined {
   const alternatePath = route?.alternates?.[locale]
   if (alternatePath) return alternatePath
+  if (route?.alternates) return undefined
   return localizeHref(route?.basePath ?? route?.path ?? '/', config, locale)
 }
 
@@ -66,13 +71,16 @@ function LanguageSwitcher({ config, currentLocale, currentRoute }: { config: Cla
         transition
         className="absolute right-0 z-50 mt-2 w-44 rounded-xl bg-white p-1 text-sm shadow-lg ring-1 shadow-zinc-900/5 ring-zinc-900/10 transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-zinc-900 dark:ring-white/10"
       >
-        {i18n.locales.map((locale: ClarifyLocaleConfig) => {
+        {i18n.locales.flatMap((locale: ClarifyLocaleConfig) => {
+          const localizedPath = localizedRoutePath(config, locale.code, currentRoute)
+          if (!localizedPath) return []
+
           const selected = locale.code === selectedLocale
-          return (
+          return [
             <MenuItem key={locale.code}>
               {({ focus }) => (
                 <Link
-                  to={`${localizedRoutePath(config, locale.code, currentRoute)}${suffix}`}
+                  to={`${localizedPath}${suffix}`}
                   className={clsx(
                     'flex items-center justify-between rounded-lg px-3 py-2 no-underline transition',
                     focus && 'bg-zinc-100 dark:bg-white/5',
@@ -86,8 +94,8 @@ function LanguageSwitcher({ config, currentLocale, currentRoute }: { config: Cla
                   <span className="text-xs text-zinc-400 dark:text-zinc-500">{locale.code}</span>
                 </Link>
               )}
-            </MenuItem>
-          )
+            </MenuItem>,
+          ]
         })}
       </MenuItems>
     </Menu>
@@ -95,7 +103,7 @@ function LanguageSwitcher({ config, currentLocale, currentRoute }: { config: Cla
 }
 
 function TopLevelNavItem({ href, children }: { href: string; children: React.ReactNode }) {
-  const external = href.startsWith('http')
+  const external = isExternalHref(href)
 
   if (external) {
     return (
