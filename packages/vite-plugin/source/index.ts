@@ -7,83 +7,44 @@ import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
-import { runHooks } from './hooks.js'
-import { extractOpenAPISections, findContentRoutes, generateConfigModule, generateRoutesModule, readOpenAPISpec } from './routes.js'
+import { runBuildDoneHooks, runHooks } from './hooks.js'
+import { buildNavigation, buildNavigationFromConfig, extractOpenAPISections, findContentRoutes, readOpenAPISpec } from './routes.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
   buildSSRBundle,
   renderSSGRoutes,
 } from './ssg.js'
-import type { ClarifyGenerateOptions, ClarifyHookContext, ClarifyPlugin, ContentRoute, ResolvedProjectConfig, ResolvedGenerateOptions } from './types.js'
+import type { ClarifyGenerateOptions, ClarifyHookContext, ClarifyNavigationNode, ClarifyPlugin, OpenAPISpec } from './types.js'
+import {
+  RESOLVED_CLIENT_ENTRY,
+  VIRTUAL_CLIENT_ENTRY,
+  VIRTUAL_CONFIG,
+  VIRTUAL_OPENAPI_REGISTRY,
+  VIRTUAL_ROUTES,
+  buildVirtualModules,
+  resolveVirtualId,
+  stripVirtualPrefix,
+  type VirtualModules,
+} from './virtual-modules.js'
 
 export * from './types.js'
+export {
+  clarifyProjectConfigSchema,
+  clarifyLogoConfigSchema,
+  clarifyFaviconConfigSchema,
+  clarifyNavbarLinkSchema,
+  clarifyBannerConfigSchema,
+  clarifyFooterConfigSchema,
+  clarifyPagesItemSchema,
+  clarifyPagesGroupSchema,
+  clarifyPagesConfigSchema,
+} from './config-schema.js'
+export type { ClarifyProjectConfigInput } from './config-schema.js'
 
-const VIRTUAL_CONFIG = 'virtual:clarify-config'
-const VIRTUAL_ROUTES = 'virtual:clarify-routes'
-const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-entry-client'
-const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
-
-// Vite recommends prefixing resolved virtual module ids with \0 to prevent
-// other plugins from trying to process them as file paths.
-function resolveVirtualId(id: string): string {
-  return '\0' + id
-}
-
-// The client entry imports renderer's source CSS via the package's "./style.css"
-// export. This path is resolved by Node/Vite via package.json exports to
-// @clarify/renderer/source/styles.css, which contains `@import "tailwindcss"`.
-// Importing it here ensures @tailwindcss/vite (configured in the consumer's
-// Vite config) processes it through the full Tailwind pipeline (theme,
-// content scanning) — instead of using a pre-built CSS file that would lose
-// those capabilities.
-const CLIENT_ENTRY_CODE = `
-import '@clarify/renderer/style.css';
-import { render } from '@clarify/renderer';
-import { routes, navigation } from '${VIRTUAL_ROUTES}';
-import { config } from '${VIRTUAL_CONFIG}';
-render({ config, routes, navigation });`
-
-function generateOpenAPIModule(spec: import('./types.js').OpenAPISpec): string {
-  return `import { createElement } from 'react';
-import { OpenApiPage } from '@clarify/renderer';
-const spec = ${JSON.stringify(spec)};
-export default function OpenApiRoutePage() {
-  return createElement(OpenApiPage, { spec });
-}`
-}
-
-function stripVirtualPrefix(id: string): string {
-  return id.startsWith('\0') ? id.slice(1) : id
-}
-
-function loadVirtualModule(
-  id: string,
-  projectConfig: ResolvedProjectConfig,
-  generateOptions: ResolvedGenerateOptions,
-  routes: ContentRoute[],
-  openApiSpecs?: Record<string, import('./types.js').OpenAPISpec>,
-): string | null {
+function loadVirtualModule(id: string, modules: VirtualModules): string | null {
   const bareId = stripVirtualPrefix(id)
-  if (bareId === VIRTUAL_CONFIG) {
-    return generateConfigModule(projectConfig, generateOptions, openApiSpecs)
-  }
-  if (bareId === VIRTUAL_ROUTES) {
-    return generateRoutesModule(routes, projectConfig.pages)
-  }
-  if (bareId === VIRTUAL_CLIENT_ENTRY || bareId === RESOLVED_CLIENT_ENTRY) {
-    return CLIENT_ENTRY_CODE
-  }
-  const route = routes.find(r => r.virtualModuleId === bareId)
-  if (!route) return null
-  if (route.kind === 'openapi') {
-    const spec = openApiSpecs?.[bareId]
-    if (!spec) {
-      throw new Error(`OpenAPI spec failed to load for ${route.filePath}`)
-    }
-    return generateOpenAPIModule(spec)
-  }
-  return `export { default } from '${route.filePath}';`
+  return modules.get(bareId) ?? modules.get(id) ?? null
 }
 
 export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
@@ -91,16 +52,17 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const projectConfig = resolveProjectConfig(root)
   const generateOptions = resolveGenerateOptions(options)
   const contentRoot = join(root, generateOptions.rootDirectory)
-  const routes = findContentRoutes(contentRoot)
+  let routes = findContentRoutes(contentRoot)
 
   // Collect OpenAPI specs keyed by virtual module ID for runtime embedding.
   // Specs are populated asynchronously before Vite resolves config.
-  const openApiRoutes = routes.filter(r => r.kind === 'openapi')
-  const openApiSpecs: Record<string, import('./types.js').OpenAPISpec> = {}
+  const openApiSpecs: Record<string, OpenAPISpec> = {}
 
   const clarifyPlugins: ClarifyPlugin[] = options.plugins ?? []
   const ctx: ClarifyHookContext = { projectConfig, generateOptions }
   let viteConfig: ResolvedConfig
+  let resolvedNavigation: ClarifyNavigationNode[] = []
+  let virtualModules: VirtualModules = new Map()
 
   const mdx = mdxPlugin({
     include: options.include ?? ['**/*.mdx'],
@@ -112,14 +74,23 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const clarifyCorePlugin: Plugin = {
     name: 'clarify:core',
     async config() {
-      for (const route of openApiRoutes) {
+      for (const route of routes.filter(r => r.kind === 'openapi')) {
         const spec = await readOpenAPISpec(route.filePath)
         if (spec) {
           openApiSpecs[route.virtualModuleId] = spec
           route.title = spec.info?.title ?? route.title
           route.sections = extractOpenAPISections(spec)
+        } else {
+          throw new Error(`[clarify] Failed to parse OpenAPI spec: ${route.filePath}`)
         }
       }
+
+      const defaultNavigation = projectConfig.pages && projectConfig.pages !== 'FileTree'
+        ? buildNavigationFromConfig(routes, projectConfig.pages)
+        : buildNavigation(routes)
+      const resolved = await runHooks(clarifyPlugins, 'routes:resolved', { routes, navigation: defaultNavigation }, ctx)
+      routes = resolved.routes
+      resolvedNavigation = resolved.navigation
 
       return {
         base: projectConfig.routePrefix,
@@ -136,16 +107,27 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
         generateOptions.outputDirectory = config.build.outDir
       }
     },
+    async buildStart() {
+      virtualModules = buildVirtualModules({
+        projectConfig,
+        generateOptions,
+        routes,
+        navigation: resolvedNavigation,
+        openApiSpecs,
+      })
+      virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
+    },
     resolveId(id) {
       if (id === VIRTUAL_CLIENT_ENTRY || id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
       if (id === VIRTUAL_CONFIG || id === resolveVirtualId(VIRTUAL_CONFIG)) return resolveVirtualId(VIRTUAL_CONFIG)
       if (id === VIRTUAL_ROUTES || id === resolveVirtualId(VIRTUAL_ROUTES)) return resolveVirtualId(VIRTUAL_ROUTES)
+      if (id === VIRTUAL_OPENAPI_REGISTRY || id === resolveVirtualId(VIRTUAL_OPENAPI_REGISTRY)) return resolveVirtualId(VIRTUAL_OPENAPI_REGISTRY)
       const route = routes.find(r => r.virtualModuleId === id || r.virtualModuleId === stripVirtualPrefix(id))
       if (route) return resolveVirtualId(route.virtualModuleId)
       return null
     },
     load(id) {
-      return loadVirtualModule(id, projectConfig, generateOptions, routes, openApiSpecs)
+      return loadVirtualModule(id, virtualModules)
     },
     transformIndexHtml: {
       order: 'pre',
@@ -170,7 +152,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
     async closeBundle() {
       // ── Phase 1: Static HTML Generation ──
       if (process.env.SKIP_CLARIFY_SSG) {
-        await runHooks(clarifyPlugins, 'build:done', undefined as any, ctx)
+        await runBuildDoneHooks(clarifyPlugins, ctx)
         return
       }
 
@@ -189,19 +171,23 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
               if (id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
               if (id === VIRTUAL_CONFIG) return id
               if (id === VIRTUAL_ROUTES) return id
+              if (id === VIRTUAL_OPENAPI_REGISTRY) return id
               const route = routes.find(r => r.virtualModuleId === id)
               if (route) return id
               return null
             },
-            load: id => loadVirtualModule(id, projectConfig, generateOptions, routes, openApiSpecs),
+            load: id => loadVirtualModule(id, virtualModules),
           },
           mdx,
         ])
 
         const ssrBundlePath = join(ssrOutputDir, 'entry-server.js')
-        await renderSSGRoutes(routes, projectConfig, outputDir, ssrBundlePath)
+        await renderSSGRoutes(routes, projectConfig, outputDir, ssrBundlePath, generateOptions.ssg.failOnError)
       } catch (err) {
         console.error('[clarify] SSG failed:', err)
+        if (generateOptions.ssg.failOnError) {
+          throw err
+        }
       } finally {
         if (tempEntryPath) {
           try {
@@ -212,7 +198,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
         }
       }
 
-      await runHooks(clarifyPlugins, 'build:done', undefined as any, ctx)
+      await runBuildDoneHooks(clarifyPlugins, ctx)
     },
   }
 

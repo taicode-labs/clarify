@@ -1,5 +1,7 @@
 import type { ComponentType } from 'react'
 
+import type { OpenAPISpec } from './openapi-utils'
+
 export type NavigationNode = {
   path: string;
   title: string;
@@ -12,6 +14,7 @@ export type RouteItem = {
   title: string;
   component: ComponentType;
   kind?: 'mdx' | 'openapi';
+  sections?: { id: string; title: string }[];
 };
 
 export type ClarifyLogoConfig = string | { light?: string; dark?: string };
@@ -70,6 +73,8 @@ export type RenderOptions = {
   routes: RouteItem[];
   /** 从 virtual:clarify-routes 导入的导航树 */
   navigation?: NavigationNode[];
+  /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
+  openApiSpecs?: Record<string, OpenAPISpec>;
   /** 挂载节点，默认 document.getElementById('root') */
   container?: Element | null;
 };
@@ -81,6 +86,8 @@ export type ServerRenderOptions = {
   routes: RouteItem[];
   /** 从 virtual:clarify-routes 导入的导航树 */
   navigation?: NavigationNode[];
+  /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
+  openApiSpecs?: Record<string, OpenAPISpec>;
   /** 当前请求的 URL */
   url: string;
 };

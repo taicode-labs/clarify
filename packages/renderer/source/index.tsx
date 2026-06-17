@@ -1,7 +1,7 @@
 import './styles.css'
 
 import { AppShell } from './App'
-import { ClarifyConfigContext, useClarifyConfig } from './context'
+import { ClarifyConfigContext, OpenApiSpecsContext, useClarifyConfig, useOpenApiSpecs } from './context'
 import { OpenApiPage, ApiEndpoint, OpenApiEndpoint } from './openapi'
 import { render } from './render'
 import { renderToHTML } from './server'
@@ -10,4 +10,4 @@ import { useMDXComponents } from './mdx-components'
 import type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions } from './types'
 
 export type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions }
-export { AppShell, render, renderToHTML, OpenApiPage, ApiEndpoint, OpenApiEndpoint, ClarifyConfigContext, useClarifyConfig, DocShell, ApiEndpointCard, useMDXComponents }
+export { AppShell, render, renderToHTML, OpenApiPage, ApiEndpoint, OpenApiEndpoint, ClarifyConfigContext, OpenApiSpecsContext, useClarifyConfig, useOpenApiSpecs, DocShell, ApiEndpointCard, useMDXComponents }

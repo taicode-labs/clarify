@@ -97,6 +97,11 @@ export type ClarifyGenerateOptions = {
   rootDirectory?: string
   /** Output directory for the built docs site. When omitted, Vite's build.outDir is used. */
   outputDirectory?: string
+  /** Static generation behavior. */
+  ssg?: {
+    /** Fail the build when SSG fails. Default: true. */
+    failOnError?: boolean
+  }
 
   /** Custom include/exclude filters for MDX processing. */
   include?: FilterPattern
@@ -126,6 +131,9 @@ export type ResolvedProjectConfig = {
 export type ResolvedGenerateOptions = {
   rootDirectory: string
   outputDirectory?: string
+  ssg: {
+    failOnError: boolean
+  }
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -183,8 +191,7 @@ export type ClarifyHooks = {
     ctx: ClarifyHookContext
   ) => Promise<ClarifyPage> | ClarifyPage
   'routes:resolved'?: (
-    routes: ContentRoute[],
-    navigation: ClarifyNavigationNode[],
+    input: { routes: ContentRoute[]; navigation: ClarifyNavigationNode[] },
     ctx: ClarifyHookContext
   ) => Promise<{ routes: ContentRoute[]; navigation: ClarifyNavigationNode[] }> | { routes: ContentRoute[]; navigation: ClarifyNavigationNode[] }
   'modules:before'?: (

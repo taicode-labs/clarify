@@ -5,8 +5,9 @@ import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { extractFrontmatter } from './frontmatter.js'
-import { findMdxFiles, generateConfigModule, generateRoutesModule, buildNavigation, buildNavigationFromConfig } from './routes.js'
+import { findMdxFiles, buildNavigation, buildNavigationFromConfig } from './routes.js'
 import type { ResolvedProjectConfig, ResolvedGenerateOptions, MdxRoute, ClarifyPagesConfig, ClarifyPagesGroup } from './types.js'
+import { generateConfigModule, generateRoutesModule } from './virtual-modules.js'
 
 function mdxRoute(route: Omit<MdxRoute, 'kind'>): MdxRoute {
   return { ...route, kind: 'mdx' }
@@ -105,6 +106,7 @@ describe('generateConfigModule', () => {
     const generateOptions: ResolvedGenerateOptions = {
       rootDirectory: 'source/content',
       outputDirectory: 'dist',
+      ssg: { failOnError: true },
     }
     const code = generateConfigModule(projectConfig, generateOptions)
     const expected = { ...projectConfig, ...generateOptions }

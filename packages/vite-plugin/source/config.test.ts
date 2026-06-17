@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { loadProjectConfig, resolveProjectConfig, resolveGenerateOptions } from './config.js'
+import { clarifyProjectConfigSchema } from './config-schema.js'
 
 describe('loadProjectConfig', () => {
   let tempDir: string
@@ -29,10 +30,26 @@ describe('loadProjectConfig', () => {
     expect(result).toEqual(config)
   })
 
-  it('returns empty object when clarify.json is invalid JSON', () => {
+  it('throws when clarify.json is invalid JSON', () => {
     writeFileSync(join(tempDir, 'clarify.json'), 'not json', 'utf-8')
-    const result = loadProjectConfig(tempDir)
-    expect(result).toEqual({})
+    expect(() => loadProjectConfig(tempDir)).toThrow()
+  })
+
+  it('throws when clarify.json has invalid field types', () => {
+    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ title: 123 }), 'utf-8')
+    expect(() => loadProjectConfig(tempDir)).toThrow('[clarify] clarify.json field "title" is invalid')
+  })
+
+  it('exposes a zod project config schema', () => {
+    expect(clarifyProjectConfigSchema.parse({
+      title: 'Docs',
+      navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+      pages: [{ group: 'Guide', pages: ['index', { openapi: 'api', title: 'API' }] }],
+    })).toEqual({
+      title: 'Docs',
+      navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+      pages: [{ group: 'Guide', pages: ['index', { openapi: 'api', title: 'API' }] }],
+    })
   })
 })
 
@@ -53,8 +70,13 @@ describe('resolveProjectConfig', () => {
       title: 'Clarify Docs',
       description: '',
       logo: undefined,
+      favicon: undefined,
       routePrefix: '/',
       theme: {},
+      navbar: undefined,
+      banner: undefined,
+      footer: undefined,
+      pages: undefined,
     })
   })
 
@@ -94,6 +116,7 @@ describe('resolveGenerateOptions', () => {
     expect(result).toEqual({
       rootDirectory: 'source/content',
       outputDirectory: undefined,
+      ssg: { failOnError: true },
     })
   })
 
@@ -102,6 +125,16 @@ describe('resolveGenerateOptions', () => {
     expect(result).toEqual({
       rootDirectory: 'docs',
       outputDirectory: 'build',
+      ssg: { failOnError: true },
+    })
+  })
+
+  it('applies provided ssg options', () => {
+    const result = resolveGenerateOptions({ ssg: { failOnError: false } })
+    expect(result).toEqual({
+      rootDirectory: 'source/content',
+      outputDirectory: undefined,
+      ssg: { failOnError: false },
     })
   })
 })

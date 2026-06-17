@@ -40,9 +40,10 @@ export function injectSSRIntoTemplate(template: string, appHtml: string, project
 export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify/renderer/server';
 import { routes, navigation } from 'virtual:clarify-routes';
 import { config } from 'virtual:clarify-config';
+import { openApiSpecs } from 'virtual:clarify-openapi-registry';
 
 export function render(url) {
-  return renderToHTML({ config, routes, navigation, url });
+  return renderToHTML({ config, routes, navigation, openApiSpecs, url });
 }`
 
 export function createTempEntryFile(content: string): string {
@@ -76,7 +77,7 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
   })
 }
 
-export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string): Promise<void> {
+export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string, failOnError: boolean = true): Promise<void> {
   const { render } = await import(pathToFileURL(ssrBundlePath).href)
 
   const template = readIndexHtml(outputDirectory)
@@ -96,6 +97,9 @@ export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: Res
       writeFileSync(outFile, finalHtml, 'utf-8')
     } catch (err) {
       console.error(`[clarify] Failed to render route "${route.path}":`, err)
+      if (failOnError) {
+        throw err
+      }
     }
   }
 }

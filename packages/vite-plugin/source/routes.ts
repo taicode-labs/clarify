@@ -8,7 +8,7 @@ import { remark } from 'remark'
 import { visit } from 'unist-util-visit'
 
 import { extractFrontmatter } from './frontmatter.js'
-import type { ContentRoute, ContentSection, OpenAPISpec, ResolvedProjectConfig, ResolvedGenerateOptions, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem } from './types.js'
+import type { ContentRoute, ContentSection, OpenAPISpec, ClarifyNavigationNode, ClarifyPagesGroup, ClarifyPagesItem } from './types.js'
 
 function kebabToTitle(str: string): string {
   return str
@@ -166,10 +166,6 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
   return root
 }
 
-export function generateConfigModule(projectConfig: ResolvedProjectConfig, generateOptions: ResolvedGenerateOptions, openApiSpecs?: Record<string, OpenAPISpec>): string {
-  return `export const config = ${JSON.stringify({ ...projectConfig, ...generateOptions, openApiSpecs })};`
-}
-
 function resolvePageItem(
   item: ClarifyPagesItem
 ): { pageRef?: string; openapiRef?: string; redirect?: string; title?: string } {
@@ -211,20 +207,4 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
       children,
     }
   })
-}
-
-export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: ClarifyPagesConfig): string {
-  const imports = routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
-  const routesArray = routes.map((r, i) => {
-    const sections = r.sections && r.sections.length > 0
-      ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title })))}`
-      : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${sections} }`
-  }).join(',\n')
-
-  const navigation = pagesConfig && pagesConfig !== 'FileTree'
-    ? buildNavigationFromConfig(routes, pagesConfig)
-    : buildNavigation(routes)
-
-  return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }

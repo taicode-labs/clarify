@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { ApiEndpointCard } from './components'
-import { useClarifyConfig } from './context'
+import { useOpenApiSpecs } from './context'
 import { getOpenApiOperation, listOpenApiOperations } from './openapi-utils'
 import type { OpenAPIOperation, OpenAPISpec } from './openapi-utils'
 
@@ -90,15 +90,14 @@ function normalizeSpecPath(specPath: string, currentRoutePath?: string): string 
 }
 
 function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenAPISpec | null {
-  const config = useClarifyConfig()
+  const specs = useOpenApiSpecs()
   const location = useLocation()
 
   if (spec) return spec
   if (!specPath) return null
 
-  const specs = (config as { openApiSpecs?: Record<string, OpenAPISpec> }).openApiSpecs
   const normalized = normalizeSpecPath(specPath, location.pathname)
-  return specs?.[normalized] ?? null
+  return specs[normalized] ?? null
 }
 
 export function OpenApiPage(arg0: OpenApiPageProps): ReactNode {
