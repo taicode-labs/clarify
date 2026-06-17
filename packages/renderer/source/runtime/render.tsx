@@ -3,6 +3,7 @@ import { hydrateRoot, createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import { AppShell } from '../app/AppShell'
+import { ThemeProvider } from '../components/ThemeProvider'
 import { ClarifyConfigContext, OpenApiSpecsContext } from '../context'
 import type { RenderOptions } from '../types'
 
@@ -38,7 +39,9 @@ export function render(options: RenderOptions) {
       <BrowserRouter basename={config.routePrefix}>
         <ClarifyConfigContext.Provider value={config}>
           <OpenApiSpecsContext.Provider value={openApiSpecs}>
-            <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+            <ThemeProvider>
+              <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+            </ThemeProvider>
           </OpenApiSpecsContext.Provider>
         </ClarifyConfigContext.Provider>
       </BrowserRouter>

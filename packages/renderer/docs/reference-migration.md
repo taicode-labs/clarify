@@ -91,7 +91,7 @@ Initial dependency candidates:
 
 ### Phase 5 — Search, theme, and polish
 
-- [ ] Add theme provider compatible with Vite/browser/SSR instead of `next-themes`.
+- [x] Add theme provider compatible with Vite/browser/SSR instead of `next-themes`.
 - [ ] Add search index wiring from Clarify route/content data.
 - [ ] Add code highlighting pipeline if needed.
 - [ ] Validate light/dark mode, mobile, anchors, active section highlighting.

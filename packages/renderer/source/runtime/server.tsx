@@ -3,6 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
 
 import { AppShell } from '../app/AppShell'
+import { ThemeProvider } from '../components/ThemeProvider'
 import { ClarifyConfigContext, OpenApiSpecsContext } from '../context'
 import type { ServerRenderOptions } from '../types'
 
@@ -19,7 +20,9 @@ export function renderToHTML(options: ServerRenderOptions): string {
       <StaticRouter basename={config.routePrefix} location={url}>
         <ClarifyConfigContext.Provider value={config}>
           <OpenApiSpecsContext.Provider value={openApiSpecs}>
-            <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+            <ThemeProvider>
+              <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+            </ThemeProvider>
           </OpenApiSpecsContext.Provider>
         </ClarifyConfigContext.Provider>
       </StaticRouter>

@@ -5,6 +5,8 @@ import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
 
 export { Feedback } from './Feedback'
 export { GridPattern, HeroPattern } from './patterns'
+export { ThemeProvider, useTheme } from './ThemeProvider'
+export { ThemeToggle } from './ThemeToggle'
 import { useSectionStore } from './SectionProvider'
 import { remToPx } from '../utils/remToPx'
 
