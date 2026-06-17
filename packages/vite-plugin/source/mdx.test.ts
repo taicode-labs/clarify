@@ -1,6 +1,7 @@
+import { compile } from '@mdx-js/mdx'
 import { describe, expect, it } from 'vitest'
 
-import { rehypeParseCodeBlocks, rehypeShiki, rehypeSlugSections } from './mdx.js'
+import { rehypeParseCodeBlocks, rehypeShiki, rehypeSlugSections, remarkPlugins } from './mdx.js'
 
 type TestNode = {
   type: string
@@ -84,5 +85,25 @@ describe('mdx rehype plugins', () => {
     expect(code?.properties?.code).toBe('const answer = 42\n')
     expect(highlighted).toContain('<span')
     expect(highlighted).toContain('--shiki')
+  })
+
+  it('enables GitHub Flavored Markdown syntax', async () => {
+    const compiled = String(await compile([
+      '- [x] Done',
+      '',
+      '~~removed~~',
+      '',
+      'https://example.com',
+      '',
+      '| A | B |',
+      '| - | - |',
+      '| 1 | 2 |',
+    ].join('\n'), { jsx: true, remarkPlugins }))
+
+    expect(compiled).toContain('className="contains-task-list"')
+    expect(compiled).toContain('className="task-list-item"')
+    expect(compiled).toContain('<_components.del>')
+    expect(compiled).toContain('href="https://example.com"')
+    expect(compiled).toContain('<_components.table>')
   })
 })

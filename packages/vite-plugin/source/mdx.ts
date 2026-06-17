@@ -1,5 +1,6 @@
 import GithubSlugger from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
+import remarkGfm from 'remark-gfm'
 import shiki, { type Highlighter } from 'shiki'
 import { visit } from 'unist-util-visit'
 
@@ -111,4 +112,5 @@ export function rehypeSlugSections() {
   }
 }
 
+export const remarkPlugins = [remarkGfm]
 export const rehypePlugins = [rehypeSlugSections, rehypeParseCodeBlocks, rehypeShiki]

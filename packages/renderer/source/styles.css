@@ -79,3 +79,22 @@
     display: none;
   }
 }
+
+@layer components {
+  .prose .contains-task-list {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .prose .task-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+  }
+
+  .prose .task-list-item > input[type='checkbox'] {
+    margin-top: 0.45rem;
+    flex: none;
+    accent-color: var(--color-emerald-500);
+  }
+}

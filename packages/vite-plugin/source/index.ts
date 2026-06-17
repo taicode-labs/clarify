@@ -8,7 +8,7 @@ import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { runBuildDoneHooks, runHooks } from './hooks.js'
-import { rehypePlugins } from './mdx.js'
+import { rehypePlugins, remarkPlugins } from './mdx.js'
 import { createLlmsTxt, enrichRoutesWithRawContent, readRawContent, writeLlmsTxt, writeRawContentFiles } from './raw-content.js'
 import { buildNavigation, buildNavigationFromConfig, extractOpenAPISections, findContentRoutes, readOpenAPISpec } from './routes.js'
 import {
@@ -114,6 +114,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
     exclude: options.exclude,
     jsxImportSource: 'react',
     providerImportSource: '@clarify/renderer',
+    remarkPlugins,
     rehypePlugins,
   })
 
