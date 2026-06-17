@@ -1,9 +1,22 @@
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
+
+const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')) as {
+  dependencies?: Record<string, string>
+  peerDependencies?: Record<string, string>
+}
+
+const external = [
+  ...Object.keys(pkg.dependencies ?? {}),
+  ...Object.keys(pkg.peerDependencies ?? {}),
+  ...Object.keys(pkg.dependencies ?? {}).map(name => new RegExp(`^${name}/`)),
+  ...Object.keys(pkg.peerDependencies ?? {}).map(name => new RegExp(`^${name}/`)),
+]
 
 // Build @clarify/renderer as a library with two entries:
 //   - source/index.tsx   → output/index.{js,cjs}   (public/client API)
@@ -40,14 +53,7 @@ export default defineConfig({
       },
     },
     rollupOptions: {
-      external: [
-        'react',
-        'react/jsx-runtime',
-        'react-dom',
-        'react-dom/client',
-        'react-dom/server',
-        'react-router-dom',
-      ],
+      external,
       output: {
         preserveModules: false,
       },

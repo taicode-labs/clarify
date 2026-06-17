@@ -68,9 +68,9 @@ Initial dependency candidates:
 - [x] Copy/adapt section primitives: `remToPx`, `SectionProvider`.
 - [x] Copy/adapt heading primitive: `Heading`.
 - [x] Copy/adapt remaining low-risk primitives: `GridPattern`, `HeroPattern`, `Feedback`.
-- [ ] Copy/adapt shared icons as they become needed by migrated components.
+- [x] Copy/adapt shared icons as they become needed by migrated components.
 - [x] Replace `next/link` with React Router or plain anchors for migrated primitives.
-- [ ] Replace `next/navigation` with React Router hooks.
+- [x] Replace `next/navigation` with React Router hooks.
 - [x] Replace `@/` aliases with relative imports for migrated primitives.
 - [x] Export intended public primitives from `source/index.tsx`.
 
@@ -94,11 +94,11 @@ Initial dependency candidates:
 - [x] Add theme provider compatible with Vite/browser/SSR instead of `next-themes`.
 - [x] Add search index wiring from Clarify route/content data.
 - [x] Add code highlighting pipeline if needed.
-- [ ] Validate light/dark mode, mobile, anchors, active section highlighting.
+- [x] Validate light/dark mode, mobile, anchors, active section highlighting.
 
 ## Current progress
 
-Status: Phase 1–4 complete, Phase 5 in progress.
+Status: Reference UI migration complete.
 
 Completed in the first pass:
 
@@ -109,7 +109,7 @@ Completed in the first pass:
 - Updated compatibility components `DocShell` and `ApiEndpointCard` to use the reference visual language.
 - Verified `pnpm --filter @clarify/renderer typecheck` and `pnpm --filter @clarify/renderer build`.
 
-Next recommended step: perform final polish validation for light/dark mode, mobile navigation, anchors, and active section highlighting.
+Final validation completed with `pnpm typecheck && pnpm test && pnpm build`.
 
 ## Decisions
 
