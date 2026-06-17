@@ -1,5 +1,5 @@
 import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig } from '../content/routes.js'
-import type { ClarifyPagesConfig, ContentRoute, NavigationTree, OpenAPISpec, ResolvedGenerateOptions, ResolvedProjectConfig } from '../types.js'
+import type { ClarifyPagesConfig, ContentRoute, NavigationTree, OpenAPISpec, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
@@ -17,8 +17,8 @@ export function stripVirtualPrefix(id: string): string {
   return id.startsWith('\0') ? id.slice(1) : id
 }
 
-export function generateConfigModule(projectConfig: ResolvedProjectConfig, generateOptions: ResolvedGenerateOptions): string {
-  return `export const config = ${JSON.stringify({ ...projectConfig, ...generateOptions })};`
+export function generateConfigModule(projectConfig: ResolvedProjectConfig, buildOptions: ResolvedBuildOptions): string {
+  return `export const config = ${JSON.stringify({ ...projectConfig, ...buildOptions })};`
 }
 
 export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: ClarifyPagesConfig, resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig,): string {
@@ -70,7 +70,7 @@ render({ config, routes, navigation, openApis });`
 
 export function buildVirtualModules(args: {
   projectConfig: ResolvedProjectConfig
-  generateOptions: ResolvedGenerateOptions
+  generateOptions: ResolvedBuildOptions
   routes: ContentRoute[]
   navigation?: NavigationTree
   openApis: Record<string, OpenAPISpec>

@@ -1,18 +1,16 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 
-import type { ResolvedGenerateOptions } from './core/options.js'
+import type { ResolvedBuildOptions } from './core/options.js'
 
 export type {
   ClarifyBuildOptions,
-  ClarifyGenerateOptions,
   ResolvedBuildOptions,
-  ResolvedGenerateOptions,
 } from './core/options.js'
 
 export type OpenAPISpec = OpenAPIV3.Document | OpenAPIV3_1.Document
 
 // ────────────────────────────────────────────────────────────────────────────────
-// Author Config (clarify.json)
+// Project Config (clarify.ts/js/json)
 // ────────────────────────────────────────────────────────────────────────────────
 
 export type ClarifyLogoConfig = string | { light?: string; dark?: string }
@@ -204,7 +202,7 @@ export type ClarifyNavigationNode = {
 
 export type ClarifyHookContext = {
   projectConfig: ResolvedProjectConfig
-  generateOptions: ResolvedGenerateOptions
+  generateOptions: ResolvedBuildOptions
 }
 
 export type ClarifyHooks = {

@@ -1,46 +1,11 @@
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 import { clarifyProjectConfigSchema } from './config-schema.js'
-import { loadProjectConfig, resolveProjectConfig, resolveGenerateOptions } from './config.js'
+import { resolveProjectConfig } from './config.js'
+import { resolveBuildOptions } from './options.js'
 
-describe('loadProjectConfig', () => {
-  let tempDir: string
-
-  beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'clarify-test-'))
-  })
-
-  afterEach(() => {
-    rmSync(tempDir, { recursive: true, force: true })
-  })
-
-  it('returns empty object when clarify.json does not exist', () => {
-    const result = loadProjectConfig(tempDir)
-    expect(result).toEqual({})
-  })
-
-  it('parses clarify.json correctly', () => {
-    const config = { title: 'My Docs', description: 'Test docs', routePrefix: '/docs' }
-    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify(config), 'utf-8')
-    const result = loadProjectConfig(tempDir)
-    expect(result).toEqual(config)
-  })
-
-  it('throws when clarify.json is invalid JSON', () => {
-    writeFileSync(join(tempDir, 'clarify.json'), 'not json', 'utf-8')
-    expect(() => loadProjectConfig(tempDir)).toThrow()
-  })
-
-  it('throws when clarify.json has invalid field types', () => {
-    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ title: 123 }), 'utf-8')
-    expect(() => loadProjectConfig(tempDir)).toThrow('[clarify] clarify.json field "title" is invalid')
-  })
-
-  it('exposes a zod project config schema', () => {
+describe('clarifyProjectConfigSchema', () => {
+  it('validates project config', () => {
     expect(clarifyProjectConfigSchema.parse({
       title: 'Docs',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
@@ -62,18 +27,8 @@ describe('loadProjectConfig', () => {
 })
 
 describe('resolveProjectConfig', () => {
-  let tempDir: string
-
-  beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'clarify-test-'))
-  })
-
-  afterEach(() => {
-    rmSync(tempDir, { recursive: true, force: true })
-  })
-
   it('uses defaults when no config provided', () => {
-    const result = resolveProjectConfig(tempDir)
+    const result = resolveProjectConfig()
     expect(result).toEqual({
       title: 'Clarify Docs',
       description: '',
@@ -108,10 +63,9 @@ describe('resolveProjectConfig', () => {
       pages: [
         { group: 'Getting Started', pages: ['index', 'quickstart'] },
         { group: 'Advanced', pages: ['advanced/ssg'] },
-      ] as const,
+      ],
     }
-    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify(config), 'utf-8')
-    const result = resolveProjectConfig(tempDir)
+    const result = resolveProjectConfig(config)
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
     expect(result.theme).toEqual({ primary: '#333' })
@@ -136,9 +90,9 @@ describe('resolveProjectConfig', () => {
   })
 })
 
-describe('resolveGenerateOptions', () => {
+describe('resolveBuildOptions', () => {
   it('uses defaults when no options provided', () => {
-    const result = resolveGenerateOptions()
+    const result = resolveBuildOptions()
     expect(result).toEqual({
       rootDirectory: 'source/content',
       outputDirectory: undefined,
@@ -147,7 +101,7 @@ describe('resolveGenerateOptions', () => {
   })
 
   it('applies provided options', () => {
-    const result = resolveGenerateOptions({ rootDirectory: 'docs', outputDirectory: 'build' })
+    const result = resolveBuildOptions({ rootDirectory: 'docs', outputDirectory: 'build' })
     expect(result).toEqual({
       rootDirectory: 'docs',
       outputDirectory: 'build',
@@ -156,7 +110,7 @@ describe('resolveGenerateOptions', () => {
   })
 
   it('applies provided ssg options', () => {
-    const result = resolveGenerateOptions({ ssg: { failOnError: false } })
+    const result = resolveBuildOptions({ ssg: { failOnError: false } })
     expect(result).toEqual({
       rootDirectory: 'source/content',
       outputDirectory: undefined,

@@ -15,32 +15,10 @@ export function defineConfig(config: ClarifyConfig): ClarifyConfig {
   return config
 }
 
-const TS_CONFIG_FILENAMES = [
-  'clarify.ts',
-  'clarify.mts',
-  'clarify.cts',
-  'clarify.config.ts',
-  'clarify.config.mts',
-  'clarify.config.cts',
-]
-
-const JS_CONFIG_FILENAMES = [
-  'clarify.js',
-  'clarify.mjs',
-  'clarify.cjs',
-  'clarify.config.js',
-  'clarify.config.mjs',
-  'clarify.config.cjs',
-]
-
-const JSON_CONFIG_FILENAMES = [
-  'clarify.json',
-]
-
 const CONFIG_FILENAMES = [
-  ...TS_CONFIG_FILENAMES,
-  ...JS_CONFIG_FILENAMES,
-  ...JSON_CONFIG_FILENAMES,
+  'clarify.ts',
+  'clarify.js',
+  'clarify.json',
 ]
 
 export function findClarifyConfigFile(root: string): string | undefined {

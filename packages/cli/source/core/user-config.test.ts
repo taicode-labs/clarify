@@ -38,13 +38,6 @@ describe('findClarifyConfigFile', () => {
 
     expect(findClarifyConfigFile(tempDir)).toBe(join(tempDir, 'clarify.js'))
   })
-
-  it('supports legacy clarify.config.ts before json', () => {
-    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ title: 'JSON' }), 'utf-8')
-    writeFileSync(join(tempDir, 'clarify.config.ts'), 'export default { title: "Config TS" }', 'utf-8')
-
-    expect(findClarifyConfigFile(tempDir)).toBe(join(tempDir, 'clarify.config.ts'))
-  })
 })
 
 describe('loadClarifyConfig', () => {
@@ -67,6 +60,6 @@ describe('loadClarifyConfig', () => {
   it('rejects invalid clarify.json project fields', async () => {
     writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ title: 123 }), 'utf-8')
 
-    await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).rejects.toThrow('[clarify] clarify.json field "title" is invalid')
+    await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).rejects.toThrow('[clarify] config field "title" is invalid')
   })
 })

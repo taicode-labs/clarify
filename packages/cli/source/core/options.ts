@@ -25,12 +25,6 @@ export type ResolvedBuildOptions = {
   }
 }
 
-/** @deprecated Use ClarifyBuildOptions instead. */
-export type ClarifyGenerateOptions = ClarifyBuildOptions
-
-/** @deprecated Use ResolvedBuildOptions instead. */
-export type ResolvedGenerateOptions = ResolvedBuildOptions
-
 export function resolveBuildOptions(options: ClarifyBuildOptions = {}): ResolvedBuildOptions {
   return {
     rootDirectory: options.rootDirectory ?? 'source/content',
