@@ -83,7 +83,8 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-function HighlightQuery({ text, query }: { text: string; query: string }) {
+function HighlightQuery(arg0: { text: string; query: string }) {  const { text, query } = arg0
+
   if (!query) return text
 
   const parts = text.split(new RegExp(`(${escapeRegExp(query)})`, 'ig'))
@@ -103,7 +104,8 @@ function HighlightQuery({ text, query }: { text: string; query: string }) {
   )
 }
 
-function SearchResult({ result, query, active, onSelect }: { result: SearchItem; query: string; active: boolean; onSelect: () => void }) {
+function SearchResult(arg0: { result: SearchItem; query: string; active: boolean; onSelect: () => void }) {  const { result, query, active, onSelect } = arg0
+
   const id = useId()
   const hierarchy = [result.sectionTitle, result.pageTitle].filter((value): value is string => typeof value === 'string')
 
@@ -146,7 +148,8 @@ const SearchInput = forwardRef<
     onSubmit: () => void
     activeDescendantId?: string
   }
->(function SearchInput({ query, setQuery, onClose, onSubmit, activeDescendantId }, inputRef) {
+>(function SearchInput(arg0, inputRef) {  const { query, setQuery, onClose, onSubmit, activeDescendantId } = arg0
+
   return (
     <div className="group relative flex h-12">
       <SearchIcon className="pointer-events-none absolute top-0 left-3 h-full w-5 stroke-zinc-500" />
@@ -176,21 +179,22 @@ const SearchInput = forwardRef<
   )
 })
 
-function SearchDialog({
-  open,
-  setOpen,
-  routes,
-  navigation,
-  className,
-  onNavigate = () => {},
-}: {
+function SearchDialog(arg0: {
   open: boolean
   setOpen: (open: boolean) => void
   routes: RouteItem[]
   navigation: NavigationNode[]
   className?: string
   onNavigate?: () => void
-}) {
+}) {  const {
+  open,
+  setOpen,
+  routes,
+  navigation,
+  className,
+  onNavigate = () => {},
+} = arg0
+
   const navigate = useNavigate()
   const location = useLocation()
   const inputRef = useRef<React.ElementRef<typeof SearchInput>>(null)
@@ -320,7 +324,8 @@ function getModifierKey() {
   return /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? '⌘' : 'Ctrl '
 }
 
-export function Search({ routes, navigation }: { routes: RouteItem[]; navigation: NavigationNode[] }) {
+export function Search(arg0: { routes: RouteItem[]; navigation: NavigationNode[] }) {  const { routes, navigation } = arg0
+
   const modifierKey = getModifierKey()
   const { buttonProps, dialogProps } = useSearchProps()
 
@@ -345,15 +350,16 @@ export function Search({ routes, navigation }: { routes: RouteItem[]; navigation
   )
 }
 
-export function MobileSearch({
-  routes,
-  navigation,
-  onNavigate,
-}: {
+export function MobileSearch(arg0: {
   routes: RouteItem[]
   navigation: NavigationNode[]
   onNavigate?: () => void
-}) {
+}) {  const {
+  routes,
+  navigation,
+  onNavigate,
+} = arg0
+
   const { buttonProps, dialogProps } = useSearchProps()
 
   return (

@@ -48,7 +48,8 @@ function LanguageIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-function LanguageSwitcher({ config, currentLocale, currentRoute }: { config: ClarifyConfig; currentLocale?: string; currentRoute?: RouteItem }) {
+function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string; currentRoute?: RouteItem }) {  const { config, currentLocale, currentRoute } = arg0
+
   const location = useLocation()
   const i18n = config.i18n
   if (!i18n || i18n.locales.length < 2) return null
@@ -102,7 +103,8 @@ function LanguageSwitcher({ config, currentLocale, currentRoute }: { config: Cla
   )
 }
 
-function TopLevelNavItem({ href, children }: { href: string; children: React.ReactNode }) {
+function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  const { href, children } = arg0
+
   const external = isExternalHref(href)
 
   if (external) {
@@ -141,7 +143,8 @@ export const Header = forwardRef<
     currentLocale?: string
     currentRoute?: RouteItem
   }
->(function Header({ config, navigation, routes, currentLocale, currentRoute, className, ...props }, ref) {
+>(function Header(arg0, ref) {  const { config, navigation, routes, currentLocale, currentRoute, className, ...props } = arg0
+
   const { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const logoUrl = resolveLogoUrl(config.logo)

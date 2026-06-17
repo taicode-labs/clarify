@@ -30,7 +30,8 @@ const languageNames: Record<string, string> = {
   json: 'JSON',
 }
 
-function getPanelTitle({ title, language }: { title?: string; language?: string }) {
+function getPanelTitle(arg0: { title?: string; language?: string }) {  const { title, language } = arg0
+
   if (title) return title
   if (language && language in languageNames) return languageNames[language]
   return 'Code'
@@ -59,7 +60,8 @@ function ClipboardIcon(props: ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-function CopyButton({ code }: { code: string }) {
+function CopyButton(arg0: { code: string }) {  const { code } = arg0
+
   const [copyCount, setCopyCount] = useState(0)
   const copied = copyCount > 0
 
@@ -109,7 +111,8 @@ function CopyButton({ code }: { code: string }) {
   )
 }
 
-function CodePanelHeader({ tag, label }: { tag?: string; label?: string }) {
+function CodePanelHeader(arg0: { tag?: string; label?: string }) {  const { tag, label } = arg0
+
   if (!tag && !label) return null
 
   return (
@@ -121,17 +124,15 @@ function CodePanelHeader({ tag, label }: { tag?: string; label?: string }) {
   )
 }
 
-function CodePanel({
-  children,
-  tag,
-  label,
-  code,
-}: {
+function CodePanel(arg0: {
   children: ReactNode
   tag?: string
   label?: string
   code?: string
 }) {
+  const { children } = arg0
+  let { tag, label, code } = arg0
+
   const child = Children.only(children)
 
   if (isValidElement(child)) {
@@ -154,7 +155,8 @@ function CodePanel({
   )
 }
 
-function CodeGroupHeader({ title, children, selectedIndex }: { title?: string; children: ReactNode; selectedIndex: number }) {
+function CodeGroupHeader(arg0: { title?: string; children: ReactNode; selectedIndex: number }) {  const { title, children, selectedIndex } = arg0
+
   const hasTabs = Children.count(children) > 1
 
   if (!title && !hasTabs) return null
@@ -182,7 +184,8 @@ function CodeGroupHeader({ title, children, selectedIndex }: { title?: string; c
   )
 }
 
-function CodeGroupPanels({ children, ...props }: ComponentPropsWithoutRef<typeof CodePanel>) {
+function CodeGroupPanels(arg0: ComponentPropsWithoutRef<typeof CodePanel>) {  const { children, ...props } = arg0
+
   const hasTabs = Children.count(children) > 1
 
   if (hasTabs) {
@@ -262,11 +265,12 @@ function useTabGroupProps(availableLanguages: string[]) {
 
 const CodeGroupContext = createContext(false)
 
-export function CodeGroup({
+export function CodeGroup(arg0: ComponentPropsWithoutRef<typeof CodeGroupPanels> & { title?: string }) {  const {
   children,
   title,
   ...props
-}: ComponentPropsWithoutRef<typeof CodeGroupPanels> & { title?: string }) {
+} = arg0
+
   const languages =
     Children.map(children, (child) =>
       getPanelTitle(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {}),
@@ -302,7 +306,8 @@ export function CodeGroup({
   )
 }
 
-export function Code({ children, ...props }: ComponentPropsWithoutRef<'code'> & { code?: string; language?: string; title?: string }) {
+export function Code(arg0: ComponentPropsWithoutRef<'code'> & { code?: string; language?: string; title?: string }) {  const { children, ...props } = arg0
+
   const isGrouped = useContext(CodeGroupContext)
 
   if (isGrouped && typeof children === 'string') {
@@ -312,7 +317,8 @@ export function Code({ children, ...props }: ComponentPropsWithoutRef<'code'> & 
   return <code {...props}>{children}</code>
 }
 
-export function Pre({ children, ...props }: ComponentPropsWithoutRef<typeof CodeGroup>) {
+export function Pre(arg0: ComponentPropsWithoutRef<typeof CodeGroup>) {  const { children, ...props } = arg0
+
   const isGrouped = useContext(CodeGroupContext)
 
   if (isGrouped) return children

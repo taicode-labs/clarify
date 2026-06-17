@@ -24,7 +24,8 @@ type NavGroup = {
 
 type LucideIconComponent = React.ComponentType<React.SVGProps<SVGSVGElement>>
 
-function NavigationIcon({ name, className }: { name?: string; className?: string }) {
+function NavigationIcon(arg0: { name?: string; className?: string }) {  const { name, className } = arg0
+
   if (!name) return null
   const Icon = (LucideIcons as unknown as Record<string, LucideIconComponent>)[name]
 
@@ -58,7 +59,8 @@ function navigationToGroups(navigation: NavigationNode[]): NavGroup[] {
   })
 }
 
-function TopLevelNavItem({ href, children }: { href: string; children: React.ReactNode }) {
+function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  const { href, children } = arg0
+
   return (
     <li className="md:hidden">
       <CloseButton
@@ -83,7 +85,8 @@ const sectionBadgeColorStyles: Record<string, string> = {
   TRACE: 'text-fuchsia-500 dark:text-fuchsia-400',
 }
 
-function SectionBadge({ children }: { children: string }) {
+function SectionBadge(arg0: { children: string }) {  const { children } = arg0
+
   return (
     <span
       className={clsx(
@@ -96,15 +99,7 @@ function SectionBadge({ children }: { children: string }) {
   )
 }
 
-function NavLink({
-  href,
-  children,
-  badge,
-  icon,
-  tags,
-  active = false,
-  isAnchorLink = false,
-}: {
+function NavLink(arg0: {
   href: string
   children: React.ReactNode
   badge?: string
@@ -112,7 +107,16 @@ function NavLink({
   tags?: string[]
   active?: boolean
   isAnchorLink?: boolean
-}) {
+}) {  const {
+  href,
+  children,
+  badge,
+  icon,
+  tags,
+  active = false,
+  isAnchorLink = false,
+} = arg0
+
   function handleClick() {
     if (!isAnchorLink) return
 
@@ -157,7 +161,8 @@ function NavLink({
   )
 }
 
-function VisibleSectionHighlight({ group, pathname }: { group: NavGroup; pathname: string }) {
+function VisibleSectionHighlight(arg0: { group: NavGroup; pathname: string }) {  const { group, pathname } = arg0
+
   const [sections, visibleSections] = useInitialValue(
     [useSectionStore((s) => s.sections), useSectionStore((s) => s.visibleSections)],
     useIsInsideMobileNavigation(),
@@ -184,7 +189,8 @@ function VisibleSectionHighlight({ group, pathname }: { group: NavGroup; pathnam
   )
 }
 
-function ActivePageMarker({ group, pathname }: { group: NavGroup; pathname: string }) {
+function ActivePageMarker(arg0: { group: NavGroup; pathname: string }) {  const { group, pathname } = arg0
+
   const itemHeight = remToPx(2)
   const offset = remToPx(0.25)
   const activePageIndex = group.links.findIndex((link) => link.href === pathname)
@@ -202,7 +208,8 @@ function ActivePageMarker({ group, pathname }: { group: NavGroup; pathname: stri
   )
 }
 
-function NavigationGroup({ group, className }: { group: NavGroup; className?: string }) {
+function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const { group, className } = arg0
+
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const [pathname, sections] = useInitialValue(
     [useLocation().pathname, useSectionStore((s) => s.sections)],
@@ -256,7 +263,8 @@ function NavigationGroup({ group, className }: { group: NavGroup; className?: st
   )
 }
 
-export function Navigation({ navigation, className }: { navigation: NavigationNode[]; className?: string }) {
+export function Navigation(arg0: { navigation: NavigationNode[]; className?: string }) {  const { navigation, className } = arg0
+
   const groups = navigationToGroups(navigation)
 
   return (

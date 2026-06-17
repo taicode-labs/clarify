@@ -28,10 +28,8 @@ function FeedbackButton(props: Omit<ComponentPropsWithoutRef<'button'>, 'type' |
   )
 }
 
-const FeedbackForm = forwardRef<ElementRef<'form'>, ComponentPropsWithoutRef<'form'>>(function FeedbackForm(
-  { onSubmit, className, ...props },
-  ref,
-) {
+const FeedbackForm = forwardRef<ElementRef<'form'>, ComponentPropsWithoutRef<'form'>>(function FeedbackForm(arg0, ref,) {  const { onSubmit, className, ...props } = arg0
+
   return (
     <form
       {...props}
@@ -49,10 +47,8 @@ const FeedbackForm = forwardRef<ElementRef<'form'>, ComponentPropsWithoutRef<'fo
   )
 })
 
-const FeedbackThanks = forwardRef<ElementRef<'div'>, ComponentPropsWithoutRef<'div'>>(function FeedbackThanks(
-  { className, ...props },
-  ref,
-) {
+const FeedbackThanks = forwardRef<ElementRef<'div'>, ComponentPropsWithoutRef<'div'>>(function FeedbackThanks(arg0, ref,) {  const { className, ...props } = arg0
+
   return (
     <div {...props} ref={ref} className={clsx(className, 'absolute inset-0 flex justify-center md:justify-start')}>
       <div className="flex items-center gap-3 rounded-full bg-emerald-50/50 py-1 pr-3 pl-1.5 text-sm text-emerald-900 ring-1 ring-emerald-500/20 ring-inset dark:bg-emerald-500/5 dark:text-emerald-200 dark:ring-emerald-500/30">

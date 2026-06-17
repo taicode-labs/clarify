@@ -232,19 +232,20 @@ function buildOperationUrl(spec: OpenAPISpec, path: string, parameters: OpenApiP
   return `${serverUrl}${path}${query ? `?${query}` : ''}`
 }
 
-function buildCurlExample({
-  spec,
-  path,
-  method,
-  parameters,
-  requestContent,
-}: {
+function buildCurlExample(arg0: {
   spec: OpenAPISpec
   path: string
   method: string
   parameters: OpenApiParameter[]
   requestContent?: { mediaType: string; value: OpenApiMediaType }
-}): string {
+}): string {  const {
+  spec,
+  path,
+  method,
+  parameters,
+  requestContent,
+} = arg0
+
   const url = buildOperationUrl(spec, path, parameters)
   const lines = [`curl ${method === 'GET' ? '-G ' : ''}${shellQuote(url)}`]
 
@@ -270,7 +271,8 @@ function getResponseEntries(operation: OpenAPIOperation): Array<{ status: string
     .map(([status, response]) => ({ status, response: response as OpenApiResponse }))
 }
 
-function SchemaProperties({ title, schema }: { title: string; schema: unknown }): ReactNode {
+function SchemaProperties(arg0: { title: string; schema: unknown }): ReactNode {  const { title, schema } = arg0
+
   const targetSchema = isReference(schema) ? undefined : schema
   const properties = isRecord(targetSchema) && isRecord(targetSchema.properties) ? targetSchema.properties : undefined
   const required = isRecord(targetSchema) && Array.isArray(targetSchema.required) ? targetSchema.required.map(String) : []
@@ -298,7 +300,8 @@ function SchemaProperties({ title, schema }: { title: string; schema: unknown })
   )
 }
 
-function ParameterList({ title, parameters }: { title: string; parameters: OpenApiParameter[] }): ReactNode {
+function ParameterList(arg0: { title: string; parameters: OpenApiParameter[] }): ReactNode {  const { title, parameters } = arg0
+
   if (parameters.length === 0) return null
 
   return (
@@ -319,7 +322,8 @@ function ParameterList({ title, parameters }: { title: string; parameters: OpenA
   )
 }
 
-function ResponseList({ operation }: { operation: OpenAPIOperation }): ReactNode {
+function ResponseList(arg0: { operation: OpenAPIOperation }): ReactNode {  const { operation } = arg0
+
   const responses = getResponseEntries(operation)
   if (responses.length === 0) return null
 
@@ -351,17 +355,18 @@ function codeLanguageForMediaType(mediaType?: string): string {
   return 'text'
 }
 
-function SelectControl({
-  label,
-  value,
-  options,
-  onChange,
-}: {
+function SelectControl(arg0: {
   label: string
   value: string
   options: string[]
   onChange: (value: string) => void
-}): ReactNode {
+}): ReactNode {  const {
+  label,
+  value,
+  options,
+  onChange,
+} = arg0
+
   if (options.length <= 1) return null
 
   return (
@@ -380,15 +385,16 @@ function SelectControl({
   )
 }
 
-function ExamplePicker({
-  examples,
-  selectedKey,
-  onSelect,
-}: {
+function ExamplePicker(arg0: {
   examples: ExampleEntry[]
   selectedKey: string
   onSelect: (key: string) => void
-}): ReactNode {
+}): ReactNode {  const {
+  examples,
+  selectedKey,
+  onSelect,
+} = arg0
+
   const scrollerRef = useRef<HTMLDivElement | null>(null)
 
   if (examples.length <= 1) return null
@@ -446,7 +452,8 @@ function ExamplePicker({
   )
 }
 
-function CopyCodeButton({ code }: { code: string }): ReactNode {
+function CopyCodeButton(arg0: { code: string }): ReactNode {  const { code } = arg0
+
   const [copied, setCopied] = useState(false)
 
   return (
@@ -465,16 +472,7 @@ function CopyCodeButton({ code }: { code: string }): ReactNode {
   )
 }
 
-function ApiExampleCodeGroup({
-  title,
-  tag,
-  label,
-  code,
-  language,
-  examples,
-  selectedExampleKey,
-  onSelectExample,
-}: {
+function ApiExampleCodeGroup(arg0: {
   title: string
   tag?: string
   label?: string
@@ -483,7 +481,17 @@ function ApiExampleCodeGroup({
   examples?: ExampleEntry[]
   selectedExampleKey?: string
   onSelectExample?: (key: string) => void
-}): ReactNode {
+}): ReactNode {  const {
+  title,
+  tag,
+  label,
+  code,
+  language,
+  examples,
+  selectedExampleKey,
+  onSelectExample,
+} = arg0
+
   return (
     <div className="my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
       <div className="not-prose">
@@ -511,19 +519,20 @@ function ApiExampleCodeGroup({
   )
 }
 
-function RequestExamplesPanel({
-  spec,
-  path,
-  method,
-  parameters,
-  requestContents,
-}: {
+function RequestExamplesPanel(arg0: {
   spec: OpenAPISpec
   path: string
   method: string
   parameters: OpenApiParameter[]
   requestContents: MediaTypeEntry[]
-}): ReactNode {
+}): ReactNode {  const {
+  spec,
+  path,
+  method,
+  parameters,
+  requestContents,
+} = arg0
+
   const [selectedMediaType, setSelectedMediaType] = useState(requestContents[0]?.mediaType ?? '')
   const selectedContent = requestContents.find((content) => content.mediaType === selectedMediaType) ?? requestContents[0]
   const examples = getExampleEntries(selectedContent?.value)
@@ -559,7 +568,8 @@ function RequestExamplesPanel({
   )
 }
 
-function ResponseExamplesPanel({ operation }: { operation: OpenAPIOperation }): ReactNode {
+function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation }): ReactNode {  const { operation } = arg0
+
   const responses = getResponseEntries(operation).filter(({ response }) => getMediaTypeEntries(response.content).length > 0)
   const [selectedStatus, setSelectedStatus] = useState(responses.find(({ status }) => status.startsWith('2'))?.status ?? responses[0]?.status ?? '')
   const selectedResponse = responses.find(({ status }) => status === selectedStatus) ?? responses[0]
@@ -612,21 +622,22 @@ function ResponseExamplesPanel({ operation }: { operation: OpenAPIOperation }): 
   )
 }
 
-function EndpointExamples({
-  spec,
-  path,
-  method,
-  operation,
-  parameters,
-  requestContents,
-}: {
+function EndpointExamples(arg0: {
   spec: OpenAPISpec
   path: string
   method: string
   operation: OpenAPIOperation
   parameters: OpenApiParameter[]
   requestContents: MediaTypeEntry[]
-}): ReactNode {
+}): ReactNode {  const {
+  spec,
+  path,
+  method,
+  operation,
+  parameters,
+  requestContents,
+} = arg0
+
   return (
     <div className="space-y-6">
       <RequestExamplesPanel spec={spec} path={path} method={method} parameters={parameters} requestContents={requestContents} />
@@ -635,7 +646,8 @@ function EndpointExamples({
   )
 }
 
-function OpenApiHeader({ spec }: { spec: OpenAPISpec }): ReactNode {
+function OpenApiHeader(arg0: { spec: OpenAPISpec }): ReactNode {  const { spec } = arg0
+
   return (
     <header className="mb-16">
       <p className="mb-3 font-mono text-xs/6 font-medium tracking-widest text-emerald-500 uppercase dark:text-emerald-400">
@@ -648,7 +660,8 @@ function OpenApiHeader({ spec }: { spec: OpenAPISpec }): ReactNode {
   )
 }
 
-function OpenApiOperation({ spec, path, method, operation }: { spec: OpenAPISpec; path: string; method: string; operation: OpenAPIOperation }): ReactNode {
+function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: string; operation: OpenAPIOperation }): ReactNode {  const { spec, path, method, operation } = arg0
+
   const id = slug(`${method.toLowerCase()} ${path}`)
   const summary = operation.summary ?? `${method} ${path}`
   const description = operation.description
@@ -697,7 +710,8 @@ function OpenApiOperation({ spec, path, method, operation }: { spec: OpenAPISpec
   )
 }
 
-function OpenApiPaths({ spec }: { spec: OpenAPISpec }): ReactNode {
+function OpenApiPaths(arg0: { spec: OpenAPISpec }): ReactNode {  const { spec } = arg0
+
   const entries = listOpenApiOperations(spec).map(({ path, method, operation }) => ({
     path,
     method: method.toUpperCase(),
@@ -746,7 +760,8 @@ function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenAPISpec | nu
   return specs[normalized] ?? null
 }
 
-function WarningBox({ children, tone = 'amber' }: { children: ReactNode; tone?: 'amber' | 'red' }): ReactNode {
+function WarningBox(arg0: { children: ReactNode; tone?: 'amber' | 'red' }): ReactNode {  const { children, tone = 'amber' } = arg0
+
   const classes = tone === 'red'
     ? 'rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200'
     : 'rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200'

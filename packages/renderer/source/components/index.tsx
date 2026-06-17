@@ -46,7 +46,8 @@ export type ButtonProps = {
   | (ComponentPropsWithoutRef<'button'> & { href?: undefined })
 )
 
-export function Button({ variant = 'primary', className, children, arrow, ...props }: ButtonProps) {
+export function Button(arg0: ButtonProps) {  const { variant = 'primary', className, children, arrow, ...props } = arg0
+
   const classes = clsx(
     'inline-flex justify-center gap-0.5 overflow-hidden text-sm font-medium transition',
     buttonVariantStyles[variant],
@@ -129,7 +130,8 @@ export type TagProps = {
   color?: keyof typeof tagColorStyles
 }
 
-export function Tag({ children, variant = 'medium', color }: TagProps) {
+export function Tag(arg0: TagProps) {  const { children, variant = 'medium', color } = arg0
+
   const value = typeof children === 'string' ? children.toUpperCase() : ''
   const resolvedColor = color ?? tagValueColorMap[value] ?? 'emerald'
 
@@ -161,14 +163,15 @@ export function Logo(props: ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-export function Prose<T extends ElementType = 'div'>({
+export function Prose<T extends ElementType = 'div'>(arg0: Omit<ComponentPropsWithoutRef<T>, 'as' | 'className'> & {
+  as?: T
+  className?: string
+}) {  const {
   as,
   className,
   ...props
-}: Omit<ComponentPropsWithoutRef<T>, 'as' | 'className'> & {
-  as?: T
-  className?: string
-}) {
+} = arg0
+
   const Component = as ?? 'div'
 
   return (
@@ -191,7 +194,8 @@ function AnchorIcon(props: ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-function Eyebrow({ tag, label }: { tag?: string; label?: string }) {
+function Eyebrow(arg0: { tag?: string; label?: string }) {  const { tag, label } = arg0
+
   if (!tag && !label) {
     return null
   }
@@ -205,7 +209,8 @@ function Eyebrow({ tag, label }: { tag?: string; label?: string }) {
   )
 }
 
-function Anchor({ id, inView, children }: { id: string; inView: boolean; children: ReactNode }) {
+function Anchor(arg0: { id: string; inView: boolean; children: ReactNode }) {  const { id, inView, children } = arg0
+
   return (
     <a href={`#${id}`} className="group text-inherit no-underline hover:text-inherit">
       {inView ? (
@@ -220,20 +225,21 @@ function Anchor({ id, inView, children }: { id: string; inView: boolean; childre
   )
 }
 
-export function Heading<Level extends 2 | 3>({
+export function Heading<Level extends 2 | 3>(arg0: ComponentPropsWithoutRef<`h${Level}`> & {
+  id: string
+  tag?: string
+  label?: string
+  level?: Level
+  anchor?: boolean
+}) {  const {
   children,
   tag,
   label,
   level,
   anchor = true,
   ...props
-}: ComponentPropsWithoutRef<`h${Level}`> & {
-  id: string
-  tag?: string
-  label?: string
-  level?: Level
-  anchor?: boolean
-}) {
+} = arg0
+
   const resolvedLevel = level ?? (2 as Level)
   const Component = `h${resolvedLevel}` as 'h2' | 'h3'
   const ref = useRef<HTMLHeadingElement>(null)

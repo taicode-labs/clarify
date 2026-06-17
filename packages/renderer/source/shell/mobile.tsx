@@ -26,15 +26,7 @@ function XIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 
 const IsInsideMobileNavigationContext = createContext(false)
 
-function MobileNavigationDialog({
-  config,
-  isOpen,
-  navigation,
-  routes,
-  currentLocale,
-  currentRoute,
-  close,
-}: {
+function MobileNavigationDialog(arg0: {
   config: ClarifyConfig
   isOpen: boolean
   navigation: NavigationNode[]
@@ -42,7 +34,16 @@ function MobileNavigationDialog({
   currentLocale?: string
   currentRoute?: RouteItem
   close: () => void
-}) {
+}) {  const {
+  config,
+  isOpen,
+  navigation,
+  routes,
+  currentLocale,
+  currentRoute,
+  close,
+} = arg0
+
   return (
     <Dialog transition open={isOpen} onClose={close} className="fixed inset-0 z-50 lg:hidden">
       <DialogBackdrop
@@ -91,19 +92,20 @@ export const useMobileNavigationStore = create<{
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
 }))
 
-export function MobileNavigation({
-  config,
-  navigation,
-  routes,
-  currentLocale,
-  currentRoute,
-}: {
+export function MobileNavigation(arg0: {
   config: ClarifyConfig
   navigation: NavigationNode[]
   routes: RouteItem[]
   currentLocale?: string
   currentRoute?: RouteItem
-}) {
+}) {  const {
+  config,
+  navigation,
+  routes,
+  currentLocale,
+  currentRoute,
+} = arg0
+
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const { isOpen, toggle, close } = useMobileNavigationStore()
   const ToggleIcon = isOpen ? XIcon : MenuIcon

@@ -138,6 +138,14 @@ export default tseslint.config(
     },
   },
 
+  // Renderer 是可复用组件库，入口和 provider 文件会导出 hooks/types/helpers。
+  {
+    files: ['packages/renderer/source/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+
   // Node.js 项目规则（CLI）
   {
     files: nodeFiles,
