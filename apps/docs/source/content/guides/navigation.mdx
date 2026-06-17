@@ -1,20 +1,28 @@
 # 配置导航与侧边栏
 
-Clarify 的导航结构基于文件系统自动生成，同时支持通过配置进行微调。
+Clarify 默认可以根据文件系统生成导航，也可以通过 `clarify.json` 显式组织顶部导航和侧边栏。真实项目通常建议使用显式配置，让读者看到的是任务路径，而不是仓库目录结构。
 
 ---
 
 ## 顶部导航
 
-在 `clarify.json` 中配置顶部导航链接：
+顶部导航适合放少量高频入口，例如开始使用、配置站点、API 文档和示例：
 
 ```json
 {
   "navbar": {
     "links": [
       {
-        "label": "文档",
+        "label": "开始使用",
         "href": "/getting-started"
+      },
+      {
+        "label": "配置站点",
+        "href": "/guides/navigation"
+      },
+      {
+        "label": "API 文档",
+        "href": "/features/openapi"
       },
       {
         "label": "GitHub",
@@ -29,54 +37,104 @@ Clarify 的导航结构基于文件系统自动生成，同时支持通过配置
 | 字段 | 说明 |
 |------|------|
 | `label` | 导航项显示文字 |
-| `href` | 链接地址 |
-| `external` | 是否在新标签页打开 |
+| `href` | 链接地址，站内链接建议使用绝对路径 |
+| `external` | 是否在新标签页打开，外部链接建议设为 `true` |
 
 ---
 
-## 侧边栏
+## 侧边栏模式
 
-侧边栏根据文件目录结构自动生成，遵循以下规则：
+`pages` 支持两种模式：
 
-1. **目录层级** = 侧边栏分组
-2. **`index.mdx`** = 分组的入口页面
-3. **同级文件** = 按字母顺序排列
+| 模式 | 适用场景 |
+|------|----------|
+| `"FileTree"` | 小型站点或早期原型，直接按 `source/content` 目录生成 |
+| 分组数组 | 正式文档站，按用户任务组织阅读路径 |
 
-### 排序
-
-在 `pages` 手动配置模式下，页面按照数组中定义的顺序排列。
-
-在 `FileTree` 自动模式下，页面按文件名字母顺序排列。
-
-### 隐藏页面
-
-目前 Clarify 不提供隐藏页面的 frontmatter 选项。如需隐藏，请使用 `pages` 手动配置模式，不将对应页面加入 `items` 数组即可。页面文件仍然存在，可通过 URL 直接访问。
-
----
-
-## 自定义侧边栏（Phase 2）
-
-未来版本将支持完全自定义侧边栏结构：
+### 文件树模式
 
 ```json
 {
-  "sidebar": [
+  "pages": "FileTree"
+}
+```
+
+文件树模式遵循以下规则：
+
+1. **目录层级** = 侧边栏分组
+2. **`index.mdx`** = 分组的入口页面
+3. **同级文件** = 按文件名排序
+
+### 显式分组模式
+
+```json
+{
+  "pages": [
     {
-      "group": "快速开始",
+      "group": "开始使用",
+      "icon": "Rocket",
       "pages": [
-        "/getting-started/installation",
-        "/getting-started/first-site"
-      ]
-    },
-    {
-      "group": "功能特性",
-      "pages": [
-        "/features/mdx",
-        "/features/routing"
+        {
+          "page": "getting-started",
+          "icon": "Map"
+        },
+        {
+          "page": "getting-started/installation",
+          "icon": "Download"
+        }
       ]
     }
   ]
 }
 ```
 
-> 此功能正在开发中，请关注 [路线图](/roadmap)。
+显式分组模式可以让侧边栏脱离文件目录，把页面放到更符合用户任务的位置。例如 `reference/frontmatter` 虽然位于参考目录，但更适合出现在“编写内容”分组中。
+
+---
+
+## 页面项类型
+
+侧边栏页面项可以引用普通页面，也可以引用 OpenAPI 规范：
+
+```json
+{
+  "pages": [
+    {
+      "group": "API 文档",
+      "pages": [
+        {
+          "page": "features/openapi",
+          "icon": "Braces"
+        },
+        {
+          "openapi": "api.openapi.json",
+          "title": "API Reference",
+          "icon": "BookOpenCheck"
+        }
+      ]
+    }
+  ]
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `page` | 引用 `source/content` 下的 MDX 页面，不需要写 `.mdx` 后缀 |
+| `openapi` | 引用 `source/content` 下的 OpenAPI JSON 或 YAML 文件 |
+| `title` | 覆盖 OpenAPI 页面标题 |
+| `icon` | 使用 lucide 图标名称 |
+
+---
+
+## 信息架构建议
+
+- **顶部导航只放高频入口**，不要把所有章节都放到顶部。
+- **侧边栏按任务组织**，例如“开始使用 → 编写内容 → 配置站点 → API 文档 → 发布与迁移”。
+- **参考页放在任务页之后**，避免新用户一开始就被字段列表打断。
+- **开发者文档放到最后**，除非你的站点主要面向贡献者。
+
+---
+
+## 隐藏页面
+
+目前 Clarify 不提供隐藏页面的 frontmatter 选项。如需隐藏，请使用显式分组模式，不将对应页面加入 `pages` 数组即可。页面文件仍然存在，可通过 URL 直接访问。

@@ -11,12 +11,16 @@
         "href": "/getting-started"
       },
       {
-        "label": "编写内容",
-        "href": "/guides/writing-content"
+        "label": "配置站点",
+        "href": "/guides/navigation"
       },
       {
-        "label": "配置参考",
-        "href": "/reference/clarify-json"
+        "label": "API 文档",
+        "href": "/features/openapi"
+      },
+      {
+        "label": "示例",
+        "href": "/showcase"
       },
       {
         "label": "GitHub",
