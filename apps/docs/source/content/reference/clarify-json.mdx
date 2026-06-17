@@ -1,0 +1,83 @@
+# clarify.json 配置参考
+
+`clarify.json` 是面向内容作者的配置文件，位于项目根目录，控制站点的展示内容。
+
+---
+
+## 配置分层
+
+Clarify 采用双层配置设计，将**内容展示**和**构建行为**明确分离：
+
+| 层级 | 受众 | 文件 | 职责 |
+|------|------|------|------|
+| **项目配置** | 内容作者、技术写作者 | `clarify.json` | 站点展示什么 |
+| **插件配置** | 前端开发者、构建工程师 | `vite.config.ts` | 站点如何构建和运行 |
+
+> 内容创作者不应修改 `vite.config.ts`，开发者不应频繁修改 `clarify.json`。
+
+---
+
+## 完整字段列表
+
+### Phase 1 已支持的字段
+
+| 字段 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| `title` | `string` | 站点标题 | `"Clarify Docs"` |
+| `description` | `string` | 站点描述，用于 SEO | `""` |
+| `logo` | `string` | 品牌 Logo 路径 | — |
+| `routeBase` | `string` | 站点基础路径 | `"/"` |
+| `theme` | `object` | 主题配置 | `{}` |
+
+### `theme` 对象
+
+| 字段 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| `primary` | `string` | 主题主色（CSS 颜色值） | `"#0ea5e9"` |
+
+---
+
+## 示例配置
+
+```json
+{
+  "title": "Clarify 文档",
+  "description": "Clarify 官方文档 — 开源文档发布工具",
+  "logo": "/logo.svg",
+  "routeBase": "/docs/",
+  "theme": {
+    "primary": "#0ea5e9"
+  }
+}
+```
+
+---
+
+## Phase 2 计划支持的字段
+
+以下字段已设计，将在后续版本中实现：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `openApi` | `string` | OpenAPI 规范文件路径 |
+| `favicon` | `string` | 站点 favicon 路径 |
+| `socialPreview` | `string` | 社交分享图片路径 |
+| `locales` | `object[]` | 国际化配置 |
+| `nav` | `object[]` | 自定义导航结构 |
+| `footer` | `object` | 页脚配置 |
+| `social` | `object` | 社交媒体链接 |
+| `hideEditLink` | `boolean` | 是否隐藏"编辑此页"链接 |
+| `githubRepo` | `string` | GitHub 仓库地址（用于编辑链接） |
+| `githubBranch` | `string` | GitHub 分支名 |
+
+---
+
+## 优先级
+
+当同一字段在 `clarify.json` 和 `vite.config.ts`（插件选项）中都配置时：
+
+```
+vite.config.ts（插件选项）> clarify.json > 默认值
+```
+
+这允许开发者在不修改 `clarify.json` 的情况下覆盖作者设置，例如为 staging 环境使用不同的 `routeBase`。

@@ -1,0 +1,97 @@
+# 配置导航与侧边栏
+
+Clarify 的导航结构基于文件系统自动生成，同时支持通过配置进行微调。
+
+---
+
+## 顶部导航
+
+在 `clarify.json` 中配置顶部导航链接：
+
+```json
+{
+  "navbar": {
+    "links": [
+      {
+        "label": "文档",
+        "href": "/getting-started"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/taicode-labs/clarify",
+        "external": true
+      }
+    ]
+  }
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `label` | 导航项显示文字 |
+| `href` | 链接地址 |
+| `external` | 是否在新标签页打开 |
+
+---
+
+## 侧边栏
+
+侧边栏根据文件目录结构自动生成，遵循以下规则：
+
+1. **目录层级** = 侧边栏分组
+2. **`index.mdx`** = 分组的入口页面
+3. **同级文件** = 按字母顺序排列
+
+### 控制排序
+
+通过 frontmatter 中的 `navOrder` 控制排序：
+
+```mdx
+---
+title: 安装
+description: 环境准备与安装步骤
+navOrder: 1
+---
+```
+
+`navOrder` 数值越小，排序越靠前。未设置 `navOrder` 的页面按文件名排序。
+
+### 隐藏页面
+
+```mdx
+---
+title: 内部页面
+hidden: true
+---
+```
+
+隐藏页面不会出现在侧边栏，但可以通过 URL 直接访问。
+
+---
+
+## 自定义侧边栏（Phase 2）
+
+未来版本将支持完全自定义侧边栏结构：
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "快速开始",
+      "pages": [
+        "/getting-started/installation",
+        "/getting-started/first-site"
+      ]
+    },
+    {
+      "group": "功能特性",
+      "pages": [
+        "/features/mdx",
+        "/features/routing"
+      ]
+    }
+  ]
+}
+```
+
+> 此功能正在开发中，请关注 [路线图](/roadmap)。

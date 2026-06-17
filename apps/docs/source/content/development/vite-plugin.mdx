@@ -1,0 +1,146 @@
+# 插件引擎设计
+
+Clarify Core 是 `packages/vite-plugin` 内部的引擎，负责将原始 MDX 和 OpenAPI 内容转换为可运行、可导航的文档站点。
+
+---
+
+## 内容摄取流水线
+
+引擎读取两种类型的源材料：
+
+| 源类型 | 文件模式 | 解析工具 | 输出 |
+|--------|---------|---------|------|
+| MDX 页面 | `**/*.mdx` | `@mdx-js/rollup` + 自定义 frontmatter 解析器 | React 组件 + 元数据 |
+| OpenAPI 规范 | `openapi.yaml` / `openapi.json` | `swagger-parser` 或 `openapi-types` | 类型安全的 API 参考数据 |
+
+### MDX 处理流程
+
+```
+MDX 文件 → Frontmatter 提取 → MDX 编译 → React 组件 → 路由注册
+```
+
+1. **Frontmatter 提取**：解析 YAML frontmatter 获取元数据（`title`、`description`、`nav_order`、`hidden`、`tags`）
+2. **OpenAPI 资源加载**：如果配置了 `openApi` 规范，插件会将其解析为内部模型，并以虚拟模块形式提供
+3. **MDX 编译**：使用 `@mdx-js/rollup` 将 MDX 编译为 React 组件。`<OpenAPI>` 组件在 MDX 作用域中注册，作者可以在任何位置嵌入它
+4. **组件包装**：使用 `@clarify/renderer` 的 `DocShell` 包装（提供布局、导航、目录）
+5. **路由注册**：将文件路径映射到 URL 路径（例如 `docs/getting-started.mdx` → `/getting-started`）
+
+### OpenAPI 资源流程
+
+当配置了 `openApi` 时，插件在构建时解析规范一次，并作为**虚拟模块**提供给 MDX 页面中的 `<OpenAPI>` 组件。
+
+```
+OpenAPI 规范 (yaml/json)
+        │
+        ▼
+  模式验证
+        │
+        ▼
+  转换为内部模型
+        │
+        ▼
+  virtual:clarify-openapi (虚拟模块)
+        │
+        ▼
+  MDX 页面内的 <OpenAPI path="/users/{id}" />
+```
+
+1. **模式验证**：针对 OpenAPI 3.0/3.1 进行验证
+2. **转换**：将操作扁平化为以 `operationId` 为键的 `OpenAPIResource` 模型
+3. **虚拟模块**：通过 `virtual:clarify-openapi` 暴露整个规范，使渲染器在运行时无需服务器即可访问
+4. **MDX 嵌入**：作者在任何 MDX 页面中使用 `<OpenAPI>` 组件来渲染任何操作、标签或完整规范
+
+---
+
+## 路由系统
+
+### 基于文件的路由
+
+引擎使用从文件系统派生的**约定式路由**：
+
+```
+content/
+├── index.mdx           → /
+├── getting-started.mdx → /getting-started
+├── guides/
+│   ├── installation.mdx → /guides/installation
+│   └── theming.mdx      → /guides/theming
+└── api/
+    └── (generated)      → /api/*
+```
+
+- **索引文件**：`index.mdx` 映射到目录根路径（`/` 或 `/guides/`）
+- **动态段**：v1 不支持；仅支持扁平 + 嵌套静态路由
+- **隐藏页面**：Frontmatter 中设置 `hidden: true` 可从导航中排除，但保留路由可访问性
+
+### 路由清单
+
+构建时，插件生成一个供客户端消费的**路由清单**（JSON 或内联 JS）：
+
+```typescript
+type RouteManifest = {
+  routes: Array<{
+    path: string;
+    componentPath: string;   // 虚拟模块 ID
+    meta: PageMeta;          // title、description 等
+    navOrder?: number;
+  }>;
+  navTree: NavNode[];        // 层级侧边栏结构
+};
+```
+
+此清单驱动：
+- **客户端路由**（React Router 或类似方案）
+- **侧边栏导航**（从 navTree 生成）
+- **目录**（从 MDX 中的标题提取）
+
+---
+
+## 渲染系统
+
+### 页面生命周期
+
+```mermaid
+graph LR
+    A[路由匹配] --> B[加载路由清单]
+    B --> C[导入虚拟模块]
+    C --> D[渲染 DocShell]
+    D --> E[注入页面组件]
+    E --> F[渲染侧边栏 + 目录]
+```
+
+### 虚拟模块
+
+Vite 虚拟模块用于在构建时注入生成内容：
+
+- `virtual:clarify-routes` — 导出路由清单和 `Routes` 组件
+- `virtual:clarify-api` — 以类型化 JSON 格式导出解析后的 OpenAPI 操作
+- `virtual:clarify-config` — 导出解析后的插件选项
+
+```typescript
+// 应用内部
+import { Routes } from 'virtual:clarify-routes';
+import { apiOperations } from 'virtual:clarify-api';
+```
+
+### 组件映射
+
+MDX 组件通过 `MDXProvider` 映射到 `@clarify/renderer` 原语：
+
+| MDX 元素 | 渲染器组件 |
+|----------|-----------|
+| `h1`–`h6` | 带锚点 ID 的样式标题 |
+| `pre > code` | `CodeBlock`（语法高亮） |
+| `table` | `DataTable`（样式化、响应式） |
+| `a` | `SmartLink`（内部 vs 外部路由） |
+| `img` | `Image`（懒加载、标题） |
+| `<OpenAPI>` | `OpenAPI`（嵌入式 API 参考） |
+| 自定义 JSX | 通过 `components` 选项由用户定义 |
+
+---
+
+## 主题与样式架构
+
+### 设计令牌
+
+Clarify 使用**CSS 自定义属性**进行主题设置，由插件注入的全局样式表定义。

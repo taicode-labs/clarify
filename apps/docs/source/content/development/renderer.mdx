@@ -1,0 +1,151 @@
+# 渲染器架构
+
+Renderer 是 Clarify 的客户端运行时。它消费 `@clarify/vite-plugin` 生成的已处理内容（路由、MDX 组件、API 数据），并将其渲染为交互式文档站点。
+
+---
+
+## 渲染理念
+
+- **客户端优先 SPA**：作为 Vite 驱动的单页应用程序运行。无 SSR 水合复杂度
+- **静态构建时数据**：插件在构建时生成路由清单并预编译 MDX 页面。渲染器在运行时消费这些静态产物
+- **组件驱动 UI**：每个 MDX 元素都映射到 `@clarify/renderer` 原语。整个视觉层可组合且可主题化
+- **零运行时配置**：所有配置在构建时解析并烘焙到虚拟模块中。无运行时配置解析
+
+---
+
+## 运行时架构
+
+### 入口
+
+```tsx
+// apps/docs/source/main.tsx
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { ClarifyProvider } from '@clarify/renderer';
+import { App } from './App';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <ClarifyProvider>
+        <App />
+      </ClarifyProvider>
+    </BrowserRouter>
+  </StrictMode>
+);
+```
+
+### 应用壳
+
+```tsx
+// apps/docs/source/App.tsx
+import { Routes, Route } from 'react-router-dom';
+import { Layout, MDXProvider } from '@clarify/renderer';
+import { routes } from 'virtual:clarify-routes';
+
+export default function App() {
+  return (
+    <Layout>
+      <MDXProvider>
+        <Routes>
+          {routes.map(route => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={<route.component />}
+            />
+          ))}
+        </Routes>
+      </MDXProvider>
+    </Layout>
+  );
+}
+```
+
+### 布局组件
+
+`Layout` 是 `@clarify/renderer` 提供的顶级壳：
+
+```tsx
+function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="clarify-layout">
+      <Header />
+      <div className="clarify-body">
+        <Sidebar />
+        <main className="clarify-main">{children}</main>
+        <TableOfContents />
+      </div>
+    </div>
+  );
+}
+```
+
+**布局区域**：
+
+| 区域 | 职责 | 固定? |
+|------|------|--------|
+| `Header` | Logo、搜索触发器、主题切换、版本切换器 | 是（顶部） |
+| `Sidebar` | 来自 `navTree` 的层级导航树 | 是（左侧） |
+| `Main` | 渲染的页面内容（MDX 或 API 页面） | 可滚动 |
+| `ToC` | 当前页面的标题锚点 | 是（右侧，仅桌面端） |
+
+---
+
+## 虚拟模块系统
+
+渲染器依赖构建时由插件生成的**虚拟模块**。它们是插件和渲染器之间唯一的桥梁。
+
+### `virtual:clarify-routes`
+
+路由清单和导航树。
+
+```typescript
+export interface RouteManifest {
+  routes: Array<{
+    path: string;
+    component: React.ComponentType;
+    meta: PageMeta;
+  }>;
+  navTree: NavNode[];
+}
+
+export const routes: RouteManifest['routes'];
+export const navTree: RouteManifest['navTree'];
+```
+
+### `virtual:clarify-api`
+
+API 参考页面的解析 OpenAPI 数据。
+
+```typescript
+export interface ApiManifest {
+  operations: ApiOperation[];
+  tags: ApiTag[];
+  spec: OpenAPIObject;
+}
+
+export const apiOperations: ApiOperation[];
+export const apiTags: ApiTag[];
+export const apiSpec: OpenAPIObject;
+```
+
+### `virtual:clarify-config`
+
+解析后的插件选项（主题令牌、base 路径等）。
+
+```typescript
+export const config: ResolvedClarifyOptions;
+```
+
+### `virtual:clarify-page/*`
+
+每个 MDX 页面是一个独立的虚拟模块：
+
+```typescript
+// virtual:clarify-page/getting-started
+export { default } from '/absolute/path/to/content/getting-started.mdx';
+export const meta: PageMeta;
+```

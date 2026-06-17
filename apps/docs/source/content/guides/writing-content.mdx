@@ -1,0 +1,67 @@
+# 编写内容的最佳实践
+
+好的文档不仅取决于工具，更取决于内容的组织方式。以下是使用 Clarify 编写文档时的建议。
+
+---
+
+## 文件组织
+
+### 按主题分组
+
+将相关页面放在同一个目录下：
+
+```
+content/
+├── index.mdx           # 首页/介绍
+├── getting-started/    # 入门系列
+│   ├── index.mdx
+│   ├── installation.mdx
+│   └── first-site.mdx
+├── features/           # 功能介绍
+│   ├── index.mdx
+│   ├── mdx.mdx
+│   └── routing.mdx
+└── reference/          # 参考文档
+    └── clarify-json.mdx
+```
+
+### 使用索引页面
+
+每个目录建议包含 `index.mdx`，作为该章节的入口：
+
+```mdx
+---
+title: 快速开始
+---
+
+# 快速开始
+
+本章帮助你从零开始搭建 Clarify 文档站点。
+
+## 内容
+
+- [环境准备与安装](/getting-started/installation)
+- [创建你的第一个站点](/getting-started/first-site)
+```
+
+---
+
+## Frontmatter 使用
+
+每个页面都应包含完整的 frontmatter：
+
+```mdx
+---
+title: 页面标题              # 必填，用于导航和 <title>
+description: 页面描述        # 建议填写，用于 SEO
+---
+```
+
+---
+
+## 写作风格
+
+- **使用第二人称** — "你可以..." 比 "用户可以..." 更直接
+- **先讲为什么，再讲怎么做** — 给读者行动的理由
+- **多用列表和表格** — 减少大段文字，提高可读性
+- **添加示例代码** — 理论配合实践，降低理解门槛

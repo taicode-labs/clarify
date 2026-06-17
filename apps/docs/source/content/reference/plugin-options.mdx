@@ -1,0 +1,81 @@
+# Vite 插件选项参考
+
+`@clarify/vite-plugin` 的 `clarifyPlugin()` 函数接收一个选项对象，用于控制构建时行为。
+
+---
+
+## 选项列表
+
+### Phase 1 已支持的选项
+
+| 选项 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| `docsRoot` | `string` | 内容文件根目录 | `"source/content"` |
+| `routeBase` | `string` | 部署路径，覆盖 `clarify.json` 中的设置 | `"/"` |
+| `outPath` | `string` | 构建输出目录，覆盖 Vite 的 `build.outDir` | `"output"` |
+| `include` | `string \| RegExp \| Array` | MDX 处理包含规则 | `"**/*.mdx"` |
+| `exclude` | `string \| RegExp \| Array` | MDX 处理排除规则 | — |
+| `plugins` | `ClarifyPlugin[]` | 扩展插件数组（翻译、搜索等） | — |
+
+---
+
+## 示例
+
+### 基本配置
+
+```typescript
+import { defineConfig } from 'vite';
+import { clarifyPlugin } from '@clarify/vite-plugin';
+
+export default defineConfig({
+  plugins: [
+    clarifyPlugin(),
+  ],
+});
+```
+
+### 自定义内容目录
+
+```typescript
+clarifyPlugin({
+  docsRoot: 'docs',
+});
+```
+
+### Staging 环境配置
+
+```typescript
+clarifyPlugin({
+  routeBase: '/staging/docs/',
+  outPath: 'build',
+});
+```
+
+### 排除特定文件
+
+```typescript
+clarifyPlugin({
+  exclude: ['**/draft/**/*.mdx', '**/_*.mdx'],
+});
+```
+
+---
+
+## 优先级
+
+当同一字段在插件选项和 `clarify.json` 中都配置时：
+
+```
+插件选项 > clarify.json > 默认值
+```
+
+例如，如果 `clarify.json` 中 `routeBase` 为 `"/"`，但插件选项中设置为 `"/staging/"`，最终生效的是 `"/staging/"`。
+
+---
+
+## Phase 2 计划支持的选项
+
+| 选项 | 类型 | 说明 |
+|------|------|------|
+| `components` | `string` | 自定义 MDX 组件目录 |
+| `transformFrontmatter` | `(fm: Frontmatter) => Frontmatter` | 前置元数据转换函数 |

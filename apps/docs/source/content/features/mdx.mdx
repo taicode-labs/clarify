@@ -1,0 +1,125 @@
+# MDX 写作
+
+Clarify 基于 MDX 构建，让你可以在 Markdown 中无缝使用 React 组件。
+
+---
+
+## 什么是 MDX
+
+MDX 是 Markdown 的扩展，允许你在文档中直接编写 JSX。这意味着你可以：
+
+- 使用普通 Markdown 语法编写内容
+- 在任意位置插入交互式 React 组件
+- 导入和使用自定义组件库
+
+---
+
+## 基础用法
+
+### 普通 Markdown
+
+所有标准 Markdown 语法都支持：
+
+```mdx
+# 标题
+
+**粗体**、*斜体*、`行内代码`。
+
+- 列表项 1
+- 列表项 2
+
+> 引用块
+
+```代码块```
+```
+
+### 嵌入 React 组件
+
+直接在 MDX 中使用 JSX：
+
+```mdx
+# 欢迎使用
+
+这是普通段落。
+
+<div className="bg-blue-100 p-4 rounded-lg">
+  <h3>提示框</h3>
+  <p>这是一个 React 组件渲染的内容！</p>
+</div>
+```
+
+### 导入组件
+
+你可以从外部文件导入组件：
+
+```mdx
+import { Alert } from '../components/Alert';
+
+# 页面标题
+
+<Alert type="warning">
+  这是一条警告信息。
+</Alert>
+```
+
+---
+
+## Frontmatter
+
+每个 MDX 文件顶部可以添加 YAML frontmatter：
+
+```mdx
+---
+title: 页面标题
+description: 页面描述，用于 SEO 和社交分享
+---
+
+# 正文
+```
+
+Clarify 会读取 frontmatter 中的 `title` 和 `description`，用于：
+
+- 页面 `<title>` 标签
+- 导航栏和侧边栏显示
+- SEO meta 标签
+- 目录生成
+
+---
+
+## 代码高亮
+
+代码块自动获得语法高亮：
+
+```typescript
+// TypeScript 示例
+function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+
+```json
+{
+  "name": "clarify",
+  "version": "1.0.0"
+}
+```
+
+---
+
+## 表格
+
+```mdx
+| 特性 | 说明 |
+|------|------|
+| MDX | Markdown + React |
+| SSG | 静态站点生成 |
+| SPA | 单页应用体验 |
+```
+
+渲染为：
+
+| 特性 | 说明 |
+|------|------|
+| MDX | Markdown + React |
+| SSG | 静态站点生成 |
+| SPA | 单页应用体验 |

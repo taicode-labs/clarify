@@ -1,0 +1,81 @@
+# 静态生成
+
+Clarify 在构建时为每个路由生成独立的 HTML 文件，兼顾 SEO 友好和流畅的用户体验。
+
+---
+
+## 为什么使用静态生成
+
+静态站点生成（SSG）相比纯客户端渲染有以下优势：
+
+| 优势 | 说明 |
+|------|------|
+| **SEO 友好** | 搜索引擎可以直接抓取完整的 HTML 内容 |
+| **首屏快速** | 无需等待 JavaScript 加载，HTML 立即可见 |
+| **托管简单** | 任何静态文件托管服务都可以部署（CDN、GitHub Pages、Vercel 等） |
+| **离线可用** | 预渲染的 HTML 可以在网络不稳定时优先展示 |
+
+---
+
+## 工作原理
+
+Clarify 的静态生成采用"构建时 SSR + 客户端 Hydration"的双层架构：
+
+### 构建阶段
+
+1. Vite 打包客户端入口（JS/CSS 资源）
+2. Clarify 插件扫描所有 MDX 文件
+3. 为每个路由调用 `renderToString` 生成 HTML
+4. 将 HTML 写入对应的输出目录
+
+### 运行时阶段
+
+1. 浏览器接收到预渲染的 HTML，立即显示内容
+2. `<script>` 标签加载客户端 JavaScript 包
+3. React `hydrateRoot` 在现有 HTML 上挂载交互性
+4. 后续导航切换为客户端 SPA 路由，无需刷新页面
+
+---
+
+## 构建输出
+
+```
+output/
+├── index.html              # 首页
+├── getting-started/
+│   └── index.html          # /getting-started
+├── features/
+│   └── index.html          # /features
+├── assets/
+│   ├── index-BkTl0pu_.js   # 客户端 JavaScript
+│   └── index-DwZ9fet0.css  # 样式表
+```
+
+每个路由都有独立的 `index.html`，确保直接访问任何 URL 都能获得完整内容。
+
+---
+
+## 构建命令
+
+```bash
+npx vite build
+```
+
+输出目录默认为 `output/`，可以通过插件选项自定义：
+
+```typescript
+clarifyPlugin({
+  outPath: 'dist',
+});
+```
+
+---
+
+## 部署
+
+构建产物是纯静态文件，可以部署到任何平台：
+
+- **Vercel / Netlify**：直接拖拽或连接 Git 仓库
+- **GitHub Pages**：使用 Actions 自动部署
+- **AWS S3 + CloudFront**：上传 `output/` 目录
+- **Nginx / Caddy**：将 `output/` 设为网站根目录

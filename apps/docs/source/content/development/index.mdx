@@ -1,0 +1,34 @@
+# 开发指南
+
+本章面向希望深入了解 Clarify 实现、参与贡献或进行二次开发的用户。
+
+---
+
+## 内容
+
+- [整体架构](/development/architecture) — Monorepo 结构、包职责、数据流
+- [插件引擎设计](/development/vite-plugin) — `packages/vite-plugin` 的核心子系统
+- [渲染器架构](/development/renderer) — `packages/renderer` 的客户端运行时设计
+- [静态生成流程](/development/ssg) — 构建时 SSR 的详细流程
+- [参与贡献](/development/contributing) — 代码规范、提交规范、PR 流程
+
+---
+
+## 快速开始（开发者）
+
+```bash
+# 克隆仓库
+git clone https://github.com/taicode-labs/clarify.git
+cd clarify
+
+# 安装依赖
+pnpm install
+
+# 启动文档站点（开发模式）
+pnpm dev:docs
+
+# 启动营销站点
+pnpm dev:www
+```
+
+得益于 Vite 别名配置，本地包直接从 `source/` 目录解析，无需预构建即可开发。

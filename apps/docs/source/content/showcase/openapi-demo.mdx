@@ -1,0 +1,47 @@
+# OpenAPI 文档渲染演示
+
+本页展示 Clarify 渲染 OpenAPI 规范的效果。
+
+---
+
+## 示例规范
+
+Clarify 可以解析 OpenAPI 3.0/3.1 规范，并将操作渲染为可读的 API 文档。
+
+### 获取所有页面
+
+**GET** `/pages`
+
+返回文档站点中的所有页面列表。
+
+### 创建新页面
+
+**POST** `/pages`
+
+在文档站点中创建一个新页面。
+
+### 获取单个页面
+
+**GET** `/pages/{id}`
+
+根据 ID 获取页面详情。
+
+### 更新页面
+
+**PUT** `/pages/{id}`
+
+更新指定 ID 的页面内容。
+
+### 删除页面
+
+**DELETE** `/pages/{id}`
+
+删除指定 ID 的页面。
+
+---
+
+## 当前状态
+
+> OpenAPI 集成功能正在 Phase 2 开发中。本页为静态预览，实际 `<OpenAPI>` 组件渲染效果将在后续版本提供。
+
+完整规范文件：[api.openapi.json](/content/api.openapi.json)

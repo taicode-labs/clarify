@@ -1,0 +1,105 @@
+# 部署到生产环境
+
+Clarify 构建产物是纯静态文件，可以部署到任何静态托管服务。
+
+---
+
+## 构建
+
+```bash
+npx vite build
+```
+
+构建产物位于 `output/` 目录（可在插件选项中修改）。
+
+---
+
+## Vercel
+
+### 使用 CLI
+
+```bash
+npm i -g vercel
+vercel --prod
+```
+
+### 使用 Git 集成
+
+1. 将代码推送到 GitHub/GitLab/Bitbucket
+2. 在 Vercel 中导入项目
+3. 构建命令：`npx vite build`
+4. 输出目录：`output`
+
+---
+
+## GitHub Pages
+
+### 使用 GitHub Actions
+
+创建 `.github/workflows/deploy.yml`：
+
+```yaml
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - run: pnpm install
+      - run: pnpm build
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+```
+
+### 配置 routeBase
+
+如果仓库名为 `my-repo`，GitHub Pages 地址为 `https://username.github.io/my-repo/`，需要在 `clarify.json` 中设置：
+
+```json
+{
+  "routeBase": "/my-repo/"
+}
+```
+
+---
+
+## Netlify
+
+1. 连接 Git 仓库
+2. 构建命令：`npx vite build`
+3. 发布目录：`output`
+
+---
+
+## CDN / Nginx
+
+将 `output/` 目录上传到 CDN 或 Web 服务器：
+
+```bash
+# 示例：rsync 到服务器
+rsync -avz output/ user@server:/var/www/html/
+```
+
+Nginx 配置示例：
+
+```nginx
+server {
+    listen 80;
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+> 注意：`try_files` 确保客户端路由能正常工作。

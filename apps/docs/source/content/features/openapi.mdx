@@ -1,0 +1,62 @@
+# OpenAPI 集成
+
+> **注意**：OpenAPI 集成功能计划在 Phase 2 中推出，当前版本尚未实现。本节介绍设计目标和预期用法。
+
+---
+
+## 目标
+
+让 API 文档与产品文档共存于同一个站点，开发者可以在 MDX 页面中直接嵌入交互式 API 参考。
+
+---
+
+## 预期用法
+
+### 配置 OpenAPI 规范
+
+在 `clarify.json` 中指定 OpenAPI 文件路径：
+
+```json
+{
+  "openApi": "./api.openapi.json"
+}
+```
+
+### 在 MDX 中嵌入 API 文档
+
+```mdx
+# 用户 API
+
+以下是用户相关的接口：
+
+<OpenAPI path="/users" />
+
+## 获取单个用户
+
+<OpenAPI path="/users/{id}" method="get" />
+```
+
+### 完整 API 文档页面
+
+```mdx
+---
+title: API 参考
+---
+
+# API 参考
+
+<OpenAPI />
+```
+
+---
+
+## 支持的 OpenAPI 版本
+
+- OpenAPI 3.0.x
+- OpenAPI 3.1.x
+
+---
+
+## 相关演示
+
+查看 [OpenAPI 演示](/showcase/openapi-demo) 了解渲染效果预览。

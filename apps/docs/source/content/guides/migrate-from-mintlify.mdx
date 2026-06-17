@@ -1,0 +1,84 @@
+# 从 Mintlify 迁移到 Clarify
+
+Clarify 的设计参考了 Mintlify 的优秀实践，并提供了兼容的配置格式，让迁移尽可能平滑。
+
+---
+
+## 配置兼容
+
+Mintlify 的 `docs.json` 与 Clarify 的 `clarify.json` 字段基本兼容：
+
+| Mintlify | Clarify | 说明 |
+|----------|---------|------|
+| `name` | `title` | 同义 |
+| `description` | `description` | 直接对应 |
+| `logo` | `logo` | 直接对应 |
+| `colors.primary` | `theme.primary` | 路径调整 |
+
+Clarify 会接受未知的 Mintlify 字段并静默忽略（附带警告），提供平滑的迁移路径。
+
+---
+
+## 迁移步骤
+
+### 1. 重命名配置文件
+
+```bash
+mv docs.json clarify.json
+```
+
+### 2. 调整字段
+
+```json
+// 之前 (docs.json)
+{
+  "name": "我的文档",
+  "colors": {
+    "primary": "#0ea5e9"
+  }
+}
+
+// 之后 (clarify.json)
+{
+  "title": "我的文档",
+  "theme": {
+    "primary": "#0ea5e9"
+  }
+}
+```
+
+### 3. 迁移内容文件
+
+Mintlify 使用 `.mdx` 或 `.md` 文件，Clarify 同样支持 MDX：
+
+- 将内容文件复制到 `source/content/` 目录
+- 确保文件结构和路由期望一致
+- 检查并更新 frontmatter 格式
+
+### 4. 安装依赖并构建
+
+```bash
+pnpm add -D @clarify/vite-plugin @clarify/renderer
+npx vite build
+```
+
+---
+
+## 差异说明
+
+| 功能 | Mintlify | Clarify |
+|------|----------|---------|
+| 托管方式 | 托管服务 | 自托管，构建为静态文件 |
+| 路由配置 | `navigation` 字段 | 文件系统约定 |
+| 组件库 | 内置 Mintlify 组件 | 标准 React + 自定义组件 |
+| 搜索 | 内置 | Phase 2 计划 |
+| i18n | 支持 | Phase 2 计划 |
+
+---
+
+## 需要帮助？
+
+如果在迁移过程中遇到问题，欢迎通过以下渠道获取支持：
+
+- [GitHub Issues](https://github.com/taicode-labs/clarify/issues)
+- [GitHub Discussions](https://github.com/taicode-labs/clarify/discussions)

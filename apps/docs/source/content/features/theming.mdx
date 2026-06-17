@@ -1,0 +1,90 @@
+# 主题与样式
+
+Clarify 内置基于 Tailwind CSS 的样式系统，同时支持通过配置和自定义 CSS 调整主题。
+
+---
+
+## 默认样式
+
+Clarify 的所有 UI 组件（导航、侧边栏、目录、代码块等）都使用 Tailwind CSS 工具类编写。你不需要额外引入样式文件，插件会自动处理。
+
+---
+
+## 主题配置
+
+在 `clarify.json` 中配置主题色：
+
+```json
+{
+  "title": "我的文档",
+  "theme": {
+    "primary": "#0ea5e9"
+  }
+}
+```
+
+`primary` 颜色会影响：
+
+- 链接颜色
+- 按钮背景
+- 活跃导航项
+- 代码块高亮主题
+
+---
+
+## 自定义 CSS
+
+如果需要更深入的样式调整，可以在项目中添加自定义 CSS：
+
+**source/styles/custom.css**
+
+```css
+/* 自定义滚动条 */
+.clarify-main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.clarify-main::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+/* 自定义代码块样式 */
+pre {
+  border-radius: 0.75rem;
+}
+```
+
+然后在 `source/main.tsx` 中导入：
+
+```typescript
+import './styles/custom.css';
+```
+
+---
+
+## Tailwind 配置
+
+Clarify 不强制要求你使用 Tailwind，但如果你已经在项目中使用 Tailwind，可以通过标准的 `tailwind.config.js` 扩展主题：
+
+```javascript
+export default {
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          50: '#f0f9ff',
+          500: '#0ea5e9',
+          900: '#0c4a6e',
+        },
+      },
+    },
+  },
+};
+```
+
+---
+
+## 深色模式
+
+深色模式支持正在开发中（Phase 2）。届时将通过 `theme.mode` 配置或系统偏好自动切换。

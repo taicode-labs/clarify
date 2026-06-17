@@ -1,0 +1,96 @@
+# 参与贡献
+
+感谢你对 Clarify 的兴趣！以下是参与贡献的指南。
+
+---
+
+## 开发环境
+
+```bash
+# 克隆仓库
+git clone https://github.com/taicode-labs/clarify.git
+cd clarify
+
+# 安装依赖
+pnpm install
+
+# 启动开发服务器
+pnpm dev:docs    # 文档站点
+pnpm dev:www     # 营销站点
+```
+
+---
+
+## 代码规范
+
+### TypeScript
+
+- 所有代码必须是 TypeScript，`strict: true`
+- 优先使用显式类型，避免 `any`
+- 保持包的 tree-shakeable（避免副作用导入）
+
+### 目录约定
+
+- 使用 `source/` 作为源码目录，而不是 `src/`
+- 包使用 `tsup` 构建（ESM + CJS + DTS）
+- 应用使用 Vite + `@tailwindcss/vite` + `@vitejs/plugin-react`
+
+---
+
+## 提交规范
+
+**所有提交信息必须用英文编写。** 不允许使用中文或其他语言。
+
+### 提交格式
+
+遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范：
+
+| 类型 | 说明 |
+|------|------|
+| `feat:` | 新功能 |
+| `fix:` | 错误修复 |
+| `docs:` | 仅文档更改 |
+| `refactor:` | 既不修复错误也不添加功能的代码更改 |
+| `chore:` | 构建过程、工具或依赖更新 |
+
+### 提交示例
+
+```bash
+feat: add sidebar navigation component
+
+- Add NavTree component with recursive rendering
+- Support collapsible sections
+- Integrate with virtual:clarify-routes
+
+fix: resolve hydration mismatch on 404 pages
+
+docs: update deployment guide with Vercel examples
+```
+
+- 主题行控制在 72 个字符以内
+- 需要时在正文补充上下文
+
+---
+
+## PR 流程
+
+1. **Fork 仓库** 并从 `main` 分支创建功能分支
+2. **编写代码** 并确保通过类型检查
+3. **更新文档** 如果更改了用户可见的行为
+4. **提交 PR** 并提供清晰的描述，说明做了什么和为什么
+
+---
+
+## 依赖规则
+
+- 使用 `pnpm`，不要使用 `npm` 或 `yarn`
+- 跨包依赖使用 `workspace:*`
+- 优先选择维护良好、轻量级的库
+- 仅限 React 生态
+
+---
+
+## 需要帮助？
+
+- [GitHub Issues](https://github.com/taicode-labs/clarify/issues) — 报告 bug 或请求功能
+- [GitHub Discussions](https://github.com/taicode-labs/clarify/discussions) — 提问和交流

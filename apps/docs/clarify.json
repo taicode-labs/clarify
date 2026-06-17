@@ -7,6 +7,22 @@
   "navbar": {
     "links": [
       {
+        "label": "文档",
+        "href": "/getting-started"
+      },
+      {
+        "label": "功能",
+        "href": "/features"
+      },
+      {
+        "label": "演示",
+        "href": "/showcase"
+      },
+      {
+        "label": "开发",
+        "href": "/development"
+      },
+      {
         "label": "GitHub",
         "href": "https://github.com/taicode-labs/clarify",
         "external": true
