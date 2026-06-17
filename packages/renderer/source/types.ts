@@ -5,7 +5,7 @@ import type { OpenAPISpec } from './openapi/utils'
 export type RouteSection = {
   id: string;
   title: string;
-  method?: string;
+  tags?: string[];
 };
 
 export type NavigationNode = {

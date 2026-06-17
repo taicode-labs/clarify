@@ -49,7 +49,7 @@ export function extractMdxSections(content: string): ContentSection[] {
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
 
 function navigationSections(sections: ContentSection[]) {
-  return sections.map(s => ({ id: s.id, title: s.title, method: s.method }))
+  return sections.map(s => ({ id: s.id, title: s.title, tags: s.tags }))
 }
 
 /** 从 OpenAPI spec 中提取接口列表作为章节 */
@@ -62,7 +62,7 @@ export function extractOpenAPISections(spec: OpenAPISpec): ContentSection[] {
       const op = pathItem[method]
       if (!op) continue
       const title = op.summary ?? `${method.toUpperCase()} ${path}`
-      sections.push({ id: slug(`${method} ${path}`), title, level: 2, method: method.toUpperCase() })
+      sections.push({ id: slug(`${method} ${path}`), title, level: 2, tags: [method.toUpperCase()] })
     }
   }
   return sections

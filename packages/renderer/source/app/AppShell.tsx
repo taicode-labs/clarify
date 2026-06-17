@@ -20,7 +20,7 @@ function sectionsForPath(routes: RouteItem[], pathname: string): Section[] {
     currentRoute?.sections?.map((section) => ({
       id: section.id,
       title: section.title,
-      tag: section.method,
+      tags: section.tags,
     })) ?? []
   )
 }

@@ -15,7 +15,7 @@ export interface Section {
   id: string
   title: string
   offsetRem?: number
-  tag?: string
+  tags?: string[]
   headingRef?: RefObject<HTMLHeadingElement | null>
 }
 

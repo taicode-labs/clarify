@@ -15,7 +15,6 @@ type NavGroup = {
   links: Array<{
     title: string
     href: string
-    tag?: string
   }>
 }
 
@@ -59,13 +58,13 @@ function TopLevelNavItem({ href, children }: { href: string; children: React.Rea
 function NavLink({
   href,
   children,
-  tag,
+  tags,
   active = false,
   isAnchorLink = false,
 }: {
   href: string
   children: React.ReactNode
-  tag?: string
+  tags?: string[]
   active?: boolean
   isAnchorLink?: boolean
 }) {
@@ -96,10 +95,14 @@ function NavLink({
       )}
     >
       <span className="truncate">{children}</span>
-      {tag ? (
-        <Tag variant="small" color="zinc">
-          {tag}
-        </Tag>
+      {tags?.length ? (
+        <span className="flex shrink-0 gap-1">
+          {tags.map((tag) => (
+            <Tag key={tag} variant="small" color="zinc">
+              {tag}
+            </Tag>
+          ))}
+        </span>
       ) : null}
     </CloseButton>
   )
@@ -187,7 +190,7 @@ function NavigationGroup({ group, className }: { group: NavGroup; className?: st
                   >
                     {sections.map((section) => (
                       <li key={section.id}>
-                        <NavLink href={`${link.href}#${section.id}`} tag={section.tag} isAnchorLink>
+                        <NavLink href={`${link.href}#${section.id}`} tags={section.tags} isAnchorLink>
                           {section.title}
                         </NavLink>
                       </li>

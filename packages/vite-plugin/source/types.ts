@@ -144,7 +144,7 @@ export type ContentSection = {
   id: string
   title: string
   level: number
-  method?: string
+  tags?: string[]
 }
 
 export type ContentRoute = {
@@ -170,7 +170,7 @@ export type ClarifyNavigationNode = {
   path: string
   title: string
   children?: ClarifyNavigationNode[]
-  sections?: Pick<ContentSection, 'id' | 'title' | 'method'>[]
+  sections?: Pick<ContentSection, 'id' | 'title' | 'tags'>[]
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
