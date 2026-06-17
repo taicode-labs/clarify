@@ -15,6 +15,7 @@ export interface Section {
   id: string
   title: string
   offsetRem?: number
+  badge?: string
   tags?: string[]
   headingRef?: RefObject<HTMLHeadingElement | null>
 }

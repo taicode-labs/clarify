@@ -1,21 +1,37 @@
 import { CloseButton } from '@headlessui/react'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
+import * as LucideIcons from 'lucide-react'
 import { useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { Tag } from '../components'
 import { useSectionStore } from '../components/SectionProvider'
 import type { NavigationNode } from '../types'
+import { decodeHashId, encodeHashId } from '../utils/hash'
 import { remToPx } from '../utils/remToPx'
+
 import { useIsInsideMobileNavigation } from './mobile'
 
 type NavGroup = {
   title: string
+  icon?: string
   links: Array<{
     title: string
     href: string
+    icon?: string
   }>
+}
+
+type LucideIconComponent = React.ComponentType<React.SVGProps<SVGSVGElement>>
+
+function NavigationIcon({ name, className }: { name?: string; className?: string }) {
+  if (!name) return null
+  const Icon = (LucideIcons as unknown as Record<string, LucideIconComponent>)[name]
+
+  if (!Icon) return null
+
+  return <Icon className={clsx('shrink-0 stroke-current', className)} aria-hidden="true" />
 }
 
 function useInitialValue<T>(value: T, condition = true) {
@@ -33,9 +49,11 @@ function navigationToGroups(navigation: NavigationNode[]): NavGroup[] {
 
     return {
       title: node.children?.length ? node.title : 'Documentation',
+      icon: node.icon,
       links: children.map((child) => ({
         title: child.title,
         href: normalizePath(child.path),
+        icon: child.icon,
       })),
     }
   })
@@ -55,15 +73,43 @@ function TopLevelNavItem({ href, children }: { href: string; children: React.Rea
   )
 }
 
+const sectionBadgeColorStyles: Record<string, string> = {
+  GET: 'text-emerald-500 dark:text-emerald-400',
+  POST: 'text-sky-500 dark:text-sky-400',
+  PUT: 'text-amber-500 dark:text-amber-400',
+  PATCH: 'text-amber-500 dark:text-amber-400',
+  DELETE: 'text-red-500 dark:text-rose-500',
+  OPTIONS: 'text-violet-500 dark:text-violet-400',
+  HEAD: 'text-zinc-500 dark:text-zinc-400',
+  TRACE: 'text-fuchsia-500 dark:text-fuchsia-400',
+}
+
+function SectionBadge({ children }: { children: string }) {
+  return (
+    <span
+      className={clsx(
+        'inline-flex w-13 shrink-0 justify-end font-mono text-[0.625rem]/6 font-semibold uppercase tracking-wide',
+        sectionBadgeColorStyles[children.toUpperCase()] ?? 'text-zinc-500 dark:text-zinc-400',
+      )}
+    >
+      {children}
+    </span>
+  )
+}
+
 function NavLink({
   href,
   children,
+  badge,
+  icon,
   tags,
   active = false,
   isAnchorLink = false,
 }: {
   href: string
   children: React.ReactNode
+  badge?: string
+  icon?: string
   tags?: string[]
   active?: boolean
   isAnchorLink?: boolean
@@ -74,7 +120,7 @@ function NavLink({
     const hashIndex = href.indexOf('#')
     if (hashIndex === -1) return
 
-    const targetId = decodeURIComponent(href.slice(hashIndex + 1))
+    const targetId = decodeHashId(href.slice(hashIndex + 1))
     window.requestAnimationFrame(() => {
       document.getElementById(targetId)?.scrollIntoView()
     })
@@ -94,7 +140,11 @@ function NavLink({
           : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
       )}
     >
-      <span className="truncate">{children}</span>
+      <span className="flex min-w-0 flex-1 items-center gap-2">
+        {badge ? <SectionBadge>{badge}</SectionBadge> : null}
+        {icon ? <NavigationIcon name={icon} className="h-3.5 w-3.5" /> : null}
+        <span className="min-w-0 truncate">{children}</span>
+      </span>
       {tags?.length ? (
         <span className="flex shrink-0 gap-1">
           {tags.map((tag) => (
@@ -163,8 +213,9 @@ function NavigationGroup({ group, className }: { group: NavGroup; className?: st
 
   return (
     <li className={clsx('relative mt-6', className)}>
-      <motion.h2 layout="position" className="text-xs font-semibold text-zinc-900 dark:text-white">
-        {group.title}
+      <motion.h2 layout="position" className="flex items-center gap-2 text-xs font-semibold text-zinc-900 dark:text-white">
+        <NavigationIcon name={group.icon} className="h-3.5 w-3.5" />
+        <span>{group.title}</span>
       </motion.h2>
       <div className="relative mt-3 pl-2">
         <AnimatePresence initial={!isInsideMobileNavigation}>
@@ -177,7 +228,7 @@ function NavigationGroup({ group, className }: { group: NavGroup; className?: st
         <ul role="list" className="border-l border-transparent">
           {group.links.map((link) => (
             <motion.li key={link.href} layout="position" className="relative">
-              <NavLink href={link.href} active={link.href === pathname}>
+              <NavLink href={link.href} icon={link.icon} active={link.href === pathname}>
                 {link.title}
               </NavLink>
               <AnimatePresence mode="popLayout" initial={false}>
@@ -190,7 +241,7 @@ function NavigationGroup({ group, className }: { group: NavGroup; className?: st
                   >
                     {sections.map((section) => (
                       <li key={section.id}>
-                        <NavLink href={`${link.href}#${section.id}`} tags={section.tags} isAnchorLink>
+                        <NavLink href={`${link.href}#${encodeHashId(section.id)}`} badge={section.badge} tags={section.tags} isAnchorLink>
                           {section.title}
                         </NavLink>
                       </li>

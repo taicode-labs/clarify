@@ -198,13 +198,15 @@ describe('buildNavigationFromConfig', () => {
       mdxRoute({ path: '/advanced/ssg', title: 'SSG', filePath: 'ssg.mdx', virtualModuleId: 'v' }),
     ]
     const config: ClarifyPagesGroup[] = [
-      { group: 'Getting Started', pages: ['index', 'quickstart'] },
+      { group: 'Getting Started', icon: 'BookOpen', pages: ['index', { page: 'quickstart', icon: 'Rocket' }] },
       { group: 'Advanced', pages: ['advanced/ssg'] },
     ]
     const tree = buildNavigationFromConfig(routes, config)
     expect(tree).toHaveLength(2)
     expect(tree[0].title).toBe('Getting Started')
+    expect(tree[0].icon).toBe('BookOpen')
     expect(tree[0].children?.map(c => c.path)).toEqual(['/', '/quickstart'])
+    expect(tree[0].children?.[1].icon).toBe('Rocket')
     expect(tree[1].title).toBe('Advanced')
     expect(tree[1].children?.map(c => c.path)).toEqual(['/advanced/ssg'])
   })

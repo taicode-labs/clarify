@@ -4,6 +4,7 @@ import { Fragment, Suspense, forwardRef, useEffect, useId, useMemo, useRef, useS
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import type { NavigationNode, RouteItem } from '../types'
+import { encodeHashId } from '../utils/hash'
 
 type SearchItem = {
   title: string
@@ -71,7 +72,7 @@ function buildSearchItems(routes: RouteItem[], navigation: NavigationNode[]): Se
         title: section.title,
         pageTitle: route.title,
         sectionTitle: groupTitle,
-        url: `${route.path}#${section.id}`,
+        url: `${route.path}#${encodeHashId(section.id)}`,
         keywords: [groupTitle, route.title, section.title, route.path, section.id].filter(Boolean).join(' ').toLowerCase(),
       })) ?? []
 

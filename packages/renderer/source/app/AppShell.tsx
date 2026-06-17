@@ -6,6 +6,7 @@ import { Logo } from '../components'
 import { SectionProvider, type Section } from '../components/SectionProvider'
 import { Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode } from '../types'
+import { decodeHashId } from '../utils/hash'
 
 export type AppShellProps = {
   config: ClarifyConfig
@@ -20,6 +21,7 @@ function sectionsForPath(routes: RouteItem[], pathname: string): Section[] {
     currentRoute?.sections?.map((section) => ({
       id: section.id,
       title: section.title,
+      badge: section.badge,
       tags: section.tags,
     })) ?? []
   )
@@ -28,7 +30,7 @@ function sectionsForPath(routes: RouteItem[], pathname: string): Section[] {
 function scrollToHash(hash: string) {
   if (!hash) return
 
-  const targetId = decodeURIComponent(hash.slice(1))
+  const targetId = decodeHashId(hash)
   window.requestAnimationFrame(() => {
     document.getElementById(targetId)?.scrollIntoView()
   })

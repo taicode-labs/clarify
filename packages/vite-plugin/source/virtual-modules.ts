@@ -25,7 +25,7 @@ export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: Clari
   const imports = routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
   const routesArray = routes.map((r, i) => {
     const sections = r.sections && r.sections.length > 0
-      ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, tags: s.tags })))}`
+      ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, badge: s.badge, tags: s.tags })))}`
       : ''
     return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${sections} }`
   }).join(',\n')

@@ -49,7 +49,7 @@ export function extractMdxSections(content: string): ContentSection[] {
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
 
 function navigationSections(sections: ContentSection[]) {
-  return sections.map(s => ({ id: s.id, title: s.title, tags: s.tags }))
+  return sections.map(s => ({ id: s.id, title: s.title, badge: s.badge, tags: s.tags }))
 }
 
 /** 从 OpenAPI spec 中提取接口列表作为章节 */
@@ -62,7 +62,7 @@ export function extractOpenAPISections(spec: OpenAPISpec): ContentSection[] {
       const op = pathItem[method]
       if (!op) continue
       const title = op.summary ?? `${method.toUpperCase()} ${path}`
-      sections.push({ id: slug(`${method} ${path}`), title, level: 2, tags: [method.toUpperCase()] })
+      sections.push({ id: slug(`${method} ${path}`), title, level: 2, badge: method.toUpperCase() })
     }
   }
   return sections
@@ -172,10 +172,10 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
 
 function resolvePageItem(
   item: ClarifyPagesItem
-): { pageRef?: string; openapiRef?: string; redirect?: string; title?: string } {
+): { pageRef?: string; openapiRef?: string; redirect?: string; title?: string; icon?: string } {
   if (typeof item === 'string') return { pageRef: item }
-  if ('openapi' in item) return { openapiRef: item.openapi, title: item.title }
-  return { pageRef: item.page, redirect: item.redirect }
+  if ('openapi' in item) return { openapiRef: item.openapi, title: item.title, icon: item.icon }
+  return { pageRef: item.page, redirect: item.redirect, icon: item.icon }
 }
 
 export function buildNavigationFromConfig(routes: ContentRoute[], config: ClarifyPagesGroup[]): ClarifyNavigationNode[] {
@@ -183,7 +183,7 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
 
   return config.map(group => {
     const children = group.pages.map(item => {
-      const { pageRef, openapiRef, redirect, title } = resolvePageItem(item)
+      const { pageRef, openapiRef, redirect, title, icon } = resolvePageItem(item)
 
       if (openapiRef) {
         const path = '/' + openapiRef.replace(/\.openapi\.(json|yaml|yml)$/, '')
@@ -191,6 +191,7 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
         return {
           path,
           title: title ?? route?.title ?? kebabToTitle(path.split('/').pop() ?? openapiRef),
+          icon,
           sections: route?.sections ? navigationSections(route.sections) : undefined,
         }
       }
@@ -201,6 +202,7 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
       return {
         path: redirect ? redirect : path,
         title: route?.title ?? kebabToTitle(path.split('/').pop() ?? ref),
+        icon,
         sections: route?.sections ? navigationSections(route.sections) : undefined,
       }
     })
@@ -208,6 +210,7 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
     return {
       path: children[0]?.path ?? '/',
       title: group.group,
+      icon: group.icon,
       children,
     }
   })

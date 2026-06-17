@@ -5,12 +5,14 @@ import type { OpenAPISpec } from './openapi/utils'
 export type RouteSection = {
   id: string;
   title: string;
+  badge?: string;
   tags?: string[];
 };
 
 export type NavigationNode = {
   path: string;
   title: string;
+  icon?: string;
   children?: NavigationNode[];
   sections?: RouteSection[];
 };
@@ -47,11 +49,18 @@ export type ClarifyPagesItem =
   | string
   | {
       page: string;
+      icon?: string;
       redirect?: string;
+    }
+  | {
+      openapi: string;
+      icon?: string;
+      title?: string;
     };
 
 export type ClarifyPagesGroup = {
   group: string;
+  icon?: string;
   pages: ClarifyPagesItem[];
 };
 

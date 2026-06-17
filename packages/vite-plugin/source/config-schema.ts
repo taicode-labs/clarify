@@ -38,16 +38,19 @@ export const clarifyPagesItemSchema = z.union([
   z.string(),
   z.object({
     page: z.string(),
+    icon: z.string().optional(),
     redirect: z.string().optional(),
   }),
   z.object({
     openapi: z.string(),
+    icon: z.string().optional(),
     title: z.string().optional(),
   }),
 ])
 
 export const clarifyPagesGroupSchema = z.object({
   group: z.string(),
+  icon: z.string().optional(),
   pages: z.array(clarifyPagesItemSchema),
 })
 

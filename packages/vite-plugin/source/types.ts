@@ -31,18 +31,24 @@ export type ClarifyPagesItem =
   | string
   | {
     page: string
+    /** Icon name from lucide-react, e.g. "BookOpen". */
+    icon?: string
     /** If set, this navigation item is a redirect entry.
      *  The value is the destination path. */
     redirect?: string
   }
   | {
     openapi: string
+    /** Icon name from lucide-react, e.g. "Webhook". */
+    icon?: string
     /** Override the page title. Defaults to spec.info.title. */
     title?: string
   }
 
 export type ClarifyPagesGroup = {
   group: string
+  /** Icon name from lucide-react, e.g. "BookOpen". */
+  icon?: string
   pages: ClarifyPagesItem[]
 }
 
@@ -144,6 +150,7 @@ export type ContentSection = {
   id: string
   title: string
   level: number
+  badge?: string
   tags?: string[]
 }
 
@@ -169,8 +176,9 @@ export type ClarifyPage = {
 export type ClarifyNavigationNode = {
   path: string
   title: string
+  icon?: string
   children?: ClarifyNavigationNode[]
-  sections?: Pick<ContentSection, 'id' | 'title' | 'tags'>[]
+  sections?: Pick<ContentSection, 'id' | 'title' | 'badge' | 'tags'>[]
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
