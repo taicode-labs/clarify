@@ -4,8 +4,9 @@ import { join } from 'node:path'
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
+import type { ResolvedProjectConfig } from '../types.js'
+
 import { readIndexHtml, injectSSRIntoTemplate } from './ssg.js'
-import type { ResolvedProjectConfig} from './types.js'
 
 describe('readIndexHtml', () => {
   let tempDir: string

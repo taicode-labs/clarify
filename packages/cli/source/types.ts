@@ -1,5 +1,13 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
-import type { FilterPattern } from 'vite'
+
+import type { ResolvedGenerateOptions } from './core/options.js'
+
+export type {
+  ClarifyBuildOptions,
+  ClarifyGenerateOptions,
+  ResolvedBuildOptions,
+  ResolvedGenerateOptions,
+} from './core/options.js'
 
 export type OpenAPISpec = OpenAPIV3.Document | OpenAPIV3_1.Document
 
@@ -124,31 +132,6 @@ export type ClarifyProjectConfig = {
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
-// Generate Options (engineering / build config)
-// ────────────────────────────────────────────────────────────────────────────────
-
-export type ClarifyGenerateOptions = {
-  /** Project root directory. Defaults to the current working directory. */
-  projectRoot?: string
-  /** Root directory for MDX content. Default: 'source/content' */
-  rootDirectory?: string
-  /** Output directory for the built docs site. When omitted, Vite's build.outDir is used. */
-  outputDirectory?: string
-  /** Static generation behavior. */
-  ssg?: {
-    /** Fail the build when SSG fails. Default: true. */
-    failOnError?: boolean
-  }
-
-  /** Custom include/exclude filters for MDX processing. */
-  include?: FilterPattern
-  exclude?: FilterPattern
-
-  /** Clarify 插件扩展。用于注册翻译、搜索等扩展插件。 */
-  plugins?: ClarifyPlugin[]
-}
-
-// ────────────────────────────────────────────────────────────────────────────────
 // Resolved Config (internal, with defaults applied)
 // ────────────────────────────────────────────────────────────────────────────────
 
@@ -164,14 +147,6 @@ export type ResolvedProjectConfig = {
   footer?: ClarifyFooterConfig
   i18n?: ResolvedClarifyI18nConfig
   pages?: ClarifyPagesConfig
-}
-
-export type ResolvedGenerateOptions = {
-  rootDirectory: string
-  outputDirectory?: string
-  ssg: {
-    failOnError: boolean
-  }
 }
 
 // ────────────────────────────────────────────────────────────────────────────────

@@ -6,7 +6,8 @@ import { pathToFileURL } from 'node:url'
 import { build } from 'vite'
 import type { Plugin } from 'vite'
 
-import type { ResolvedProjectConfig, ContentRoute } from './types.js'
+import type { ResolvedProjectConfig, ContentRoute } from '../types.js'
+
 import { escapeHtml } from './utils.js'
 
 export function readIndexHtml(outputDirectory: string): string | undefined {

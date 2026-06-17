@@ -4,10 +4,11 @@ import { join } from 'node:path'
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
+import { generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
+import type { ResolvedProjectConfig, ResolvedGenerateOptions, MdxRoute, ClarifyPagesConfig, ClarifyPagesGroup, ResolvedClarifyI18nConfig } from '../types.js'
+
 import { extractFrontmatter } from './frontmatter.js'
 import { findMdxFiles, buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, findLocalizedContentRoutes } from './routes.js'
-import type { ResolvedProjectConfig, ResolvedGenerateOptions, MdxRoute, ClarifyPagesConfig, ClarifyPagesGroup, ResolvedClarifyI18nConfig } from './types.js'
-import { generateConfigModule, generateRoutesModule } from './virtual-modules.js'
 
 function mdxRoute(route: Omit<MdxRoute, 'kind'>): MdxRoute {
   return { ...route, kind: 'mdx' }

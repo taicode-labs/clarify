@@ -4,8 +4,9 @@ import { join } from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
+import type { ContentRoute, ResolvedProjectConfig } from '../types.js'
+
 import { createLlmsTxt, enrichRoutesWithRawContent, writeRawContentFiles } from './raw-content.js'
-import type { ContentRoute, ResolvedProjectConfig } from './types.js'
 
 function route(overrides: Partial<ContentRoute>): ContentRoute {
   return {

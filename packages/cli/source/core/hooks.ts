@@ -1,4 +1,4 @@
-import type { ClarifyHookContext, ClarifyHooks, ClarifyPlugin } from './types.js'
+import type { ClarifyHookContext, ClarifyHooks, ClarifyPlugin } from '../types.js'
 
 export async function runHooks<K extends Exclude<keyof ClarifyHooks, 'build:done'>>(plugins: ClarifyPlugin[], hookName: K, input: Parameters<NonNullable<ClarifyHooks[K]>>[0], ctx: ClarifyHookContext): Promise<Parameters<NonNullable<ClarifyHooks[K]>>[0]> {
   let result = input

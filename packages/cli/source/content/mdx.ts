@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm'
 import shiki, { type Highlighter } from 'shiki'
 import { visit } from 'unist-util-visit'
 
-import { escapeHtml } from './utils.js'
+import { escapeHtml } from '../core/utils.js'
 
 type HastNode = {
   type: string

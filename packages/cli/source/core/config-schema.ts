@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { ClarifyProjectConfig } from './types.js'
+import type { ClarifyProjectConfig } from '../types.js'
 
 export const clarifyLogoConfigSchema = z.union([
   z.string(),

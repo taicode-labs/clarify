@@ -3,8 +3,11 @@ import { join } from 'node:path'
 
 import type { ZodError } from 'zod'
 
+import type { ClarifyI18nConfig, ClarifyProjectConfig, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../types.js'
+
 import { clarifyProjectConfigSchema } from './config-schema.js'
-import type { ClarifyGenerateOptions, ClarifyI18nConfig, ClarifyProjectConfig, ResolvedClarifyI18nConfig, ResolvedProjectConfig, ResolvedGenerateOptions } from './types.js'
+import { resolveBuildOptions } from './options.js'
+import type { ClarifyGenerateOptions, ResolvedGenerateOptions } from './options.js'
 
 function formatIssuePath(path: PropertyKey[]): string {
   return path.reduce<string>((result, segment) => {
@@ -73,11 +76,5 @@ export function resolveProjectConfig(root: string): ResolvedProjectConfig {
 }
 
 export function resolveGenerateOptions(options: ClarifyGenerateOptions = {}): ResolvedGenerateOptions {
-  return {
-    rootDirectory: options.rootDirectory ?? 'source/content',
-    outputDirectory: options.outputDirectory,
-    ssg: {
-      failOnError: options.ssg?.failOnError ?? true,
-    },
-  }
+  return resolveBuildOptions(options)
 }

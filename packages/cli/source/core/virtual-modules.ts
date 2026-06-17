@@ -1,5 +1,5 @@
-import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig } from './routes.js'
-import type { ClarifyPagesConfig, ContentRoute, NavigationTree, OpenAPISpec, ResolvedGenerateOptions, ResolvedProjectConfig } from './types.js'
+import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig } from '../content/routes.js'
+import type { ClarifyPagesConfig, ContentRoute, NavigationTree, OpenAPISpec, ResolvedGenerateOptions, ResolvedProjectConfig } from '../types.js'
 
 export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
@@ -21,12 +21,7 @@ export function generateConfigModule(projectConfig: ResolvedProjectConfig, gener
   return `export const config = ${JSON.stringify({ ...projectConfig, ...generateOptions })};`
 }
 
-export function generateRoutesModule(
-  routes: ContentRoute[],
-  pagesConfig?: ClarifyPagesConfig,
-  resolvedNavigation?: NavigationTree,
-  projectConfig?: ResolvedProjectConfig,
-): string {
+export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: ClarifyPagesConfig, resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig,): string {
   const imports = routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
   const routesArray = routes.map((r, i) => {
     const sections = r.sections && r.sections.length > 0

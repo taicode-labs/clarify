@@ -7,8 +7,9 @@ import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
 import { visit } from 'unist-util-visit'
 
+import type { ContentRoute, ContentSection, OpenAPISpec, ClarifyNavigationNode, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, LocalizedNavigation, ResolvedClarifyI18nConfig } from '../types.js'
+
 import { extractFrontmatter } from './frontmatter.js'
-import type { ContentRoute, ContentSection, OpenAPISpec, ClarifyNavigationNode, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, LocalizedNavigation, ResolvedClarifyI18nConfig } from './types.js'
 
 function kebabToTitle(str: string): string {
   return str
