@@ -13,8 +13,8 @@ export const docsLinks = {
 } as const
 
 export const primaryNavLinks = [
-  { label: 'Features', href: '#features' },
-  { label: 'Workflow', href: '#workflow' },
-  { label: 'OpenAPI', href: '#openapi' },
-  { label: 'Docs', href: docsLinks.gettingStarted },
+  { labelKey: 'nav.features', href: '#features' },
+  { labelKey: 'nav.workflow', href: '#workflow' },
+  { labelKey: 'nav.openapi', href: '#openapi' },
+  { labelKey: 'nav.docs', href: docsLinks.gettingStarted },
 ] as const

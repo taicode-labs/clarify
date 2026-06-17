@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { MoonIcon, SunIcon } from './icons'
 
@@ -19,6 +20,7 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeToggle() {
+  const { t } = useTranslation()
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export function ThemeToggle() {
     <button
       type="button"
       className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 ring-1 ring-inset ring-zinc-900/10 transition hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800/50 dark:text-zinc-300 dark:ring-white/10 dark:hover:bg-zinc-800 dark:hover:text-white"
-      aria-label={`Switch to ${nextTheme} theme`}
+      aria-label={t('theme.switchTo', { theme: t(`theme.${nextTheme}`) })}
       onClick={() => setTheme(nextTheme)}
     >
       <span className="dark:hidden"><MoonIcon /></span>

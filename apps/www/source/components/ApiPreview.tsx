@@ -1,20 +1,24 @@
+import { useTranslation } from 'react-i18next'
+
 import { Button } from './Button'
 import { ArrowIcon } from './icons'
 import { docsLinks } from './links'
 
 export function ApiPreview() {
+  const { t } = useTranslation()
+
   return (
     <section id="openapi" className="px-6 py-20 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.85fr_1fr] lg:items-center">
         <div>
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-500 dark:text-emerald-400">OpenAPI</p>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-white">API references without the manual maintenance.</h2>
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-500 dark:text-emerald-400">{t('openapi.eyebrow')}</p>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl dark:text-white">{t('openapi.title')}</h2>
           <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
-            Import an OpenAPI document and let Clarify turn endpoints, parameters, responses, and examples into readable reference pages that match the rest of your docs.
+            {t('openapi.description')}
           </p>
           <div className="mt-8 flex gap-3">
-            <Button href={docsLinks.openapi} variant="secondary">See API docs</Button>
-            <Button href={docsLinks.guides} variant="text">Read guides <ArrowIcon /></Button>
+            <Button href={docsLinks.openapi} variant="secondary">{t('openapi.ctaDocs')}</Button>
+            <Button href={docsLinks.guides} variant="text">{t('openapi.ctaGuides')} <ArrowIcon /></Button>
           </div>
         </div>
         <div className="rounded-3xl border border-zinc-900/10 bg-white p-6 shadow-xl shadow-zinc-900/10 dark:border-white/10 dark:bg-zinc-900/50 dark:shadow-black/20">
@@ -25,7 +29,7 @@ export function ApiPreview() {
           </div>
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             <div>
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Parameters</h3>
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{t('openapi.parameters')}</h3>
               <dl className="mt-4 space-y-3 text-sm">
                 {['organization', 'limit', 'cursor'].map((item) => (
                   <div key={item} className="flex items-center justify-between rounded-xl bg-zinc-50 px-3 py-2 dark:bg-white/5">
@@ -36,7 +40,7 @@ export function ApiPreview() {
               </dl>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Response</h3>
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{t('openapi.response')}</h3>
               <pre className="mt-4 overflow-hidden rounded-xl bg-zinc-950 p-4 font-mono text-xs leading-6 text-zinc-300"><code>{`{
   "data": [
     { "name": "docs" }

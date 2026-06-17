@@ -179,7 +179,7 @@ export function Prose<T extends ElementType = 'div'>(arg0: Omit<ComponentPropsWi
       className={clsx(
         className,
         'prose dark:prose-invert',
-        '[html_:where(&>*)]:mx-auto [html_:where(&>*)]:w-full [html_:where(&>*)]:max-w-3xl [html_:where(&>.not-prose)]:max-w-5xl',
+        '[html_:where(&>*)]:mx-auto [html_:where(&>*)]:w-full [html_:where(&>*)]:max-w-3xl xl:[html_:where(&>*)]:max-w-[56rem] 2xl:[html_:where(&>*)]:max-w-[64rem] [html_:where(&>.not-prose)]:max-w-5xl 2xl:[html_:where(&>.not-prose)]:max-w-[76rem]',
       )}
       {...props}
     />
@@ -286,7 +286,7 @@ export function DocShell(arg0: DocShellProps) {
   const { title, subtitle, children } = arg0
 
   return (
-    <main className="min-h-screen bg-white px-6 py-10 text-zinc-900 dark:bg-zinc-900 dark:text-white md:px-10">
+    <main className="min-h-screen bg-white px-6 py-10 text-zinc-900 dark:bg-zinc-950 dark:text-white md:px-10">
       <div className="mx-auto max-w-6xl">
         <header className="mb-10">
           <h1 className="text-3xl font-bold tracking-tight md:text-5xl">{title}</h1>

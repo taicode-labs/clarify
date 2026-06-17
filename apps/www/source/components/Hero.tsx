@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { Button } from './Button'
 import { capabilityTags, previewNavItems } from './homeData'
 import { ArrowIcon } from './icons'
@@ -20,6 +22,8 @@ function HeroPattern() {
 }
 
 function ProductPreview() {
+  const { t } = useTranslation()
+
   return (
     <div className="rounded-3xl border border-zinc-900/10 bg-white/80 p-2 shadow-2xl shadow-zinc-900/10 backdrop-blur dark:border-white/10 dark:bg-zinc-900/80 dark:shadow-black/30">
       <div className="rounded-2xl border border-zinc-900/10 bg-zinc-950 text-zinc-100 dark:border-white/10">
@@ -33,7 +37,7 @@ function ProductPreview() {
           <aside className="hidden border-r border-white/10 p-4 lg:block">
             {previewNavItems.map((item, index) => (
               <div key={item} className={`mb-2 rounded-lg px-3 py-2 text-xs ${index === 0 ? 'bg-emerald-400/10 text-emerald-300' : 'text-zinc-500'}`}>
-                {item}
+                {t(item)}
               </div>
             ))}
           </aside>
@@ -43,12 +47,12 @@ function ProductPreview() {
                 <span className="rounded-md bg-emerald-400/10 px-1.5 py-0.5 font-mono text-[0.65rem] font-semibold text-emerald-300">GET</span>
                 <span className="font-mono text-xs text-zinc-300">/v1/projects</span>
               </div>
-              <p className="text-sm leading-6 text-zinc-400">Fetch projects and render the reference page from your OpenAPI schema.</p>
+              <p className="text-sm leading-6 text-zinc-400">{t('hero.previewEndpointDescription')}</p>
             </div>
-            <pre className="overflow-hidden rounded-2xl border border-white/10 bg-black/30 p-4 text-left font-mono text-xs leading-6 text-zinc-300"><code>{`# Build docs with Clarify
+            <pre className="overflow-hidden rounded-2xl border border-white/10 bg-black/30 p-4 text-left font-mono text-xs leading-6 text-zinc-300"><code>{`# ${t('hero.codeComment')}
 
 :::note
-MDX, React, and OpenAPI share one docs runtime.
+${t('hero.codeNote')}
 :::
 
 <Endpoint method="GET" path="/v1/projects" />`}</code></pre>
@@ -60,29 +64,31 @@ MDX, React, and OpenAPI share one docs runtime.
 }
 
 export function Hero() {
+  const { t } = useTranslation()
+
   return (
     <section className="relative overflow-hidden px-6 py-20 sm:py-28 lg:px-8" id="docs">
       <HeroPattern />
       <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1fr_34rem]">
         <div>
           <p className="inline-flex rounded-full border border-emerald-500/20 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
-            Open-source docs publishing for modern teams
+            {t('hero.badge')}
           </p>
           <h1 className="mt-6 max-w-4xl text-5xl font-semibold tracking-tight text-zinc-900 sm:text-6xl lg:text-7xl dark:text-white">
-            Publish MDX and OpenAPI docs with one composable system.
+            {t('hero.title')}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Clarify combines Markdown, React components, API references, and Vite-powered builds into a documentation workflow that stays fast, typed, and easy to customize.
+            {t('hero.description')}
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Button href={docsLinks.gettingStarted}>Get started</Button>
-            <Button href={docsLinks.reference} variant="secondary">Explore docs</Button>
-            <Button href={docsLinks.github} variant="text">View GitHub <ArrowIcon /></Button>
+            <Button href={docsLinks.gettingStarted}>{t('hero.ctaPrimary')}</Button>
+            <Button href={docsLinks.reference} variant="secondary">{t('hero.ctaSecondary')}</Button>
+            <Button href={docsLinks.github} variant="text">{t('hero.ctaGithub')} <ArrowIcon /></Button>
           </div>
           <div className="mt-10 flex flex-wrap gap-2">
             {capabilityTags.map((tag) => (
               <span key={tag} className="rounded-full border border-zinc-900/10 bg-white/70 px-3 py-1 text-xs font-medium text-zinc-600 dark:border-white/10 dark:bg-white/5 dark:text-zinc-400">
-                {tag}
+                {t(tag)}
               </span>
             ))}
           </div>

@@ -71,8 +71,45 @@
   }
 
   .dark body {
-    background: var(--color-zinc-900);
+    background: var(--color-zinc-950);
     color: var(--color-white);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-zinc-300) transparent;
+  }
+
+  .dark * {
+    scrollbar-color: var(--color-zinc-700) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-color: var(--color-zinc-300);
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-zinc-400);
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: var(--color-zinc-700);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-zinc-600);
   }
 
   [inert] ::-webkit-scrollbar {
