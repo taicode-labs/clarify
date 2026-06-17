@@ -7,20 +7,16 @@
   "navbar": {
     "links": [
       {
-        "label": "文档",
+        "label": "开始使用",
         "href": "/getting-started"
       },
       {
-        "label": "功能",
-        "href": "/features"
+        "label": "编写内容",
+        "href": "/guides/writing-content"
       },
       {
-        "label": "演示",
-        "href": "/showcase"
-      },
-      {
-        "label": "开发",
-        "href": "/development"
+        "label": "配置参考",
+        "href": "/reference/clarify-json"
       },
       {
         "label": "GitHub",
@@ -31,7 +27,7 @@
   },
   "pages": [
     {
-      "group": "Getting Started",
+      "group": "开始使用",
       "icon": "Rocket",
       "pages": [
         {
@@ -45,58 +41,91 @@
         {
           "page": "getting-started/first-site",
           "icon": "Sparkles"
+        },
+        {
+          "page": "features",
+          "icon": "LayoutGrid"
         }
       ]
     },
     {
-      "group": "Features",
-      "icon": "Layers3",
+      "group": "编写内容",
+      "icon": "PenLine",
       "pages": [
         {
-          "page": "features",
-          "icon": "LayoutGrid"
+          "page": "guides/writing-content",
+          "icon": "NotebookPen"
         },
         {
           "page": "features/mdx",
           "icon": "FileCode2"
         },
         {
-          "page": "features/openapi",
-          "icon": "Braces"
+          "page": "reference/frontmatter",
+          "icon": "FileJson2"
+        },
+        {
+          "page": "showcase/components",
+          "icon": "Component"
+        }
+      ]
+    },
+    {
+      "group": "配置站点",
+      "icon": "SlidersHorizontal",
+      "pages": [
+        {
+          "page": "guides/navigation",
+          "icon": "PanelLeft"
         },
         {
           "page": "features/routing",
           "icon": "Route"
         },
         {
-          "page": "features/ssg",
-          "icon": "PackageCheck"
-        },
-        {
           "page": "features/theming",
           "icon": "Palette"
+        },
+        {
+          "page": "showcase/theming-preview",
+          "icon": "SwatchBook"
+        },
+        {
+          "page": "reference/clarify-json",
+          "icon": "Settings2"
         }
       ]
     },
     {
-      "group": "Guides",
-      "icon": "BookOpen",
+      "group": "API 文档",
+      "icon": "Webhook",
       "pages": [
         {
-          "page": "guides",
-          "icon": "Compass"
+          "page": "features/openapi",
+          "icon": "Braces"
         },
         {
-          "page": "guides/writing-content",
-          "icon": "PenLine"
+          "page": "showcase/openapi-demo",
+          "icon": "ServerCog"
         },
         {
-          "page": "guides/navigation",
-          "icon": "PanelLeft"
-        },
+          "openapi": "api.openapi.json",
+          "title": "API Reference",
+          "icon": "BookOpenCheck"
+        }
+      ]
+    },
+    {
+      "group": "发布与迁移",
+      "icon": "Ship",
+      "pages": [
         {
           "page": "guides/deployment",
           "icon": "UploadCloud"
+        },
+        {
+          "page": "features/ssg",
+          "icon": "PackageCheck"
         },
         {
           "page": "guides/migrate-from-mintlify",
@@ -105,57 +134,30 @@
       ]
     },
     {
-      "group": "Reference",
+      "group": "参考资料",
       "icon": "Library",
       "pages": [
         {
+          "page": "guides",
+          "icon": "Compass"
+        },
+        {
           "page": "reference",
           "icon": "BookMarked"
-        },
-        {
-          "page": "reference/clarify-json",
-          "icon": "Settings2"
-        },
-        {
-          "page": "reference/frontmatter",
-          "icon": "FileJson2"
         },
         {
           "page": "reference/plugin-options",
           "icon": "Plug"
         },
         {
-          "openapi": "api.openapi.json",
-          "title": "API Reference",
-          "icon": "Webhook"
-        }
-      ]
-    },
-    {
-      "group": "Showcase",
-      "icon": "MonitorPlay",
-      "pages": [
-        {
           "page": "showcase",
           "icon": "GalleryHorizontalEnd"
-        },
-        {
-          "page": "showcase/components",
-          "icon": "Component"
-        },
-        {
-          "page": "showcase/openapi-demo",
-          "icon": "ServerCog"
-        },
-        {
-          "page": "showcase/theming-preview",
-          "icon": "SwatchBook"
         }
       ]
     },
     {
-      "group": "Project",
-      "icon": "Waypoints",
+      "group": "项目与开发",
+      "icon": "Code2",
       "pages": [
         {
           "page": "roadmap",
@@ -164,13 +166,7 @@
         {
           "page": "changelog",
           "icon": "History"
-        }
-      ]
-    },
-    {
-      "group": "Development",
-      "icon": "Code2",
-      "pages": [
+        },
         {
           "page": "development",
           "icon": "SquareTerminal"
@@ -180,12 +176,12 @@
           "icon": "Network"
         },
         {
-          "page": "development/renderer",
-          "icon": "MonitorCog"
-        },
-        {
           "page": "development/vite-plugin",
           "icon": "Zap"
+        },
+        {
+          "page": "development/renderer",
+          "icon": "MonitorCog"
         },
         {
           "page": "development/ssg",
