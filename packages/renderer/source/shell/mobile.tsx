@@ -5,7 +5,7 @@ import { create } from 'zustand'
 
 import { Header } from './Header'
 import { Navigation } from './Navigation'
-import type { ClarifyConfig, NavigationNode } from '../types'
+import type { ClarifyConfig, NavigationNode, RouteItem } from '../types'
 
 function MenuIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -29,11 +29,13 @@ function MobileNavigationDialog({
   config,
   isOpen,
   navigation,
+  routes,
   close,
 }: {
   config: ClarifyConfig
   isOpen: boolean
   navigation: NavigationNode[]
+  routes: RouteItem[]
   close: () => void
 }) {
   return (
@@ -48,6 +50,7 @@ function MobileNavigationDialog({
           <Header
             config={config}
             navigation={navigation}
+            routes={routes}
             className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
           />
         </TransitionChild>
@@ -81,7 +84,7 @@ export const useMobileNavigationStore = create<{
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
 }))
 
-export function MobileNavigation({ config, navigation }: { config: ClarifyConfig; navigation: NavigationNode[] }) {
+export function MobileNavigation({ config, navigation, routes }: { config: ClarifyConfig; navigation: NavigationNode[]; routes: RouteItem[] }) {
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const { isOpen, toggle, close } = useMobileNavigationStore()
   const ToggleIcon = isOpen ? XIcon : MenuIcon
@@ -99,7 +102,7 @@ export function MobileNavigation({ config, navigation }: { config: ClarifyConfig
       </button>
       {!isInsideMobileNavigation ? (
         <Suspense fallback={null}>
-          <MobileNavigationDialog config={config} navigation={navigation} isOpen={isOpen} close={close} />
+          <MobileNavigationDialog config={config} navigation={navigation} routes={routes} isOpen={isOpen} close={close} />
         </Suspense>
       ) : null}
     </IsInsideMobileNavigationContext.Provider>

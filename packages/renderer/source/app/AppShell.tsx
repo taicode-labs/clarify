@@ -39,7 +39,7 @@ export function AppShell(arg0: AppShellProps) {
                 <span className="text-sm font-semibold text-zinc-900 dark:text-white">{config.title}</span>
               </Link>
             </div>
-            <Header config={config} navigation={navigation} />
+            <Header config={config} navigation={navigation} routes={routes} />
             <Navigation navigation={navigation} className="hidden lg:mt-10 lg:block" />
           </div>
         </motion.header>

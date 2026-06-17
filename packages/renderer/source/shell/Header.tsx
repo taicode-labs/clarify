@@ -5,8 +5,9 @@ import { forwardRef } from 'react'
 import { Link } from 'react-router-dom'
 
 import { Button, Logo, ThemeToggle } from '../components'
-import type { ClarifyConfig, ClarifyLogoConfig, NavigationNode } from '../types'
+import type { ClarifyConfig, ClarifyLogoConfig, NavigationNode, RouteItem } from '../types'
 import { MobileNavigation, useIsInsideMobileNavigation, useMobileNavigationStore } from './mobile'
+import { MobileSearch, Search } from './Search'
 
 function resolveLogoUrl(logo?: ClarifyLogoConfig): string | undefined {
   if (typeof logo === 'string') return logo
@@ -49,8 +50,9 @@ export const Header = forwardRef<
   React.ComponentPropsWithoutRef<typeof motion.div> & {
     config: ClarifyConfig
     navigation: NavigationNode[]
+    routes: RouteItem[]
   }
->(function Header({ config, navigation, className, ...props }, ref) {
+>(function Header({ config, navigation, routes, className, ...props }, ref) {
   const { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const logoUrl = resolveLogoUrl(config.logo)
@@ -86,13 +88,14 @@ export const Header = forwardRef<
       />
       <div className="hidden lg:block" />
       <div className="flex items-center gap-5 lg:hidden">
-        <MobileNavigation config={config} navigation={navigation} />
+        <MobileNavigation config={config} navigation={navigation} routes={routes} />
         <CloseButton as={Link} to="/" aria-label="Home" className="flex items-center gap-2 no-underline">
           {logoUrl ? <img src={logoUrl} alt="" className="h-6 w-6" /> : <Logo className="h-6" />}
           <span className="sr-only">{config.title}</span>
         </CloseButton>
       </div>
       <div className="flex items-center gap-5">
+        <Search routes={routes} navigation={navigation} />
         {config.navbar?.links?.length ? (
           <nav className="hidden md:block">
             <ul role="list" className="flex items-center gap-8">
@@ -105,6 +108,7 @@ export const Header = forwardRef<
           </nav>
         ) : null}
         {config.navbar?.links?.length ? <div className="hidden md:block md:h-5 md:w-px md:bg-zinc-900/10 md:dark:bg-white/15" /> : null}
+        <MobileSearch routes={routes} navigation={navigation} />
         <ThemeToggle />
         <div className="hidden min-[416px]:contents">
           <Button href="/" variant="secondary">

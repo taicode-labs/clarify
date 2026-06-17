@@ -92,13 +92,13 @@ Initial dependency candidates:
 ### Phase 5 — Search, theme, and polish
 
 - [x] Add theme provider compatible with Vite/browser/SSR instead of `next-themes`.
-- [ ] Add search index wiring from Clarify route/content data.
+- [x] Add search index wiring from Clarify route/content data.
 - [ ] Add code highlighting pipeline if needed.
 - [ ] Validate light/dark mode, mobile, anchors, active section highlighting.
 
 ## Current progress
 
-Status: Phase 1–3 complete, Phase 4 started.
+Status: Phase 1–4 complete, Phase 5 in progress.
 
 Completed in the first pass:
 
@@ -109,7 +109,7 @@ Completed in the first pass:
 - Updated compatibility components `DocShell` and `ApiEndpointCard` to use the reference visual language.
 - Verified `pnpm --filter @clarify/renderer typecheck` and `pnpm --filter @clarify/renderer build`.
 
-Next recommended step: finish MDX component mapping and evaluate search/code highlighting scope.
+Next recommended step: add code highlighting pipeline and perform final polish validation.
 
 ## Decisions
 
