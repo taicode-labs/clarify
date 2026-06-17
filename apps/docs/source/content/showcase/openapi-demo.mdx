@@ -6,17 +6,24 @@
 
 ## 自动生成的 API 页面
 
-将 `api.openapi.json` 放入 `source/content/` 目录后，Clarify 会自动生成路由 `/api`，并使用 `OpenApiPage` 组件渲染完整的 API 文档。页面效果如下：
+将 `api.openapi.json` 放入 `source/content/` 目录后，Clarify 会自动生成路由 `/api`，并使用 `OpenApiPage` 组件渲染完整的 API 文档。这个示例规范覆盖 OpenAPI 3.1 的常见复杂结构，包括 `$ref`、参数、请求体、响应、headers、examples、links、callbacks、webhooks、security schemes、多 content type、schema 组合和 discriminator。
 
 ```
-标题：Pages API
+标题：Clarify Complete OpenAPI Example
 版本：1.0.0
 
-GET    /pages        获取所有页面
-POST   /pages        创建新页面
-GET    /pages/{id}   获取单个页面
-PUT    /pages/{id}   更新页面
-DELETE /pages/{id}   删除页面
+GET     /pages              List pages
+POST    /pages              Create a page
+OPTIONS /pages              Describe page collection capabilities
+GET     /pages/{pageId}     Get a page
+PUT     /pages/{pageId}     Replace a page
+PATCH   /pages/{pageId}     Patch a page
+DELETE  /pages/{pageId}     Delete a page
+HEAD    /pages/{pageId}     Check if a page exists
+POST    /assets             Upload an asset
+GET     /search             Search pages
+GET     /system/health      Get service health
+TRACE   /system/health      Trace health request
 ```
 
 ---

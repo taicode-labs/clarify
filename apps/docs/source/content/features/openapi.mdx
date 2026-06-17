@@ -93,6 +93,29 @@ import spec from './api.openapi.json';
 - OpenAPI 3.0.x
 - OpenAPI 3.1.x
 
+Clarify 使用 `@apidevtools/swagger-parser` 在构建时解析和 dereference 规范文件，因此示例中的 `$ref`、共享 `components`、JSON/YAML 规范和跨结构引用会先被解析成完整规范，再交给渲染器。
+
+---
+
+## 完整覆盖示例结构
+
+文档站内的 `source/content/api.openapi.json` 是一个覆盖型 OpenAPI 3.1 fixture，包含：
+
+- 根级信息：`info`、`servers`、`externalDocs`、`tags`、全局 `security`
+- `paths`：`get`、`post`、`put`、`patch`、`delete`、`head`、`options`、`trace`
+- 参数：path/query/header 参数、array 参数、content 参数、examples
+- 请求体：JSON、YAML、multipart、merge-patch、多 content type、encoding
+- 响应：状态码、`default`、headers、examples、links、problem+json
+- `components`：schemas、responses、parameters、examples、requestBodies、headers、securitySchemes、links、callbacks、pathItems
+- Schema：`allOf`、`oneOf`、nullable/null union、enum、const、format、pattern、additionalProperties、discriminator
+- OpenAPI 3.1：`jsonSchemaDialect`、`webhooks`
+
+可直接访问自动生成页面 `/api`，或在 MDX 中引用任意接口：
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/pages/{pageId}" method="patch" />
+```
+
 ---
 
 ## 组件 API

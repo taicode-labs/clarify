@@ -33,4 +33,17 @@ describe('extractFrontmatter', () => {
     expect(result.title).toBe('A')
     expect(result['C']).toBeUndefined()
   })
+
+  it('handles values containing colons', () => {
+    const content = '---\ndescription: "See https://example.com/docs"\n---\n'
+    const result = extractFrontmatter(content)
+    expect(result.description).toBe('See https://example.com/docs')
+  })
+
+  it('preserves non-string YAML values parsed by gray-matter', () => {
+    const content = '---\ndraft: false\ntags:\n  - api\n  - docs\n---\n'
+    const result = extractFrontmatter(content)
+    expect(result.draft).toBe(false)
+    expect(result.tags).toEqual(['api', 'docs'])
+  })
 })

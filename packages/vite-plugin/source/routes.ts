@@ -17,17 +17,27 @@ function kebabToTitle(str: string): string {
     .join(' ')
 }
 
+function parseMdxTree(content: string) {
+  return remark.parse(content)
+}
+
 /** 从内容中提取第一个 H1 标题 */
 function extractH1(content: string): string {
-  const match = content.match(/^\s*#\s+(.+)$/m)
-  return match ? match[1].trim() : ''
+  const tree = parseMdxTree(content)
+  let title = ''
+  visit(tree, 'heading', (node) => {
+    if (!title && node.depth === 1) {
+      title = toString(node)
+    }
+  })
+  return title
 }
 
 /** 从 MDX/Markdown 内容中提取 H2/H3 章节 */
 export function extractMdxSections(content: string): ContentSection[] {
   const sections: ContentSection[] = []
   const slugger = new GithubSlugger()
-  const tree = remark.parse(content)
+  const tree = parseMdxTree(content)
   visit(tree, 'heading', (node) => {
     if (node.depth !== 2 && node.depth !== 3) return
     const title = toString(node)
@@ -89,7 +99,7 @@ export function findContentRoutes(dir: string, base: string = dir): ContentRoute
       const content = readFileSync(fullPath, 'utf-8')
       const frontmatter = extractFrontmatter(content)
 
-      let title = frontmatter.title
+      let title = typeof frontmatter.title === 'string' ? frontmatter.title : ''
       if (!title) {
         const lastPart = pathParts[pathParts.length - 1] ?? ''
         const stem = lastPart === 'index'
@@ -156,11 +166,7 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
   return root
 }
 
-export function generateConfigModule(
-  projectConfig: ResolvedProjectConfig,
-  generateOptions: ResolvedGenerateOptions,
-  openApiSpecs?: Record<string, OpenAPISpec>
-): string {
+export function generateConfigModule(projectConfig: ResolvedProjectConfig, generateOptions: ResolvedGenerateOptions, openApiSpecs?: Record<string, OpenAPISpec>): string {
   return `export const config = ${JSON.stringify({ ...projectConfig, ...generateOptions, openApiSpecs })};`
 }
 
@@ -172,10 +178,7 @@ function resolvePageItem(
   return { pageRef: item.page, redirect: item.redirect }
 }
 
-export function buildNavigationFromConfig(
-  routes: ContentRoute[],
-  config: ClarifyPagesGroup[]
-): ClarifyNavigationNode[] {
+export function buildNavigationFromConfig(routes: ContentRoute[], config: ClarifyPagesGroup[]): ClarifyNavigationNode[] {
   const routeMap = new Map(routes.map(r => [r.path, r]))
 
   return config.map(group => {

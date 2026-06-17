@@ -1,27 +1,13 @@
-import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import { slug } from 'github-slugger'
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { ApiEndpointCard } from './components'
 import { useClarifyConfig } from './context'
+import { getOpenApiOperation, listOpenApiOperations } from './openapi-utils'
+import type { OpenAPIOperation, OpenAPISpec } from './openapi-utils'
 
-export type OpenAPISpec = OpenAPIV3.Document | OpenAPIV3_1.Document
-
-export type OpenAPIOperation = OpenAPIV3.OperationObject | OpenAPIV3_1.OperationObject
-
-const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
-
-type OpenAPIHttpMethod = typeof OPENAPI_HTTP_METHODS[number]
-
-function isOpenAPIHttpMethod(method: string): method is OpenAPIHttpMethod {
-  return (OPENAPI_HTTP_METHODS as readonly string[]).includes(method.toLowerCase())
-}
-
-function getOpenApiOperation(spec: OpenAPISpec, path: string, method: string): OpenAPIOperation | undefined {
-  if (!isOpenAPIHttpMethod(method)) return undefined
-  return spec.paths?.[path]?.[method.toLowerCase() as OpenAPIHttpMethod]
-}
+export type { OpenAPIOperation, OpenAPISpec } from './openapi-utils'
 
 export type OpenApiPageProps = {
   spec?: OpenAPISpec
@@ -61,17 +47,8 @@ function OpenApiHeader(arg0: { spec: OpenAPISpec }): ReactNode {
 function OpenApiPaths(arg0: { spec: OpenAPISpec }): ReactNode {
   const { spec } = arg0
 
-  const paths = spec.paths ?? {}
-  const entries: Array<{ path: string; method: string; op: OpenAPIOperation }> = []
-
-  for (const [path, pathItem] of Object.entries(paths)) {
-    if (!pathItem) continue
-    for (const method of OPENAPI_HTTP_METHODS) {
-      const op = pathItem[method]
-      if (!op) continue
-      entries.push({ path, method: method.toUpperCase(), op })
-    }
-  }
+  const entries: Array<{ path: string; method: string; op: OpenAPIOperation }> = listOpenApiOperations(spec)
+    .map(({ path, method, operation }) => ({ path, method: method.toUpperCase(), op: operation }))
 
   return (
     <div className="space-y-6">
