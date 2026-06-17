@@ -24,7 +24,7 @@ export function DocShell(arg0: DocShellProps) {
 
 export type ApiEndpointCardProps = {
   id?: string
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  method: string
   path: string
   description?: string
 }

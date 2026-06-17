@@ -8,6 +8,10 @@ import { extractFrontmatter } from './frontmatter.js'
 import { findMdxFiles, generateConfigModule, generateRoutesModule, buildNavigation, buildNavigationFromConfig } from './routes.js'
 import type { ResolvedProjectConfig, ResolvedGenerateOptions, MdxRoute, ClarifyPagesConfig, ClarifyPagesGroup } from './types.js'
 
+function mdxRoute(route: Omit<MdxRoute, 'kind'>): MdxRoute {
+  return { ...route, kind: 'mdx' }
+}
+
 describe('findMdxFiles', () => {
   let tempDir: string
 
@@ -153,16 +157,16 @@ describe('extractFrontmatter', () => {
 describe('buildNavigation', () => {
   it('returns empty array for only home route', () => {
     const routes: MdxRoute[] = [
-      { path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'virtual:clarify-page/index' },
+      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'virtual:clarify-page/index' }),
     ]
     expect(buildNavigation(routes)).toEqual([])
   })
 
   it('builds flat navigation', () => {
     const routes: MdxRoute[] = [
-      { path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' },
-      { path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' },
-      { path: '/config', title: 'Config', filePath: 'config.mdx', virtualModuleId: 'v' },
+      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/config', title: 'Config', filePath: 'config.mdx', virtualModuleId: 'v' }),
     ]
     const tree = buildNavigation(routes)
     expect(tree).toHaveLength(2)
@@ -172,8 +176,8 @@ describe('buildNavigation', () => {
 
   it('builds nested navigation', () => {
     const routes: MdxRoute[] = [
-      { path: '/guide/getting-started', title: 'Getting Started', filePath: 'a.mdx', virtualModuleId: 'v' },
-      { path: '/guide/advanced', title: 'Advanced', filePath: 'b.mdx', virtualModuleId: 'v' },
+      mdxRoute({ path: '/guide/getting-started', title: 'Getting Started', filePath: 'a.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/guide/advanced', title: 'Advanced', filePath: 'b.mdx', virtualModuleId: 'v' }),
     ]
     const tree = buildNavigation(routes)
     expect(tree).toHaveLength(1)
@@ -187,9 +191,9 @@ describe('buildNavigation', () => {
 describe('buildNavigationFromConfig', () => {
   it('builds navigation from explicit config', () => {
     const routes: MdxRoute[] = [
-      { path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' },
-      { path: '/quickstart', title: 'Quick Start', filePath: 'quickstart.mdx', virtualModuleId: 'v' },
-      { path: '/advanced/ssg', title: 'SSG', filePath: 'ssg.mdx', virtualModuleId: 'v' },
+      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/quickstart', title: 'Quick Start', filePath: 'quickstart.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/advanced/ssg', title: 'SSG', filePath: 'ssg.mdx', virtualModuleId: 'v' }),
     ]
     const config: ClarifyPagesGroup[] = [
       { group: 'Getting Started', pages: ['index', 'quickstart'] },
@@ -218,8 +222,8 @@ describe('buildNavigationFromConfig', () => {
 describe('generateRoutesModule with navigation config', () => {
   it('uses manual navigation when config is provided', () => {
     const routes: MdxRoute[] = [
-      { path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' },
-      { path: '/about', title: 'About', filePath: 'about.mdx', virtualModuleId: 'v' },
+      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/about', title: 'About', filePath: 'about.mdx', virtualModuleId: 'v' }),
     ]
     const pagesConfig: ClarifyPagesConfig = [
       { group: 'Docs', pages: ['index', 'about'] },
@@ -232,8 +236,8 @@ describe('generateRoutesModule with navigation config', () => {
 
   it('uses auto navigation when pages is "FileTree"', () => {
     const routes: MdxRoute[] = [
-      { path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' },
-      { path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' },
+      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' }),
     ]
     const code = generateRoutesModule(routes, 'FileTree')
     expect(code).toContain('"title": "Guide"')

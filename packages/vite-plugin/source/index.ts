@@ -1,4 +1,4 @@
-import { rmSync, readFileSync } from 'node:fs'
+import { rmSync } from 'node:fs'
 import { join } from 'node:path'
 
 import mdxPlugin from '@mdx-js/rollup'
@@ -8,7 +8,7 @@ import type { Plugin, ResolvedConfig } from 'vite'
 
 import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { runHooks } from './hooks.js'
-import { findContentRoutes, generateConfigModule, generateRoutesModule, readOpenAPISpec } from './routes.js'
+import { extractOpenAPISections, findContentRoutes, generateConfigModule, generateRoutesModule, readOpenAPISpec } from './routes.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
@@ -44,11 +44,10 @@ import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
 render({ config, routes, navigation });`
 
-function generateOpenAPIModule(filePath: string): string {
-  const spec = readFileSync(filePath, 'utf-8')
+function generateOpenAPIModule(spec: import('./types.js').OpenAPISpec): string {
   return `import { createElement } from 'react';
 import { OpenApiPage } from '@clarify/renderer';
-const spec = ${spec};
+const spec = ${JSON.stringify(spec)};
 export default function OpenApiRoutePage() {
   return createElement(OpenApiPage, { spec });
 }`
@@ -78,7 +77,11 @@ function loadVirtualModule(
   const route = routes.find(r => r.virtualModuleId === bareId)
   if (!route) return null
   if (route.kind === 'openapi') {
-    return generateOpenAPIModule(route.filePath)
+    const spec = openApiSpecs?.[bareId]
+    if (!spec) {
+      throw new Error(`OpenAPI spec failed to load for ${route.filePath}`)
+    }
+    return generateOpenAPIModule(spec)
   }
   return `export { default } from '${route.filePath}';`
 }
@@ -90,15 +93,10 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const contentRoot = join(root, generateOptions.rootDirectory)
   const routes = findContentRoutes(contentRoot)
 
-  // Collect OpenAPI specs keyed by virtual module ID for runtime embedding
+  // Collect OpenAPI specs keyed by virtual module ID for runtime embedding.
+  // Specs are populated asynchronously before Vite resolves config.
   const openApiRoutes = routes.filter(r => r.kind === 'openapi')
   const openApiSpecs: Record<string, import('./types.js').OpenAPISpec> = {}
-  for (const route of openApiRoutes) {
-    const spec = readOpenAPISpec(route.filePath)
-    if (spec) {
-      openApiSpecs[route.virtualModuleId] = spec
-    }
-  }
 
   const clarifyPlugins: ClarifyPlugin[] = options.plugins ?? []
   const ctx: ClarifyHookContext = { projectConfig, generateOptions }
@@ -113,7 +111,16 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
 
   const clarifyCorePlugin: Plugin = {
     name: 'clarify:core',
-    config() {
+    async config() {
+      for (const route of openApiRoutes) {
+        const spec = await readOpenAPISpec(route.filePath)
+        if (spec) {
+          openApiSpecs[route.virtualModuleId] = spec
+          route.title = spec.info?.title ?? route.title
+          route.sections = extractOpenAPISections(spec)
+        }
+      }
+
       return {
         base: projectConfig.routePrefix,
         build: {

@@ -1,4 +1,7 @@
 import type { FilterPattern } from 'vite'
+import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
+
+export type OpenAPISpec = OpenAPIV3.Document | OpenAPIV3_1.Document
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Author Config (clarify.json)
@@ -168,11 +171,6 @@ export type ClarifyNavigationNode = {
 export type ClarifyHookContext = {
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedGenerateOptions
-}
-
-export type OpenAPISpec = {
-  info?: { title?: string; description?: string; version?: string }
-  paths?: Record<string, Record<string, unknown>>
 }
 
 export type ClarifyHooks = {

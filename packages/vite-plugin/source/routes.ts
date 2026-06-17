@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
+import SwaggerParser from '@apidevtools/swagger-parser'
 import GithubSlugger, { slug } from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
@@ -35,22 +36,27 @@ export function extractMdxSections(content: string): ContentSection[] {
   return sections
 }
 
+const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
+
 /** 从 OpenAPI spec 中提取接口列表作为章节 */
 export function extractOpenAPISections(spec: OpenAPISpec): ContentSection[] {
   const sections: ContentSection[] = []
   const paths = spec.paths ?? {}
-  for (const [path, methods] of Object.entries(paths)) {
-    for (const [method, op] of Object.entries(methods)) {
-      const title = (op as { summary?: string })?.summary ?? `${method.toUpperCase()} ${path}`
+  for (const [path, pathItem] of Object.entries(paths)) {
+    if (!pathItem) continue
+    for (const method of OPENAPI_HTTP_METHODS) {
+      const op = pathItem[method]
+      if (!op) continue
+      const title = op.summary ?? `${method.toUpperCase()} ${path}`
       sections.push({ id: slug(`${method} ${path}`), title, level: 2 })
     }
   }
   return sections
 }
 
-export function readOpenAPISpec(filePath: string): OpenAPISpec | null {
+export async function readOpenAPISpec(filePath: string): Promise<OpenAPISpec | null> {
   try {
-    return JSON.parse(readFileSync(filePath, 'utf-8')) as OpenAPISpec
+    return await SwaggerParser.dereference(filePath) as OpenAPISpec
   } catch {
     return null
   }
@@ -102,8 +108,7 @@ export function findContentRoutes(dir: string, base: string = dir): ContentRoute
       })
     } else if (entry.isFile() && /\.openapi\.(json|yaml|yml)$/.test(entry.name)) {
       const cleanPath = resolveOpenAPIPath(fullPath, base)
-      const spec = readOpenAPISpec(fullPath)
-      const title = spec?.info?.title ?? kebabToTitle(cleanPath.split('/').pop() ?? 'API')
+      const title = kebabToTitle(cleanPath.split('/').pop() ?? 'API')
 
       routes.push({
         path: cleanPath,
@@ -111,7 +116,6 @@ export function findContentRoutes(dir: string, base: string = dir): ContentRoute
         virtualModuleId: 'virtual:clarify-page/' + relative(base, fullPath).replace(/\.openapi\.(json|yaml|yml)$/, '').replace(/\/+/g, '/'),
         title,
         kind: 'openapi',
-        sections: spec ? extractOpenAPISections(spec) : undefined,
       })
     }
   }

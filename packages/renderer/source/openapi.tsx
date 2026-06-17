@@ -1,3 +1,4 @@
+import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import { slug } from 'github-slugger'
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -5,18 +6,21 @@ import { useLocation } from 'react-router-dom'
 import { ApiEndpointCard } from './components'
 import { useClarifyConfig } from './context'
 
-export type OpenAPISpec = {
-  openapi?: string
-  info?: { title?: string; description?: string; version?: string }
-  paths?: Record<string, Record<string, OpenAPIOperation>>
+export type OpenAPISpec = OpenAPIV3.Document | OpenAPIV3_1.Document
+
+export type OpenAPIOperation = OpenAPIV3.OperationObject | OpenAPIV3_1.OperationObject
+
+const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
+
+type OpenAPIHttpMethod = typeof OPENAPI_HTTP_METHODS[number]
+
+function isOpenAPIHttpMethod(method: string): method is OpenAPIHttpMethod {
+  return (OPENAPI_HTTP_METHODS as readonly string[]).includes(method.toLowerCase())
 }
 
-export type OpenAPIOperation = {
-  summary?: string
-  description?: string
-  parameters?: unknown[]
-  requestBody?: unknown
-  responses?: Record<string, unknown>
+function getOpenApiOperation(spec: OpenAPISpec, path: string, method: string): OpenAPIOperation | undefined {
+  if (!isOpenAPIHttpMethod(method)) return undefined
+  return spec.paths?.[path]?.[method.toLowerCase() as OpenAPIHttpMethod]
 }
 
 export type OpenApiPageProps = {
@@ -60,8 +64,11 @@ function OpenApiPaths(arg0: { spec: OpenAPISpec }): ReactNode {
   const paths = spec.paths ?? {}
   const entries: Array<{ path: string; method: string; op: OpenAPIOperation }> = []
 
-  for (const [path, methods] of Object.entries(paths)) {
-    for (const [method, op] of Object.entries(methods)) {
+  for (const [path, pathItem] of Object.entries(paths)) {
+    if (!pathItem) continue
+    for (const method of OPENAPI_HTTP_METHODS) {
+      const op = pathItem[method]
+      if (!op) continue
       entries.push({ path, method: method.toUpperCase(), op })
     }
   }
@@ -72,7 +79,7 @@ function OpenApiPaths(arg0: { spec: OpenAPISpec }): ReactNode {
         <ApiEndpointCard
           key={`${method}-${path}`}
           id={slug(`${method.toLowerCase()} ${path}`)}
-          method={method as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'}
+          method={method}
           path={path}
           description={op.summary ?? op.description}
         />
@@ -141,7 +148,7 @@ export function OpenApiPage(arg0: OpenApiPageProps): ReactNode {
 
 export function ApiEndpoint(arg0: ApiEndpointProps): ReactNode {
   const { spec, path, method } = arg0
-  const op = spec.paths?.[path]?.[method.toLowerCase()]
+  const op = getOpenApiOperation(spec, path, method)
 
   if (!op) {
     return (
@@ -153,7 +160,7 @@ export function ApiEndpoint(arg0: ApiEndpointProps): ReactNode {
 
   return (
     <ApiEndpointCard
-      method={method.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'}
+      method={method.toUpperCase()}
       path={path}
       description={op.summary ?? op.description}
     />
