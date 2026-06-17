@@ -76,11 +76,11 @@ Initial dependency candidates:
 
 ### Phase 3 — Shell integration
 
-- [ ] Replace current `TopNav`/`Sidebar` shell with reference layout structure.
-- [ ] Adapt navigation from static `navigation` groups to Clarify `NavigationNode[]`.
-- [ ] Feed current route sections into `SectionProvider`.
-- [ ] Preserve SSR behavior in `renderToHTML`.
-- [ ] Add responsive mobile navigation.
+- [x] Replace current `TopNav`/`Sidebar` shell with reference layout structure.
+- [x] Adapt navigation from static `navigation` groups to Clarify `NavigationNode[]`.
+- [x] Feed current route sections into `SectionProvider`.
+- [x] Preserve SSR behavior in `renderToHTML`.
+- [x] Add responsive mobile navigation.
 
 ### Phase 4 — MDX and content components
 
@@ -98,7 +98,7 @@ Initial dependency candidates:
 
 ## Current progress
 
-Status: Phase 1 complete, Phase 2 started.
+Status: Phase 1–3 complete, Phase 4 started.
 
 Completed in the first pass:
 
@@ -109,7 +109,7 @@ Completed in the first pass:
 - Updated compatibility components `DocShell` and `ApiEndpointCard` to use the reference visual language.
 - Verified `pnpm --filter @clarify/renderer typecheck` and `pnpm --filter @clarify/renderer build`.
 
-Next recommended step: migrate `GridPattern`, `HeroPattern`, `Feedback`, then replace the shell/navigation with React Router adaptations.
+Next recommended step: finish MDX component mapping and evaluate search/code highlighting scope.
 
 ## Decisions
 

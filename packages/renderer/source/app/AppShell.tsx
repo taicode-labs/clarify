@@ -1,7 +1,9 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Link, Routes, Route, useLocation } from 'react-router-dom'
 
+import { Logo } from '../components'
 import { SectionProvider, type Section } from '../components/SectionProvider'
-import { Sidebar, TopNav } from '../shell'
+import { Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode } from '../types'
 
 export type AppShellProps = {
@@ -28,11 +30,21 @@ export function AppShell(arg0: AppShellProps) {
 
   return (
     <SectionProvider sections={sections}>
-      <div className="flex min-h-screen flex-col">
-        <TopNav config={config} />
-        <div className="flex flex-1">
-          <Sidebar navigation={navigation} />
-          <main className="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-10 dark:bg-zinc-900">
+      <div className="h-full min-h-screen bg-white lg:ml-72 xl:ml-80 dark:bg-zinc-900">
+        <motion.header layoutScroll className="contents lg:pointer-events-none lg:fixed lg:inset-0 lg:z-40 lg:flex">
+          <div className="contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-zinc-900/10 lg:px-6 lg:pt-4 lg:pb-8 xl:w-80 lg:dark:border-white/10">
+            <div className="hidden lg:flex">
+              <Link to="/" aria-label="Home" className="flex items-center gap-2 no-underline">
+                <Logo className="h-6" />
+                <span className="text-sm font-semibold text-zinc-900 dark:text-white">{config.title}</span>
+              </Link>
+            </div>
+            <Header config={config} navigation={navigation} />
+            <Navigation navigation={navigation} className="hidden lg:mt-10 lg:block" />
+          </div>
+        </motion.header>
+        <div className="relative flex min-h-screen flex-col px-4 pt-14 sm:px-6 lg:px-8">
+          <main className="flex-auto">
             <Routes>
               {routes.map((route) => (
                 <Route key={route.path} path={route.path} element={<route.component />} />
