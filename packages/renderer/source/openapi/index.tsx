@@ -1,5 +1,5 @@
 import { slug } from 'github-slugger'
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { Heading, Prose } from '../components'
@@ -389,25 +389,52 @@ function ExamplePicker({
   selectedKey: string
   onSelect: (key: string) => void
 }): ReactNode {
+  const scrollerRef = useRef<HTMLDivElement>(null)
+
   if (examples.length <= 1) return null
 
+  const scrollBy = (direction: -1 | 1) => {
+    scrollerRef.current?.scrollBy({ left: direction * 160, behavior: 'smooth' })
+  }
+
   return (
-    <div className="flex flex-wrap gap-2 border-t border-white/7.5 bg-zinc-900 px-4 py-3 dark:border-white/5">
-      {examples.map((example) => (
-        <button
-          key={example.key}
-          type="button"
-          onClick={() => onSelect(example.key)}
-          className={[
-            'rounded-full px-2.5 py-1 text-xs font-medium transition',
-            example.key === selectedKey
-              ? 'bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/30 ring-inset'
-              : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200',
-          ].join(' ')}
-        >
-          {example.title}
-        </button>
-      ))}
+    <div className="flex min-w-0 items-center gap-1.5 pt-2 sm:pt-0">
+      <button
+        type="button"
+        aria-label="Scroll examples left"
+        onClick={() => scrollBy(-1)}
+        className="grid size-6 shrink-0 place-items-center rounded-full bg-white/5 text-zinc-400 transition hover:bg-white/10 hover:text-zinc-200"
+      >
+        ←
+      </button>
+      <div
+        ref={scrollerRef}
+        className="scrollbar-none flex max-w-[min(22rem,calc(100vw-8rem))] snap-x gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {examples.map((example) => (
+          <button
+            key={example.key}
+            type="button"
+            onClick={() => onSelect(example.key)}
+            className={[
+              'snap-start whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition',
+              example.key === selectedKey
+                ? 'bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/30 ring-inset'
+                : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200',
+            ].join(' ')}
+          >
+            {example.title}
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        aria-label="Scroll examples right"
+        onClick={() => scrollBy(1)}
+        className="grid size-6 shrink-0 place-items-center rounded-full bg-white/5 text-zinc-400 transition hover:bg-white/10 hover:text-zinc-200"
+      >
+        →
+      </button>
     </div>
   )
 }
@@ -453,12 +480,12 @@ function ApiExampleCodeGroup({
   return (
     <div className="my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
       <div className="not-prose">
-        <div className="flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
-          <h3 className="mr-auto pt-3 text-xs font-semibold text-white">{title}</h3>
+        <div className="flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-center gap-x-4 gap-y-2 border-b border-zinc-700 bg-zinc-800 px-4 py-2 dark:border-zinc-800 dark:bg-transparent">
+          <h3 className="mr-auto text-xs font-semibold text-white">{title}</h3>
+          {examples && selectedExampleKey && onSelectExample ? (
+            <ExamplePicker examples={examples} selectedKey={selectedExampleKey} onSelect={onSelectExample} />
+          ) : null}
         </div>
-        {examples && selectedExampleKey && onSelectExample ? (
-          <ExamplePicker examples={examples} selectedKey={selectedExampleKey} onSelect={onSelectExample} />
-        ) : null}
         {tag || label ? (
           <div className="flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
             {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-emerald-400">{tag}</span> : null}
