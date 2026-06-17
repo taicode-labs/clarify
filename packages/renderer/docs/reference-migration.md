@@ -52,7 +52,8 @@ Initial dependency candidates:
 
 - [x] Copy/adapt low-risk primitives that do not require Next.js: `Button`, `Tag`, `Logo`, `Prose`.
 - [x] Copy/adapt section primitives: `remToPx`, `SectionProvider`.
-- [ ] Copy/adapt remaining low-risk primitives: `GridPattern`, `HeroPattern`, `Heading`, `Feedback`, icons.
+- [x] Copy/adapt heading primitive: `Heading`.
+- [ ] Copy/adapt remaining low-risk primitives: `GridPattern`, `HeroPattern`, `Feedback`, icons.
 - [x] Replace `next/link` with React Router or plain anchors for migrated primitives.
 - [ ] Replace `next/navigation` with React Router hooks.
 - [x] Replace `@/` aliases with relative imports for migrated primitives.
@@ -93,7 +94,7 @@ Completed in the first pass:
 - Updated compatibility components `DocShell` and `ApiEndpointCard` to use the reference visual language.
 - Verified `pnpm --filter @clarify/renderer typecheck` and `pnpm --filter @clarify/renderer build`.
 
-Next recommended step: migrate `SectionProvider`, `remToPx`, `Heading`, and then replace the shell/navigation with React Router adaptations.
+Next recommended step: migrate `GridPattern`, `HeroPattern`, `Feedback`, then replace the shell/navigation with React Router adaptations.
 
 ## Decisions
 
