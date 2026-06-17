@@ -11,10 +11,10 @@
 |---|------|----------|
 | 1 | 静态部署：每个页面有独立的 HTML 文件 | 构建时 SSR，为每条路由写入 `dist/<route>/index.html` |
 | 2 | 首屏后提供流畅的客户端体验 | 注入 `<script>` 将静态标记注水（hydrate）为 React Router SPA |
-| 3 | 支持 MDX 和 OpenAPI 渲染 | Vite 插件扫描 `rootDirectory` 下的 `*.mdx` 和 `*.openapi.*`，通过 `@mdx-js/rollup` 编译 |
-| 4 | 使用 Vite 7（稳定版），后续评估 Rolldown | 仅使用 Vite 7 公开 API，不依赖 Rolldown 专有特性 |
-| 5 | 零中间构建产物 | 所有生成逻辑通过 Vite 虚拟模块在内存中完成，配合 `ssrLoadModule` 执行 |
-| 6 | 通过 Vite 插件使用 Tailwind CSS | 保留用户 `vite.config.ts` 中已有的 `@tailwindcss/vite` |
+| 3 | 支持 MDX 和 OpenAPI 渲染 | CLI 内部引擎扫描 `rootDirectory` 下的 `*.mdx` 和 `*.openapi.*`，通过 `@mdx-js/rollup` 编译 |
+| 4 | 使用 Vite 作为内部构建管线 | 仅使用公开 API，不暴露给普通用户配置 |
+| 5 | 零中间构建产物 | 所有生成逻辑通过虚拟模块在内存中完成，配合构建时 SSR 执行 |
+| 6 | 内置 Tailwind CSS 管线 | CLI 内部装配 Tailwind CSS 支持 |
 
 ---
 

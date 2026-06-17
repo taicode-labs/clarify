@@ -150,8 +150,8 @@
           "icon": "BookMarked"
         },
         {
-          "page": "reference/plugin-options",
-          "icon": "Plug"
+          "page": "reference/cli-commands",
+          "icon": "Terminal"
         },
         {
           "page": "showcase",
@@ -180,8 +180,8 @@
           "icon": "Network"
         },
         {
-          "page": "development/vite-plugin",
-          "icon": "Zap"
+          "page": "development/cli",
+          "icon": "Terminal"
         },
         {
           "page": "development/renderer",

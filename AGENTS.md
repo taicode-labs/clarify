@@ -12,7 +12,7 @@ apps/
   www/           — Marketing / landing page (port 5174)
 packages/
   renderer/      — Shared React components (DocShell, ApiEndpointCard, etc.)
-  vite-plugin/   — Vite plugin entry for Clarify docs engine
+  cli/           — Clarify CLI and docs engine
 ```
 
 ## Key Conventions
@@ -39,10 +39,10 @@ packages/
 
 ### Cross-package dependencies
 
-- In `apps/docs`, depend on `@clarify/renderer`.
+- In `apps/docs`, depend on `@clarify/cli` and `@clarify/renderer`.
 - In `package.json` dependencies, use `workspace:*` or the local version (e.g., `0.1.0`).
-- In `tsconfig.json`, map the package path to the `source/` directory for type-checking.
-- In `vite.config.ts`, add a `resolve.alias` pointing to the package source entry to avoid pre-build requirements during development.
+- In `tsconfig.json`, map local package paths to `source/` directories for type-checking when needed.
+- User-facing docs should prefer `clarify dev` / `clarify build`; Vite config is an internal implementation detail.
 
 ### Styling
 

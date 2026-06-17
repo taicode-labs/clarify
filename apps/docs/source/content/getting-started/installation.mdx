@@ -20,29 +20,27 @@ mkdir my-docs && cd my-docs
 pnpm init
 ```
 
-### 2. 安装依赖
+### 2. 安装 CLI
 
 ```bash
-pnpm add -D vite react react-dom react-router-dom @tailwindcss/vite typescript
-pnpm add -D @clarify/vite-plugin @clarify/renderer
+pnpm add -D @clarify/cli
 ```
 
-### 3. 创建配置文件
+Clarify CLI 会封装开发服务器和静态构建流程，不需要手动安装或配置 Vite。
 
-**vite.config.ts**
+### 3. 初始化项目
 
-```typescript
-import { defineConfig } from 'vite';
-import { clarifyPlugin } from '@clarify/vite-plugin';
-
-export default defineConfig({
-  plugins: [
-    clarifyPlugin(),
-  ],
-});
+```bash
+pnpm exec clarify init
 ```
 
-**clarify.json**（放在项目根目录）
+该命令会创建：
+
+- `clarify.json`：站点展示配置
+- `source/content/index.mdx`：首页内容
+- `package.json` 中的 `dev` / `build` 脚本
+
+你也可以手动创建 `clarify.json`：
 
 ```json
 {
@@ -53,7 +51,7 @@ export default defineConfig({
 
 ### 4. 编写文档
 
-在 `source/content` 目录下创建 `.mdx` 文件：
+在 `source/content` 目录下创建 `.md` 或 `.mdx` 文件：
 
 ```bash
 mkdir -p source/content
@@ -61,10 +59,10 @@ echo "# 首页\n\n欢迎来到我的文档！" > source/content/index.mdx
 echo "# 指南\n\n这是指南页面。" > source/content/guide.mdx
 ```
 
-### 6. 启动开发服务器
+### 5. 启动开发服务器
 
 ```bash
-npx vite
+pnpm dev
 ```
 
-打开浏览器访问 `http://localhost:5173`，你应该能看到自动生成的文档站点。
+打开浏览器访问 CLI 输出的本地地址，你应该能看到自动生成的文档站点。

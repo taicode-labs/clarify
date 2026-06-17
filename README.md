@@ -30,14 +30,14 @@
 │   └── www/           # Marketing website & landing page
 ├── packages/
 │   ├── renderer/      # Shared React components & UI primitives
-│   └── vite-plugin/   # Vite plugin for Clarify docs engine
+│   └── cli/           # Clarify CLI and docs engine
 ```
 
 ## 🛠 Tech Stack
 
 - React 19 + TypeScript 5
 - Tailwind CSS 4
-- Vite 7
+- Vite-powered internals wrapped by the Clarify CLI
 - pnpm (monorepo package manager)
 
 ## 🚀 Quick Start
@@ -66,7 +66,7 @@ pnpm typecheck
 | `@clarify/docs` | 0.1.0 | Documentation playground app |
 | `@clarify/www` | 0.1.0 | Marketing website app |
 | `@clarify/renderer` | 0.1.0 | Shared React rendering primitives |
-| `@clarify/vite-plugin` | 0.1.0 | Vite plugin for Clarify engine |
+| `@clarify/cli` | 0.1.0 | User-facing Clarify CLI and docs engine |
 
 ## 🤝 Contributing
 
@@ -74,4 +74,4 @@ We welcome contributions! Please read our [Contributing Guide](./CONTRIBUTING.md
 
 ## 📄 License
 
-MIT © 2026 Taicode Labs
+AGPL-3.0-only © 2026 Taicode Labs

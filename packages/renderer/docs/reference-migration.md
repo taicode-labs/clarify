@@ -87,7 +87,7 @@ Initial dependency candidates:
 - [x] Migrate reference `mdx.tsx` component mapping.
 - [x] Integrate `Prose`, `Heading`, `Code`, and API components with Clarify MDX pages.
 - [x] Ensure existing `DocShell`, `ApiEndpointCard`, `OpenApiPage` either adopt reference styling or remain as compatibility wrappers.
-- [x] Decide whether to port reference MDX build transforms into `packages/vite-plugin`.
+- [x] Decide whether to port reference MDX build transforms into the Clarify engine now located in `packages/cli`.
 
 ### Phase 5 — Search, theme, and polish
 

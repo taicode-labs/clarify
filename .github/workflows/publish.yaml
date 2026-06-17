@@ -41,7 +41,7 @@ jobs:
 
           tag_name='${{ github.event.release.tag_name }}'
           expected_version="${tag_name#v}"
-          package_dirs=(packages/renderer packages/vite-plugin)
+          package_dirs=(packages/renderer packages/cli)
           publish_dirs=()
 
           for package_dir in "${package_dirs[@]}"; do

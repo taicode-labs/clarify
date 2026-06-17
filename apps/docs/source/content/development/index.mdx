@@ -7,7 +7,7 @@
 ## 内容
 
 - [整体架构](/development/architecture) — Monorepo 结构、包职责、数据流
-- [插件引擎设计](/development/vite-plugin) — `packages/vite-plugin` 的核心子系统
+- [CLI 与引擎设计](/development/cli) — `packages/cli` 的命令层和内部引擎
 - [渲染器架构](/development/renderer) — `packages/renderer` 的客户端运行时设计
 - [静态生成流程](/development/ssg) — 构建时 SSR 的详细流程
 - [参与贡献](/development/contributing) — 代码规范、提交规范、PR 流程
@@ -31,4 +31,4 @@ pnpm dev:docs
 pnpm dev:www
 ```
 
-得益于 Vite 别名配置，本地包直接从 `source/` 目录解析，无需预构建即可开发。
+文档站点通过 `@clarify/cli` 启动，CLI 内部会直接消费 workspace 包的 `source/` 入口以获得快速反馈。

@@ -1,5 +1,5 @@
 import { rmSync } from 'node:fs'
-import { isAbsolute, join, relative } from 'node:path'
+import { isAbsolute, join, relative, resolve } from 'node:path'
 
 import mdxPlugin from '@mdx-js/rollup'
 import tailwindcss from '@tailwindcss/vite'
@@ -53,7 +53,7 @@ function loadVirtualModule(id: string, modules: VirtualModules): string | null {
 }
 
 export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
-  const root = process.cwd()
+  const root = resolve(options.projectRoot ?? process.cwd())
   const projectConfig = resolveProjectConfig(root)
   const generateOptions = resolveGenerateOptions(options)
   const contentRoot = join(root, generateOptions.rootDirectory)

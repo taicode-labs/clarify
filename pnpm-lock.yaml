@@ -44,12 +44,12 @@ importers:
 
   apps/docs:
     dependencies:
+      '@clarify/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
       '@clarify/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
-      '@clarify/vite-plugin':
-        specifier: workspace:*
-        version: link:../../packages/vite-plugin
       react:
         specifier: ^19.1.0
         version: 19.2.7
@@ -69,9 +69,6 @@ importers:
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
-      vite:
-        specifier: ^8.0.16
-        version: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0)
 
   apps/www:
     dependencies:
@@ -100,6 +97,70 @@ importers:
       vite:
         specifier: ^8.0.15
         version: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0)
+
+  packages/cli:
+    dependencies:
+      '@apidevtools/swagger-parser':
+        specifier: ^12.1.0
+        version: 12.1.0(openapi-types@12.1.3)
+      '@clarify/renderer':
+        specifier: workspace:*
+        version: link:../renderer
+      '@mdx-js/rollup':
+        specifier: ^3.1.1
+        version: 3.1.1(rollup@4.62.0)
+      '@tailwindcss/vite':
+        specifier: ^4.1.11
+        version: 4.3.1(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
+      '@vitejs/plugin-react':
+        specifier: ^6.0.2
+        version: 6.0.2(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
+      github-slugger:
+        specifier: ^2.0.0
+        version: 2.0.0
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      mdast-util-to-string:
+        specifier: ^4.0.0
+        version: 4.0.0
+      openapi-types:
+        specifier: ^12.1.3
+        version: 12.1.3
+      remark:
+        specifier: ^15.0.1
+        version: 15.0.1
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1
+      shiki:
+        specifier: 0.14.7
+        version: 0.14.7
+      unist-util-visit:
+        specifier: ^5.1.0
+        version: 5.1.0
+      vite:
+        specifier: ^8.0.15
+        version: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0)
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@mdx-js/mdx':
+        specifier: ^3.1.1
+        version: 3.1.1
+      '@types/github-slugger':
+        specifier: ^2.0.0
+        version: 2.0.0
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vite-plugin-dts:
+        specifier: ^4.5.4
+        version: 4.5.4(@types/node@22.19.21)(rollup@4.62.0)(typescript@5.9.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@22.19.21)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
 
   packages/renderer:
     dependencies:
@@ -164,67 +225,6 @@ importers:
       vite-plugin-dts:
         specifier: ^4.5.4
         version: 4.5.4(@types/node@22.19.21)(rollup@4.62.0)(typescript@5.9.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
-
-  packages/vite-plugin:
-    dependencies:
-      '@apidevtools/swagger-parser':
-        specifier: ^12.1.0
-        version: 12.1.0(openapi-types@12.1.3)
-      '@mdx-js/rollup':
-        specifier: ^3.1.1
-        version: 3.1.1(rollup@4.62.0)
-      '@tailwindcss/vite':
-        specifier: ^4.1.11
-        version: 4.3.1(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
-      '@vitejs/plugin-react':
-        specifier: ^6.0.2
-        version: 6.0.2(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
-      github-slugger:
-        specifier: ^2.0.0
-        version: 2.0.0
-      gray-matter:
-        specifier: ^4.0.3
-        version: 4.0.3
-      mdast-util-to-string:
-        specifier: ^4.0.0
-        version: 4.0.0
-      openapi-types:
-        specifier: ^12.1.3
-        version: 12.1.3
-      remark:
-        specifier: ^15.0.1
-        version: 15.0.1
-      remark-gfm:
-        specifier: ^4.0.1
-        version: 4.0.1
-      shiki:
-        specifier: 0.14.7
-        version: 0.14.7
-      unist-util-visit:
-        specifier: ^5.1.0
-        version: 5.1.0
-      vite:
-        specifier: ^8.0.15
-        version: 8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0)
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
-    devDependencies:
-      '@mdx-js/mdx':
-        specifier: ^3.1.1
-        version: 3.1.1
-      '@types/github-slugger':
-        specifier: ^2.0.0
-        version: 2.0.0
-      typescript:
-        specifier: ^5.8.3
-        version: 5.9.3
-      vite-plugin-dts:
-        specifier: ^4.5.4
-        version: 4.5.4(@types/node@22.19.21)(rollup@4.62.0)(typescript@5.9.3)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
-      vitest:
-        specifier: ^4.1.9
-        version: 4.1.9(@types/node@22.19.21)(vite@8.0.16(@types/node@22.19.21)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))
 
 packages:
 

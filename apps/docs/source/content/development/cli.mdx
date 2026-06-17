@@ -1,0 +1,111 @@
+# CLI 与引擎设计
+
+Clarify CLI 位于 `packages/cli`，它把内部构建引擎封装成 `clarify dev`、`clarify build` 和 `clarify init`。用户只需要关心 Clarify 命令，不需要创建或维护 Vite 配置文件。
+
+---
+
+## 职责分层
+
+| 层级 | 职责 | 面向对象 |
+|------|------|----------|
+| CLI 命令 | 参数解析、开发服务器、静态构建、项目初始化 | Clarify 用户 |
+| 内部引擎 | MDX/OpenAPI 摄取、路由、虚拟模块、SSG | Clarify 维护者 |
+| Renderer | 页面布局、导航、代码块、OpenAPI UI | 运行时组件 |
+
+CLI 内部仍复用 Vite 的开发服务器和构建管线，但这是实现细节。公共 API 以 `@clarify/cli` 和 `clarify` 命令为中心。
+
+---
+
+## 内容摄取流水线
+
+引擎读取两种类型的源材料：
+
+| 源类型 | 文件模式 | 解析工具 | 输出 |
+|--------|---------|---------|------|
+| MDX/Markdown 页面 | `**/*.{md,mdx}` | `@mdx-js/rollup` + frontmatter 解析器 | React 组件 + 元数据 |
+| OpenAPI 规范 | `*.openapi.yaml` / `*.openapi.json` | `swagger-parser` / `openapi-types` | 类型安全的 API 参考数据 |
+
+流程概览：
+
+```
+source/content → Frontmatter → MDX/OpenAPI 编译 → 路由清单 → Renderer → 静态 HTML
+```
+
+1. **Frontmatter 提取**：读取 `title`、`description`、`hidden`、`tags` 等页面元数据。
+2. **OpenAPI 资源加载**：解析 OpenAPI 3.0/3.1 规范，并注入运行时 registry。
+3. **MDX 编译**：将 `.md` / `.mdx` 编译为 React 组件，并注入 Clarify MDX 组件映射。
+4. **路由注册**：将文件路径映射为 URL 路径，同时生成侧边栏导航。
+5. **静态生成**：构建阶段为每个路由输出独立 `index.html`。
+
+---
+
+## CLI 命令如何工作
+
+### `clarify dev`
+
+1. 根据 CLI 参数解析项目根目录和内容目录。
+2. 自动创建临时 HTML 入口（如果项目没有 `index.html`）。
+3. 启动内部开发服务器。
+4. 监听内容文件变化并触发路由清单重建与页面刷新。
+
+### `clarify build`
+
+1. 使用相同的内容发现逻辑生成路由和虚拟模块。
+2. 打包客户端资源。
+3. 调用服务端渲染入口为所有路由生成 HTML。
+4. 写出 raw Markdown/OpenAPI 文件和 `llms.txt`。
+
+### `clarify init`
+
+生成最小项目骨架：
+
+```
+clarify.json
+source/content/index.mdx
+package.json scripts
+```
+
+---
+
+## 路由系统
+
+Clarify 使用从文件系统派生的约定式路由：
+
+```
+source/content/
+├── index.mdx           → /
+├── getting-started.mdx → /getting-started
+├── guides/
+│   ├── index.mdx       → /guides
+│   └── theming.mdx     → /guides/theming
+└── api.openapi.yaml    → /api
+```
+
+多语言站点使用 locale 目录：
+
+```
+source/content/
+├── en-US/index.md      → /
+└── zh-CN/index.md      → /zh-CN
+```
+
+---
+
+## 虚拟模块
+
+内部引擎通过虚拟模块把构建时数据传递给运行时：
+
+- `virtual:clarify-routes` — 路由清单、页面组件和导航树
+- `virtual:clarify-openapi-registry` — 已解析的 OpenAPI 规范集合
+- `virtual:clarify-config` — 解析后的站点配置
+
+这些模块由 CLI 内部装配，普通用户无需直接导入。
+
+---
+
+## 设计原则
+
+- **隐藏构建工具细节**：用户面向 `clarify` 命令，而不是 Vite 配置。
+- **内容优先**：默认约定为 `source/content`，新增文件即新增页面。
+- **静态优先**：构建产物是纯静态文件，可部署到任意静态托管平台。
+- **可扩展**：内部 hook 和插件机制为搜索、AI 翻译等后续能力预留扩展点。

@@ -11,12 +11,8 @@
 ```
 my-docs/
 ├── clarify.json          # 站点配置（标题、描述、主题等）
-├── vite.config.ts        # Vite 配置 + Clarify 插件
-├── index.html            # HTML 入口
-├── package.json
-├── tsconfig.json
+├── package.json          # dev/build 脚本
 └── source/
-    ├── main.tsx          # 应用入口
     └── content/          # 文档内容目录
         ├── index.mdx     # 首页
         ├── guide/
@@ -29,7 +25,7 @@ my-docs/
 
 ## 编写页面
 
-Clarify 使用 **MDX** 格式。你可以在 Markdown 中直接使用 JSX：
+Clarify 支持 **Markdown** 和 **MDX**。你可以在 MDX 中直接使用 JSX：
 
 ```mdx
 # 欢迎使用
@@ -43,7 +39,7 @@ Clarify 使用 **MDX** 格式。你可以在 Markdown 中直接使用 JSX：
 
 ### Frontmatter
 
-每个 MDX 文件顶部可以添加 YAML frontmatter，用于设置页面元数据：
+每个内容文件顶部可以添加 YAML frontmatter，用于设置页面元数据：
 
 ```mdx
 ---
@@ -71,10 +67,18 @@ Clarify 按照 `source/content` 下的文件结构自动生成路由：
 
 ---
 
+## 本地开发
+
+```bash
+pnpm dev
+```
+
+---
+
 ## 构建生产版本
 
 ```bash
-npx vite build
+pnpm build
 ```
 
-构建产物输出到 `output/` 目录（可在插件选项中配置），每个路由都有独立的 `index.html`，可直接部署到任何静态托管服务。
+构建产物输出到 `output/` 目录（可通过 `clarify build --output <dir>` 修改），每个路由都有独立的 `index.html`，可直接部署到任何静态托管服务。

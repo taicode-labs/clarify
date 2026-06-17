@@ -128,6 +128,8 @@ export type ClarifyProjectConfig = {
 // ────────────────────────────────────────────────────────────────────────────────
 
 export type ClarifyGenerateOptions = {
+  /** Project root directory. Defaults to the current working directory. */
+  projectRoot?: string
   /** Root directory for MDX content. Default: 'source/content' */
   rootDirectory?: string
   /** Output directory for the built docs site. When omitted, Vite's build.outDir is used. */

@@ -11,7 +11,7 @@ import importPlugin from 'eslint-plugin-import-x';
  * Clarify Monorepo ESLint 配置
  *
  * - 根目录为 browser/react 项目（apps/docs, apps/www, packages/renderer）
- * - packages/vite-plugin 为 node 环境插件
+ * - packages/cli 为 Node.js CLI 和内部构建引擎
  */
 
 const browserFiles = [
@@ -22,8 +22,8 @@ const browserFiles = [
 ];
 
 const nodeFiles = [
-  'packages/vite-plugin/source/**/*.ts',
-  'packages/vite-plugin/**/*.test.ts',
+  'packages/cli/source/**/*.ts',
+  'packages/cli/**/*.test.ts',
   'source/**/*.ts',
 ];
 
@@ -138,7 +138,7 @@ export default tseslint.config(
     },
   },
 
-  // Node.js 项目规则（vite-plugin）
+  // Node.js 项目规则（CLI）
   {
     files: nodeFiles,
     languageOptions: {

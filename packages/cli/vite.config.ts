@@ -10,18 +10,10 @@ const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')
   peerDependencies?: Record<string, string>
 }
 
-// Build @clarify/vite-plugin as a Node.js library.
+// Build @clarify/cli as a Node.js library and executable.
 //
-// This package runs inside the consumer's Vite build process, so:
-//   - All runtime dependencies stay external (vite, @mdx-js/rollup, etc.)
-//   - Node built-ins are external (node:fs, node:path, etc.)
-//   - Output both ESM and CJS to support consumers using either module system
-//   - Generate .d.ts declarations via vite-plugin-dts
-//
-// We do NOT bundle dependencies because:
-//   1. The consumer already has `vite` installed (peer-style usage)
-//   2. Bundling vite would create version conflicts
-//   3. Node libraries should resolve their deps at runtime
+// The package exposes a user-facing `clarify` binary while keeping the internal
+// Vite-powered engine available for advanced integrations and tests.
 const external = [
   ...Object.keys(pkg.dependencies ?? {}),
   ...Object.keys(pkg.peerDependencies ?? {}),
@@ -52,6 +44,7 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, 'source/index.ts'),
+        cli: resolve(__dirname, 'source/cli.ts'),
       },
       formats: ['es', 'cjs'],
       fileName: (format, entryName) => {

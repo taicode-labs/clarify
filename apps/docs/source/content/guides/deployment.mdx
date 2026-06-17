@@ -7,10 +7,10 @@ Clarify 构建产物是纯静态文件，可以部署到任何静态托管服务
 ## 构建
 
 ```bash
-npx vite build
+pnpm exec clarify build
 ```
 
-构建产物位于 `output/` 目录（可在插件选项中修改）。
+构建产物位于 `output/` 目录（可通过 `clarify build --output <dir>` 修改）。
 
 ---
 
@@ -27,7 +27,7 @@ vercel --prod
 
 1. 将代码推送到 GitHub/GitLab/Bitbucket
 2. 在 Vercel 中导入项目
-3. 构建命令：`npx vite build`
+3. 构建命令：`pnpm exec clarify build`
 4. 输出目录：`output`
 
 ---
@@ -74,7 +74,7 @@ jobs:
 ## Netlify
 
 1. 连接 Git 仓库
-2. 构建命令：`npx vite build`
+2. 构建命令：`pnpm exec clarify build`
 3. 发布目录：`output`
 
 ---

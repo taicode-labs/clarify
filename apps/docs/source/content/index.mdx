@@ -33,19 +33,12 @@ Clarify 让你用熟悉的 Markdown + React 组件编写文档，自动生成为
 
 ## 快速预览
 
-一个典型的 Clarify 文档站点只需两个文件：
+一个典型的 Clarify 文档站点只需要安装 CLI 并编写内容：
 
-**vite.config.ts**
-
-```typescript
-import { defineConfig } from 'vite';
-import { clarifyPlugin } from '@clarify/vite-plugin';
-
-export default defineConfig({
-  plugins: [
-    clarifyPlugin(),
-  ],
-});
+```bash
+pnpm add -D @clarify/cli
+pnpm exec clarify init
+pnpm dev
 ```
 
 **clarify.json**
@@ -57,7 +50,7 @@ export default defineConfig({
 }
 ```
 
-然后在 `source/content` 目录下编写 `.mdx` 文件（或放置 `.openapi.json` 规范），Clarify 会自动为你生成路由和页面。Clarify 会自动注入客户端入口，你无需手动编写 `main.tsx`。
+然后在 `source/content` 目录下编写 `.md` / `.mdx` 文件（或放置 `.openapi.json` 规范），Clarify 会自动为你生成路由和页面。CLI 会自动装配开发服务器、客户端入口和静态构建流程。
 
 ---
 

@@ -30,14 +30,14 @@
 │   └── www/           # 营销网站与落地页
 ├── packages/
 │   ├── renderer/      # 共享 React 组件与 UI 基础组件
-│   └── vite-plugin/   # Clarify 文档引擎的 Vite 插件
+│   └── cli/           # Clarify CLI 与文档引擎
 ```
 
 ## 🛠 技术栈
 
 - React 19 + TypeScript 5
 - Tailwind CSS 4
-- Vite 7
+- Clarify CLI 封装的 Vite 内核
 - pnpm（monorepo 包管理器）
 
 ## 🚀 快速开始
@@ -66,7 +66,7 @@ pnpm typecheck
 | `@clarify/docs` | 0.1.0 | 文档 playground 应用 |
 | `@clarify/www` | 0.1.0 | 营销网站应用 |
 | `@clarify/renderer` | 0.1.0 | 共享 React 渲染基础组件 |
-| `@clarify/vite-plugin` | 0.1.0 | Clarify 引擎的 Vite 插件 |
+| `@clarify/cli` | 0.1.0 | 面向用户的 Clarify CLI 与文档引擎 |
 
 ## 🤝 贡献
 
@@ -74,4 +74,4 @@ pnpm typecheck
 
 ## 📄 许可
 
-MIT © 2026 Taicode Labs
+AGPL-3.0-only © 2026 Taicode Labs

@@ -1,21 +1,26 @@
 {
-  "name": "@clarify/vite-plugin",
+  "name": "@clarify/cli",
   "version": "0.1.0",
   "license": "AGPL-3.0-only",
   "type": "module",
   "main": "output/index.cjs",
   "module": "output/index.js",
   "types": "output/index.d.ts",
+  "bin": {
+    "clarify": "bin/clarify.js"
+  },
   "exports": {
     ".": {
       "types": "./output/index.d.ts",
       "import": "./output/index.js",
       "require": "./output/index.cjs",
       "default": "./output/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "LICENSE",
+    "bin",
     "output"
   ],
   "scripts": {
@@ -29,6 +34,7 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
+    "@clarify/renderer": "workspace:*",
     "@mdx-js/rollup": "^3.1.1",
     "@tailwindcss/vite": "^4.1.11",
     "@vitejs/plugin-react": "^6.0.2",

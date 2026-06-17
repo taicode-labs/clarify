@@ -1,0 +1,115 @@
+# CLI 命令参考
+
+`@clarify/cli` 提供 `clarify` 命令，封装开发服务器、静态构建和项目初始化。用户不需要创建 Vite 配置文件。
+
+---
+
+## 安装
+
+```bash
+pnpm add -D @clarify/cli
+```
+
+也可以直接使用项目脚本：
+
+```json
+{
+  "scripts": {
+    "dev": "clarify dev",
+    "build": "clarify build"
+  }
+}
+```
+
+---
+
+## `clarify init`
+
+创建最小 Clarify 项目结构。
+
+```bash
+pnpm exec clarify init
+```
+
+该命令会创建或更新：
+
+- `clarify.json`
+- `source/content/index.mdx`
+- `package.json` 中的 `dev` / `build` 脚本
+
+常用选项：
+
+| 选项 | 说明 | 默认值 |
+|------|------|--------|
+| `--root <dir>` | 项目根目录 | 当前目录 |
+| `--content <dir>` | 内容目录 | `source/content` |
+| `--force` | 覆盖已存在的初始化文件 | `false` |
+
+---
+
+## `clarify dev`
+
+启动本地文档开发服务器。
+
+```bash
+pnpm exec clarify dev
+```
+
+常用选项：
+
+| 选项 | 说明 | 默认值 |
+|------|------|--------|
+| `--root <dir>` | 项目根目录 | 当前目录 |
+| `--content <dir>` | 内容目录 | `source/content` |
+| `--host [host]` | 监听地址 | Vite 默认值 |
+| `--port <port>` | 端口号 | Vite 默认值 |
+| `--open [path]` | 启动后打开浏览器 | `false` |
+
+示例：
+
+```bash
+pnpm exec clarify dev --port 5173 --open
+```
+
+---
+
+## `clarify build`
+
+构建可部署的静态站点。
+
+```bash
+pnpm exec clarify build
+```
+
+常用选项：
+
+| 选项 | 说明 | 默认值 |
+|------|------|--------|
+| `--root <dir>` | 项目根目录 | 当前目录 |
+| `--content <dir>` | 内容目录 | `source/content` |
+| `--output <dir>` | 输出目录 | `output` |
+
+示例：
+
+```bash
+pnpm exec clarify build --output dist
+```
+
+---
+
+## 配置优先级
+
+CLI 选项用于控制构建和运行行为，`clarify.json` 用于控制站点展示内容。当同一项可由两处配置时，优先级为：
+
+```
+CLI 选项 > clarify.json > 默认值
+```
+
+---
+
+## 帮助与版本
+
+```bash
+clarify --help
+clarify --version
+```

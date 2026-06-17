@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 declare module 'virtual:clarify-config' {
   export const config: {
     title: string;

@@ -11,15 +11,12 @@
     "strict": true,
     "skipLibCheck": true,
     "jsx": "react-jsx",
-    "types": ["vite/client"],
     "noEmit": true,
     "paths": {
       "@clarify/renderer": ["../../packages/renderer/source/index.tsx"],
-      "@clarify/renderer/*": ["../../packages/renderer/source/*"],
-      "@clarify/vite-plugin": ["../../packages/vite-plugin/source/index.ts"],
-      "@clarify/vite-plugin/*": ["../../packages/vite-plugin/source/*"]
+      "@clarify/renderer/*": ["../../packages/renderer/source/*"]
     }
   },
-  "include": ["source", "vite.config.ts"],
+  "include": ["source"],
   "exclude": ["node_modules", "output"]
 }
