@@ -31,12 +31,16 @@ function MobileNavigationDialog({
   isOpen,
   navigation,
   routes,
+  currentLocale,
+  currentRoute,
   close,
 }: {
   config: ClarifyConfig
   isOpen: boolean
   navigation: NavigationNode[]
   routes: RouteItem[]
+  currentLocale?: string
+  currentRoute?: RouteItem
   close: () => void
 }) {
   return (
@@ -52,6 +56,8 @@ function MobileNavigationDialog({
             config={config}
             navigation={navigation}
             routes={routes}
+            currentLocale={currentLocale}
+            currentRoute={currentRoute}
             className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
           />
         </TransitionChild>
@@ -85,7 +91,19 @@ export const useMobileNavigationStore = create<{
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
 }))
 
-export function MobileNavigation({ config, navigation, routes }: { config: ClarifyConfig; navigation: NavigationNode[]; routes: RouteItem[] }) {
+export function MobileNavigation({
+  config,
+  navigation,
+  routes,
+  currentLocale,
+  currentRoute,
+}: {
+  config: ClarifyConfig
+  navigation: NavigationNode[]
+  routes: RouteItem[]
+  currentLocale?: string
+  currentRoute?: RouteItem
+}) {
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const { isOpen, toggle, close } = useMobileNavigationStore()
   const ToggleIcon = isOpen ? XIcon : MenuIcon
@@ -103,7 +121,15 @@ export function MobileNavigation({ config, navigation, routes }: { config: Clari
       </button>
       {!isInsideMobileNavigation ? (
         <Suspense fallback={null}>
-          <MobileNavigationDialog config={config} navigation={navigation} routes={routes} isOpen={isOpen} close={close} />
+          <MobileNavigationDialog
+            config={config}
+            navigation={navigation}
+            routes={routes}
+            currentLocale={currentLocale}
+            currentRoute={currentRoute}
+            isOpen={isOpen}
+            close={close}
+          />
         </Suspense>
       ) : null}
     </IsInsideMobileNavigationContext.Provider>
