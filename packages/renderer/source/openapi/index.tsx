@@ -421,7 +421,7 @@ function OpenApiPaths({ spec }: { spec: OpenAPISpec }): ReactNode {
   }))
 
   return (
-    <div className="space-y-16">
+    <div className="mx-auto w-full max-w-5xl space-y-16 lg:max-w-6xl">
       {entries.map(({ path, method, operation }) => (
         <OpenApiOperation key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} />
       ))}
