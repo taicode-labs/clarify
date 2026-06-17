@@ -1,12 +1,14 @@
+const docsBaseUrl = 'https://docs.clarify.pub'
+
 export const docsLinks = {
   home: '/',
-  gettingStarted: '/getting-started',
-  installation: '/getting-started/installation',
-  features: '/features',
-  openapi: '/features/openapi',
-  reference: '/reference',
-  guides: '/guides',
-  apiDemo: '/showcase/openapi-demo',
+  gettingStarted: `${docsBaseUrl}/getting-started`,
+  installation: `${docsBaseUrl}/getting-started/installation`,
+  features: `${docsBaseUrl}/features`,
+  openapi: `${docsBaseUrl}/features/openapi`,
+  reference: `${docsBaseUrl}/reference`,
+  guides: `${docsBaseUrl}/guides`,
+  apiDemo: `${docsBaseUrl}/showcase/openapi-demo`,
   github: 'https://github.com/taicode-labs/clarify',
 } as const
 
