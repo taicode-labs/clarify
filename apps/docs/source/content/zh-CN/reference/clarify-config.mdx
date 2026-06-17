@@ -2,7 +2,7 @@
 
 推荐使用 `clarify.ts` 作为项目配置文件。`clarify.js` 和 `clarify.json` 也受支持，加载优先级为：
 
-```
+```txt
 clarify.ts > clarify.js > clarify.json
 ```
 
@@ -16,39 +16,14 @@ Clarify 将**项目配置**和**运行参数**明确分离：
 
 | 层级 | 受众 | 入口 | 职责 |
 |------|------|------|------|
-| **项目配置** | 内容作者、技术写作者、扩展开发者 | `clarify.ts/js/json` | 站点展示和构建期扩展 |
-| **CLI 参数** | 开发者、构建环境 | `clarify dev/build` | 站点如何运行和输出 |
+| 项目配置 | 内容作者、技术写作者、扩展开发者 | `clarify.ts/js/json` | 站点展示、多语言、导航、插件 |
+| CLI 参数 | 开发者、构建环境 | `clarify dev/build` | 项目根目录、内容目录、输出目录、端口 |
 
-> 内容创作者主要维护 `clarify.ts` 和 `source/content`；开发者通过 CLI 参数控制端口、内容目录和输出目录。
-
----
-
-## 完整字段列表
-
-### 字段列表
-
-| 字段 | 类型 | 说明 | 默认值 |
-|------|------|------|--------|
-| `title` | `string` | 站点标题 | `"Clarify Docs"` |
-| `description` | `string` | 站点描述，用于 SEO | `""` |
-| `logo` | `string` | 品牌 Logo 路径 | — |
-| `favicon` | `string` | 站点 favicon 路径 | — |
-| `routePrefix` | `string` | 站点基础路径 | `"/"` |
-| `theme` | `object` | 主题配置 | `{}` |
-| `navbar` | `array` | 顶部导航栏链接 | — |
-| `banner` | `object` | 顶部横幅通知 | — |
-| `footer` | `object` | 页脚配置 | — |
-| `pages` | `array \| string` | 侧边栏导航结构 | `"FileTree"` |
-
-### `theme` 对象
-
-| 字段 | 类型 | 说明 | 默认值 |
-|------|------|------|--------|
-| `primary` | `string` | 主题主色（CSS 颜色值） | `"#0ea5e9"` |
+> 内容创作者主要维护 `clarify.ts` 和 `source/content`；开发者通过 CLI 参数控制运行方式。
 
 ---
 
-## 示例配置
+## 完整配置类型
 
 ```ts
 import { defineConfig } from '@clarify/cli'
@@ -56,7 +31,10 @@ import { defineConfig } from '@clarify/cli'
 export default defineConfig({
   title: 'Clarify 文档',
   description: 'Clarify 官方文档 — 开源文档发布工具',
-  logo: '/logo.svg',
+  logo: {
+    light: '/logo-light.svg',
+    dark: '/logo-dark.svg',
+  },
   favicon: '/favicon.ico',
   routePrefix: '/docs/',
   theme: {
@@ -64,26 +42,211 @@ export default defineConfig({
   },
   navbar: {
     links: [
-      { label: '指南', href: '/docs/getting-started/' },
-      { label: 'GitHub', href: 'https://github.com/clarify/docs', external: true },
+      { label: { 'zh-CN': '文档', 'en-US': 'Docs' }, href: '/getting-started' },
+      { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
     ],
   },
-  footer: {
-    copyright: '© 2024 Clarify Team',
+  banner: {
+    content: { 'zh-CN': 'Clarify 正在快速迭代中', 'en-US': 'Clarify is evolving fast' },
+    dismissible: true,
   },
-  plugins: [
-    // searchPlugin(),
-  ],
+  footer: {
+    socials: {
+      github: 'https://github.com/taicode-labs/clarify',
+    },
+    copyright: '© 2026 Clarify Team',
+  },
+  i18n: {
+    defaultLocale: 'zh-CN',
+    missing: 'fallback',
+    locales: [
+      { code: 'zh-CN', label: '简体中文', dir: 'ltr' },
+      { code: 'en-US', label: 'English', dir: 'ltr' },
+    ],
+  },
+  pages: 'FileTree',
+  ssg: {
+    failOnError: true,
+  },
+  plugins: [],
 })
 ```
 
 ---
 
+## 顶层字段
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `title` | `string` | `"Clarify Docs"` | 站点标题，用于侧边栏品牌和 HTML 标题 |
+| `description` | `string` | `""` | 站点描述，用于 SEO 和 `llms.txt` |
+| `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo 路径 |
+| `favicon` | `string \| { light?: string; dark?: string }` | — | favicon 路径或亮暗主题变体 |
+| `theme` | `{ primary?: string }` | `{}` | 主题变量覆盖 |
+| `routePrefix` | `string` | `"/"` | 部署子路径，例如 `/docs/` |
+| `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | 顶部导航链接 |
+| `banner` | `ClarifyBannerConfig` | — | 顶部公告配置，供主题或后续 UI 使用 |
+| `footer` | `ClarifyFooterConfig` | — | 页脚配置，供主题或后续 UI 使用 |
+| `i18n` | `ClarifyI18nConfig` | — | 多语言配置 |
+| `pages` | `ClarifyPagesConfig` | `"FileTree"` | 侧边栏导航结构 |
+| `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | 静态生成错误策略 |
+| `plugins` | `ClarifyPlugin[]` | `[]` | 构建期插件列表，仅 `clarify.ts/js` 可用 |
+
+---
+
+## 本地化文本
+
+多个配置字段接受本地化文本：
+
+```ts
+type ClarifyLocalizedText = string | Record<string, string>
+```
+
+示例：
+
+```ts
+{
+  label: {
+    'zh-CN': '文档',
+    'en-US': 'Docs',
+  }
+}
+```
+
+---
+
+## `logo` 和 `favicon`
+
+```ts
+type ClarifyLogoConfig = string | { light?: string; dark?: string }
+type ClarifyFaviconConfig = string | { light?: string; dark?: string }
+```
+
+```ts
+export default defineConfig({
+  logo: '/logo.svg',
+  favicon: {
+    light: '/favicon-light.svg',
+    dark: '/favicon-dark.svg',
+  },
+})
+```
+
+---
+
+## `theme`
+
+```ts
+theme: {
+  primary?: string
+}
+```
+
+`primary` 接受任意 CSS 颜色值：
+
+```ts
+export default defineConfig({
+  theme: {
+    primary: '#0ea5e9',
+  },
+})
+```
+
+---
+
+## `navbar`
+
+```ts
+type ClarifyNavbarLink = {
+  label: ClarifyLocalizedText
+  href: string
+  external?: boolean
+}
+```
+
+```ts
+export default defineConfig({
+  navbar: {
+    links: [
+      { label: '文档', href: '/getting-started' },
+      { label: 'API', href: '/features/openapi' },
+      { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
+    ],
+  },
+})
+```
+
+建议顶部导航只保留核心入口，完整信息架构交给侧边栏承载。
+
+---
+
+## `banner`
+
+```ts
+type ClarifyBannerConfig = {
+  content: ClarifyLocalizedText
+  dismissible?: boolean
+}
+```
+
+```ts
+export default defineConfig({
+  banner: {
+    content: 'Clarify v0.1 已发布',
+    dismissible: true,
+  },
+})
+```
+
+---
+
+## `footer`
+
+```ts
+type ClarifyFooterConfig = {
+  socials?: Record<string, string>
+  copyright?: ClarifyLocalizedText
+}
+```
+
+```ts
+export default defineConfig({
+  footer: {
+    socials: {
+      github: 'https://github.com/taicode-labs/clarify',
+    },
+    copyright: '© 2026 Clarify Team',
+  },
+})
+```
+
+---
+
+## `i18n`
+
+```ts
+type ClarifyI18nConfig = {
+  defaultLocale?: string
+  missing?: 'fallback' | '404' | 'hide'
+  locales: Array<{
+    code: string
+    label: string
+    dir?: 'ltr' | 'rtl'
+  }>
+}
+```
+
+更多说明见 [国际化](/features/i18n)。
+
+---
+
 ## `pages` 侧边栏导航
 
-`pages` 控制侧边栏的导航结构。支持两种配置方式：
+```ts
+type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree'
+```
 
-### 1. 自动生成（默认）
+### 自动生成
 
 ```ts
 export default defineConfig({
@@ -91,41 +254,95 @@ export default defineConfig({
 })
 ```
 
-Clarify 会根据 `source/content` 目录的文件结构自动生成侧边栏，包含所有 `.mdx` 和 `.openapi.json` 文件。
+Clarify 会根据内容目录的文件结构自动生成侧边栏，包含 `.mdx` 和 `.openapi.json/.yaml/.yml` 文件。
 
-### 2. 手动配置
+### 手动配置
 
 ```ts
 export default defineConfig({
   pages: [
     {
-      group: '开始使用',
+      group: { 'zh-CN': '开始使用', 'en-US': 'Get Started' },
+      icon: 'Rocket',
       pages: [
-        { page: 'getting-started/installation' },
-        { page: 'getting-started/quick-start' },
+        { page: 'getting-started/installation', icon: 'Download' },
+        {
+          page: 'getting-started/first-site',
+          title: { 'zh-CN': '创建第一个站点', 'en-US': 'Create Your First Site' },
+          icon: 'Sparkles',
+        },
       ],
     },
     {
       group: 'API 文档',
       pages: [
-        { openapi: 'api', title: 'REST API' },
+        { openapi: 'api.openapi.json', title: 'API Reference', icon: 'BookOpenCheck' },
       ],
     },
   ],
 })
 ```
 
-- `page` — 引用一个 MDX 文件，不需要 `.mdx` 后缀
-- `openapi` — 引用一个 OpenAPI 规范文件，不需要 `.openapi.json` 后缀，可指定 `title` 覆盖默认标题
+### `ClarifyPagesGroup`
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `group` | `ClarifyLocalizedText` | 是 | 分组标题 |
+| `icon` | `string` | 否 | Lucide 图标名 |
+| `pages` | `ClarifyPagesItem[]` | 是 | 分组下的页面 |
+
+### `ClarifyPagesItem`
+
+| 形态 | 说明 |
+|------|------|
+| `"getting-started"` | 简写，引用 MDX 页面 |
+| `{ page }` | 引用 MDX 页面，不写 `.mdx` 后缀 |
+| `{ page, title, icon, redirect }` | 引用页面并覆盖标题、图标或目标路径 |
+| `{ openapi, title, icon }` | 引用 OpenAPI 规范文件 |
 
 ---
 
-## 优先级
+## `ssg`
 
-Clarify 会先按 `clarify.ts > clarify.js > clarify.json` 查找配置文件，然后再应用 CLI 参数覆盖运行时选项：
-
+```ts
+ssg: {
+  failOnError?: boolean
+}
 ```
+
+| 字段 | 默认值 | 说明 |
+|------|--------|------|
+| `failOnError` | `true` | SSG 失败时是否中断构建 |
+
+---
+
+## `plugins`
+
+```ts
+plugins: ClarifyPlugin[]
+```
+
+插件只能在 `clarify.ts` 或 `clarify.js` 中配置。更多说明见 [插件机制](/features/plugins) 和 [插件 API 参考](/reference/plugin-api)。
+
+---
+
+## CLI 覆盖项
+
+CLI 会把以下运行参数传入构建系统：
+
+| CLI 选项 | 内部字段 | 默认值 | 命令 |
+|----------|----------|--------|------|
+| `--root <dir>` | `projectRoot` | 当前目录 | `dev` / `build` / `init` |
+| `--content <dir>` | `rootDirectory` | `source/content` | `dev` / `build` / `init` |
+| `--output <dir>` | `outputDirectory` | `output` | `dev` / `build` / `init` |
+| `--host [host]` | Vite dev server host | — | `dev` |
+| `--port <port>` | Vite dev server port | — | `dev` |
+| `--open [path]` | Vite dev server open | — | `dev` |
+
+优先级为：
+
+```txt
 CLI 参数 > clarify.ts/js/json > 默认值
 ```
 
-这允许开发者在不修改配置文件的情况下覆盖运行时设置，例如为 CI 构建使用不同的输出目录。
+这允许 CI 在不修改项目配置的情况下覆盖输出目录或内容目录。

@@ -1,0 +1,105 @@
+# AI 与原始内容
+
+Clarify 会在开发和构建阶段为文档自动暴露原始内容文件，并生成 `llms.txt`。这让搜索引擎、AI 助手、内部知识库和自动化工具可以读取结构化、低噪音的文档内容。
+
+---
+
+## 自动生成的内容
+
+构建后输出目录会包含：
+
+```txt
+output/
+├── llms.txt
+├── index.md
+├── getting-started.md
+├── features/
+│   └── openapi.md
+└── api.openapi.openapi.json
+```
+
+其中：
+
+| 文件 | 说明 |
+|------|------|
+| `llms.txt` | 文档站点的 AI 入口索引 |
+| `*.md` | MDX 页面对应的原始 Markdown/MDX 内容 |
+| `*.openapi.json` / `*.openapi.yaml` | OpenAPI 规范原文 |
+
+---
+
+## URL 规则
+
+Clarify 会根据路由生成原始内容 URL：
+
+| 页面路由 | 原始内容 URL |
+|----------|--------------|
+| `/` | `/index.md` |
+| `/getting-started` | `/getting-started.md` |
+| `/features/openapi` | `/features/openapi.md` |
+| `/api` | `/api.openapi.json` |
+
+OpenAPI 的原始内容 URL 会在路由后追加 `.openapi` 和源文件扩展名。也就是说，路由 `/api` 来自 `api.json` 时会输出 `/api.openapi.json`；如果源文件本身名为 `api.openapi.json` 且路由仍是 `/api.openapi`，则会输出 `/api.openapi.openapi.json`。
+
+如果配置了 `routePrefix`，页面操作和 `llms.txt` 中的链接会带上相同前缀。
+
+---
+
+## `llms.txt`
+
+`llms.txt` 会列出站点标题、描述、所有 MDX 页面以及 OpenAPI 文档入口：
+
+```txt
+# Clarify
+
+> 开源文档发布工具，为 MDX 和 OpenAPI 而生。
+
+## Docs
+- [快速开始](/getting-started.md)
+- [OpenAPI 集成](/features/openapi.md)
+
+## OpenAPI
+- [API Reference](/api.openapi.json)
+```
+
+这个文件适合被：
+
+- AI 编程助手读取；
+- 内部知识库索引；
+- 文档质量检查工具消费；
+- 搜索或问答系统作为入口清单。
+
+---
+
+## 页面级操作
+
+页面右上角的内容操作会使用 `rawContentUrl`：
+
+- 复制原始内容链接；
+- 下载或查看页面源内容；
+- 让 AI 工具引用更稳定的 Markdown/OpenAPI URL。
+
+---
+
+## 开发模式
+
+`clarify dev` 也会响应这些 URL：
+
+```txt
+/llms.txt
+/getting-started.md
+/api.openapi.json
+```
+
+如果配置了 `routePrefix`，开发模式下也需要通过带前缀的路径访问，例如 `/docs/llms.txt`。
+
+这意味着你可以在本地调试 AI 索引、搜索索引或内容同步流程，不必等到生产构建后再验证。
+
+---
+
+## 注意事项
+
+- 原始内容来自源文件，可能包含未渲染的 MDX 语法。
+- OpenAPI 文件会保持 JSON/YAML 内容类型。
+- 如果文档包含内部信息，发布前需要确认原始内容是否也可以公开。
+- 插件可以在构建后读取输出目录，生成更复杂的索引产物。

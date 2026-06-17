@@ -1,0 +1,162 @@
+# 插件机制
+
+Clarify 的插件机制用于在构建期接入团队自己的能力，例如内容转换、导航增强、虚拟模块注入、搜索索引生成、翻译流水线或构建完成后的产物处理。
+
+如果你只是在写文档，不需要理解插件；如果你要把 Clarify 集成到产品级文档平台或内部工程体系，插件是推荐扩展点。
+
+---
+
+## 什么时候使用插件
+
+适合使用插件的场景：
+
+| 场景 | 可以做什么 |
+|------|------------|
+| 内容治理 | 统一注入免责声明、校验标题结构、补齐元数据 |
+| 导航增强 | 按团队规则重排路由、过滤内部页面、补充导航分组 |
+| 搜索集成 | 在构建期生成 Pagefind、Algolia 或自研搜索索引 |
+| 国际化流程 | 构建前后同步翻译产物，或对缺失翻译做检查 |
+| 站点集成 | 输出 sitemap、RSS、埋点配置或内部平台清单 |
+
+不适合用插件处理的事情：
+
+- 单篇文章内容排版：优先使用 MDX。
+- 常规站点标题、导航、主题色：优先使用 `clarify.ts` 配置。
+- 运行时交互组件：优先作为 React/MDX 组件接入。
+
+---
+
+## 基本结构
+
+插件是一个带 `name` 和 `hooks` 的对象：
+
+```ts
+import { defineConfig, type ClarifyPlugin } from '@clarify/cli'
+
+const auditPlugin: ClarifyPlugin = {
+  name: 'docs-audit',
+  hooks: {
+    'routes:resolved'({ routes, navigation }) {
+      console.log(`Resolved ${routes.length} routes`)
+      return { routes, navigation }
+    },
+  },
+}
+
+export default defineConfig({
+  title: 'Product Docs',
+  plugins: [auditPlugin],
+})
+```
+
+> 需要插件时推荐使用 `clarify.ts`。`clarify.json` 不能表达函数，因此不适合配置插件。
+
+---
+
+## 生命周期
+
+Clarify 当前构建流程会调用以下 Hook：
+
+| Hook | 触发时机 | 典型用途 |
+|------|----------|----------|
+| `routes:resolved` | 路由和导航生成后 | 调整路由、导航、分组和可见页面 |
+| `modules:before` | 虚拟模块生成后、交给 Vite 前 | 注入或修改运行时虚拟模块 |
+| `build:done` | 构建和 SSG 完成后 | 生成额外产物、上报构建结果 |
+
+插件按照 `plugins` 数组顺序依次执行。前一个插件返回的结果会作为下一个插件的输入。
+
+> 类型中还预留了 `pages:resolved` 和 `page:transform`，但当前 CLI 构建流程尚未触发它们。插件作者应优先使用上表中的 Hook。
+
+---
+
+## Hook 上下文
+
+每个 Hook 会收到统一的上下文对象：
+
+```ts
+type ClarifyHookContext = {
+  projectConfig: ResolvedProjectConfig
+  generateOptions: ResolvedBuildOptions
+}
+```
+
+- `projectConfig`：已经应用默认值后的站点配置，例如 `title`、`routePrefix`、`i18n`。
+- `generateOptions`：构建运行参数，例如内容目录、输出目录、SSG 错误策略。
+
+---
+
+## 示例：过滤草稿页面
+
+可以在 `routes:resolved` 阶段过滤不希望发布的页面：
+
+```ts
+import { defineConfig, type ClarifyPlugin } from '@clarify/cli'
+
+const hideDraftRoutes: ClarifyPlugin = {
+  name: 'hide-draft-routes',
+  hooks: {
+    'routes:resolved'({ routes, navigation }, ctx) {
+      if (ctx.generateOptions.ssg.failOnError === false) {
+        return { routes, navigation }
+      }
+
+      return {
+        routes: routes.filter(route => !route.path.includes('/drafts/')),
+        navigation,
+      }
+    },
+  },
+}
+
+export default defineConfig({
+  plugins: [hideDraftRoutes],
+})
+```
+
+如果同时修改 `routes` 和 `navigation`，需要保证两者一致，避免侧边栏指向不存在的页面。
+
+---
+
+## 示例：构建后生成产物
+
+`build:done` 适合生成额外文件，例如 sitemap、搜索索引或内部平台清单：
+
+```ts
+import { writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { defineConfig, type ClarifyPlugin } from '@clarify/cli'
+
+const buildManifestPlugin: ClarifyPlugin = {
+  name: 'build-manifest',
+  hooks: {
+    'build:done'(ctx) {
+      const output = ctx.generateOptions.outputDirectory ?? 'output'
+      writeFileSync(
+        join(output, 'clarify-build.json'),
+        JSON.stringify({ title: ctx.projectConfig.title }, null, 2),
+      )
+    },
+  },
+}
+
+export default defineConfig({
+  plugins: [buildManifestPlugin],
+})
+```
+
+---
+
+## 错误处理
+
+如果插件 Hook 抛出异常，Clarify 会中断当前流程，并给出包含插件名和 Hook 名的错误信息：
+
+```txt
+[clarify] plugin "my-plugin" hook "routes:resolved" failed: Error: ...
+```
+
+建议插件作者：
+
+- 为插件设置稳定、可读的 `name`。
+- Hook 内部只做当前阶段必要的工作。
+- 修改路由、导航或虚拟模块时返回完整结果。
+- 对外部服务调用设置超时和降级策略。

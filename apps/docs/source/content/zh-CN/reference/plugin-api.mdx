@@ -1,0 +1,179 @@
+# 插件 API 参考
+
+本文是 Clarify 插件机制的精确 API 说明。概念和使用场景请先阅读 [插件机制](/features/plugins)。
+
+---
+
+## `ClarifyPlugin`
+
+```ts
+type ClarifyPlugin = {
+  name: string
+  hooks: Partial<ClarifyHooks>
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `name` | `string` | 是 | 插件名称，用于错误提示和调试 |
+| `hooks` | `Partial<ClarifyHooks>` | 是 | 插件实现的生命周期 Hook |
+
+---
+
+## `ClarifyHooks`
+
+```ts
+type ClarifyHooks = {
+  'routes:resolved'?: (
+    input: { routes: ContentRoute[]; navigation: NavigationTree },
+    ctx: ClarifyHookContext,
+  ) =>
+    | Promise<{ routes: ContentRoute[]; navigation: NavigationTree }>
+    | { routes: ContentRoute[]; navigation: NavigationTree }
+
+  'modules:before'?: (
+    modules: Map<string, string>,
+    ctx: ClarifyHookContext,
+  ) => Promise<Map<string, string>> | Map<string, string>
+
+  'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void
+}
+```
+
+所有 Hook 都可以同步或异步返回。除 `build:done` 外，Hook 必须返回同类型结果。
+
+> 类型定义中还包含预留的 `pages:resolved` 和 `page:transform`，但当前 CLI 构建流程不会调用它们。本文只列出当前流程实际触发的 Hook。
+
+---
+
+## `ClarifyHookContext`
+
+```ts
+type ClarifyHookContext = {
+  projectConfig: ResolvedProjectConfig
+  generateOptions: ResolvedBuildOptions
+}
+```
+
+### `projectConfig`
+
+已应用默认值后的站点配置：
+
+```ts
+type ResolvedProjectConfig = {
+  title: string
+  logo?: string | { light?: string; dark?: string }
+  favicon?: string | { light?: string; dark?: string }
+  theme: { primary?: string }
+  description: string
+  routePrefix: string
+  navbar?: { links?: ClarifyNavbarLink[] }
+  banner?: ClarifyBannerConfig
+  footer?: ClarifyFooterConfig
+  i18n?: ResolvedClarifyI18nConfig
+  pages?: ClarifyPagesConfig
+}
+```
+
+### `generateOptions`
+
+```ts
+type ResolvedBuildOptions = {
+  rootDirectory: string
+  outputDirectory?: string
+  ssg: {
+    failOnError: boolean
+  }
+}
+```
+
+---
+
+## 页面类型
+
+```ts
+type ClarifyPage = {
+  path: string
+  filePath: string
+  frontmatter: Record<string, unknown>
+  content: string
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `path` | 页面 URL 路径 |
+| `filePath` | 内容文件绝对路径 |
+| `frontmatter` | 解析后的页面元数据 |
+| `content` | 页面正文内容 |
+
+---
+
+## 路由类型
+
+```ts
+type ContentRoute = {
+  path: string
+  basePath?: string
+  locale?: string
+  isFallback?: boolean
+  alternates?: Record<string, string>
+  title: string
+  filePath: string
+  virtualModuleId: string
+  kind: 'mdx' | 'openapi'
+  sections?: ContentSection[]
+  rawContentUrl?: string
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `path` | 实际访问路径，启用 i18n 时可能带 locale 前缀 |
+| `basePath` | 不带 locale 的基础路径 |
+| `locale` | 当前路由所属语言 |
+| `isFallback` | 是否由默认语言回退生成 |
+| `alternates` | 同一页面在其他语言下的路径 |
+| `title` | 导航和搜索展示标题 |
+| `filePath` | 源文件绝对路径 |
+| `virtualModuleId` | Clarify 内部虚拟模块 ID |
+| `kind` | 页面类型：`mdx` 或 `openapi` |
+| `sections` | 从 H2/H3 或 OpenAPI operation 中提取的页面目录 |
+| `rawContentUrl` | 原始内容文件输出 URL |
+
+---
+
+## 导航类型
+
+```ts
+type NavigationTree = ClarifyNavigationNode[] | LocalizedNavigation
+
+type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
+
+type ClarifyNavigationNode = {
+  path: string
+  title: string
+  icon?: string
+  children?: ClarifyNavigationNode[]
+  sections?: Pick<ContentSection, 'id' | 'title' | 'badge' | 'tags'>[]
+}
+```
+
+启用 i18n 时，`navigation` 是按 locale 分组的对象；未启用 i18n 时，`navigation` 是普通数组。
+
+---
+
+## 虚拟模块
+
+`modules:before` 收到的是 `Map<string, string>`，键为虚拟模块 ID，值为模块源码。
+
+常见虚拟模块包括：
+
+| 模块 ID | 说明 |
+|---------|------|
+| `virtual:clarify-config` | 运行时站点配置 |
+| `virtual:clarify-routes` | 路由和导航数据 |
+| `virtual:clarify-openapi-registry` | 已解析的 OpenAPI 规范表 |
+| `virtual:clarify-entry-client` | 客户端入口 |
+
+修改虚拟模块属于高级用法，建议只在实现搜索、分析或内部平台集成时使用。
