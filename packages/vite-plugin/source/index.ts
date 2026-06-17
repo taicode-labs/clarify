@@ -1,10 +1,10 @@
 import { rmSync } from 'node:fs'
-import { join } from 'node:path'
+import { isAbsolute, join, relative } from 'node:path'
 
 import mdxPlugin from '@mdx-js/rollup'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import type { Plugin, ResolvedConfig } from 'vite'
+import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { runBuildDoneHooks, runHooks } from './hooks.js'
@@ -65,6 +65,47 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   let resolvedNavigation: ClarifyNavigationNode[] = []
   let virtualModules: VirtualModules = new Map()
 
+  async function resolveRoutesAndSpecs() {
+    routes = findContentRoutes(contentRoot)
+    for (const key of Object.keys(openApiSpecs)) delete openApiSpecs[key]
+
+    for (const route of routes.filter(r => r.kind === 'openapi')) {
+      const spec = await readOpenAPISpec(route.filePath)
+      if (spec) {
+        openApiSpecs[route.virtualModuleId] = spec
+        route.title = spec.info?.title ?? route.title
+        route.sections = extractOpenAPISections(spec)
+      } else {
+        throw new Error(`[clarify] Failed to parse OpenAPI spec: ${route.filePath}`)
+      }
+    }
+
+    const defaultNavigation = projectConfig.pages && projectConfig.pages !== 'FileTree'
+      ? buildNavigationFromConfig(routes, projectConfig.pages)
+      : buildNavigation(routes)
+    const resolved = await runHooks(clarifyPlugins, 'routes:resolved', { routes, navigation: defaultNavigation }, ctx)
+    routes = resolved.routes
+    resolvedNavigation = resolved.navigation
+  }
+
+  async function rebuildVirtualModules() {
+    virtualModules = buildVirtualModules({
+      projectConfig,
+      generateOptions,
+      routes,
+      navigation: resolvedNavigation,
+      openApiSpecs,
+    })
+    virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
+  }
+
+  function invalidateVirtualModules(server: ViteDevServer) {
+    for (const id of virtualModules.keys()) {
+      const moduleNode = server.moduleGraph.getModuleById(resolveVirtualId(id))
+      if (moduleNode) server.moduleGraph.invalidateModule(moduleNode)
+    }
+  }
+
   const mdx = mdxPlugin({
     include: options.include ?? ['**/*.mdx'],
     exclude: options.exclude,
@@ -76,23 +117,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const clarifyCorePlugin: Plugin = {
     name: 'clarify:core',
     async config() {
-      for (const route of routes.filter(r => r.kind === 'openapi')) {
-        const spec = await readOpenAPISpec(route.filePath)
-        if (spec) {
-          openApiSpecs[route.virtualModuleId] = spec
-          route.title = spec.info?.title ?? route.title
-          route.sections = extractOpenAPISections(spec)
-        } else {
-          throw new Error(`[clarify] Failed to parse OpenAPI spec: ${route.filePath}`)
-        }
-      }
-
-      const defaultNavigation = projectConfig.pages && projectConfig.pages !== 'FileTree'
-        ? buildNavigationFromConfig(routes, projectConfig.pages)
-        : buildNavigation(routes)
-      const resolved = await runHooks(clarifyPlugins, 'routes:resolved', { routes, navigation: defaultNavigation }, ctx)
-      routes = resolved.routes
-      resolvedNavigation = resolved.navigation
+      await resolveRoutesAndSpecs()
 
       return {
         base: projectConfig.routePrefix,
@@ -110,14 +135,20 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       }
     },
     async buildStart() {
-      virtualModules = buildVirtualModules({
-        projectConfig,
-        generateOptions,
-        routes,
-        navigation: resolvedNavigation,
-        openApiSpecs,
-      })
-      virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
+      await rebuildVirtualModules()
+    },
+    async handleHotUpdate(ctx) {
+      const changedFile = isAbsolute(ctx.file) ? ctx.file : join(root, ctx.file)
+      const relativeContentFile = relative(contentRoot, changedFile)
+      const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
+      const isClarifyContent = isContentFile && (/\.mdx$/.test(changedFile) || /\.openapi\.(json|yaml|yml)$/.test(changedFile))
+      if (!isClarifyContent) return
+
+      await resolveRoutesAndSpecs()
+      await rebuildVirtualModules()
+      invalidateVirtualModules(ctx.server)
+      ctx.server.ws.send({ type: 'full-reload' })
+      return []
     },
     resolveId(id) {
       if (id === VIRTUAL_CLIENT_ENTRY || id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
