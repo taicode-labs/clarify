@@ -66,7 +66,7 @@ export function ContentActions(arg0: ContentActionsProps) {
   const primaryAction = actions[0]
 
   return (
-    <div className="sticky top-4 z-20 flex justify-end pt-4">
+    <div className="sticky top-16 z-20 flex justify-end py-4">
       <Menu as="div" className="relative inline-flex text-xs font-medium">
         <div className="inline-flex overflow-hidden rounded-full border border-zinc-900/10 bg-white/90 shadow-sm backdrop-blur dark:border-white/10 dark:bg-zinc-900/90">
           <button
