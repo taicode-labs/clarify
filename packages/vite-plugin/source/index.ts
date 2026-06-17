@@ -8,6 +8,7 @@ import type { Plugin, ResolvedConfig } from 'vite'
 
 import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { runBuildDoneHooks, runHooks } from './hooks.js'
+import { rehypePlugins } from './mdx.js'
 import { buildNavigation, buildNavigationFromConfig, extractOpenAPISections, findContentRoutes, readOpenAPISpec } from './routes.js'
 import {
   SSR_ENTRY_CODE,
@@ -69,6 +70,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
     exclude: options.exclude,
     jsxImportSource: 'react',
     providerImportSource: '@clarify/renderer',
+    rehypePlugins,
   })
 
   const clarifyCorePlugin: Plugin = {

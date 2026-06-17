@@ -87,13 +87,13 @@ Initial dependency candidates:
 - [x] Migrate reference `mdx.tsx` component mapping.
 - [x] Integrate `Prose`, `Heading`, `Code`, and API components with Clarify MDX pages.
 - [x] Ensure existing `DocShell`, `ApiEndpointCard`, `OpenApiPage` either adopt reference styling or remain as compatibility wrappers.
-- [ ] Decide whether to port reference MDX build transforms into `packages/vite-plugin`.
+- [x] Decide whether to port reference MDX build transforms into `packages/vite-plugin`.
 
 ### Phase 5 — Search, theme, and polish
 
 - [x] Add theme provider compatible with Vite/browser/SSR instead of `next-themes`.
 - [x] Add search index wiring from Clarify route/content data.
-- [ ] Add code highlighting pipeline if needed.
+- [x] Add code highlighting pipeline if needed.
 - [ ] Validate light/dark mode, mobile, anchors, active section highlighting.
 
 ## Current progress
@@ -109,7 +109,7 @@ Completed in the first pass:
 - Updated compatibility components `DocShell` and `ApiEndpointCard` to use the reference visual language.
 - Verified `pnpm --filter @clarify/renderer typecheck` and `pnpm --filter @clarify/renderer build`.
 
-Next recommended step: add code highlighting pipeline and perform final polish validation.
+Next recommended step: perform final polish validation for light/dark mode, mobile navigation, anchors, and active section highlighting.
 
 ## Decisions
 
