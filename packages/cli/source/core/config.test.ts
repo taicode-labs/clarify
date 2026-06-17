@@ -24,6 +24,26 @@ describe('clarifyProjectConfigSchema', () => {
       pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }],
     })
   })
+
+  it('rejects defaultLocale outside configured locales', () => {
+    expect(() => clarifyProjectConfigSchema.parse({
+      i18n: {
+        defaultLocale: 'en-US',
+        locales: [{ code: 'zh-CN', label: '简体中文' }],
+      },
+    })).toThrow('defaultLocale must be one of i18n.locales')
+  })
+
+  it('rejects duplicate locale codes', () => {
+    expect(() => clarifyProjectConfigSchema.parse({
+      i18n: {
+        locales: [
+          { code: 'zh-CN', label: '简体中文' },
+          { code: 'zh-CN', label: '中文' },
+        ],
+      },
+    })).toThrow(/Duplicate locale code/)
+  })
 })
 
 describe('resolveProjectConfig', () => {

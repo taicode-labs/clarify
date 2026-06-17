@@ -58,6 +58,30 @@ describe('injectSSRIntoTemplate', () => {
     expect(html).toContain('<div id="root"><h1>Hello</h1></div>')
   })
 
+  it('injects html locale attributes for localized routes', () => {
+    const config: ResolvedProjectConfig = {
+      ...baseConfig,
+      i18n: {
+        defaultLocale: 'zh-CN',
+        missing: 'fallback',
+        locales: [
+          { code: 'zh-CN', label: '简体中文' },
+          { code: 'ar', label: 'العربية', dir: 'rtl' },
+        ],
+      },
+    }
+    const html = injectSSRIntoTemplate(baseTemplate, '', config, {
+      path: '/ar/guide',
+      basePath: '/guide',
+      locale: 'ar',
+      title: 'Guide',
+      filePath: '/content/ar/guide.mdx',
+      kind: 'mdx',
+      virtualModuleId: 'virtual:guide',
+    })
+    expect(html).toContain('<html lang="ar" dir="rtl">')
+  })
+
   it('replaces title with resolved title', () => {
     const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig)
     expect(html).toContain('<title>Test Docs</title>')

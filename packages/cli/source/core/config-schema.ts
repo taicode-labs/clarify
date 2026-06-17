@@ -33,6 +33,26 @@ export const clarifyI18nConfigSchema = z.object({
   defaultLocale: z.string().optional(),
   missing: z.union([z.literal('fallback'), z.literal('404'), z.literal('hide')]).optional(),
   locales: z.array(clarifyLocaleConfigSchema).min(1),
+}).superRefine((config, ctx) => {
+  const localeCodes = new Set<string>()
+  for (const [index, locale] of config.locales.entries()) {
+    if (localeCodes.has(locale.code)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Duplicate locale code "${locale.code}"`,
+        path: ['locales', index, 'code'],
+      })
+    }
+    localeCodes.add(locale.code)
+  }
+
+  if (config.defaultLocale && !localeCodes.has(config.defaultLocale)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'defaultLocale must be one of i18n.locales',
+      path: ['defaultLocale'],
+    })
+  }
 })
 
 export const clarifyNavbarLinkSchema = z.object({

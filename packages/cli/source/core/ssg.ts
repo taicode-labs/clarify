@@ -20,8 +20,26 @@ export function readIndexHtml(outputDirectory: string): string | undefined {
   }
 }
 
-export function injectSSRIntoTemplate(template: string, appHtml: string, projectConfig: ResolvedProjectConfig): string {
-  let html = template
+function injectHtmlLocaleAttributes(html: string, projectConfig: ResolvedProjectConfig, route?: ContentRoute): string {
+  const localeCode = route?.locale ?? projectConfig.i18n?.defaultLocale
+  if (!localeCode) return html
+
+  const localeConfig = projectConfig.i18n?.locales.find(locale => locale.code === localeCode)
+  const dir = localeConfig?.dir
+
+  return html.replace(/<html\b([^>]*)>/i, (_match, attributes: string) => {
+    let nextAttributes = attributes
+      .replace(/\s+lang=("[^"]*"|'[^']*'|[^\s>]*)/i, '')
+      .replace(/\s+dir=("[^"]*"|'[^']*'|[^\s>]*)/i, '')
+
+    nextAttributes = `${nextAttributes} lang="${escapeHtml(localeCode)}"`
+    if (dir) nextAttributes = `${nextAttributes} dir="${escapeHtml(dir)}"`
+    return `<html${nextAttributes}>`
+  })
+}
+
+export function injectSSRIntoTemplate(template: string, appHtml: string, projectConfig: ResolvedProjectConfig, route?: ContentRoute): string {
+  let html = injectHtmlLocaleAttributes(template, projectConfig, route)
 
   // Replace <title>...</title>
   html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(projectConfig.title)}</title>`)
@@ -91,7 +109,7 @@ export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: Res
   for (const route of routes) {
     try {
       const appHtml = render(route.path)
-      const finalHtml = injectSSRIntoTemplate(template, appHtml, projectConfig)
+      const finalHtml = injectSSRIntoTemplate(template, appHtml, projectConfig, route)
 
       const outFile = join(outputDirectory, route.path, 'index.html')
       mkdirSync(dirname(outFile), { recursive: true })

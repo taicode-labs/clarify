@@ -170,8 +170,12 @@ function virtualModuleIdForLocalizedRoute(contentRoot: string, filePath: string)
 
 function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute {
   const basePath = route.basePath ?? route.path
+  const routeByLocaleAndBase = new Map(routes.map(route => [`${route.locale ?? ''}:${route.basePath ?? route.path}`, route]))
   const alternates = Object.fromEntries(
-    i18n.locales.map(locale => [locale.code, localizedRoutePath(basePath, locale.code, i18n)])
+    i18n.locales.flatMap((locale) => {
+      const alternate = routeByLocaleAndBase.get(`${locale.code}:${basePath}`)
+      return alternate ? [[locale.code, alternate.path]] : []
+    })
   )
   return { ...route, alternates }
 }

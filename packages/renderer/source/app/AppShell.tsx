@@ -51,11 +51,17 @@ function navigationForLocale(navigation: NavigationTree, locale?: string): Navig
   return navigation[locale] ?? []
 }
 
+function homePathForLocale(config: ClarifyConfig, locale?: string): string {
+  if (!locale || !config.i18n || locale === config.i18n.defaultLocale) return '/'
+  return `/${locale}`
+}
+
 export function AppShell(arg0: AppShellProps) {
   const { config, routes, navigation } = arg0
   const location = useLocation()
   const currentRoute = routeForPath(routes, location.pathname)
   const currentLocale = localeForPath(config, location.pathname, currentRoute)
+  const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
   const currentNavigation = navigationForLocale(navigation, currentLocale)
   const sections = sectionsForRoute(currentRoute)
 
@@ -63,13 +69,23 @@ export function AppShell(arg0: AppShellProps) {
     scrollToHash(location.hash)
   }, [location.hash, location.pathname])
 
+  useEffect(() => {
+    if (!currentLocale) return
+    document.documentElement.lang = currentLocale
+    if (currentLocaleConfig?.dir) {
+      document.documentElement.dir = currentLocaleConfig.dir
+    } else {
+      document.documentElement.removeAttribute('dir')
+    }
+  }, [currentLocale, currentLocaleConfig?.dir])
+
   return (
     <SectionProvider sections={sections}>
       <div className="h-full min-h-screen bg-white lg:ml-72 xl:ml-80 dark:bg-zinc-900">
         <motion.header layoutScroll className="contents lg:pointer-events-none lg:fixed lg:inset-0 lg:z-40 lg:flex">
           <div className="contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-zinc-900/10 lg:px-6 lg:pt-4 lg:pb-8 xl:w-80 lg:dark:border-white/10">
             <div className="hidden lg:flex">
-              <Link to="/" aria-label="Home" className="flex items-center gap-2 no-underline">
+              <Link to={homePathForLocale(config, currentLocale)} aria-label="Home" className="flex items-center gap-2 no-underline">
                 <Logo className="h-6" />
                 <span className="text-sm font-semibold text-zinc-900 dark:text-white">{config.title}</span>
               </Link>

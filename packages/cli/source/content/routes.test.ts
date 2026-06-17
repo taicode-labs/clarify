@@ -232,7 +232,7 @@ describe('findLocalizedContentRoutes', () => {
     })
   })
 
-  it('creates fallback routes from source locale when translation is missing', () => {
+  it('creates fallback routes from default locale when translation is missing', () => {
     mkdirSync(join(tempDir, 'zh-CN'), { recursive: true })
     writeFileSync(join(tempDir, 'zh-CN', 'guide.mdx'), '# 指南', 'utf-8')
 
@@ -242,6 +242,18 @@ describe('findLocalizedContentRoutes', () => {
       locale: 'en-US',
       isFallback: true,
       title: 'Guide',
+    })
+  })
+
+  it('omits missing translation alternates when fallback is disabled', () => {
+    mkdirSync(join(tempDir, 'zh-CN'), { recursive: true })
+    mkdirSync(join(tempDir, 'en-US'), { recursive: true })
+    writeFileSync(join(tempDir, 'zh-CN', 'guide.mdx'), '# 指南', 'utf-8')
+    writeFileSync(join(tempDir, 'en-US', 'index.mdx'), '# Home', 'utf-8')
+
+    const result = findLocalizedContentRoutes(tempDir, { ...i18n, missing: 'hide' })
+    expect(result.find(route => route.path === '/guide')?.alternates).toEqual({
+      'zh-CN': '/guide',
     })
   })
 })
