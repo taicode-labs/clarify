@@ -40,13 +40,14 @@ Clarify 采用 Monorepo 结构组织，包含应用和包两个层级。
 
 ### `packages/renderer` — 共享 React 组件
 
-- **用途**：提供文档引擎使用的可复用、主题感知的 React 组件
+- **用途**：提供文档引擎使用的 React 运行时、应用壳和内容组件
 - **关键组件**：
-  - `DocShell`：文档页面的布局包装器（头部、导航壳）
-  - `ApiEndpointCard`：用于渲染 OpenAPI 端点的视觉组件（方法、路径、描述）
-  - 未来：`Sidebar`、`NavTree`、`CodeBlock`、`SearchModal`、`ThemeToggle`
-- **分发**：使用 `tsup` 构建（ESM + CJS + DTS），以便 Vite（ESM）和其他工具（CJS）都可以消费
-- **约束**：除 React 外必须保持框架无关；不使用 Next.js 或 Vite 特定 API
+  - `AppShell`：文档站点的顶级应用壳，负责路由、导航、搜索、主题切换和内容操作
+  - `Navigation` / `Header`：桌面端侧边栏、移动端导航和顶部栏
+  - `Code` / `CodeGroup` / `Prose`：MDX 内容的基础排版与代码块组件
+  - `OpenApiPage` / `ApiEndpointCard`：用于渲染 OpenAPI 页面和接口卡片
+- **分发**：使用 Vite library build 输出 ESM / CJS / DTS，以便 CLI 和用户项目消费
+- **约束**：除 React / React Router 等 peer dependency 外，避免绑定具体应用；不要求用户维护渲染器入口
 
 ### `packages/cli` — Clarify CLI
 

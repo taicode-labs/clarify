@@ -1,0 +1,171 @@
+# 在 MDX 中嵌入接口
+
+除了生成完整 API Reference，Clarify 还允许你在任意 MDX 页面中嵌入单个 OpenAPI operation。这样可以把接口说明放进教程、迁移指南或最佳实践页面中，而不是让读者在完整接口列表里来回查找。
+
+---
+
+## 适合场景
+
+使用接口嵌入，适合这些内容：
+
+- 快速上手教程中的“调用第一个接口”
+- 认证指南中的登录、刷新 token、注销接口
+- Webhook 指南中的事件订阅接口
+- 迁移指南中的新旧接口对照
+- SDK 文档中的底层 HTTP 行为说明
+
+如果你要展示完整接口目录，请使用 [生成 API Reference](/features/api-reference)。
+
+---
+
+## 推荐用法：`OpenApiEndpoint`
+
+`OpenApiEndpoint` 可以直接引用内容目录中已经发现的 OpenAPI 文件。在 MDX 中无需导入：
+
+```mdx
+# 页面管理
+
+调用 `GET /pages` 获取页面列表：
+
+<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+```
+
+渲染时，Clarify 会从 OpenAPI 注册表中找到 `/api` 对应的规范，也就是 `source/content/api.openapi.json`。
+
+---
+
+## `specPath` 怎么写
+
+`specPath` 指向 OpenAPI 路由，不写 `.openapi.json` / `.openapi.yaml` 后缀。
+
+### 绝对路径
+
+以 `/` 开头时，从内容根目录解析：
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+```
+
+对应文件：
+
+```txt
+source/content/api.openapi.json
+```
+
+在 i18n 站点中，对应当前语言目录下的同名规范，例如：
+
+```txt
+source/content/zh-CN/api.openapi.json
+```
+
+### 相对路径
+
+不以 `/` 开头时，基于当前页面路径解析：
+
+```txt
+source/content/guides/authentication.mdx
+source/content/guides/auth.openapi.json
+```
+
+在 `guides/authentication.mdx` 中可以写：
+
+```mdx
+<OpenApiEndpoint specPath="auth" path="/sessions" method="post" />
+```
+
+### 子目录路径
+
+如果规范在子目录里，写路由路径即可：
+
+```mdx
+<OpenApiEndpoint specPath="/services/billing" path="/invoices" method="get" />
+```
+
+对应文件：
+
+```txt
+source/content/services/billing.openapi.yaml
+```
+
+---
+
+## `path` 和 `method`
+
+`path` 必须与 OpenAPI 规范里的路径完全一致，包括路径参数写法：
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/pages/{pageId}" method="patch" />
+```
+
+`method` 使用 HTTP 方法名：
+
+- `get`
+- `post`
+- `put`
+- `patch`
+- `delete`
+- `head`
+- `options`
+- `trace`
+
+大小写不敏感，但建议统一使用小写。
+
+---
+
+## 嵌入完整规范页面
+
+如果你想在一个 MDX 页面中控制前后说明，同时插入完整 API Reference，可以使用 `OpenApiPage`：
+
+```mdx
+# Billing API
+
+这里是计费服务的接口说明。
+
+<OpenApiPage specPath="/services/billing" />
+```
+
+这种方式适合需要在完整接口列表前后补充上下文的页面。
+
+---
+
+## 手动导入规范对象
+
+在大多数文档页面中，推荐使用 `specPath`。如果你正在开发自定义组件，也可以手动导入规范对象并使用 `ApiEndpoint`：
+
+```mdx
+import { ApiEndpoint } from '@clarify/renderer'
+import spec from '../api.openapi.json'
+
+<ApiEndpoint spec={spec} path="/pages" method="get" />
+```
+
+这种方式更接近底层组件 API，不是普通文档作者的首选。
+
+---
+
+## 常见错误
+
+### `OpenAPI spec not found`
+
+说明 `specPath` 没有匹配到已发现的 OpenAPI 路由。检查：
+
+- OpenAPI 文件是否在 `source/content` 下
+- 文件名是否使用 `.openapi.json` / `.openapi.yaml` / `.openapi.yml`
+- `specPath` 是否省略了扩展名
+- 相对路径是否以当前页面所在目录为基准
+
+### `Endpoint not found`
+
+说明规范找到了，但 `path` 或 `method` 没有匹配到 operation。检查：
+
+- `path` 是否和 OpenAPI `paths` 键完全一致
+- 路径参数是否使用 `{id}` 形式
+- `method` 是否存在于该路径下
+
+### 嵌入内容太长
+
+如果一个 operation 的请求体、响应和 examples 很复杂，页面会变得很长。建议：
+
+- 在教程里只嵌入关键接口
+- 把完整接口列表交给 API Reference
+- 用正文解释“为什么调用”，用组件展示“如何调用”

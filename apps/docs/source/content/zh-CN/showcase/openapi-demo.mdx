@@ -1,17 +1,28 @@
-# OpenAPI 文档渲染演示
+# API 文档示例
 
-本页展示 Clarify 渲染 OpenAPI 规范的效果。
+本页展示 Clarify 如何把同一份 OpenAPI 规范用于完整 Reference 和 MDX 接口嵌入。
+
+示例规范位于 `source/content/zh-CN/api.openapi.json`，生成的完整页面是 [API Reference](/api)。
 
 ---
 
-## 自动生成的 API 页面
+## 示例规范覆盖范围
 
-将 `api.openapi.json` 放入 `source/content/` 目录后，Clarify 会自动生成路由 `/api`，并使用 `OpenApiPage` 组件渲染完整的 API 文档。这个示例规范覆盖 OpenAPI 3.1 的常见复杂结构，包括 `$ref`、参数、请求体、响应、headers、examples、links、callbacks、webhooks、security schemes、多 content type、schema 组合和 discriminator。
+当前示例是一个 OpenAPI 3.1 fixture，用来覆盖常见渲染场景：
 
-```
-标题：Clarify Complete OpenAPI Example
-版本：1.0.0
+- `info`、`servers`、`externalDocs`、`tags`
+- 全局 `security` 和 `components.securitySchemes`
+- path / query / header 参数
+- JSON、YAML、multipart、merge-patch 等请求体
+- 多状态码响应、headers、examples、links
+- `allOf`、`oneOf`、enum、const、format、pattern、additionalProperties、discriminator
+- callbacks、webhooks、OpenAPI 3.1 `jsonSchemaDialect`
 
+---
+
+## 接口目录预览
+
+```txt
 GET     /pages              List pages
 POST    /pages              Create a page
 OPTIONS /pages              Describe page collection capabilities
@@ -29,13 +40,11 @@ TRACE   /system/health      Trace health request
 
 ---
 
-## 嵌入单个接口
+## 示例一：列表接口
 
-在任意 MDX 页面中，使用 `OpenApiEndpoint` 组件嵌入特定接口。**无需导入，Clarify 的内置组件在 MDX 中可直接使用。**
+在指南中解释“读取页面列表”时，可以直接嵌入 `GET /pages`：
 
 ```mdx
-# 页面管理 API
-
 <OpenApiEndpoint specPath="/api" path="/pages" method="get" />
 ```
 
@@ -45,9 +54,9 @@ TRACE   /system/health      Trace health request
 
 ---
 
-## 多媒体类型和多示例接口
+## 示例二：复杂请求体和多响应
 
-`POST /exports` 用于覆盖更复杂的 OpenAPI 示例组合：请求体有 JSON 与 YAML 两种 media type，每种 media type 下都有多个 examples；响应有 `202` 与 `400` 两种 status code，且成功响应同时提供 JSON 与纯文本 media type。
+`POST /exports` 覆盖更复杂的接口结构：请求体有 JSON 与 YAML 两种 media type，每种 media type 下都有多个 examples；响应包含 `202` 和 `400`，成功响应同时提供 JSON 与纯文本 media type。
 
 ```mdx
 <OpenApiEndpoint specPath="/api" path="/exports" method="post" />
@@ -59,6 +68,10 @@ TRACE   /system/health      Trace health request
 
 ---
 
-## 完整规范文件
+## 原始规范
 
-查看 [api.openapi.json](/content/api.openapi.json) 了解示例规范的完整内容。
+构建后，原始 OpenAPI 文件会输出到稳定 URL：
+
+- [api.openapi.json](/api.openapi.json)
+
+这个链接也会出现在 `llms.txt` 中，方便 AI 工具读取机器可解析的接口规范。

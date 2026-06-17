@@ -3,7 +3,7 @@ import { useRef, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { Heading, Prose } from '../components'
-import { useOpenApis } from '../context'
+import { useClarifyConfig, useOpenApis } from '../context'
 import { Col, Properties, Property, Row } from '../mdx/primitives'
 
 import { getOpenApiOperation, listOpenApiOperations } from './utils'
@@ -740,23 +740,33 @@ function resolveRelativePath(fromDir: string, to: string): string {
   return stack.join('/')
 }
 
-function normalizeSpecPath(specPath: string, currentRoutePath?: string): string {
+function normalizeSpecPath(specPath: string, currentRoutePath?: string, routePrefix = ''): string {
   if (specPath.startsWith(VIRTUAL_PREFIX)) return specPath
-  if (specPath.startsWith('/')) {
-    return VIRTUAL_PREFIX + specPath.replace(/^\//, '')
+
+  const normalizedRoutePrefix = routePrefix.replace(/^\/+|\/+$/g, '')
+  const normalizedSpecPath = specPath.startsWith('/') && normalizedRoutePrefix && specPath.slice(1).startsWith(`${normalizedRoutePrefix}/`)
+    ? '/' + specPath.slice(normalizedRoutePrefix.length + 2)
+    : specPath
+
+  if (normalizedSpecPath.startsWith('/')) {
+    return VIRTUAL_PREFIX + normalizedSpecPath.replace(/^\//, '')
   }
   const fromDir = currentRoutePath === '/' ? '' : currentRoutePath?.replace(/^\//, '').replace(/\/[^/]*$/, '') ?? ''
-  return VIRTUAL_PREFIX + resolveRelativePath(fromDir, specPath)
+  const normalizedFromDir = normalizedRoutePrefix && fromDir.startsWith(`${normalizedRoutePrefix}/`)
+    ? fromDir.slice(normalizedRoutePrefix.length + 1)
+    : fromDir
+  return VIRTUAL_PREFIX + resolveRelativePath(normalizedFromDir, normalizedSpecPath)
 }
 
 function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenAPISpec | null {
   const specs = useOpenApis()
   const location = useLocation()
+  const config = useClarifyConfig()
 
   if (spec) return spec
   if (!specPath) return null
 
-  const normalized = normalizeSpecPath(specPath, location.pathname)
+  const normalized = normalizeSpecPath(specPath, location.pathname, config.routePrefix)
   return specs[normalized] ?? null
 }
 

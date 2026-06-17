@@ -63,6 +63,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       const spec = await readOpenAPISpec(route.filePath)
       if (spec) {
         openApis[route.virtualModuleId] = spec
+        openApis[`virtual:clarify-page/${route.path.replace(/^\//, '')}`] = spec
         route.title = spec.info?.title ?? route.title
         route.sections = extractOpenAPISections(spec)
       } else {

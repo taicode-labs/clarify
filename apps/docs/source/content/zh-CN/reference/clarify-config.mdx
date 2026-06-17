@@ -82,7 +82,7 @@ export default defineConfig({
 | `description` | `string` | `""` | 站点描述，用于 SEO 和 `llms.txt` |
 | `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo 路径 |
 | `favicon` | `string \| { light?: string; dark?: string }` | — | favicon 路径或亮暗主题变体 |
-| `theme` | `{ primary?: string }` | `{}` | 主题变量覆盖 |
+| `theme` | `{ primary?: string }` | `{}` | 当前公开的主题配置，仅包含品牌主色字段 |
 | `routePrefix` | `string` | `"/"` | 部署子路径，例如 `/docs/` |
 | `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | 顶部导航链接 |
 | `banner` | `ClarifyBannerConfig` | — | 顶部公告配置，供主题或后续 UI 使用 |
@@ -142,7 +142,7 @@ theme: {
 }
 ```
 
-`primary` 接受任意 CSS 颜色值：
+`primary` 接受 CSS 颜色字符串。当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
 
 ```ts
 export default defineConfig({

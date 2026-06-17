@@ -218,10 +218,34 @@
         {
           "page": "features/openapi",
           "title": {
-            "zh-CN": "OpenAPI 集成",
-            "en-US": "OpenAPI Integration"
+            "zh-CN": "OpenAPI 概览",
+            "en-US": "OpenAPI Overview"
           },
           "icon": "Braces"
+        },
+        {
+          "page": "guides/api-docs-workflow",
+          "title": {
+            "zh-CN": "API 文档工作流",
+            "en-US": "API Docs Workflow"
+          },
+          "icon": "Workflow"
+        },
+        {
+          "page": "features/api-reference",
+          "title": {
+            "zh-CN": "生成 API Reference",
+            "en-US": "Generate API Reference"
+          },
+          "icon": "BookOpenCheck"
+        },
+        {
+          "page": "features/openapi-embedding",
+          "title": {
+            "zh-CN": "嵌入单个接口",
+            "en-US": "Embed Endpoints"
+          },
+          "icon": "PanelTopOpen"
         },
         {
           "page": "showcase/openapi-demo",
@@ -237,7 +261,7 @@
             "zh-CN": "API Reference",
             "en-US": "API Reference"
           },
-          "icon": "BookOpenCheck"
+          "icon": "FileJson2"
         }
       ]
     },

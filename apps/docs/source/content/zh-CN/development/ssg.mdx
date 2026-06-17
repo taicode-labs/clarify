@@ -1,7 +1,6 @@
 # 静态生成流程详解
 
-> **范围**：仅支持 MDX，每个路由输出独立 HTML 文件 + 客户端注水（hydration），Vite 7，零中间构建产物。
-> **本期不做**：OpenAPI、搜索、国际化、服务端运行时。
+> **范围**：支持 MDX / Markdown 与 OpenAPI 内容，每个路由输出独立 HTML 文件，并在浏览器端 Hydration 为 React Router 应用。Vite 是 CLI 内部构建工具，不作为用户配置入口暴露。
 
 ---
 
@@ -9,12 +8,12 @@
 
 | # | 需求 | 实现方式 |
 |---|------|----------|
-| 1 | 静态部署：每个页面有独立的 HTML 文件 | 构建时 SSR，为每条路由写入 `dist/<route>/index.html` |
+| 1 | 静态部署：每个页面有独立的 HTML 文件 | 构建时 SSR，为每条路由写入 `output/<route>/index.html` |
 | 2 | 首屏后提供流畅的客户端体验 | 注入 `<script>` 将静态标记注水（hydrate）为 React Router SPA |
-| 3 | 支持 MDX 和 OpenAPI 渲染 | CLI 内部引擎扫描 `rootDirectory` 下的 `*.mdx` 和 `*.openapi.*`，通过 `@mdx-js/rollup` 编译 |
-| 4 | 使用 Vite 作为内部构建管线 | 仅使用公开 API，不暴露给普通用户配置 |
-| 5 | 零中间构建产物 | 所有生成逻辑通过虚拟模块在内存中完成，配合构建时 SSR 执行 |
-| 6 | 内置 Tailwind CSS 管线 | CLI 内部装配 Tailwind CSS 支持 |
+| 3 | 支持 MDX / Markdown 和 OpenAPI 渲染 | CLI 内部引擎扫描 `rootDirectory` 下的 `*.md`、`*.mdx` 和 `*.openapi.*`，通过 `@mdx-js/rollup` 编译 |
+| 4 | 使用 Vite 作为内部构建管线 | 仅使用公开 API，不要求普通用户维护 Vite 配置 |
+| 5 | 构建期 SSR | 生成临时 SSR 入口并输出到构建目录的 `.ssr/` 子目录，再导入该 bundle 渲染路由 |
+| 6 | 内置渲染器样式管线 | CLI 内部装配渲染器样式和 Tailwind CSS 支持 |
 
 ---
 
@@ -24,15 +23,16 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  构建阶段（vite build）                                      │
 │                                                             │
-│  1. Vite 打包客户端入口（main.tsx）→ dist/assets/            │
+│  1. Vite 打包客户端入口（virtual:clarify-entry-client）       │
+│       → output/assets/                                      │
 │                                                             │
-│  2. clarifyPlugin buildEnd()：                              │
-│       a. 扫描 rootDirectory 下的 MDX 和 OpenAPI 文件          │
-│       b. 构建路由清单（virtual:clarify-routes）               │
-│       c. 启动临时 Vite 开发服务器                            │
-│       d. ssrLoadModule('@clarify/renderer/server')          │
+│  2. clarifyPlugin closeBundle()：                           │
+│       a. 复用已解析的 MDX/OpenAPI 路由和虚拟模块              │
+│       b. 创建临时 SSR 入口文件                               │
+│       c. Vite 构建 SSR bundle → output/.ssr/entry-server.js │
+│       d. 导入 SSR bundle 中的 render(url)                    │
 │       e. 为每条路由：renderToHTML(url) → 写入 HTML           │
-│       f. 关闭临时服务器                                      │
+│       f. 写出 raw content 和 llms.txt                        │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -52,19 +52,20 @@
 
 ## 关键设计决策
 
-### 两阶段构建（客户端 + SSR）无磁盘产物
+### 两阶段构建（客户端 + SSR）
 
-Clarify Phase 1 有意避免服务端运行时。我们仅在构建时生成 HTML。
+Clarify 不需要服务端运行时。生产构建只在构建阶段执行 SSR，并把结果写成静态 HTML。
 
-为了在构建时将 React 组件渲染为 HTML 字符串，我们需要服务器端的 `renderToString`。我们不将单独的 SSR 包输出到磁盘，而是利用 Vite 自身的 SSR 模块加载器：
+为了在构建时将 React 组件渲染为 HTML 字符串，CLI 会生成一个临时 SSR 入口，然后使用 Vite 构建 SSR bundle：
 
-- **客户端包**：正常 Vite `build()` 输出 JS/CSS 资源到 `dist/`
-- **SSR 执行**：在 `buildEnd` 内部，创建一个短生命周期的 Vite 服务器（或复用构建的 `ssrLoadModule` 能力）以在 Node.js 中直接执行 `packages/renderer/source/server.tsx`。Vite 在内存中转译 JSX/TSX
+- **客户端包**：正常 Vite `build()` 输出 JS/CSS 资源到 `output/`（或 `--output` 指定目录）
+- **SSR bundle**：`closeBundle` 阶段生成 `.ssr/entry-server.js`，并在 Node.js 中导入执行
+- **HTML 写入**：读取客户端构建产出的 `index.html` 模板，把 `renderToHTML(url)` 的结果注入 `#root`
 
 这带来了：
-- ✅ 磁盘上无中间 `.js` 文件
-- ✅ 无单独的 SSR 构建步骤
-- ✅ 类型安全、支持 JSX 的执行环境
+- ✅ 产物仍然是可直接部署的静态文件
+- ✅ 无服务端运行时要求
+- ✅ SSR 与客户端使用同一套路由和虚拟模块数据
 
 ### 虚拟模块
 
@@ -72,15 +73,17 @@ Clarify 采用虚拟模块模式实现更清晰的分离：
 
 | 虚拟模块 | 用途 |
 |---------|------|
-| `virtual:clarify-config` | 合并 `clarify.json` + 插件选项，作为运行时配置暴露 |
-| `virtual:clarify-routes` | 路由清单：路径 → MDX 组件导入映射 |
-| `virtual:clarify-pages/*` | 按页面编译的 MDX 内容（懒加载） |
+| `virtual:clarify-config` | 合并项目配置与构建选项，作为运行时配置暴露 |
+| `virtual:clarify-routes` | 路由清单、导航树和页面章节数据 |
+| `virtual:clarify-openapi-registry` | 解析后的 OpenAPI 规范注册表 |
+| `virtual:clarify-entry-client` | CLI 注入的客户端入口 |
+| `virtual:clarify-pages/*` | 每个内容页面对应的虚拟模块 |
 
 这些模块由 `clarifyPlugin.resolveId()` 解析，由 `clarifyPlugin.load()` 生成。
 
 ### 路由发现
 
-Clarify Phase 1 使用**基于文件系统的路由**，并支持可选的 frontmatter 覆盖：
+Clarify 使用**基于文件系统的路由**，并支持可选的 frontmatter 覆盖：
 
 ```
 rootDirectory/
@@ -92,32 +95,31 @@ rootDirectory/
 ```
 
 - 路由从相对于 `rootDirectory` 的文件路径派生
-- 支持 `.mdx` 和 `.openapi.json/.yaml/.yml` 文件
-- 导航结构可通过 `clarify.json` 的 `pages` 字段自定义
+- 支持 `.md`、`.mdx` 和 `.openapi.json/.yaml/.yml` 文件
+- 导航结构可通过配置文件的 `pages` 字段自定义
 
 ### HTML 模板
 
-每个生成的 HTML 文件遵循以下结构：
+每个生成的 HTML 文件基于客户端构建产出的 `index.html` 模板，再注入 SSR 内容：
 
 ```html
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{pageTitle} | {siteTitle}</title>
-    <!-- Vite 在构建期间注入 CSS 链接 -->
+    <title>{siteTitle}</title>
+    <!-- Vite 注入构建后的 JS/CSS 资源 -->
   </head>
   <body>
     <div id="root">
       <!-- SSR: renderToString 输出 -->
     </div>
-    <script type="module" src="/assets/main-{hash}.js"></script>
   </body>
 </html>
 ```
 
-`<script>` 指向 Vite 正常构建产生的**客户端包**。CSS 通过 Vite 在客户端入口的 `import` 语句自动注入。
+Clarify 会根据当前路由语言修正 `<html lang>` / `dir`，并在缺少 description meta 时注入站点描述。脚本和样式资源由 Vite 的 HTML 构建流程管理。
 
 ---
 
@@ -126,27 +128,31 @@ rootDirectory/
 ### 步骤 1：客户端包构建
 
 Vite 运行正常构建：
-- 入口：`apps/docs/source/main.tsx`
-- 输出：`dist/assets/main-{hash}.js`、`dist/assets/index-{hash}.css` 等
-- 客户端入口导入 `virtual:clarify-routes` 并对应用进行注水
+- 入口：`virtual:clarify-entry-client`
+- 输出：`output/assets/index-{hash}.js`、`output/assets/index-{hash}.css` 等（或 `--output` 指定目录）
+- 客户端入口导入 `virtual:clarify-routes`、`virtual:clarify-config` 和 OpenAPI 注册表，并对应用进行注水
 
 ### 步骤 2：路由清单生成
 
-在 `clarifyPlugin.buildEnd()` 内部：
+在插件配置解析和构建启动阶段：
 
-1. 扫描 `rootDirectory` 以查找 `**/*.mdx` 和 `**/*.openapi.*`
-2. 对于每个文件，提取 frontmatter（title、description、hidden、slug）
-3. 构建路由清单：
+1. 扫描 `rootDirectory` 以查找 `**/*.md`、`**/*.mdx` 和 `**/*.openapi.*`
+2. 对于 MDX / Markdown 文件，提取 frontmatter 标题，并从标题生成页面章节
+3. 对于 OpenAPI 文件，解析规范并从接口列表生成页面章节
+4. 构建路由清单：
 
    ```typescript
-   interface RouteManifest {
-     routes: Array<{
-       path: string;           // URL 路径
-       slug: string;           // 唯一标识符
-       pageModule: string;     // virtual:clarify-pages/<slug>
-       meta: { title: string; description?: string };
-     }>;
+   type ContentRoute = {
+     path: string
+     basePath?: string
+     locale?: string
+     title: string
+     filePath: string
+     virtualModuleId: string
+     kind: 'mdx' | 'openapi'
+     sections?: ContentSection[]
+     rawContentUrl?: string
    }
    ```
 
-4. 注册虚拟模块，以便 `virtual:clarify-routes` 可以提供此清单
+5. 注册虚拟模块，以便 `virtual:clarify-routes` 可以提供路由清单和导航树

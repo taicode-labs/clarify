@@ -1,0 +1,158 @@
+# API 文档工作流
+
+一份产品级 API 文档不只是把 OpenAPI 文件渲染出来，还要让读者知道如何认证、如何调用关键流程、错误如何处理，以及完整接口参考在哪里。
+
+Clarify 推荐把 API 文档拆成三层：
+
+1. **指南**：解释业务流程和调用顺序
+2. **嵌入接口**：在关键步骤旁展示对应 operation
+3. **API Reference**：由 OpenAPI 规范生成完整接口列表
+
+---
+
+## 推荐目录结构
+
+```txt
+source/content/
+├── guides/
+│   ├── authentication.mdx
+│   ├── pagination.mdx
+│   └── webhooks.mdx
+├── api.openapi.json
+└── index.mdx
+```
+
+如果启用 i18n：
+
+```txt
+source/content/
+└── zh-CN/
+    ├── guides/
+    │   ├── authentication.mdx
+    │   ├── pagination.mdx
+    │   └── webhooks.mdx
+    └── api.openapi.json
+```
+
+---
+
+## 第一步：维护 OpenAPI 规范
+
+OpenAPI 文件是 API Reference 和接口嵌入的共同数据源。
+
+最少应包含：
+
+```json
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Acme API",
+    "version": "1.0.0",
+    "description": "Acme public API."
+  },
+  "servers": [
+    { "url": "https://api.example.com/v1" }
+  ],
+  "paths": {}
+}
+```
+
+建议由后端服务、网关或契约测试流程持续生成或校验，不要让文档站点成为规范的唯一来源。
+
+---
+
+## 第二步：生成完整 API Reference
+
+把规范文件放到内容目录后，它会自动成为页面：
+
+```txt
+source/content/api.openapi.json → /api
+```
+
+如果你手动配置侧边栏，需要加入：
+
+```json
+{
+  "openapi": "api.openapi.json",
+  "title": "API Reference",
+  "icon": "BookOpenCheck"
+}
+```
+
+完整规则见 [生成 API Reference](/features/api-reference)。
+
+---
+
+## 第三步：围绕真实任务写指南
+
+不要把所有说明都塞进 operation description。指南应该回答：
+
+- 调用这个 API 前需要准备什么？
+- 推荐调用顺序是什么？
+- 哪些错误最常见？
+- 响应字段在业务上怎么理解？
+- 什么时候应该改用另一个接口？
+
+示例：
+
+```mdx
+# 认证
+
+使用访问令牌调用受保护接口。令牌过期后，重新创建会话。
+
+<OpenApiEndpoint specPath="/api" path="/sessions" method="post" />
+```
+
+---
+
+## 第四步：把接口嵌入到关键步骤
+
+接口嵌入适合出现在流程节点旁边：
+
+```mdx
+## 创建页面
+
+创建页面时，先传入标题和内容块。发布状态可以稍后更新。
+
+<OpenApiEndpoint specPath="/api" path="/pages" method="post" />
+```
+
+完整用法见 [在 MDX 中嵌入接口](/features/openapi-embedding)。
+
+---
+
+## 第五步：发布前检查
+
+发布 API 文档前建议检查：
+
+- OpenAPI 文件能被构建成功解析
+- 侧边栏中有清晰的 API Reference 入口
+- 关键业务流程有指南，而不只是接口列表
+- 示例请求和响应没有测试数据泄漏
+- 错误响应有明确说明
+- `llms.txt` 能列出原始 OpenAPI 规范链接
+
+---
+
+## 写作分工建议
+
+| 角色 | 负责内容 |
+|------|----------|
+| 后端 / API 平台 | OpenAPI 规范、schema、响应码、认证方式 |
+| 技术写作 | 指南结构、调用流程、错误解释 |
+| 前端 / SDK | 示例代码、SDK 行为、真实集成场景 |
+| 产品 / 开发者体验 | 信息架构、命名、读者任务路径 |
+
+---
+
+## 维护策略
+
+API 文档容易过期，建议把它纳入工程流程：
+
+- 在 CI 中校验 OpenAPI 规范
+- 把破坏性接口变更写入 changelog
+- 为公开 API 保留版本策略
+- 用示例请求覆盖核心流程
+- 定期检查指南中的接口嵌入是否仍存在
+
+Clarify 的目标是让 OpenAPI 规范、指南和静态站点构建连在一起，降低维护成本，而不是让接口文档成为额外的手工副本。
