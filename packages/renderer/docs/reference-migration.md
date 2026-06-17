@@ -96,9 +96,17 @@ Initial dependency candidates:
 - [x] Add code highlighting pipeline if needed.
 - [x] Validate light/dark mode, mobile, anchors, active section highlighting.
 
+### Phase 6 — OpenAPI reference rendering
+
+- [x] Audit the reference API pages and confirm their endpoint UX is MDX-driven rather than a standalone OpenAPI component.
+- [x] Upgrade Clarify's automatic OpenAPI pages from simple endpoint cards to reference-style endpoint sections.
+- [x] Reuse the reference `Row`, `Col`, `Properties`, `Property`, `Heading`, and `CodeGroup` primitives for generated API documentation.
+- [x] Render operation parameters, request body schemas, response summaries, cURL examples, and JSON response examples where OpenAPI data is available.
+- [x] Preserve the existing `OpenApiPage`, `ApiEndpoint`, and `OpenApiEndpoint` public APIs.
+
 ## Current progress
 
-Status: Reference UI migration complete.
+Status: Reference UI migration complete, including OpenAPI reference rendering.
 
 Completed in the first pass:
 
@@ -107,6 +115,7 @@ Completed in the first pass:
 - Added renderer-local `typography.ts` based on the reference typography system.
 - Migrated portable primitives: `Button`, `Tag`, `Logo`, `Prose`.
 - Updated compatibility components `DocShell` and `ApiEndpointCard` to use the reference visual language.
+- Upgraded automatic OpenAPI rendering to generate reference-style endpoint detail sections.
 - Verified `pnpm --filter @clarify/renderer typecheck` and `pnpm --filter @clarify/renderer build`.
 
 Final validation completed with `pnpm typecheck && pnpm test && pnpm build`.
