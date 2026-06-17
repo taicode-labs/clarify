@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link, Routes, Route, useLocation } from 'react-router-dom'
 
@@ -19,14 +20,28 @@ function sectionsForPath(routes: RouteItem[], pathname: string): Section[] {
     currentRoute?.sections?.map((section) => ({
       id: section.id,
       title: section.title,
+      tag: section.method,
     })) ?? []
   )
+}
+
+function scrollToHash(hash: string) {
+  if (!hash) return
+
+  const targetId = decodeURIComponent(hash.slice(1))
+  window.requestAnimationFrame(() => {
+    document.getElementById(targetId)?.scrollIntoView()
+  })
 }
 
 export function AppShell(arg0: AppShellProps) {
   const { config, routes, navigation } = arg0
   const location = useLocation()
   const sections = sectionsForPath(routes, location.pathname)
+
+  useEffect(() => {
+    scrollToHash(location.hash)
+  }, [location.hash, location.pathname])
 
   return (
     <SectionProvider sections={sections}>

@@ -48,6 +48,10 @@ export function extractMdxSections(content: string): ContentSection[] {
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
 
+function navigationSections(sections: ContentSection[]) {
+  return sections.map(s => ({ id: s.id, title: s.title, method: s.method }))
+}
+
 /** 从 OpenAPI spec 中提取接口列表作为章节 */
 export function extractOpenAPISections(spec: OpenAPISpec): ContentSection[] {
   const sections: ContentSection[] = []
@@ -58,7 +62,7 @@ export function extractOpenAPISections(spec: OpenAPISpec): ContentSection[] {
       const op = pathItem[method]
       if (!op) continue
       const title = op.summary ?? `${method.toUpperCase()} ${path}`
-      sections.push({ id: slug(`${method} ${path}`), title, level: 2 })
+      sections.push({ id: slug(`${method} ${path}`), title, level: 2, method: method.toUpperCase() })
     }
   }
   return sections
@@ -154,7 +158,7 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
         current.push(node)
       }
       if (i === parts.length - 1 && route.sections) {
-        node.sections = route.sections.map(s => ({ id: s.id, title: s.title }))
+        node.sections = navigationSections(route.sections)
       }
       if (i < parts.length - 1) {
         node.children = node.children ?? []
@@ -187,7 +191,7 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
         return {
           path,
           title: title ?? route?.title ?? kebabToTitle(path.split('/').pop() ?? openapiRef),
-          sections: route?.sections?.map(s => ({ id: s.id, title: s.title })),
+          sections: route?.sections ? navigationSections(route.sections) : undefined,
         }
       }
 
@@ -197,7 +201,7 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
       return {
         path: redirect ? redirect : path,
         title: route?.title ?? kebabToTitle(path.split('/').pop() ?? ref),
-        sections: route?.sections?.map(s => ({ id: s.id, title: s.title })),
+        sections: route?.sections ? navigationSections(route.sections) : undefined,
       }
     })
 

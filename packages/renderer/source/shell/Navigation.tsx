@@ -69,11 +69,24 @@ function NavLink({
   active?: boolean
   isAnchorLink?: boolean
 }) {
+  function handleClick() {
+    if (!isAnchorLink) return
+
+    const hashIndex = href.indexOf('#')
+    if (hashIndex === -1) return
+
+    const targetId = decodeURIComponent(href.slice(hashIndex + 1))
+    window.requestAnimationFrame(() => {
+      document.getElementById(targetId)?.scrollIntoView()
+    })
+  }
+
   return (
     <CloseButton
       as={Link}
       to={href}
       aria-current={active ? 'page' : undefined}
+      onClick={handleClick}
       className={clsx(
         'flex justify-between gap-2 py-1 pr-3 text-sm transition',
         isAnchorLink ? 'pl-7' : 'pl-4',

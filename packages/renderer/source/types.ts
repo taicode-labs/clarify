@@ -2,11 +2,17 @@ import type { ComponentType } from 'react'
 
 import type { OpenAPISpec } from './openapi/utils'
 
+export type RouteSection = {
+  id: string;
+  title: string;
+  method?: string;
+};
+
 export type NavigationNode = {
   path: string;
   title: string;
   children?: NavigationNode[];
-  sections?: { id: string; title: string }[];
+  sections?: RouteSection[];
 };
 
 export type RouteItem = {
@@ -14,7 +20,7 @@ export type RouteItem = {
   title: string;
   component: ComponentType;
   kind?: 'mdx' | 'openapi';
-  sections?: { id: string; title: string }[];
+  sections?: RouteSection[];
 };
 
 export type ClarifyLogoConfig = string | { light?: string; dark?: string };
