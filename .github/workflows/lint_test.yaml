@@ -40,10 +40,9 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Test
+        run: pnpm test
+
       # Uncomment when lint tools are configured
       # - name: Lint
       #   run: pnpm lint
-
-      # Uncomment when tests are added
-      # - name: Test
-      #   run: pnpm test

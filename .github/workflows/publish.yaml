@@ -79,6 +79,10 @@ jobs:
         if: steps.publish-plan.outputs.has-packages == 'true'
         run: pnpm build
 
+      - name: Test
+        if: steps.publish-plan.outputs.has-packages == 'true'
+        run: pnpm test
+
       - name: Publish missing packages
         if: steps.publish-plan.outputs.has-packages == 'true'
         shell: bash
