@@ -100,8 +100,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   }
 
   const mdx = mdxPlugin({
-    include: options.include ?? ['**/*.{md,mdx}'],
-    exclude: options.exclude,
+    include: ['**/*.{md,mdx}'],
     jsxImportSource: 'react',
     providerImportSource: '@clarify/renderer',
     remarkPlugins,

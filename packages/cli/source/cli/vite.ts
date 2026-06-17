@@ -1,9 +1,10 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
-import type { InlineConfig, Plugin } from 'vite'
+import type { ConfigEnv, InlineConfig, Plugin } from 'vite'
 
 import type { ClarifyBuildOptions } from '../core/options.js'
+import { loadClarifyConfig } from '../core/user-config.js'
 import { clarifyPlugin } from '../index.js'
 
 import type { ResolvedCliOptions } from './options.js'
@@ -46,9 +47,11 @@ function createHtmlFallbackPlugin(): Plugin {
   }
 }
 
-export function createViteConfig(options: ResolvedCliOptions): InlineConfig {
+export async function createViteConfig(options: ResolvedCliOptions, env: ConfigEnv): Promise<InlineConfig> {
   const entryHtmlPath = ensureHtmlEntry(options.root)
+  const userConfig = await loadClarifyConfig(options.root, env)
   const buildOptions: ClarifyBuildOptions = {
+    ...userConfig,
     projectRoot: options.root,
     rootDirectory: options.content,
     outputDirectory: options.output,

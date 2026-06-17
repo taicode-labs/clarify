@@ -1,5 +1,3 @@
-import type { FilterPattern } from 'vite'
-
 import type { ClarifyPlugin } from '../types.js'
 
 export type ClarifyBuildOptions = {
@@ -14,10 +12,6 @@ export type ClarifyBuildOptions = {
     /** Fail the build when SSG fails. Default: true. */
     failOnError?: boolean
   }
-
-  /** Custom include/exclude filters for MDX processing. */
-  include?: FilterPattern
-  exclude?: FilterPattern
 
   /** Clarify plugin extensions for translation, search, and other build-time features. */
   plugins?: ClarifyPlugin[]

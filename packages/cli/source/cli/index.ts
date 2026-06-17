@@ -8,14 +8,14 @@ import { readPackageVersion } from './package.js'
 import { createViteConfig } from './vite.js'
 
 async function runDev(options: ResolvedCliOptions): Promise<void> {
-  const server = await createServer(createViteConfig(options))
+  const server = await createServer(await createViteConfig(options, { command: 'serve', mode: 'development' }))
   await server.listen()
   server.printUrls()
   server.bindCLIShortcuts({ print: true })
 }
 
 async function runBuild(options: ResolvedCliOptions): Promise<void> {
-  await viteBuild(createViteConfig(options))
+  await viteBuild(await createViteConfig(options, { command: 'build', mode: 'production' }))
 }
 
 function withSharedOptions(command: ReturnType<ReturnType<typeof cac>['command']>) {

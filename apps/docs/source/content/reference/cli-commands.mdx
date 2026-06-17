@@ -97,12 +97,31 @@ pnpm exec clarify build --output dist
 
 ---
 
+## 插件配置
+
+普通站点配置仍然写在 `clarify.json`。如果需要接入 Clarify 构建插件，请创建 `clarify.config.ts`：
+
+```ts
+import { defineConfig } from '@clarify/cli'
+
+export default defineConfig({
+  plugins: [
+    // searchPlugin(),
+    // translatePlugin(),
+  ],
+})
+```
+
+`clarify.config.ts` 只放构建期扩展能力，例如 `plugins` 和 `ssg`。内容作者仍然只需要维护 `clarify.json`。
+
+---
+
 ## 配置优先级
 
-CLI 选项用于控制构建和运行行为，`clarify.json` 用于控制站点展示内容。当同一项可由两处配置时，优先级为：
+CLI 选项用于控制构建和运行行为，`clarify.config.ts` 用于控制构建期扩展，`clarify.json` 用于控制站点展示内容。优先级为：
 
 ```
-CLI 选项 > clarify.json > 默认值
+CLI 选项 > clarify.config.ts > clarify.json > 默认值
 ```
 
 ---
