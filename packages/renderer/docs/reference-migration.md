@@ -51,10 +51,11 @@ Initial dependency candidates:
 ### Phase 2 — Portable primitives
 
 - [x] Copy/adapt low-risk primitives that do not require Next.js: `Button`, `Tag`, `Logo`, `Prose`.
+- [x] Copy/adapt section primitives: `remToPx`, `SectionProvider`.
 - [ ] Copy/adapt remaining low-risk primitives: `GridPattern`, `HeroPattern`, `Heading`, `Feedback`, icons.
 - [x] Replace `next/link` with React Router or plain anchors for migrated primitives.
 - [ ] Replace `next/navigation` with React Router hooks.
-- [ ] Replace `@/` aliases with relative imports.
+- [x] Replace `@/` aliases with relative imports for migrated primitives.
 - [x] Export intended public primitives from `source/index.tsx`.
 
 ### Phase 3 — Shell integration
