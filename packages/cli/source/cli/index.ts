@@ -1,22 +1,11 @@
 #!/usr/bin/env node
 import { cac } from 'cac'
-import { build as viteBuild, createServer } from 'vite'
 
-import { runInit } from './init.js'
+import { runBuild } from './commands/build.js'
+import { runDev } from './commands/dev.js'
+import { runInit } from './commands/init.js'
 import { resolveCliOptions, type CliOptions, type ResolvedCliOptions } from './options.js'
 import { readPackageVersion } from './package.js'
-import { createViteConfig } from './vite.js'
-
-async function runDev(options: ResolvedCliOptions): Promise<void> {
-  const server = await createServer(await createViteConfig(options, { command: 'serve', mode: 'development' }))
-  await server.listen()
-  server.printUrls()
-  server.bindCLIShortcuts({ print: true })
-}
-
-async function runBuild(options: ResolvedCliOptions): Promise<void> {
-  await viteBuild(await createViteConfig(options, { command: 'build', mode: 'production' }))
-}
 
 function withSharedOptions(command: ReturnType<ReturnType<typeof cac>['command']>) {
   return command

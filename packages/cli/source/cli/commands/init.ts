@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
-import type { ResolvedCliOptions } from './options.js'
+import type { ResolvedCliOptions } from '../options.js'
 
 function writeTextFile(filePath: string, content: string, force: boolean): boolean {
   if (existsSync(filePath) && !force) return false

@@ -3,11 +3,18 @@ import { dirname, resolve } from 'node:path'
 
 import type { ConfigEnv, InlineConfig, Plugin } from 'vite'
 
-import type { ClarifyBuildOptions } from '../core/options.js'
-import { loadClarifyConfig } from '../core/user-config.js'
-import { clarifyPlugin } from '../index.js'
+import type { ClarifyBuildOptions } from './options.js'
+import { clarifyPlugin } from './plugin.js'
+import { loadClarifyConfig } from './user-config.js'
 
-import type { ResolvedCliOptions } from './options.js'
+export type ClarifyViteConfigOptions = {
+  root: string
+  content: string
+  output: string
+  host?: string | boolean
+  port?: number
+  open?: boolean | string
+}
 
 const DEFAULT_HTML = '<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Clarify</title></head><body><div id="root"></div></body></html>'
 
@@ -47,7 +54,7 @@ function createHtmlFallbackPlugin(): Plugin {
   }
 }
 
-export async function createViteConfig(options: ResolvedCliOptions, env: ConfigEnv): Promise<InlineConfig> {
+export async function createViteConfig(options: ClarifyViteConfigOptions, env: ConfigEnv): Promise<InlineConfig> {
   const entryHtmlPath = ensureHtmlEntry(options.root)
   const userConfig = await loadClarifyConfig(options.root, env)
   const buildOptions: ClarifyBuildOptions = {
