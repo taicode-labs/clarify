@@ -11,7 +11,7 @@ type TestNode = {
   value?: string
 }
 
-function codeTree(language = 'ts'): TestNode {
+function codeTree(language = 'ts', code = 'const answer = 42\n'): TestNode {
   return {
     type: 'root',
     children: [
@@ -24,7 +24,7 @@ function codeTree(language = 'ts'): TestNode {
             type: 'element',
             tagName: 'code',
             properties: { className: [`language-${language}`] },
-            children: [{ type: 'text', value: 'const answer = 42\n' }],
+            children: [{ type: 'text', value: code }],
           },
         ],
       },
@@ -85,6 +85,19 @@ describe('mdx rehype plugins', () => {
     expect(code?.properties?.code).toBe('const answer = 42\n')
     expect(highlighted).toContain('<span')
     expect(highlighted).toContain('--shiki')
+  })
+
+  it('preserves line breaks in plain fenced code blocks', async () => {
+    const tree = codeTree('txt', 'first line\nsecond line\nthird line')
+    rehypeParseCodeBlocks()(tree)
+
+    const transformer = rehypeShiki()
+    await transformer(tree)
+
+    const code = tree.children?.[0]?.children?.[0]
+    const highlighted = code?.children?.[0]?.value ?? ''
+
+    expect(highlighted).toBe('<span>first line</span>\n<span>second line</span>\n<span>third line</span>')
   })
 
   it('enables GitHub Flavored Markdown syntax', async () => {

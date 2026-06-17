@@ -34,7 +34,7 @@ function renderPlainCode(code: string): string {
   return code
     .split('\n')
     .map(line => `<span>${escapeHtml(line)}</span>`)
-    .join('')
+    .join('\n')
 }
 
 let highlighter: Highlighter | undefined
