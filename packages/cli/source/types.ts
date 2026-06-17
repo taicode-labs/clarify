@@ -178,9 +178,6 @@ export type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
 
 export type NavigationTree = ClarifyNavigationNode[] | LocalizedNavigation
 
-/** @deprecated Use ContentRoute instead */
-export type MdxRoute = ContentRoute
-
 export type ClarifyPage = {
   path: string
   filePath: string

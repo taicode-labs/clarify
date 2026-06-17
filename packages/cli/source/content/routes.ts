@@ -219,11 +219,6 @@ export function findLocalizedContentRoutes(contentRoot: string, i18n?: ResolvedC
   return localizedRoutes.map(route => withAlternates(route, localizedRoutes, i18n))
 }
 
-/** @deprecated Use findContentRoutes instead */
-export function findMdxFiles(dir: string, base: string = dir): ContentRoute[] {
-  return findContentRoutes(dir, base).filter(r => r.kind === 'mdx')
-}
-
 export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[] {
   const root: ClarifyNavigationNode[] = []
 

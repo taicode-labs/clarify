@@ -5,16 +5,16 @@ import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
-import type { ResolvedProjectConfig, ResolvedBuildOptions, MdxRoute, ClarifyPagesConfig, ClarifyPagesGroup, ResolvedClarifyI18nConfig } from '../types.js'
+import type { ResolvedProjectConfig, ResolvedBuildOptions, ContentRoute, ClarifyPagesConfig, ClarifyPagesGroup, ResolvedClarifyI18nConfig } from '../types.js'
 
 import { extractFrontmatter } from './frontmatter.js'
-import { findMdxFiles, buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, findLocalizedContentRoutes } from './routes.js'
+import { findContentRoutes, buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, findLocalizedContentRoutes } from './routes.js'
 
-function mdxRoute(route: Omit<MdxRoute, 'kind'>): MdxRoute {
+function mdxRoute(route: Omit<ContentRoute, 'kind'>): ContentRoute {
   return { ...route, kind: 'mdx' }
 }
 
-describe('findMdxFiles', () => {
+describe('findContentRoutes', () => {
   let tempDir: string
 
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe('findMdxFiles', () => {
   })
 
   it('returns empty array when directory does not exist', () => {
-    const result = findMdxFiles(join(tempDir, 'nonexistent'))
+    const result = findContentRoutes(join(tempDir, 'nonexistent'))
     expect(result).toEqual([])
   })
 
@@ -34,7 +34,7 @@ describe('findMdxFiles', () => {
     writeFileSync(join(tempDir, 'index.mdx'), '# Home', 'utf-8')
     writeFileSync(join(tempDir, 'about.mdx'), '# About', 'utf-8')
 
-    const result = findMdxFiles(tempDir)
+    const result = findContentRoutes(tempDir)
     expect(result).toHaveLength(2)
     expect(result.map(r => r.path)).toContain('/')
     expect(result.map(r => r.path)).toContain('/about')
@@ -48,7 +48,7 @@ describe('findMdxFiles', () => {
     writeFileSync(join(tempDir, 'index.mdx'), '# Home', 'utf-8')
     writeFileSync(join(guideDir, 'getting-started.mdx'), '# GS', 'utf-8')
 
-    const result = findMdxFiles(tempDir)
+    const result = findContentRoutes(tempDir)
     expect(result).toHaveLength(2)
     expect(result.map(r => r.path)).toContain('/')
     expect(result.map(r => r.path)).toContain('/guide/getting-started')
@@ -58,7 +58,7 @@ describe('findMdxFiles', () => {
 
   it('maps index.mdx to root path', () => {
     writeFileSync(join(tempDir, 'index.mdx'), '# Home', 'utf-8')
-    const result = findMdxFiles(tempDir)
+    const result = findContentRoutes(tempDir)
     const indexRoute = result.find(r => r.path === '/')
     expect(indexRoute).toBeDefined()
     expect(indexRoute?.virtualModuleId).toBe('virtual:clarify-page/index')
@@ -68,7 +68,7 @@ describe('findMdxFiles', () => {
   it('discovers markdown and ignores unrelated files', () => {
     writeFileSync(join(tempDir, 'readme.txt'), 'text', 'utf-8')
     writeFileSync(join(tempDir, 'page.md'), '# MD', 'utf-8')
-    const result = findMdxFiles(tempDir)
+    const result = findContentRoutes(tempDir)
     expect(result).toHaveLength(1)
     expect(result[0].path).toBe('/page')
     expect(result[0].title).toBe('Page')
@@ -79,7 +79,7 @@ describe('findMdxFiles', () => {
     mkdirSync(subDir, { recursive: true })
     writeFileSync(join(subDir, 'login.mdx'), '# Login', 'utf-8')
 
-    const result = findMdxFiles(tempDir)
+    const result = findContentRoutes(tempDir)
     expect(result).toHaveLength(1)
     expect(result[0].virtualModuleId).toBe('virtual:clarify-page/api/auth/login')
   })
@@ -87,13 +87,13 @@ describe('findMdxFiles', () => {
   it('extracts frontmatter title', () => {
     const content = '---\ntitle: My Page\n---\n\n# Hello'
     writeFileSync(join(tempDir, 'page.mdx'), content, 'utf-8')
-    const result = findMdxFiles(tempDir)
+    const result = findContentRoutes(tempDir)
     expect(result[0].title).toBe('My Page')
   })
 
   it('falls back to filename stem for title', () => {
     writeFileSync(join(tempDir, 'quick-start.mdx'), '# Hello', 'utf-8')
-    const result = findMdxFiles(tempDir)
+    const result = findContentRoutes(tempDir)
     expect(result[0].title).toBe('Quick Start')
   })
 })
@@ -126,7 +126,7 @@ describe('generateRoutesModule', () => {
   })
 
   it('generates imports and routes array', () => {
-    const routes: MdxRoute[] = [
+    const routes: ContentRoute[] = [
       { path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index', kind: 'mdx' },
       { path: '/about', title: 'About', filePath: '/a/about.mdx', virtualModuleId: 'virtual:clarify-page/about', kind: 'mdx' },
     ]
@@ -161,14 +161,14 @@ describe('extractFrontmatter', () => {
 
 describe('buildNavigation', () => {
   it('returns empty array for only home route', () => {
-    const routes: MdxRoute[] = [
+    const routes: ContentRoute[] = [
       mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'virtual:clarify-page/index' }),
     ]
     expect(buildNavigation(routes)).toEqual([])
   })
 
   it('builds flat navigation', () => {
-    const routes: MdxRoute[] = [
+    const routes: ContentRoute[] = [
       mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/config', title: 'Config', filePath: 'config.mdx', virtualModuleId: 'v' }),
@@ -180,7 +180,7 @@ describe('buildNavigation', () => {
   })
 
   it('builds nested navigation', () => {
-    const routes: MdxRoute[] = [
+    const routes: ContentRoute[] = [
       mdxRoute({ path: '/guide/getting-started', title: 'Getting Started', filePath: 'a.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/guide/advanced', title: 'Advanced', filePath: 'b.mdx', virtualModuleId: 'v' }),
     ]
@@ -262,7 +262,7 @@ describe('buildLocalizedNavigation', () => {
   }
 
   it('builds localized navigation from one manual pages config', () => {
-    const routes: MdxRoute[] = [
+    const routes: ContentRoute[] = [
       mdxRoute({ path: '/', basePath: '/', locale: 'zh-CN', sourceLocale: 'zh-CN', title: '首页', filePath: 'zh-CN/index.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/guide', basePath: '/guide', locale: 'zh-CN', sourceLocale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/en-US', basePath: '/', locale: 'en-US', sourceLocale: 'zh-CN', title: 'Home', filePath: 'en-US/index.mdx', virtualModuleId: 'v' }),
@@ -284,7 +284,7 @@ describe('buildLocalizedNavigation', () => {
 
 describe('buildNavigationFromConfig', () => {
   it('builds navigation from explicit config', () => {
-    const routes: MdxRoute[] = [
+    const routes: ContentRoute[] = [
       mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/quickstart', title: 'Quick Start', filePath: 'quickstart.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/advanced/ssg', title: 'SSG', filePath: 'ssg.mdx', virtualModuleId: 'v' }),
@@ -304,7 +304,7 @@ describe('buildNavigationFromConfig', () => {
   })
 
   it('falls back to filename title when route not found', () => {
-    const routes: MdxRoute[] = []
+    const routes: ContentRoute[] = []
     const config: ClarifyPagesGroup[] = [
       { group: 'Missing', pages: ['nonexistent'] },
     ]
@@ -317,7 +317,7 @@ describe('buildNavigationFromConfig', () => {
 
 describe('generateRoutesModule with navigation config', () => {
   it('uses manual navigation when config is provided', () => {
-    const routes: MdxRoute[] = [
+    const routes: ContentRoute[] = [
       mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/about', title: 'About', filePath: 'about.mdx', virtualModuleId: 'v' }),
     ]
@@ -331,7 +331,7 @@ describe('generateRoutesModule with navigation config', () => {
   })
 
   it('uses auto navigation when pages is "FileTree"', () => {
-    const routes: MdxRoute[] = [
+    const routes: ContentRoute[] = [
       mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' }),
     ]
