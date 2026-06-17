@@ -201,6 +201,8 @@ export type ContentRoute = {
 
 export type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
 
+export type NavigationTree = ClarifyNavigationNode[] | LocalizedNavigation
+
 /** @deprecated Use ContentRoute instead */
 export type MdxRoute = ContentRoute
 
@@ -238,9 +240,9 @@ export type ClarifyHooks = {
     ctx: ClarifyHookContext
   ) => Promise<ClarifyPage> | ClarifyPage
   'routes:resolved'?: (
-    input: { routes: ContentRoute[]; navigation: ClarifyNavigationNode[]; navigationByLocale?: LocalizedNavigation },
+    input: { routes: ContentRoute[]; navigation: NavigationTree },
     ctx: ClarifyHookContext
-  ) => Promise<{ routes: ContentRoute[]; navigation: ClarifyNavigationNode[]; navigationByLocale?: LocalizedNavigation }> | { routes: ContentRoute[]; navigation: ClarifyNavigationNode[]; navigationByLocale?: LocalizedNavigation }
+  ) => Promise<{ routes: ContentRoute[]; navigation: NavigationTree }> | { routes: ContentRoute[]; navigation: NavigationTree }
   'modules:before'?: (
     modules: Map<string, string>,
     ctx: ClarifyHookContext

@@ -5,13 +5,12 @@ import { Link, Routes, Route, useLocation } from 'react-router-dom'
 import { Logo } from '../components'
 import { SectionProvider, type Section } from '../components/SectionProvider'
 import { ContentActions, Header, Navigation } from '../shell'
-import type { RouteItem, ClarifyConfig, NavigationNode, LocalizedNavigation } from '../types'
+import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTree } from '../types'
 
 export type AppShellProps = {
   config: ClarifyConfig
   routes: RouteItem[]
-  navigation: NavigationNode[]
-  navigationByLocale?: LocalizedNavigation
+  navigation: NavigationTree
 }
 
 function routeForPath(routes: RouteItem[], pathname: string): RouteItem | undefined {
@@ -46,14 +45,18 @@ function localeForPath(config: ClarifyConfig, pathname: string, route?: RouteIte
   return i18n.locales.find((locale) => locale.code === firstSegment)?.code ?? i18n.defaultLocale
 }
 
+function navigationForLocale(navigation: NavigationTree, locale?: string): NavigationNode[] {
+  if (Array.isArray(navigation)) return navigation
+  if (!locale) return []
+  return navigation[locale] ?? []
+}
+
 export function AppShell(arg0: AppShellProps) {
-  const { config, routes, navigation, navigationByLocale } = arg0
+  const { config, routes, navigation } = arg0
   const location = useLocation()
   const currentRoute = routeForPath(routes, location.pathname)
   const currentLocale = localeForPath(config, location.pathname, currentRoute)
-  const currentNavigation = currentLocale && navigationByLocale?.[currentLocale]
-    ? navigationByLocale[currentLocale]
-    : navigation
+  const currentNavigation = navigationForLocale(navigation, currentLocale)
   const sections = sectionsForRoute(currentRoute)
 
   useEffect(() => {

@@ -107,15 +107,15 @@ export type ClarifyConfig = {
 
 export type LocalizedNavigation = Record<string, NavigationNode[]>;
 
+export type NavigationTree = NavigationNode[] | LocalizedNavigation;
+
 export type RenderOptions = {
   /** 从 virtual:clarify-config 导入的 config */
   config: ClarifyConfig;
   /** 从 virtual:clarify-routes 导入的路由数组 */
   routes: RouteItem[];
-  /** 从 virtual:clarify-routes 导入的导航树 */
-  navigation?: NavigationNode[];
-  /** 从 virtual:clarify-routes 导入的多语言导航树 */
-  navigationByLocale?: LocalizedNavigation;
+  /** 从 virtual:clarify-routes 导入的导航树；启用 i18n 时为按 locale 分组的导航树 */
+  navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApiSpecs?: Record<string, OpenAPISpec>;
   /** 挂载节点，默认 document.getElementById('root') */
@@ -127,10 +127,8 @@ export type ServerRenderOptions = {
   config: ClarifyConfig;
   /** 从 virtual:clarify-routes 导入的路由数组 */
   routes: RouteItem[];
-  /** 从 virtual:clarify-routes 导入的导航树 */
-  navigation?: NavigationNode[];
-  /** 从 virtual:clarify-routes 导入的多语言导航树 */
-  navigationByLocale?: LocalizedNavigation;
+  /** 从 virtual:clarify-routes 导入的导航树；启用 i18n 时为按 locale 分组的导航树 */
+  navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApiSpecs?: Record<string, OpenAPISpec>;
   /** 当前请求的 URL */

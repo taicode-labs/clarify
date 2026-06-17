@@ -10,14 +10,14 @@ import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { runBuildDoneHooks, runHooks } from './hooks.js'
 import { rehypePlugins, remarkPlugins } from './mdx.js'
 import { createLlmsTxt, enrichRoutesWithRawContent, readRawContent, writeLlmsTxt, writeRawContentFiles } from './raw-content.js'
-import { buildNavigation, buildNavigationByLocale, buildNavigationFromConfig, extractOpenAPISections, findLocalizedContentRoutes, readOpenAPISpec } from './routes.js'
+import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, extractOpenAPISections, findLocalizedContentRoutes, readOpenAPISpec } from './routes.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
   buildSSRBundle,
   renderSSGRoutes,
 } from './ssg.js'
-import type { ClarifyGenerateOptions, ClarifyHookContext, ClarifyNavigationNode, ClarifyPlugin, OpenAPISpec } from './types.js'
+import type { ClarifyGenerateOptions, ClarifyHookContext, ClarifyNavigationNode, ClarifyPlugin, NavigationTree, OpenAPISpec } from './types.js'
 import {
   RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
@@ -66,8 +66,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const clarifyPlugins: ClarifyPlugin[] = options.plugins ?? []
   const ctx: ClarifyHookContext = { projectConfig, generateOptions }
   let viteConfig: ResolvedConfig
-  let resolvedNavigation: ClarifyNavigationNode[] = []
-  let resolvedNavigationByLocale: Record<string, ClarifyNavigationNode[]> | undefined
+  let resolvedNavigation: NavigationTree = []
   let virtualModules: VirtualModules = new Map()
 
   async function resolveRoutesAndSpecs() {
@@ -86,17 +85,15 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       }
     }
 
-    const defaultNavigationByLocale = buildNavigationByLocale(routes, projectConfig.pages, projectConfig.i18n)
     const defaultNavigation = projectConfig.i18n
-      ? (defaultNavigationByLocale?.[projectConfig.i18n.defaultLocale] ?? [])
+      ? (buildLocalizedNavigation(routes, projectConfig.pages, projectConfig.i18n) ?? {})
       : projectConfig.pages && projectConfig.pages !== 'FileTree'
         ? buildNavigationFromConfig(routes, projectConfig.pages)
         : buildNavigation(routes)
-    const resolved = await runHooks(clarifyPlugins, 'routes:resolved', { routes, navigation: defaultNavigation, navigationByLocale: defaultNavigationByLocale }, ctx)
+    const resolved = await runHooks(clarifyPlugins, 'routes:resolved', { routes, navigation: defaultNavigation }, ctx)
     routes = resolved.routes
     enrichRoutesWithRawContent(routes)
     resolvedNavigation = resolved.navigation
-    resolvedNavigationByLocale = resolved.navigationByLocale
   }
 
   async function rebuildVirtualModules() {
@@ -105,7 +102,6 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       generateOptions,
       routes,
       navigation: resolvedNavigation,
-      navigationByLocale: resolvedNavigationByLocale,
       openApiSpecs,
     })
     virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)

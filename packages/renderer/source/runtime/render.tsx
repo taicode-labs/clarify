@@ -27,7 +27,7 @@ function isHydrationDebugEnabled(): boolean {
 }
 
 export function render(options: RenderOptions) {
-  const { config, routes, navigation, navigationByLocale, openApiSpecs = {}, container } = options
+  const { config, routes, navigation, openApiSpecs = {}, container } = options
 
   const target = container ?? document.getElementById('root')
   if (!target) {
@@ -40,7 +40,7 @@ export function render(options: RenderOptions) {
         <ClarifyConfigContext.Provider value={config}>
           <OpenApiSpecsContext.Provider value={openApiSpecs}>
             <ThemeProvider>
-              <AppShell config={config} routes={routes} navigation={navigation ?? []} navigationByLocale={navigationByLocale} />
+              <AppShell config={config} routes={routes} navigation={navigation ?? []} />
             </ThemeProvider>
           </OpenApiSpecsContext.Provider>
         </ClarifyConfigContext.Provider>

@@ -306,7 +306,7 @@ function localizeNavigationPaths(nodes: ClarifyNavigationNode[], locale: string,
   }))
 }
 
-export function buildNavigationByLocale(routes: ContentRoute[], config: ClarifyPagesGroup[] | 'FileTree' | undefined, i18n?: ResolvedClarifyI18nConfig): LocalizedNavigation | undefined {
+export function buildLocalizedNavigation(routes: ContentRoute[], config: ClarifyPagesGroup[] | 'FileTree' | undefined, i18n?: ResolvedClarifyI18nConfig): LocalizedNavigation | undefined {
   if (!i18n) return undefined
 
   const result: LocalizedNavigation = {}

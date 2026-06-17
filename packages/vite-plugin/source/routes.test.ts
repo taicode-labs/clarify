@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { extractFrontmatter } from './frontmatter.js'
-import { findMdxFiles, buildNavigation, buildNavigationFromConfig, buildNavigationByLocale, findLocalizedContentRoutes } from './routes.js'
+import { findMdxFiles, buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, findLocalizedContentRoutes } from './routes.js'
 import type { ResolvedProjectConfig, ResolvedGenerateOptions, MdxRoute, ClarifyPagesConfig, ClarifyPagesGroup, ResolvedClarifyI18nConfig } from './types.js'
 import { generateConfigModule, generateRoutesModule } from './virtual-modules.js'
 
@@ -248,7 +248,7 @@ describe('findLocalizedContentRoutes', () => {
   })
 })
 
-describe('buildNavigationByLocale', () => {
+describe('buildLocalizedNavigation', () => {
   const i18n: ResolvedClarifyI18nConfig = {
     sourceLocale: 'zh-CN',
     defaultLocale: 'zh-CN',
@@ -271,7 +271,7 @@ describe('buildNavigationByLocale', () => {
       { group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { page: 'guide', title: { 'zh-CN': '开始', 'en-US': 'Start' } }] },
     ]
 
-    const navigation = buildNavigationByLocale(routes, pages, i18n)
+    const navigation = buildLocalizedNavigation(routes, pages, i18n)
     expect(navigation?.['zh-CN']?.[0].title).toBe('指南')
     expect(navigation?.['zh-CN']?.[0].children?.map(node => node.path)).toEqual(['/', '/guide'])
     expect(navigation?.['zh-CN']?.[0].children?.[1].title).toBe('开始')
