@@ -26,18 +26,14 @@ export type ClarifyLocaleConfig = {
 }
 
 export type ClarifyI18nConfig = {
-  /** Source content locale. Content is read from rootDirectory/sourceLocale. */
-  sourceLocale?: string
-  /** Default visible locale. Defaults to sourceLocale or the first locale. */
+  /** Default visible locale. Content is read from rootDirectory/defaultLocale. */
   defaultLocale?: string
-  /** URL strategy. Default locale has no prefix by default. */
-  strategy?: 'prefix_except_default' | 'prefix_always'
-  /** Missing translation behavior. Fallback uses source locale content. */
+  /** Missing translation behavior. Fallback uses default locale content. */
   missing?: 'fallback' | '404' | 'hide'
   locales: ClarifyLocaleConfig[]
 }
 
-export type ResolvedClarifyI18nConfig = Required<Pick<ClarifyI18nConfig, 'sourceLocale' | 'defaultLocale' | 'strategy' | 'missing'>> & {
+export type ResolvedClarifyI18nConfig = Required<Pick<ClarifyI18nConfig, 'defaultLocale' | 'missing'>> & {
   locales: ClarifyLocaleConfig[]
 }
 
@@ -163,7 +159,6 @@ export type ContentRoute = {
   path: string
   basePath?: string
   locale?: string
-  sourceLocale?: string
   isFallback?: boolean
   alternates?: Record<string, string>
   title: string

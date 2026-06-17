@@ -65,9 +65,7 @@ export function basePathFromRef(ref: string): string {
 
 export function localizedRoutePath(basePath: string, locale: string, i18n: ResolvedClarifyI18nConfig): string {
   const normalizedBasePath = normalizePath(basePath)
-  if (i18n.strategy === 'prefix_except_default' && locale === i18n.defaultLocale) {
-    return normalizedBasePath
-  }
+  if (locale === i18n.defaultLocale) return normalizedBasePath
   const prefix = normalizePath(locale)
   return normalizedBasePath === '/' ? prefix : normalizePath(`${prefix}${normalizedBasePath}`)
 }
@@ -192,7 +190,6 @@ export function findLocalizedContentRoutes(contentRoot: string, i18n?: ResolvedC
         path: localizedRoutePath(basePath, locale.code, i18n),
         basePath,
         locale: locale.code,
-        sourceLocale: i18n.sourceLocale,
         virtualModuleId: virtualModuleIdForLocalizedRoute(contentRoot, route.filePath),
       })
     }
@@ -200,8 +197,8 @@ export function findLocalizedContentRoutes(contentRoot: string, i18n?: ResolvedC
 
   if (i18n.missing === 'fallback') {
     const routeByLocaleAndBase = new Map(localizedRoutes.map(route => [`${route.locale ?? ''}:${route.basePath ?? route.path}`, route]))
-    const sourceRoutes = localizedRoutes.filter(route => route.locale === i18n.sourceLocale)
-    for (const sourceRoute of sourceRoutes) {
+    const defaultRoutes = localizedRoutes.filter(route => route.locale === i18n.defaultLocale)
+    for (const sourceRoute of defaultRoutes) {
       const basePath = sourceRoute.basePath ?? sourceRoute.path
       for (const locale of i18n.locales) {
         const key = `${locale.code}:${basePath}`
@@ -326,7 +323,7 @@ export function buildLocalizedNavigation(routes: ContentRoute[], config: Clarify
 
         return {
           path: redirectPath ?? path,
-          title: resolveLocalizedText(title, locale.code, i18n.sourceLocale) ?? route?.title ?? kebabToTitle(basePath.split('/').pop() ?? ref),
+          title: resolveLocalizedText(title, locale.code, i18n.defaultLocale) ?? route?.title ?? kebabToTitle(basePath.split('/').pop() ?? ref),
           icon,
           sections: route?.sections ? navigationSections(route.sections) : undefined,
         }
@@ -334,7 +331,7 @@ export function buildLocalizedNavigation(routes: ContentRoute[], config: Clarify
 
       return {
         path: children[0]?.path ?? localizedRoutePath('/', locale.code, i18n),
-        title: resolveLocalizedText(group.group, locale.code, i18n.sourceLocale) ?? '',
+        title: resolveLocalizedText(group.group, locale.code, i18n.defaultLocale) ?? '',
         icon: group.icon,
         children,
       }

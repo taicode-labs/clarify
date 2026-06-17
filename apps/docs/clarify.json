@@ -2,9 +2,7 @@
   "title": "Clarify",
   "description": "开源文档发布工具，为 MDX 和 OpenAPI 而生。",
   "i18n": {
-    "sourceLocale": "zh-CN",
     "defaultLocale": "zh-CN",
-    "strategy": "prefix_except_default",
     "missing": "fallback",
     "locales": [
       {

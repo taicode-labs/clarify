@@ -23,7 +23,7 @@ function resolveLocalizedText(text: ClarifyLocalizedText, locale?: string, fallb
 
 function localizeHref(href: string, config: ClarifyConfig, locale?: string): string {
   if (!locale || !config.i18n || href.startsWith('http') || href.startsWith('#')) return href
-  if (config.i18n.strategy === 'prefix_except_default' && locale === config.i18n.defaultLocale) return href
+  if (locale === config.i18n.defaultLocale) return href
   const cleanHref = href === '/' ? '' : href.replace(/^\/+/, '')
   return `/${locale}${cleanHref ? `/${cleanHref}` : ''}`
 }
@@ -182,7 +182,7 @@ export const Header = forwardRef<
             <ul role="list" className="flex items-center gap-8">
               {config.navbar.links.map((link) => (
                 <TopLevelNavItem key={link.href} href={localizeHref(link.href, config, currentLocale)}>
-                  {resolveLocalizedText(link.label, currentLocale, config.i18n?.sourceLocale)}
+                  {resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale)}
                 </TopLevelNavItem>
               ))}
             </ul>

@@ -196,9 +196,7 @@ describe('buildNavigation', () => {
 describe('findLocalizedContentRoutes', () => {
   let tempDir: string
   const i18n: ResolvedClarifyI18nConfig = {
-    sourceLocale: 'zh-CN',
     defaultLocale: 'zh-CN',
-    strategy: 'prefix_except_default',
     missing: 'fallback',
     locales: [
       { code: 'zh-CN', label: '简体中文' },
@@ -227,7 +225,6 @@ describe('findLocalizedContentRoutes', () => {
     expect(result.find(route => route.path === '/en-US/guide')).toMatchObject({
       basePath: '/guide',
       locale: 'en-US',
-      sourceLocale: 'zh-CN',
     })
     expect(result.find(route => route.path === '/guide')?.alternates).toEqual({
       'zh-CN': '/guide',
@@ -251,9 +248,7 @@ describe('findLocalizedContentRoutes', () => {
 
 describe('buildLocalizedNavigation', () => {
   const i18n: ResolvedClarifyI18nConfig = {
-    sourceLocale: 'zh-CN',
     defaultLocale: 'zh-CN',
-    strategy: 'prefix_except_default',
     missing: 'fallback',
     locales: [
       { code: 'zh-CN', label: '简体中文' },
@@ -263,10 +258,10 @@ describe('buildLocalizedNavigation', () => {
 
   it('builds localized navigation from one manual pages config', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/', basePath: '/', locale: 'zh-CN', sourceLocale: 'zh-CN', title: '首页', filePath: 'zh-CN/index.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/guide', basePath: '/guide', locale: 'zh-CN', sourceLocale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/en-US', basePath: '/', locale: 'en-US', sourceLocale: 'zh-CN', title: 'Home', filePath: 'en-US/index.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', sourceLocale: 'zh-CN', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/', basePath: '/', locale: 'zh-CN', title: '首页', filePath: 'zh-CN/index.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/en-US', basePath: '/', locale: 'en-US', title: 'Home', filePath: 'en-US/index.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
     ]
     const pages: ClarifyPagesGroup[] = [
       { group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { page: 'guide', title: { 'zh-CN': '开始', 'en-US': 'Start' } }] },

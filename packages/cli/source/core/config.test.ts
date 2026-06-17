@@ -74,9 +74,7 @@ describe('resolveProjectConfig', () => {
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
     expect(result.footer).toEqual({ copyright: '© 2026' })
     expect(result.i18n).toEqual({
-      sourceLocale: 'zh-CN',
       defaultLocale: 'zh-CN',
-      strategy: 'prefix_except_default',
       missing: 'fallback',
       locales: [
         { code: 'zh-CN', label: '简体中文' },

@@ -34,13 +34,11 @@ function resolveI18nConfig(i18n?: ClarifyI18nConfig): ResolvedClarifyI18nConfig 
   if (!i18n) return undefined
 
   const firstLocale = i18n.locales[0]?.code
-  const sourceLocale = i18n.sourceLocale ?? i18n.defaultLocale ?? firstLocale
-  if (!sourceLocale) return undefined
+  const defaultLocale = i18n.defaultLocale ?? firstLocale
+  if (!defaultLocale) return undefined
 
   return {
-    sourceLocale,
-    defaultLocale: i18n.defaultLocale ?? sourceLocale,
-    strategy: i18n.strategy ?? 'prefix_except_default',
+    defaultLocale,
     missing: i18n.missing ?? 'fallback',
     locales: i18n.locales,
   }

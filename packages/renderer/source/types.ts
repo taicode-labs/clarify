@@ -21,7 +21,6 @@ export type RouteItem = {
   path: string;
   basePath?: string;
   locale?: string;
-  sourceLocale?: string;
   isFallback?: boolean;
   alternates?: Record<string, string>;
   title: string;
@@ -44,9 +43,7 @@ export type ClarifyLocaleConfig = {
 };
 
 export type ClarifyI18nConfig = {
-  sourceLocale: string;
   defaultLocale: string;
-  strategy: 'prefix_except_default' | 'prefix_always';
   missing: 'fallback' | '404' | 'hide';
   locales: ClarifyLocaleConfig[];
 };

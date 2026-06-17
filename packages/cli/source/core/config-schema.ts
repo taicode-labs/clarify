@@ -30,9 +30,7 @@ export const clarifyLocaleConfigSchema = z.object({
 })
 
 export const clarifyI18nConfigSchema = z.object({
-  sourceLocale: z.string().optional(),
   defaultLocale: z.string().optional(),
-  strategy: z.union([z.literal('prefix_except_default'), z.literal('prefix_always')]).optional(),
   missing: z.union([z.literal('fallback'), z.literal('404'), z.literal('hide')]).optional(),
   locales: z.array(clarifyLocaleConfigSchema).min(1),
 })
