@@ -33,7 +33,7 @@ pnpm exec clarify init
 
 该命令会创建或更新：
 
-- `clarify.json`
+- `clarify.ts`
 - `source/content/index.mdx`
 - `package.json` 中的 `dev` / `build` 脚本
 
@@ -97,31 +97,44 @@ pnpm exec clarify build --output dist
 
 ---
 
-## 插件配置
+## 配置文件
 
-普通站点配置仍然写在 `clarify.json`。如果需要接入 Clarify 构建插件，请创建 `clarify.config.ts`：
+推荐使用 `clarify.ts` 作为唯一项目配置入口。它既可以配置站点展示字段，也可以配置构建期扩展能力：
 
 ```ts
 import { defineConfig } from '@clarify/cli'
 
 export default defineConfig({
+  title: 'Clarify Docs',
+  description: 'Documentation powered by Clarify',
+  theme: { primary: '#0ea5e9' },
+  pages: 'FileTree',
   plugins: [
     // searchPlugin(),
     // translatePlugin(),
   ],
+  ssg: {
+    failOnError: true,
+  },
 })
 ```
 
-`clarify.config.ts` 只放构建期扩展能力，例如 `plugins` 和 `ssg`。内容作者仍然只需要维护 `clarify.json`。
+Clarify 会按以下优先级查找配置文件：
+
+```
+clarify.ts > clarify.js > clarify.json
+```
+
+`clarify.json` 仍然受支持，适合不需要插件函数的简单项目或旧项目兼容。
 
 ---
 
 ## 配置优先级
 
-CLI 选项用于控制构建和运行行为，`clarify.config.ts` 用于控制构建期扩展，`clarify.json` 用于控制站点展示内容。优先级为：
+CLI 选项用于控制运行时路径和输出目录，配置文件用于控制站点展示和构建期扩展。优先级为：
 
 ```
-CLI 选项 > clarify.config.ts > clarify.json > 默认值
+CLI 选项 > clarify.ts/js/json > 默认值
 ```
 
 ---

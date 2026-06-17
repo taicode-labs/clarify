@@ -3,13 +3,6 @@ import { dirname, resolve } from 'node:path'
 
 import type { ResolvedCliOptions } from './options.js'
 
-function writeJsonFile(filePath: string, value: unknown, force: boolean): boolean {
-  if (existsSync(filePath) && !force) return false
-  mkdirSync(dirname(filePath), { recursive: true })
-  writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf-8')
-  return true
-}
-
 function writeTextFile(filePath: string, content: string, force: boolean): boolean {
   if (existsSync(filePath) && !force) return false
   mkdirSync(dirname(filePath), { recursive: true })
@@ -45,12 +38,15 @@ export function runInit(options: ResolvedCliOptions, force: boolean): void {
   const created: string[] = []
   const skipped: string[] = []
 
-  const clarifyConfigCreated = writeJsonFile(resolve(options.root, 'clarify.json'), {
-    title: 'Clarify Docs',
-    description: 'Documentation powered by Clarify',
-    theme: { primary: '#0ea5e9' },
-  }, force)
-  ;(clarifyConfigCreated ? created : skipped).push('clarify.json')
+  const clarifyConfigCreated = writeTextFile(resolve(options.root, 'clarify.ts'), `import { defineConfig } from '@clarify/cli'
+
+export default defineConfig({
+  title: 'Clarify Docs',
+  description: 'Documentation powered by Clarify',
+  theme: { primary: '#0ea5e9' },
+})
+`, force)
+  ;(clarifyConfigCreated ? created : skipped).push('clarify.ts')
 
   const contentCreated = writeTextFile(resolve(options.root, options.content, 'index.mdx'), `---
 title: Welcome

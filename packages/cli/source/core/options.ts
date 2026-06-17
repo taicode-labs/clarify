@@ -1,6 +1,6 @@
-import type { ClarifyPlugin } from '../types.js'
+import type { ClarifyPlugin, ClarifyProjectConfig } from '../types.js'
 
-export type ClarifyBuildOptions = {
+export type ClarifyBuildOptions = ClarifyProjectConfig & {
   /** Project root directory. Defaults to the current working directory. */
   projectRoot?: string
   /** Root directory for MDX content. Default: 'source/content' */

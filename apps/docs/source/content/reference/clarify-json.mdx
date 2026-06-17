@@ -1,19 +1,25 @@
-# clarify.json 配置参考
+# Clarify 配置参考
 
-`clarify.json` 是面向内容作者的配置文件，位于项目根目录，控制站点的展示内容。
+推荐使用 `clarify.ts` 作为项目配置文件。`clarify.js` 和 `clarify.json` 也受支持，加载优先级为：
+
+```
+clarify.ts > clarify.js > clarify.json
+```
+
+`clarify.json` 适合不需要插件函数的简单项目或旧项目兼容；新项目建议使用 `clarify.ts`。
 
 ---
 
 ## 配置分层
 
-Clarify 将**内容展示**和**运行/构建参数**明确分离：
+Clarify 将**项目配置**和**运行参数**明确分离：
 
 | 层级 | 受众 | 入口 | 职责 |
 |------|------|------|------|
-| **项目配置** | 内容作者、技术写作者 | `clarify.json` | 站点展示什么 |
+| **项目配置** | 内容作者、技术写作者、扩展开发者 | `clarify.ts/js/json` | 站点展示和构建期扩展 |
 | **CLI 参数** | 开发者、构建环境 | `clarify dev/build` | 站点如何运行和输出 |
 
-> 内容创作者主要维护 `clarify.json` 和 `source/content`，开发者通过 CLI 参数控制端口、内容目录和输出目录。
+> 内容创作者主要维护 `clarify.ts` 和 `source/content`；开发者通过 CLI 参数控制端口、内容目录和输出目录。
 
 ---
 
@@ -44,24 +50,31 @@ Clarify 将**内容展示**和**运行/构建参数**明确分离：
 
 ## 示例配置
 
-```json
-{
-  "title": "Clarify 文档",
-  "description": "Clarify 官方文档 — 开源文档发布工具",
-  "logo": "/logo.svg",
-  "favicon": "/favicon.ico",
-  "routePrefix": "/docs/",
-  "theme": {
-    "primary": "#0ea5e9"
+```ts
+import { defineConfig } from '@clarify/cli'
+
+export default defineConfig({
+  title: 'Clarify 文档',
+  description: 'Clarify 官方文档 — 开源文档发布工具',
+  logo: '/logo.svg',
+  favicon: '/favicon.ico',
+  routePrefix: '/docs/',
+  theme: {
+    primary: '#0ea5e9',
   },
-  "navbar": [
-    { "label": "指南", "href": "/docs/getting-started/" },
-    { "label": "GitHub", "href": "https://github.com/clarify/docs", "external": true }
+  navbar: {
+    links: [
+      { label: '指南', href: '/docs/getting-started/' },
+      { label: 'GitHub', href: 'https://github.com/clarify/docs', external: true },
+    ],
+  },
+  footer: {
+    copyright: '© 2024 Clarify Team',
+  },
+  plugins: [
+    // searchPlugin(),
   ],
-  "footer": {
-    "copyright": "© 2024 Clarify Team"
-  }
-}
+})
 ```
 
 ---
@@ -72,47 +85,47 @@ Clarify 将**内容展示**和**运行/构建参数**明确分离：
 
 ### 1. 自动生成（默认）
 
-```json
-{
-  "pages": "FileTree"
-}
+```ts
+export default defineConfig({
+  pages: 'FileTree',
+})
 ```
 
 Clarify 会根据 `source/content` 目录的文件结构自动生成侧边栏，包含所有 `.mdx` 和 `.openapi.json` 文件。
 
 ### 2. 手动配置
 
-```json
-{
-  "pages": [
+```ts
+export default defineConfig({
+  pages: [
     {
-      "label": "开始使用",
-      "items": [
-        { "page": "getting-started/installation.mdx" },
-        { "page": "getting-started/quick-start.mdx" }
-      ]
+      group: '开始使用',
+      pages: [
+        { page: 'getting-started/installation' },
+        { page: 'getting-started/quick-start' },
+      ],
     },
     {
-      "label": "API 文档",
-      "items": [
-        { "openapi": "api.openapi.json", "title": "REST API" }
-      ]
-    }
-  ]
-}
+      group: 'API 文档',
+      pages: [
+        { openapi: 'api', title: 'REST API' },
+      ],
+    },
+  ],
+})
 ```
 
-- `page` — 引用一个 MDX 文件
-- `openapi` — 引用一个 OpenAPI 规范文件，可指定 `title` 覆盖默认标题
+- `page` — 引用一个 MDX 文件，不需要 `.mdx` 后缀
+- `openapi` — 引用一个 OpenAPI 规范文件，不需要 `.openapi.json` 后缀，可指定 `title` 覆盖默认标题
 
 ---
 
 ## 优先级
 
-当同一项可由 `clarify.json` 和 CLI 参数共同影响时：
+Clarify 会先按 `clarify.ts > clarify.js > clarify.json` 查找配置文件，然后再应用 CLI 参数覆盖运行时选项：
 
 ```
-CLI 参数 > clarify.json > 默认值
+CLI 参数 > clarify.ts/js/json > 默认值
 ```
 
-这允许开发者在不修改 `clarify.json` 的情况下覆盖运行时设置，例如为 CI 构建使用不同的输出目录。
+这允许开发者在不修改配置文件的情况下覆盖运行时设置，例如为 CI 构建使用不同的输出目录。

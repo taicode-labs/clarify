@@ -42,6 +42,31 @@ export function loadProjectConfig(root: string): ClarifyProjectConfig {
   return validateProjectConfig(JSON.parse(content))
 }
 
+function defineProjectConfig(config: ClarifyProjectConfig): ClarifyProjectConfig {
+  return validateProjectConfig(config)
+}
+
+function hasProjectConfigFields(config: ClarifyProjectConfig): boolean {
+  return [
+    'title',
+    'description',
+    'logo',
+    'favicon',
+    'theme',
+    'routePrefix',
+    'navbar',
+    'banner',
+    'footer',
+    'i18n',
+    'pages',
+  ].some(key => key in config)
+}
+
+function resolveProjectConfigInput(root: string, config?: ClarifyProjectConfig): ClarifyProjectConfig {
+  if (config && hasProjectConfigFields(config)) return defineProjectConfig(config)
+  return loadProjectConfig(root)
+}
+
 function resolveI18nConfig(i18n?: ClarifyI18nConfig): ResolvedClarifyI18nConfig | undefined {
   if (!i18n) return undefined
 
@@ -58,8 +83,8 @@ function resolveI18nConfig(i18n?: ClarifyI18nConfig): ResolvedClarifyI18nConfig 
   }
 }
 
-export function resolveProjectConfig(root: string): ResolvedProjectConfig {
-  const projectConfig = loadProjectConfig(root)
+export function resolveProjectConfig(root: string, config?: ClarifyProjectConfig): ResolvedProjectConfig {
+  const projectConfig = resolveProjectConfigInput(root, config)
   return {
     title: projectConfig.title ?? 'Clarify Docs',
     description: projectConfig.description ?? '',

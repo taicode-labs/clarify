@@ -39,7 +39,7 @@ function loadVirtualModule(id: string, modules: VirtualModules): string | null {
 
 export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   const root = resolve(options.projectRoot ?? process.cwd())
-  const projectConfig = resolveProjectConfig(root)
+  const projectConfig = resolveProjectConfig(root, options)
   const generateOptions = resolveBuildOptions(options)
   const contentRoot = join(root, generateOptions.rootDirectory)
   let routes = findLocalizedContentRoutes(contentRoot, projectConfig.i18n)
