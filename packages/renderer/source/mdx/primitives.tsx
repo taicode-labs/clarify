@@ -9,7 +9,7 @@ export function wrapper({ children }: { children: ReactNode }) {
   return (
     <article className="flex h-full flex-col pt-16 pb-10">
       <Prose className="flex-auto">{children}</Prose>
-      <footer className="mx-auto mt-16 w-full max-w-2xl lg:max-w-5xl">
+      <footer className="mx-auto mt-16 w-full max-w-5xl lg:max-w-6xl">
         <Feedback />
       </footer>
     </article>
@@ -68,7 +68,7 @@ export function Properties({ children }: { children: ReactNode }) {
     <div className="my-6">
       <ul
         role="list"
-        className="m-0 max-w-[calc(var(--container-lg)-(--spacing(8)))] list-none divide-y divide-zinc-900/5 p-0 dark:divide-white/5"
+        className="m-0 list-none divide-y divide-zinc-900/5 p-0 dark:divide-white/5"
       >
         {children}
       </ul>

@@ -705,7 +705,7 @@ function OpenApiPaths({ spec }: { spec: OpenAPISpec }): ReactNode {
   }))
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-16 lg:max-w-6xl">
+    <div className="space-y-16">
       {entries.map(({ path, method, operation }) => (
         <OpenApiOperation key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} />
       ))}
@@ -780,11 +780,7 @@ export function ApiEndpoint(arg0: ApiEndpointProps): ReactNode {
     return <WarningBox tone="red">Endpoint not found: {method.toUpperCase()} {path}</WarningBox>
   }
 
-  return (
-    <div className="mx-auto w-full max-w-5xl lg:max-w-6xl">
-      <OpenApiOperation spec={spec} path={path} method={method.toUpperCase()} operation={op} />
-    </div>
-  )
+  return <OpenApiOperation spec={spec} path={path} method={method.toUpperCase()} operation={op} />
 }
 
 export function OpenApiEndpoint(arg0: OpenApiEndpointProps): ReactNode {

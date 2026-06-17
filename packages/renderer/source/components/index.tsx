@@ -174,7 +174,7 @@ export function Prose<T extends ElementType = 'div'>({
       className={clsx(
         className,
         'prose dark:prose-invert',
-        '[html_:where(&>*)]:mx-auto [html_:where(&>*)]:max-w-2xl lg:[html_:where(&>*)]:mx-[calc(50%-min(50%,var(--container-lg)))] lg:[html_:where(&>*)]:max-w-3xl',
+        '[html_:where(&>*)]:mx-auto [html_:where(&>*)]:w-full [html_:where(&>*)]:max-w-5xl lg:[html_:where(&>*)]:max-w-6xl',
       )}
       {...props}
     />
