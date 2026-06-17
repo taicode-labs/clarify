@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import type { ComponentPropsWithoutRef } from 'react'
 
 import { useTheme } from './ThemeProvider'
@@ -26,17 +25,12 @@ function MoonIcon(props: ComponentPropsWithoutRef<'svg'>) {
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme()
   const otherTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   return (
     <button
       type="button"
       className="flex size-6 items-center justify-center rounded-md transition hover:bg-zinc-900/5 dark:hover:bg-white/5"
-      aria-label={mounted ? `Switch to ${otherTheme} theme` : 'Toggle theme'}
+      aria-label={`Switch to ${otherTheme} theme`}
       onClick={() => setTheme(otherTheme)}
     >
       <span className="absolute size-12 pointer-fine:hidden" />

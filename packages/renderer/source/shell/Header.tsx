@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 
 import { Button, Logo, ThemeToggle } from '../components'
 import type { ClarifyConfig, ClarifyLogoConfig, NavigationNode, RouteItem } from '../types'
+
 import { MobileNavigation, useIsInsideMobileNavigation, useMobileNavigationStore } from './mobile'
 import { MobileSearch, Search } from './Search'
 

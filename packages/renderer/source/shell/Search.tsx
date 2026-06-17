@@ -4,7 +4,6 @@ import { Fragment, Suspense, forwardRef, useEffect, useId, useMemo, useRef, useS
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import type { NavigationNode, RouteItem } from '../types'
-import { encodeHashId } from '../utils/hash'
 
 type SearchItem = {
   title: string
@@ -72,7 +71,7 @@ function buildSearchItems(routes: RouteItem[], navigation: NavigationNode[]): Se
         title: section.title,
         pageTitle: route.title,
         sectionTitle: groupTitle,
-        url: `${route.path}#${encodeHashId(section.id)}`,
+        url: `${route.path}#${section.id}`,
         keywords: [groupTitle, route.title, section.title, route.path, section.id].filter(Boolean).join(' ').toLowerCase(),
       })) ?? []
 
@@ -222,23 +221,25 @@ function SearchDialog({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [open, setOpen])
 
-  useEffect(() => {
-    if (!open) setQuery('')
-  }, [open])
-
-  useEffect(() => {
+  const updateQuery = (value: string) => {
+    setQuery(value)
     setActiveIndex(0)
-  }, [query])
+  }
+
+  function closeDialog() {
+    updateQuery('')
+    setOpen(false)
+  }
 
   function selectResult(result = results[activeIndex]) {
     if (!result) return
     navigate(result.url)
     onNavigate()
-    setOpen(false)
+    closeDialog()
   }
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} className={clsx('fixed inset-0 z-50', className)}>
+    <Dialog open={open} onClose={closeDialog} className={clsx('fixed inset-0 z-50', className)}>
       <DialogBackdrop
         transition
         className="fixed inset-0 bg-zinc-400/25 backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in dark:bg-black/40"
@@ -262,8 +263,8 @@ function SearchDialog({
           <SearchInput
             ref={inputRef}
             query={query}
-            setQuery={setQuery}
-            onClose={() => setOpen(false)}
+            setQuery={updateQuery}
+            onClose={closeDialog}
             onSubmit={() => selectResult()}
           />
           <div className="border-t border-zinc-200 bg-white empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5">
@@ -314,13 +315,14 @@ function useSearchProps() {
   }
 }
 
-export function Search({ routes, navigation }: { routes: RouteItem[]; navigation: NavigationNode[] }) {
-  const [modifierKey, setModifierKey] = useState<string>()
-  const { buttonProps, dialogProps } = useSearchProps()
+function getModifierKey() {
+  if (typeof navigator === 'undefined') return 'Ctrl '
+  return /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? '⌘' : 'Ctrl '
+}
 
-  useEffect(() => {
-    setModifierKey(/(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? '⌘' : 'Ctrl ')
-  }, [])
+export function Search({ routes, navigation }: { routes: RouteItem[]; navigation: NavigationNode[] }) {
+  const modifierKey = getModifierKey()
+  const { buttonProps, dialogProps } = useSearchProps()
 
   return (
     <div className="hidden lg:block lg:max-w-md lg:flex-auto">

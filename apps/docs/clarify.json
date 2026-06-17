@@ -28,5 +28,174 @@
         "external": true
       }
     ]
-  }
+  },
+  "pages": [
+    {
+      "group": "Getting Started",
+      "icon": "Rocket",
+      "pages": [
+        {
+          "page": "getting-started",
+          "icon": "Map"
+        },
+        {
+          "page": "getting-started/installation",
+          "icon": "Download"
+        },
+        {
+          "page": "getting-started/first-site",
+          "icon": "Sparkles"
+        }
+      ]
+    },
+    {
+      "group": "Features",
+      "icon": "Layers3",
+      "pages": [
+        {
+          "page": "features",
+          "icon": "LayoutGrid"
+        },
+        {
+          "page": "features/mdx",
+          "icon": "FileCode2"
+        },
+        {
+          "page": "features/openapi",
+          "icon": "Braces"
+        },
+        {
+          "page": "features/routing",
+          "icon": "Route"
+        },
+        {
+          "page": "features/ssg",
+          "icon": "PackageCheck"
+        },
+        {
+          "page": "features/theming",
+          "icon": "Palette"
+        }
+      ]
+    },
+    {
+      "group": "Guides",
+      "icon": "BookOpen",
+      "pages": [
+        {
+          "page": "guides",
+          "icon": "Compass"
+        },
+        {
+          "page": "guides/writing-content",
+          "icon": "PenLine"
+        },
+        {
+          "page": "guides/navigation",
+          "icon": "PanelLeft"
+        },
+        {
+          "page": "guides/deployment",
+          "icon": "UploadCloud"
+        },
+        {
+          "page": "guides/migrate-from-mintlify",
+          "icon": "RefreshCcw"
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "icon": "Library",
+      "pages": [
+        {
+          "page": "reference",
+          "icon": "BookMarked"
+        },
+        {
+          "page": "reference/clarify-json",
+          "icon": "Settings2"
+        },
+        {
+          "page": "reference/frontmatter",
+          "icon": "FileJson2"
+        },
+        {
+          "page": "reference/plugin-options",
+          "icon": "Plug"
+        },
+        {
+          "openapi": "api.openapi.json",
+          "title": "API Reference",
+          "icon": "Webhook"
+        }
+      ]
+    },
+    {
+      "group": "Showcase",
+      "icon": "MonitorPlay",
+      "pages": [
+        {
+          "page": "showcase",
+          "icon": "GalleryHorizontalEnd"
+        },
+        {
+          "page": "showcase/components",
+          "icon": "Component"
+        },
+        {
+          "page": "showcase/openapi-demo",
+          "icon": "ServerCog"
+        },
+        {
+          "page": "showcase/theming-preview",
+          "icon": "SwatchBook"
+        }
+      ]
+    },
+    {
+      "group": "Project",
+      "icon": "Waypoints",
+      "pages": [
+        {
+          "page": "roadmap",
+          "icon": "Milestone"
+        },
+        {
+          "page": "changelog",
+          "icon": "History"
+        }
+      ]
+    },
+    {
+      "group": "Development",
+      "icon": "Code2",
+      "pages": [
+        {
+          "page": "development",
+          "icon": "SquareTerminal"
+        },
+        {
+          "page": "development/architecture",
+          "icon": "Network"
+        },
+        {
+          "page": "development/renderer",
+          "icon": "MonitorCog"
+        },
+        {
+          "page": "development/vite-plugin",
+          "icon": "Zap"
+        },
+        {
+          "page": "development/ssg",
+          "icon": "Blocks"
+        },
+        {
+          "page": "development/contributing",
+          "icon": "GitPullRequestArrow"
+        }
+      ]
+    }
+  ]
 }

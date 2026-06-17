@@ -3,9 +3,10 @@ import { motion } from 'framer-motion'
 import { createContext, Suspense, useContext } from 'react'
 import { create } from 'zustand'
 
+import type { ClarifyConfig, NavigationNode, RouteItem } from '../types'
+
 import { Header } from './Header'
 import { Navigation } from './Navigation'
-import type { ClarifyConfig, NavigationNode, RouteItem } from '../types'
 
 function MenuIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (

@@ -1,12 +1,11 @@
-import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useEffect } from 'react'
 import { Link, Routes, Route, useLocation } from 'react-router-dom'
 
 import { Logo } from '../components'
 import { SectionProvider, type Section } from '../components/SectionProvider'
 import { Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode } from '../types'
-import { decodeHashId } from '../utils/hash'
 
 export type AppShellProps = {
   config: ClarifyConfig
@@ -30,7 +29,7 @@ function sectionsForPath(routes: RouteItem[], pathname: string): Section[] {
 function scrollToHash(hash: string) {
   if (!hash) return
 
-  const targetId = decodeHashId(hash)
+  const targetId = decodeURIComponent(hash.slice(1))
   window.requestAnimationFrame(() => {
     document.getElementById(targetId)?.scrollIntoView()
   })

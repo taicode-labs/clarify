@@ -1,3 +1,4 @@
+import GithubSlugger from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
 import shiki, { type Highlighter } from 'shiki'
 import { visit } from 'unist-util-visit'
@@ -97,13 +98,17 @@ export function rehypeShiki() {
 
 export function rehypeSlugSections() {
   return (tree: HastNode) => {
+    const slugger = new GithubSlugger()
+
     visit(tree, 'element', (node: HastNode) => {
-      if ((node.tagName === 'h2' || node.tagName === 'h3') && !node.properties?.id) {
-        node.properties = node.properties ?? {}
-        node.properties.id = toString(node)
-      }
+      if (node.tagName !== 'h2' && node.tagName !== 'h3') return
+
+      node.properties = node.properties ?? {}
+      if (node.properties.id) return
+
+      node.properties.id = slugger.slug(toString(node))
     })
   }
 }
 
-export const rehypePlugins = [rehypeParseCodeBlocks, rehypeShiki]
+export const rehypePlugins = [rehypeSlugSections, rehypeParseCodeBlocks, rehypeShiki]

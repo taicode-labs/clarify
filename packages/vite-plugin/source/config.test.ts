@@ -4,8 +4,8 @@ import { join } from 'node:path'
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { loadProjectConfig, resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { clarifyProjectConfigSchema } from './config-schema.js'
+import { loadProjectConfig, resolveProjectConfig, resolveGenerateOptions } from './config.js'
 
 describe('loadProjectConfig', () => {
   let tempDir: string

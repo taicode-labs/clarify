@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { rehypeParseCodeBlocks, rehypeShiki } from './mdx.js'
+import { rehypeParseCodeBlocks, rehypeShiki, rehypeSlugSections } from './mdx.js'
 
 type TestNode = {
   type: string
@@ -32,6 +32,31 @@ function codeTree(language = 'ts'): TestNode {
 }
 
 describe('mdx rehype plugins', () => {
+  it('adds stable ids to Chinese section headings', () => {
+    const tree: TestNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'element',
+          tagName: 'h2',
+          properties: {},
+          children: [{ type: 'text', value: '中文标题' }],
+        },
+        {
+          type: 'element',
+          tagName: 'h3',
+          properties: {},
+          children: [{ type: 'text', value: '中文标题' }],
+        },
+      ],
+    }
+
+    rehypeSlugSections()(tree)
+
+    expect(tree.children?.[0]?.properties?.id).toBe('中文标题')
+    expect(tree.children?.[1]?.properties?.id).toBe('中文标题-1')
+  })
+
   it('copies fenced code language to the pre element', () => {
     const tree = codeTree('tsx')
     const transformer = rehypeParseCodeBlocks()

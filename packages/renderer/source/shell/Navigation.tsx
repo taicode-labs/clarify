@@ -2,13 +2,12 @@ import { CloseButton } from '@headlessui/react'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 import * as LucideIcons from 'lucide-react'
-import { useRef } from 'react'
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { Tag } from '../components'
 import { useSectionStore } from '../components/SectionProvider'
 import type { NavigationNode } from '../types'
-import { decodeHashId, encodeHashId } from '../utils/hash'
 import { remToPx } from '../utils/remToPx'
 
 import { useIsInsideMobileNavigation } from './mobile'
@@ -35,7 +34,7 @@ function NavigationIcon({ name, className }: { name?: string; className?: string
 }
 
 function useInitialValue<T>(value: T, condition = true) {
-  const initialValue = useRef(value).current
+  const [initialValue] = useState(value)
   return condition ? initialValue : value
 }
 
@@ -88,7 +87,7 @@ function SectionBadge({ children }: { children: string }) {
   return (
     <span
       className={clsx(
-        'inline-flex w-13 shrink-0 justify-end font-mono text-[0.625rem]/6 font-semibold uppercase tracking-wide',
+        'inline-flex shrink-0 justify-end font-mono text-[0.625rem]/6 font-semibold uppercase tracking-wide',
         sectionBadgeColorStyles[children.toUpperCase()] ?? 'text-zinc-500 dark:text-zinc-400',
       )}
     >
@@ -120,7 +119,7 @@ function NavLink({
     const hashIndex = href.indexOf('#')
     if (hashIndex === -1) return
 
-    const targetId = decodeHashId(href.slice(hashIndex + 1))
+    const targetId = decodeURIComponent(href.slice(hashIndex + 1))
     window.requestAnimationFrame(() => {
       document.getElementById(targetId)?.scrollIntoView()
     })
@@ -141,8 +140,8 @@ function NavLink({
       )}
     >
       <span className="flex min-w-0 flex-1 items-center gap-2">
-        {badge ? <SectionBadge>{badge}</SectionBadge> : null}
         {icon ? <NavigationIcon name={icon} className="h-3.5 w-3.5" /> : null}
+        {badge ? <SectionBadge>{badge}</SectionBadge> : null}
         <span className="min-w-0 truncate">{children}</span>
       </span>
       {tags?.length ? (
@@ -241,7 +240,7 @@ function NavigationGroup({ group, className }: { group: NavGroup; className?: st
                   >
                     {sections.map((section) => (
                       <li key={section.id}>
-                        <NavLink href={`${link.href}#${encodeHashId(section.id)}`} badge={section.badge} tags={section.tags} isAnchorLink>
+                        <NavLink href={`${link.href}#${section.id}`} badge={section.badge} tags={section.tags} isAnchorLink>
                           {section.title}
                         </NavLink>
                       </li>

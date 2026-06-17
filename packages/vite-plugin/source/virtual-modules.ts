@@ -1,5 +1,5 @@
-import type { ClarifyPagesConfig, ContentRoute, OpenAPISpec, ResolvedGenerateOptions, ResolvedProjectConfig } from './types.js'
 import { buildNavigation, buildNavigationFromConfig } from './routes.js'
+import type { ClarifyPagesConfig, ContentRoute, OpenAPISpec, ResolvedGenerateOptions, ResolvedProjectConfig } from './types.js'
 
 export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
