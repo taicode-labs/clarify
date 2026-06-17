@@ -3,6 +3,8 @@ import { useInView } from 'framer-motion'
 import { useEffect, useRef } from 'react'
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
 
+export { Feedback } from './Feedback'
+export { GridPattern, HeroPattern } from './patterns'
 import { useSectionStore } from './SectionProvider'
 import { remToPx } from '../utils/remToPx'
 

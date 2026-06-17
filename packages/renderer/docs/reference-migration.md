@@ -67,7 +67,8 @@ Initial dependency candidates:
 - [x] Copy/adapt low-risk primitives that do not require Next.js: `Button`, `Tag`, `Logo`, `Prose`.
 - [x] Copy/adapt section primitives: `remToPx`, `SectionProvider`.
 - [x] Copy/adapt heading primitive: `Heading`.
-- [ ] Copy/adapt remaining low-risk primitives: `GridPattern`, `HeroPattern`, `Feedback`, icons.
+- [x] Copy/adapt remaining low-risk primitives: `GridPattern`, `HeroPattern`, `Feedback`.
+- [ ] Copy/adapt shared icons as they become needed by migrated components.
 - [x] Replace `next/link` with React Router or plain anchors for migrated primitives.
 - [ ] Replace `next/navigation` with React Router hooks.
 - [x] Replace `@/` aliases with relative imports for migrated primitives.
