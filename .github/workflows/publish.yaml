@@ -1,13 +1,12 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -16,8 +15,10 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Checkout
+      - name: Checkout release tag
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -34,14 +35,64 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Resolve packages to publish
+        id: publish-plan
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag_name='${{ github.event.release.tag_name }}'
+          expected_version="${tag_name#v}"
+          package_dirs=(packages/renderer packages/vite-plugin)
+          publish_dirs=()
+
+          for package_dir in "${package_dirs[@]}"; do
+            package_name="$(node -p "require('./${package_dir}/package.json').name")"
+            package_version="$(node -p "require('./${package_dir}/package.json').version")"
+
+            if [[ "${package_version}" != "${expected_version}" ]]; then
+              echo "::error file=${package_dir}/package.json::${package_name} version ${package_version} does not match release tag ${tag_name}."
+              exit 1
+            fi
+
+            if npm view "${package_name}@${package_version}" version --silent >/dev/null 2>&1; then
+              echo "${package_name}@${package_version} already exists on npm. Skipping."
+            else
+              echo "${package_name}@${package_version} is not published yet. Queuing."
+              publish_dirs+=("${package_dir}")
+            fi
+          done
+
+          if (( ${#publish_dirs[@]} == 0 )); then
+            echo "has-packages=false" >> "${GITHUB_OUTPUT}"
+            echo "publish-dirs=" >> "${GITHUB_OUTPUT}"
+          else
+            echo "has-packages=true" >> "${GITHUB_OUTPUT}"
+            printf 'publish-dirs=%s\n' "${publish_dirs[*]}" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Typecheck
+        if: steps.publish-plan.outputs.has-packages == 'true'
         run: pnpm typecheck
 
       - name: Build
+        if: steps.publish-plan.outputs.has-packages == 'true'
         run: pnpm build
 
-      - name: Publish packages
-        run: pnpm publish -r --access public --no-git-checks
+      - name: Publish missing packages
+        if: steps.publish-plan.outputs.has-packages == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for package_dir in ${{ steps.publish-plan.outputs.publish-dirs }}; do
+            echo "Publishing ${package_dir}"
+            pnpm --dir "${package_dir}" publish --access public --no-git-checks
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
+
+      - name: Skip publish
+        if: steps.publish-plan.outputs.has-packages == 'false'
+        run: echo "All release packages already exist on npm. Nothing to publish."
