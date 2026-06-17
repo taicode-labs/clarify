@@ -27,7 +27,8 @@ export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: Clari
     const sections = r.sections && r.sections.length > 0
       ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, badge: s.badge, tags: s.tags })))}`
       : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${sections} }`
+    const rawContentUrl = r.rawContentUrl ? `, rawContentUrl: ${JSON.stringify(r.rawContentUrl)}` : ''
+    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${sections}${rawContentUrl} }`
   }).join(',\n')
 
   const navigation = resolvedNavigation ?? (pagesConfig && pagesConfig !== 'FileTree'

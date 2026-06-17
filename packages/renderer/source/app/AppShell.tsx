@@ -4,7 +4,7 @@ import { Link, Routes, Route, useLocation } from 'react-router-dom'
 
 import { Logo } from '../components'
 import { SectionProvider, type Section } from '../components/SectionProvider'
-import { Header, Navigation } from '../shell'
+import { ContentActions, Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode } from '../types'
 
 export type AppShellProps = {
@@ -13,11 +13,13 @@ export type AppShellProps = {
   navigation: NavigationNode[]
 }
 
-function sectionsForPath(routes: RouteItem[], pathname: string): Section[] {
-  const currentRoute = routes.find((route) => route.path === pathname || `/${route.path}` === pathname)
+function routeForPath(routes: RouteItem[], pathname: string): RouteItem | undefined {
+  return routes.find((route) => route.path === pathname || `/${route.path}` === pathname)
+}
 
+function sectionsForRoute(route?: RouteItem): Section[] {
   return (
-    currentRoute?.sections?.map((section) => ({
+    route?.sections?.map((section) => ({
       id: section.id,
       title: section.title,
       badge: section.badge,
@@ -38,7 +40,8 @@ function scrollToHash(hash: string) {
 export function AppShell(arg0: AppShellProps) {
   const { config, routes, navigation } = arg0
   const location = useLocation()
-  const sections = sectionsForPath(routes, location.pathname)
+  const currentRoute = routeForPath(routes, location.pathname)
+  const sections = sectionsForRoute(currentRoute)
 
   useEffect(() => {
     scrollToHash(location.hash)
@@ -60,6 +63,7 @@ export function AppShell(arg0: AppShellProps) {
           </div>
         </motion.header>
         <div className="relative flex min-h-screen flex-col px-4 pt-14 sm:px-6 lg:px-8">
+          <ContentActions route={currentRoute} routePrefix={config.routePrefix} />
           <main className="flex-auto">
             <Routes>
               {routes.map((route) => (

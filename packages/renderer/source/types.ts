@@ -23,6 +23,7 @@ export type RouteItem = {
   component: ComponentType;
   kind?: 'mdx' | 'openapi';
   sections?: RouteSection[];
+  rawContentUrl?: string;
 };
 
 export type ClarifyLogoConfig = string | { light?: string; dark?: string };

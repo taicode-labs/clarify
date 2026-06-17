@@ -161,6 +161,7 @@ export type ContentRoute = {
   virtualModuleId: string
   kind: 'mdx' | 'openapi'
   sections?: ContentSection[]
+  rawContentUrl?: string
 }
 
 /** @deprecated Use ContentRoute instead */

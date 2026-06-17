@@ -9,6 +9,7 @@ import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { runBuildDoneHooks, runHooks } from './hooks.js'
 import { rehypePlugins } from './mdx.js'
+import { createLlmsTxt, enrichRoutesWithRawContent, readRawContent, writeLlmsTxt, writeRawContentFiles } from './raw-content.js'
 import { buildNavigation, buildNavigationFromConfig, extractOpenAPISections, findContentRoutes, readOpenAPISpec } from './routes.js'
 import {
   SSR_ENTRY_CODE,
@@ -67,6 +68,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
 
   async function resolveRoutesAndSpecs() {
     routes = findContentRoutes(contentRoot)
+    enrichRoutesWithRawContent(routes)
     for (const key of Object.keys(openApiSpecs)) delete openApiSpecs[key]
 
     for (const route of routes.filter(r => r.kind === 'openapi')) {
@@ -85,6 +87,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       : buildNavigation(routes)
     const resolved = await runHooks(clarifyPlugins, 'routes:resolved', { routes, navigation: defaultNavigation }, ctx)
     routes = resolved.routes
+    enrichRoutesWithRawContent(routes)
     resolvedNavigation = resolved.navigation
   }
 
@@ -162,6 +165,37 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
     load(id) {
       return loadVirtualModule(id, virtualModules)
     },
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const requestPath = req.url?.split('?')[0] ?? ''
+        const basePath = projectConfig.routePrefix === '/' ? '' : `/${projectConfig.routePrefix.replace(/^\/+|\/+$/g, '')}`
+        const contentPath = basePath && requestPath.startsWith(basePath)
+          ? requestPath.slice(basePath.length) || '/'
+          : requestPath
+
+        if (contentPath === '/llms.txt') {
+          res.statusCode = 200
+          res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+          res.end(createLlmsTxt(routes, projectConfig))
+          return
+        }
+
+        const route = routes.find(route => route.rawContentUrl === contentPath)
+        if (!route) {
+          next()
+          return
+        }
+
+        const contentType = route.kind === 'openapi' && /\.ya?ml$/i.test(route.rawContentUrl ?? '')
+          ? 'text/yaml; charset=utf-8'
+          : route.kind === 'openapi'
+            ? 'application/json; charset=utf-8'
+            : 'text/markdown; charset=utf-8'
+        res.statusCode = 200
+        res.setHeader('Content-Type', contentType)
+        res.end(readRawContent(route))
+      })
+    },
     transformIndexHtml: {
       order: 'pre',
       handler(html, ctx) {
@@ -216,6 +250,8 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
 
         const ssrBundlePath = join(ssrOutputDir, 'entry-server.js')
         await renderSSGRoutes(routes, projectConfig, outputDir, ssrBundlePath, generateOptions.ssg.failOnError)
+        writeRawContentFiles(routes, outputDir)
+        writeLlmsTxt(routes, projectConfig, outputDir)
       } catch (err) {
         console.error('[clarify] SSG failed:', err)
         if (generateOptions.ssg.failOnError) {
