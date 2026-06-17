@@ -1,10 +1,11 @@
 import { slug } from 'github-slugger'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { Code, CodeGroup, Heading, Prose } from '../components'
+import { Heading, Prose } from '../components'
 import { useOpenApiSpecs } from '../context'
 import { Col, Properties, Property, Row } from '../mdx/primitives'
+
 import { getOpenApiOperation, listOpenApiOperations } from './utils'
 import type { OpenAPIOperation, OpenAPISpec } from './utils'
 
@@ -48,6 +49,19 @@ type OpenApiResponse = {
   content?: Record<string, OpenApiMediaType>
 }
 
+type MediaTypeEntry = {
+  mediaType: string
+  value: OpenApiMediaType
+}
+
+type ExampleEntry = {
+  key: string
+  title: string
+  summary?: string
+  value: unknown
+  generated?: boolean
+}
+
 const VIRTUAL_PREFIX = 'virtual:clarify-page/'
 
 function isRecord(value: unknown): value is OpenApiRecord {
@@ -80,28 +94,65 @@ function getRequestBody(operation: OpenAPIOperation): OpenApiRecord | undefined 
   return isRecord(requestBody) && !isReference(requestBody) ? requestBody : undefined
 }
 
-function getJsonLikeContent(content: unknown): { mediaType: string; value: OpenApiMediaType } | undefined {
-  if (!isRecord(content)) return undefined
+function getMediaTypeEntries(content: unknown): MediaTypeEntry[] {
+  if (!isRecord(content)) return []
 
-  for (const [mediaType, value] of Object.entries(content)) {
-    if (mediaType.includes('json') && isRecord(value)) return { mediaType, value }
+  return Object.entries(content)
+    .filter(([, value]) => isRecord(value) && !isReference(value))
+    .map(([mediaType, value]) => ({ mediaType, value: value as OpenApiMediaType }))
+    .sort((a, z) => {
+      const aJson = a.mediaType.includes('json') ? 0 : 1
+      const zJson = z.mediaType.includes('json') ? 0 : 1
+      return aJson - zJson
+    })
+}
+
+function getJsonLikeContent(content: unknown): MediaTypeEntry | undefined {
+  return getMediaTypeEntries(content)[0]
+}
+
+function getExampleValue(example: unknown): unknown {
+  if (isRecord(example) && 'value' in example) return example.value
+  if (isRecord(example) && 'externalValue' in example) return undefined
+  return example
+}
+
+function getExampleTitle(key: string, example: unknown): { title: string; summary?: string } {
+  if (isRecord(example)) {
+    const summary = typeof example.summary === 'string' ? example.summary : undefined
+    return { title: summary ?? key, summary }
   }
 
-  const [mediaType, value] = Object.entries(content)[0] ?? []
-  return mediaType && isRecord(value) ? { mediaType, value } : undefined
+  return { title: key }
+}
+
+function getExampleEntries(mediaType?: OpenApiMediaType): ExampleEntry[] {
+  if (!mediaType) return []
+
+  if (isRecord(mediaType.examples)) {
+    const examples: ExampleEntry[] = []
+
+    for (const [key, example] of Object.entries(mediaType.examples)) {
+      const value = getExampleValue(example)
+      if (typeof value === 'undefined') continue
+
+      const { title, summary } = getExampleTitle(key, example)
+      examples.push({ key, title, summary, value })
+    }
+
+    if (examples.length > 0) return examples
+  }
+
+  if (typeof mediaType.example !== 'undefined') {
+    return [{ key: 'default', title: 'Example', value: mediaType.example }]
+  }
+
+  const generated = schemaToExample(mediaType.schema)
+  return typeof generated === 'undefined' ? [] : [{ key: 'schema', title: 'Schema example', value: generated, generated: true }]
 }
 
 function getContentExample(mediaType?: OpenApiMediaType): unknown {
-  if (!mediaType) return undefined
-  if (typeof mediaType.example !== 'undefined') return mediaType.example
-
-  const examples = isRecord(mediaType.examples) ? Object.values(mediaType.examples) : []
-  for (const example of examples) {
-    if (isRecord(example) && 'value' in example) return example.value
-    if (typeof example !== 'undefined') return example
-  }
-
-  return schemaToExample(mediaType.schema)
+  return getExampleEntries(mediaType)[0]?.value
 }
 
 function schemaToType(schema: unknown): string | undefined {
@@ -158,13 +209,6 @@ function stringifyExample(value: unknown): string {
   if (typeof value === 'undefined') return ''
   if (typeof value === 'string') return value
   return JSON.stringify(value, null, 2)
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
 }
 
 function shellQuote(value: string): string {
@@ -224,17 +268,6 @@ function getResponseEntries(operation: OpenAPIOperation): Array<{ status: string
   return Object.entries(responses)
     .filter(([, response]) => isRecord(response) && !isReference(response))
     .map(([status, response]) => ({ status, response: response as OpenApiResponse }))
-}
-
-function getPrimaryResponse(operation: OpenAPIOperation): { status: string; response: OpenApiResponse; content?: { mediaType: string; value: OpenApiMediaType } } | undefined {
-  const responses = getResponseEntries(operation)
-  const successful = responses.find(({ status }) => status.startsWith('2')) ?? responses[0]
-  if (!successful) return undefined
-
-  return {
-    ...successful,
-    content: getJsonLikeContent(successful.response.content),
-  }
 }
 
 function SchemaProperties({ title, schema }: { title: string; schema: unknown }): ReactNode {
@@ -309,11 +342,239 @@ function ResponseList({ operation }: { operation: OpenAPIOperation }): ReactNode
   )
 }
 
-function CodeBlock({ code, language, title }: { code: string; language: string; title: string }): ReactNode {
+function codeLanguageForMediaType(mediaType?: string): string {
+  if (!mediaType) return 'json'
+  if (mediaType.includes('json')) return 'json'
+  if (mediaType.includes('yaml') || mediaType.includes('yml')) return 'yaml'
+  if (mediaType.startsWith('text/')) return 'text'
+  if (mediaType.includes('xml')) return 'xml'
+  return 'text'
+}
+
+function SelectControl({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: string
+  options: string[]
+  onChange: (value: string) => void
+}): ReactNode {
+  if (options.length <= 1) return null
+
   return (
-    <Code code={code} language={language} title={title}>
-      {escapeHtml(code)}
-    </Code>
+    <label className="flex flex-col gap-1 text-[0.625rem]/5 font-semibold tracking-widest text-zinc-400 uppercase">
+      {label}
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1.5 font-mono text-xs font-medium tracking-normal text-zinc-100 outline-hidden transition hover:border-white/20 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>{option}</option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
+function ExamplePicker({
+  examples,
+  selectedKey,
+  onSelect,
+}: {
+  examples: ExampleEntry[]
+  selectedKey: string
+  onSelect: (key: string) => void
+}): ReactNode {
+  if (examples.length <= 1) return null
+
+  return (
+    <div className="flex flex-wrap gap-2 border-t border-white/7.5 bg-zinc-900 px-4 py-3 dark:border-white/5">
+      {examples.map((example) => (
+        <button
+          key={example.key}
+          type="button"
+          onClick={() => onSelect(example.key)}
+          className={[
+            'rounded-full px-2.5 py-1 text-xs font-medium transition',
+            example.key === selectedKey
+              ? 'bg-emerald-400/10 text-emerald-300 ring-1 ring-emerald-400/30 ring-inset'
+              : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200',
+          ].join(' ')}
+        >
+          {example.title}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function CopyCodeButton({ code }: { code: string }): ReactNode {
+  const [copied, setCopied] = useState(false)
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void window.navigator.clipboard.writeText(code).then(() => {
+          setCopied(true)
+          window.setTimeout(() => setCopied(false), 1000)
+        })
+      }}
+      className="absolute top-3.5 right-4 rounded-full bg-white/5 px-3 py-1 text-2xs font-medium text-zinc-400 opacity-0 transition hover:bg-white/10 hover:text-zinc-200 group-hover:opacity-100 focus:opacity-100"
+    >
+      {copied ? 'Copied!' : 'Copy'}
+    </button>
+  )
+}
+
+function ApiExampleCodeGroup({
+  title,
+  tag,
+  label,
+  code,
+  language,
+  examples,
+  selectedExampleKey,
+  onSelectExample,
+}: {
+  title: string
+  tag?: string
+  label?: string
+  code: string
+  language: string
+  examples?: ExampleEntry[]
+  selectedExampleKey?: string
+  onSelectExample?: (key: string) => void
+}): ReactNode {
+  return (
+    <div className="my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
+      <div className="not-prose">
+        <div className="flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
+          <h3 className="mr-auto pt-3 text-xs font-semibold text-white">{title}</h3>
+        </div>
+        {examples && selectedExampleKey && onSelectExample ? (
+          <ExamplePicker examples={examples} selectedKey={selectedExampleKey} onSelect={onSelectExample} />
+        ) : null}
+        {tag || label ? (
+          <div className="flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
+            {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-emerald-400">{tag}</span> : null}
+            {tag && label ? <span className="h-0.5 w-0.5 rounded-full bg-zinc-500" /> : null}
+            {label ? <span className="font-mono text-xs text-zinc-400">{label}</span> : null}
+          </div>
+        ) : null}
+        <div className="group relative">
+          <pre className="overflow-x-auto p-4 text-xs text-white">
+            <code className={`language-${language}`}>{code}</code>
+          </pre>
+          <CopyCodeButton code={code} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function RequestExamplesPanel({
+  spec,
+  path,
+  method,
+  parameters,
+  requestContents,
+}: {
+  spec: OpenAPISpec
+  path: string
+  method: string
+  parameters: OpenApiParameter[]
+  requestContents: MediaTypeEntry[]
+}): ReactNode {
+  const [selectedMediaType, setSelectedMediaType] = useState(requestContents[0]?.mediaType ?? '')
+  const selectedContent = requestContents.find((content) => content.mediaType === selectedMediaType) ?? requestContents[0]
+  const examples = getExampleEntries(selectedContent?.value)
+  const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
+  const selectedExample = examples.find((example) => example.key === selectedExampleKey) ?? examples[0]
+  const requestContent = selectedContent ? { ...selectedContent, value: { ...selectedContent.value, example: selectedExample?.value, examples: undefined } } : undefined
+  const curl = buildCurlExample({ spec, path, method, parameters, requestContent })
+
+  return (
+    <div>
+      <div className="mb-3 flex flex-wrap gap-3">
+        <SelectControl
+          label="Media type"
+          value={selectedContent?.mediaType ?? ''}
+          options={requestContents.map((content) => content.mediaType)}
+          onChange={(value) => {
+            setSelectedMediaType(value)
+            setSelectedExampleKey(getExampleEntries(requestContents.find((content) => content.mediaType === value)?.value)[0]?.key ?? '')
+          }}
+        />
+      </div>
+      <ApiExampleCodeGroup
+        title="Request"
+        tag={method}
+        label={path}
+        code={curl}
+        language="bash"
+        examples={examples}
+        selectedExampleKey={selectedExample?.key}
+        onSelectExample={setSelectedExampleKey}
+      />
+    </div>
+  )
+}
+
+function ResponseExamplesPanel({ operation }: { operation: OpenAPIOperation }): ReactNode {
+  const responses = getResponseEntries(operation).filter(({ response }) => getMediaTypeEntries(response.content).length > 0)
+  const [selectedStatus, setSelectedStatus] = useState(responses.find(({ status }) => status.startsWith('2'))?.status ?? responses[0]?.status ?? '')
+  const selectedResponse = responses.find(({ status }) => status === selectedStatus) ?? responses[0]
+  const responseContents = getMediaTypeEntries(selectedResponse?.response.content)
+  const [selectedMediaType, setSelectedMediaType] = useState(responseContents[0]?.mediaType ?? '')
+  const selectedContent = responseContents.find((content) => content.mediaType === selectedMediaType) ?? responseContents[0]
+  const examples = getExampleEntries(selectedContent?.value)
+  const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
+  const selectedExample = examples.find((example) => example.key === selectedExampleKey) ?? examples[0]
+  const responseCode = stringifyExample(selectedExample?.value)
+
+  if (!selectedResponse || !selectedContent || !responseCode) return null
+
+  return (
+    <div>
+      <div className="mb-3 flex flex-wrap gap-3">
+        <SelectControl
+          label="Status"
+          value={selectedResponse.status}
+          options={responses.map(({ status }) => status)}
+          onChange={(value) => {
+            const nextResponse = responses.find(({ status }) => status === value)
+            const nextContents = getMediaTypeEntries(nextResponse?.response.content)
+            setSelectedStatus(value)
+            setSelectedMediaType(nextContents[0]?.mediaType ?? '')
+            setSelectedExampleKey(getExampleEntries(nextContents[0]?.value)[0]?.key ?? '')
+          }}
+        />
+        <SelectControl
+          label="Media type"
+          value={selectedContent.mediaType}
+          options={responseContents.map((content) => content.mediaType)}
+          onChange={(value) => {
+            setSelectedMediaType(value)
+            setSelectedExampleKey(getExampleEntries(responseContents.find((content) => content.mediaType === value)?.value)[0]?.key ?? '')
+          }}
+        />
+      </div>
+      <ApiExampleCodeGroup
+        title="Response"
+        tag={selectedResponse.status}
+        label={selectedContent.mediaType}
+        code={responseCode}
+        language={codeLanguageForMediaType(selectedContent.mediaType)}
+        examples={examples}
+        selectedExampleKey={selectedExample?.key}
+        onSelectExample={setSelectedExampleKey}
+      />
+    </div>
   )
 }
 
@@ -323,30 +584,19 @@ function EndpointExamples({
   method,
   operation,
   parameters,
-  requestContent,
+  requestContents,
 }: {
   spec: OpenAPISpec
   path: string
   method: string
   operation: OpenAPIOperation
   parameters: OpenApiParameter[]
-  requestContent?: { mediaType: string; value: OpenApiMediaType }
+  requestContents: MediaTypeEntry[]
 }): ReactNode {
-  const curl = buildCurlExample({ spec, path, method, parameters, requestContent })
-  const response = getPrimaryResponse(operation)
-  const responseExample = getContentExample(response?.content?.value)
-  const responseCode = stringifyExample(responseExample)
-
   return (
     <div className="space-y-6">
-      <CodeGroup title="Request" tag={method} label={path}>
-        <CodeBlock code={curl} language="bash" title="cURL" />
-      </CodeGroup>
-      {responseCode ? (
-        <CodeGroup title="Response" tag={response?.status} label={response?.content?.mediaType}>
-          <CodeBlock code={responseCode} language="json" title="JSON" />
-        </CodeGroup>
-      ) : null}
+      <RequestExamplesPanel spec={spec} path={path} method={method} parameters={parameters} requestContents={requestContents} />
+      <ResponseExamplesPanel operation={operation} />
     </div>
   )
 }
@@ -370,8 +620,8 @@ function OpenApiOperation({ spec, path, method, operation }: { spec: OpenAPISpec
   const description = operation.description
   const parameters = getOperationParameters(spec, path, operation)
   const requestBody = getRequestBody(operation)
-  const requestContent = getJsonLikeContent(requestBody?.content)
-  const requestSchema = requestContent?.value.schema
+  const requestContents = getMediaTypeEntries(requestBody?.content)
+  const requestSchema = requestContents[0]?.value.schema
   const groupedParameters = {
     path: parameters.filter((parameter) => parameter.in === 'path'),
     query: parameters.filter((parameter) => parameter.in === 'query'),
@@ -389,7 +639,7 @@ function OpenApiOperation({ spec, path, method, operation }: { spec: OpenAPISpec
           <ParameterList title="Path parameters" parameters={groupedParameters.path} />
           <ParameterList title="Query parameters" parameters={groupedParameters.query} />
           <ParameterList title="Headers" parameters={groupedParameters.header} />
-          {requestBody && requestContent ? (
+          {requestBody && requestContents.length > 0 ? (
             <>
               <h3>Request body</h3>
               {typeof requestBody.description === 'string' ? <p>{requestBody.description}</p> : null}
@@ -405,7 +655,7 @@ function OpenApiOperation({ spec, path, method, operation }: { spec: OpenAPISpec
             method={method}
             operation={operation}
             parameters={parameters}
-            requestContent={requestContent}
+            requestContents={requestContents}
           />
         </Col>
       </Row>

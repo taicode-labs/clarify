@@ -104,9 +104,17 @@ Initial dependency candidates:
 - [x] Render operation parameters, request body schemas, response summaries, cURL examples, and JSON response examples where OpenAPI data is available.
 - [x] Preserve the existing `OpenApiPage`, `ApiEndpoint`, and `OpenApiEndpoint` public APIs.
 
+### Phase 7 — OpenAPI multi-example rendering
+
+- [x] Add a complex docs fixture endpoint covering multiple request media types, multiple examples, multiple response statuses, and multiple response media types.
+- [x] Normalize OpenAPI media type and example entries instead of choosing only one primary content branch.
+- [x] Use dropdown selectors for request media type, response status code, and response media type.
+- [x] Render example choices as visible flat buttons, not a dropdown, while showing only the currently selected example body.
+- [x] Keep generated schema examples as a fallback when explicit OpenAPI examples are unavailable.
+
 ## Current progress
 
-Status: Reference UI migration complete, including OpenAPI reference rendering.
+Status: Reference UI migration complete, including OpenAPI reference rendering and multi-example selectors.
 
 Completed in the first pass:
 
@@ -116,6 +124,7 @@ Completed in the first pass:
 - Migrated portable primitives: `Button`, `Tag`, `Logo`, `Prose`.
 - Updated compatibility components `DocShell` and `ApiEndpointCard` to use the reference visual language.
 - Upgraded automatic OpenAPI rendering to generate reference-style endpoint detail sections.
+- Added OpenAPI selectors for media types, response statuses, and flat visible example choices.
 - Verified `pnpm --filter @clarify/renderer typecheck` and `pnpm --filter @clarify/renderer build`.
 
 Final validation completed with `pnpm typecheck && pnpm test && pnpm build`.

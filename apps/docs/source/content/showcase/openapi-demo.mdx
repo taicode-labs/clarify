@@ -22,6 +22,7 @@ DELETE  /pages/{pageId}     Delete a page
 HEAD    /pages/{pageId}     Check if a page exists
 POST    /assets             Upload an asset
 GET     /search             Search pages
+POST    /exports            Create an export
 GET     /system/health      Get service health
 TRACE   /system/health      Trace health request
 ```
@@ -41,6 +42,20 @@ TRACE   /system/health      Trace health request
 渲染效果：
 
 <OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+
+---
+
+## 多媒体类型和多示例接口
+
+`POST /exports` 用于覆盖更复杂的 OpenAPI 示例组合：请求体有 JSON 与 YAML 两种 media type，每种 media type 下都有多个 examples；响应有 `202` 与 `400` 两种 status code，且成功响应同时提供 JSON 与纯文本 media type。
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/exports" method="post" />
+```
+
+渲染效果：
+
+<OpenApiEndpoint specPath="/api" path="/exports" method="post" />
 
 ---
 

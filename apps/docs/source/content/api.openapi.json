@@ -474,6 +474,131 @@
         "deprecated": false
       }
     },
+    "/exports": {
+      "post": {
+        "tags": ["Pages"],
+        "operationId": "createExport",
+        "summary": "Create an export",
+        "description": "Exercises multiple request media types, multiple request examples, multiple response statuses, and multiple response media types.",
+        "requestBody": {
+          "required": true,
+          "description": "Export job definition in either JSON or YAML.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              },
+              "examples": {
+                "fullSite": {
+                  "summary": "Full site export",
+                  "value": {
+                    "format": "html",
+                    "scope": "site",
+                    "includeDrafts": false,
+                    "callbackUrl": "https://example.com/hooks/export"
+                  }
+                },
+                "publishedPdf": {
+                  "summary": "Published PDF export",
+                  "value": {
+                    "format": "pdf",
+                    "scope": "published",
+                    "includeDrafts": false
+                  }
+                }
+              }
+            },
+            "application/x-yaml": {
+              "schema": {
+                "type": "string",
+                "description": "YAML representation of an export job."
+              },
+              "examples": {
+                "siteYaml": {
+                  "summary": "Full site YAML",
+                  "value": "format: html\nscope: site\nincludeDrafts: false\ncallbackUrl: https://example.com/hooks/export\n"
+                },
+                "draftYaml": {
+                  "summary": "Drafts YAML",
+                  "value": "format: markdown\nscope: site\nincludeDrafts: true\n"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Export job accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportJob"
+                },
+                "examples": {
+                  "queued": {
+                    "summary": "Queued job",
+                    "value": {
+                      "id": "exp_123",
+                      "status": "queued",
+                      "downloadUrl": null
+                    }
+                  },
+                  "processing": {
+                    "summary": "Processing job",
+                    "value": {
+                      "id": "exp_456",
+                      "status": "processing",
+                      "downloadUrl": null
+                    }
+                  }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "examples": {
+                  "plain": {
+                    "summary": "Plain job id",
+                    "value": "exp_123"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid export request.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                "examples": {
+                  "unsupportedFormat": {
+                    "summary": "Unsupported format",
+                    "value": {
+                      "type": "https://clarify.local/problems/unsupported-export-format",
+                      "title": "Unsupported export format",
+                      "status": 400,
+                      "detail": "The requested export format is not available."
+                    }
+                  },
+                  "missingScope": {
+                    "summary": "Missing scope",
+                    "value": {
+                      "type": "https://clarify.local/problems/missing-export-scope",
+                      "title": "Missing export scope",
+                      "status": 400,
+                      "detail": "Select which pages should be exported."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/system/health": {
       "get": {
         "tags": ["System"],
@@ -811,6 +936,52 @@
           },
           "highlight": {
             "type": "string"
+          }
+        }
+      },
+      "ExportRequest": {
+        "type": "object",
+        "required": ["format", "scope"],
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": ["html", "pdf", "markdown"]
+          },
+          "scope": {
+            "type": "string",
+            "enum": ["site", "published", "selected"]
+          },
+          "includeDrafts": {
+            "type": "boolean",
+            "default": false
+          },
+          "callbackUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "ExportJob": {
+        "type": "object",
+        "required": ["id", "status", "downloadUrl"],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["queued", "processing", "ready", "failed"]
+          },
+          "downloadUrl": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       },
