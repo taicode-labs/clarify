@@ -11,30 +11,56 @@ export type ClarifyLogoConfig = string | { light?: string; dark?: string }
 
 export type ClarifyFaviconConfig = string | { light?: string; dark?: string }
 
-export type ClarifyNavbarLink = {
+export type ClarifyLocalizedText = string | Record<string, string>
+
+export type ClarifyLocaleConfig = {
+  code: string
   label: string
+  dir?: 'ltr' | 'rtl'
+}
+
+export type ClarifyI18nConfig = {
+  /** Source content locale. Content is read from rootDirectory/sourceLocale. */
+  sourceLocale?: string
+  /** Default visible locale. Defaults to sourceLocale or the first locale. */
+  defaultLocale?: string
+  /** URL strategy. Default locale has no prefix by default. */
+  strategy?: 'prefix_except_default' | 'prefix_always'
+  /** Missing translation behavior. Fallback uses source locale content. */
+  missing?: 'fallback' | '404' | 'hide'
+  locales: ClarifyLocaleConfig[]
+}
+
+export type ResolvedClarifyI18nConfig = Required<Pick<ClarifyI18nConfig, 'sourceLocale' | 'defaultLocale' | 'strategy' | 'missing'>> & {
+  locales: ClarifyLocaleConfig[]
+}
+
+export type ClarifyNavbarLink = {
+  label: ClarifyLocalizedText
   href: string
   external?: boolean
 }
 
 export type ClarifyBannerConfig = {
-  content: string
+  content: ClarifyLocalizedText
   dismissible?: boolean
 }
 
 export type ClarifyFooterConfig = {
   socials?: Record<string, string>
-  copyright?: string
+  copyright?: ClarifyLocalizedText
 }
 
 export type ClarifyPagesItem =
   | string
   | {
     page: string
+    /** Override the page title. Defaults to localized route title. */
+    title?: ClarifyLocalizedText
     /** Icon name from lucide-react, e.g. "BookOpen". */
     icon?: string
     /** If set, this navigation item is a redirect entry.
-     *  The value is the destination path. */
+     *  The value is treated as a locale-independent page path for internal links. */
     redirect?: string
   }
   | {
@@ -42,11 +68,11 @@ export type ClarifyPagesItem =
     /** Icon name from lucide-react, e.g. "Webhook". */
     icon?: string
     /** Override the page title. Defaults to spec.info.title. */
-    title?: string
+    title?: ClarifyLocalizedText
   }
 
 export type ClarifyPagesGroup = {
-  group: string
+  group: ClarifyLocalizedText
   /** Icon name from lucide-react, e.g. "BookOpen". */
   icon?: string
   pages: ClarifyPagesItem[]
@@ -87,9 +113,12 @@ export type ClarifyProjectConfig = {
   /** Footer configuration. */
   footer?: ClarifyFooterConfig
 
+  /** Native multi-language support. Locale content lives under rootDirectory/{locale}. */
+  i18n?: ClarifyI18nConfig
+
   /** Sidebar pages. Array of groups with ordered page references, or "FileTree" for auto-generation.
    *  If omitted, pages are auto-generated from the file system (same as "FileTree").
-   *  Page references are relative paths without .mdx extension, e.g. "index", "advanced/ssg".
+   *  Page references are locale-independent paths without .mdx extension, e.g. "index", "advanced/ssg".
    */
   pages?: ClarifyPagesConfig
 }
@@ -131,6 +160,7 @@ export type ResolvedProjectConfig = {
   navbar?: { links?: ClarifyNavbarLink[] }
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig
+  i18n?: ResolvedClarifyI18nConfig
   pages?: ClarifyPagesConfig
 }
 
@@ -156,6 +186,11 @@ export type ContentSection = {
 
 export type ContentRoute = {
   path: string
+  basePath?: string
+  locale?: string
+  sourceLocale?: string
+  isFallback?: boolean
+  alternates?: Record<string, string>
   title: string
   filePath: string
   virtualModuleId: string
@@ -163,6 +198,8 @@ export type ContentRoute = {
   sections?: ContentSection[]
   rawContentUrl?: string
 }
+
+export type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
 
 /** @deprecated Use ContentRoute instead */
 export type MdxRoute = ContentRoute
@@ -201,9 +238,9 @@ export type ClarifyHooks = {
     ctx: ClarifyHookContext
   ) => Promise<ClarifyPage> | ClarifyPage
   'routes:resolved'?: (
-    input: { routes: ContentRoute[]; navigation: ClarifyNavigationNode[] },
+    input: { routes: ContentRoute[]; navigation: ClarifyNavigationNode[]; navigationByLocale?: LocalizedNavigation },
     ctx: ClarifyHookContext
-  ) => Promise<{ routes: ContentRoute[]; navigation: ClarifyNavigationNode[] }> | { routes: ContentRoute[]; navigation: ClarifyNavigationNode[] }
+  ) => Promise<{ routes: ContentRoute[]; navigation: ClarifyNavigationNode[]; navigationByLocale?: LocalizedNavigation }> | { routes: ContentRoute[]; navigation: ClarifyNavigationNode[]; navigationByLocale?: LocalizedNavigation }
   'modules:before'?: (
     modules: Map<string, string>,
     ctx: ClarifyHookContext

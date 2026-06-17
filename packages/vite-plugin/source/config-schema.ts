@@ -18,38 +18,58 @@ export const clarifyFaviconConfigSchema = z.union([
   }),
 ])
 
-export const clarifyNavbarLinkSchema = z.object({
+export const clarifyLocalizedTextSchema = z.union([
+  z.string(),
+  z.record(z.string(), z.string()),
+])
+
+export const clarifyLocaleConfigSchema = z.object({
+  code: z.string(),
   label: z.string(),
+  dir: z.union([z.literal('ltr'), z.literal('rtl')]).optional(),
+})
+
+export const clarifyI18nConfigSchema = z.object({
+  sourceLocale: z.string().optional(),
+  defaultLocale: z.string().optional(),
+  strategy: z.union([z.literal('prefix_except_default'), z.literal('prefix_always')]).optional(),
+  missing: z.union([z.literal('fallback'), z.literal('404'), z.literal('hide')]).optional(),
+  locales: z.array(clarifyLocaleConfigSchema).min(1),
+})
+
+export const clarifyNavbarLinkSchema = z.object({
+  label: clarifyLocalizedTextSchema,
   href: z.string(),
   external: z.boolean().optional(),
 })
 
 export const clarifyBannerConfigSchema = z.object({
-  content: z.string(),
+  content: clarifyLocalizedTextSchema,
   dismissible: z.boolean().optional(),
 })
 
 export const clarifyFooterConfigSchema = z.object({
   socials: z.record(z.string(), z.string()).optional(),
-  copyright: z.string().optional(),
+  copyright: clarifyLocalizedTextSchema.optional(),
 })
 
 export const clarifyPagesItemSchema = z.union([
   z.string(),
   z.object({
     page: z.string(),
+    title: clarifyLocalizedTextSchema.optional(),
     icon: z.string().optional(),
     redirect: z.string().optional(),
   }),
   z.object({
     openapi: z.string(),
     icon: z.string().optional(),
-    title: z.string().optional(),
+    title: clarifyLocalizedTextSchema.optional(),
   }),
 ])
 
 export const clarifyPagesGroupSchema = z.object({
-  group: z.string(),
+  group: clarifyLocalizedTextSchema,
   icon: z.string().optional(),
   pages: z.array(clarifyPagesItemSchema),
 })
@@ -73,6 +93,7 @@ export const clarifyProjectConfigSchema = z.object({
   }).optional(),
   banner: clarifyBannerConfigSchema.optional(),
   footer: clarifyFooterConfigSchema.optional(),
+  i18n: clarifyI18nConfigSchema.optional(),
   pages: clarifyPagesConfigSchema.optional(),
 }) satisfies z.ZodType<ClarifyProjectConfig>
 

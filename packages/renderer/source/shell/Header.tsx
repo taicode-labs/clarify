@@ -5,7 +5,7 @@ import { forwardRef } from 'react'
 import { Link } from 'react-router-dom'
 
 import { Button, Logo, ThemeToggle } from '../components'
-import type { ClarifyConfig, ClarifyLogoConfig, NavigationNode, RouteItem } from '../types'
+import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLogoConfig, NavigationNode, RouteItem } from '../types'
 
 import { MobileNavigation, useIsInsideMobileNavigation, useMobileNavigationStore } from './mobile'
 import { MobileSearch, Search } from './Search'
@@ -14,6 +14,18 @@ function resolveLogoUrl(logo?: ClarifyLogoConfig): string | undefined {
   if (typeof logo === 'string') return logo
   if (logo && typeof logo === 'object') return logo.light ?? logo.dark
   return undefined
+}
+
+function resolveLocalizedText(text: ClarifyLocalizedText, locale?: string, fallbackLocale?: string): string {
+  if (typeof text === 'string') return text
+  return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
+}
+
+function localizeHref(href: string, config: ClarifyConfig, locale?: string): string {
+  if (!locale || !config.i18n || href.startsWith('http') || href.startsWith('#')) return href
+  if (config.i18n.strategy === 'prefix_except_default' && locale === config.i18n.defaultLocale) return href
+  const cleanHref = href === '/' ? '' : href.replace(/^\/+/, '')
+  return `/${locale}${cleanHref ? `/${cleanHref}` : ''}`
 }
 
 function TopLevelNavItem({ href, children }: { href: string; children: React.ReactNode }) {
@@ -52,8 +64,9 @@ export const Header = forwardRef<
     config: ClarifyConfig
     navigation: NavigationNode[]
     routes: RouteItem[]
+    currentLocale?: string
   }
->(function Header({ config, navigation, routes, className, ...props }, ref) {
+>(function Header({ config, navigation, routes, currentLocale, className, ...props }, ref) {
   const { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const logoUrl = resolveLogoUrl(config.logo)
@@ -101,8 +114,8 @@ export const Header = forwardRef<
           <nav className="hidden md:block">
             <ul role="list" className="flex items-center gap-8">
               {config.navbar.links.map((link) => (
-                <TopLevelNavItem key={link.href} href={link.href}>
-                  {link.label}
+                <TopLevelNavItem key={link.href} href={localizeHref(link.href, config, currentLocale)}>
+                  {resolveLocalizedText(link.label, currentLocale, config.i18n?.sourceLocale)}
                 </TopLevelNavItem>
               ))}
             </ul>

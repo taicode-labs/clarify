@@ -5,12 +5,13 @@ import { Link, Routes, Route, useLocation } from 'react-router-dom'
 import { Logo } from '../components'
 import { SectionProvider, type Section } from '../components/SectionProvider'
 import { ContentActions, Header, Navigation } from '../shell'
-import type { RouteItem, ClarifyConfig, NavigationNode } from '../types'
+import type { RouteItem, ClarifyConfig, NavigationNode, LocalizedNavigation } from '../types'
 
 export type AppShellProps = {
   config: ClarifyConfig
   routes: RouteItem[]
   navigation: NavigationNode[]
+  navigationByLocale?: LocalizedNavigation
 }
 
 function routeForPath(routes: RouteItem[], pathname: string): RouteItem | undefined {
@@ -37,10 +38,22 @@ function scrollToHash(hash: string) {
   })
 }
 
+function localeForPath(config: ClarifyConfig, pathname: string, route?: RouteItem): string | undefined {
+  if (route?.locale) return route.locale
+  const i18n = config.i18n
+  if (!i18n) return undefined
+  const firstSegment = pathname.split('/').filter(Boolean)[0]
+  return i18n.locales.find((locale) => locale.code === firstSegment)?.code ?? i18n.defaultLocale
+}
+
 export function AppShell(arg0: AppShellProps) {
-  const { config, routes, navigation } = arg0
+  const { config, routes, navigation, navigationByLocale } = arg0
   const location = useLocation()
   const currentRoute = routeForPath(routes, location.pathname)
+  const currentLocale = localeForPath(config, location.pathname, currentRoute)
+  const currentNavigation = currentLocale && navigationByLocale?.[currentLocale]
+    ? navigationByLocale[currentLocale]
+    : navigation
   const sections = sectionsForRoute(currentRoute)
 
   useEffect(() => {
@@ -58,8 +71,8 @@ export function AppShell(arg0: AppShellProps) {
                 <span className="text-sm font-semibold text-zinc-900 dark:text-white">{config.title}</span>
               </Link>
             </div>
-            <Header config={config} navigation={navigation} routes={routes} />
-            <Navigation navigation={navigation} className="hidden lg:mt-10 lg:block" />
+            <Header config={config} navigation={currentNavigation} routes={routes} currentLocale={currentLocale} />
+            <Navigation navigation={currentNavigation} className="hidden lg:mt-10 lg:block" />
           </div>
         </motion.header>
         <div className="relative flex min-h-screen flex-col px-4 pt-14 sm:px-6 lg:px-8">

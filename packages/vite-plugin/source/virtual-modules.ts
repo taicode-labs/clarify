@@ -1,5 +1,5 @@
-import { buildNavigation, buildNavigationFromConfig } from './routes.js'
-import type { ClarifyPagesConfig, ContentRoute, OpenAPISpec, ResolvedGenerateOptions, ResolvedProjectConfig } from './types.js'
+import { buildNavigation, buildNavigationByLocale, buildNavigationFromConfig } from './routes.js'
+import type { ClarifyPagesConfig, ContentRoute, LocalizedNavigation, OpenAPISpec, ResolvedGenerateOptions, ResolvedProjectConfig } from './types.js'
 
 export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
@@ -21,21 +21,33 @@ export function generateConfigModule(projectConfig: ResolvedProjectConfig, gener
   return `export const config = ${JSON.stringify({ ...projectConfig, ...generateOptions })};`
 }
 
-export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: ClarifyPagesConfig, resolvedNavigation?: ReturnType<typeof buildNavigation>): string {
+export function generateRoutesModule(
+  routes: ContentRoute[],
+  pagesConfig?: ClarifyPagesConfig,
+  resolvedNavigation?: ReturnType<typeof buildNavigation>,
+  resolvedNavigationByLocale?: LocalizedNavigation,
+  projectConfig?: ResolvedProjectConfig,
+): string {
   const imports = routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
   const routesArray = routes.map((r, i) => {
     const sections = r.sections && r.sections.length > 0
       ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, badge: s.badge, tags: s.tags })))}`
       : ''
     const rawContentUrl = r.rawContentUrl ? `, rawContentUrl: ${JSON.stringify(r.rawContentUrl)}` : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${sections}${rawContentUrl} }`
+    const basePath = r.basePath ? `, basePath: ${JSON.stringify(r.basePath)}` : ''
+    const locale = r.locale ? `, locale: ${JSON.stringify(r.locale)}` : ''
+    const sourceLocale = r.sourceLocale ? `, sourceLocale: ${JSON.stringify(r.sourceLocale)}` : ''
+    const isFallback = r.isFallback ? ', isFallback: true' : ''
+    const alternates = r.alternates ? `, alternates: ${JSON.stringify(r.alternates)}` : ''
+    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${basePath}${locale}${sourceLocale}${isFallback}${alternates}${sections}${rawContentUrl} }`
   }).join(',\n')
 
   const navigation = resolvedNavigation ?? (pagesConfig && pagesConfig !== 'FileTree'
     ? buildNavigationFromConfig(routes, pagesConfig)
     : buildNavigation(routes))
+  const navigationByLocale = resolvedNavigationByLocale ?? buildNavigationByLocale(routes, pagesConfig, projectConfig?.i18n)
 
-  return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
+  return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n\nexport const navigationByLocale = ${JSON.stringify(navigationByLocale ?? {}, null, 2)};\n`
 }
 
 export function generateOpenAPIRegistryModule(openApiSpecs: Record<string, OpenAPISpec>): string {
@@ -55,10 +67,10 @@ export function createClientEntryModule(): string {
   return `
 import '@clarify/renderer/style.css';
 import { render } from '@clarify/renderer';
-import { routes, navigation } from '${VIRTUAL_ROUTES}';
+import { routes, navigation, navigationByLocale } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
 import { openApiSpecs } from '${VIRTUAL_OPENAPI_REGISTRY}';
-render({ config, routes, navigation, openApiSpecs });`
+render({ config, routes, navigation, navigationByLocale, openApiSpecs });`
 }
 
 export function buildVirtualModules(args: {
@@ -66,11 +78,12 @@ export function buildVirtualModules(args: {
   generateOptions: ResolvedGenerateOptions
   routes: ContentRoute[]
   navigation?: ReturnType<typeof buildNavigation>
+  navigationByLocale?: LocalizedNavigation
   openApiSpecs: Record<string, OpenAPISpec>
 }): VirtualModules {
   const modules: VirtualModules = new Map()
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
-  modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.projectConfig.pages, args.navigation))
+  modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.projectConfig.pages, args.navigation, args.navigationByLocale, args.projectConfig))
   modules.set(VIRTUAL_OPENAPI_REGISTRY, generateOpenAPIRegistryModule(args.openApiSpecs))
   modules.set(VIRTUAL_CLIENT_ENTRY, createClientEntryModule())
   modules.set(RESOLVED_CLIENT_ENTRY, createClientEntryModule())

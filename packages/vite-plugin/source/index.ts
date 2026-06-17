@@ -10,7 +10,7 @@ import { resolveProjectConfig, resolveGenerateOptions } from './config.js'
 import { runBuildDoneHooks, runHooks } from './hooks.js'
 import { rehypePlugins, remarkPlugins } from './mdx.js'
 import { createLlmsTxt, enrichRoutesWithRawContent, readRawContent, writeLlmsTxt, writeRawContentFiles } from './raw-content.js'
-import { buildNavigation, buildNavigationFromConfig, extractOpenAPISections, findContentRoutes, readOpenAPISpec } from './routes.js'
+import { buildNavigation, buildNavigationByLocale, buildNavigationFromConfig, extractOpenAPISections, findLocalizedContentRoutes, readOpenAPISpec } from './routes.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
@@ -38,6 +38,9 @@ export {
   clarifyNavbarLinkSchema,
   clarifyBannerConfigSchema,
   clarifyFooterConfigSchema,
+  clarifyLocalizedTextSchema,
+  clarifyLocaleConfigSchema,
+  clarifyI18nConfigSchema,
   clarifyPagesItemSchema,
   clarifyPagesGroupSchema,
   clarifyPagesConfigSchema,
@@ -54,7 +57,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const projectConfig = resolveProjectConfig(root)
   const generateOptions = resolveGenerateOptions(options)
   const contentRoot = join(root, generateOptions.rootDirectory)
-  let routes = findContentRoutes(contentRoot)
+  let routes = findLocalizedContentRoutes(contentRoot, projectConfig.i18n)
 
   // Collect OpenAPI specs keyed by virtual module ID for runtime embedding.
   // Specs are populated asynchronously before Vite resolves config.
@@ -64,10 +67,11 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   const ctx: ClarifyHookContext = { projectConfig, generateOptions }
   let viteConfig: ResolvedConfig
   let resolvedNavigation: ClarifyNavigationNode[] = []
+  let resolvedNavigationByLocale: Record<string, ClarifyNavigationNode[]> | undefined
   let virtualModules: VirtualModules = new Map()
 
   async function resolveRoutesAndSpecs() {
-    routes = findContentRoutes(contentRoot)
+    routes = findLocalizedContentRoutes(contentRoot, projectConfig.i18n)
     enrichRoutesWithRawContent(routes)
     for (const key of Object.keys(openApiSpecs)) delete openApiSpecs[key]
 
@@ -82,13 +86,17 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       }
     }
 
-    const defaultNavigation = projectConfig.pages && projectConfig.pages !== 'FileTree'
-      ? buildNavigationFromConfig(routes, projectConfig.pages)
-      : buildNavigation(routes)
-    const resolved = await runHooks(clarifyPlugins, 'routes:resolved', { routes, navigation: defaultNavigation }, ctx)
+    const defaultNavigationByLocale = buildNavigationByLocale(routes, projectConfig.pages, projectConfig.i18n)
+    const defaultNavigation = projectConfig.i18n
+      ? (defaultNavigationByLocale?.[projectConfig.i18n.defaultLocale] ?? [])
+      : projectConfig.pages && projectConfig.pages !== 'FileTree'
+        ? buildNavigationFromConfig(routes, projectConfig.pages)
+        : buildNavigation(routes)
+    const resolved = await runHooks(clarifyPlugins, 'routes:resolved', { routes, navigation: defaultNavigation, navigationByLocale: defaultNavigationByLocale }, ctx)
     routes = resolved.routes
     enrichRoutesWithRawContent(routes)
     resolvedNavigation = resolved.navigation
+    resolvedNavigationByLocale = resolved.navigationByLocale
   }
 
   async function rebuildVirtualModules() {
@@ -97,6 +105,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       generateOptions,
       routes,
       navigation: resolvedNavigation,
+      navigationByLocale: resolvedNavigationByLocale,
       openApiSpecs,
     })
     virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
@@ -110,7 +119,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
   }
 
   const mdx = mdxPlugin({
-    include: options.include ?? ['**/*.mdx'],
+    include: options.include ?? ['**/*.{md,mdx}'],
     exclude: options.exclude,
     jsxImportSource: 'react',
     providerImportSource: '@clarify/renderer',
@@ -145,7 +154,7 @@ export function clarifyPlugin(options: ClarifyGenerateOptions = {}): Plugin[] {
       const changedFile = isAbsolute(ctx.file) ? ctx.file : join(root, ctx.file)
       const relativeContentFile = relative(contentRoot, changedFile)
       const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
-      const isClarifyContent = isContentFile && (/\.mdx$/.test(changedFile) || /\.openapi\.(json|yaml|yml)$/.test(changedFile))
+      const isClarifyContent = isContentFile && (/\.mdx?$/.test(changedFile) || /\.openapi\.(json|yaml|yml)$/.test(changedFile))
       if (!isClarifyContent) return
 
       await resolveRoutesAndSpecs()

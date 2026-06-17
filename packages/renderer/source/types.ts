@@ -19,6 +19,11 @@ export type NavigationNode = {
 
 export type RouteItem = {
   path: string;
+  basePath?: string;
+  locale?: string;
+  sourceLocale?: string;
+  isFallback?: boolean;
+  alternates?: Record<string, string>;
   title: string;
   component: ComponentType;
   kind?: 'mdx' | 'openapi';
@@ -30,37 +35,54 @@ export type ClarifyLogoConfig = string | { light?: string; dark?: string };
 
 export type ClarifyFaviconConfig = string | { light?: string; dark?: string };
 
-export type ClarifyNavbarLink = {
+export type ClarifyLocalizedText = string | Record<string, string>;
+
+export type ClarifyLocaleConfig = {
+  code: string;
   label: string;
+  dir?: 'ltr' | 'rtl';
+};
+
+export type ClarifyI18nConfig = {
+  sourceLocale: string;
+  defaultLocale: string;
+  strategy: 'prefix_except_default' | 'prefix_always';
+  missing: 'fallback' | '404' | 'hide';
+  locales: ClarifyLocaleConfig[];
+};
+
+export type ClarifyNavbarLink = {
+  label: ClarifyLocalizedText;
   href: string;
   external?: boolean;
 };
 
 export type ClarifyBannerConfig = {
-  content: string;
+  content: ClarifyLocalizedText;
   dismissible?: boolean;
 };
 
 export type ClarifyFooterConfig = {
   socials?: Record<string, string>;
-  copyright?: string;
+  copyright?: ClarifyLocalizedText;
 };
 
 export type ClarifyPagesItem =
   | string
   | {
       page: string;
+      title?: ClarifyLocalizedText;
       icon?: string;
       redirect?: string;
     }
   | {
       openapi: string;
       icon?: string;
-      title?: string;
+      title?: ClarifyLocalizedText;
     };
 
 export type ClarifyPagesGroup = {
-  group: string;
+  group: ClarifyLocalizedText;
   icon?: string;
   pages: ClarifyPagesItem[];
 };
@@ -79,8 +101,11 @@ export type ClarifyConfig = {
   navbar?: { links?: ClarifyNavbarLink[] };
   banner?: ClarifyBannerConfig;
   footer?: ClarifyFooterConfig;
+  i18n?: ClarifyI18nConfig;
   pages?: ClarifyPagesConfig;
 };
+
+export type LocalizedNavigation = Record<string, NavigationNode[]>;
 
 export type RenderOptions = {
   /** 从 virtual:clarify-config 导入的 config */
@@ -89,6 +114,8 @@ export type RenderOptions = {
   routes: RouteItem[];
   /** 从 virtual:clarify-routes 导入的导航树 */
   navigation?: NavigationNode[];
+  /** 从 virtual:clarify-routes 导入的多语言导航树 */
+  navigationByLocale?: LocalizedNavigation;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApiSpecs?: Record<string, OpenAPISpec>;
   /** 挂载节点，默认 document.getElementById('root') */
@@ -102,6 +129,8 @@ export type ServerRenderOptions = {
   routes: RouteItem[];
   /** 从 virtual:clarify-routes 导入的导航树 */
   navigation?: NavigationNode[];
+  /** 从 virtual:clarify-routes 导入的多语言导航树 */
+  navigationByLocale?: LocalizedNavigation;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApiSpecs?: Record<string, OpenAPISpec>;
   /** 当前请求的 URL */

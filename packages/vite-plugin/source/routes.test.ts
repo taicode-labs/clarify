@@ -5,8 +5,8 @@ import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { extractFrontmatter } from './frontmatter.js'
-import { findMdxFiles, buildNavigation, buildNavigationFromConfig } from './routes.js'
-import type { ResolvedProjectConfig, ResolvedGenerateOptions, MdxRoute, ClarifyPagesConfig, ClarifyPagesGroup } from './types.js'
+import { findMdxFiles, buildNavigation, buildNavigationFromConfig, buildNavigationByLocale, findLocalizedContentRoutes } from './routes.js'
+import type { ResolvedProjectConfig, ResolvedGenerateOptions, MdxRoute, ClarifyPagesConfig, ClarifyPagesGroup, ResolvedClarifyI18nConfig } from './types.js'
 import { generateConfigModule, generateRoutesModule } from './virtual-modules.js'
 
 function mdxRoute(route: Omit<MdxRoute, 'kind'>): MdxRoute {
@@ -64,11 +64,13 @@ describe('findMdxFiles', () => {
     expect(indexRoute?.title).toBe('Home')
   })
 
-  it('ignores non-mdx files', () => {
+  it('discovers markdown and ignores unrelated files', () => {
     writeFileSync(join(tempDir, 'readme.txt'), 'text', 'utf-8')
     writeFileSync(join(tempDir, 'page.md'), '# MD', 'utf-8')
     const result = findMdxFiles(tempDir)
-    expect(result).toHaveLength(0)
+    expect(result).toHaveLength(1)
+    expect(result[0].path).toBe('/page')
+    expect(result[0].title).toBe('Page')
   })
 
   it('generates correct virtualModuleId', () => {
@@ -187,6 +189,95 @@ describe('buildNavigation', () => {
     expect(tree[0].title).toBe('Guide')
     expect(tree[0].children).toHaveLength(2)
     expect(tree[0].children?.map(c => c.path)).toEqual(['/guide/getting-started', '/guide/advanced'])
+  })
+})
+
+describe('findLocalizedContentRoutes', () => {
+  let tempDir: string
+  const i18n: ResolvedClarifyI18nConfig = {
+    sourceLocale: 'zh-CN',
+    defaultLocale: 'zh-CN',
+    strategy: 'prefix_except_default',
+    missing: 'fallback',
+    locales: [
+      { code: 'zh-CN', label: '简体中文' },
+      { code: 'en-US', label: 'English' },
+    ],
+  }
+
+  beforeEach(() => {
+    tempDir = mkdtempSync(join(tmpdir(), 'clarify-test-'))
+  })
+
+  afterEach(() => {
+    rmSync(tempDir, { recursive: true, force: true })
+  })
+
+  it('discovers source/content/{locale} routes with locale-aware paths', () => {
+    mkdirSync(join(tempDir, 'zh-CN'), { recursive: true })
+    mkdirSync(join(tempDir, 'en-US'), { recursive: true })
+    writeFileSync(join(tempDir, 'zh-CN', 'index.mdx'), '# 首页', 'utf-8')
+    writeFileSync(join(tempDir, 'zh-CN', 'guide.mdx'), '# 指南', 'utf-8')
+    writeFileSync(join(tempDir, 'en-US', 'index.mdx'), '# Home', 'utf-8')
+    writeFileSync(join(tempDir, 'en-US', 'guide.mdx'), '# Guide', 'utf-8')
+
+    const result = findLocalizedContentRoutes(tempDir, i18n)
+    expect(result.map(route => route.path)).toEqual(expect.arrayContaining(['/', '/guide', '/en-US', '/en-US/guide']))
+    expect(result.find(route => route.path === '/en-US/guide')).toMatchObject({
+      basePath: '/guide',
+      locale: 'en-US',
+      sourceLocale: 'zh-CN',
+    })
+    expect(result.find(route => route.path === '/guide')?.alternates).toEqual({
+      'zh-CN': '/guide',
+      'en-US': '/en-US/guide',
+    })
+  })
+
+  it('creates fallback routes from source locale when translation is missing', () => {
+    mkdirSync(join(tempDir, 'zh-CN'), { recursive: true })
+    writeFileSync(join(tempDir, 'zh-CN', 'guide.mdx'), '# 指南', 'utf-8')
+
+    const result = findLocalizedContentRoutes(tempDir, i18n)
+    expect(result.find(route => route.path === '/en-US/guide')).toMatchObject({
+      basePath: '/guide',
+      locale: 'en-US',
+      isFallback: true,
+      title: 'Guide',
+    })
+  })
+})
+
+describe('buildNavigationByLocale', () => {
+  const i18n: ResolvedClarifyI18nConfig = {
+    sourceLocale: 'zh-CN',
+    defaultLocale: 'zh-CN',
+    strategy: 'prefix_except_default',
+    missing: 'fallback',
+    locales: [
+      { code: 'zh-CN', label: '简体中文' },
+      { code: 'en-US', label: 'English' },
+    ],
+  }
+
+  it('builds localized navigation from one manual pages config', () => {
+    const routes: MdxRoute[] = [
+      mdxRoute({ path: '/', basePath: '/', locale: 'zh-CN', sourceLocale: 'zh-CN', title: '首页', filePath: 'zh-CN/index.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/guide', basePath: '/guide', locale: 'zh-CN', sourceLocale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/en-US', basePath: '/', locale: 'en-US', sourceLocale: 'zh-CN', title: 'Home', filePath: 'en-US/index.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', sourceLocale: 'zh-CN', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
+    ]
+    const pages: ClarifyPagesGroup[] = [
+      { group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { page: 'guide', title: { 'zh-CN': '开始', 'en-US': 'Start' } }] },
+    ]
+
+    const navigation = buildNavigationByLocale(routes, pages, i18n)
+    expect(navigation?.['zh-CN']?.[0].title).toBe('指南')
+    expect(navigation?.['zh-CN']?.[0].children?.map(node => node.path)).toEqual(['/', '/guide'])
+    expect(navigation?.['zh-CN']?.[0].children?.[1].title).toBe('开始')
+    expect(navigation?.['en-US']?.[0].title).toBe('Guide')
+    expect(navigation?.['en-US']?.[0].children?.map(node => node.path)).toEqual(['/en-US', '/en-US/guide'])
+    expect(navigation?.['en-US']?.[0].children?.[1].title).toBe('Start')
   })
 })
 

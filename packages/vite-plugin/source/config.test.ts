@@ -44,11 +44,19 @@ describe('loadProjectConfig', () => {
     expect(clarifyProjectConfigSchema.parse({
       title: 'Docs',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
-      pages: [{ group: 'Guide', pages: ['index', { openapi: 'api', title: 'API' }] }],
+      i18n: {
+        defaultLocale: 'zh-CN',
+        locales: [{ code: 'zh-CN', label: '简体中文' }],
+      },
+      pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }],
     })).toEqual({
       title: 'Docs',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
-      pages: [{ group: 'Guide', pages: ['index', { openapi: 'api', title: 'API' }] }],
+      i18n: {
+        defaultLocale: 'zh-CN',
+        locales: [{ code: 'zh-CN', label: '简体中文' }],
+      },
+      pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }],
     })
   })
 })
@@ -76,6 +84,7 @@ describe('resolveProjectConfig', () => {
       navbar: undefined,
       banner: undefined,
       footer: undefined,
+      i18n: undefined,
       pages: undefined,
     })
   })
@@ -89,6 +98,13 @@ describe('resolveProjectConfig', () => {
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
       banner: { content: 'v2 is out', dismissible: true },
       footer: { copyright: '© 2026' },
+      i18n: {
+        defaultLocale: 'zh-CN',
+        locales: [
+          { code: 'zh-CN', label: '简体中文' },
+          { code: 'en-US', label: 'English' },
+        ],
+      },
       pages: [
         { group: 'Getting Started', pages: ['index', 'quickstart'] },
         { group: 'Advanced', pages: ['advanced/ssg'] },
@@ -103,6 +119,16 @@ describe('resolveProjectConfig', () => {
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
     expect(result.footer).toEqual({ copyright: '© 2026' })
+    expect(result.i18n).toEqual({
+      sourceLocale: 'zh-CN',
+      defaultLocale: 'zh-CN',
+      strategy: 'prefix_except_default',
+      missing: 'fallback',
+      locales: [
+        { code: 'zh-CN', label: '简体中文' },
+        { code: 'en-US', label: 'English' },
+      ],
+    })
     expect(result.pages).toEqual([
       { group: 'Getting Started', pages: ['index', 'quickstart'] },
       { group: 'Advanced', pages: ['advanced/ssg'] },

@@ -13,7 +13,7 @@ import type { ServerRenderOptions } from '../types'
  * 返回 `div#root` 内部的 HTML，由 vite-plugin 组装为完整的 HTML 文档。
  */
 export function renderToHTML(options: ServerRenderOptions): string {
-  const { config, routes, navigation, openApiSpecs = {}, url } = options
+  const { config, routes, navigation, navigationByLocale, openApiSpecs = {}, url } = options
 
   return renderToString(
     <StrictMode>
@@ -21,7 +21,7 @@ export function renderToHTML(options: ServerRenderOptions): string {
         <ClarifyConfigContext.Provider value={config}>
           <OpenApiSpecsContext.Provider value={openApiSpecs}>
             <ThemeProvider>
-              <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+              <AppShell config={config} routes={routes} navigation={navigation ?? []} navigationByLocale={navigationByLocale} />
             </ThemeProvider>
           </OpenApiSpecsContext.Provider>
         </ClarifyConfigContext.Provider>
