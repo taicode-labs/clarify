@@ -7,6 +7,7 @@ import { remToPx } from '../utils/remToPx'
 
 import { useSectionStore } from './SectionProvider'
 
+export { BuiltWithClarify } from './BuiltWithClarify'
 export { Code, CodeGroup, Pre } from './Code'
 export { Feedback } from './Feedback'
 export { GridPattern, HeroPattern } from './patterns'

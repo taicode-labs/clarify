@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { createElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { Button, Feedback, Heading, Prose } from '../components'
+import { BuiltWithClarify, Button, Feedback, Heading, Prose } from '../components'
 import { Code, CodeGroup, Pre } from '../components/Code'
 
 export function wrapper(arg0: { children: ReactNode }) {  const { children } = arg0
@@ -10,8 +10,11 @@ export function wrapper(arg0: { children: ReactNode }) {  const { children } = a
   return (
     <article className="clarify-mdx-page flex h-full flex-col pt-16 pb-10">
       <Prose className="flex-auto">{children}</Prose>
-      <footer className="mx-auto mt-16 w-full max-w-3xl">
+      <footer className="clarify-page-footer mx-auto mt-16 flex w-full max-w-3xl flex-col gap-8">
         <Feedback />
+        <div className="flex justify-center md:justify-start">
+          <BuiltWithClarify />
+        </div>
       </footer>
     </article>
   )
