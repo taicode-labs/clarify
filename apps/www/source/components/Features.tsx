@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 
-import { FeatureIcon } from './icons'
 import { features } from './homeData'
+import { FeatureIcon } from './icons'
 import { SectionHeading } from './SectionHeading'
 
 export function Features() {
