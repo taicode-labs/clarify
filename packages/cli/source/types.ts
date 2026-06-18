@@ -57,14 +57,65 @@ export type ClarifyFooterConfig = {
 
 export type ClarifyThemePreset = 'default' | 'mint' | 'violet'
 
+export type ClarifyThemeColorTokensConfig = {
+  /** Brand primary color for active states, links, and emphasis. */
+  primary?: string
+  /** Secondary accent color for subtle emphasis. */
+  accent?: string
+  /** Page background color. */
+  background?: string
+  /** Primary text color. */
+  foreground?: string
+  /** Card and elevated surface background color. */
+  surface?: string
+  /** Muted text and secondary UI color. */
+  muted?: string
+  /** Border and divider color. */
+  border?: string
+  /** Inline code and code block background color. */
+  codeBackground?: string
+}
+
+export type ClarifyThemeRadiusTokensConfig = {
+  sm?: string
+  md?: string
+  lg?: string
+  xl?: string
+}
+
+export type ClarifyThemeTokensConfig = {
+  colors?: ClarifyThemeColorTokensConfig
+  radius?: ClarifyThemeRadiusTokensConfig
+}
+
+export type ClarifyThemeLayoutConfig = {
+  /** Max width for the overall documentation layout. */
+  maxWidth?: string
+  /** Max width for regular prose content. */
+  proseWidth?: string
+}
+
 export type ClarifyThemeConfig = {
   /** Visual baseline for built-in styles. Overrides below are applied on top. */
   preset?: ClarifyThemePreset
-  /** Brand primary color. */
-  primary?: string
+  /** Design token overrides applied on top of the selected preset. */
+  tokens?: ClarifyThemeTokensConfig
+  /** Documentation layout overrides applied on top of the selected preset. */
+  layout?: ClarifyThemeLayoutConfig
 }
 
-export type ResolvedClarifyThemeConfig = Required<ClarifyThemeConfig>
+export type ResolvedClarifyThemeTokensConfig = {
+  colors: Required<ClarifyThemeColorTokensConfig>
+  radius: Required<ClarifyThemeRadiusTokensConfig>
+}
+
+export type ResolvedClarifyThemeLayoutConfig = Required<ClarifyThemeLayoutConfig>
+
+export type ResolvedClarifyThemeConfig = {
+  preset: ClarifyThemePreset
+  tokens: ResolvedClarifyThemeTokensConfig
+  layout: ResolvedClarifyThemeLayoutConfig
+}
 
 export type ClarifyPagesItem =
   | string

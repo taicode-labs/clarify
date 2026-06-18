@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { resolveThemeConfig } from '../../core/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 import { resolveContentArtifactPath, resolveContentArtifactType } from './server.js'
@@ -8,7 +9,7 @@ const projectConfig: ResolvedProjectConfig = {
   title: 'Clarify',
   description: '',
   routePrefix: '/',
-  theme: { preset: 'default', primary: '#0ea5e9' },
+  theme: resolveThemeConfig(),
 }
 
 function createRoute(kind: ContentRoute['kind'], contentArtifactUrl: string): ContentRoute {

@@ -67,9 +67,38 @@ export type ClarifyFooterConfig = {
 
 export type ClarifyThemePreset = 'default' | 'mint' | 'violet';
 
+export type ClarifyThemeColorTokensConfig = {
+  primary: string;
+  accent: string;
+  background: string;
+  foreground: string;
+  surface: string;
+  muted: string;
+  border: string;
+  codeBackground: string;
+};
+
+export type ClarifyThemeRadiusTokensConfig = {
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+};
+
+export type ClarifyThemeTokensConfig = {
+  colors: ClarifyThemeColorTokensConfig;
+  radius: ClarifyThemeRadiusTokensConfig;
+};
+
+export type ClarifyThemeLayoutConfig = {
+  maxWidth: string;
+  proseWidth: string;
+};
+
 export type ClarifyThemeConfig = {
   preset: ClarifyThemePreset;
-  primary: string;
+  tokens: ClarifyThemeTokensConfig;
+  layout: ClarifyThemeLayoutConfig;
 };
 
 export type ClarifyPagesItem =

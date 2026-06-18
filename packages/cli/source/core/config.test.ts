@@ -59,7 +59,31 @@ describe('resolveProjectConfig', () => {
       logo: undefined,
       favicon: undefined,
       routePrefix: '/',
-      theme: { preset: 'default', primary: '#0ea5e9' },
+      theme: {
+        preset: 'default',
+        tokens: {
+          colors: {
+            primary: '#0ea5e9',
+            accent: '#38bdf8',
+            background: '#ffffff',
+            foreground: '#0f172a',
+            surface: '#ffffff',
+            muted: '#64748b',
+            border: '#e2e8f0',
+            codeBackground: '#f8fafc',
+          },
+          radius: {
+            sm: '6px',
+            md: '8px',
+            lg: '12px',
+            xl: '16px',
+          },
+        },
+        layout: {
+          maxWidth: '1200px',
+          proseWidth: '48rem',
+        },
+      },
       navbar: undefined,
       banner: undefined,
       footer: undefined,
@@ -72,7 +96,7 @@ describe('resolveProjectConfig', () => {
     const config = {
       title: 'Project Docs',
       description: 'Desc',
-      theme: { primary: '#333' },
+      theme: { tokens: { colors: { primary: '#333' } } },
       favicon: '/favicon.svg',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
       banner: { content: 'v2 is out', dismissible: true },
@@ -91,7 +115,8 @@ describe('resolveProjectConfig', () => {
     const result = resolveProjectConfig(config)
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
-    expect(result.theme).toEqual({ preset: 'default', primary: '#333' })
+    expect(result.theme.tokens.colors.primary).toBe('#333')
+    expect(result.theme.layout).toEqual({ maxWidth: '1200px', proseWidth: '48rem' })
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
@@ -110,14 +135,21 @@ describe('resolveProjectConfig', () => {
   })
 
   it('applies theme presets before project overrides', () => {
-    expect(resolveProjectConfig({ theme: { preset: 'mint' } }).theme).toEqual({
-      preset: 'mint',
-      primary: '#10b981',
-    })
-    expect(resolveProjectConfig({ theme: { preset: 'violet', primary: '#7c3aed' } }).theme).toEqual({
-      preset: 'violet',
-      primary: '#7c3aed',
-    })
+    const mintTheme = resolveProjectConfig({ theme: { preset: 'mint' } }).theme
+    expect(mintTheme.preset).toBe('mint')
+    expect(mintTheme.tokens.colors.primary).toBe('#10b981')
+
+    const violetTheme = resolveProjectConfig({
+      theme: {
+        preset: 'violet',
+        tokens: { colors: { primary: '#7c3aed' } },
+        layout: { proseWidth: '52rem' },
+      },
+    }).theme
+    expect(violetTheme.preset).toBe('violet')
+    expect(violetTheme.tokens.colors.primary).toBe('#7c3aed')
+    expect(violetTheme.tokens.colors.accent).toBe('#a78bfa')
+    expect(violetTheme.layout).toEqual({ maxWidth: '1200px', proseWidth: '52rem' })
   })
 })
 

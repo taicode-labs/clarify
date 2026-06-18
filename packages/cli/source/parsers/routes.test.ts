@@ -4,6 +4,7 @@ import { join } from 'node:path'
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
+import { resolveThemeConfig } from '../core/theme.js'
 import { generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
 import type { ResolvedProjectConfig, ResolvedBuildOptions, ContentRoute, ClarifyPagesGroup, ResolvedClarifyI18nConfig } from '../types.js'
 
@@ -129,7 +130,7 @@ describe('generateConfigModule', () => {
       title: 'Test',
       description: 'Desc',
       routePrefix: '/',
-      theme: { preset: 'default', primary: '#fff' },
+      theme: resolveThemeConfig({ tokens: { colors: { primary: '#fff' } } }),
     }
     const generateOptions: ResolvedBuildOptions = {
       rootDirectory: 'source',
@@ -402,7 +403,7 @@ describe('generateRoutesModule with tabs config', () => {
       title: 'Docs',
       description: '',
       routePrefix: '/',
-      theme: { preset: 'default', primary: '#0ea5e9' },
+      theme: resolveThemeConfig(),
       tabs: [
         { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
       ],

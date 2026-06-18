@@ -5,10 +5,12 @@ declare module 'virtual:clarify-routes' {
 }
 
 declare module 'virtual:clarify-config' {
+  import type { ClarifyThemeConfig } from './types';
+
   export const config: {
     title: string;
     logo?: string;
-    theme: { preset: 'default' | 'mint' | 'violet'; primary: string };
+    theme: ClarifyThemeConfig;
     description: string;
     rootDirectory: string;
     routePrefix: string;

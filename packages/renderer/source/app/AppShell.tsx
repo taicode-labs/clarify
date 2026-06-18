@@ -82,7 +82,9 @@ function navigationForLocale(navigation: NavigationTree, locale: string | undefi
 
 function themeStyle(config: ClarifyConfig): CSSProperties {
   return {
-    '--clarify-color-primary': config.theme.primary,
+    '--clarify-color-primary': config.theme.tokens.colors.primary,
+    '--clarify-layout-max-width': config.theme.layout.maxWidth,
+    '--clarify-layout-prose-width': config.theme.layout.proseWidth,
   } as CSSProperties
 }
 

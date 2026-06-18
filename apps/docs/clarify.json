@@ -21,7 +21,11 @@
   },
   "theme": {
     "preset": "default",
-    "primary": "#0ea5e9"
+    "tokens": {
+      "colors": {
+        "primary": "#0ea5e9"
+      }
+    }
   },
   "navbar": {
     "links": [

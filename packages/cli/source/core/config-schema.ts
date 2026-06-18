@@ -108,9 +108,38 @@ export const clarifyTabsConfigSchema = z.array(clarifyTabItemSchema)
 
 export const clarifyThemePresetSchema = z.enum(['default', 'mint', 'violet'])
 
+export const clarifyThemeColorTokensConfigSchema = z.object({
+  primary: z.string().optional(),
+  accent: z.string().optional(),
+  background: z.string().optional(),
+  foreground: z.string().optional(),
+  surface: z.string().optional(),
+  muted: z.string().optional(),
+  border: z.string().optional(),
+  codeBackground: z.string().optional(),
+})
+
+export const clarifyThemeRadiusTokensConfigSchema = z.object({
+  sm: z.string().optional(),
+  md: z.string().optional(),
+  lg: z.string().optional(),
+  xl: z.string().optional(),
+})
+
+export const clarifyThemeTokensConfigSchema = z.object({
+  colors: clarifyThemeColorTokensConfigSchema.optional(),
+  radius: clarifyThemeRadiusTokensConfigSchema.optional(),
+})
+
+export const clarifyThemeLayoutConfigSchema = z.object({
+  maxWidth: z.string().optional(),
+  proseWidth: z.string().optional(),
+})
+
 export const clarifyThemeConfigSchema = z.object({
   preset: clarifyThemePresetSchema.optional(),
-  primary: z.string().optional(),
+  tokens: clarifyThemeTokensConfigSchema.optional(),
+  layout: clarifyThemeLayoutConfigSchema.optional(),
 })
 
 export const clarifyProjectConfigSchema = z.object({

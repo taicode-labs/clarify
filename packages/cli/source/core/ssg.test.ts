@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import type { ResolvedProjectConfig } from '../types.js'
 
 import { readIndexHtml, injectSSRIntoTemplate } from './ssg.js'
+import { resolveThemeConfig } from './theme.js'
 
 describe('readIndexHtml', () => {
   let tempDir: string
@@ -37,7 +38,7 @@ describe('injectSSRIntoTemplate', () => {
     title: 'Test Docs',
     description: 'A test site',
     routePrefix: '/',
-    theme: { preset: 'default', primary: '#0ea5e9' },
+    theme: resolveThemeConfig(),
   }
 
   const baseTemplate = `<!doctype html>
