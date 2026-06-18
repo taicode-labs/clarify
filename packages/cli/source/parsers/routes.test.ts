@@ -91,6 +91,31 @@ describe('findContentRoutes', () => {
     expect(result[0].title).toBe('My Page')
   })
 
+  it('ignores frontmatter when extracting sections', () => {
+    const content = [
+      '---',
+      'title: 入门概览',
+      'description: 用最短路径完成准备。',
+      'icon: lucide:rocket',
+      '---',
+      '',
+      '# 入门概览',
+      '## 首次验证',
+    ].join('\n')
+    writeFileSync(join(tempDir, 'overview.mdx'), content, 'utf-8')
+
+    const result = findContentRoutes(tempDir)
+
+    expect(result[0].title).toBe('入门概览')
+    expect(result[0].frontmatter).toEqual({
+      title: '入门概览',
+      description: '用最短路径完成准备。',
+      icon: 'lucide:rocket',
+    })
+    expect(result[0].content).toBe('# 入门概览\n## 首次验证')
+    expect(result[0].sections).toEqual([{ id: '首次验证', title: '首次验证', level: 2 }])
+  })
+
   it('falls back to filename stem for title', () => {
     writeFileSync(join(tempDir, 'quick-start.mdx'), '# Hello', 'utf-8')
     const result = findContentRoutes(tempDir)

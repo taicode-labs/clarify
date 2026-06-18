@@ -8,7 +8,7 @@ import { visit } from 'unist-util-visit'
 
 import type { ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, LocalizedNavigation, ResolvedClarifyI18nConfig } from '../types.js'
 
-import { extractFrontmatter } from './frontmatter.js'
+import { parseFrontmatter } from './frontmatter.js'
 
 function kebabToTitle(str: string): string {
   return str
@@ -98,8 +98,8 @@ export function findContentRoutes(dir: string, base: string = dir): ContentRoute
       const path = '/' + pathParts.map(p => p === 'index' ? '' : p).filter(Boolean).join('/')
       const cleanPath = path.replace(/\/+/g, '/').replace(/\/$/, '') || '/'
 
-      const content = readFileSync(fullPath, 'utf-8')
-      const frontmatter = extractFrontmatter(content)
+      const source = readFileSync(fullPath, 'utf-8')
+      const { frontmatter, content } = parseFrontmatter(source)
 
       let title = typeof frontmatter.title === 'string' ? frontmatter.title : ''
       if (!title) {
@@ -117,6 +117,8 @@ export function findContentRoutes(dir: string, base: string = dir): ContentRoute
         virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx?$/, '').replace(/\/+/g, '/'),
         title,
         kind: 'mdx',
+        frontmatter,
+        content,
         sections: extractMdxSections(content),
       })
     }

@@ -1,13 +1,21 @@
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 import SwaggerParser from '@apidevtools/swagger-parser'
 import { slug } from 'github-slugger'
 
 import { routePathFromRef, virtualModuleIdFromRef } from '../../parsers/routes.js'
-import type { ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
+import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
+
+export type OpenAPIParseResult =
+  | { ok: true; spec: OpenAPISpec }
+  | { ok: false; diagnostic: ContentDiagnostic }
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
 
 function kebabToTitle(str: string): string {
   return str
@@ -38,6 +46,7 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
       virtualModuleId: virtualModuleIdFromRef(ref),
       title: kebabToTitle(cleanPath.split('/').pop() ?? 'API'),
       kind: 'openapi',
+      content: readFileSync(fullPath, 'utf-8'),
     })
   }
 
@@ -60,10 +69,18 @@ export function extractOpenAPISections(spec: OpenAPISpec): ContentSection[] {
   return sections
 }
 
-export async function readOpenAPISpec(filePath: string): Promise<OpenAPISpec | null> {
+export async function readOpenAPISpec(filePath: string): Promise<OpenAPIParseResult> {
   try {
-    return await SwaggerParser.dereference(filePath) as OpenAPISpec
-  } catch {
-    return null
+    return { ok: true, spec: await SwaggerParser.dereference(filePath) as OpenAPISpec }
+  } catch (error) {
+    return {
+      ok: false,
+      diagnostic: {
+        title: 'OpenAPI spec parse failed',
+        message: `Clarify could not parse ${filePath}.`,
+        filePath,
+        cause: errorMessage(error),
+      },
+    }
   }
 }

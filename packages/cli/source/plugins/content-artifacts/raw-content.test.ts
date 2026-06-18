@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { createLlmsTxt, enrichRoutesWithRawContent, writeRawContentFiles } from './raw-content.js'
+import { createLlmsTxt, enrichRoutesWithRawContent, readRawContent, writeRawContentFiles } from './raw-content.js'
 
 function route(overrides: Partial<ContentRoute>): ContentRoute {
   return {
@@ -46,16 +46,30 @@ describe('raw content helpers', () => {
     ])
   })
 
-  it('writes source content to route-derived files', () => {
+  it('writes route context content to route-derived files', () => {
     const docsDir = join(tempDir, 'docs')
     mkdirSync(docsDir, { recursive: true })
     const pagePath = join(docsDir, 'guide.mdx')
-    writeFileSync(pagePath, '# Guide', 'utf-8')
+    writeFileSync(pagePath, '# Stale file content', 'utf-8')
 
-    const routes = [route({ path: '/guide', filePath: pagePath })]
+    const routes = [route({ path: '/guide', filePath: pagePath, content: '# Guide' })]
     enrichRoutesWithRawContent(routes)
     writeRawContentFiles(routes, join(tempDir, 'output'))
 
+    expect(readFileSync(join(tempDir, 'output/guide.md'), 'utf-8')).toBe('# Guide')
+  })
+
+  it('uses route-normalized markdown content for raw content files', () => {
+    const docsDir = join(tempDir, 'docs')
+    mkdirSync(docsDir, { recursive: true })
+    const pagePath = join(docsDir, 'guide.mdx')
+    writeFileSync(pagePath, '---\ntitle: Guide\nicon: lucide:rocket\n---\n\n# Guide', 'utf-8')
+
+    const routes = [route({ path: '/guide', filePath: pagePath, content: '# Guide' })]
+    enrichRoutesWithRawContent(routes)
+    writeRawContentFiles(routes, join(tempDir, 'output'))
+
+    expect(readRawContent(routes[0])).toBe('# Guide')
     expect(readFileSync(join(tempDir, 'output/guide.md'), 'utf-8')).toBe('# Guide')
   })
 

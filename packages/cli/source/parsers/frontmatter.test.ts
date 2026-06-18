@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { extractFrontmatter } from './frontmatter.js'
+import { extractFrontmatter, parseFrontmatter, stripFrontmatter } from './frontmatter.js'
 
 describe('extractFrontmatter', () => {
   it('extracts basic frontmatter', () => {
@@ -45,5 +45,43 @@ describe('extractFrontmatter', () => {
     const result = extractFrontmatter(content)
     expect(result.draft).toBe(false)
     expect(result.tags).toEqual(['api', 'docs'])
+  })
+})
+
+describe('parseFrontmatter', () => {
+  it('parses metadata and normalized body content once', () => {
+    const content = [
+      '---',
+      'title: 入门概览',
+      'icon: lucide:rocket',
+      '---',
+      '',
+      '# 正文标题',
+    ].join('\n')
+
+    expect(parseFrontmatter(content)).toEqual({
+      frontmatter: { title: '入门概览', icon: 'lucide:rocket' },
+      content: '# 正文标题',
+    })
+  })
+})
+
+describe('stripFrontmatter', () => {
+  it('removes YAML frontmatter and keeps body content', () => {
+    const content = [
+      '---',
+      'title: 入门概览',
+      'description: 用最短路径完成准备。',
+      'icon: lucide:rocket',
+      '---',
+      '',
+      '# 正文标题',
+    ].join('\n')
+
+    expect(stripFrontmatter(content)).toBe('# 正文标题')
+  })
+
+  it('keeps content unchanged when there is no frontmatter', () => {
+    expect(stripFrontmatter('# Hello')).toBe('# Hello')
   })
 })

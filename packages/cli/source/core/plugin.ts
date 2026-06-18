@@ -174,6 +174,18 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     return routes.some(route => route.filePath === filePath)
   }
 
+  const normalizedMdxContentPlugin: Plugin = {
+    name: 'clarify:normalized-mdx-content',
+    enforce: 'pre',
+    transform(_code, id) {
+      if (!/\.mdx?(?:\?|$)/.test(id)) return null
+      const filePath = id.replace(/\?.*$/, '')
+      const route = routes.find(route => route.kind === 'mdx' && route.filePath === filePath)
+      if (!route || route.content === undefined) return null
+      return { code: route.content, map: null }
+    },
+  }
+
   const mdx = mdxPlugin({
     include: ['**/*.{md,mdx}'],
     jsxImportSource: 'react',
@@ -299,6 +311,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
             },
             load: id => loadVirtualModule(id, virtualModules),
           },
+          normalizedMdxContentPlugin,
           mdx,
         ])
 
@@ -323,7 +336,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     },
   }
 
-  return [react(), tailwindcss(), clarifyCorePlugin, mdx].flat().filter(Boolean) as Plugin[]
+  return [react(), tailwindcss(), normalizedMdxContentPlugin, clarifyCorePlugin, mdx].flat().filter(Boolean) as Plugin[]
 }
 
 export type { Plugin } from 'vite'

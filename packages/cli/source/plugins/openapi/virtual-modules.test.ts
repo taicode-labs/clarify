@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { OpenAPISpec } from '../../types.js'
 
-import { generateOpenAPIModule, generateOpenAPIRegistryModule, openApiRegistryModuleId } from './virtual-modules.js'
+import { generateOpenAPIErrorModule, generateOpenAPIModule, generateOpenAPIRegistryModule, openApiRegistryModuleId } from './virtual-modules.js'
 
 const spec: OpenAPISpec = {
   openapi: '3.0.0',
@@ -40,5 +40,18 @@ describe('openapi virtual modules', () => {
     expect(code).toContain("import { OpenApiPage } from '@clarify-labs/renderer';")
     expect(code).toContain('function OpenApiRoutePage')
     expect(code).toContain('Example API')
+  })
+
+  it('generates an OpenAPI diagnostic route component module', () => {
+    const code = generateOpenAPIErrorModule({
+      title: 'OpenAPI spec parse failed',
+      message: 'Clarify could not parse api.openapi.yaml.',
+      filePath: '/docs/api.openapi.yaml',
+      cause: 'YAMLException: bad indentation',
+    })
+    expect(code).toContain('OpenApiErrorRoutePage')
+    expect(code).toContain('OpenAPI spec parse failed')
+    expect(code).toContain('Why it happened')
+    expect(code).toContain('bad indentation')
   })
 })

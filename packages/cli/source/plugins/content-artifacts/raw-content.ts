@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, extname, join } from 'node:path'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
@@ -28,7 +28,8 @@ export function enrichRoutesWithRawContent(routes: ContentRoute[]): void {
 }
 
 export function readRawContent(route: ContentRoute): string {
-  return readFileSync(route.filePath, 'utf-8')
+  if (route.content !== undefined) return route.content
+  throw new Error(`Raw content is missing from route context: ${route.filePath}`)
 }
 
 export function writeRawContentFiles(routes: ContentRoute[], outputDirectory: string): void {

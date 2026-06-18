@@ -157,6 +157,13 @@ export type ContentSection = {
   tags?: string[]
 }
 
+export type ContentDiagnostic = {
+  title: string
+  message: string
+  filePath?: string
+  cause?: string
+}
+
 export type ContentRoute = {
   path: string
   basePath?: string
@@ -167,6 +174,10 @@ export type ContentRoute = {
   filePath: string
   virtualModuleId: string
   kind: 'mdx' | 'openapi'
+  frontmatter?: Record<string, unknown>
+  /** Normalized source content captured during route discovery. */
+  content?: string
+  diagnostic?: ContentDiagnostic
   sections?: ContentSection[]
   rawContentUrl?: string
 }

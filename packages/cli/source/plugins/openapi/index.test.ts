@@ -68,6 +68,7 @@ describe('createOpenAPIPlugin', () => {
       filePath: specPath,
       virtualModuleId: 'virtual:clarify-page/api',
       kind: 'openapi',
+      content: expect.stringContaining('Plugin API'),
     }])
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
@@ -82,7 +83,7 @@ describe('createOpenAPIPlugin', () => {
     expect(modules?.get('virtual:clarify-page/api')).toContain('OpenApiPage')
   })
 
-  it('throws when an OpenAPI route cannot be parsed', async () => {
+  it('keeps invalid OpenAPI routes renderable with diagnostics', async () => {
     const specPath = join(tempDir, 'broken.openapi.json')
     writeFileSync(specPath, '{ invalid json', 'utf-8')
 
@@ -92,10 +93,20 @@ describe('createOpenAPIPlugin', () => {
       filePath: specPath,
       virtualModuleId: 'virtual:clarify-page/broken',
       kind: 'openapi',
+      content: '{ invalid json',
     }]
     const plugin = createOpenAPIPlugin()
 
-    await expect(plugin.hooks?.['routes:discovered']?.(routes, createContext(routes)))
-      .rejects.toThrow('Failed to parse OpenAPI spec')
+    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
+
+    expect(discovered?.[0].diagnostic).toMatchObject({
+      title: 'OpenAPI spec parse failed',
+      filePath: specPath,
+    })
+    expect(discovered?.[0].diagnostic?.cause).toContain('Error parsing')
+
+    const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(routes))
+    expect(modules?.get('virtual:clarify-page/broken')).toContain('OpenApiErrorRoutePage')
+    expect(modules?.get('virtual:clarify-page/broken')).toContain('Why it happened')
   })
 })
