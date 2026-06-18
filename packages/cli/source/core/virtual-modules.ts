@@ -1,4 +1,4 @@
-import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig } from '../content/routes.js'
+import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig } from '../parsers/routes.js'
 import type { ClarifyPagesConfig, ContentRoute, NavigationTree, OpenAPISpec, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 export const VIRTUAL_CONFIG = 'virtual:clarify-config'

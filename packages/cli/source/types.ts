@@ -1,4 +1,5 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
+import type { ViteDevServer } from 'vite'
 
 import type { ResolvedBuildOptions } from './core/options.js'
 
@@ -196,6 +197,8 @@ export type ClarifyNavigationNode = {
 export type ClarifyHookContext = {
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
+  routes: ContentRoute[]
+  navigation: NavigationTree
 }
 
 export type ClarifyHooks = {
@@ -215,6 +218,10 @@ export type ClarifyHooks = {
     modules: Map<string, string>,
     ctx: ClarifyHookContext
   ) => Promise<Map<string, string>> | Map<string, string>
+  'dev:configureServer'?: (
+    server: ViteDevServer,
+    ctx: ClarifyHookContext
+  ) => Promise<void> | void
   'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void
 }
 
