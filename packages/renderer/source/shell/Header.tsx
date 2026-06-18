@@ -214,7 +214,7 @@ export const Header = forwardRef<
     >
       <div
         className={clsx(
-          'clarify-header-main flex h-14 items-center justify-between gap-6 px-4 sm:px-6 lg:px-5',
+          'clarify-header-main relative flex h-14 items-center justify-between gap-6 px-4 sm:px-6 lg:px-5',
           (isInsideMobileNavigation || !mobileNavIsOpen) && 'shadow-none',
         )}
       >
@@ -226,6 +226,8 @@ export const Header = forwardRef<
             <SiteLogo logo={config.logo} className="h-6 w-6 shrink-0" />
             <span className="clarify-brand-title truncate text-sm font-semibold text-zinc-950 dark:text-white">{config.title}</span>
           </CloseButton>
+        </div>
+        <div className="clarify-header-center absolute left-1/2 hidden -translate-x-1/2 lg:block">
           <Search routes={routes} navigation={navigation} />
         </div>
         <div className="clarify-header-actions flex shrink-0 items-center gap-5">

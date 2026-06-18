@@ -29,7 +29,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="clarify-theme-toggle flex size-6 items-center justify-center rounded-md transition hover:bg-zinc-900/5 dark:hover:bg-white/5"
+      className="clarify-theme-toggle relative flex size-8 items-center justify-center rounded-md transition hover:bg-zinc-900/5 dark:hover:bg-white/5"
       aria-label={`Switch to ${otherTheme} theme`}
       onClick={() => setTheme(otherTheme)}
     >
