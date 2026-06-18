@@ -9,8 +9,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
+  verify:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+  publish-renderer:
+    runs-on: ubuntu-latest
+    needs: verify
     permissions:
       contents: read
       id-token: write
@@ -32,19 +61,40 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Build
-        run: pnpm build
-
-      - name: Test
-        run: pnpm test
+      - name: Build renderer
+        run: pnpm --filter @clarify-labs/renderer build
 
       - name: Publish renderer
         run: |
           pnpm --dir packages/renderer pack --pack-destination "${RUNNER_TEMP}"
           npm publish "${RUNNER_TEMP}"/clarify-labs-renderer-*.tgz --access public
+
+  publish-cli:
+    runs-on: ubuntu-latest
+    needs: publish-renderer
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build CLI and dependencies
+        run: pnpm --filter @clarify-labs/cli... build
 
       - name: Publish CLI
         run: |
