@@ -1,11 +1,11 @@
+import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { useEffect } from 'react'
-import { Link, Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 
 import { SectionProvider, type Section } from '../components/SectionProvider'
-import { SiteLogo } from '../components/SiteLogo'
 import { ContentActions, Header, Navigation } from '../shell'
-import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTree } from '../types'
+import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 
 export type AppShellProps = {
   config: ClarifyConfig
@@ -45,7 +45,7 @@ function localeForPath(config: ClarifyConfig, pathname: string, route?: RouteIte
   return i18n.locales.find((locale) => locale.code === firstSegment)?.code ?? i18n.defaultLocale
 }
 
-function isTabbedNavigation(navigation: NavigationTree): navigation is Extract<NavigationTree, { tabs: unknown }> {
+function isTabbedNavigation(navigation: NavigationTree): navigation is TabbedNavigation {
   return !Array.isArray(navigation) && 'tabs' in navigation
 }
 
@@ -53,24 +53,27 @@ function hasPath(nodes: NavigationNode[], pathname: string): boolean {
   return nodes.some((node) => node.path === pathname || hasPath(node.children ?? [], pathname))
 }
 
-function navigationFromTabs(navigation: Extract<NavigationTree, { tabs: unknown }>, pathname: string): NavigationNode[] {
-  const currentTab = navigation.tabs.find((tab) => tab.path === pathname || hasPath(tab.children, pathname))
-  return currentTab?.children ?? navigation.tabs[0]?.children ?? []
+type NavigationState = {
+  items: NavigationNode[]
+  tabs?: NavigationTab[]
 }
 
-function navigationForLocale(navigation: NavigationTree, locale: string | undefined, pathname: string): NavigationNode[] {
-  if (Array.isArray(navigation)) return navigation
+function navigationFromTabs(navigation: TabbedNavigation, pathname: string): NavigationState {
+  const currentTab = navigation.tabs.find((tab) => tab.path === pathname || hasPath(tab.children, pathname))
+  return {
+    items: currentTab?.children ?? navigation.tabs[0]?.children ?? [],
+    tabs: navigation.tabs,
+  }
+}
+
+function navigationForLocale(navigation: NavigationTree, locale: string | undefined, pathname: string): NavigationState {
+  if (Array.isArray(navigation)) return { items: navigation }
   if (isTabbedNavigation(navigation)) return navigationFromTabs(navigation, pathname)
-  if (!locale) return []
+  if (!locale) return { items: [] }
 
   const localizedNavigation = navigation[locale]
-  if (!localizedNavigation) return []
-  return Array.isArray(localizedNavigation) ? localizedNavigation : navigationFromTabs(localizedNavigation, pathname)
-}
-
-function homePathForLocale(config: ClarifyConfig, locale?: string): string {
-  if (!locale || !config.i18n || locale === config.i18n.defaultLocale) return '/'
-  return `/${locale}`
+  if (!localizedNavigation) return { items: [] }
+  return Array.isArray(localizedNavigation) ? { items: localizedNavigation } : navigationFromTabs(localizedNavigation, pathname)
 }
 
 export function AppShell(arg0: AppShellProps) {
@@ -81,6 +84,7 @@ export function AppShell(arg0: AppShellProps) {
   const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
   const currentNavigation = navigationForLocale(navigation, currentLocale, location.pathname)
   const sections = sectionsForRoute(currentRoute)
+  const hasTabs = Boolean(currentNavigation.tabs?.length)
 
   useEffect(() => {
     scrollToHash(location.hash)
@@ -98,20 +102,25 @@ export function AppShell(arg0: AppShellProps) {
 
   return (
     <SectionProvider sections={sections}>
-      <div className="clarify-app h-full min-h-screen bg-white lg:ml-72 xl:ml-80 dark:bg-zinc-950">
-        <motion.header layoutScroll className="clarify-shell contents lg:pointer-events-none lg:fixed lg:inset-0 lg:z-40 lg:flex">
-          <div className="clarify-sidebar contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-zinc-900/10 lg:bg-white lg:px-6 lg:pt-4 lg:pb-8 xl:w-80 lg:dark:border-white/10 lg:dark:bg-zinc-950">
-            <div className="clarify-sidebar-brand hidden lg:flex">
-              <Link to={homePathForLocale(config, currentLocale)} aria-label="Home" className="clarify-brand flex items-center gap-2 no-underline">
-                <SiteLogo logo={config.logo} className="h-6 w-6" />
-                <span className="clarify-brand-title text-sm font-semibold text-zinc-900 dark:text-white">{config.title}</span>
-              </Link>
-            </div>
-            <Header config={config} navigation={currentNavigation} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
-            <Navigation navigation={currentNavigation} className="clarify-navigation hidden lg:mt-10 lg:block" />
-          </div>
-        </motion.header>
-        <div className="clarify-content relative flex min-h-screen flex-col px-4 pt-14 sm:px-6 lg:px-8">
+      <div className="clarify-app h-full min-h-screen bg-white dark:bg-zinc-950">
+        <Header
+          config={config}
+          navigation={currentNavigation.items}
+          tabs={currentNavigation.tabs}
+          routes={routes}
+          currentLocale={currentLocale}
+          currentRoute={currentRoute}
+        />
+        <motion.aside
+          layoutScroll
+          className={clsx(
+            'clarify-sidebar hidden lg:fixed lg:bottom-0 lg:left-0 lg:z-30 lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-zinc-900/10 lg:bg-white lg:px-5 lg:pb-8 xl:w-80 lg:dark:border-white/10 lg:dark:bg-zinc-950',
+            hasTabs ? 'lg:top-28 lg:pt-6' : 'lg:top-14 lg:pt-6',
+          )}
+        >
+          <Navigation navigation={currentNavigation.items} />
+        </motion.aside>
+        <div className={clsx('clarify-content relative flex min-h-screen flex-col px-4 sm:px-6 lg:ml-72 lg:px-10 xl:ml-80', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
           <ContentActions route={currentRoute} routePrefix={config.routePrefix} />
           <main className="clarify-main flex-auto">
             <Routes>

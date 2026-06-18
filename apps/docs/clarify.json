@@ -88,388 +88,415 @@
         {
           "group": {
             "zh-CN": "概览",
-        "en-US": "Overview"
-      },
-      "icon": "Compass",
-      "pages": [
-        {
-          "page": "getting-started",
-          "title": {
-            "zh-CN": "产品介绍",
-            "en-US": "Introduction"
+            "en-US": "Overview"
           },
-          "icon": "Map"
+          "icon": "Compass",
+          "pages": [
+            {
+              "page": "getting-started",
+              "title": {
+                "zh-CN": "产品介绍",
+                "en-US": "Introduction"
+              },
+              "icon": "Map"
+            },
+            {
+              "page": "features",
+              "title": {
+                "zh-CN": "能力概览",
+                "en-US": "Feature Overview"
+              },
+              "icon": "LayoutGrid"
+            },
+            {
+              "page": "roadmap",
+              "title": {
+                "zh-CN": "产品路线图",
+                "en-US": "Product Roadmap"
+              },
+              "icon": "Milestone"
+            },
+            {
+              "page": "changelog",
+              "title": {
+                "zh-CN": "更新日志",
+                "en-US": "Changelog"
+              },
+              "icon": "History"
+            }
+          ]
         },
         {
-          "page": "features",
-          "title": {
-            "zh-CN": "能力概览",
-            "en-US": "Feature Overview"
+          "group": {
+            "zh-CN": "快速上手",
+            "en-US": "Get Started"
           },
-          "icon": "LayoutGrid"
+          "icon": "Rocket",
+          "pages": [
+            {
+              "page": "getting-started/installation",
+              "title": {
+                "zh-CN": "安装与环境准备",
+                "en-US": "Install and Setup"
+              },
+              "icon": "Download"
+            },
+            {
+              "page": "getting-started/first-site",
+              "title": {
+                "zh-CN": "创建第一个站点",
+                "en-US": "Create Your First Site"
+              },
+              "icon": "Sparkles"
+            },
+            {
+              "page": "guides/migrate-from-mintlify",
+              "title": {
+                "zh-CN": "从 Mintlify 迁移",
+                "en-US": "Migrate from Mintlify"
+              },
+              "icon": "RefreshCcw"
+            }
+          ]
         },
         {
-          "page": "roadmap",
-          "title": {
-            "zh-CN": "产品路线图",
-            "en-US": "Product Roadmap"
+          "group": {
+            "zh-CN": "内容创作",
+            "en-US": "Content Authoring"
           },
-          "icon": "Milestone"
+          "icon": "PenLine",
+          "pages": [
+            {
+              "page": "guides/writing-content",
+              "title": {
+                "zh-CN": "内容写作工作流",
+                "en-US": "Writing Workflow"
+              },
+              "icon": "NotebookPen"
+            },
+            {
+              "page": "features/mdx",
+              "title": {
+                "zh-CN": "MDX 写作能力",
+                "en-US": "MDX Authoring"
+              },
+              "icon": "FileCode2"
+            },
+            {
+              "page": "reference/frontmatter",
+              "title": {
+                "zh-CN": "Frontmatter 元数据",
+                "en-US": "Frontmatter Metadata"
+              },
+              "icon": "FileJson2"
+            },
+            {
+              "page": "showcase/components",
+              "title": {
+                "zh-CN": "组件演示",
+                "en-US": "Component Showcase"
+              },
+              "icon": "Component"
+            }
+          ]
         },
         {
-          "page": "changelog",
-          "title": {
-            "zh-CN": "更新日志",
-            "en-US": "Changelog"
+          "group": {
+            "zh-CN": "站点体验",
+            "en-US": "Site Experience"
           },
-          "icon": "History"
+          "icon": "SlidersHorizontal",
+          "pages": [
+            {
+              "page": "guides/navigation",
+              "title": {
+                "zh-CN": "导航与侧边栏",
+                "en-US": "Navigation and Sidebar"
+              },
+              "icon": "PanelLeft"
+            },
+            {
+              "page": "features/routing",
+              "title": {
+                "zh-CN": "文件路由",
+                "en-US": "File-based Routing"
+              },
+              "icon": "Route"
+            },
+            {
+              "page": "features/theming",
+              "title": {
+                "zh-CN": "主题与样式系统",
+                "en-US": "Theme and Styling"
+              },
+              "icon": "Palette"
+            },
+            {
+              "page": "features/i18n",
+              "title": {
+                "zh-CN": "国际化",
+                "en-US": "Internationalization"
+              },
+              "icon": "Languages"
+            },
+            {
+              "page": "showcase/theming-preview",
+              "title": {
+                "zh-CN": "主题效果预览",
+                "en-US": "Theme Preview"
+              },
+              "icon": "SwatchBook"
+            }
+          ]
         }
       ]
     },
     {
-      "group": {
-        "zh-CN": "快速上手",
-        "en-US": "Get Started"
-      },
-      "icon": "Rocket",
-      "pages": [
-        {
-          "page": "getting-started/installation",
-          "title": {
-            "zh-CN": "安装与环境准备",
-            "en-US": "Install and Setup"
-          },
-          "icon": "Download"
-        },
-        {
-          "page": "getting-started/first-site",
-          "title": {
-            "zh-CN": "创建第一个站点",
-            "en-US": "Create Your First Site"
-          },
-          "icon": "Sparkles"
-        },
-        {
-          "page": "guides/migrate-from-mintlify",
-          "title": {
-            "zh-CN": "从 Mintlify 迁移",
-            "en-US": "Migrate from Mintlify"
-          },
-          "icon": "RefreshCcw"
-        }
-      ]
-    },
-    {
-      "group": {
-        "zh-CN": "内容创作",
-        "en-US": "Content Authoring"
-      },
-      "icon": "PenLine",
-      "pages": [
-        {
-          "page": "guides/writing-content",
-          "title": {
-            "zh-CN": "内容写作工作流",
-            "en-US": "Writing Workflow"
-          },
-          "icon": "NotebookPen"
-        },
-        {
-          "page": "features/mdx",
-          "title": {
-            "zh-CN": "MDX 写作能力",
-            "en-US": "MDX Authoring"
-          },
-          "icon": "FileCode2"
-        },
-        {
-          "page": "reference/frontmatter",
-          "title": {
-            "zh-CN": "Frontmatter 元数据",
-            "en-US": "Frontmatter Metadata"
-          },
-          "icon": "FileJson2"
-        },
-        {
-          "page": "showcase/components",
-          "title": {
-            "zh-CN": "组件演示",
-            "en-US": "Component Showcase"
-          },
-          "icon": "Component"
-        }
-      ]
-    },
-    {
-      "group": {
-        "zh-CN": "站点体验",
-        "en-US": "Site Experience"
-      },
-      "icon": "SlidersHorizontal",
-      "pages": [
-        {
-          "page": "guides/navigation",
-          "title": {
-            "zh-CN": "导航与侧边栏",
-            "en-US": "Navigation and Sidebar"
-          },
-          "icon": "PanelLeft"
-        },
-        {
-          "page": "features/routing",
-          "title": {
-            "zh-CN": "文件路由",
-            "en-US": "File-based Routing"
-          },
-          "icon": "Route"
-        },
-        {
-          "page": "features/theming",
-          "title": {
-            "zh-CN": "主题与样式系统",
-            "en-US": "Theme and Styling"
-          },
-          "icon": "Palette"
-        },
-        {
-          "page": "features/i18n",
-          "title": {
-            "zh-CN": "国际化",
-            "en-US": "Internationalization"
-          },
-          "icon": "Languages"
-        },
-        {
-          "page": "showcase/theming-preview",
-          "title": {
-            "zh-CN": "主题效果预览",
-            "en-US": "Theme Preview"
-          },
-          "icon": "SwatchBook"
-        }
-      ]
-    },
-    {
-      "group": {
-        "zh-CN": "API 文档",
-        "en-US": "API Documentation"
+      "tab": {
+        "zh-CN": "API",
+        "en-US": "API"
       },
       "icon": "Webhook",
       "pages": [
         {
-          "page": "features/openapi",
-          "title": {
-            "zh-CN": "OpenAPI 概览",
-            "en-US": "OpenAPI Overview"
+          "group": {
+            "zh-CN": "API 文档",
+            "en-US": "API Documentation"
           },
-          "icon": "Braces"
-        },
-        {
-          "page": "guides/api-docs-workflow",
-          "title": {
-            "zh-CN": "API 文档工作流",
-            "en-US": "API Docs Workflow"
-          },
-          "icon": "Workflow"
-        },
-        {
-          "page": "features/api-reference",
-          "title": {
-            "zh-CN": "生成 API Reference",
-            "en-US": "Generate API Reference"
-          },
-          "icon": "BookOpenCheck"
-        },
-        {
-          "page": "features/openapi-embedding",
-          "title": {
-            "zh-CN": "嵌入单个接口",
-            "en-US": "Embed Endpoints"
-          },
-          "icon": "PanelTopOpen"
-        },
-        {
-          "page": "showcase/openapi-demo",
-          "title": {
-            "zh-CN": "API 文档示例",
-            "en-US": "API Docs Demo"
-          },
-          "icon": "ServerCog"
-        },
-        {
-          "openapi": "api.openapi.json",
-          "title": {
-            "zh-CN": "API Reference",
-            "en-US": "API Reference"
-          },
-          "icon": "FileJson2"
+          "icon": "Webhook",
+          "pages": [
+            {
+              "page": "features/openapi",
+              "title": {
+                "zh-CN": "OpenAPI 概览",
+                "en-US": "OpenAPI Overview"
+              },
+              "icon": "Braces"
+            },
+            {
+              "page": "guides/api-docs-workflow",
+              "title": {
+                "zh-CN": "API 文档工作流",
+                "en-US": "API Docs Workflow"
+              },
+              "icon": "Workflow"
+            },
+            {
+              "page": "features/api-reference",
+              "title": {
+                "zh-CN": "生成 API Reference",
+                "en-US": "Generate API Reference"
+              },
+              "icon": "BookOpenCheck"
+            },
+            {
+              "page": "features/openapi-embedding",
+              "title": {
+                "zh-CN": "嵌入单个接口",
+                "en-US": "Embed Endpoints"
+              },
+              "icon": "PanelTopOpen"
+            },
+            {
+              "page": "showcase/openapi-demo",
+              "title": {
+                "zh-CN": "API 文档示例",
+                "en-US": "API Docs Demo"
+              },
+              "icon": "ServerCog"
+            },
+            {
+              "openapi": "api.openapi.json",
+              "title": {
+                "zh-CN": "API Reference",
+                "en-US": "API Reference"
+              },
+              "icon": "FileJson2"
+            }
+          ]
         }
       ]
     },
     {
-      "group": {
-        "zh-CN": "发布上线",
-        "en-US": "Ship to Production"
-      },
-      "icon": "Ship",
-      "pages": [
-        {
-          "page": "features/ssg",
-          "title": {
-            "zh-CN": "静态生成能力",
-            "en-US": "Static Site Generation"
-          },
-          "icon": "PackageCheck"
-        },
-        {
-          "page": "features/llms",
-          "title": {
-            "zh-CN": "AI 与原始内容",
-            "en-US": "AI and Raw Content"
-          },
-          "icon": "Bot"
-        },
-        {
-          "page": "guides/deployment",
-          "title": {
-            "zh-CN": "生产环境部署",
-            "en-US": "Production Deployment"
-          },
-          "icon": "UploadCloud"
-        }
-      ]
-    },
-    {
-      "group": {
-        "zh-CN": "参考手册",
+      "tab": {
+        "zh-CN": "参考",
         "en-US": "Reference"
       },
       "icon": "Library",
       "pages": [
         {
-          "page": "reference",
-          "title": {
-            "zh-CN": "参考资料总览",
-            "en-US": "Reference Overview"
+          "group": {
+            "zh-CN": "参考手册",
+            "en-US": "Reference"
           },
-          "icon": "BookMarked"
-        },
-        {
-          "page": "reference/clarify-config",
-          "title": {
-            "zh-CN": "配置文件参考",
-            "en-US": "Configuration Reference"
-          },
-          "icon": "Settings2"
-        },
-        {
-          "page": "reference/cli-commands",
-          "title": {
-            "zh-CN": "CLI 命令参考",
-            "en-US": "CLI Reference"
-          },
-          "icon": "Terminal"
-        },
-        {
-          "page": "reference/plugin-api",
-          "title": {
-            "zh-CN": "插件 API 参考",
-            "en-US": "Plugin API Reference"
-          },
-          "icon": "Puzzle"
-        },
-        {
-          "page": "reference/built-in-components",
-          "title": {
-            "zh-CN": "内置公开组件",
-            "en-US": "Built-in Components"
-          },
-          "icon": "Component"
-        },
-        {
-          "page": "guides",
-          "title": {
-            "zh-CN": "指南索引",
-            "en-US": "Guides Index"
-          },
-          "icon": "Compass"
-        },
-        {
-          "page": "showcase",
-          "title": {
-            "zh-CN": "示例索引",
-            "en-US": "Showcase Index"
-          },
-          "icon": "GalleryHorizontalEnd"
+          "icon": "Library",
+          "pages": [
+            {
+              "page": "reference",
+              "title": {
+                "zh-CN": "参考资料总览",
+                "en-US": "Reference Overview"
+              },
+              "icon": "BookMarked"
+            },
+            {
+              "page": "reference/clarify-config",
+              "title": {
+                "zh-CN": "配置文件参考",
+                "en-US": "Configuration Reference"
+              },
+              "icon": "Settings2"
+            },
+            {
+              "page": "reference/cli-commands",
+              "title": {
+                "zh-CN": "CLI 命令参考",
+                "en-US": "CLI Reference"
+              },
+              "icon": "Terminal"
+            },
+            {
+              "page": "reference/plugin-api",
+              "title": {
+                "zh-CN": "插件 API 参考",
+                "en-US": "Plugin API Reference"
+              },
+              "icon": "Puzzle"
+            },
+            {
+              "page": "reference/built-in-components",
+              "title": {
+                "zh-CN": "内置公开组件",
+                "en-US": "Built-in Components"
+              },
+              "icon": "Component"
+            },
+            {
+              "page": "guides",
+              "title": {
+                "zh-CN": "指南索引",
+                "en-US": "Guides Index"
+              },
+              "icon": "Compass"
+            },
+            {
+              "page": "showcase",
+              "title": {
+                "zh-CN": "示例索引",
+                "en-US": "Showcase Index"
+              },
+              "icon": "GalleryHorizontalEnd"
+            }
+          ]
         }
       ]
     },
     {
-      "group": {
-        "zh-CN": "项目开发",
-        "en-US": "Project Development"
+      "tab": {
+        "zh-CN": "开发",
+        "en-US": "Development"
       },
       "icon": "Code2",
       "pages": [
         {
-          "page": "development",
-          "title": {
-            "zh-CN": "开发者入口",
-            "en-US": "Developer Guide"
+          "group": {
+            "zh-CN": "项目开发",
+            "en-US": "Project Development"
           },
-          "icon": "SquareTerminal"
+          "icon": "Code2",
+          "pages": [
+            {
+              "page": "development",
+              "title": {
+                "zh-CN": "开发者入口",
+                "en-US": "Developer Guide"
+              },
+              "icon": "SquareTerminal"
+            },
+            {
+              "page": "development/architecture",
+              "title": {
+                "zh-CN": "整体架构",
+                "en-US": "Architecture"
+              },
+              "icon": "Network"
+            },
+            {
+              "page": "development/cli",
+              "title": {
+                "zh-CN": "CLI 与引擎",
+                "en-US": "CLI and Engine"
+              },
+              "icon": "Terminal"
+            },
+            {
+              "page": "development/renderer",
+              "title": {
+                "zh-CN": "渲染器架构",
+                "en-US": "Renderer Architecture"
+              },
+              "icon": "MonitorCog"
+            },
+            {
+              "page": "development/ssg",
+              "title": {
+                "zh-CN": "静态生成流程",
+                "en-US": "SSG Pipeline"
+              },
+              "icon": "Blocks"
+            },
+            {
+              "page": "features/plugins",
+              "title": {
+                "zh-CN": "插件机制",
+                "en-US": "Plugin System"
+              },
+              "icon": "Puzzle"
+            },
+            {
+              "page": "development/contributing",
+              "title": {
+                "zh-CN": "参与贡献",
+                "en-US": "Contributing"
+              },
+              "icon": "GitPullRequestArrow"
+            }
+          ]
         },
         {
-          "page": "development/architecture",
-          "title": {
-            "zh-CN": "整体架构",
-            "en-US": "Architecture"
+          "group": {
+            "zh-CN": "发布上线",
+            "en-US": "Ship to Production"
           },
-          "icon": "Network"
-        },
-        {
-          "page": "development/cli",
-          "title": {
-            "zh-CN": "CLI 与引擎",
-            "en-US": "CLI and Engine"
-          },
-          "icon": "Terminal"
-        },
-        {
-          "page": "development/renderer",
-          "title": {
-            "zh-CN": "渲染器架构",
-            "en-US": "Renderer Architecture"
-          },
-          "icon": "MonitorCog"
-        },
-        {
-          "page": "development/ssg",
-          "title": {
-            "zh-CN": "静态生成流程",
-            "en-US": "SSG Pipeline"
-          },
-          "icon": "Blocks"
-        },
-        {
-          "page": "features/plugins",
-          "title": {
-            "zh-CN": "插件机制",
-            "en-US": "Plugin System"
-          },
-          "icon": "Puzzle"
-        },
-        {
-          "page": "development/contributing",
-          "title": {
-            "zh-CN": "参与贡献",
-            "en-US": "Contributing"
-          },
-          "icon": "GitPullRequestArrow"
+          "icon": "Ship",
+          "pages": [
+            {
+              "page": "features/ssg",
+              "title": {
+                "zh-CN": "静态生成能力",
+                "en-US": "Static Site Generation"
+              },
+              "icon": "PackageCheck"
+            },
+            {
+              "page": "features/llms",
+              "title": {
+                "zh-CN": "AI 与原始内容",
+                "en-US": "AI and Raw Content"
+              },
+              "icon": "Bot"
+            },
+            {
+              "page": "guides/deployment",
+              "title": {
+                "zh-CN": "生产环境部署",
+                "en-US": "Production Deployment"
+              },
+              "icon": "UploadCloud"
+            }
+          ]
         }
       ]
-    }
-  ]
     }
   ]
 }

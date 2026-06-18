@@ -1,7 +1,6 @@
 import { CloseButton } from '@headlessui/react'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
-import * as LucideIcons from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -10,6 +9,7 @@ import { useSectionStore } from '../components/SectionProvider'
 import type { NavigationNode } from '../types'
 import { remToPx } from '../utils/remToPx'
 
+import { NavigationIcon } from './icons'
 import { useIsInsideMobileNavigation } from './mobile'
 
 type NavGroup = {
@@ -20,18 +20,6 @@ type NavGroup = {
     href: string
     icon?: string
   }>
-}
-
-type LucideIconComponent = React.ComponentType<React.SVGProps<SVGSVGElement>>
-
-function NavigationIcon(arg0: { name?: string; className?: string }) {  const { name, className } = arg0
-
-  if (!name) return null
-  const Icon = (LucideIcons as unknown as Record<string, LucideIconComponent>)[name]
-
-  if (!Icon) return null
-
-  return <Icon className={clsx('shrink-0 stroke-current', className)} aria-hidden="true" />
 }
 
 function useInitialValue<T>(value: T, condition = true) {

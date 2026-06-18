@@ -330,15 +330,15 @@ export function Search(arg0: { routes: RouteItem[]; navigation: NavigationNode[]
   const { buttonProps, dialogProps } = useSearchProps()
 
   return (
-    <div className="clarify-search hidden lg:block lg:max-w-md lg:flex-auto">
+    <div className="clarify-search hidden w-80 max-w-[36vw] lg:block">
       <button
         type="button"
-        className="clarify-search-button hidden h-8 w-full items-center gap-2 rounded-full bg-white pr-3 pl-2 text-sm text-zinc-500 ring-1 ring-zinc-900/10 transition hover:ring-zinc-900/20 lg:flex dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:ring-inset dark:hover:ring-white/20"
+        className="clarify-search-button hidden h-9 w-full items-center gap-2 rounded-lg bg-zinc-50 pr-3 pl-2.5 text-sm text-zinc-500 ring-1 ring-zinc-900/10 transition hover:bg-white hover:ring-zinc-900/20 lg:flex dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:ring-inset dark:hover:bg-white/10 dark:hover:ring-white/20"
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
-        Find something...
-        <kbd className="ml-auto text-2xs text-zinc-400 dark:text-zinc-500">
+        Search...
+        <kbd className="ml-auto rounded bg-white px-1.5 py-0.5 text-2xs text-zinc-400 ring-1 ring-zinc-900/10 dark:bg-white/5 dark:text-zinc-500 dark:ring-white/10">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
         </kbd>
