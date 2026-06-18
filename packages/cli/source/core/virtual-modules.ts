@@ -28,12 +28,12 @@ export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: Clari
     const sections = r.sections && r.sections.length > 0
       ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, badge: s.badge, tags: s.tags })))}`
       : ''
-    const rawContentUrl = r.rawContentUrl ? `, rawContentUrl: ${JSON.stringify(r.rawContentUrl)}` : ''
+    const contentArtifactUrl = r.contentArtifactUrl ? `, contentArtifactUrl: ${JSON.stringify(r.contentArtifactUrl)}` : ''
     const basePath = r.basePath ? `, basePath: ${JSON.stringify(r.basePath)}` : ''
     const locale = r.locale ? `, locale: ${JSON.stringify(r.locale)}` : ''
     const isFallback = r.isFallback ? ', isFallback: true' : ''
     const alternates = r.alternates ? `, alternates: ${JSON.stringify(r.alternates)}` : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${basePath}${locale}${isFallback}${alternates}${sections}${rawContentUrl} }`
+    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${basePath}${locale}${isFallback}${alternates}${sections}${contentArtifactUrl} }`
   }).join(',\n')
 
   const navigation = resolvedNavigation ?? (projectConfig?.i18n

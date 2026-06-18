@@ -2,7 +2,7 @@ import type { ViteDevServer } from 'vite'
 
 import type { ClarifyPlugin } from '../../types.js'
 
-import { enrichRoutesWithRawContent, writeLlmsTxt, writeRawContentFiles } from './raw-content.js'
+import { attachContentArtifactUrls, writeContentArtifactFiles, writeLlmsTxt } from './artifacts.js'
 import { serveContentArtifacts } from './server.js'
 
 export function createContentArtifactsPlugin(): ClarifyPlugin {
@@ -10,7 +10,7 @@ export function createContentArtifactsPlugin(): ClarifyPlugin {
     name: 'clarify:content-artifacts',
     hooks: {
       'routes:resolved': (input) => {
-        enrichRoutesWithRawContent(input.routes)
+        attachContentArtifactUrls(input.routes)
         return input
       },
       'dev:configureServer': (server: ViteDevServer, ctx) => {
@@ -22,7 +22,7 @@ export function createContentArtifactsPlugin(): ClarifyPlugin {
       'build:done': (ctx) => {
         const outputDirectory = ctx.generateOptions.outputDirectory
         if (!outputDirectory) return
-        writeRawContentFiles(ctx.routes, outputDirectory)
+        writeContentArtifactFiles(ctx.routes, outputDirectory)
         writeLlmsTxt(ctx.routes, ctx.projectConfig, outputDirectory)
       },
     },

@@ -17,9 +17,9 @@ type CopyAction = {
   run: () => Promise<void>
 }
 
-function resolveRawContentUrl(rawContentUrl: string, routePrefix: string = '/'): string {
-  if (!routePrefix || routePrefix === '/') return rawContentUrl
-  return `/${routePrefix.replace(/^\/+|\/+$/g, '')}${rawContentUrl}`
+function resolveContentArtifactUrl(contentArtifactUrl: string, routePrefix: string = '/'): string {
+  if (!routePrefix || routePrefix === '/') return contentArtifactUrl
+  return `/${routePrefix.replace(/^\/+|\/+$/g, '')}${contentArtifactUrl}`
 }
 
 function getAbsoluteUrl(path: string): string {
@@ -35,9 +35,9 @@ export function ContentActions(arg0: ContentActionsProps) {
   const { route, routePrefix } = arg0
   const [copied, setCopied] = useState<CopyState>('idle')
 
-  if (!route?.rawContentUrl) return null
+  if (!route?.contentArtifactUrl) return null
 
-  const rawContentUrl = resolveRawContentUrl(route.rawContentUrl, routePrefix)
+  const contentArtifactUrl = resolveContentArtifactUrl(route.contentArtifactUrl, routePrefix)
   const isOpenApi = route.kind === 'openapi'
   const contentLabel = isOpenApi ? '复制 OpenAPI 内容' : '复制 Markdown 内容'
   const linkLabel = isOpenApi ? '复制 OpenAPI 链接' : '复制 Markdown 链接'
@@ -48,14 +48,14 @@ export function ContentActions(arg0: ContentActionsProps) {
   }
 
   async function handleCopyContent() {
-    const response = await fetch(rawContentUrl)
+    const response = await fetch(contentArtifactUrl)
     const text = await response.text()
     await copyText(text)
     markCopied('content')
   }
 
   async function handleCopyLink() {
-    await copyText(getAbsoluteUrl(rawContentUrl))
+    await copyText(getAbsoluteUrl(contentArtifactUrl))
     markCopied('link')
   }
 

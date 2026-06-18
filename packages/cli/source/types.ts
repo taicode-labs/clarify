@@ -179,7 +179,7 @@ export type ContentRoute = {
   content?: string
   diagnostic?: ContentDiagnostic
   sections?: ContentSection[]
-  rawContentUrl?: string
+  contentArtifactUrl?: string
 }
 
 export type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>

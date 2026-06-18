@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { resolveContentArtifactPath, resolveRawContentType } from './server.js'
+import { resolveContentArtifactPath, resolveContentArtifactType } from './server.js'
 
 const projectConfig: ResolvedProjectConfig = {
   title: 'Clarify',
@@ -11,14 +11,14 @@ const projectConfig: ResolvedProjectConfig = {
   theme: {},
 }
 
-function createRoute(kind: ContentRoute['kind'], rawContentUrl: string): ContentRoute {
+function createRoute(kind: ContentRoute['kind'], contentArtifactUrl: string): ContentRoute {
   return {
     path: '/api',
     title: 'API',
     filePath: '/tmp/api.openapi.yaml',
     virtualModuleId: 'virtual:clarify-page/api',
     kind,
-    rawContentUrl,
+    contentArtifactUrl,
   }
 }
 
@@ -32,14 +32,14 @@ describe('content artifacts plugin server helpers', () => {
   })
 
   it('uses markdown content type for mdx routes', () => {
-    expect(resolveRawContentType(createRoute('mdx', '/guide.md'))).toBe('text/markdown; charset=utf-8')
+    expect(resolveContentArtifactType(createRoute('mdx', '/guide.md'))).toBe('text/markdown; charset=utf-8')
   })
 
   it('uses yaml content type for yaml OpenAPI routes', () => {
-    expect(resolveRawContentType(createRoute('openapi', '/api.openapi.yaml'))).toBe('text/yaml; charset=utf-8')
+    expect(resolveContentArtifactType(createRoute('openapi', '/api.openapi.yaml'))).toBe('text/yaml; charset=utf-8')
   })
 
   it('uses json content type for JSON OpenAPI routes', () => {
-    expect(resolveRawContentType(createRoute('openapi', '/api.openapi.json'))).toBe('application/json; charset=utf-8')
+    expect(resolveContentArtifactType(createRoute('openapi', '/api.openapi.json'))).toBe('application/json; charset=utf-8')
   })
 })

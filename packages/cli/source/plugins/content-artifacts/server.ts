@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { createLlmsTxt, readRawContent } from './raw-content.js'
+import { createLlmsTxt, readRouteContent } from './artifacts.js'
 
 function normalizeRoutePrefix(routePrefix: string): string {
   if (!routePrefix || routePrefix === '/') return ''
@@ -17,8 +17,8 @@ export function resolveContentArtifactPath(url: string | undefined, projectConfi
     : requestPath
 }
 
-export function resolveRawContentType(route: ContentRoute): string {
-  if (route.kind === 'openapi' && /\.ya?ml$/i.test(route.rawContentUrl ?? '')) {
+export function resolveContentArtifactType(route: ContentRoute): string {
+  if (route.kind === 'openapi' && /\.ya?ml$/i.test(route.contentArtifactUrl ?? '')) {
     return 'text/yaml; charset=utf-8'
   }
 
@@ -37,11 +37,11 @@ export function serveContentArtifacts(req: IncomingMessage, res: ServerResponse,
     return true
   }
 
-  const route = routes.find(route => route.rawContentUrl === contentPath)
+  const route = routes.find(route => route.contentArtifactUrl === contentPath)
   if (!route) return false
 
   res.statusCode = 200
-  res.setHeader('Content-Type', resolveRawContentType(route))
-  res.end(readRawContent(route))
+  res.setHeader('Content-Type', resolveContentArtifactType(route))
+  res.end(readRouteContent(route))
   return true
 }

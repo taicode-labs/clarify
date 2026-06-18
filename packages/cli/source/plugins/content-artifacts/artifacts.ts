@@ -8,37 +8,37 @@ function normalizeBasePath(basePath: string): string {
   return '/' + basePath.replace(/^\/+|\/+$/g, '')
 }
 
-export function routeToMarkdownUrl(routePath: string): string {
+export function routeToMarkdownArtifactUrl(routePath: string): string {
   const normalizedPath = routePath === '/' ? '/index' : routePath.replace(/\/$/, '')
   return `${normalizedPath}.md`
 }
 
-export function routeToOpenAPIUrl(routePath: string, filePath: string): string {
+export function routeToOpenAPIArtifactUrl(routePath: string, filePath: string): string {
   const extension = extname(filePath).toLowerCase() || '.json'
   const normalizedPath = routePath === '/' ? '/index' : routePath.replace(/\/$/, '')
   return `${normalizedPath}.openapi${extension}`
 }
 
-export function enrichRoutesWithRawContent(routes: ContentRoute[]): void {
+export function attachContentArtifactUrls(routes: ContentRoute[]): void {
   for (const route of routes) {
-    route.rawContentUrl = route.kind === 'openapi'
-      ? routeToOpenAPIUrl(route.path, route.filePath)
-      : routeToMarkdownUrl(route.path)
+    route.contentArtifactUrl = route.kind === 'openapi'
+      ? routeToOpenAPIArtifactUrl(route.path, route.filePath)
+      : routeToMarkdownArtifactUrl(route.path)
   }
 }
 
-export function readRawContent(route: ContentRoute): string {
+export function readRouteContent(route: ContentRoute): string {
   if (route.content !== undefined) return route.content
-  throw new Error(`Raw content is missing from route context: ${route.filePath}`)
+  throw new Error(`Route content is missing from route context: ${route.filePath}`)
 }
 
-export function writeRawContentFiles(routes: ContentRoute[], outputDirectory: string): void {
+export function writeContentArtifactFiles(routes: ContentRoute[], outputDirectory: string): void {
   for (const route of routes) {
-    if (!route.rawContentUrl) continue
+    if (!route.contentArtifactUrl) continue
 
-    const outFile = join(outputDirectory, route.rawContentUrl.replace(/^\//, ''))
+    const outFile = join(outputDirectory, route.contentArtifactUrl.replace(/^\//, ''))
     mkdirSync(dirname(outFile), { recursive: true })
-    writeFileSync(outFile, readRawContent(route), 'utf-8')
+    writeFileSync(outFile, readRouteContent(route), 'utf-8')
   }
 }
 
@@ -55,16 +55,16 @@ export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedPro
 
   lines.push('## Docs')
   for (const route of routes.filter(route => route.kind === 'mdx')) {
-    if (!route.rawContentUrl) continue
-    lines.push(`- [${route.title}](${basePath}${route.rawContentUrl})`)
+    if (!route.contentArtifactUrl) continue
+    lines.push(`- [${route.title}](${basePath}${route.contentArtifactUrl})`)
   }
 
   const openApiRoutes = routes.filter(route => route.kind === 'openapi')
   if (openApiRoutes.length > 0) {
     lines.push('', '## OpenAPI')
     for (const route of openApiRoutes) {
-      if (!route.rawContentUrl) continue
-      lines.push(`- [${route.title}](${basePath}${route.rawContentUrl})`)
+      if (!route.contentArtifactUrl) continue
+      lines.push(`- [${route.title}](${basePath}${route.contentArtifactUrl})`)
     }
   }
 
