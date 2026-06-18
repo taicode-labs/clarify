@@ -33,7 +33,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-zinc-100 text-zinc-700 ring-1 ring-inset ring-zinc-900/10 transition hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800/50 dark:text-zinc-300 dark:ring-white/10 dark:hover:bg-zinc-800 dark:hover:text-white"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 focus:outline-none focus-visible:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800/70 dark:hover:text-white dark:focus-visible:bg-zinc-800/70"
       aria-label={t('theme.switchTo', { theme: t(`theme.${nextTheme}`) })}
       onClick={() => setTheme(nextTheme)}
     >

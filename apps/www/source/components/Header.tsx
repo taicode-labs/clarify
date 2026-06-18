@@ -28,7 +28,7 @@ export function Header() {
           </a>
           <LanguageSelect />
           <ThemeToggle />
-          <Button href={docsLinks.gettingStarted} variant="secondary">{t('nav.getStarted')}</Button>
+          <Button href={docsLinks.gettingStarted}>{t('nav.getStarted')}</Button>
         </div>
       </div>
     </header>
