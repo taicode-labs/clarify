@@ -114,6 +114,9 @@ function NavLink(arg0: {
     const targetId = decodeURIComponent(href.slice(hashIndex + 1))
     window.requestAnimationFrame(() => {
       document.getElementById(targetId)?.scrollIntoView()
+      window.requestAnimationFrame(() => {
+        window.dispatchEvent(new Event('scroll'))
+      })
     })
   }
 

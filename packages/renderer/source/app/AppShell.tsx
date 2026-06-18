@@ -34,6 +34,9 @@ function scrollToHash(hash: string) {
   const targetId = decodeURIComponent(hash.slice(1))
   window.requestAnimationFrame(() => {
     document.getElementById(targetId)?.scrollIntoView()
+    window.requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('scroll'))
+    })
   })
 }
 
