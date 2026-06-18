@@ -1,6 +1,8 @@
 {
   "title": "Clarify",
   "description": "开源文档发布工具，为 MDX 和 OpenAPI 而生。",
+  "logo": "/clarify.svg",
+  "favicon": "/clarify.svg",
   "i18n": {
     "defaultLocale": "zh-CN",
     "missing": "fallback",
