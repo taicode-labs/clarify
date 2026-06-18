@@ -201,6 +201,12 @@ export type ClarifyHookContext = {
   navigation: NavigationTree
 }
 
+export type ClarifyRouteDiscoveryInput = {
+  contentRoot: string
+  locale?: string
+  routes: ContentRoute[]
+}
+
 export type ClarifyHooks = {
   'pages:resolved'?: (
     pages: ClarifyPage[],
@@ -210,6 +216,10 @@ export type ClarifyHooks = {
     page: ClarifyPage,
     ctx: ClarifyHookContext
   ) => Promise<ClarifyPage> | ClarifyPage
+  'routes:discover'?: (
+    input: ClarifyRouteDiscoveryInput,
+    ctx: ClarifyHookContext
+  ) => Promise<ClarifyRouteDiscoveryInput> | ClarifyRouteDiscoveryInput
   'routes:discovered'?: (
     routes: ContentRoute[],
     ctx: ClarifyHookContext

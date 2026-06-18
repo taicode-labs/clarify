@@ -41,7 +41,7 @@ describe('createOpenAPIPlugin', () => {
     rmSync(tempDir, { recursive: true, force: true })
   })
 
-  it('enriches OpenAPI routes and contributes virtual modules', async () => {
+  it('discovers, enriches, and contributes OpenAPI virtual modules', async () => {
     const specPath = join(tempDir, 'api.openapi.json')
     writeFileSync(specPath, JSON.stringify({
       openapi: '3.0.0',
@@ -56,14 +56,19 @@ describe('createOpenAPIPlugin', () => {
       },
     }), 'utf-8')
 
-    const routes: ContentRoute[] = [{
+    const plugin = createOpenAPIPlugin()
+    const discoveredInput = await plugin.hooks?.['routes:discover']?.({
+      contentRoot: tempDir,
+      routes: [],
+    }, createContext([]))
+    const routes = discoveredInput?.routes ?? []
+
+    expect(routes).toMatchObject([{
       path: '/api',
-      title: 'Api',
       filePath: specPath,
       virtualModuleId: 'virtual:clarify-page/api',
       kind: 'openapi',
-    }]
-    const plugin = createOpenAPIPlugin()
+    }])
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
 

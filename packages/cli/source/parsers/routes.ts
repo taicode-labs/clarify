@@ -60,6 +60,17 @@ export function basePathFromRef(ref: string): string {
   return normalizePath(withoutExtension === 'index' ? '/' : withoutExtension.replace(/\/index$/, ''))
 }
 
+export function routePathFromRef(ref: string): string {
+  return basePathFromRef(ref)
+}
+
+export function virtualModuleIdFromRef(ref: string): string {
+  return 'virtual:clarify-page/' + ref
+    .replace(/\.mdx?$/, '')
+    .replace(/\.openapi\.(json|yaml|yml)$/, '')
+    .replace(/\/+/g, '/')
+}
+
 export function localizedRoutePath(basePath: string, locale: string, i18n: ResolvedClarifyI18nConfig): string {
   const normalizedBasePath = normalizePath(basePath)
   if (locale === i18n.defaultLocale) return normalizedBasePath
@@ -70,15 +81,6 @@ export function localizedRoutePath(basePath: string, locale: string, i18n: Resol
 export function resolveLocalizedText(text: ClarifyLocalizedText | undefined, locale: string, fallbackLocale?: string): string | undefined {
   if (typeof text === 'string' || text === undefined) return text
   return text[locale] ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0]
-}
-
-function resolveOpenAPIPath(filePath: string, base: string): string {
-  const relativePath = relative(base, filePath)
-  const pathParts = relativePath
-    .replace(/\.openapi\.(json|yaml|yml)$/, '')
-    .split('/')
-  const path = '/' + pathParts.map(p => p === 'index' ? '' : p).filter(Boolean).join('/')
-  return path.replace(/\/+/g, '/').replace(/\/$/, '') || '/'
 }
 
 export function findContentRoutes(dir: string, base: string = dir): ContentRoute[] {
@@ -116,18 +118,6 @@ export function findContentRoutes(dir: string, base: string = dir): ContentRoute
         title,
         kind: 'mdx',
         sections: extractMdxSections(content),
-      })
-    } else if (entry.isFile() && /\.openapi\.(json|yaml|yml)$/.test(entry.name)) {
-      const cleanPath = resolveOpenAPIPath(fullPath, base)
-      const title = kebabToTitle(cleanPath.split('/').pop() ?? 'API')
-
-      routes.push({
-        path: cleanPath,
-        basePath: cleanPath,
-        filePath: fullPath,
-        virtualModuleId: 'virtual:clarify-page/' + relative(base, fullPath).replace(/\.openapi\.(json|yaml|yml)$/, '').replace(/\/+/g, '/'),
-        title,
-        kind: 'openapi',
       })
     }
   }

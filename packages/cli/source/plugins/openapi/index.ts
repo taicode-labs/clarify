@@ -1,6 +1,6 @@
 import type { ClarifyPlugin, OpenAPISpec } from '../../types.js'
 
-import { extractOpenAPISections, readOpenAPISpec } from './parser.js'
+import { extractOpenAPISections, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
 import { generateOpenAPIModule, generateOpenAPIRegistryModule, openApiRegistryModuleId } from './virtual-modules.js'
 
 export function createOpenAPIPlugin(): ClarifyPlugin {
@@ -9,6 +9,10 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
   return {
     name: 'clarify:openapi',
     hooks: {
+      'routes:discover': (input) => ({
+        ...input,
+        routes: [...input.routes, ...findOpenAPIRoutes(input.contentRoot)],
+      }),
       'routes:discovered': async (routes) => {
         for (const key of Object.keys(specs)) delete specs[key]
 

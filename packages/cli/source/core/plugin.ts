@@ -7,10 +7,10 @@ import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { rehypePlugins, remarkPlugins } from '../parsers/mdx.js'
-import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, findLocalizedContentRoutes } from '../parsers/routes.js'
+import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef } from '../parsers/routes.js'
 import { createContentArtifactsPlugin } from '../plugins/content-artifacts/index.js'
 import { createOpenAPIPlugin } from '../plugins/openapi/index.js'
-import type { ClarifyHookContext, ClarifyPlugin, NavigationTree } from '../types.js'
+import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree, ResolvedClarifyI18nConfig } from '../types.js'
 
 import { resolveProjectConfig } from './config.js'
 import { runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
@@ -39,17 +39,13 @@ function loadVirtualModule(id: string, modules: VirtualModules): string | null {
   return modules.get(bareId) ?? modules.get(id) ?? null
 }
 
-function isClarifyContentFile(filePath: string): boolean {
-  return /\.mdx?$/.test(filePath) || /\.openapi\.(json|yaml|yml)$/.test(filePath)
-}
-
 export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   const root = resolve(options.projectRoot ?? process.cwd())
   let projectConfig = resolveProjectConfig(options)
   let generateOptions = resolveBuildOptions(options)
   const contentRoot = join(root, generateOptions.rootDirectory)
   const configFilePath = findClarifyConfigFile(root)
-  let routes = findLocalizedContentRoutes(contentRoot, projectConfig.i18n)
+  let routes: ContentRoute[] = []
 
   const clarifyPlugins: ClarifyPlugin[] = [createOpenAPIPlugin(), createContentArtifactsPlugin(), ...(options.plugins ?? [])]
   const ctx: ClarifyHookContext = { projectConfig, generateOptions, routes, navigation: [] }
@@ -71,8 +67,70 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     ctx.generateOptions = generateOptions
   }
 
+  function withAlternates(route: ContentRoute, routeList: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute {
+    const basePath = route.basePath ?? route.path
+    const routeByLocaleAndBase = new Map(routeList.map(route => [`${route.locale ?? ''}:${route.basePath ?? route.path}`, route]))
+    const alternates = Object.fromEntries(
+      i18n.locales.flatMap((locale) => {
+        const alternate = routeByLocaleAndBase.get(`${locale.code}:${basePath}`)
+        return alternate ? [[locale.code, alternate.path]] : []
+      })
+    )
+    return { ...route, alternates }
+  }
+
+  async function discoverRoutesForRoot(routeRoot: string, locale?: string): Promise<ContentRoute[]> {
+    const discovered = await runHooks(clarifyPlugins, 'routes:discover', {
+      contentRoot: routeRoot,
+      locale,
+      routes: findContentRoutes(routeRoot),
+    }, ctx)
+    return discovered.routes
+  }
+
+  async function discoverRoutes(): Promise<ContentRoute[]> {
+    const i18n = projectConfig.i18n
+    if (!i18n) return discoverRoutesForRoot(contentRoot)
+
+    const localizedRoutes: ContentRoute[] = []
+    for (const locale of i18n.locales) {
+      const localeRoot = join(contentRoot, locale.code)
+      const discovered = await discoverRoutesForRoot(localeRoot, locale.code)
+      for (const route of discovered) {
+        const basePath = route.basePath ?? route.path
+        localizedRoutes.push({
+          ...route,
+          path: localizedRoutePath(basePath, locale.code, i18n),
+          basePath,
+          locale: locale.code,
+          virtualModuleId: virtualModuleIdFromRef(relative(contentRoot, route.filePath)),
+        })
+      }
+    }
+
+    if (i18n.missing === 'fallback') {
+      const routeByLocaleAndBase = new Map(localizedRoutes.map(route => [`${route.locale ?? ''}:${route.basePath ?? route.path}`, route]))
+      const defaultRoutes = localizedRoutes.filter(route => route.locale === i18n.defaultLocale)
+      for (const sourceRoute of defaultRoutes) {
+        const basePath = sourceRoute.basePath ?? sourceRoute.path
+        for (const locale of i18n.locales) {
+          const key = `${locale.code}:${basePath}`
+          if (routeByLocaleAndBase.has(key)) continue
+          localizedRoutes.push({
+            ...sourceRoute,
+            path: localizedRoutePath(basePath, locale.code, i18n),
+            locale: locale.code,
+            isFallback: true,
+          })
+        }
+      }
+    }
+
+    return localizedRoutes.map(route => withAlternates(route, localizedRoutes, i18n))
+  }
+
   async function resolveRoutesAndSpecs() {
-    routes = findLocalizedContentRoutes(contentRoot, projectConfig.i18n)
+    routes = await discoverRoutes()
     routes = await runHooks(clarifyPlugins, 'routes:discovered', routes, ctx)
 
     const defaultNavigation = projectConfig.i18n
@@ -109,6 +167,10 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     await rebuildVirtualModules()
     invalidateVirtualModules(server)
     server.ws.send({ type: 'full-reload' })
+  }
+
+  function hasContentRouteForFile(filePath: string): boolean {
+    return routes.some(route => route.filePath === filePath)
   }
 
   const mdx = mdxPlugin({
@@ -152,8 +214,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
 
       const relativeContentFile = relative(contentRoot, changedFile)
       const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
-      const isClarifyContent = isContentFile && isClarifyContentFile(changedFile)
-      if (!isClarifyContent) return
+      if (!isContentFile || !hasContentRouteForFile(changedFile)) return
 
       await refreshDevServer(ctx.server)
       return []
@@ -180,7 +241,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
         const changedFile = isAbsolute(filePath) ? filePath : join(root, filePath)
         const relativeContentFile = relative(contentRoot, changedFile)
         const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
-        if (!isContentFile || !isClarifyContentFile(changedFile)) return
+        if (!isContentFile) return
         await refreshDevServer(server)
       }
 
