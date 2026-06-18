@@ -20,6 +20,7 @@ import {
   buildSSRBundle,
   renderSSGRoutes,
 } from './ssg.js'
+import { findClarifyConfigFile, loadClarifyConfig } from './user-config.js'
 import {
   RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
@@ -39,9 +40,10 @@ function loadVirtualModule(id: string, modules: VirtualModules): string | null {
 
 export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   const root = resolve(options.projectRoot ?? process.cwd())
-  const projectConfig = resolveProjectConfig(options)
-  const generateOptions = resolveBuildOptions(options)
+  let projectConfig = resolveProjectConfig(options)
+  let generateOptions = resolveBuildOptions(options)
   const contentRoot = join(root, generateOptions.rootDirectory)
+  const configFilePath = findClarifyConfigFile(root)
   let routes = findLocalizedContentRoutes(contentRoot, projectConfig.i18n)
 
   // Collect OpenAPI specs keyed by virtual module ID for runtime embedding.
@@ -53,6 +55,20 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   let viteConfig: ResolvedConfig
   let resolvedNavigation: NavigationTree = []
   let virtualModules: VirtualModules = new Map()
+
+  async function reloadProjectConfig() {
+    const userConfig = await loadClarifyConfig(root, { command: 'serve', mode: viteConfig.mode })
+    const buildOptions: ClarifyBuildOptions = {
+      ...userConfig,
+      projectRoot: options.projectRoot,
+      rootDirectory: options.rootDirectory,
+      outputDirectory: options.outputDirectory,
+    }
+    projectConfig = resolveProjectConfig(buildOptions)
+    generateOptions = resolveBuildOptions(buildOptions)
+    ctx.projectConfig = projectConfig
+    ctx.generateOptions = generateOptions
+  }
 
   async function resolveRoutesAndSpecs() {
     routes = findLocalizedContentRoutes(contentRoot, projectConfig.i18n)
@@ -133,6 +149,15 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     },
     async handleHotUpdate(ctx) {
       const changedFile = isAbsolute(ctx.file) ? ctx.file : join(root, ctx.file)
+      if (configFilePath && changedFile === configFilePath) {
+        await reloadProjectConfig()
+        await resolveRoutesAndSpecs()
+        await rebuildVirtualModules()
+        invalidateVirtualModules(ctx.server)
+        ctx.server.ws.send({ type: 'full-reload' })
+        return []
+      }
+
       const relativeContentFile = relative(contentRoot, changedFile)
       const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
       const isClarifyContent = isContentFile && (/\.mdx?$/.test(changedFile) || /\.openapi\.(json|yaml|yml)$/.test(changedFile))
@@ -157,6 +182,10 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       return loadVirtualModule(id, virtualModules)
     },
     configureServer(server) {
+      if (configFilePath) {
+        server.watcher.add(configFilePath)
+      }
+
       server.middlewares.use((req, res, next) => {
         const requestPath = req.url?.split('?')[0] ?? ''
         const basePath = projectConfig.routePrefix === '/' ? '' : `/${projectConfig.routePrefix.replace(/^\/+|\/+$/g, '')}`

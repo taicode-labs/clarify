@@ -67,6 +67,7 @@ export const clarifyBannerConfigSchema = z.object({
 })
 
 export const clarifyFooterConfigSchema = z.object({
+  links: z.array(clarifyNavbarLinkSchema).optional(),
   socials: z.record(z.string(), z.string()).optional(),
   copyright: clarifyLocalizedTextSchema.optional(),
 })

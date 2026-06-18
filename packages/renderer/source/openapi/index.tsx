@@ -5,7 +5,7 @@ import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { BuiltWithClarify, Heading, Prose } from '../components'
+import { Heading, PageFooter, Prose } from '../components'
 import { useClarifyConfig, useOpenApis } from '../context'
 import { Col, Properties, Property, Row } from '../mdx/primitives'
 
@@ -810,9 +810,7 @@ export function OpenApiPage(arg0: OpenApiPageProps): ReactNode {
         <OpenApiHeader spec={resolved} />
         <OpenApiPaths spec={resolved} />
       </Prose>
-      <footer className="clarify-page-footer mx-auto mt-16 flex w-full max-w-3xl justify-center md:justify-start">
-        <BuiltWithClarify />
-      </footer>
+      <PageFooter />
     </article>
   )
 }

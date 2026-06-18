@@ -49,6 +49,7 @@ export type ClarifyBannerConfig = {
 }
 
 export type ClarifyFooterConfig = {
+  links?: ClarifyNavbarLink[]
   socials?: Record<string, string>
   copyright?: ClarifyLocalizedText
 }
