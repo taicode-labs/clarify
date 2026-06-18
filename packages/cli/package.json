@@ -3,6 +3,11 @@
   "version": "0.2.0",
   "license": "AGPL-3.0-only",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taicode-labs/clarify.git",
+    "directory": "packages/cli"
+  },
   "main": "output/index.cjs",
   "module": "output/index.js",
   "types": "output/index.d.ts",
