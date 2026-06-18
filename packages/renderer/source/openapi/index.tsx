@@ -1,5 +1,7 @@
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import clsx from 'clsx'
 import { slug } from 'github-slugger'
+import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
 import { useRef, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
@@ -371,18 +373,32 @@ function SelectControl(arg0: {
   if (options.length <= 1) return null
 
   return (
-    <label className="clarify-api-select flex flex-col gap-1 text-[0.625rem]/5 font-semibold tracking-widest text-zinc-400 uppercase">
-      {label}
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1.5 font-mono text-xs font-medium tracking-normal text-zinc-100 outline-hidden transition hover:border-white/20 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20"
-      >
-        {options.map((option) => (
-          <option key={option} value={option}>{option}</option>
-        ))}
-      </select>
-    </label>
+    <Listbox value={value} onChange={onChange}>
+      <div className="clarify-api-select relative flex flex-col gap-1 text-[0.625rem]/5 font-semibold tracking-widest text-zinc-400 uppercase">
+        <ListboxButton className="clarify-api-select-button flex min-w-32 items-center justify-between gap-2 rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1.5 font-mono text-xs font-medium tracking-normal text-zinc-100 outline-hidden transition hover:border-white/20 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 data-open:border-emerald-400 data-open:ring-2 data-open:ring-emerald-400/20">
+          <span className="flex flex-col items-start gap-0.5 truncate">
+            <span className="font-sans text-[0.625rem]/4 font-semibold tracking-widest text-zinc-500 uppercase">{label}</span>
+            <span className="truncate">{value}</span>
+          </span>
+          <ChevronsUpDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
+        </ListboxButton>
+        <ListboxOptions
+          anchor="bottom start"
+          className="clarify-api-select-options z-30 mt-1 max-h-64 w-(--button-width) min-w-40 overflow-auto rounded-xl border border-white/10 bg-zinc-900 p-1 text-xs shadow-lg shadow-black/20 [--anchor-gap:--spacing(1)] focus:outline-none"
+        >
+          {options.map((option) => (
+            <ListboxOption
+              key={option}
+              value={option}
+              className="clarify-api-select-option group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 font-mono text-xs text-zinc-300 select-none data-focus:bg-white/10 data-focus:text-white data-selected:text-emerald-300"
+            >
+              <span className="truncate">{option}</span>
+              <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />
+            </ListboxOption>
+          ))}
+        </ListboxOptions>
+      </div>
+    </Listbox>
   )
 }
 
