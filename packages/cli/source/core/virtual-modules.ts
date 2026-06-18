@@ -50,7 +50,7 @@ export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISp
 
 export function generateOpenAPIModule(spec: OpenAPISpec): string {
   return `import { createElement } from 'react';
-import { OpenApiPage } from '@clarify/renderer';
+import { OpenApiPage } from '@clarify-labs/renderer';
 const spec = ${JSON.stringify(spec)};
 export default function OpenApiRoutePage() {
   return createElement(OpenApiPage, { spec });
@@ -59,8 +59,8 @@ export default function OpenApiRoutePage() {
 
 export function createClientEntryModule(): string {
   return `
-import '@clarify/renderer/style.css';
-import { render } from '@clarify/renderer';
+import '@clarify-labs/renderer/style.css';
+import { render } from '@clarify-labs/renderer';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
 import { openApis } from '${VIRTUAL_OPENAPI_REGISTRY}';

@@ -19,7 +19,7 @@
 - **MDX Native** — Write docs with Markdown and embed interactive React components anywhere.
 - **OpenAPI Integration** — Auto-generate beautiful API reference pages from OpenAPI specs.
 - **Vite-Powered** — Fast development server and optimized production builds out of the box.
-- **Composable UI** — Build pages with reusable, themeable content blocks from `@clarify/renderer`.
+- **Composable UI** — Build pages with reusable, themeable content blocks from `@clarify-labs/renderer`.
 - **Monorepo Architecture** — Clean separation between core libraries, plugins, and applications.
 
 ## 🏗 Monorepo Structure
@@ -63,10 +63,10 @@ pnpm typecheck
 
 | Package | Version | Description |
 |---------|---------|-------------|
-| `@clarify/docs` | 0.1.0 | Documentation playground app |
-| `@clarify/www` | 0.1.0 | Marketing website app |
-| `@clarify/renderer` | 0.1.0 | Shared React rendering primitives |
-| `@clarify/cli` | 0.1.0 | User-facing Clarify CLI and docs engine |
+| `@clarify-labs/docs` | 0.1.0 | Documentation playground app |
+| `@clarify-labs/www` | 0.1.0 | Marketing website app |
+| `@clarify-labs/renderer` | 0.1.0 | Shared React rendering primitives |
+| `@clarify-labs/cli` | 0.1.0 | User-facing Clarify CLI and docs engine |
 
 ## 🤝 Contributing
 

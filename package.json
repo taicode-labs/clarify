@@ -6,8 +6,8 @@
   "description": "An open-source documentation publishing tool built for MDX and OpenAPI.",
   "scripts": {
     "dev": "turbo run dev",
-    "dev:docs": "turbo run dev --filter=@clarify/docs",
-    "dev:www": "turbo run dev --filter=@clarify/www",
+    "dev:docs": "turbo run dev --filter=@clarify-labs/docs",
+    "dev:www": "turbo run dev --filter=@clarify-labs/www",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",

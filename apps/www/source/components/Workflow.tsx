@@ -31,7 +31,7 @@ export function Workflow() {
               <span className="font-mono text-xs text-zinc-500">{t('workflow.terminal')}</span>
               <span className="rounded-full bg-emerald-400/10 px-2 py-1 font-mono text-[0.65rem] text-emerald-300">{t('workflow.ready')}</span>
             </div>
-            <pre className="font-mono text-sm leading-7 text-zinc-300"><code>{`pnpm add @clarify/cli
+            <pre className="font-mono text-sm leading-7 text-zinc-300"><code>{`pnpm add @clarify-labs/cli
 clarify dev
 
   Local:   http://localhost:5173

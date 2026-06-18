@@ -13,8 +13,8 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "paths": {
-      "@clarify/renderer": ["../../packages/renderer/source/index.tsx"],
-      "@clarify/renderer/*": ["../../packages/renderer/source/*"]
+      "@clarify-labs/renderer": ["../../packages/renderer/source/index.tsx"],
+      "@clarify-labs/renderer/*": ["../../packages/renderer/source/*"]
     }
   },
   "include": ["source"],

@@ -96,14 +96,14 @@ export default tseslint.config(
       'no-var': 'error',
       'semi': ['error', 'never'],
 
-      // import 排序：内置库 → 第三方库 → 内部依赖（@clarify/*） → 相对路径
+      // import 排序：内置库 → 第三方库 → 内部依赖（@clarify-labs/*） → 相对路径
       'import-x/order': [
         'error',
         {
           groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
           pathGroups: [
             {
-              pattern: '@clarify/**',
+              pattern: '@clarify-labs/**',
               group: 'internal',
               position: 'before',
             },

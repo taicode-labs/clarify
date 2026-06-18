@@ -18,7 +18,7 @@ const external = [
   ...Object.keys(pkg.peerDependencies ?? {}).map(name => new RegExp(`^${name}/`)),
 ]
 
-// Build @clarify/renderer as a library with two entries:
+// Build @clarify-labs/renderer as a library with two entries:
 //   - source/index.tsx   → output/index.{js,cjs}   (public/client API)
 //   - source/server.tsx  → output/server.{js,cjs}  (SSR compatibility entry)
 //

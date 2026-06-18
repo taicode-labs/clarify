@@ -1,5 +1,5 @@
 {
-  "name": "@clarify/docs",
+  "name": "@clarify-labs/docs",
   "version": "0.1.0",
   "private": true,
   "license": "AGPL-3.0-only",
@@ -12,8 +12,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@clarify/cli": "workspace:*",
-    "@clarify/renderer": "workspace:*",
+    "@clarify-labs/cli": "workspace:*",
+    "@clarify-labs/renderer": "workspace:*",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.0.0"

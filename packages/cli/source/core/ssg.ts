@@ -56,7 +56,7 @@ export function injectSSRIntoTemplate(template: string, appHtml: string, project
   return html
 }
 
-export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify/renderer/server';
+export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify-labs/renderer/server';
 import { routes, navigation } from 'virtual:clarify-routes';
 import { config } from 'virtual:clarify-config';
 import { openApis } from 'virtual:clarify-openapi-registry';
@@ -88,8 +88,8 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
           'react-dom',
           'react-dom/server',
           'react-router-dom',
-          '@clarify/renderer',
-          '@clarify/renderer/server',
+          '@clarify-labs/renderer',
+          '@clarify-labs/renderer/server',
         ],
       },
     },

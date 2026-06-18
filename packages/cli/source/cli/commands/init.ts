@@ -27,7 +27,7 @@ function updatePackageJson(root: string, force: boolean): boolean {
   const devDependencies = typeof packageJson.devDependencies === 'object' && packageJson.devDependencies !== null
     ? packageJson.devDependencies as Record<string, string>
     : {}
-  if (!devDependencies['@clarify/cli']) devDependencies['@clarify/cli'] = '^0.1.0'
+  if (!devDependencies['@clarify-labs/cli']) devDependencies['@clarify-labs/cli'] = '^0.1.0'
   packageJson.devDependencies = devDependencies
 
   writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, 'utf-8')
@@ -38,7 +38,7 @@ export function runInit(options: ResolvedCliOptions, force: boolean): void {
   const created: string[] = []
   const skipped: string[] = []
 
-  const clarifyConfigCreated = writeTextFile(resolve(options.root, 'clarify.ts'), `import { defineConfig } from '@clarify/cli'
+  const clarifyConfigCreated = writeTextFile(resolve(options.root, 'clarify.ts'), `import { defineConfig } from '@clarify-labs/cli'
 
 export default defineConfig({
   title: 'Clarify Docs',

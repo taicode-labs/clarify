@@ -31,7 +31,7 @@ Clarify 的插件机制用于在构建期接入团队自己的能力，例如内
 插件是一个带 `name` 和 `hooks` 的对象：
 
 ```ts
-import { defineConfig, type ClarifyPlugin } from '@clarify/cli'
+import { defineConfig, type ClarifyPlugin } from '@clarify-labs/cli'
 
 const auditPlugin: ClarifyPlugin = {
   name: 'docs-audit',
@@ -90,7 +90,7 @@ type ClarifyHookContext = {
 可以在 `routes:resolved` 阶段过滤不希望发布的页面：
 
 ```ts
-import { defineConfig, type ClarifyPlugin } from '@clarify/cli'
+import { defineConfig, type ClarifyPlugin } from '@clarify-labs/cli'
 
 const hideDraftRoutes: ClarifyPlugin = {
   name: 'hide-draft-routes',
@@ -124,7 +124,7 @@ export default defineConfig({
 ```ts
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { defineConfig, type ClarifyPlugin } from '@clarify/cli'
+import { defineConfig, type ClarifyPlugin } from '@clarify-labs/cli'
 
 const buildManifestPlugin: ClarifyPlugin = {
   name: 'build-manifest',

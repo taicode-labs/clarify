@@ -1,5 +1,5 @@
 {
-  "name": "@clarify/cli",
+  "name": "@clarify-labs/cli",
   "version": "0.1.0",
   "license": "AGPL-3.0-only",
   "type": "module",
@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
-    "@clarify/renderer": "workspace:*",
+    "@clarify-labs/renderer": "workspace:*",
     "@mdx-js/rollup": "^3.1.1",
     "@tailwindcss/vite": "^4.1.11",
     "@vitejs/plugin-react": "^6.0.2",

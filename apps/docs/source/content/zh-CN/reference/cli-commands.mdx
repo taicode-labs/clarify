@@ -1,13 +1,13 @@
 # CLI 命令参考
 
-`@clarify/cli` 提供 `clarify` 命令，封装开发服务器、静态构建和项目初始化。用户不需要创建 Vite 配置文件。
+`@clarify-labs/cli` 提供 `clarify` 命令，封装开发服务器、静态构建和项目初始化。用户不需要创建 Vite 配置文件。
 
 ---
 
 ## 安装
 
 ```bash
-pnpm add -D @clarify/cli
+pnpm add -D @clarify-labs/cli
 ```
 
 也可以直接使用项目脚本：
@@ -102,7 +102,7 @@ pnpm exec clarify build --output dist
 推荐使用 `clarify.ts` 作为唯一项目配置入口。它既可以配置站点展示字段，也可以配置构建期扩展能力：
 
 ```ts
-import { defineConfig } from '@clarify/cli'
+import { defineConfig } from '@clarify-labs/cli'
 
 export default defineConfig({
   title: 'Clarify Docs',

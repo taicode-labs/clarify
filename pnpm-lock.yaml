@@ -44,10 +44,10 @@ importers:
 
   apps/docs:
     dependencies:
-      '@clarify/cli':
+      '@clarify-labs/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@clarify/renderer':
+      '@clarify-labs/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
       react:
@@ -115,7 +115,7 @@ importers:
       '@apidevtools/swagger-parser':
         specifier: ^12.1.0
         version: 12.1.0(openapi-types@12.1.3)
-      '@clarify/renderer':
+      '@clarify-labs/renderer':
         specifier: workspace:*
         version: link:../renderer
       '@mdx-js/rollup':

@@ -133,7 +133,7 @@ source/content/services/billing.openapi.yaml
 在大多数文档页面中，推荐使用 `specPath`。如果你正在开发自定义组件，也可以手动导入规范对象并使用 `ApiEndpoint`：
 
 ```mdx
-import { ApiEndpoint } from '@clarify/renderer'
+import { ApiEndpoint } from '@clarify-labs/renderer'
 import spec from '../api.openapi.json'
 
 <ApiEndpoint spec={spec} path="/pages" method="get" />

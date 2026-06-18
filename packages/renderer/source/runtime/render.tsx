@@ -11,7 +11,7 @@ import type { RenderOptions } from '../types'
  * Clarify 客户端 Hydration 入口。
  * 在文档项目的 main.tsx 中调用：
  * ```ts
- * import { render } from '@clarify/renderer';
+ * import { render } from '@clarify-labs/renderer';
  * import { routes } from 'virtual:clarify-routes';
  * import { config } from 'virtual:clarify-config';
  * render({ config, routes });

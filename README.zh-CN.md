@@ -19,7 +19,7 @@
 - **原生 MDX 支持** — 使用 Markdown 编写文档，并在任意位置嵌入交互式 React 组件。
 - **OpenAPI 集成** — 从 OpenAPI 规范自动生成美观的 API 参考页面。
 - **Vite 驱动** — 开箱即用的快速开发服务器与优化的生产构建。
-- **可组合 UI** — 通过 `@clarify/renderer` 提供的可复用、可主题化的内容块构建页面。
+- **可组合 UI** — 通过 `@clarify-labs/renderer` 提供的可复用、可主题化的内容块构建页面。
 - **Monorepo 架构** — 核心库、插件与应用之间的清晰分离。
 
 ## 🏗 仓库结构
@@ -63,10 +63,10 @@ pnpm typecheck
 
 | 包 | 版本 | 说明 |
 |---------|---------|-------------|
-| `@clarify/docs` | 0.1.0 | 文档 playground 应用 |
-| `@clarify/www` | 0.1.0 | 营销网站应用 |
-| `@clarify/renderer` | 0.1.0 | 共享 React 渲染基础组件 |
-| `@clarify/cli` | 0.1.0 | 面向用户的 Clarify CLI 与文档引擎 |
+| `@clarify-labs/docs` | 0.1.0 | 文档 playground 应用 |
+| `@clarify-labs/www` | 0.1.0 | 营销网站应用 |
+| `@clarify-labs/renderer` | 0.1.0 | 共享 React 渲染基础组件 |
+| `@clarify-labs/cli` | 0.1.0 | 面向用户的 Clarify CLI 与文档引擎 |
 
 ## 🤝 贡献
 

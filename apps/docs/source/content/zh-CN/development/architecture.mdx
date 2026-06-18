@@ -23,10 +23,10 @@ Clarify 采用 Monorepo 结构组织，包含应用和包两个层级。
 
 - **用途**：作为主要开发环境和 Clarify 引擎的实时示例
 - **关键特性**：
-  - 消费 `@clarify/renderer` 获取 UI 组件
-  - 通过 `@clarify/cli` 进行 MDX/OpenAPI 编译、路由、开发服务器和静态构建
+  - 消费 `@clarify-labs/renderer` 获取 UI 组件
+  - 通过 `@clarify-labs/cli` 进行 MDX/OpenAPI 编译、路由、开发服务器和静态构建
   - 为 CLI 和渲染器变更提供真实的测试环境
-- **依赖**：`@clarify/renderer` (workspace), `@clarify/cli` (workspace)
+- **依赖**：`@clarify-labs/renderer` (workspace), `@clarify-labs/cli` (workspace)
 - **构建输出**：作为官方文档部署的静态站点
 
 ### `apps/www` — 营销站点
@@ -55,12 +55,12 @@ Clarify 采用 Monorepo 结构组织，包含应用和包两个层级。
 - **关键职责**：
   - **命令封装**：提供 `clarify dev`、`clarify build`、`clarify init`
   - **MDX 编译**：集成 `@mdx-js/rollup` 将 `.md` / `.mdx` 文件编译为 React 组件
-  - **OpenAPI 摄取**：读取 `*.openapi.yaml/json`，使用 `@clarify/renderer` 组件生成类型安全的 API 参考页面
+  - **OpenAPI 摄取**：读取 `*.openapi.yaml/json`，使用 `@clarify-labs/renderer` 组件生成类型安全的 API 参考页面
   - **路由生成**：自动从文件系统生成路由清单（例如 `docs/getting-started.mdx` → `/getting-started`）
   - **开发服务器**：为内容和 API 规范变更提供热更新
   - **构建集成**：发出适合部署的静态预渲染站点
 - **配置**：用户主要通过 `clarify.json` 和 CLI 参数自定义站点
-- **分发**：发布为 `@clarify/cli`，暴露 `clarify` bin
+- **分发**：发布为 `@clarify-labs/cli`，暴露 `clarify` bin
 
 ---
 
@@ -76,7 +76,7 @@ graph TD
 ```
 
 1. **作者**在 `source/content/` 中编写 MDX/Markdown 文档和 OpenAPI 规范
-2. **`@clarify/cli`**扫描内容目录，编译 MDX，摄取 OpenAPI，并生成路由
+2. **`@clarify-labs/cli`**扫描内容目录，编译 MDX，摄取 OpenAPI，并生成路由
 3. **`renderer`**组件被编译后的 MDX 和 CLI 生成的页面导入以渲染 UI
 4. **CLI 内部构建管线**将所有内容打包为静态站点
 
@@ -111,7 +111,7 @@ graph TD
 
 ### 开发（无需预构建）
 
-文档站点通过 `@clarify/cli` 启动，普通用户无需维护构建工具配置。你可以运行：
+文档站点通过 `@clarify-labs/cli` 启动，普通用户无需维护构建工具配置。你可以运行：
 
 ```bash
 pnpm dev:docs   # 启动文档游乐场

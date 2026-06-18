@@ -10,7 +10,7 @@ const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')
   peerDependencies?: Record<string, string>
 }
 
-// Build @clarify/cli as a Node.js library and executable.
+// Build @clarify-labs/cli as a Node.js library and executable.
 //
 // The package exposes a user-facing `clarify` binary while keeping the internal
 // Vite-powered engine available for advanced integrations and tests.

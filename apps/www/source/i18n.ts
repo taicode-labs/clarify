@@ -117,7 +117,7 @@ const resources = {
       renderer: {
         eyebrow: '渲染器',
         title: '设计上贴合你的文档运行时。',
-        description: '官网沿用 @clarify/renderer 的视觉语言：锌色表面、翠绿色强调、柔和边框、代码优先预览和面向文档的间距。',
+        description: '官网沿用 @clarify-labs/renderer 的视觉语言：锌色表面、翠绿色强调、柔和边框、代码优先预览和面向文档的间距。',
         note: '说明',
         noteDescription: '使用共享组件，让内容在文档中保持原生体验。',
         navigation: '导航',
@@ -365,7 +365,7 @@ const resources = {
       renderer: {
         eyebrow: 'Renderer',
         title: 'Designed to match your documentation runtime.',
-        description: 'The marketing page follows the same visual language as @clarify/renderer: zinc surfaces, emerald accents, soft borders, code-first previews, and docs-oriented spacing.',
+        description: 'The marketing page follows the same visual language as @clarify-labs/renderer: zinc surfaces, emerald accents, soft borders, code-first previews, and docs-oriented spacing.',
         note: 'Note',
         noteDescription: 'Use shared primitives for content that feels native inside your docs.',
         navigation: 'Navigation',
