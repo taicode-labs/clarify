@@ -200,6 +200,11 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
           tags: [
             {
               tag: 'script',
+              children: `(function(){try{var e=localStorage.getItem('clarify:theme');var t=e==='dark'||e==='light'||e==='system'?e:'system';var r=t==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches:t==='dark';document.documentElement.classList.toggle('dark',r);document.documentElement.style.colorScheme=r?'dark':'light'}catch(e){}})();`,
+              injectTo: 'head-prepend',
+            },
+            {
+              tag: 'script',
               attrs: { type: 'module', src },
               injectTo: 'body',
             },

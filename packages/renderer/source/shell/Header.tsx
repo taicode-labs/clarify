@@ -4,17 +4,12 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { forwardRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
-import { Logo, ThemeToggle } from '../components'
-import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, ClarifyLogoConfig, NavigationNode, RouteItem } from '../types'
+import { ThemeToggle } from '../components'
+import { SiteLogo } from '../components/SiteLogo'
+import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, NavigationNode, RouteItem } from '../types'
 
 import { MobileNavigation, useIsInsideMobileNavigation, useMobileNavigationStore } from './mobile'
 import { MobileSearch, Search } from './Search'
-
-function resolveLogoUrl(logo?: ClarifyLogoConfig): string | undefined {
-  if (typeof logo === 'string') return logo
-  if (logo && typeof logo === 'object') return logo.light ?? logo.dark
-  return undefined
-}
 
 function resolveLocalizedText(text: ClarifyLocalizedText, locale?: string, fallbackLocale?: string): string {
   if (typeof text === 'string') return text
@@ -147,7 +142,6 @@ export const Header = forwardRef<
 
   const { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
-  const logoUrl = resolveLogoUrl(config.logo)
 
   const { scrollY } = useScroll()
   const bgOpacityLight = useTransform(scrollY, [0, 72], ['50%', '90%'])
@@ -181,10 +175,12 @@ export const Header = forwardRef<
       <div className="hidden lg:block" />
       <div className="flex items-center gap-5 lg:hidden">
         <MobileNavigation config={config} navigation={navigation} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
-        <CloseButton as={Link} to={localizeHref('/', config, currentLocale)} aria-label="Home" className="flex items-center gap-2 no-underline">
-          {logoUrl ? <img src={logoUrl} alt="" className="h-6 w-6" /> : <Logo className="h-6" />}
-          <span className="sr-only">{config.title}</span>
-        </CloseButton>
+        {config.logo ? (
+          <CloseButton as={Link} to={localizeHref('/', config, currentLocale)} aria-label="Home" className="flex items-center gap-2 no-underline">
+            <SiteLogo logo={config.logo} className="h-6 w-6" />
+            <span className="sr-only">{config.title}</span>
+          </CloseButton>
+        ) : null}
       </div>
       <div className="flex items-center gap-5">
         <Search routes={routes} navigation={navigation} />

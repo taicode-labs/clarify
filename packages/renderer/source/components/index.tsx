@@ -10,6 +10,7 @@ import { useSectionStore } from './SectionProvider'
 export { Code, CodeGroup, Pre } from './Code'
 export { Feedback } from './Feedback'
 export { GridPattern, HeroPattern } from './patterns'
+export { SiteLogo } from './SiteLogo'
 export { ThemeProvider, useTheme } from './ThemeProvider'
 export { ThemeToggle } from './ThemeToggle'
 

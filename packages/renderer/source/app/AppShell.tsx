@@ -2,8 +2,8 @@ import { motion } from 'framer-motion'
 import { useEffect } from 'react'
 import { Link, Routes, Route, useLocation } from 'react-router-dom'
 
-import { Logo } from '../components'
 import { SectionProvider, type Section } from '../components/SectionProvider'
+import { SiteLogo } from '../components/SiteLogo'
 import { ContentActions, Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTree } from '../types'
 
@@ -86,7 +86,7 @@ export function AppShell(arg0: AppShellProps) {
           <div className="contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-zinc-900/10 lg:bg-white lg:px-6 lg:pt-4 lg:pb-8 xl:w-80 lg:dark:border-white/10 lg:dark:bg-zinc-950">
             <div className="hidden lg:flex">
               <Link to={homePathForLocale(config, currentLocale)} aria-label="Home" className="flex items-center gap-2 no-underline">
-                <Logo className="h-6" />
+                <SiteLogo logo={config.logo} className="h-6 w-6" />
                 <span className="text-sm font-semibold text-zinc-900 dark:text-white">{config.title}</span>
               </Link>
             </div>
