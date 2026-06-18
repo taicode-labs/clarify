@@ -45,10 +45,27 @@ function localeForPath(config: ClarifyConfig, pathname: string, route?: RouteIte
   return i18n.locales.find((locale) => locale.code === firstSegment)?.code ?? i18n.defaultLocale
 }
 
-function navigationForLocale(navigation: NavigationTree, locale?: string): NavigationNode[] {
+function isTabbedNavigation(navigation: NavigationTree): navigation is Extract<NavigationTree, { tabs: unknown }> {
+  return !Array.isArray(navigation) && 'tabs' in navigation
+}
+
+function hasPath(nodes: NavigationNode[], pathname: string): boolean {
+  return nodes.some((node) => node.path === pathname || hasPath(node.children ?? [], pathname))
+}
+
+function navigationFromTabs(navigation: Extract<NavigationTree, { tabs: unknown }>, pathname: string): NavigationNode[] {
+  const currentTab = navigation.tabs.find((tab) => tab.path === pathname || hasPath(tab.children, pathname))
+  return currentTab?.children ?? navigation.tabs[0]?.children ?? []
+}
+
+function navigationForLocale(navigation: NavigationTree, locale: string | undefined, pathname: string): NavigationNode[] {
   if (Array.isArray(navigation)) return navigation
+  if (isTabbedNavigation(navigation)) return navigationFromTabs(navigation, pathname)
   if (!locale) return []
-  return navigation[locale] ?? []
+
+  const localizedNavigation = navigation[locale]
+  if (!localizedNavigation) return []
+  return Array.isArray(localizedNavigation) ? localizedNavigation : navigationFromTabs(localizedNavigation, pathname)
 }
 
 function homePathForLocale(config: ClarifyConfig, locale?: string): string {
@@ -62,7 +79,7 @@ export function AppShell(arg0: AppShellProps) {
   const currentRoute = routeForPath(routes, location.pathname)
   const currentLocale = localeForPath(config, location.pathname, currentRoute)
   const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
-  const currentNavigation = navigationForLocale(navigation, currentLocale)
+  const currentNavigation = navigationForLocale(navigation, currentLocale, location.pathname)
   const sections = sectionsForRoute(currentRoute)
 
   useEffect(() => {

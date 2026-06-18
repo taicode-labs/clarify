@@ -64,7 +64,13 @@ export default defineConfig({
       { code: 'en-US', label: 'English', dir: 'ltr' },
     ],
   },
-  pages: 'FileTree',
+  tabs: [
+    {
+      tab: { 'zh-CN': '文档', 'en-US': 'Docs' },
+      icon: 'BookOpen',
+      pages: 'FileTree',
+    },
+  ],
   ssg: {
     failOnError: true,
   },
@@ -88,7 +94,7 @@ export default defineConfig({
 | `banner` | `ClarifyBannerConfig` | — | 顶部公告配置，供主题或后续 UI 使用 |
 | `footer` | `ClarifyFooterConfig` | — | 页脚配置，供主题或后续 UI 使用 |
 | `i18n` | `ClarifyI18nConfig` | — | 多语言配置 |
-| `pages` | `ClarifyPagesConfig` | `"FileTree"` | 侧边栏导航结构 |
+| `tabs` | `ClarifyTabsConfig` | 按文件树自动生成 | 站点业务分类和各分类下的侧边栏结构 |
 | `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | 静态生成错误策略 |
 | `plugins` | `ClarifyPlugin[]` | `[]` | 构建期插件列表，仅 `clarify.ts/js` 可用 |
 
@@ -240,48 +246,84 @@ type ClarifyI18nConfig = {
 
 ---
 
-## `pages` 侧边栏导航
+## `tabs` 导航与侧边栏
+
+Clarify 使用根级 `tabs` 做站点的一层业务分类。每个 tab 可以配置自己的侧边栏 `pages`；根级不再支持 `pages`。
 
 ```ts
+type ClarifyTabsConfig = ClarifyTabItem[]
+
+type ClarifyTabItem = {
+  tab: ClarifyLocalizedText
+  icon?: string
+  pages?: ClarifyPagesConfig
+}
+
 type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree'
 ```
 
-### 自动生成
+如果省略 `tabs`，Clarify 会根据内容目录的文件结构自动生成一个普通侧边栏，包含 `.mdx` 和 `.openapi.json/.yaml/.yml` 文件。
+
+### 单个 tab 使用文件树
 
 ```ts
 export default defineConfig({
-  pages: 'FileTree',
+  tabs: [
+    {
+      tab: '文档',
+      icon: 'BookOpen',
+      pages: 'FileTree',
+    },
+  ],
 })
 ```
 
-Clarify 会根据内容目录的文件结构自动生成侧边栏，包含 `.mdx` 和 `.openapi.json/.yaml/.yml` 文件。
-
-### 手动配置
+### 多个 tab 手动配置侧边栏
 
 ```ts
 export default defineConfig({
-  pages: [
+  tabs: [
     {
-      group: { 'zh-CN': '开始使用', 'en-US': 'Get Started' },
+      tab: { 'zh-CN': '指南', 'en-US': 'Guides' },
       icon: 'Rocket',
       pages: [
-        { page: 'getting-started/installation', icon: 'Download' },
         {
-          page: 'getting-started/first-site',
-          title: { 'zh-CN': '创建第一个站点', 'en-US': 'Create Your First Site' },
-          icon: 'Sparkles',
+          group: { 'zh-CN': '开始使用', 'en-US': 'Get Started' },
+          icon: 'Rocket',
+          pages: [
+            { page: 'getting-started/installation', icon: 'Download' },
+            {
+              page: 'getting-started/first-site',
+              title: { 'zh-CN': '创建第一个站点', 'en-US': 'Create Your First Site' },
+              icon: 'Sparkles',
+            },
+          ],
         },
       ],
     },
     {
-      group: 'API 文档',
+      tab: 'API',
+      icon: 'BookOpenCheck',
       pages: [
-        { openapi: 'api.openapi.json', title: 'API Reference', icon: 'BookOpenCheck' },
+        {
+          group: 'API 文档',
+          pages: [
+            { openapi: 'api.openapi.json', title: 'API Reference', icon: 'BookOpenCheck' },
+          ],
+        },
       ],
     },
   ],
 })
 ```
+
+### `ClarifyTabItem`
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `tab` | `ClarifyLocalizedText` | 是 | tab 显示名称 |
+| `icon` | `string` | 否 | Lucide 图标名 |
+| `pages` | `ClarifyPagesConfig` | 否 | 当前 tab 下的侧边栏结构；省略时按文件树生成 |
 
 ### `ClarifyPagesGroup`
 

@@ -13,7 +13,9 @@ describe('clarifyProjectConfigSchema', () => {
         defaultLocale: 'zh-CN',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
       },
-      pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }],
+      tabs: [
+        { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+      ],
     })).toEqual({
       title: 'Docs',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
@@ -21,7 +23,9 @@ describe('clarifyProjectConfigSchema', () => {
         defaultLocale: 'zh-CN',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
       },
-      pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }],
+      tabs: [
+        { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+      ],
     })
   })
 
@@ -60,7 +64,7 @@ describe('resolveProjectConfig', () => {
       banner: undefined,
       footer: undefined,
       i18n: undefined,
-      pages: undefined,
+      tabs: undefined,
     })
   })
 
@@ -80,9 +84,8 @@ describe('resolveProjectConfig', () => {
           { code: 'en-US', label: 'English' },
         ],
       },
-      pages: [
-        { group: 'Getting Started', pages: ['index', 'quickstart'] },
-        { group: 'Advanced', pages: ['advanced/ssg'] },
+      tabs: [
+        { tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] },
       ],
     }
     const result = resolveProjectConfig(config)
@@ -101,9 +104,8 @@ describe('resolveProjectConfig', () => {
         { code: 'en-US', label: 'English' },
       ],
     })
-    expect(result.pages).toEqual([
-      { group: 'Getting Started', pages: ['index', 'quickstart'] },
-      { group: 'Advanced', pages: ['advanced/ssg'] },
+    expect(result.tabs).toEqual([
+      { tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] },
     ])
   })
 })

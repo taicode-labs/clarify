@@ -56,6 +56,6 @@ export function resolveProjectConfig(config: ClarifyProjectConfig = {}): Resolve
     banner: config.banner,
     footer: config.footer,
     i18n: resolveI18nConfig(config.i18n),
-    pages: config.pages,
+    tabs: config.tabs,
   }
 }

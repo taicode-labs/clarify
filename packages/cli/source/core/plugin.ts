@@ -7,7 +7,7 @@ import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { rehypePlugins, remarkPlugins } from '../parsers/mdx.js'
-import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef } from '../parsers/routes.js'
+import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef } from '../parsers/routes.js'
 import { createContentArtifactsPlugin } from '../plugins/content-artifacts/index.js'
 import { createHtmlShellPlugin } from '../plugins/html-shell/index.js'
 import { createOpenAPIPlugin } from '../plugins/openapi/index.js'
@@ -134,11 +134,11 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     routes = await discoverRoutes()
     routes = await runHooks(clarifyPlugins, 'routes:discovered', routes, ctx)
 
-    const defaultNavigation = projectConfig.i18n
-      ? (buildLocalizedNavigation(routes, projectConfig.pages, projectConfig.i18n) ?? {})
-      : projectConfig.pages && projectConfig.pages !== 'FileTree'
-        ? buildNavigationFromConfig(routes, projectConfig.pages)
-        : buildNavigation(routes)
+    const defaultNavigation = projectConfig.tabs
+      ? projectConfig.i18n
+        ? (buildLocalizedNavigationFromTabsConfig(routes, projectConfig.tabs, projectConfig.i18n) ?? {})
+        : buildNavigationFromTabsConfig(routes, projectConfig.tabs)
+      : buildNavigation(routes)
     const resolved = await runHooks(clarifyPlugins, 'routes:resolved', { routes, navigation: defaultNavigation }, ctx)
     routes = resolved.routes
     resolvedNavigation = resolved.navigation

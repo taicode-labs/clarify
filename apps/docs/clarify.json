@@ -77,10 +77,17 @@
       "GitHub": "https://github.com/taicode-labs/clarify"
     }
   },
-  "pages": [
+  "tabs": [
     {
-      "group": {
-        "zh-CN": "概览",
+      "tab": {
+        "zh-CN": "文档",
+        "en-US": "Docs"
+      },
+      "icon": "BookOpen",
+      "pages": [
+        {
+          "group": {
+            "zh-CN": "概览",
         "en-US": "Overview"
       },
       "icon": "Compass",
@@ -461,6 +468,8 @@
           "icon": "GitPullRequestArrow"
         }
       ]
+    }
+  ]
     }
   ]
 }

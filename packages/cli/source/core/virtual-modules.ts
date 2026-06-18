@@ -1,6 +1,6 @@
-import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig } from '../parsers/routes.js'
+import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../parsers/routes.js'
 import { openApiRegistryModuleId } from '../plugins/openapi/virtual-modules.js'
-import type { ClarifyPagesConfig, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
+import type { ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
@@ -22,7 +22,7 @@ export function generateConfigModule(projectConfig: ResolvedProjectConfig, build
   return `export const config = ${JSON.stringify({ ...projectConfig, ...buildOptions })};`
 }
 
-export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: ClarifyPagesConfig, resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig,): string {
+export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig): string {
   const imports = routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
   const routesArray = routes.map((r, i) => {
     const sections = r.sections && r.sections.length > 0
@@ -36,11 +36,11 @@ export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: Clari
     return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${basePath}${locale}${isFallback}${alternates}${sections}${contentArtifactUrl} }`
   }).join(',\n')
 
-  const navigation = resolvedNavigation ?? (projectConfig?.i18n
-    ? (buildLocalizedNavigation(routes, pagesConfig, projectConfig.i18n) ?? {})
-    : pagesConfig && pagesConfig !== 'FileTree'
-      ? buildNavigationFromConfig(routes, pagesConfig)
-      : buildNavigation(routes))
+  const navigation = resolvedNavigation ?? (projectConfig?.tabs
+    ? projectConfig.i18n
+      ? (buildLocalizedNavigationFromTabsConfig(routes, projectConfig.tabs, projectConfig.i18n) ?? {})
+      : buildNavigationFromTabsConfig(routes, projectConfig.tabs)
+    : buildNavigation(routes))
 
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
@@ -63,7 +63,7 @@ export function buildVirtualModules(args: {
 }): VirtualModules {
   const modules: VirtualModules = new Map()
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
-  modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.projectConfig.pages, args.navigation, args.projectConfig))
+  modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig))
   modules.set(VIRTUAL_OPENAPI_REGISTRY, 'export const openApis = {};')
   modules.set(VIRTUAL_CLIENT_ENTRY, createClientEntryModule())
   modules.set(RESOLVED_CLIENT_ENTRY, createClientEntryModule())

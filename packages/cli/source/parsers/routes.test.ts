@@ -5,10 +5,10 @@ import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
-import type { ResolvedProjectConfig, ResolvedBuildOptions, ContentRoute, ClarifyPagesConfig, ClarifyPagesGroup, ResolvedClarifyI18nConfig } from '../types.js'
+import type { ResolvedProjectConfig, ResolvedBuildOptions, ContentRoute, ClarifyPagesGroup, ResolvedClarifyI18nConfig } from '../types.js'
 
 import { extractFrontmatter } from './frontmatter.js'
-import { findContentRoutes, buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, findLocalizedContentRoutes } from './routes.js'
+import { findContentRoutes, buildLocalizedNavigation, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromConfig, buildNavigationFromTabsConfig, findLocalizedContentRoutes } from './routes.js'
 
 function mdxRoute(route: Omit<ContentRoute, 'kind'>): ContentRoute {
   return { ...route, kind: 'mdx' }
@@ -314,6 +314,51 @@ describe('buildLocalizedNavigation', () => {
   })
 })
 
+describe('buildNavigationFromTabsConfig', () => {
+  const i18n: ResolvedClarifyI18nConfig = {
+    defaultLocale: 'zh-CN',
+    missing: 'fallback',
+    locales: [
+      { code: 'zh-CN', label: '简体中文' },
+      { code: 'en-US', label: 'English' },
+    ],
+  }
+
+  it('builds tabbed navigation from per-tab pages config', () => {
+    const routes: ContentRoute[] = [
+      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/api', title: 'API', filePath: 'api.mdx', virtualModuleId: 'v' }),
+    ]
+
+    const navigation = buildNavigationFromTabsConfig(routes, [
+      { tab: 'Docs', icon: 'BookOpen', pages: [{ group: 'Guide', pages: ['guide'] }] },
+      { tab: 'API', pages: [{ group: 'Reference', pages: ['api'] }] },
+    ])
+
+    expect(navigation.tabs).toHaveLength(2)
+    expect(navigation.tabs[0]).toMatchObject({ type: 'tab', path: '/guide', title: 'Docs', icon: 'BookOpen' })
+    expect(navigation.tabs[0].children[0].children?.[0].path).toBe('/guide')
+    expect(navigation.tabs[1]).toMatchObject({ type: 'tab', path: '/api', title: 'API' })
+  })
+
+  it('builds localized tabbed navigation', () => {
+    const routes: ContentRoute[] = [
+      mdxRoute({ path: '/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
+    ]
+
+    const navigation = buildLocalizedNavigationFromTabsConfig(routes, [
+      { tab: { 'zh-CN': '文档', 'en-US': 'Docs' }, pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['guide'] }] },
+    ], i18n)
+
+    expect(navigation?.['zh-CN'].tabs[0].title).toBe('文档')
+    expect(navigation?.['zh-CN'].tabs[0].path).toBe('/guide')
+    expect(navigation?.['en-US'].tabs[0].title).toBe('Docs')
+    expect(navigation?.['en-US'].tabs[0].path).toBe('/en-US/guide')
+  })
+})
+
 describe('buildNavigationFromConfig', () => {
   it('builds navigation from explicit config', () => {
     const routes: ContentRoute[] = [
@@ -347,28 +392,35 @@ describe('buildNavigationFromConfig', () => {
   })
 })
 
-describe('generateRoutesModule with navigation config', () => {
-  it('uses manual navigation when config is provided', () => {
+describe('generateRoutesModule with tabs config', () => {
+  it('uses tabbed navigation when tabs are provided', () => {
     const routes: ContentRoute[] = [
       mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/about', title: 'About', filePath: 'about.mdx', virtualModuleId: 'v' }),
     ]
-    const pagesConfig: ClarifyPagesConfig = [
-      { group: 'Docs', pages: ['index', 'about'] },
-    ]
-    const code = generateRoutesModule(routes, pagesConfig)
+    const projectConfig: ResolvedProjectConfig = {
+      title: 'Docs',
+      description: '',
+      routePrefix: '/',
+      theme: {},
+      tabs: [
+        { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
+      ],
+    }
+    const code = generateRoutesModule(routes, undefined, projectConfig)
+    expect(code).toContain('"tabs"')
     expect(code).toContain('"title": "Docs"')
     expect(code).toContain('"/"')
     expect(code).toContain('"/about"')
   })
 
-  it('uses auto navigation when pages is "FileTree"', () => {
+  it('uses auto navigation when tabs are omitted', () => {
     const routes: ContentRoute[] = [
       mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' }),
     ]
-    const code = generateRoutesModule(routes, 'FileTree')
+    const code = generateRoutesModule(routes)
     expect(code).toContain('"title": "Guide"')
-    expect(code).not.toContain('"title": "Docs"')
+    expect(code).not.toContain('"tabs"')
   })
 })

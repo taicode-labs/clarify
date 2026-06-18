@@ -85,6 +85,16 @@ export type ClarifyPagesGroup = {
 /** Use the string "FileTree" to auto-generate pages from the file system. */
 export type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree'
 
+export type ClarifyTabItem = {
+  tab: ClarifyLocalizedText
+  /** Icon name from lucide-react, e.g. "BookOpen". */
+  icon?: string
+  /** Sidebar pages within this tab. Defaults to "FileTree". */
+  pages?: ClarifyPagesConfig
+}
+
+export type ClarifyTabsConfig = ClarifyTabItem[]
+
 export type ClarifyProjectConfig = {
   /** Site title. Used in Header and SEO meta tags. */
   title?: string
@@ -120,11 +130,8 @@ export type ClarifyProjectConfig = {
   /** Native multi-language support. Locale content lives under rootDirectory/{locale}. */
   i18n?: ClarifyI18nConfig
 
-  /** Sidebar pages. Array of groups with ordered page references, or "FileTree" for auto-generation.
-   *  If omitted, pages are auto-generated from the file system (same as "FileTree").
-   *  Page references are locale-independent paths without .mdx extension, e.g. "index", "advanced/ssg".
-   */
-  pages?: ClarifyPagesConfig
+  /** Top-level documentation tabs. Each tab owns its own sidebar pages. */
+  tabs?: ClarifyTabsConfig
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -142,7 +149,7 @@ export type ResolvedProjectConfig = {
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig
   i18n?: ResolvedClarifyI18nConfig
-  pages?: ClarifyPagesConfig
+  tabs?: ClarifyTabsConfig
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -182,9 +189,21 @@ export type ContentRoute = {
   contentArtifactUrl?: string
 }
 
+export type ClarifyNavigationTab = {
+  type: 'tab'
+  path: string
+  title: string
+  icon?: string
+  children: ClarifyNavigationNode[]
+}
+
+export type TabbedNavigation = { tabs: ClarifyNavigationTab[] }
+
 export type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
 
-export type NavigationTree = ClarifyNavigationNode[] | LocalizedNavigation
+export type LocalizedTabbedNavigation = Record<string, TabbedNavigation>
+
+export type NavigationTree = ClarifyNavigationNode[] | LocalizedNavigation | TabbedNavigation | LocalizedTabbedNavigation
 
 export type ClarifyPage = {
   path: string

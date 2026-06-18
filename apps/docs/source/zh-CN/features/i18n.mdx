@@ -86,9 +86,9 @@ export default defineConfig({
 
 ### `hide`
 
-缺失页面不生成对应语言路由。使用 `pages: 'FileTree'` 自动导航时，未翻译页面也不会出现在该语言的导航中。
+缺失页面不生成对应语言路由。使用 `tabs[].pages: 'FileTree'` 自动导航时，未翻译页面也不会出现在该语言的导航中。
 
-如果使用手动 `pages` 配置，需要确保导航项只引用目标语言存在的页面，或改用 `fallback` 策略。
+如果使用手动 `tabs[].pages` 配置，需要确保导航项只引用目标语言存在的页面，或改用 `fallback` 策略。
 
 ---
 
@@ -117,8 +117,9 @@ export default defineConfig({
 - `navbar.links[].label`
 - `banner.content`
 - `footer.copyright`
-- `pages[].group`
-- `pages[].pages[].title`
+- `tabs[].tab`
+- `tabs[].pages[].group`
+- `tabs[].pages[].pages[].title`
 
 ---
 
@@ -134,5 +135,5 @@ export default defineConfig({
 
 - 保持不同语言目录下的相对路径一致。
 - 默认语言内容先完整上线，再逐步补齐其他语言。
-- `pages` 中引用不带 locale 的基础路径，例如 `getting-started`，不要写 `zh-CN/getting-started`。
-- 对产品导航、分组名和页面标题使用本地化对象，避免不同语言混用。
+- `tabs[].pages` 中引用不带 locale 的基础路径，例如 `getting-started`，不要写 `zh-CN/getting-started`。
+- 对产品导航、tab 名、分组名和页面标题使用本地化对象，避免不同语言混用。

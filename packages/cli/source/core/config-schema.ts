@@ -98,6 +98,14 @@ export const clarifyPagesConfigSchema = z.union([
   z.literal('FileTree'),
 ])
 
+export const clarifyTabItemSchema = z.object({
+  tab: clarifyLocalizedTextSchema,
+  icon: z.string().optional(),
+  pages: clarifyPagesConfigSchema.optional(),
+})
+
+export const clarifyTabsConfigSchema = z.array(clarifyTabItemSchema)
+
 export const clarifyProjectConfigSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
@@ -113,7 +121,7 @@ export const clarifyProjectConfigSchema = z.object({
   banner: clarifyBannerConfigSchema.optional(),
   footer: clarifyFooterConfigSchema.optional(),
   i18n: clarifyI18nConfigSchema.optional(),
-  pages: clarifyPagesConfigSchema.optional(),
+  tabs: clarifyTabsConfigSchema.optional(),
 }) satisfies z.ZodType<ClarifyProjectConfig>
 
 export type ClarifyProjectConfigInput = z.input<typeof clarifyProjectConfigSchema>

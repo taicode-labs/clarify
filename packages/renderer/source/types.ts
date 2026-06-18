@@ -87,6 +87,14 @@ export type ClarifyPagesGroup = {
 
 export type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree';
 
+export type ClarifyTabItem = {
+  tab: ClarifyLocalizedText;
+  icon?: string;
+  pages?: ClarifyPagesConfig;
+};
+
+export type ClarifyTabsConfig = ClarifyTabItem[];
+
 export type ClarifyConfig = {
   title: string;
   logo?: ClarifyLogoConfig;
@@ -100,12 +108,24 @@ export type ClarifyConfig = {
   banner?: ClarifyBannerConfig;
   footer?: ClarifyFooterConfig;
   i18n?: ClarifyI18nConfig;
-  pages?: ClarifyPagesConfig;
+  tabs?: ClarifyTabsConfig;
 };
+
+export type NavigationTab = {
+  type: 'tab';
+  path: string;
+  title: string;
+  icon?: string;
+  children: NavigationNode[];
+};
+
+export type TabbedNavigation = { tabs: NavigationTab[] };
 
 export type LocalizedNavigation = Record<string, NavigationNode[]>;
 
-export type NavigationTree = NavigationNode[] | LocalizedNavigation;
+export type LocalizedTabbedNavigation = Record<string, TabbedNavigation>;
+
+export type NavigationTree = NavigationNode[] | LocalizedNavigation | TabbedNavigation | LocalizedTabbedNavigation;
 
 export type RenderOptions = {
   /** 从 virtual:clarify-config 导入的 config */
