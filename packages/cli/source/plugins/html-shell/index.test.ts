@@ -70,4 +70,108 @@ describe('createHtmlShellPlugin', () => {
 
     expect(result?.tags.at(0)).toEqual({ tag: 'meta', attrs: { name: 'x' }, injectTo: 'head' })
   })
+
+  it('injects a configured favicon link', async () => {
+    const plugin = createHtmlShellPlugin()
+    const result = await plugin.hooks['html:transform']?.({
+      html: '<html></html>',
+      tags: [],
+      clientEntryId: 'virtual:clarify-entry-client',
+      dev: false,
+    }, {
+      ...ctx,
+      projectConfig: {
+        ...ctx.projectConfig,
+        favicon: '/clarify.svg',
+      },
+    })
+
+    expect(result?.tags.at(0)).toEqual({
+      tag: 'link',
+      attrs: { rel: 'icon', type: 'image/svg+xml', href: '/clarify.svg' },
+      injectTo: 'head',
+    })
+  })
+
+  it('injects media-specific favicon links', async () => {
+    const plugin = createHtmlShellPlugin()
+    const result = await plugin.hooks['html:transform']?.({
+      html: '<html></html>',
+      tags: [],
+      clientEntryId: 'virtual:clarify-entry-client',
+      dev: false,
+    }, {
+      ...ctx,
+      projectConfig: {
+        ...ctx.projectConfig,
+        favicon: {
+          light: '/favicon-light.png',
+          dark: '/favicon-dark.png',
+        },
+      },
+    })
+
+    expect(result?.tags.slice(0, 2)).toEqual([
+      {
+        tag: 'link',
+        attrs: {
+          rel: 'icon',
+          type: 'image/png',
+          href: '/favicon-light.png',
+          media: '(prefers-color-scheme: light)',
+        },
+        injectTo: 'head',
+      },
+      {
+        tag: 'link',
+        attrs: {
+          rel: 'icon',
+          type: 'image/png',
+          href: '/favicon-dark.png',
+          media: '(prefers-color-scheme: dark)',
+        },
+        injectTo: 'head',
+      },
+    ])
+  })
+
+  it('falls back to logo when favicon is not configured', async () => {
+    const plugin = createHtmlShellPlugin()
+    const result = await plugin.hooks['html:transform']?.({
+      html: '<html></html>',
+      tags: [],
+      clientEntryId: 'virtual:clarify-entry-client',
+      dev: false,
+    }, {
+      ...ctx,
+      projectConfig: {
+        ...ctx.projectConfig,
+        logo: '/logo.svg',
+      },
+    })
+
+    expect(result?.tags.at(0)).toEqual({
+      tag: 'link',
+      attrs: { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' },
+      injectTo: 'head',
+    })
+  })
+
+  it('does not inject duplicate favicon links when html already has one', async () => {
+    const plugin = createHtmlShellPlugin()
+    const result = await plugin.hooks['html:transform']?.({
+      html: '<html><head><link rel="icon" href="/custom.ico" /></head></html>',
+      tags: [],
+      clientEntryId: 'virtual:clarify-entry-client',
+      dev: false,
+    }, {
+      ...ctx,
+      projectConfig: {
+        ...ctx.projectConfig,
+        favicon: '/clarify.svg',
+      },
+    })
+
+    expect(result?.tags.some((tag) => tag.tag === 'link')).toBe(false)
+  })
 })
