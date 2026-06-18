@@ -54,9 +54,9 @@ function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string;
   const suffix = `${location.search}${location.hash}`
 
   return (
-    <Menu as="div" className="relative">
+    <Menu as="div" className="clarify-language-switcher relative">
       <MenuButton
-        className="flex h-7 items-center gap-1.5 rounded-md px-1.5 text-sm/5 font-medium text-zinc-600 transition hover:bg-zinc-900/5 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
+        className="clarify-language-switcher-button flex h-7 items-center gap-1.5 rounded-md px-1.5 text-sm/5 font-medium text-zinc-600 transition hover:bg-zinc-900/5 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
         aria-label="Switch language"
       >
         <span className="absolute size-12 pointer-fine:hidden" />
@@ -65,7 +65,7 @@ function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string;
       </MenuButton>
       <MenuItems
         transition
-        className="absolute right-0 z-50 mt-2 w-44 rounded-xl bg-white p-1 text-sm shadow-lg ring-1 shadow-zinc-900/5 ring-zinc-900/10 transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-zinc-900 dark:ring-white/10"
+        className="clarify-language-switcher-menu absolute right-0 z-50 mt-2 w-44 rounded-xl bg-white p-1 text-sm shadow-lg ring-1 shadow-zinc-900/5 ring-zinc-900/10 transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-zinc-900 dark:ring-white/10"
       >
         {i18n.locales.flatMap((locale: ClarifyLocaleConfig) => {
           const localizedPath = localizedRoutePath(config, locale.code, currentRoute)
@@ -78,7 +78,7 @@ function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string;
                 <Link
                   to={`${localizedPath}${suffix}`}
                   className={clsx(
-                    'flex items-center justify-between rounded-lg px-3 py-2 no-underline transition',
+                    'clarify-language-switcher-item flex items-center justify-between rounded-lg px-3 py-2 no-underline transition',
                     focus && 'bg-zinc-100 dark:bg-white/5',
                     selected ? 'text-zinc-900 dark:text-white' : 'text-zinc-600 dark:text-zinc-400',
                   )}
@@ -153,7 +153,7 @@ export const Header = forwardRef<
       ref={ref}
       className={clsx(
         className,
-        'fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between gap-12 px-4 transition sm:px-6 lg:left-72 lg:z-30 lg:px-8 xl:left-80',
+        'clarify-header fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between gap-12 px-4 transition sm:px-6 lg:left-72 lg:z-30 lg:px-8 xl:left-80',
         !isInsideMobileNavigation && 'backdrop-blur-xs lg:left-72 xl:left-80 dark:backdrop-blur-sm',
         isInsideMobileNavigation
           ? 'bg-white dark:bg-zinc-950'
@@ -173,19 +173,19 @@ export const Header = forwardRef<
         )}
       />
       <div className="hidden lg:block" />
-      <div className="flex items-center gap-5 lg:hidden">
+      <div className="clarify-mobile-brand flex items-center gap-5 lg:hidden">
         <MobileNavigation config={config} navigation={navigation} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
         {config.logo ? (
-          <CloseButton as={Link} to={localizeHref('/', config, currentLocale)} aria-label="Home" className="flex items-center gap-2 no-underline">
+          <CloseButton as={Link} to={localizeHref('/', config, currentLocale)} aria-label="Home" className="clarify-brand flex items-center gap-2 no-underline">
             <SiteLogo logo={config.logo} className="h-6 w-6" />
             <span className="sr-only">{config.title}</span>
           </CloseButton>
         ) : null}
       </div>
-      <div className="flex items-center gap-5">
+      <div className="clarify-header-actions flex items-center gap-5">
         <Search routes={routes} navigation={navigation} />
         {config.navbar?.links?.length ? (
-          <nav className="hidden md:block">
+          <nav className="clarify-top-nav hidden md:block">
             <ul role="list" className="flex items-center gap-8">
               {config.navbar.links.map((link) => (
                 <TopLevelNavItem key={link.href} href={localizeHref(link.href, config, currentLocale)}>

@@ -81,22 +81,22 @@ export function AppShell(arg0: AppShellProps) {
 
   return (
     <SectionProvider sections={sections}>
-      <div className="h-full min-h-screen bg-white lg:ml-72 xl:ml-80 dark:bg-zinc-950">
-        <motion.header layoutScroll className="contents lg:pointer-events-none lg:fixed lg:inset-0 lg:z-40 lg:flex">
-          <div className="contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-zinc-900/10 lg:bg-white lg:px-6 lg:pt-4 lg:pb-8 xl:w-80 lg:dark:border-white/10 lg:dark:bg-zinc-950">
-            <div className="hidden lg:flex">
-              <Link to={homePathForLocale(config, currentLocale)} aria-label="Home" className="flex items-center gap-2 no-underline">
+      <div className="clarify-app h-full min-h-screen bg-white lg:ml-72 xl:ml-80 dark:bg-zinc-950">
+        <motion.header layoutScroll className="clarify-shell contents lg:pointer-events-none lg:fixed lg:inset-0 lg:z-40 lg:flex">
+          <div className="clarify-sidebar contents lg:pointer-events-auto lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-zinc-900/10 lg:bg-white lg:px-6 lg:pt-4 lg:pb-8 xl:w-80 lg:dark:border-white/10 lg:dark:bg-zinc-950">
+            <div className="clarify-sidebar-brand hidden lg:flex">
+              <Link to={homePathForLocale(config, currentLocale)} aria-label="Home" className="clarify-brand flex items-center gap-2 no-underline">
                 <SiteLogo logo={config.logo} className="h-6 w-6" />
-                <span className="text-sm font-semibold text-zinc-900 dark:text-white">{config.title}</span>
+                <span className="clarify-brand-title text-sm font-semibold text-zinc-900 dark:text-white">{config.title}</span>
               </Link>
             </div>
             <Header config={config} navigation={currentNavigation} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
-            <Navigation navigation={currentNavigation} className="hidden lg:mt-10 lg:block" />
+            <Navigation navigation={currentNavigation} className="clarify-navigation hidden lg:mt-10 lg:block" />
           </div>
         </motion.header>
-        <div className="relative flex min-h-screen flex-col px-4 pt-14 sm:px-6 lg:px-8">
+        <div className="clarify-content relative flex min-h-screen flex-col px-4 pt-14 sm:px-6 lg:px-8">
           <ContentActions route={currentRoute} routePrefix={config.routePrefix} />
-          <main className="flex-auto">
+          <main className="clarify-main flex-auto">
             <Routes>
               {routes.map((route) => (
                 <Route key={route.path} path={route.path} element={<route.component />} />

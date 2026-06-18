@@ -77,7 +77,7 @@ function CopyButton(arg0: { code: string }) {  const { code } = arg0
     <button
       type="button"
       className={clsx(
-        'group/button absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 text-2xs font-medium opacity-0 backdrop-blur-sm transition group-hover:opacity-100 focus:opacity-100',
+        'clarify-code-copy group/button absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 text-2xs font-medium opacity-0 backdrop-blur-sm transition group-hover:opacity-100 focus:opacity-100',
         copied
           ? 'bg-emerald-400/10 ring-1 ring-emerald-400/20 ring-inset'
           : 'bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5',
@@ -116,7 +116,7 @@ function CodePanelHeader(arg0: { tag?: string; label?: string }) {  const { tag,
   if (!tag && !label) return null
 
   return (
-    <div className="flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
+    <div className="clarify-code-panel-header flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
       {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-emerald-400">{tag}</span> : null}
       {tag && label ? <span className="h-0.5 w-0.5 rounded-full bg-zinc-500" /> : null}
       {label ? <span className="font-mono text-xs text-zinc-400">{label}</span> : null}
@@ -145,10 +145,10 @@ function CodePanel(arg0: {
   const copyText = code ?? getNodeText(children)
 
   return (
-    <div className="group dark:bg-white/2.5">
+    <div className="clarify-code-panel group dark:bg-white/2.5">
       <CodePanelHeader tag={tag} label={label} />
       <div className="relative">
-        <pre className="overflow-x-auto p-4 text-xs text-white">{children}</pre>
+        <pre className="clarify-code-pre overflow-x-auto p-4 text-xs text-white">{children}</pre>
         <CopyButton code={copyText} />
       </div>
     </div>
@@ -162,14 +162,14 @@ function CodeGroupHeader(arg0: { title?: string; children: ReactNode; selectedIn
   if (!title && !hasTabs) return null
 
   return (
-    <div className="flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
+    <div className="clarify-code-group-header flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
       {title ? <h3 className="mr-auto pt-3 text-xs font-semibold text-white">{title}</h3> : null}
       {hasTabs ? (
-        <TabList className="-mb-px flex gap-4 text-xs font-medium">
+        <TabList className="clarify-code-tabs -mb-px flex gap-4 text-xs font-medium">
           {Children.map(children, (child, childIndex) => (
             <Tab
               className={clsx(
-                'border-b py-3 transition data-selected:not-data-focus:outline-hidden',
+                'clarify-code-tab border-b py-3 transition data-selected:not-data-focus:outline-hidden',
                 childIndex === selectedIndex
                   ? 'border-emerald-500 text-emerald-400'
                   : 'border-transparent text-zinc-400 hover:text-zinc-300',
@@ -277,7 +277,7 @@ export function CodeGroup(arg0: ComponentPropsWithoutRef<typeof CodeGroupPanels>
     ) ?? []
   const tabGroupProps = useTabGroupProps(languages)
   const hasTabs = Children.count(children) > 1
-  const containerClassName = 'my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10'
+  const containerClassName = 'clarify-code-group my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10'
   const header = (
     <CodeGroupHeader title={title} selectedIndex={tabGroupProps.selectedIndex}>
       {children}

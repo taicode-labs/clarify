@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { slug } from 'github-slugger'
 import { useRef, useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -370,7 +371,7 @@ function SelectControl(arg0: {
   if (options.length <= 1) return null
 
   return (
-    <label className="flex flex-col gap-1 text-[0.625rem]/5 font-semibold tracking-widest text-zinc-400 uppercase">
+    <label className="clarify-api-select flex flex-col gap-1 text-[0.625rem]/5 font-semibold tracking-widest text-zinc-400 uppercase">
       {label}
       <select
         value={value}
@@ -493,9 +494,9 @@ function ApiExampleCodeGroup(arg0: {
 } = arg0
 
   return (
-    <div className="my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
+    <div className="clarify-api-example my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
       <div className="not-prose">
-        <div className="flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-center gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
+        <div className="clarify-api-example-header flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-center gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
           <h3 className="shrink-0 py-3 text-xs font-semibold text-white">{title}</h3>
           {examples && examples.length > 1 && selectedExampleKey && onSelectExample ? (
             <ExamplePicker examples={examples} selectedKey={selectedExampleKey} onSelect={onSelectExample} />
@@ -508,7 +509,7 @@ function ApiExampleCodeGroup(arg0: {
             {label ? <span className="font-mono text-xs text-zinc-400">{label}</span> : null}
           </div>
         ) : null}
-        <div className="group relative">
+        <div className="clarify-api-example-code group relative">
           <pre className="overflow-x-auto p-4 text-xs text-white">
             <code className={`language-${language}`}>{code}</code>
           </pre>
@@ -676,7 +677,7 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
   }
 
   return (
-    <section className="scroll-mt-24" aria-labelledby={id}>
+    <section className="clarify-api-endpoint scroll-mt-24" aria-labelledby={id}>
       <Heading id={id} tag={method} label={path}>
         {summary}
       </Heading>
@@ -719,7 +720,7 @@ function OpenApiPaths(arg0: { spec: OpenAPISpec }): ReactNode {  const { spec } 
   }))
 
   return (
-    <div className="space-y-16">
+    <div className="clarify-api-endpoints space-y-16">
       {entries.map(({ path, method, operation }) => (
         <OpenApiOperation key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} />
       ))}
@@ -776,7 +777,7 @@ function WarningBox(arg0: { children: ReactNode; tone?: 'amber' | 'red' }): Reac
     ? 'rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200'
     : 'rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200'
 
-  return <div className={classes}>{children}</div>
+  return <div className={clsx('clarify-warning', classes)}>{children}</div>
 }
 
 export function OpenApiPage(arg0: OpenApiPageProps): ReactNode {
@@ -788,7 +789,7 @@ export function OpenApiPage(arg0: OpenApiPageProps): ReactNode {
   }
 
   return (
-    <article className="flex h-full flex-col pt-16 pb-10">
+    <article className="clarify-openapi-page flex h-full flex-col pt-16 pb-10">
       <Prose className="flex-auto">
         <OpenApiHeader spec={resolved} />
         <OpenApiPaths spec={resolved} />

@@ -113,7 +113,7 @@ function SearchResult(arg0: { result: SearchItem; query: string; active: boolean
     <li
       id={id}
       className={clsx(
-        'group block cursor-default px-4 py-3 aria-selected:bg-zinc-50 dark:aria-selected:bg-zinc-800/50',
+        'clarify-search-result group block cursor-default px-4 py-3 aria-selected:bg-zinc-50 dark:aria-selected:bg-zinc-800/50',
         active && 'bg-zinc-50 dark:bg-zinc-800/50',
       )}
       aria-selected={active}
@@ -151,7 +151,7 @@ const SearchInput = forwardRef<
 >(function SearchInput(arg0, inputRef) {  const { query, setQuery, onClose, onSubmit, activeDescendantId } = arg0
 
   return (
-    <div className="group relative flex h-12">
+    <div className="clarify-search-input group relative flex h-12">
       <SearchIcon className="pointer-events-none absolute top-0 left-3 h-full w-5 stroke-zinc-500" />
       <input
         ref={inputRef}
@@ -243,16 +243,16 @@ function SearchDialog(arg0: {
   }
 
   return (
-    <Dialog open={open} onClose={closeDialog} className={clsx('fixed inset-0 z-50', className)}>
+    <Dialog open={open} onClose={closeDialog} className={clsx('clarify-search-dialog fixed inset-0 z-50', className)}>
       <DialogBackdrop
         transition
-        className="fixed inset-0 bg-zinc-400/25 backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in dark:bg-black/40"
+        className="clarify-search-backdrop fixed inset-0 bg-zinc-400/25 backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in dark:bg-black/40"
       />
 
       <div className="fixed inset-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-20 md:py-32 lg:px-8 lg:py-[15vh]">
         <DialogPanel
           transition
-          className="mx-auto transform-gpu overflow-hidden rounded-lg bg-zinc-50 shadow-xl ring-1 ring-zinc-900/7.5 data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
+          className="clarify-search-panel mx-auto transform-gpu overflow-hidden rounded-lg bg-zinc-50 shadow-xl ring-1 ring-zinc-900/7.5 data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
           onKeyDown={(event) => {
             if (event.key === 'ArrowDown') {
               event.preventDefault()
@@ -282,7 +282,7 @@ function SearchDialog(arg0: {
               </div>
             ) : null}
             {results.length ? (
-              <ul id="clarify-search-results" role="listbox">
+              <ul id="clarify-search-results" className="clarify-search-results" role="listbox">
                 {results.map((result, resultIndex) => (
                   <SearchResult
                     key={result.url}
@@ -330,10 +330,10 @@ export function Search(arg0: { routes: RouteItem[]; navigation: NavigationNode[]
   const { buttonProps, dialogProps } = useSearchProps()
 
   return (
-    <div className="hidden lg:block lg:max-w-md lg:flex-auto">
+    <div className="clarify-search hidden lg:block lg:max-w-md lg:flex-auto">
       <button
         type="button"
-        className="hidden h-8 w-full items-center gap-2 rounded-full bg-white pr-3 pl-2 text-sm text-zinc-500 ring-1 ring-zinc-900/10 transition hover:ring-zinc-900/20 lg:flex dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:ring-inset dark:hover:ring-white/20"
+        className="clarify-search-button hidden h-8 w-full items-center gap-2 rounded-full bg-white pr-3 pl-2 text-sm text-zinc-500 ring-1 ring-zinc-900/10 transition hover:ring-zinc-900/20 lg:flex dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:ring-inset dark:hover:ring-white/20"
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
@@ -363,10 +363,10 @@ export function MobileSearch(arg0: {
   const { buttonProps, dialogProps } = useSearchProps()
 
   return (
-    <div className="contents lg:hidden">
+    <div className="clarify-mobile-search contents lg:hidden">
       <button
         type="button"
-        className="relative flex size-6 items-center justify-center rounded-md transition hover:bg-zinc-900/5 lg:hidden dark:hover:bg-white/5"
+        className="clarify-mobile-search-button relative flex size-6 items-center justify-center rounded-md transition hover:bg-zinc-900/5 lg:hidden dark:hover:bg-white/5"
         aria-label="Find something..."
         {...buttonProps}
       >

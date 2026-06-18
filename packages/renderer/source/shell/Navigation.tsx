@@ -136,8 +136,8 @@ function NavLink(arg0: {
       aria-current={active ? 'page' : undefined}
       onClick={handleClick}
       className={clsx(
-        'flex justify-between gap-2 py-1 pr-3 text-sm transition',
-        isAnchorLink ? 'pl-7' : 'pl-4',
+        'clarify-navigation-link flex justify-between gap-2 py-1 pr-3 text-sm transition',
+        isAnchorLink ? 'clarify-navigation-anchor-link pl-7' : 'pl-4',
         active
           ? 'text-zinc-900 dark:text-white'
           : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
@@ -218,8 +218,8 @@ function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const
   const isActiveGroup = group.links.findIndex((link) => link.href === pathname) !== -1
 
   return (
-    <li className={clsx('relative mt-6', className)}>
-      <motion.h2 layout="position" className="flex items-center gap-2 text-xs font-semibold text-zinc-900 dark:text-white">
+    <li className={clsx('clarify-navigation-group relative mt-6', className)}>
+      <motion.h2 layout="position" className="clarify-navigation-group-title flex items-center gap-2 text-xs font-semibold text-zinc-900 dark:text-white">
         <NavigationIcon name={group.icon} className="h-3.5 w-3.5" />
         <span>{group.title}</span>
       </motion.h2>
@@ -268,8 +268,8 @@ export function Navigation(arg0: { navigation: NavigationNode[]; className?: str
   const groups = navigationToGroups(navigation)
 
   return (
-    <nav className={className}>
-      <ul role="list">
+    <nav className={clsx('clarify-navigation', className)}>
+      <ul role="list" className="clarify-navigation-list">
         <TopLevelNavItem href="/">Home</TopLevelNavItem>
         {groups.map((group, groupIndex) => (
           <NavigationGroup key={group.title} group={group} className={groupIndex === 0 ? 'md:mt-0' : ''} />

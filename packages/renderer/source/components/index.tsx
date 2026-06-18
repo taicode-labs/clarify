@@ -50,7 +50,7 @@ export type ButtonProps = {
 export function Button(arg0: ButtonProps) {  const { variant = 'primary', className, children, arrow, ...props } = arg0
 
   const classes = clsx(
-    'inline-flex justify-center gap-0.5 overflow-hidden text-sm font-medium transition',
+    'clarify-button inline-flex justify-center gap-0.5 overflow-hidden text-sm font-medium transition',
     buttonVariantStyles[variant],
     className,
   )
@@ -139,7 +139,7 @@ export function Tag(arg0: TagProps) {  const { children, variant = 'medium', col
   return (
     <span
       className={clsx(
-        'font-mono text-[0.625rem]/6 font-semibold',
+        'clarify-tag font-mono text-[0.625rem]/6 font-semibold',
         tagVariantStyles[variant],
         tagColorStyles[resolvedColor][variant],
       )}
@@ -151,7 +151,7 @@ export function Tag(arg0: TagProps) {  const { children, variant = 'medium', col
 
 export function Logo(props: ComponentPropsWithoutRef<'svg'>) {
   return (
-    <svg viewBox="0 0 99 24" aria-hidden="true" {...props}>
+    <svg viewBox="0 0 99 24" aria-hidden="true" {...props} className={clsx('clarify-logo', props.className)}>
       <path
         className="fill-emerald-400"
         d="M16 8a5 5 0 0 0-5-5H5a5 5 0 0 0-5 5v13.927a1 1 0 0 0 1.623.782l3.684-2.93a4 4 0 0 1 2.49-.87H11a5 5 0 0 0 5-5V8Z"
@@ -179,7 +179,7 @@ export function Prose<T extends ElementType = 'div'>(arg0: Omit<ComponentPropsWi
     <Component
       className={clsx(
         className,
-        'prose dark:prose-invert',
+        'clarify-prose prose dark:prose-invert',
         '[html_:where(&>*)]:mx-auto [html_:where(&>*)]:w-full [html_:where(&>*)]:max-w-3xl xl:[html_:where(&>*)]:max-w-[56rem] 2xl:[html_:where(&>*)]:max-w-[64rem] [html_:where(&>.not-prose)]:max-w-5xl 2xl:[html_:where(&>.not-prose)]:max-w-[76rem]',
       )}
       {...props}
@@ -213,7 +213,7 @@ function Eyebrow(arg0: { tag?: string; label?: string }) {  const { tag, label }
 function Anchor(arg0: { id: string; inView: boolean; children: ReactNode }) {  const { id, inView, children } = arg0
 
   return (
-    <a href={`#${id}`} className="group text-inherit no-underline hover:text-inherit">
+    <a href={`#${id}`} className="clarify-anchor group text-inherit no-underline hover:text-inherit">
       {inView ? (
         <div className="absolute mt-1 -ml-(--width) hidden w-(--width) opacity-0 transition [--width:calc(2.625rem+0.5px+50%-min(50%,calc(var(--container-lg)+(--spacing(8)))))] group-hover:opacity-100 group-focus:opacity-100 md:block lg:z-50 2xl:[--width:--spacing(10)]">
           <div className="group/anchor block h-5 w-5 rounded-lg bg-zinc-50 ring-1 ring-inset ring-zinc-300 transition hover:ring-zinc-500 dark:bg-zinc-800 dark:ring-zinc-700 dark:hover:bg-zinc-700 dark:hover:ring-zinc-600">
@@ -264,7 +264,7 @@ export function Heading<Level extends 2 | 3>(arg0: ComponentPropsWithoutRef<`h${
   return (
     <>
       <Eyebrow tag={tag} label={label} />
-      <Component ref={ref} className={tag || label ? 'mt-2 scroll-mt-32' : 'scroll-mt-24'} {...props}>
+      <Component ref={ref} className={clsx('clarify-heading', tag || label ? 'mt-2 scroll-mt-32' : 'scroll-mt-24')} {...props}>
         {anchor ? (
           <Anchor id={props.id} inView={inView}>
             {children}
@@ -287,7 +287,7 @@ export function DocShell(arg0: DocShellProps) {
   const { title, subtitle, children } = arg0
 
   return (
-    <main className="min-h-screen bg-white px-6 py-10 text-zinc-900 dark:bg-zinc-950 dark:text-white md:px-10">
+    <main className="clarify-doc-shell min-h-screen bg-white px-6 py-10 text-zinc-900 dark:bg-zinc-950 dark:text-white md:px-10">
       <div className="mx-auto max-w-6xl">
         <header className="mb-10">
           <h1 className="text-3xl font-bold tracking-tight md:text-5xl">{title}</h1>
@@ -310,7 +310,7 @@ export function ApiEndpointCard(arg0: ApiEndpointCardProps) {
   const { method, path, description, id } = arg0
 
   return (
-    <article id={id} className="scroll-mt-20 rounded-2xl border border-zinc-900/10 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-zinc-900">
+    <article id={id} className="clarify-api-endpoint-card scroll-mt-20 rounded-2xl border border-zinc-900/10 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-zinc-900">
       <div className="flex items-center gap-3">
         <Tag>{method}</Tag>
         <code className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{path}</code>

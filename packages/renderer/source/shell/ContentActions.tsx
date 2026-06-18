@@ -66,24 +66,24 @@ export function ContentActions(arg0: ContentActionsProps) {
   const primaryAction = actions[0]
 
   return (
-    <div className="sticky top-16 z-20 flex justify-end py-4">
-      <Menu as="div" className="relative inline-flex text-xs font-medium">
-        <div className="inline-flex overflow-hidden rounded-full border border-zinc-900/10 bg-white/85 backdrop-blur dark:border-white/10 dark:bg-white/5">
+    <div className="clarify-content-actions sticky top-16 z-20 flex justify-end py-4">
+      <Menu as="div" className="clarify-content-actions-menu relative inline-flex text-xs font-medium">
+        <div className="clarify-content-actions-group inline-flex overflow-hidden rounded-full border border-zinc-900/10 bg-white/85 backdrop-blur dark:border-white/10 dark:bg-white/5">
           <button
             type="button"
             onClick={primaryAction.run}
-            className="inline-flex h-8 items-center gap-1.5 px-3 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white"
+            className="clarify-content-actions-primary inline-flex h-8 items-center gap-1.5 px-3 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white"
           >
             {copied === primaryAction.key ? <Check className="h-3.5 w-3.5" /> : <primaryAction.icon className="h-3.5 w-3.5" />}
             {copied === primaryAction.key ? '已复制' : '复制页面'}
           </button>
-          <MenuButton className="inline-flex h-8 w-8 items-center justify-center border-l border-zinc-900/10 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white" aria-label="选择复制选项">
+          <MenuButton className="clarify-content-actions-trigger inline-flex h-8 w-8 items-center justify-center border-l border-zinc-900/10 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white" aria-label="选择复制选项">
             <ChevronDown className="h-3.5 w-3.5" />
           </MenuButton>
         </div>
         <MenuItems
           anchor="bottom end"
-          className="z-30 mt-2 w-52 origin-top-right rounded-2xl border border-zinc-900/10 bg-white p-1 text-xs shadow-md transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900"
+          className="clarify-content-actions-list z-30 mt-2 w-52 origin-top-right rounded-2xl border border-zinc-900/10 bg-white p-1 text-xs shadow-md transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900"
         >
           {actions.map((action) => {
             const Icon = copied === action.key ? Check : action.icon
@@ -93,7 +93,7 @@ export function ContentActions(arg0: ContentActionsProps) {
                 <button
                   type="button"
                   onClick={action.run}
-                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-zinc-600 transition data-focus:bg-zinc-100 data-focus:text-zinc-950 dark:text-zinc-300 dark:data-focus:bg-white/10 dark:data-focus:text-white"
+                  className="clarify-content-actions-item flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-zinc-600 transition data-focus:bg-zinc-100 data-focus:text-zinc-950 dark:text-zinc-300 dark:data-focus:bg-white/10 dark:data-focus:text-white"
                 >
                   <Icon className="h-3.5 w-3.5" />
                   <span>{copied === action.key ? '已复制' : action.label}</span>
