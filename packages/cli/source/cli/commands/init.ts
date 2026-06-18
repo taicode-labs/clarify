@@ -27,7 +27,7 @@ function updatePackageJson(root: string, force: boolean): boolean {
   const devDependencies = typeof packageJson.devDependencies === 'object' && packageJson.devDependencies !== null
     ? packageJson.devDependencies as Record<string, string>
     : {}
-  if (!devDependencies['@clarify-labs/cli']) devDependencies['@clarify-labs/cli'] = '^0.1.0'
+  if (!devDependencies['@clarify-labs/cli']) devDependencies['@clarify-labs/cli'] = '^0.2.0'
   packageJson.devDependencies = devDependencies
 
   writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, 'utf-8')

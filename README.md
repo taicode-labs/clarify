@@ -63,10 +63,10 @@ pnpm typecheck
 
 | Package | Version | Description |
 |---------|---------|-------------|
-| `@clarify-labs/docs` | 0.1.0 | Documentation playground app |
-| `@clarify-labs/www` | 0.1.0 | Marketing website app |
-| `@clarify-labs/renderer` | 0.1.0 | Shared React rendering primitives |
-| `@clarify-labs/cli` | 0.1.0 | User-facing Clarify CLI and docs engine |
+| `@clarify-labs/docs` | 0.2.0 | Documentation playground app |
+| `@clarify-labs/www` | 0.2.0 | Marketing website app |
+| `@clarify-labs/renderer` | 0.2.0 | Shared React rendering primitives |
+| `@clarify-labs/cli` | 0.2.0 | User-facing Clarify CLI and docs engine |
 
 ## 🤝 Contributing
 

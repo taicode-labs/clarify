@@ -186,8 +186,8 @@
         {
           "page": "showcase/components",
           "title": {
-            "zh-CN": "内置内容组件",
-            "en-US": "Built-in Components"
+            "zh-CN": "组件演示",
+            "en-US": "Component Showcase"
           },
           "icon": "Component"
         }
@@ -370,6 +370,14 @@
             "en-US": "Plugin API Reference"
           },
           "icon": "Puzzle"
+        },
+        {
+          "page": "reference/built-in-components",
+          "title": {
+            "zh-CN": "内置公开组件",
+            "en-US": "Built-in Components"
+          },
+          "icon": "Component"
         },
         {
           "page": "guides",

@@ -1,0 +1,218 @@
+# 内置公开组件
+
+Clarify 在 MDX 中默认注册了一组公开组件。你不需要手动 `import`，可以直接在 `.mdx` 文件里使用它们来组织首页入口、提示信息、操作按钮和代码示例。
+
+---
+
+## 组件一览
+
+<CardGroup cols={2}>
+  <Card title="Callout" icon="info" href="#callout">
+    用于展示提示、警告、成功状态和危险说明。
+  </Card>
+  <Card title="CardGroup / Card" icon="layout-grid" href="#cardgroup--card">
+    用于制作入口卡片、功能矩阵和文档索引。
+  </Card>
+  <Card title="Button" icon="mouse-pointer-click" href="#button">
+    用于提供明确的行动入口或外部跳转。
+  </Card>
+  <Card title="CodeGroup" icon="braces" href="#codegroup">
+    用于展示多语言、多包管理器或多环境代码示例。
+  </Card>
+</CardGroup>
+
+---
+
+## Callout
+
+`Callout` 适合放置与正文强相关的说明、注意事项或风险提示。
+
+### 基础用法
+
+```mdx
+<Callout type="info">
+  模型列表会持续更新，生产接入前应以控制台或模型广场中当前可用模型为准。
+</Callout>
+```
+
+渲染效果：
+
+<Callout type="info">
+  模型列表会持续更新，生产接入前应以控制台或模型广场中当前可用模型为准。
+</Callout>
+
+### 类型
+
+`type` 支持 `info`、`note`、`tip`、`warning`、`danger`、`success`。
+
+<Callout type="note" title="Note">
+  适合补充说明上下文，避免正文被细节打断。
+</Callout>
+
+<Callout type="tip" title="Tip">
+  适合展示推荐实践、效率技巧或更优路径。
+</Callout>
+
+<Callout type="warning" title="Warning">
+  适合展示可能导致构建失败、权限不足或行为变化的注意事项。
+</Callout>
+
+<Callout type="danger" title="Danger">
+  适合展示高风险操作，例如删除数据、重置环境或暴露密钥。
+</Callout>
+
+<Callout type="success" title="Success">
+  适合展示操作完成、配置生效或验证通过。
+</Callout>
+
+### 属性
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `type` | `'info' \| 'note' \| 'tip' \| 'warning' \| 'danger' \| 'success'` | `'info'` | 控制颜色和图标 |
+| `title` | `ReactNode` | 根据 `type` 自动生成 | 标题，传空值可隐藏 |
+| `icon` | `boolean` | `true` | 是否显示图标 |
+| `className` | `string` | - | 追加样式类名 |
+
+---
+
+## CardGroup / Card
+
+`CardGroup` 和 `Card` 适合做文档入口、功能清单、方案矩阵或章节导航。
+
+### 基础用法
+
+```mdx
+<CardGroup cols={2}>
+  <Card title="关于 Modelink" icon="badge-info" href="/00-about/overview">
+    了解平台定位、适用对象、核心价值和推荐接入路径。
+  </Card>
+  <Card title="快速开始" icon="rocket" href="/01-quickstart/overview">
+    准备环境、配置凭证并完成第一次调用。
+  </Card>
+</CardGroup>
+```
+
+渲染效果：
+
+<CardGroup cols={2}>
+  <Card title="关于 Clarify" icon="badge-info" href="/getting-started">
+    了解 Clarify 的产品定位、核心价值和推荐使用路径。
+  </Card>
+  <Card title="快速开始" icon="rocket" href="/getting-started/installation">
+    准备环境、安装 CLI 并创建第一个文档站点。
+  </Card>
+  <Card title="MDX 写作" icon="file-code-2" href="/features/mdx">
+    使用 Markdown、JSX 和内置组件编写更丰富的内容。
+  </Card>
+  <Card title="OpenAPI 文档" icon="braces" href="/features/openapi">
+    从 OpenAPI 描述文件生成接口文档和单接口展示。
+  </Card>
+</CardGroup>
+
+### 图标命名
+
+`Card` 的 `icon` 使用 `lucide-react` 图标名，支持 kebab-case 自动转换。例如：
+
+| 写法 | 对应图标 |
+|------|----------|
+| `badge-info` | `BadgeInfo` |
+| `rocket` | `Rocket` |
+| `file-code-2` | `FileCode2` |
+| `shield-check` | `ShieldCheck` |
+
+### 属性
+
+#### CardGroup
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `cols` | `1 \| 2 \| 3 \| 4` | `2` | 桌面端列数 |
+| `className` | `string` | - | 追加样式类名 |
+
+#### Card
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `title` | `string` | 必填 | 卡片标题 |
+| `icon` | `string` | - | lucide 图标名，支持 kebab-case |
+| `href` | `string` | - | 卡片跳转链接，站内路径会使用客户端路由 |
+| `className` | `string` | - | 追加样式类名 |
+
+---
+
+## Button
+
+`Button` 适合在文档中提供明确的下一步动作。
+
+```mdx
+<Button href="/getting-started/installation" arrow="right">
+  开始安装
+</Button>
+
+<Button href="https://github.com/taicode-labs/clarify" variant="outline">
+  查看 GitHub
+</Button>
+```
+
+渲染效果：
+
+<div className="not-prose my-6 flex flex-wrap gap-3">
+  <Button href="/getting-started/installation" arrow="right">
+    开始安装
+  </Button>
+  <Button href="https://github.com/taicode-labs/clarify" variant="outline">
+    查看 GitHub
+  </Button>
+</div>
+
+### 属性
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `variant` | `'primary' \| 'secondary' \| 'filled' \| 'outline' \| 'text'` | `'primary'` | 按钮样式 |
+| `arrow` | `'left' \| 'right'` | - | 是否显示方向箭头 |
+| `href` | `string` | - | 存在时渲染为链接，否则渲染为按钮 |
+
+---
+
+## CodeGroup
+
+`CodeGroup` 用于组织并列代码示例，例如不同包管理器或不同语言的写法。
+
+````mdx
+<CodeGroup>
+
+```bash
+pnpm add @clarify-labs/cli
+```
+
+```bash
+npm install @clarify-labs/cli
+```
+
+</CodeGroup>
+````
+
+渲染效果：
+
+<CodeGroup>
+
+```bash
+pnpm add @clarify-labs/cli
+```
+
+```bash
+npm install @clarify-labs/cli
+```
+
+</CodeGroup>
+
+---
+
+## 使用建议
+
+- 首页、章节索引和功能矩阵优先使用 `CardGroup` / `Card`。
+- 与正文强相关的限制、风险和补充说明使用 `Callout`。
+- 引导用户继续阅读或执行操作时使用 `Button`。
+- 多语言、多环境、多包管理器示例使用 `CodeGroup`。

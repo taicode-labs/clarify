@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { createElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { Button, Heading, PageFooter, Prose } from '../components'
+import { Button, Callout, Card, CardGroup, Heading, PageFooter, Prose } from '../components'
 import { Code, CodeGroup, Pre } from '../components/Code'
 
 export function wrapper(arg0: { children: ReactNode }) {  const { children } = arg0
@@ -26,7 +26,7 @@ export function a(arg0: ComponentPropsWithoutRef<'a'>) {  const { href = '', ...
 
 export const code = Code
 export const pre = Pre
-export { Button, CodeGroup }
+export { Button, Callout, Card, CardGroup, CodeGroup }
 
 export function h2(props: Omit<ComponentPropsWithoutRef<typeof Heading>, 'level'>) {
   return createElement(Heading, { level: 2, ...props })
