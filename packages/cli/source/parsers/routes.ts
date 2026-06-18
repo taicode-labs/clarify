@@ -1,13 +1,12 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
-import SwaggerParser from '@apidevtools/swagger-parser'
-import GithubSlugger, { slug } from 'github-slugger'
+import GithubSlugger from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
 import { visit } from 'unist-util-visit'
 
-import type { ContentRoute, ContentSection, OpenAPISpec, ClarifyNavigationNode, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, LocalizedNavigation, ResolvedClarifyI18nConfig } from '../types.js'
+import type { ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, LocalizedNavigation, ResolvedClarifyI18nConfig } from '../types.js'
 
 import { extractFrontmatter } from './frontmatter.js'
 
@@ -47,8 +46,6 @@ export function extractMdxSections(content: string): ContentSection[] {
   return sections
 }
 
-const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
-
 function navigationSections(sections: ContentSection[]) {
   return sections.map(s => ({ id: s.id, title: s.title, badge: s.badge, tags: s.tags }))
 }
@@ -73,30 +70,6 @@ export function localizedRoutePath(basePath: string, locale: string, i18n: Resol
 export function resolveLocalizedText(text: ClarifyLocalizedText | undefined, locale: string, fallbackLocale?: string): string | undefined {
   if (typeof text === 'string' || text === undefined) return text
   return text[locale] ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0]
-}
-
-/** 从 OpenAPI spec 中提取接口列表作为章节 */
-export function extractOpenAPISections(spec: OpenAPISpec): ContentSection[] {
-  const sections: ContentSection[] = []
-  const paths = spec.paths ?? {}
-  for (const [path, pathItem] of Object.entries(paths)) {
-    if (!pathItem) continue
-    for (const method of OPENAPI_HTTP_METHODS) {
-      const op = pathItem[method]
-      if (!op) continue
-      const title = op.summary ?? `${method.toUpperCase()} ${path}`
-      sections.push({ id: slug(`${method} ${path}`), title, level: 2, badge: method.toUpperCase() })
-    }
-  }
-  return sections
-}
-
-export async function readOpenAPISpec(filePath: string): Promise<OpenAPISpec | null> {
-  try {
-    return await SwaggerParser.dereference(filePath) as OpenAPISpec
-  } catch {
-    return null
-  }
 }
 
 function resolveOpenAPIPath(filePath: string, base: string): string {

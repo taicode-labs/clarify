@@ -7,9 +7,10 @@ import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { rehypePlugins, remarkPlugins } from '../parsers/mdx.js'
-import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, extractOpenAPISections, findLocalizedContentRoutes, readOpenAPISpec } from '../parsers/routes.js'
+import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, findLocalizedContentRoutes } from '../parsers/routes.js'
 import { createContentArtifactsPlugin } from '../plugins/content-artifacts/index.js'
-import type { ClarifyHookContext, ClarifyPlugin, NavigationTree, OpenAPISpec } from '../types.js'
+import { createOpenAPIPlugin } from '../plugins/openapi/index.js'
+import type { ClarifyHookContext, ClarifyPlugin, NavigationTree } from '../types.js'
 
 import { resolveProjectConfig } from './config.js'
 import { runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
@@ -50,11 +51,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   const configFilePath = findClarifyConfigFile(root)
   let routes = findLocalizedContentRoutes(contentRoot, projectConfig.i18n)
 
-  // Collect OpenAPI specs keyed by virtual module ID for runtime embedding.
-  // Specs are populated asynchronously before Vite resolves config.
-  const openApis: Record<string, OpenAPISpec> = {}
-
-  const clarifyPlugins: ClarifyPlugin[] = [createContentArtifactsPlugin(), ...(options.plugins ?? [])]
+  const clarifyPlugins: ClarifyPlugin[] = [createOpenAPIPlugin(), createContentArtifactsPlugin(), ...(options.plugins ?? [])]
   const ctx: ClarifyHookContext = { projectConfig, generateOptions, routes, navigation: [] }
   let viteConfig: ResolvedConfig
   let resolvedNavigation: NavigationTree = []
@@ -76,19 +73,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
 
   async function resolveRoutesAndSpecs() {
     routes = findLocalizedContentRoutes(contentRoot, projectConfig.i18n)
-    for (const key of Object.keys(openApis)) delete openApis[key]
-
-    for (const route of routes.filter(r => r.kind === 'openapi')) {
-      const spec = await readOpenAPISpec(route.filePath)
-      if (spec) {
-        openApis[route.virtualModuleId] = spec
-        openApis[`virtual:clarify-page/${route.path.replace(/^\//, '')}`] = spec
-        route.title = spec.info?.title ?? route.title
-        route.sections = extractOpenAPISections(spec)
-      } else {
-        throw new Error(`[clarify] Failed to parse OpenAPI spec: ${route.filePath}`)
-      }
-    }
+    routes = await runHooks(clarifyPlugins, 'routes:discovered', routes, ctx)
 
     const defaultNavigation = projectConfig.i18n
       ? (buildLocalizedNavigation(routes, projectConfig.pages, projectConfig.i18n) ?? {})
@@ -108,7 +93,6 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       generateOptions,
       routes,
       navigation: resolvedNavigation,
-      openApis,
     })
     virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
   }

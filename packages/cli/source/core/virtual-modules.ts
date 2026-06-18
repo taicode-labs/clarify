@@ -1,9 +1,10 @@
 import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig } from '../parsers/routes.js'
-import type { ClarifyPagesConfig, ContentRoute, NavigationTree, OpenAPISpec, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
+import { openApiRegistryModuleId } from '../plugins/openapi/virtual-modules.js'
+import type { ClarifyPagesConfig, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
-export const VIRTUAL_OPENAPI_REGISTRY = 'virtual:clarify-openapi-registry'
+export const VIRTUAL_OPENAPI_REGISTRY = openApiRegistryModuleId
 export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-entry-client'
 export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 
@@ -44,19 +45,6 @@ export function generateRoutesModule(routes: ContentRoute[], pagesConfig?: Clari
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
-export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISpec>): string {
-  return `export const openApis = ${JSON.stringify(openApis)};`
-}
-
-export function generateOpenAPIModule(spec: OpenAPISpec): string {
-  return `import { createElement } from 'react';
-import { OpenApiPage } from '@clarify-labs/renderer';
-const spec = ${JSON.stringify(spec)};
-export default function OpenApiRoutePage() {
-  return createElement(OpenApiPage, { spec });
-}`
-}
-
 export function createClientEntryModule(): string {
   return `
 import '@clarify-labs/renderer/style.css';
@@ -72,25 +60,17 @@ export function buildVirtualModules(args: {
   generateOptions: ResolvedBuildOptions
   routes: ContentRoute[]
   navigation?: NavigationTree
-  openApis: Record<string, OpenAPISpec>
 }): VirtualModules {
   const modules: VirtualModules = new Map()
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.projectConfig.pages, args.navigation, args.projectConfig))
-  modules.set(VIRTUAL_OPENAPI_REGISTRY, generateOpenAPIRegistryModule(args.openApis))
+  modules.set(VIRTUAL_OPENAPI_REGISTRY, 'export const openApis = {};')
   modules.set(VIRTUAL_CLIENT_ENTRY, createClientEntryModule())
   modules.set(RESOLVED_CLIENT_ENTRY, createClientEntryModule())
 
   for (const route of args.routes) {
-    if (route.kind === 'openapi') {
-      const spec = args.openApis[route.virtualModuleId]
-      if (!spec) {
-        throw new Error(`OpenAPI spec failed to load for ${route.filePath}`)
-      }
-      modules.set(route.virtualModuleId, generateOpenAPIModule(spec))
-    } else {
-      modules.set(route.virtualModuleId, `export { default } from '${route.filePath}';`)
-    }
+    if (route.kind === 'openapi') continue
+    modules.set(route.virtualModuleId, `export { default } from '${route.filePath}';`)
   }
 
   return modules
