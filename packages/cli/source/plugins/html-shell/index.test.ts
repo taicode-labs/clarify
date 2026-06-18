@@ -1,0 +1,73 @@
+import { describe, expect, it } from 'vitest'
+
+import { createHtmlShellPlugin } from './index.js'
+
+const ctx = {
+  projectConfig: {
+    title: 'Docs',
+    description: '',
+    routePrefix: '/',
+    theme: {},
+  },
+  generateOptions: {
+    rootDirectory: 'source',
+    outputDirectory: 'output',
+    ssg: { failOnError: true },
+  },
+  routes: [],
+  navigation: [],
+}
+
+describe('createHtmlShellPlugin', () => {
+  it('injects the theme bootstrap and dev client entry scripts', async () => {
+    const plugin = createHtmlShellPlugin()
+    const result = await plugin.hooks['html:transform']?.({
+      html: '<html></html>',
+      tags: [],
+      clientEntryId: '/@id/virtual:clarify-entry-client',
+      dev: true,
+    }, ctx)
+
+    expect(result?.html).toBe('<html></html>')
+    expect(result?.tags).toEqual([
+      expect.objectContaining({
+        tag: 'script',
+        injectTo: 'head-prepend',
+        children: expect.stringContaining("localStorage.getItem('clarify:theme')"),
+      }),
+      {
+        tag: 'script',
+        attrs: { type: 'module', src: '/@id/virtual:clarify-entry-client' },
+        injectTo: 'body',
+      },
+    ])
+  })
+
+  it('injects the build client entry script', async () => {
+    const plugin = createHtmlShellPlugin()
+    const result = await plugin.hooks['html:transform']?.({
+      html: '<html></html>',
+      tags: [],
+      clientEntryId: 'virtual:clarify-entry-client',
+      dev: false,
+    }, ctx)
+
+    expect(result?.tags.at(1)).toEqual({
+      tag: 'script',
+      attrs: { type: 'module', src: 'virtual:clarify-entry-client' },
+      injectTo: 'body',
+    })
+  })
+
+  it('preserves existing html transform tags', async () => {
+    const plugin = createHtmlShellPlugin()
+    const result = await plugin.hooks['html:transform']?.({
+      html: '<html></html>',
+      tags: [{ tag: 'meta', attrs: { name: 'x' }, injectTo: 'head' }],
+      clientEntryId: 'virtual:clarify-entry-client',
+      dev: false,
+    }, ctx)
+
+    expect(result?.tags.at(0)).toEqual({ tag: 'meta', attrs: { name: 'x' }, injectTo: 'head' })
+  })
+})

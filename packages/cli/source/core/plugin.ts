@@ -9,6 +9,7 @@ import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 import { rehypePlugins, remarkPlugins } from '../parsers/mdx.js'
 import { buildLocalizedNavigation, buildNavigation, buildNavigationFromConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef } from '../parsers/routes.js'
 import { createContentArtifactsPlugin } from '../plugins/content-artifacts/index.js'
+import { createHtmlShellPlugin } from '../plugins/html-shell/index.js'
 import { createOpenAPIPlugin } from '../plugins/openapi/index.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree, ResolvedClarifyI18nConfig } from '../types.js'
 
@@ -47,7 +48,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   const configFilePath = findClarifyConfigFile(root)
   let routes: ContentRoute[] = []
 
-  const clarifyPlugins: ClarifyPlugin[] = [createOpenAPIPlugin(), createContentArtifactsPlugin(), ...(options.plugins ?? [])]
+  const clarifyPlugins: ClarifyPlugin[] = [createOpenAPIPlugin(), createContentArtifactsPlugin(), createHtmlShellPlugin(), ...(options.plugins ?? [])]
   const ctx: ClarifyHookContext = { projectConfig, generateOptions, routes, navigation: [] }
   let viteConfig: ResolvedConfig
   let resolvedNavigation: NavigationTree = []
@@ -251,26 +252,21 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     },
     transformIndexHtml: {
       order: 'pre',
-      handler(html, ctx) {
+      async handler(html, transformCtx) {
         // In dev mode, use /@id/ prefix so Vite dev server can resolve the virtual module.
         // In build mode, use the bare virtual: ID so Vite's HTML build pipeline resolves it via resolveId.
-        const src = ctx.server
+        const clientEntryId = transformCtx.server
           ? `/@id/${VIRTUAL_CLIENT_ENTRY}`
           : VIRTUAL_CLIENT_ENTRY
-        return {
+        const result = await runHooks(clarifyPlugins, 'html:transform', {
           html,
-          tags: [
-            {
-              tag: 'script',
-              children: `(function(){try{var e=localStorage.getItem('clarify:theme');var t=e==='dark'||e==='light'||e==='system'?e:'system';var r=t==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches:t==='dark';document.documentElement.classList.toggle('dark',r);document.documentElement.style.colorScheme=r?'dark':'light'}catch(e){}})();`,
-              injectTo: 'head-prepend',
-            },
-            {
-              tag: 'script',
-              attrs: { type: 'module', src },
-              injectTo: 'body',
-            },
-          ],
+          tags: [],
+          clientEntryId,
+          dev: Boolean(transformCtx.server),
+        }, ctx)
+        return {
+          html: result.html,
+          tags: result.tags,
         }
       }
     },

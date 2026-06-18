@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, extname, join } from 'node:path'
 
-import type { ContentRoute, ResolvedProjectConfig } from '../types.js'
+import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 function normalizeBasePath(basePath: string): string {
   if (!basePath || basePath === '/') return ''

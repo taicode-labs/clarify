@@ -1,8 +1,8 @@
 import type { ViteDevServer } from 'vite'
 
-import { enrichRoutesWithRawContent, writeLlmsTxt, writeRawContentFiles } from '../../parsers/raw-content.js'
 import type { ClarifyPlugin } from '../../types.js'
 
+import { enrichRoutesWithRawContent, writeLlmsTxt, writeRawContentFiles } from './raw-content.js'
 import { serveContentArtifacts } from './server.js'
 
 export function createContentArtifactsPlugin(): ClarifyPlugin {

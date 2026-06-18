@@ -1,5 +1,5 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
-import type { ViteDevServer } from 'vite'
+import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
 import type { ResolvedBuildOptions } from './core/options.js'
 
@@ -207,6 +207,13 @@ export type ClarifyRouteDiscoveryInput = {
   routes: ContentRoute[]
 }
 
+export type ClarifyHtmlTransformInput = {
+  html: string
+  tags: HtmlTagDescriptor[]
+  clientEntryId: string
+  dev: boolean
+}
+
 export type ClarifyHooks = {
   'pages:resolved'?: (
     pages: ClarifyPage[],
@@ -232,6 +239,10 @@ export type ClarifyHooks = {
     modules: Map<string, string>,
     ctx: ClarifyHookContext
   ) => Promise<Map<string, string>> | Map<string, string>
+  'html:transform'?: (
+    input: ClarifyHtmlTransformInput,
+    ctx: ClarifyHookContext
+  ) => Promise<ClarifyHtmlTransformInput> | ClarifyHtmlTransformInput
   'dev:configureServer'?: (
     server: ViteDevServer,
     ctx: ClarifyHookContext

@@ -1,7 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-import { createLlmsTxt, readRawContent } from '../../parsers/raw-content.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
+
+import { createLlmsTxt, readRawContent } from './raw-content.js'
 
 function normalizeRoutePrefix(routePrefix: string): string {
   if (!routePrefix || routePrefix === '/') return ''
