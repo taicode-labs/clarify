@@ -12,7 +12,7 @@ const mockCtx: ClarifyHookContext = {
     theme: {},
   },
   generateOptions: {
-    rootDirectory: 'source/content',
+    rootDirectory: 'source',
     outputDirectory: 'dist',
     ssg: { failOnError: true },
   },

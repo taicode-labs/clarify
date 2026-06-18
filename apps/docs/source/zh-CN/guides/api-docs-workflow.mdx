@@ -13,7 +13,7 @@ Clarify 推荐把 API 文档拆成三层：
 ## 推荐目录结构
 
 ```txt
-source/content/
+source/
 ├── guides/
 │   ├── authentication.mdx
 │   ├── pagination.mdx
@@ -25,7 +25,7 @@ source/content/
 如果启用 i18n：
 
 ```txt
-source/content/
+source/
 └── zh-CN/
     ├── guides/
     │   ├── authentication.mdx
@@ -66,7 +66,7 @@ OpenAPI 文件是 API Reference 和接口嵌入的共同数据源。
 把规范文件放到内容目录后，它会自动成为页面：
 
 ```txt
-source/content/api.openapi.json → /api
+source/api.openapi.json → /api
 ```
 
 如果你手动配置侧边栏，需要加入：

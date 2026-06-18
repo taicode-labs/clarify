@@ -3,7 +3,7 @@ import type { ClarifyPlugin, ClarifyProjectConfig } from '../types.js'
 export type ClarifyBuildOptions = ClarifyProjectConfig & {
   /** Project root directory. Defaults to the current working directory. */
   projectRoot?: string
-  /** Root directory for MDX content. Default: 'source/content' */
+  /** Root directory for MDX content. Default: 'source' */
   rootDirectory?: string
   /** Output directory for the built docs site. When omitted, Vite's build.outDir is used. */
   outputDirectory?: string
@@ -27,7 +27,7 @@ export type ResolvedBuildOptions = {
 
 export function resolveBuildOptions(options: ClarifyBuildOptions = {}): ResolvedBuildOptions {
   return {
-    rootDirectory: options.rootDirectory ?? 'source/content',
+    rootDirectory: options.rootDirectory ?? 'source',
     outputDirectory: options.outputDirectory,
     ssg: {
       failOnError: options.ssg?.failOnError ?? true,

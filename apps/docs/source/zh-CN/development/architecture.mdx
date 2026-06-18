@@ -75,7 +75,7 @@ graph TD
     C -->|读取| E[OpenAPI 规范]
 ```
 
-1. **作者**在 `source/content/` 中编写 MDX/Markdown 文档和 OpenAPI 规范
+1. **作者**在 `source/` 中编写 MDX/Markdown 文档和 OpenAPI 规范
 2. **`@clarify-labs/cli`**扫描内容目录，编译 MDX，摄取 OpenAPI，并生成路由
 3. **`renderer`**组件被编译后的 MDX 和 CLI 生成的页面导入以渲染 UI
 4. **CLI 内部构建管线**将所有内容打包为静态站点

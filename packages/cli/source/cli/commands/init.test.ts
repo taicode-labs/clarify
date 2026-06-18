@@ -27,12 +27,12 @@ describe('runInit', () => {
   it('creates the minimal Clarify project scaffold', () => {
     runInit({
       root: tempDir,
-      content: 'source/content',
+      content: 'source',
       output: 'output',
     }, false)
 
     expect(readFileSync(join(tempDir, 'clarify.ts'), 'utf-8')).toContain('defineConfig')
-    expect(readFileSync(join(tempDir, 'source/content/index.mdx'), 'utf-8')).toContain('# Welcome to Clarify')
+    expect(readFileSync(join(tempDir, 'source/index.mdx'), 'utf-8')).toContain('# Welcome to Clarify')
 
     const packageJson = readJson(join(tempDir, 'package.json'))
     expect(packageJson.scripts).toEqual({

@@ -112,7 +112,7 @@ describe('resolveBuildOptions', () => {
   it('uses defaults when no options provided', () => {
     const result = resolveBuildOptions()
     expect(result).toEqual({
-      rootDirectory: 'source/content',
+      rootDirectory: 'source',
       outputDirectory: undefined,
       ssg: { failOnError: true },
     })
@@ -130,7 +130,7 @@ describe('resolveBuildOptions', () => {
   it('applies provided ssg options', () => {
     const result = resolveBuildOptions({ ssg: { failOnError: false } })
     expect(result).toEqual({
-      rootDirectory: 'source/content',
+      rootDirectory: 'source',
       outputDirectory: undefined,
       ssg: { failOnError: false },
     })

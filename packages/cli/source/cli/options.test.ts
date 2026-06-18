@@ -6,7 +6,7 @@ describe('resolveCliOptions', () => {
   it('resolves defaults from the current working directory', () => {
     expect(resolveCliOptions({})).toEqual({
       root: process.cwd(),
-      content: 'source/content',
+      content: 'source',
       output: 'output',
       host: undefined,
       port: undefined,

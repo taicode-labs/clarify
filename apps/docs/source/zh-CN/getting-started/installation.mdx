@@ -37,7 +37,7 @@ pnpm exec clarify init
 该命令会创建：
 
 - `clarify.json`：站点展示配置
-- `source/content/index.mdx`：首页内容
+- `source/index.mdx`：首页内容
 - `package.json` 中的 `dev` / `build` 脚本
 
 你也可以手动创建 `clarify.json`：
@@ -51,12 +51,12 @@ pnpm exec clarify init
 
 ### 4. 编写文档
 
-在 `source/content` 目录下创建 `.md` 或 `.mdx` 文件：
+在 `source` 目录下创建 `.md` 或 `.mdx` 文件：
 
 ```bash
-mkdir -p source/content
-echo "# 首页\n\n欢迎来到我的文档！" > source/content/index.mdx
-echo "# 指南\n\n这是指南页面。" > source/content/guide.mdx
+mkdir -p source
+echo "# 首页\n\n欢迎来到我的文档！" > source/index.mdx
+echo "# 指南\n\n这是指南页面。" > source/guide.mdx
 ```
 
 ### 5. 启动开发服务器

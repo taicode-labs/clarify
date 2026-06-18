@@ -34,7 +34,7 @@ pnpm exec clarify init
 该命令会创建或更新：
 
 - `clarify.ts`
-- `source/content/index.mdx`
+- `source/index.mdx`
 - `package.json` 中的 `dev` / `build` 脚本
 
 常用选项：
@@ -42,7 +42,7 @@ pnpm exec clarify init
 | 选项 | 说明 | 默认值 |
 |------|------|--------|
 | `--root <dir>` | 项目根目录 | 当前目录 |
-| `--content <dir>` | 内容目录 | `source/content` |
+| `--content <dir>` | 内容目录 | `source` |
 | `--force` | 覆盖已存在的初始化文件 | `false` |
 
 ---
@@ -60,7 +60,7 @@ pnpm exec clarify dev
 | 选项 | 说明 | 默认值 |
 |------|------|--------|
 | `--root <dir>` | 项目根目录 | 当前目录 |
-| `--content <dir>` | 内容目录 | `source/content` |
+| `--content <dir>` | 内容目录 | `source` |
 | `--host [host]` | 监听地址 | Vite 默认值 |
 | `--port <port>` | 端口号 | Vite 默认值 |
 | `--open [path]` | 启动后打开浏览器 | `false` |
@@ -86,7 +86,7 @@ pnpm exec clarify build
 | 选项 | 说明 | 默认值 |
 |------|------|--------|
 | `--root <dir>` | 项目根目录 | 当前目录 |
-| `--content <dir>` | 内容目录 | `source/content` |
+| `--content <dir>` | 内容目录 | `source` |
 | `--output <dir>` | 输出目录 | `output` |
 
 示例：

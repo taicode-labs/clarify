@@ -19,7 +19,7 @@ Clarify 将**项目配置**和**运行参数**明确分离：
 | 项目配置 | 内容作者、技术写作者、扩展开发者 | `clarify.ts/js/json` | 站点展示、多语言、导航、插件 |
 | CLI 参数 | 开发者、构建环境 | `clarify dev/build` | 项目根目录、内容目录、输出目录、端口 |
 
-> 内容创作者主要维护 `clarify.ts` 和 `source/content`；开发者通过 CLI 参数控制运行方式。
+> 内容创作者主要维护 `clarify.ts` 和 `source`；开发者通过 CLI 参数控制运行方式。
 
 ---
 
@@ -333,7 +333,7 @@ CLI 会把以下运行参数传入构建系统：
 | CLI 选项 | 内部字段 | 默认值 | 命令 |
 |----------|----------|--------|------|
 | `--root <dir>` | `projectRoot` | 当前目录 | `dev` / `build` / `init` |
-| `--content <dir>` | `rootDirectory` | `source/content` | `dev` / `build` / `init` |
+| `--content <dir>` | `rootDirectory` | `source` | `dev` / `build` / `init` |
 | `--output <dir>` | `outputDirectory` | `output` | `dev` / `build` / `init` |
 | `--host [host]` | Vite dev server host | — | `dev` |
 | `--port <port>` | Vite dev server port | — | `dev` |

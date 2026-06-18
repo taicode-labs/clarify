@@ -21,7 +21,7 @@ export type ResolvedCliOptions = {
 export function resolveCliOptions(options: CliOptions): ResolvedCliOptions {
   return {
     root: resolve(options.root ?? process.cwd()),
-    content: options.content ?? 'source/content',
+    content: options.content ?? 'source',
     output: options.output ?? 'output',
     host: options.host,
     port: typeof options.port === 'string' ? Number.parseInt(options.port, 10) : options.port,

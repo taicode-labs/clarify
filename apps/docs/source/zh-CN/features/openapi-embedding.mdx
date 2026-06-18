@@ -30,7 +30,7 @@
 <OpenApiEndpoint specPath="/api" path="/pages" method="get" />
 ```
 
-渲染时，Clarify 会从 OpenAPI 注册表中找到 `/api` 对应的规范，也就是 `source/content/api.openapi.json`。
+渲染时，Clarify 会从 OpenAPI 注册表中找到 `/api` 对应的规范，也就是 `source/api.openapi.json`。
 
 ---
 
@@ -49,13 +49,13 @@
 对应文件：
 
 ```txt
-source/content/api.openapi.json
+source/api.openapi.json
 ```
 
 在 i18n 站点中，对应当前语言目录下的同名规范，例如：
 
 ```txt
-source/content/zh-CN/api.openapi.json
+source/zh-CN/api.openapi.json
 ```
 
 ### 相对路径
@@ -63,8 +63,8 @@ source/content/zh-CN/api.openapi.json
 不以 `/` 开头时，基于当前页面路径解析：
 
 ```txt
-source/content/guides/authentication.mdx
-source/content/guides/auth.openapi.json
+source/guides/authentication.mdx
+source/guides/auth.openapi.json
 ```
 
 在 `guides/authentication.mdx` 中可以写：
@@ -84,7 +84,7 @@ source/content/guides/auth.openapi.json
 对应文件：
 
 ```txt
-source/content/services/billing.openapi.yaml
+source/services/billing.openapi.yaml
 ```
 
 ---
@@ -149,7 +149,7 @@ import spec from '../api.openapi.json'
 
 说明 `specPath` 没有匹配到已发现的 OpenAPI 路由。检查：
 
-- OpenAPI 文件是否在 `source/content` 下
+- OpenAPI 文件是否在 `source` 下
 - 文件名是否使用 `.openapi.json` / `.openapi.yaml` / `.openapi.yml`
 - `specPath` 是否省略了扩展名
 - 相对路径是否以当前页面所在目录为基准

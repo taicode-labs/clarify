@@ -107,7 +107,7 @@ describe('generateConfigModule', () => {
       theme: { primary: '#fff' },
     }
     const generateOptions: ResolvedBuildOptions = {
-      rootDirectory: 'source/content',
+      rootDirectory: 'source',
       outputDirectory: 'dist',
       ssg: { failOnError: true },
     }
@@ -212,7 +212,7 @@ describe('findLocalizedContentRoutes', () => {
     rmSync(tempDir, { recursive: true, force: true })
   })
 
-  it('discovers source/content/{locale} routes with locale-aware paths', () => {
+  it('discovers source/{locale} routes with locale-aware paths', () => {
     mkdirSync(join(tempDir, 'zh-CN'), { recursive: true })
     mkdirSync(join(tempDir, 'en-US'), { recursive: true })
     writeFileSync(join(tempDir, 'zh-CN', 'index.mdx'), '# 首页', 'utf-8')

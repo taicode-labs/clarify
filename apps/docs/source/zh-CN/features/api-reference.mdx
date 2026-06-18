@@ -27,7 +27,7 @@ API Reference 是 Clarify 的 OpenAPI 专用页面。它适合承载完整接口
 
 ## 文件命名约定
 
-把 OpenAPI 文件放在 `source/content` 下，并使用以下扩展名：
+把 OpenAPI 文件放在 `source` 下，并使用以下扩展名：
 
 - `.openapi.json`
 - `.openapi.yaml`
@@ -36,7 +36,7 @@ API Reference 是 Clarify 的 OpenAPI 专用页面。它适合承载完整接口
 例如：
 
 ```txt
-source/content/
+source/
 ├── index.mdx
 ├── guides/
 │   └── authentication.mdx
@@ -53,14 +53,14 @@ OpenAPI 文件的路由来自文件路径，`.openapi.*` 后缀会被移除：
 
 | 文件 | 生成页面 |
 |------|----------|
-| `source/content/api.openapi.json` | `/api` |
-| `source/content/reference/admin.openapi.yaml` | `/reference/admin` |
-| `source/content/services/billing.openapi.yml` | `/services/billing` |
+| `source/api.openapi.json` | `/api` |
+| `source/reference/admin.openapi.yaml` | `/reference/admin` |
+| `source/services/billing.openapi.yml` | `/services/billing` |
 
 启用 i18n 时，OpenAPI 文件也遵循语言目录规则：
 
 ```txt
-source/content/
+source/
 └── zh-CN/
     └── api.openapi.json  → /api
 ```
