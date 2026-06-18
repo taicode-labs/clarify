@@ -7,9 +7,8 @@ import { ClarifyConfigContext, OpenApisContext, useClarifyConfig, useOpenApis } 
 import { useMDXComponents } from './mdx/components'
 import { OpenApiPage, ApiEndpoint, OpenApiEndpoint } from './openapi'
 import { render } from './runtime/render'
-import { renderToHTML } from './runtime/server'
 import type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions } from './types'
 import { remToPx } from './utils/remToPx'
 
 export type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions, Section }
-export { AppShell, render, renderToHTML, OpenApiPage, ApiEndpoint, OpenApiEndpoint, ClarifyConfigContext, OpenApisContext, useClarifyConfig, useOpenApis, Button, Code, CodeGroup, DocShell, ApiEndpointCard, Feedback, GridPattern, Heading, HeroPattern, Logo, Pre, Prose, Tag, ThemeProvider, ThemeToggle, useTheme, SectionProvider, useSectionStore, remToPx, useMDXComponents }
+export { AppShell, render, OpenApiPage, ApiEndpoint, OpenApiEndpoint, ClarifyConfigContext, OpenApisContext, useClarifyConfig, useOpenApis, Button, Code, CodeGroup, DocShell, ApiEndpointCard, Feedback, GridPattern, Heading, HeroPattern, Logo, Pre, Prose, Tag, ThemeProvider, ThemeToggle, useTheme, SectionProvider, useSectionStore, remToPx, useMDXComponents }

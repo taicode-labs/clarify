@@ -5,6 +5,7 @@ import type { ConfigEnv, InlineConfig, Plugin } from 'vite'
 
 import type { ClarifyBuildOptions } from './options.js'
 import { clarifyPlugin } from './plugin.js'
+import { createClarifyRuntimeAliases } from './runtime-deps.js'
 import { loadClarifyConfig } from './user-config.js'
 
 export type ClarifyViteConfigOptions = {
@@ -68,6 +69,9 @@ export async function createViteConfig(options: ClarifyViteConfigOptions, env: C
     root: options.root,
     configFile: false,
     appType: 'custom',
+    resolve: {
+      alias: createClarifyRuntimeAliases(),
+    },
     plugins: [
       clarifyPlugin(buildOptions),
       createHtmlFallbackPlugin(),

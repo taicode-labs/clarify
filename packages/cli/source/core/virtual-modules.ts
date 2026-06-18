@@ -60,7 +60,7 @@ export default function OpenApiRoutePage() {
 export function createClientEntryModule(): string {
   return `
 import '@clarify-labs/renderer/style.css';
-import { render } from '@clarify-labs/renderer';
+import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
 import { openApis } from '${VIRTUAL_OPENAPI_REGISTRY}';

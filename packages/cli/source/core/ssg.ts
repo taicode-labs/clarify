@@ -8,6 +8,7 @@ import type { Plugin } from 'vite'
 
 import type { ResolvedProjectConfig, ContentRoute } from '../types.js'
 
+import { createClarifyRuntimeAliases } from './runtime-deps.js'
 import { escapeHtml } from './utils.js'
 
 export function readIndexHtml(outputDirectory: string): string | undefined {
@@ -76,6 +77,9 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
   await build({
     root,
     configFile: false,
+    resolve: {
+      alias: createClarifyRuntimeAliases(),
+    },
     plugins,
     build: {
       ssr: ssrEntry,
@@ -83,14 +87,6 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
       emptyOutDir: true,
       rollupOptions: {
         input: ssrEntry,
-        external: [
-          'react',
-          'react-dom',
-          'react-dom/server',
-          'react-router-dom',
-          '@clarify-labs/renderer',
-          '@clarify-labs/renderer/server',
-        ],
       },
     },
   })
