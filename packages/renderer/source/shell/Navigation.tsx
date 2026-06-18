@@ -127,7 +127,7 @@ function NavLink(arg0: {
       aria-current={active ? 'page' : undefined}
       onClick={handleClick}
       className={clsx(
-        'clarify-navigation-link flex justify-between gap-2 py-1 pr-3 text-sm transition',
+        'clarify-navigation-link flex h-8 items-center justify-between gap-2 pr-3 text-sm transition',
         isAnchorLink ? 'clarify-navigation-anchor-link pl-7' : 'pl-4',
         active
           ? 'text-zinc-900 dark:text-white'
