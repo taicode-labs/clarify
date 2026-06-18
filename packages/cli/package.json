@@ -5,7 +5,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/taicode-labs/clarify.git",
+    "url": "https://github.com/taicode-labs/clarify",
     "directory": "packages/cli"
   },
   "main": "output/index.cjs",
