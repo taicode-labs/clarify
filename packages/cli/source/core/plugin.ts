@@ -38,6 +38,10 @@ function loadVirtualModule(id: string, modules: VirtualModules): string | null {
   return modules.get(bareId) ?? modules.get(id) ?? null
 }
 
+function isClarifyContentFile(filePath: string): boolean {
+  return /\.mdx?$/.test(filePath) || /\.openapi\.(json|yaml|yml)$/.test(filePath)
+}
+
 export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   const root = resolve(options.projectRoot ?? process.cwd())
   let projectConfig = resolveProjectConfig(options)
@@ -116,6 +120,13 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     }
   }
 
+  async function refreshDevServer(server: ViteDevServer) {
+    await resolveRoutesAndSpecs()
+    await rebuildVirtualModules()
+    invalidateVirtualModules(server)
+    server.ws.send({ type: 'full-reload' })
+  }
+
   const mdx = mdxPlugin({
     include: ['**/*.{md,mdx}'],
     jsxImportSource: 'react',
@@ -151,22 +162,16 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       const changedFile = isAbsolute(ctx.file) ? ctx.file : join(root, ctx.file)
       if (configFilePath && changedFile === configFilePath) {
         await reloadProjectConfig()
-        await resolveRoutesAndSpecs()
-        await rebuildVirtualModules()
-        invalidateVirtualModules(ctx.server)
-        ctx.server.ws.send({ type: 'full-reload' })
+        await refreshDevServer(ctx.server)
         return []
       }
 
       const relativeContentFile = relative(contentRoot, changedFile)
       const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
-      const isClarifyContent = isContentFile && (/\.mdx?$/.test(changedFile) || /\.openapi\.(json|yaml|yml)$/.test(changedFile))
+      const isClarifyContent = isContentFile && isClarifyContentFile(changedFile)
       if (!isClarifyContent) return
 
-      await resolveRoutesAndSpecs()
-      await rebuildVirtualModules()
-      invalidateVirtualModules(ctx.server)
-      ctx.server.ws.send({ type: 'full-reload' })
+      await refreshDevServer(ctx.server)
       return []
     },
     resolveId(id) {
@@ -182,9 +187,21 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       return loadVirtualModule(id, virtualModules)
     },
     configureServer(server) {
+      server.watcher.add(contentRoot)
       if (configFilePath) {
         server.watcher.add(configFilePath)
       }
+
+      const handleContentTreeChange = async (filePath: string) => {
+        const changedFile = isAbsolute(filePath) ? filePath : join(root, filePath)
+        const relativeContentFile = relative(contentRoot, changedFile)
+        const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
+        if (!isContentFile || !isClarifyContentFile(changedFile)) return
+        await refreshDevServer(server)
+      }
+
+      server.watcher.on('add', handleContentTreeChange)
+      server.watcher.on('unlink', handleContentTreeChange)
 
       server.middlewares.use((req, res, next) => {
         const requestPath = req.url?.split('?')[0] ?? ''
