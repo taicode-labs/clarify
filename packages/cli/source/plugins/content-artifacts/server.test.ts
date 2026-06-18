@@ -8,7 +8,7 @@ const projectConfig: ResolvedProjectConfig = {
   title: 'Clarify',
   description: '',
   routePrefix: '/',
-  theme: {},
+  theme: { preset: 'default', primary: '#0ea5e9' },
 }
 
 function createRoute(kind: ContentRoute['kind'], contentArtifactUrl: string): ContentRoute {

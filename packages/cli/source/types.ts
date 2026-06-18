@@ -55,6 +55,17 @@ export type ClarifyFooterConfig = {
   copyright?: ClarifyLocalizedText
 }
 
+export type ClarifyThemePreset = 'default' | 'mint' | 'violet'
+
+export type ClarifyThemeConfig = {
+  /** Visual baseline for built-in styles. Overrides below are applied on top. */
+  preset?: ClarifyThemePreset
+  /** Brand primary color. */
+  primary?: string
+}
+
+export type ResolvedClarifyThemeConfig = Required<ClarifyThemeConfig>
+
 export type ClarifyPagesItem =
   | string
   | {
@@ -108,10 +119,8 @@ export type ClarifyProjectConfig = {
   /** Favicon path or light/dark variants. */
   favicon?: ClarifyFaviconConfig
 
-  /** Theme token overrides. */
-  theme?: {
-    primary?: string
-  }
+  /** Theme preset and token overrides. */
+  theme?: ClarifyThemeConfig
 
   /** Base path for the docs site. Default: '/' */
   routePrefix?: string
@@ -141,10 +150,10 @@ export type ClarifyProjectConfig = {
 export type ResolvedProjectConfig = {
   title: string
   logo?: ClarifyLogoConfig
-  favicon?: ClarifyFaviconConfig
-  theme: { primary?: string }
   description: string
   routePrefix: string
+  favicon?: ClarifyFaviconConfig
+  theme: ResolvedClarifyThemeConfig
   navbar?: { links?: ClarifyNavbarLink[] }
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig

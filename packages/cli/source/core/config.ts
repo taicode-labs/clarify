@@ -3,6 +3,7 @@ import type { ZodError } from 'zod'
 import type { ClarifyI18nConfig, ClarifyProjectConfig, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../types.js'
 
 import { clarifyProjectConfigSchema } from './config-schema.js'
+import { resolveThemeConfig } from './theme.js'
 
 function formatIssuePath(path: PropertyKey[]): string {
   return path.reduce<string>((result, segment) => {
@@ -51,7 +52,7 @@ export function resolveProjectConfig(config: ClarifyProjectConfig = {}): Resolve
     logo: config.logo,
     favicon: config.favicon,
     routePrefix: config.routePrefix ?? '/',
-    theme: config.theme ?? {},
+    theme: resolveThemeConfig(config.theme),
     navbar: config.navbar,
     banner: config.banner,
     footer: config.footer,

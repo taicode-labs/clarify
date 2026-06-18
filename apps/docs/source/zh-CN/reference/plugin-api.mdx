@@ -64,7 +64,10 @@ type ResolvedProjectConfig = {
   title: string
   logo?: string | { light?: string; dark?: string }
   favicon?: string | { light?: string; dark?: string }
-  theme: { primary?: string }
+  theme: {
+    preset: 'default' | 'mint' | 'violet'
+    primary: string
+  }
   description: string
   routePrefix: string
   navbar?: { links?: ClarifyNavbarLink[] }

@@ -59,7 +59,7 @@ describe('resolveProjectConfig', () => {
       logo: undefined,
       favicon: undefined,
       routePrefix: '/',
-      theme: {},
+      theme: { preset: 'default', primary: '#0ea5e9' },
       navbar: undefined,
       banner: undefined,
       footer: undefined,
@@ -91,7 +91,7 @@ describe('resolveProjectConfig', () => {
     const result = resolveProjectConfig(config)
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
-    expect(result.theme).toEqual({ primary: '#333' })
+    expect(result.theme).toEqual({ preset: 'default', primary: '#333' })
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
@@ -107,6 +107,17 @@ describe('resolveProjectConfig', () => {
     expect(result.tabs).toEqual([
       { tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] },
     ])
+  })
+
+  it('applies theme presets before project overrides', () => {
+    expect(resolveProjectConfig({ theme: { preset: 'mint' } }).theme).toEqual({
+      preset: 'mint',
+      primary: '#10b981',
+    })
+    expect(resolveProjectConfig({ theme: { preset: 'violet', primary: '#7c3aed' } }).theme).toEqual({
+      preset: 'violet',
+      primary: '#7c3aed',
+    })
   })
 })
 

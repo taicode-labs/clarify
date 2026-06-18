@@ -65,6 +65,13 @@ export type ClarifyFooterConfig = {
   copyright?: ClarifyLocalizedText;
 };
 
+export type ClarifyThemePreset = 'default' | 'mint' | 'violet';
+
+export type ClarifyThemeConfig = {
+  preset: ClarifyThemePreset;
+  primary: string;
+};
+
 export type ClarifyPagesItem =
   | string
   | {
@@ -99,7 +106,7 @@ export type ClarifyConfig = {
   title: string;
   logo?: ClarifyLogoConfig;
   favicon?: ClarifyFaviconConfig;
-  theme: { primary?: string };
+  theme: ClarifyThemeConfig;
   description: string;
   rootDirectory: string;
   routePrefix: string;

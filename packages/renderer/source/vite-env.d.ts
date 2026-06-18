@@ -8,7 +8,7 @@ declare module 'virtual:clarify-config' {
   export const config: {
     title: string;
     logo?: string;
-    theme: { primary?: string };
+    theme: { preset: 'default' | 'mint' | 'violet'; primary: string };
     description: string;
     rootDirectory: string;
     routePrefix: string;

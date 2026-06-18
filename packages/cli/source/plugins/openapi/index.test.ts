@@ -12,7 +12,7 @@ const projectConfig: ResolvedProjectConfig = {
   title: 'Test',
   description: 'Test docs',
   routePrefix: '/',
-  theme: { primary: '#000000' },
+  theme: { preset: 'default', primary: '#000000' },
 }
 
 const generateOptions: ResolvedBuildOptions = {

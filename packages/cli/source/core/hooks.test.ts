@@ -9,7 +9,7 @@ const mockCtx: ClarifyHookContext = {
     title: 'Test',
     description: '',
     routePrefix: '/',
-    theme: {},
+    theme: { preset: 'default', primary: '#0ea5e9' },
   },
   generateOptions: {
     rootDirectory: 'source',

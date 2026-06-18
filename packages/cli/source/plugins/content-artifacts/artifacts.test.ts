@@ -78,7 +78,7 @@ describe('content artifact helpers', () => {
       title: 'Docs',
       description: 'Helpful docs',
       routePrefix: '/docs',
-      theme: {},
+      theme: { preset: 'default', primary: '#0ea5e9' },
     }
     const routes = [
       route({ path: '/guide', title: 'Guide', contentArtifactUrl: '/guide.md' }),

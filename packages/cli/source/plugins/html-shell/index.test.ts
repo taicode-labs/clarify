@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
+import type { ClarifyHookContext } from '../../types.js'
+
 import { createHtmlShellPlugin } from './index.js'
 
-const ctx = {
+const ctx: ClarifyHookContext = {
   projectConfig: {
     title: 'Docs',
     description: '',
     routePrefix: '/',
-    theme: {},
+    theme: { preset: 'default', primary: '#0ea5e9' },
   },
   generateOptions: {
     rootDirectory: 'source',

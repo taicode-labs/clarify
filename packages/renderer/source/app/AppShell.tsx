@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { useEffect } from 'react'
+import type { CSSProperties } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 
 import { SectionProvider, type Section } from '../components/SectionProvider'
@@ -79,6 +80,12 @@ function navigationForLocale(navigation: NavigationTree, locale: string | undefi
   return Array.isArray(localizedNavigation) ? { items: localizedNavigation } : navigationFromTabs(localizedNavigation, pathname)
 }
 
+function themeStyle(config: ClarifyConfig): CSSProperties {
+  return {
+    '--clarify-color-primary': config.theme.primary,
+  } as CSSProperties
+}
+
 export function AppShell(arg0: AppShellProps) {
   const { config, routes, navigation } = arg0
   const location = useLocation()
@@ -105,7 +112,11 @@ export function AppShell(arg0: AppShellProps) {
 
   return (
     <SectionProvider sections={sections}>
-      <div className="clarify-app h-full min-h-screen bg-white dark:bg-zinc-950">
+      <div
+        className="clarify-app h-full min-h-screen bg-white dark:bg-zinc-950"
+        data-theme-preset={config.theme.preset}
+        style={themeStyle(config)}
+      >
         <Header
           config={config}
           navigation={currentNavigation.items}

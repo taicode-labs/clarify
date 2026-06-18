@@ -129,7 +129,7 @@ describe('generateConfigModule', () => {
       title: 'Test',
       description: 'Desc',
       routePrefix: '/',
-      theme: { primary: '#fff' },
+      theme: { preset: 'default', primary: '#fff' },
     }
     const generateOptions: ResolvedBuildOptions = {
       rootDirectory: 'source',
@@ -402,7 +402,7 @@ describe('generateRoutesModule with tabs config', () => {
       title: 'Docs',
       description: '',
       routePrefix: '/',
-      theme: {},
+      theme: { preset: 'default', primary: '#0ea5e9' },
       tabs: [
         { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
       ],

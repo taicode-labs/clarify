@@ -106,14 +106,19 @@ export const clarifyTabItemSchema = z.object({
 
 export const clarifyTabsConfigSchema = z.array(clarifyTabItemSchema)
 
+export const clarifyThemePresetSchema = z.enum(['default', 'mint', 'violet'])
+
+export const clarifyThemeConfigSchema = z.object({
+  preset: clarifyThemePresetSchema.optional(),
+  primary: z.string().optional(),
+})
+
 export const clarifyProjectConfigSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   logo: clarifyLogoConfigSchema.optional(),
   favicon: clarifyFaviconConfigSchema.optional(),
-  theme: z.object({
-    primary: z.string().optional(),
-  }).optional(),
+  theme: clarifyThemeConfigSchema.optional(),
   routePrefix: z.string().optional(),
   navbar: z.object({
     links: z.array(clarifyNavbarLinkSchema).optional(),

@@ -38,6 +38,7 @@ export default defineConfig({
   favicon: '/favicon.ico',
   routePrefix: '/docs/',
   theme: {
+    preset: 'default',
     primary: '#0ea5e9',
   },
   navbar: {
@@ -88,7 +89,7 @@ export default defineConfig({
 | `description` | `string` | `""` | 站点描述，用于 SEO 和 `llms.txt` |
 | `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo 路径 |
 | `favicon` | `string \| { light?: string; dark?: string }` | — | favicon 路径或亮暗主题变体 |
-| `theme` | `{ primary?: string }` | `{}` | 当前公开的主题配置，仅包含品牌主色字段 |
+| `theme` | `{ preset?: 'default' \| 'mint' \| 'violet'; primary?: string }` | `{ preset: 'default' }` | 主题预设和基于预设的局部覆盖 |
 | `routePrefix` | `string` | `"/"` | 部署子路径，例如 `/docs/` |
 | `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | 顶部导航链接 |
 | `banner` | `ClarifyBannerConfig` | — | 顶部公告配置，供主题或后续 UI 使用 |
@@ -144,19 +145,31 @@ export default defineConfig({
 
 ```ts
 theme: {
+  preset?: 'default' | 'mint' | 'violet'
   primary?: string
 }
 ```
 
-`primary` 接受 CSS 颜色字符串。当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
+`preset` 用来选择内置主题基底。当前提供三个预设：
+
+| 预设 | 主色 | 适用场景 |
+|------|------|----------|
+| `default` | `#0ea5e9` | 默认蓝色科技感文档站 |
+| `mint` | `#10b981` | 更轻盈、偏产品或教程类文档 |
+| `violet` | `#8b5cf6` | 更强调品牌感或开发者平台风格 |
+
+剩余字段会在预设基础上覆盖。例如下面配置会先应用 `mint`，再把主色覆盖为品牌色：
 
 ```ts
 export default defineConfig({
   theme: {
-    primary: '#0ea5e9',
+    preset: 'mint',
+    primary: '#14b8a6',
   },
 })
 ```
+
+当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
 
 ---
 
