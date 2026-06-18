@@ -65,8 +65,9 @@ jobs:
         run: pnpm --filter @clarify-labs/renderer build
 
       - name: Publish renderer
+        working-directory: packages/renderer
         run: |
-          pnpm --dir packages/renderer pack --pack-destination "${RUNNER_TEMP}"
+          pnpm pack --pack-destination "${RUNNER_TEMP}"
           npm publish "${RUNNER_TEMP}"/clarify-labs-renderer-*.tgz --access public
 
   publish-cli:
@@ -97,6 +98,7 @@ jobs:
         run: pnpm --filter @clarify-labs/cli... build
 
       - name: Publish CLI
+        working-directory: packages/cli
         run: |
-          pnpm --dir packages/cli pack --pack-destination "${RUNNER_TEMP}"
+          pnpm pack --pack-destination "${RUNNER_TEMP}"
           npm publish "${RUNNER_TEMP}"/clarify-labs-cli-*.tgz --access public
