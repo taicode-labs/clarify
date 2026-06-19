@@ -110,6 +110,31 @@ function themeStyle(config: ClarifyConfig): ThemeCssVariables {
   }
 }
 
+function pageTitle(config: ClarifyConfig, route?: RouteItem): string {
+  const routeTitle = route?.title?.trim()
+  if (!routeTitle || routeTitle === config.title) return config.title
+  return `${routeTitle} - ${config.title}`
+}
+
+function setNamedMeta(name: string, content: string | undefined) {
+  const existing = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)
+  if (!content) {
+    existing?.remove()
+    return
+  }
+
+  const meta = existing ?? document.createElement('meta')
+  meta.name = name
+  meta.content = content
+  if (!existing) document.head.appendChild(meta)
+}
+
+function applyDocumentMetadata(config: ClarifyConfig, route?: RouteItem) {
+  document.title = pageTitle(config, route)
+  setNamedMeta('description', route?.description ?? config.description)
+  setNamedMeta('keywords', route?.keywords?.join(', '))
+}
+
 function applyRootThemeVariables(themeVariables: ThemeCssVariables): () => void {
   const rootStyle = document.documentElement.style
 
@@ -154,6 +179,10 @@ export function AppShell(arg0: AppShellProps) {
       document.documentElement.removeAttribute('dir')
     }
   }, [currentLocale, currentLocaleConfig?.dir])
+
+  useEffect(() => {
+    applyDocumentMetadata(config, currentRoute)
+  }, [config, currentRoute])
 
   return (
     <ClarifyLocaleContext.Provider value={currentLocale}>

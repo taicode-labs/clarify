@@ -236,6 +236,8 @@ export type ContentRoute = {
   isFallback?: boolean
   alternates?: Record<string, string>
   title: string
+  description?: string
+  keywords?: string[]
   filePath: string
   virtualModuleId: string
   kind: 'mdx' | 'openapi'

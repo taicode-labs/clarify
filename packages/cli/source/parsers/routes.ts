@@ -116,6 +116,8 @@ export function findContentRoutes(dir: string, base: string = dir): ContentRoute
         filePath: fullPath,
         virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx?$/, '').replace(/\/+/g, '/'),
         title,
+        description: typeof frontmatter.description === 'string' ? frontmatter.description : undefined,
+        keywords: frontmatterKeywords(frontmatter),
         kind: 'mdx',
         frontmatter,
         content,
@@ -131,6 +133,17 @@ function virtualModuleIdForLocalizedRoute(contentRoot: string, filePath: string)
     .replace(/\.mdx?$/, '')
     .replace(/\.openapi\.(json|yaml|yml)$/, '')
     .replace(/\/+/g, '/')
+}
+
+function frontmatterKeywords(frontmatter: Record<string, unknown>): string[] | undefined {
+  const value = frontmatter.keywords ?? frontmatter.keyword ?? frontmatter.tags
+  const keywords = Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : typeof value === 'string'
+      ? value.split(',').map(keyword => keyword.trim()).filter(Boolean)
+      : []
+
+  return keywords.length > 0 ? keywords : undefined
 }
 
 function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute {

@@ -26,6 +26,8 @@ export type RouteItem = {
   isFallback?: boolean;
   alternates?: Record<string, string>;
   title: string;
+  description?: string;
+  keywords?: string[];
   component: RouteComponent;
   lazy?: boolean;
   kind?: 'mdx' | 'openapi';

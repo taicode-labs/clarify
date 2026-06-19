@@ -39,17 +39,29 @@ function injectHtmlLocaleAttributes(html: string, projectConfig: ResolvedProject
   })
 }
 
+function routeTitle(projectConfig: ResolvedProjectConfig, route?: ContentRoute): string {
+  const title = route?.title?.trim()
+  if (!title || title === projectConfig.title) return projectConfig.title
+  return `${title} - ${projectConfig.title}`
+}
+
+function setNamedMeta(html: string, name: string, content: string | undefined): string {
+  const metaPattern = new RegExp(`<meta\\b(?=[^>]*\\bname=["']${name}["'])[^>]*>\\n?`, 'i')
+  if (!content) return html.replace(metaPattern, '')
+
+  const meta = `<meta name="${name}" content="${escapeHtml(content)}" />`
+  if (metaPattern.test(html)) return html.replace(metaPattern, meta)
+  return html.replace('</head>', `  ${meta}\n  </head>`)
+}
+
 export function injectSSRIntoTemplate(template: string, appHtml: string, projectConfig: ResolvedProjectConfig, route?: ContentRoute): string {
   let html = injectHtmlLocaleAttributes(template, projectConfig, route)
 
   // Replace <title>...</title>
-  html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(projectConfig.title)}</title>`)
+  html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(routeTitle(projectConfig, route))}</title>`)
 
-  // Inject description meta if not present and description is set
-  if (projectConfig.description && !html.includes('name="description"')) {
-    const descriptionMeta = `<meta name="description" content="${escapeHtml(projectConfig.description)}" />`
-    html = html.replace('</head>', `  ${descriptionMeta}\n  </head>`)
-  }
+  html = setNamedMeta(html, 'description', route?.description ?? projectConfig.description)
+  html = setNamedMeta(html, 'keywords', route?.keywords?.join(', '))
 
   // Replace <div id="root">...</div> with SSR rendered content
   html = html.replace(/<div id="root">[\s\S]*?<\/div>/, `<div id="root">${appHtml}</div>`)

@@ -89,9 +89,32 @@ describe('injectSSRIntoTemplate', () => {
     expect(html).not.toContain('Default Title')
   })
 
+  it('combines page title with site title', () => {
+    const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, {
+      path: '/guide',
+      title: 'Guide',
+      filePath: '/content/guide.mdx',
+      kind: 'mdx',
+      virtualModuleId: 'virtual:guide',
+    })
+    expect(html).toContain('<title>Guide - Test Docs</title>')
+  })
+
   it('injects description meta when not present', () => {
     const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig)
     expect(html).toContain('<meta name="description" content="A test site" />')
+  })
+
+  it('uses page description before site description', () => {
+    const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, {
+      path: '/guide',
+      title: 'Guide',
+      description: 'Guide description',
+      filePath: '/content/guide.mdx',
+      kind: 'mdx',
+      virtualModuleId: 'virtual:guide',
+    })
+    expect(html).toContain('<meta name="description" content="Guide description" />')
   })
 
   it('does not inject description meta when description is empty', () => {
@@ -100,7 +123,7 @@ describe('injectSSRIntoTemplate', () => {
     expect(html).not.toContain('name="description"')
   })
 
-  it('does not duplicate description meta if already present', () => {
+  it('updates description meta if already present', () => {
     const template = baseTemplate.replace(
       '</head>',
       '  <meta name="description" content="Existing" />\n  </head>'
@@ -108,6 +131,19 @@ describe('injectSSRIntoTemplate', () => {
     const html = injectSSRIntoTemplate(template, '', baseConfig)
     const matches = html.match(/name="description"/g)
     expect(matches).toHaveLength(1)
+    expect(html).toContain('<meta name="description" content="A test site" />')
+  })
+
+  it('injects keywords meta from page keywords', () => {
+    const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, {
+      path: '/guide',
+      title: 'Guide',
+      keywords: ['docs', 'api'],
+      filePath: '/content/guide.mdx',
+      kind: 'mdx',
+      virtualModuleId: 'virtual:guide',
+    })
+    expect(html).toContain('<meta name="keywords" content="docs, api" />')
   })
 
   it('preserves user custom elements (favicon, scripts, links)', () => {

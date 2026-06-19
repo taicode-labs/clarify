@@ -29,6 +29,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           specs[route.virtualModuleId] = spec
           specs[`virtual:clarify-page/${route.path.replace(/^\//, '')}`] = spec
           route.title = spec.info?.title ?? route.title
+          route.description = spec.info?.description ?? route.description
           route.sections = extractOpenAPISections(spec)
         }
 
