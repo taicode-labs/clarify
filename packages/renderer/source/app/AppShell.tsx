@@ -15,6 +15,8 @@ export type AppShellProps = {
   navigation: NavigationTree
 }
 
+type ThemeCssVariables = CSSProperties & Record<`--clarify-theme-${string}`, string>
+
 function routeForPath(routes: RouteItem[], pathname: string): RouteItem | undefined {
   return routes.find((route) => route.path === pathname || `/${route.path}` === pathname)
 }
@@ -81,7 +83,7 @@ function navigationForLocale(navigation: NavigationTree, locale: string | undefi
   return Array.isArray(localizedNavigation) ? { items: localizedNavigation } : navigationFromTabs(localizedNavigation, pathname)
 }
 
-function themeStyle(config: ClarifyConfig): CSSProperties {
+function themeStyle(config: ClarifyConfig): ThemeCssVariables {
   const { colors, radius } = config.theme.tokens
   const { layout } = config.theme
 
@@ -99,7 +101,21 @@ function themeStyle(config: ClarifyConfig): CSSProperties {
     '--clarify-theme-tokens-radius-lg': radius.lg,
     '--clarify-theme-tokens-radius-xl': radius.xl,
     '--clarify-theme-layout-max-width': layout.maxWidth,
-  } as CSSProperties
+  }
+}
+
+function applyRootThemeVariables(themeVariables: ThemeCssVariables): () => void {
+  const rootStyle = document.documentElement.style
+
+  for (const [property, value] of Object.entries(themeVariables)) {
+    rootStyle.setProperty(property, value)
+  }
+
+  return () => {
+    for (const property of Object.keys(themeVariables)) {
+      rootStyle.removeProperty(property)
+    }
+  }
 }
 
 export function AppShell(arg0: AppShellProps) {
@@ -111,6 +127,9 @@ export function AppShell(arg0: AppShellProps) {
   const currentNavigation = navigationForLocale(navigation, currentLocale, location.pathname)
   const sections = sectionsForRoute(currentRoute)
   const hasTabs = Boolean(currentNavigation.tabs?.length)
+  const themeVariables = themeStyle(config)
+
+  useEffect(() => applyRootThemeVariables(themeVariables), [themeVariables])
 
   useEffect(() => {
     scrollToHash(location.hash)
@@ -131,7 +150,7 @@ export function AppShell(arg0: AppShellProps) {
       <div
         className="clarify-app h-full min-h-screen bg-(--clarify-theme-tokens-colors-background) text-(--clarify-theme-tokens-colors-foreground) dark:bg-zinc-950 dark:text-white"
         data-theme-preset={config.theme.preset}
-        style={themeStyle(config)}
+        style={themeVariables}
       >
         <Header
           config={config}

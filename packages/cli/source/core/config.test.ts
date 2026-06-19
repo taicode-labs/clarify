@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { clarifyProjectConfigSchema } from './config-schema.js'
 import { resolveProjectConfig } from './config.js'
 import { resolveBuildOptions } from './options.js'
+import { clarifyThemePresets } from './theme.js'
 
 describe('clarifyProjectConfigSchema', () => {
   it('validates project config', () => {
@@ -149,6 +150,24 @@ describe('resolveProjectConfig', () => {
     expect(violetTheme.tokens.colors.primary).toBe('#7c3aed')
     expect(violetTheme.tokens.colors.accent).toBe('#a78bfa')
     expect(violetTheme.layout).toEqual({ maxWidth: '80rem' })
+  })
+
+  it('defines every built-in theme token and layout value', () => {
+    const requiredColorTokens = ['primary', 'accent', 'background', 'foreground', 'surface', 'muted', 'border', 'codeBackground'] as const
+    const requiredRadiusTokens = ['sm', 'md', 'lg', 'xl'] as const
+    const requiredLayoutValues = ['maxWidth'] as const
+
+    for (const theme of Object.values(clarifyThemePresets)) {
+      for (const token of requiredColorTokens) {
+        expect(theme.tokens.colors[token]).toBeTruthy()
+      }
+      for (const token of requiredRadiusTokens) {
+        expect(theme.tokens.radius[token]).toBeTruthy()
+      }
+      for (const value of requiredLayoutValues) {
+        expect(theme.layout[value]).toBeTruthy()
+      }
+    }
   })
 })
 
