@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { createLlmsTxt, readRouteContent } from './artifacts.js'
+import { createLlmsTxtArtifact, readRouteArtifactContent } from './artifacts.js'
 
 function normalizeRoutePrefix(routePrefix: string): string {
   if (!routePrefix || routePrefix === '/') return ''
@@ -33,7 +33,7 @@ export function serveContentArtifacts(req: IncomingMessage, res: ServerResponse,
   if (contentPath === '/llms.txt') {
     res.statusCode = 200
     res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-    res.end(createLlmsTxt(routes, projectConfig))
+    res.end(createLlmsTxtArtifact(routes, projectConfig), 'utf8')
     return true
   }
 
@@ -42,6 +42,6 @@ export function serveContentArtifacts(req: IncomingMessage, res: ServerResponse,
 
   res.statusCode = 200
   res.setHeader('Content-Type', resolveContentArtifactType(route))
-  res.end(readRouteContent(route))
+  res.end(readRouteArtifactContent(route), 'utf8')
   return true
 }

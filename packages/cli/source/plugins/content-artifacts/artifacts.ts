@@ -3,9 +3,25 @@ import { dirname, extname, join } from 'node:path'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
+const UTF8_SIGNATURE = '\uFEFF'
+
 function normalizeBasePath(basePath: string): string {
   if (!basePath || basePath === '/') return ''
   return '/' + basePath.replace(/^\/+|\/+$/g, '')
+}
+
+function containsNonAscii(content: string): boolean {
+  return /[^\u0000-\u007F]/.test(content)
+}
+
+function withUtf8Signature(content: string): string {
+  if (!containsNonAscii(content) || content.startsWith(UTF8_SIGNATURE)) return content
+  return `${UTF8_SIGNATURE}${content}`
+}
+
+function shouldUseUtf8Signature(route: ContentRoute): boolean {
+  if (route.kind === 'mdx') return true
+  return /\.ya?ml$/i.test(route.contentArtifactUrl ?? '')
 }
 
 export function routeToMarkdownArtifactUrl(routePath: string): string {
@@ -32,13 +48,18 @@ export function readRouteContent(route: ContentRoute): string {
   throw new Error(`Route content is missing from route context: ${route.filePath}`)
 }
 
+export function readRouteArtifactContent(route: ContentRoute): string {
+  const content = readRouteContent(route)
+  return shouldUseUtf8Signature(route) ? withUtf8Signature(content) : content
+}
+
 export function writeContentArtifactFiles(routes: ContentRoute[], outputDirectory: string): void {
   for (const route of routes) {
     if (!route.contentArtifactUrl) continue
 
     const outFile = join(outputDirectory, route.contentArtifactUrl.replace(/^\//, ''))
     mkdirSync(dirname(outFile), { recursive: true })
-    writeFileSync(outFile, readRouteContent(route), 'utf-8')
+    writeFileSync(outFile, readRouteArtifactContent(route), 'utf-8')
   }
 }
 
@@ -71,7 +92,11 @@ export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedPro
   return `${lines.join('\n')}\n`
 }
 
+export function createLlmsTxtArtifact(routes: ContentRoute[], projectConfig: ResolvedProjectConfig): string {
+  return withUtf8Signature(createLlmsTxt(routes, projectConfig))
+}
+
 export function writeLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedProjectConfig, outputDirectory: string): void {
   mkdirSync(outputDirectory, { recursive: true })
-  writeFileSync(join(outputDirectory, 'llms.txt'), createLlmsTxt(routes, projectConfig), 'utf-8')
+  writeFileSync(join(outputDirectory, 'llms.txt'), createLlmsTxtArtifact(routes, projectConfig), 'utf-8')
 }

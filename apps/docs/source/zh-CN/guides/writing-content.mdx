@@ -1,67 +1,190 @@
-# 编写内容的最佳实践
+# 写作文档
 
-好的文档不仅取决于工具，更取决于内容的组织方式。以下是使用 Clarify 编写文档时的建议。
+这篇文档合并说明 Clarify 中和“写内容”有关的核心能力：MDX、Frontmatter、文件路由、OpenAPI 文件路由、代码块和内置组件。
+
+目标是让作者知道：文件应该放在哪里、页面如何生成、元数据怎么写、什么时候使用组件。
 
 ---
 
-## 文件组织
+## 推荐目录结构
 
-### 按主题分组
+把文档按读者任务组织，而不是按内部模块组织：
 
-将相关页面放在同一个目录下：
-
-```
-content/
-├── index.mdx           # 首页/介绍
-├── getting-started/    # 入门系列
-│   ├── index.mdx
-│   ├── installation.mdx
-│   └── first-site.mdx
-├── features/           # 功能介绍
-│   ├── index.mdx
-│   ├── mdx.mdx
-│   └── routing.mdx
-└── reference/          # 参考文档
-    └── clarify-config.mdx
+```txt
+source/
+├── index.mdx
+├── getting-started.mdx
+├── guides/
+│   ├── writing.mdx
+│   └── deploy.mdx
+├── reference/
+│   └── config.mdx
+└── api.openapi.json
 ```
 
-### 使用索引页面
+启用国际化时，把同样的结构放进 locale 目录：
 
-每个目录建议包含 `index.mdx`，作为该章节的入口：
+```txt
+source/
+├── zh-CN/
+│   ├── index.mdx
+│   └── getting-started.mdx
+└── en-US/
+    ├── index.mdx
+    └── getting-started.mdx
+```
+
+---
+
+## 文件就是路由
+
+Clarify 按照 `source/` 下的文件结构生成页面路径：
+
+| 文件 | 路由 |
+|------|------|
+| `source/index.mdx` | `/` |
+| `source/getting-started.mdx` | `/getting-started` |
+| `source/guide/index.mdx` | `/guide` |
+| `source/guide/auth.mdx` | `/guide/auth` |
+| `source/api.openapi.json` | `/api` |
+
+规则：
+
+- `index.mdx` 映射为所在目录根路径。
+- 文件名建议使用小写和连字符，例如 `api-authentication.mdx`。
+- 支持 `.mdx` 内容文件，以及 `.openapi.json`、`.openapi.yaml`、`.openapi.yml` 规范文件。
+- 如果站点部署在子路径，使用 `routePrefix` 配置前缀，见 [配置站点](/guides/navigation)。
+
+---
+
+## MDX 基础
+
+Clarify 使用 MDX，你可以写普通 Markdown，也可以嵌入 JSX。
+
+```mdx
+# 标题
+
+**粗体**、*斜体*、`行内代码`。
+
+- 列表项 1
+- 列表项 2
+
+> 引用块
+```
+
+嵌入 JSX：
+
+```mdx
+# 欢迎使用
+
+<div className="rounded-lg border p-4">
+  这是一个 React 片段。
+</div>
+```
+
+导入自定义组件：
+
+```mdx
+import { Alert } from '../components/Alert'
+
+# 页面标题
+
+<Alert type="warning">
+  这是一条警告信息。
+</Alert>
+```
+
+---
+
+## Frontmatter
+
+每个页面顶部可以添加 YAML frontmatter，用于页面标题和描述：
 
 ```mdx
 ---
-title: 快速开始
+title: 页面标题
+description: 页面描述，用于 SEO 和社交分享
 ---
 
-# 快速开始
-
-本章帮助你从零开始搭建 Clarify 文档站点。
-
-## 内容
-
-- [环境准备与安装](/getting-started/installation)
-- [创建你的第一个站点](/getting-started/first-site)
+# 正文内容
 ```
 
+当前稳定字段：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `title` | `string` | 页面标题；为空时会尝试使用第一个 `h1` |
+| `description` | `string` | 页面描述，用于 SEO meta |
+
+> 当前版本不提供 `navOrder`、`hidden` 等高级 frontmatter 字段。要控制侧边栏，请在 `clarify.ts` 中显式配置 `tabs`。
+
 ---
 
-## Frontmatter 使用
+## 代码块与 GFM
 
-每个页面都应包含完整的 frontmatter：
+代码块会自动高亮：
+
+```typescript
+function greet(name: string): string {
+  return `Hello, ${name}!`
+}
+```
+
+内置 GitHub Flavored Markdown 支持：
+
+| 语法 | 是否支持 |
+|------|----------|
+| 表格 | 支持 |
+| 任务列表 | 支持 |
+| 删除线 | 支持 |
+| 自动链接 | 支持 |
 
 ```mdx
----
-title: 页面标题              # 必填，用于导航和 <title>
-description: 页面描述        # 建议填写，用于 SEO
----
+- [x] 支持表格
+- [x] 支持任务列表
+- [ ] 支持更多写作体验
 ```
 
 ---
 
-## 写作风格
+## 内置组件
 
-- **使用第二人称** — "你可以..." 比 "用户可以..." 更直接
-- **先讲为什么，再讲怎么做** — 给读者行动的理由
-- **多用列表和表格** — 减少大段文字，提高可读性
-- **添加示例代码** — 理论配合实践，降低理解门槛
+Clarify 在 MDX 中默认注册了一组公开组件，不需要手动导入：
+
+| 组件 | 用途 |
+|------|------|
+| `Callout` | 展示提示、注意、警告、危险和成功状态 |
+| `CardGroup` / `Card` | 制作入口卡片、功能矩阵和章节索引 |
+| `Button` | 提供明确行动入口 |
+| `CodeGroup` | 展示多语言、多包管理器或多环境代码示例 |
+| `OpenApiEndpoint` | 在指南中嵌入单个 OpenAPI operation |
+| `OpenApiPage` | 在 MDX 页面中嵌入完整 API Reference |
+
+示例：
+
+```mdx
+<Callout type="tip" title="建议">
+  把用户任务放在导航前面，把字段参考放在后面。
+</Callout>
+
+<CardGroup cols={2}>
+  <Card title="快速开始" icon="rocket" href="/getting-started">
+    安装 CLI 并创建第一个文档站点。
+  </Card>
+  <Card title="API 文档" icon="braces" href="/features/openapi">
+    从 OpenAPI 生成 Reference 并嵌入接口。
+  </Card>
+</CardGroup>
+```
+
+完整属性见 [内置公开组件](/reference/built-in-components)。
+
+---
+
+## 写作建议
+
+- **一篇文档解决一个用户任务**，不要为每个内部能力单独开文档。
+- **先讲为什么，再讲怎么做**，让读者知道当前步骤的价值。
+- **把字段列表放进参考页**，任务页只保留最常用配置。
+- **多用表格和短代码示例**，减少长段落。
+- **让 OpenAPI 承担接口事实来源**，教程只解释业务流程。

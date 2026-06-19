@@ -74,10 +74,11 @@ pnpm exec clarify build
 | 功能 | Mintlify | Clarify |
 |------|----------|---------|
 | 托管方式 | 托管服务 | 自托管，构建为静态文件 |
-| 路由配置 | `navigation` 字段 | 文件系统约定 |
-| 组件库 | 内置 Mintlify 组件 | 标准 React + 自定义组件 |
-| 搜索 | 内置 | 插件扩展 |
-| i18n | 支持 | 插件扩展 |
+| 路由配置 | `navigation` 字段 | `tabs` 显式配置 + 文件路由 |
+| 组件库 | 内置 Mintlify 组件 | MDX + Clarify 内置组件 + 自定义 React 组件 |
+| OpenAPI | 托管平台能力 | OpenAPI 文件作为一等内容源，可生成 Reference 和嵌入接口 |
+| i18n | 支持 | 内置 locale 目录、语言切换和缺失翻译策略 |
+| AI 读取 | 平台能力 | 静态输出 Markdown、OpenAPI 和 `llms.txt` |
 
 ---
 

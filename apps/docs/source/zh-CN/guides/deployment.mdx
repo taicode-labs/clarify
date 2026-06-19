@@ -1,42 +1,68 @@
-# 部署到生产环境
+# 发布上线
+
+这篇文档合并说明 Clarify 的发布能力：静态生成、部署到常见平台、配置子路径、输出原始内容和 `llms.txt`。
 
 Clarify 构建产物是纯静态文件，可以部署到任何静态托管服务。
 
 ---
 
-## 构建
+## 构建产物
+
+运行：
 
 ```bash
 pnpm exec clarify build
 ```
 
-构建产物位于 `output/` 目录（可通过 `clarify build --output <dir>` 修改）。
-
----
-
-## Vercel
-
-### 使用 CLI
+默认输出到 `output/`，也可以指定目录：
 
 ```bash
-npm i -g vercel
-vercel --prod
+pnpm exec clarify build --output dist
 ```
 
-### 使用 Git 集成
+构建结果类似：
 
-1. 将代码推送到 GitHub/GitLab/Bitbucket
-2. 在 Vercel 中导入项目
-3. 构建命令：`pnpm exec clarify build`
-4. 输出目录：`output`
+```txt
+output/
+├── index.html
+├── getting-started/
+│   └── index.html
+├── assets/
+├── llms.txt
+├── index.md
+└── api.openapi.json
+```
+
+每个路由都有独立 HTML，适合 SEO 和直接访问；浏览器加载 JavaScript 后会获得客户端导航体验。
 
 ---
 
-## GitHub Pages
+## 部署平台
 
-### 使用 GitHub Actions
+### Vercel
 
-创建 `.github/workflows/deploy.yml`：
+1. 将代码推送到 GitHub/GitLab/Bitbucket。
+2. 在 Vercel 中导入项目。
+3. 构建命令：`pnpm exec clarify build`。
+4. 输出目录：`output`。
+
+### Netlify
+
+1. 连接 Git 仓库。
+2. 构建命令：`pnpm exec clarify build`。
+3. 发布目录：`output`。
+
+### GitHub Pages
+
+如果仓库名为 `my-repo`，站点地址是 `https://username.github.io/my-repo/`，配置：
+
+```ts
+export default defineConfig({
+  routePrefix: '/my-repo/',
+})
+```
+
+示例 GitHub Actions：
 
 ```yaml
 name: Deploy to GitHub Pages
@@ -52,43 +78,22 @@ jobs:
         with:
           version: 9
       - run: pnpm install
-      - run: pnpm build
+      - run: pnpm exec clarify build
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./output
 ```
 
-### 配置 routePrefix
+### CDN / Nginx
 
-如果仓库名为 `my-repo`，GitHub Pages 地址为 `https://username.github.io/my-repo/`，需要在 `clarify.json` 中设置：
-
-```json
-{
-  "routePrefix": "/my-repo/"
-}
-```
-
----
-
-## Netlify
-
-1. 连接 Git 仓库
-2. 构建命令：`pnpm exec clarify build`
-3. 发布目录：`output`
-
----
-
-## CDN / Nginx
-
-将 `output/` 目录上传到 CDN 或 Web 服务器：
+将 `output/` 上传到 Web 根目录即可：
 
 ```bash
-# 示例：rsync 到服务器
 rsync -avz output/ user@server:/var/www/html/
 ```
 
-Nginx 配置示例：
+Nginx 示例：
 
 ```nginx
 server {
@@ -102,4 +107,55 @@ server {
 }
 ```
 
-> 注意：`try_files` 确保客户端路由能正常工作。
+---
+
+## 原始内容输出
+
+Clarify 会在开发和构建阶段暴露原始内容，方便搜索、知识库和 AI 工具读取。
+
+| 页面路由 | 原始内容 URL |
+|----------|--------------|
+| `/` | `/index.md` |
+| `/getting-started` | `/getting-started.md` |
+| `/features/openapi` | `/features/openapi.md` |
+| `/api` | `/api.openapi.json` |
+
+页面右上角的内容操作会使用这些 URL，用于复制原始内容链接、下载页面源内容，或让 AI 工具引用稳定的 Markdown/OpenAPI 地址。
+
+---
+
+## `llms.txt`
+
+构建产物会包含 `llms.txt`，列出站点标题、描述、MDX 页面和 OpenAPI 文档入口：
+
+```txt
+# Clarify
+
+> 开源文档发布工具，为 MDX 和 OpenAPI 而生。
+
+## Docs
+- [快速开始](/getting-started.md)
+- [API 文档](/features/openapi.md)
+
+## OpenAPI
+- [API Reference](/api.openapi.json)
+```
+
+适合被：
+
+- AI 编程助手读取；
+- 内部知识库索引；
+- 文档质量检查工具消费；
+- 搜索或问答系统作为入口清单。
+
+如果配置了 `routePrefix`，`llms.txt` 中的链接会自动带上相同前缀。
+
+---
+
+## 发布前检查
+
+- `pnpm exec clarify build` 可以成功完成。
+- `output/` 中包含预期 HTML、资源、原始 Markdown/OpenAPI 和 `llms.txt`。
+- 如果部署在子路径，已配置 `routePrefix`。
+- OpenAPI 原始内容不包含不应公开的内部信息。
+- 部署平台的输出目录指向 `output` 或你的自定义输出目录。

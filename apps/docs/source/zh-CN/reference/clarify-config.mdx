@@ -263,7 +263,7 @@ type ClarifyI18nConfig = {
 }
 ```
 
-更多说明见 [国际化](/features/i18n)。
+更多说明见 [配置站点](/guides/navigation)。
 
 ---
 
@@ -309,15 +309,12 @@ export default defineConfig({
       icon: 'Rocket',
       pages: [
         {
-          group: { 'zh-CN': '开始使用', 'en-US': 'Get Started' },
+          group: { 'zh-CN': '核心路径', 'en-US': 'Core Path' },
           icon: 'Rocket',
           pages: [
-            { page: 'getting-started/installation', icon: 'Download' },
-            {
-              page: 'getting-started/first-site',
-              title: { 'zh-CN': '创建第一个站点', 'en-US': 'Create Your First Site' },
-              icon: 'Sparkles',
-            },
+            { page: 'getting-started', title: '快速开始', icon: 'Rocket' },
+            { page: 'guides/writing-content', title: '写作文档', icon: 'PenLine' },
+            { page: 'guides/navigation', title: '配置站点', icon: 'SlidersHorizontal' },
           ],
         },
       ],

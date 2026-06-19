@@ -1,8 +1,8 @@
-# OpenAPI 集成
+# API 文档
 
-Clarify 把 OpenAPI 规范当作一等内容源：规范文件可以生成完整 API Reference，也可以在 MDX 指南中嵌入单个接口。
+这篇文档合并说明 Clarify 的 OpenAPI 能力：生成完整 API Reference、在 MDX 指南中嵌入单个接口、组织产品级 API 文档，以及把原始规范输出给 AI 工具。
 
-这让 API 文档不再只是“接口列表”，而是可以和教程、认证说明、错误处理、迁移指南一起组成完整的开发者体验。
+Clarify 把 OpenAPI 规范当作一等内容源。规范负责接口事实，MDX 负责解释业务流程。
 
 ---
 
@@ -28,7 +28,7 @@ source/
 └── api.openapi.json
 ```
 
-运行构建后，Clarify 会生成：
+Clarify 会生成：
 
 | 产物 | 说明 |
 |------|------|
@@ -36,54 +36,130 @@ source/
 | `/api.openapi.json` | 原始 OpenAPI 规范输出 |
 | `llms.txt` 中的 OpenAPI 链接 | 方便 AI 工具发现和读取 |
 
----
+如果你显式维护侧边栏，在 `tabs` 中加入：
 
-## 工作流
-
-```txt
-OpenAPI 规范
-    ↓ 构建时解析 / dereference
-OpenAPI 注册表
-    ↓
-API Reference 页面 + MDX 接口嵌入 + 原始规范输出
+```ts
+{
+  openapi: 'api.openapi.json',
+  title: 'API Reference',
+  icon: 'FileJson2',
+}
 ```
 
-构建时，Clarify 会使用 `@apidevtools/swagger-parser` 解析 OpenAPI 3.0 / 3.1 规范。`$ref`、共享 `components`、JSON/YAML 文件和跨结构引用会先被解析，再交给渲染器。
+---
+
+## 规范格式与路由
+
+支持 OpenAPI 3.0 / 3.1，文件扩展名：
+
+| 格式 | 示例 | 路由 |
+|------|------|------|
+| JSON | `api.openapi.json` | `/api` |
+| YAML | `billing.openapi.yaml` | `/billing` |
+| YAML 简写 | `admin.openapi.yml` | `/admin` |
+
+启用 i18n 时，OpenAPI 文件也遵循语言目录规则：
+
+```txt
+source/
+└── zh-CN/
+    └── api.openapi.json  → /api
+```
+
+构建时 Clarify 会使用 `@apidevtools/swagger-parser` 解析并 dereference 规范。规范无效时，生产构建会失败，避免发布过期或错误的接口文档。
 
 ---
 
-## 推荐信息架构
+## 在指南中嵌入接口
 
-产品级 API 文档通常不应该只有一个 Reference 页面。更推荐拆成：
+产品级 API 文档不应该只有 Reference。推荐围绕真实任务写指南，并在关键步骤旁嵌入对应 operation。
 
-1. **API 文档工作流**：讲如何组织规范、指南和接口嵌入
-2. **生成 API Reference**：讲规范文件如何变成完整接口页面
-3. **在 MDX 中嵌入接口**：讲如何把 operation 放进教程
-4. **API 文档示例**：展示真实渲染效果
-5. **API Reference**：完整接口列表
+```mdx
+# 认证
 
-本站的 “API 文档” 分组就是按这个结构组织的。
+使用访问令牌调用受保护接口。令牌过期后，重新创建会话。
 
----
+<OpenApiEndpoint specPath="/api" path="/sessions" method="post" />
+```
 
-## 支持的规范格式
+`OpenApiEndpoint` 参数：
 
-| 格式 | 示例 |
+| 参数 | 说明 |
 |------|------|
-| JSON | `api.openapi.json` |
-| YAML | `api.openapi.yaml` |
-| YAML 简写 | `api.openapi.yml` |
+| `specPath` | OpenAPI 路由，不写 `.openapi.json` 后缀，例如 `/api` |
+| `path` | OpenAPI `paths` 中的路径，必须完全一致 |
+| `method` | HTTP 方法，建议小写，例如 `get`、`post`、`patch` |
 
-支持 OpenAPI 版本：
+如果要在 MDX 中插入完整 Reference，可以使用：
 
-- OpenAPI 3.0.x
-- OpenAPI 3.1.x
+```mdx
+<OpenApiPage specPath="/api" />
+```
 
 ---
 
-## 继续阅读
+## 推荐 API 文档结构
 
-- [API 文档工作流](/guides/api-docs-workflow)
-- [生成 API Reference](/features/api-reference)
-- [在 MDX 中嵌入接口](/features/openapi-embedding)
-- [API 文档示例](/showcase/openapi-demo)
+```txt
+source/
+├── guides/
+│   ├── authentication.mdx
+│   ├── pagination.mdx
+│   └── webhooks.mdx
+├── api.openapi.json
+└── index.mdx
+```
+
+写作分工：
+
+| 角色 | 负责内容 |
+|------|----------|
+| 后端 / API 平台 | OpenAPI 规范、schema、响应码、认证方式 |
+| 技术写作 | 指南结构、调用流程、错误解释 |
+| 前端 / SDK | 示例代码、SDK 行为、真实集成场景 |
+| 产品 / 开发者体验 | 信息架构、命名、读者任务路径 |
+
+发布前检查：
+
+- OpenAPI 文件能被构建成功解析。
+- 侧边栏中有清晰的 API Reference 入口。
+- 关键业务流程有指南，而不只是接口列表。
+- 示例请求和响应没有测试数据泄漏。
+- 错误响应有明确说明。
+- `llms.txt` 能列出原始 OpenAPI 规范链接。
+
+---
+
+## 内容质量建议
+
+API Reference 的质量主要取决于 OpenAPI 规范本身。建议至少补齐：
+
+- `info.title`、`info.version`、`info.description`
+- `servers`
+- `tags`
+- 每个 operation 的 `summary` 和 `description`
+- 参数的 `description`、`schema`、`example` 或 `examples`
+- 请求体和响应的 media type
+- 主要响应码和错误响应
+- 复用的 `components.schemas`
+- 认证方式 `components.securitySchemes`
+
+---
+
+## 常见问题
+
+### API 页面没有出现在侧边栏？
+
+如果显式配置了 `tabs[].pages`，Clarify 不会自动把所有文件插入侧边栏。需要手动添加 `openapi` 条目。
+
+### `OpenAPI spec not found`？
+
+检查：
+
+- OpenAPI 文件是否在 `source` 下。
+- 文件名是否使用 `.openapi.json` / `.openapi.yaml` / `.openapi.yml`。
+- `specPath` 是否写的是路由，而不是文件名。
+
+### `Endpoint not found`？
+
+检查 `path` 是否和 OpenAPI `paths` 键完全一致，路径参数是否使用 `{id}` 形式，`method` 是否存在于该路径下。

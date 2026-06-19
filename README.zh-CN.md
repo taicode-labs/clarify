@@ -1,6 +1,10 @@
 # Clarify
 
 <p align="center">
+  <img src="./apps/docs/public/clarify.svg" alt="Clarify logo" width="112" />
+</p>
+
+<p align="center">
   <strong>面向 MDX、OpenAPI 与 AI 可读知识库的开源文档发布工具。</strong>
 </p>
 

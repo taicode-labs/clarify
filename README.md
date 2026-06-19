@@ -1,6 +1,10 @@
 # Clarify
 
 <p align="center">
+  <img src="./apps/docs/public/clarify.svg" alt="Clarify logo" width="112" />
+</p>
+
+<p align="center">
   <strong>Open-source documentation publishing for MDX, OpenAPI, and AI-ready knowledge bases.</strong>
 </p>
 

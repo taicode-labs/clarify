@@ -89,18 +89,18 @@ export default defineConfig({
       pages: [
         {
           group: {
-            'zh-CN': '概览',
-            'en-US': 'Overview',
+            'zh-CN': '核心路径',
+            'en-US': 'Core Path',
           },
           icon: 'Compass',
           pages: [
             {
               page: 'getting-started',
               title: {
-                'zh-CN': '产品介绍',
-                'en-US': 'Introduction',
+                'zh-CN': '快速开始',
+                'en-US': 'Get Started',
               },
-              icon: 'Map',
+              icon: 'Rocket',
             },
             {
               page: 'features',
@@ -109,6 +109,71 @@ export default defineConfig({
                 'en-US': 'Feature Overview',
               },
               icon: 'LayoutGrid',
+            },
+            {
+              page: 'guides/writing-content',
+              title: {
+                'zh-CN': '写作文档',
+                'en-US': 'Writing Docs',
+              },
+              icon: 'PenLine',
+            },
+            {
+              page: 'guides/navigation',
+              title: {
+                'zh-CN': '配置站点',
+                'en-US': 'Configure Site',
+              },
+              icon: 'SlidersHorizontal',
+            },
+            {
+              page: 'features/openapi',
+              title: {
+                'zh-CN': 'API 文档',
+                'en-US': 'API Documentation',
+              },
+              icon: 'Webhook',
+            },
+            {
+              page: 'guides/deployment',
+              title: {
+                'zh-CN': '发布上线',
+                'en-US': 'Ship to Production',
+              },
+              icon: 'UploadCloud',
+            },
+          ],
+        },
+        {
+          group: {
+            'zh-CN': '场景补充',
+            'en-US': 'Scenarios',
+          },
+          icon: 'Sparkles',
+          pages: [
+            {
+              page: 'guides/migrate-from-mintlify',
+              title: {
+                'zh-CN': '从 Mintlify 迁移',
+                'en-US': 'Migrate from Mintlify',
+              },
+              icon: 'RefreshCcw',
+            },
+            {
+              page: 'features/plugins',
+              title: {
+                'zh-CN': '插件机制',
+                'en-US': 'Plugin System',
+              },
+              icon: 'Puzzle',
+            },
+            {
+              openapi: 'api.openapi.json',
+              title: {
+                'zh-CN': 'API Reference',
+                'en-US': 'API Reference',
+              },
+              icon: 'FileJson2',
             },
             {
               page: 'roadmap',
@@ -125,195 +190,6 @@ export default defineConfig({
                 'en-US': 'Changelog',
               },
               icon: 'History',
-            },
-          ],
-        },
-        {
-          group: {
-            'zh-CN': '快速上手',
-            'en-US': 'Get Started',
-          },
-          icon: 'Rocket',
-          pages: [
-            {
-              page: 'getting-started/installation',
-              title: {
-                'zh-CN': '安装与环境准备',
-                'en-US': 'Install and Setup',
-              },
-              icon: 'Download',
-            },
-            {
-              page: 'getting-started/first-site',
-              title: {
-                'zh-CN': '创建第一个站点',
-                'en-US': 'Create Your First Site',
-              },
-              icon: 'Sparkles',
-            },
-            {
-              page: 'guides/migrate-from-mintlify',
-              title: {
-                'zh-CN': '从 Mintlify 迁移',
-                'en-US': 'Migrate from Mintlify',
-              },
-              icon: 'RefreshCcw',
-            },
-          ],
-        },
-        {
-          group: {
-            'zh-CN': '内容创作',
-            'en-US': 'Content Authoring',
-          },
-          icon: 'PenLine',
-          pages: [
-            {
-              page: 'guides/writing-content',
-              title: {
-                'zh-CN': '内容写作工作流',
-                'en-US': 'Writing Workflow',
-              },
-              icon: 'NotebookPen',
-            },
-            {
-              page: 'features/mdx',
-              title: {
-                'zh-CN': 'MDX 写作能力',
-                'en-US': 'MDX Authoring',
-              },
-              icon: 'FileCode2',
-            },
-            {
-              page: 'reference/frontmatter',
-              title: {
-                'zh-CN': 'Frontmatter 元数据',
-                'en-US': 'Frontmatter Metadata',
-              },
-              icon: 'FileJson2',
-            },
-            {
-              page: 'showcase/components',
-              title: {
-                'zh-CN': '组件演示',
-                'en-US': 'Component Showcase',
-              },
-              icon: 'Component',
-            },
-          ],
-        },
-        {
-          group: {
-            'zh-CN': '站点体验',
-            'en-US': 'Site Experience',
-          },
-          icon: 'SlidersHorizontal',
-          pages: [
-            {
-              page: 'guides/navigation',
-              title: {
-                'zh-CN': '导航与侧边栏',
-                'en-US': 'Navigation and Sidebar',
-              },
-              icon: 'PanelLeft',
-            },
-            {
-              page: 'features/routing',
-              title: {
-                'zh-CN': '文件路由',
-                'en-US': 'File-based Routing',
-              },
-              icon: 'Route',
-            },
-            {
-              page: 'features/theming',
-              title: {
-                'zh-CN': '主题与样式系统',
-                'en-US': 'Theme and Styling',
-              },
-              icon: 'Palette',
-            },
-            {
-              page: 'features/i18n',
-              title: {
-                'zh-CN': '国际化',
-                'en-US': 'Internationalization',
-              },
-              icon: 'Languages',
-            },
-            {
-              page: 'showcase/theming-preview',
-              title: {
-                'zh-CN': '主题效果预览',
-                'en-US': 'Theme Preview',
-              },
-              icon: 'SwatchBook',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      tab: {
-        'zh-CN': 'API',
-        'en-US': 'API',
-      },
-      icon: 'Webhook',
-      pages: [
-        {
-          group: {
-            'zh-CN': 'API 文档',
-            'en-US': 'API Documentation',
-          },
-          icon: 'Webhook',
-          pages: [
-            {
-              page: 'features/openapi',
-              title: {
-                'zh-CN': 'OpenAPI 概览',
-                'en-US': 'OpenAPI Overview',
-              },
-              icon: 'Braces',
-            },
-            {
-              page: 'guides/api-docs-workflow',
-              title: {
-                'zh-CN': 'API 文档工作流',
-                'en-US': 'API Docs Workflow',
-              },
-              icon: 'Workflow',
-            },
-            {
-              page: 'features/api-reference',
-              title: {
-                'zh-CN': '生成 API Reference',
-                'en-US': 'Generate API Reference',
-              },
-              icon: 'BookOpenCheck',
-            },
-            {
-              page: 'features/openapi-embedding',
-              title: {
-                'zh-CN': '嵌入单个接口',
-                'en-US': 'Embed Endpoints',
-              },
-              icon: 'PanelTopOpen',
-            },
-            {
-              page: 'showcase/openapi-demo',
-              title: {
-                'zh-CN': 'API 文档示例',
-                'en-US': 'API Docs Demo',
-              },
-              icon: 'ServerCog',
-            },
-            {
-              openapi: 'api.openapi.json',
-              title: {
-                'zh-CN': 'API Reference',
-                'en-US': 'API Reference',
-              },
-              icon: 'FileJson2',
             },
           ],
         },
@@ -358,14 +234,6 @@ export default defineConfig({
               icon: 'Terminal',
             },
             {
-              page: 'reference/plugin-api',
-              title: {
-                'zh-CN': '插件 API 参考',
-                'en-US': 'Plugin API Reference',
-              },
-              icon: 'Puzzle',
-            },
-            {
               page: 'reference/built-in-components',
               title: {
                 'zh-CN': '内置公开组件',
@@ -374,20 +242,12 @@ export default defineConfig({
               icon: 'Component',
             },
             {
-              page: 'guides',
+              page: 'reference/plugin-api',
               title: {
-                'zh-CN': '指南索引',
-                'en-US': 'Guides Index',
+                'zh-CN': '插件 API 参考',
+                'en-US': 'Plugin API Reference',
               },
-              icon: 'Compass',
-            },
-            {
-              page: 'showcase',
-              title: {
-                'zh-CN': '示例索引',
-                'en-US': 'Showcase Index',
-              },
-              icon: 'GalleryHorizontalEnd',
+              icon: 'Puzzle',
             },
           ],
         },
@@ -448,53 +308,12 @@ export default defineConfig({
               icon: 'Blocks',
             },
             {
-              page: 'features/plugins',
-              title: {
-                'zh-CN': '插件机制',
-                'en-US': 'Plugin System',
-              },
-              icon: 'Puzzle',
-            },
-            {
               page: 'development/contributing',
               title: {
                 'zh-CN': '参与贡献',
                 'en-US': 'Contributing',
               },
               icon: 'GitPullRequestArrow',
-            },
-          ],
-        },
-        {
-          group: {
-            'zh-CN': '发布上线',
-            'en-US': 'Ship to Production',
-          },
-          icon: 'Ship',
-          pages: [
-            {
-              page: 'features/ssg',
-              title: {
-                'zh-CN': '静态生成能力',
-                'en-US': 'Static Site Generation',
-              },
-              icon: 'PackageCheck',
-            },
-            {
-              page: 'features/llms',
-              title: {
-                'zh-CN': 'AI 与原始内容',
-                'en-US': 'AI and Raw Content',
-              },
-              icon: 'Bot',
-            },
-            {
-              page: 'guides/deployment',
-              title: {
-                'zh-CN': '生产环境部署',
-                'en-US': 'Production Deployment',
-              },
-              icon: 'UploadCloud',
             },
           ],
         },

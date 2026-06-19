@@ -1,172 +1,212 @@
-# 配置导航与侧边栏
+# 配置站点
 
-Clarify 默认可以根据文件系统生成导航，也可以通过 `clarify.json` 显式组织顶部导航和侧边栏。真实项目通常建议使用显式配置，让读者看到的是任务路径，而不是仓库目录结构。
+这篇文档合并说明 Clarify 中和“站点体验”有关的配置：顶部导航、Tabs、侧边栏、主题、多语言、部署子路径和信息架构。
+
+真实项目建议用配置表达读者任务路径，而不是直接暴露仓库目录结构。
 
 ---
 
 ## 顶部导航
 
-顶部导航适合放少量高频入口，例如开始使用、配置站点、API 文档和示例：
+顶部导航只放少量高频入口：
 
-```json
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  navbar: {
+    links: [
+      { label: '开始使用', href: '/getting-started' },
+      { label: 'API 文档', href: '/features/openapi' },
+      { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
+    ],
+  },
+})
+```
+
+| 字段 | 说明 |
+|------|------|
+| `label` | 导航项显示文字；支持多语言对象 |
+| `href` | 链接地址，站内链接建议使用绝对路径 |
+| `external` | 是否按外部链接处理 |
+
+---
+
+## Tabs 与侧边栏
+
+Clarify 使用根级 `tabs` 做站点的一层业务分类。每个 tab 拥有自己的侧边栏。
+
+```ts
+export default defineConfig({
+  tabs: [
+    {
+      tab: '文档',
+      icon: 'BookOpen',
+      pages: [
+        {
+          group: '开始使用',
+          icon: 'Rocket',
+          pages: [
+            { page: 'getting-started', icon: 'Map' },
+            { page: 'guides/writing-content', title: '写作文档', icon: 'PenLine' },
+          ],
+        },
+      ],
+    },
+  ],
+})
+```
+
+`tabs[].pages` 支持两种模式：
+
+| 模式 | 适用场景 |
+|------|----------|
+| `'FileTree'` | 小型站点或早期原型，直接按 `source` 目录生成 |
+| 分组数组 | 正式文档站，按用户任务组织阅读路径 |
+
+页面项类型：
+
+| 字段 | 说明 |
+|------|------|
+| `page` | 引用 `source` 下的 MDX 页面，不写 `.mdx` 后缀 |
+| `openapi` | 引用 `source` 下的 OpenAPI JSON/YAML 文件 |
+| `title` | 覆盖页面在导航中的显示标题 |
+| `icon` | 使用 lucide 图标名称 |
+
+示例 OpenAPI 入口：
+
+```ts
 {
-  "navbar": {
-    "links": [
-      {
-        "label": "开始使用",
-        "href": "/getting-started"
+  openapi: 'api.openapi.json',
+  title: 'API Reference',
+  icon: 'FileJson2',
+}
+```
+
+---
+
+## 推荐信息架构
+
+建议把用户文档收敛为少量核心入口：
+
+| 入口 | 解决的问题 |
+|------|------------|
+| 快速开始 | 如何安装、创建页面、启动和构建 |
+| 写作文档 | 如何写 MDX、组织目录、使用 Frontmatter 和组件 |
+| 配置站点 | 如何配置导航、主题、多语言和路径 |
+| API 文档 | 如何把 OpenAPI 变成 Reference 和教程嵌入 |
+| 发布上线 | 如何构建、部署、输出 `llms.txt` |
+| 参考资料 | 查询字段、命令和组件属性 |
+
+不要把每个内部能力都放成单独导航入口。细节可以放在同一篇任务文档的章节里，或放到参考页。
+
+---
+
+## 主题
+
+Clarify 当前提供稳定、收敛的主题配置：先选择预设，再用少量 token 覆盖。
+
+```ts
+export default defineConfig({
+  theme: {
+    preset: 'base',
+    tokens: {
+      colors: {
+        primary: '#00D492',
       },
-      {
-        "label": "配置站点",
-        "href": "/guides/navigation"
-      },
-      {
-        "label": "API 文档",
-        "href": "/features/openapi"
-      },
-      {
-        "label": "GitHub",
-        "href": "https://github.com/taicode-labs/clarify",
-        "external": true
-      }
-    ]
+    },
+  },
+})
+```
+
+当前预设：
+
+| 预设 | 说明 |
+|------|------|
+| `default` | Clarify 品牌主题 |
+| `base` | 黑、白、灰构成的中性主题 |
+
+注意：
+
+- 不需要创建 `tailwind.config.js`。
+- 当前没有稳定的项目级自定义 CSS 入口。
+- 亮色、暗色和系统偏好检测由渲染器内置。
+
+---
+
+## 国际化
+
+开启 `i18n` 后，内容按 locale 目录组织，路由、导航、语言切换器和缺失翻译回退会自动处理。
+
+```ts
+export default defineConfig({
+  i18n: {
+    defaultLocale: 'zh-CN',
+    missing: 'fallback',
+    locales: [
+      { code: 'zh-CN', label: '简体中文', dir: 'ltr' },
+      { code: 'en-US', label: 'English', dir: 'ltr' },
+    ],
+  },
+})
+```
+
+目录示例：
+
+```txt
+source/
+├── zh-CN/
+│   ├── index.mdx
+│   └── getting-started.mdx
+└── en-US/
+    ├── index.mdx
+    └── getting-started.mdx
+```
+
+路由规则：
+
+| 文件 | 路由 |
+|------|------|
+| `source/zh-CN/index.mdx` | `/` |
+| `source/zh-CN/getting-started.mdx` | `/getting-started` |
+| `source/en-US/index.mdx` | `/en-US` |
+| `source/en-US/getting-started.mdx` | `/en-US/getting-started` |
+
+缺失翻译策略：
+
+| 策略 | 行为 |
+|------|------|
+| `fallback` | 缺失页面使用默认语言内容生成对应 locale 路由 |
+| `404` | 缺失页面不生成对应语言路由 |
+| `hide` | 缺失页面不生成；自动文件树导航中也隐藏 |
+
+配置中的可见文本支持本地化对象，例如：
+
+```ts
+{
+  label: {
+    'zh-CN': '文档',
+    'en-US': 'Docs',
   }
 }
 ```
 
-| 字段 | 说明 |
-|------|------|
-| `label` | 导航项显示文字 |
-| `href` | 链接地址，站内链接建议使用绝对路径 |
-| `external` | 是否在新标签页打开，外部链接建议设为 `true` |
-
 ---
 
-## Tabs 与侧边栏模式
+## 部署子路径
 
-Clarify 使用根级 `tabs` 做站点的一层业务分类。每个 tab 下的 `pages` 定义该分类的侧边栏；根级不再支持 `pages`。
+如果站点部署在子路径下，例如 GitHub Pages 项目站点，需要配置 `routePrefix`：
 
-每个 tab 的 `pages` 支持两种模式：
-
-| 模式 | 适用场景 |
-|------|----------|
-| `"FileTree"` | 小型站点或早期原型，直接按 `source` 目录生成 |
-| 分组数组 | 正式文档站，按用户任务组织阅读路径 |
-
-### 文件树模式
-
-```json
-{
-  "tabs": [
-    {
-      "tab": "文档",
-      "icon": "BookOpen",
-      "pages": "FileTree"
-    }
-  ]
-}
+```ts
+export default defineConfig({
+  routePrefix: '/my-repo/',
+})
 ```
 
-文件树模式遵循以下规则：
-
-1. **目录层级** = 侧边栏分组
-2. **`index.mdx`** = 分组的入口页面
-3. **同级文件** = 按文件名排序
-
-### 显式分组模式
-
-```json
-{
-  "tabs": [
-    {
-      "tab": "文档",
-      "icon": "BookOpen",
-      "pages": [
-        {
-          "group": "开始使用",
-          "icon": "Rocket",
-          "pages": [
-            {
-              "page": "getting-started",
-              "icon": "Map"
-            },
-            {
-              "page": "getting-started/installation",
-              "icon": "Download"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
-
-显式分组模式可以让侧边栏脱离文件目录，把页面放到更符合用户任务的位置。例如 `reference/frontmatter` 虽然位于参考目录，但更适合出现在“编写内容”分组中。
-
----
-
-## 页面项类型
-
-侧边栏页面项可以引用普通页面，也可以引用 OpenAPI 规范：
-
-```json
-{
-  "tabs": [
-    {
-      "tab": "API",
-      "icon": "BookOpenCheck",
-      "pages": [
-        {
-          "group": "API 文档",
-          "pages": [
-            {
-              "page": "features/openapi",
-              "icon": "Braces"
-            },
-            {
-              "page": "guides/api-docs-workflow",
-              "icon": "Workflow"
-            },
-            {
-              "page": "features/api-reference",
-              "icon": "BookOpenCheck"
-            },
-            {
-              "page": "features/openapi-embedding",
-              "icon": "PanelTopOpen"
-            },
-            {
-              "openapi": "api.openapi.json",
-              "title": "API Reference",
-              "icon": "FileJson2"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
-
-| 字段 | 说明 |
-|------|------|
-| `page` | 引用 `source` 下的 MDX 页面，不需要写 `.mdx` 后缀 |
-| `openapi` | 引用 `source` 下的 OpenAPI JSON 或 YAML 文件 |
-| `title` | 覆盖 OpenAPI 页面标题 |
-| `icon` | 使用 lucide 图标名称 |
-
----
-
-## 信息架构建议
-
-- **顶部导航只放高频入口**，不要把所有章节都放到顶部。
-- **侧边栏按任务组织**，例如“开始使用 → 编写内容 → 配置站点 → API 文档 → 发布与迁移”。
-- **参考页放在任务页之后**，避免新用户一开始就被字段列表打断。
-- **开发者文档放到最后**，除非你的站点主要面向贡献者。
+Clarify 会同步处理页面路由、静态资源路径、客户端导航和原始内容链接。
 
 ---
 
 ## 隐藏页面
 
-目前 Clarify 不提供隐藏页面的 frontmatter 选项。如需隐藏，请使用显式分组模式，不将对应页面加入对应 tab 的 `pages` 数组即可。页面文件仍然存在，可通过 URL 直接访问。
+当前版本不提供 `hidden` frontmatter。要隐藏某个页面，不要把它加入显式 `tabs` 配置即可。文件仍然存在，可通过 URL 直接访问。

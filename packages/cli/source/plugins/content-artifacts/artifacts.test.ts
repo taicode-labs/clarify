@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { resolveThemeConfig } from '../../core/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { attachContentArtifactUrls, createLlmsTxt, readRouteContent, writeContentArtifactFiles } from './artifacts.js'
+import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, readRouteArtifactContent, readRouteContent, writeContentArtifactFiles } from './artifacts.js'
 
 function route(overrides: Partial<ContentRoute>): ContentRoute {
   return {
@@ -74,6 +74,16 @@ describe('content artifact helpers', () => {
     expect(readFileSync(join(tempDir, 'output/guide.md'), 'utf-8')).toBe('# Guide')
   })
 
+  it('writes non-ASCII markdown artifacts with a UTF-8 signature for strict viewers', () => {
+    const routes = [route({ path: '/guide', filePath: join(tempDir, 'guide.mdx'), content: '# 快速开始\n\n中文内容' })]
+    attachContentArtifactUrls(routes)
+    writeContentArtifactFiles(routes, join(tempDir, 'output'))
+
+    expect(readRouteContent(routes[0])).toBe('# 快速开始\n\n中文内容')
+    expect(readRouteArtifactContent(routes[0])).toBe('\uFEFF# 快速开始\n\n中文内容')
+    expect(readFileSync(join(tempDir, 'output/guide.md'), 'utf-8')).toBe('\uFEFF# 快速开始\n\n中文内容')
+  })
+
   it('creates an llms.txt sitemap with markdown and OpenAPI links', () => {
     const config: ResolvedProjectConfig = {
       title: 'Docs',
@@ -88,5 +98,17 @@ describe('content artifact helpers', () => {
 
     expect(createLlmsTxt(routes, config)).toContain('- [Guide](/docs/guide.md)')
     expect(createLlmsTxt(routes, config)).toContain('- [API](/docs/api.openapi.json)')
+  })
+
+  it('creates llms.txt artifacts with a UTF-8 signature when they contain non-ASCII text', () => {
+    const config: ResolvedProjectConfig = {
+      title: '文档',
+      description: '中文说明',
+      routePrefix: '/',
+      theme: resolveThemeConfig(),
+    }
+    const routes = [route({ path: '/guide', title: '快速开始', contentArtifactUrl: '/guide.md' })]
+
+    expect(createLlmsTxtArtifact(routes, config).startsWith('\uFEFF# 文档')).toBe(true)
   })
 })
