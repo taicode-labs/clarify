@@ -138,19 +138,19 @@ function InlineListbox(arg0: {
         <ListboxButton
           aria-label={label}
           className={clsx(
-            'inline-flex min-w-0 items-center gap-1 rounded-md border-0 bg-zinc-100/60 font-mono font-semibold outline-hidden transition hover:bg-zinc-100 data-open:bg-zinc-100 dark:bg-white/7 dark:hover:bg-white/10 dark:data-open:bg-white/10',
-            compact ? 'max-w-32 px-1 py-0.5 text-xs text-zinc-800 dark:text-white' : 'w-full px-2 py-1.5 text-xs text-zinc-900 dark:text-zinc-100',
+            'inline-flex min-w-0 items-center gap-1 rounded-md border border-zinc-200 bg-white font-mono font-semibold text-zinc-900 shadow-xs outline-hidden transition hover:border-zinc-300 hover:bg-zinc-50 data-open:border-zinc-300 data-open:bg-zinc-50 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-white/15 dark:hover:bg-zinc-900 dark:data-open:border-white/15 dark:data-open:bg-zinc-900',
+            compact ? 'max-w-32 px-1.5 py-0.5 text-xs' : 'w-full px-2.5 py-1.5 text-xs',
           )}
         >
           <span className="truncate">{selected?.label ?? value}</span>
-          <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
+          <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" aria-hidden="true" />
         </ListboxButton>
-        <ListboxOptions anchor="bottom start" className="z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-[min(32rem,calc(100vw-2rem))] overflow-auto rounded-xl bg-white p-1 text-xs shadow-lg shadow-black/10 ring-1 ring-zinc-950/10 [--anchor-gap:--spacing(1)] focus:outline-none dark:bg-zinc-900 dark:ring-white/10">
+        <ListboxOptions anchor="bottom start" className="z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-[min(32rem,calc(100vw-2rem))] overflow-auto rounded-xl bg-white p-1 text-xs shadow-lg shadow-black/10 ring-1 ring-zinc-950/10 [--anchor-gap:--spacing(1)] focus:outline-none dark:bg-zinc-950 dark:ring-white/10">
           {options.map((option) => (
-            <ListboxOption key={option.value} value={option.value} className="group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 font-mono text-xs text-zinc-600 select-none data-focus:bg-zinc-100 data-selected:text-emerald-600 dark:text-zinc-300 dark:data-focus:bg-white/10 dark:data-selected:text-emerald-300">
+            <ListboxOption key={option.value} value={option.value} className="group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 font-mono text-xs text-zinc-700 select-none data-focus:bg-zinc-100 data-selected:text-emerald-700 dark:text-zinc-200 dark:data-focus:bg-white/10 dark:data-selected:text-emerald-300">
               <span className="min-w-0">
                 <span className="block truncate">{option.label}</span>
-                {option.description ? <span className="mt-0.5 block truncate text-2xs text-zinc-400 dark:text-zinc-500">{option.description}</span> : null}
+                {option.description ? <span className="mt-0.5 block truncate text-2xs text-zinc-500 dark:text-zinc-400">{option.description}</span> : null}
               </span>
               <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />
             </ListboxOption>
@@ -181,8 +181,8 @@ function ServerUrlValue(arg0: {
       aria-label="Server"
       onClick={onToggle}
       className={clsx(
-        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100/50 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700 dark:bg-white/5 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-200 sm:w-auto sm:min-w-16 sm:max-w-[min(36%,16rem)] sm:px-1.5',
-        open ? 'bg-zinc-100 text-zinc-700 dark:bg-white/10 dark:text-zinc-200' : null,
+        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100/50 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white sm:w-auto sm:min-w-16 sm:max-w-[min(36%,16rem)] sm:px-1.5',
+        open ? 'bg-zinc-200 text-zinc-950 dark:bg-white/12 dark:text-white' : null,
       )}
     >
       <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
@@ -221,8 +221,8 @@ function ServerVariableControl(arg0: {
       placeholder={variable?.default ?? name}
       onChange={(event) => onChange(event.target.value)}
       className={clsx(
-        'pointer-events-auto rounded-md border-0 bg-zinc-100/60 font-mono text-xs font-semibold text-zinc-800 outline-hidden transition hover:bg-zinc-100 focus:bg-zinc-100 dark:bg-white/7 dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10',
-        compact ? 'mx-0.5 w-24 px-1 py-0.5' : 'w-full px-2 py-1.5',
+        'pointer-events-auto rounded-md border border-zinc-200 bg-white font-mono text-xs font-semibold text-zinc-900 shadow-xs outline-hidden transition placeholder:text-zinc-500 hover:border-zinc-300 hover:bg-zinc-50 focus:border-zinc-400 focus:bg-white dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-white/15 dark:hover:bg-zinc-900 dark:focus:border-white/20 dark:focus:bg-zinc-950',
+        compact ? 'mx-0.5 w-24 px-1.5 py-0.5' : 'w-full px-2.5 py-1.5',
       )}
     />
   )
@@ -240,11 +240,11 @@ function ServerPanel(arg0: {
   const variableEntries = Object.entries(selectedServer.variables ?? {})
 
   return (
-    <div className="border-t border-zinc-200/70 bg-zinc-50/80 p-3 dark:border-white/10 dark:bg-white/3">
+    <div className="border-t border-zinc-200 bg-zinc-100/70 p-3 dark:border-white/10 dark:bg-zinc-900/60">
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
         {servers.length > 1 ? (
           <label className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">Server</span>
+            <span className="text-2xs font-semibold text-zinc-700 dark:text-zinc-300">Server</span>
             <InlineListbox
               label="Server"
               value={selectedKey}
@@ -259,7 +259,7 @@ function ServerPanel(arg0: {
         ) : null}
         {variableEntries.map(([name, variable]) => (
           <label key={name} className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">{name}</span>
+            <span className="text-2xs font-semibold text-zinc-700 dark:text-zinc-300">{name}</span>
             <ServerVariableControl
               name={name}
               variable={variable}
@@ -285,10 +285,10 @@ function AuthPanel(arg0: {
   if (authOptions.length === 0) return null
 
   return (
-    <div className="border-t border-zinc-200/70 bg-zinc-50/80 p-3 dark:border-white/10 dark:bg-white/3">
+    <div className="border-t border-zinc-200 bg-zinc-100/70 p-3 dark:border-white/10 dark:bg-zinc-900/60">
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
         <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">Auth</span>
+          <span className="text-2xs font-semibold text-zinc-700 dark:text-zinc-300">Auth</span>
           <InlineListbox
             label="Auth"
             value={selectedAuthName}
@@ -302,15 +302,15 @@ function AuthPanel(arg0: {
         </label>
         {selectedAuth ? (
           <label className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">Credential</span>
-            <div className="flex min-w-0 items-center rounded-md bg-zinc-100/60 px-2 py-1.5 dark:bg-white/7">
-              <span className="mr-2 shrink-0 font-mono text-2xs font-semibold text-zinc-400 dark:text-zinc-500">
+            <span className="text-2xs font-semibold text-zinc-700 dark:text-zinc-300">Credential</span>
+            <div className="flex min-w-0 items-center rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 shadow-xs dark:border-white/10 dark:bg-zinc-950">
+              <span className="mr-2 shrink-0 font-mono text-2xs font-semibold text-zinc-600 dark:text-zinc-400">
                 {selectedAuth.scheme.type === 'apiKey' ? selectedAuth.scheme.in ?? 'apiKey' : selectedAuth.scheme.scheme ?? selectedAuth.scheme.type ?? 'token'}
               </span>
               <input
                 value={authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth)}
                 onChange={(event) => onChangeAuthValue(selectedAuth.name, event.target.value)}
-                className="min-w-0 flex-1 border-0 bg-transparent px-0 py-0 font-mono text-xs text-zinc-900 outline-hidden placeholder:text-zinc-400 dark:text-zinc-100"
+                className="min-w-0 flex-1 border-0 bg-transparent px-0 py-0 font-mono text-xs font-semibold text-zinc-900 outline-hidden placeholder:text-zinc-500 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               />
             </div>
           </label>
@@ -363,7 +363,7 @@ function EndpointIdentity(arg0: {
   const segments = path.split('/').filter(Boolean)
 
   return (
-    <div className="not-prose flex w-full flex-col overflow-hidden rounded-xl border border-zinc-200/70 bg-white dark:border-white/10 dark:bg-black">
+    <div className="not-prose flex w-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xs dark:border-white/10 dark:bg-zinc-950">
       <div className="flex min-w-0 items-center gap-1.5 overflow-hidden px-2.5 py-2">
         <EndpointMethodBadge method={method} />
         <ServerUrlValue
@@ -394,8 +394,8 @@ function EndpointIdentity(arg0: {
             aria-label="Auth"
             onClick={onToggleAuth}
             className={clsx(
-              'ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-emerald-600 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-emerald-300',
-              authOpen ? 'bg-emerald-400/10 text-emerald-600 dark:text-emerald-300' : 'bg-zinc-50 dark:bg-white/5',
+              'ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-600 transition hover:bg-zinc-100 hover:text-emerald-700 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-emerald-200',
+              authOpen ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-100' : 'bg-zinc-50 dark:bg-white/5',
             )}
           >
             {authOpen ? <UnlockKeyholeIcon className="h-4 w-4" aria-hidden="true" /> : <LockKeyholeIcon className="h-4 w-4" aria-hidden="true" />}
