@@ -1,18 +1,26 @@
-import type { ReactNode } from 'react'
+import clsx from 'clsx'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 
 import { useBuiltInText } from '../i18n'
 import { Properties, Property } from '../mdx/primitives'
 
-import { getJsonLikeContent, getResponseEntries, isRecord, isReference, resolveSchema, schemaToType } from './helpers'
+import { getJsonLikeContent, getResponseEntries, isRecord, isReference, resolveReferenceName, resolveSchema, schemaToType } from './helpers'
 import type { OpenApiParameter } from './types'
 import type { OpenAPIOperation, OpenAPISpec } from './utils'
 
-type SchemaPropertyEntry = {
+type SchemaTreeNode = {
   key: string
   name: string
   type?: string
   description?: string
   required: boolean
+  children: SchemaTreeNode[]
+}
+
+type SchemaTreeBranch = {
+  label: string
+  schema: unknown
 }
 
 function getSchemaDescription(schema: Record<string, unknown>): string | undefined {
@@ -23,94 +31,217 @@ function getSchemaDescription(schema: Record<string, unknown>): string | undefin
     typeof schema.pattern === 'string' ? `pattern: ${schema.pattern}` : undefined,
     typeof schema.minimum === 'number' ? `minimum: ${String(schema.minimum)}` : undefined,
     typeof schema.maximum === 'number' ? `maximum: ${String(schema.maximum)}` : undefined,
-    typeof schema.additionalProperties !== 'undefined' ? `additionalProperties: ${String(schema.additionalProperties)}` : undefined,
+    typeof schema.additionalProperties === 'boolean' ? `additionalProperties: ${String(schema.additionalProperties)}` : undefined,
   ].filter(Boolean)
   const description = typeof schema.description === 'string' ? schema.description : undefined
 
   return [description, details.length > 0 ? details.join('; ') : undefined].filter(Boolean).join(' ')
 }
 
-function collectSchemaProperties(arg0: {
+function getComposedBranches(schema: Record<string, unknown>): SchemaTreeBranch[] {
+  const entries: SchemaTreeBranch[] = []
+
+  for (const key of ['allOf', 'oneOf', 'anyOf'] as const) {
+    const items = schema[key]
+    if (!Array.isArray(items)) continue
+
+    for (const [index, item] of items.entries()) {
+      entries.push({ label: `${key}[${index}]`, schema: item })
+    }
+  }
+
+  return entries
+}
+
+function getSchemaChildren(arg0: {
   spec: OpenAPISpec
   schema: unknown
-  prefix?: string
+  path: string
   required?: string[]
   depth?: number
   seen?: Set<string>
-}): SchemaPropertyEntry[] {  const {
+}): SchemaTreeNode[] {  const {
   spec,
   schema,
-  prefix = '',
+  path,
   required = [],
   depth = 0,
   seen = new Set<string>(),
 } = arg0
 
-  if (depth > 4) return []
+  if (depth > 12) return []
+
   if (isReference(schema)) {
     if (seen.has(schema.$ref)) return []
-    return collectSchemaProperties({ spec, schema: resolveSchema(spec, schema), prefix, required, depth, seen: new Set([...seen, schema.$ref]) })
+    return getSchemaChildren({
+      spec,
+      schema: resolveSchema(spec, schema),
+      path,
+      required,
+      depth,
+      seen: new Set([...seen, schema.$ref]),
+    })
   }
+
   if (!isRecord(schema)) return []
 
-  const composed = [...(Array.isArray(schema.allOf) ? schema.allOf : []), ...(Array.isArray(schema.oneOf) ? schema.oneOf : []), ...(Array.isArray(schema.anyOf) ? schema.anyOf : [])]
-  const composedEntries = composed.flatMap((item, index) => collectSchemaProperties({
-    spec,
-    schema: item,
-    prefix: prefix ? `${prefix}.${schema.oneOf ? `oneOf${index + 1}` : schema.anyOf ? `anyOf${index + 1}` : ''}`.replace(/\.$/, '') : '',
-    required,
-    depth: depth + 1,
-    seen,
-  }))
+  const arrayChildren = schema.type === 'array'
+    ? getSchemaChildren({ spec, schema: schema.items, path: `${path}[]`, depth: depth + 1, seen })
+    : []
 
-  const properties = isRecord(schema.properties) ? schema.properties : undefined
-  const ownRequired = Array.isArray(schema.required) ? schema.required.map(String) : required
-  const ownEntries = properties ? Object.entries(properties).flatMap(([name, propertySchema]) => {
+  const objectRequired = Array.isArray(schema.required) ? schema.required.map(String) : required
+  const properties = isRecord(schema.properties) ? schema.properties : {}
+  const propertyChildren = Object.entries(properties).map(([name, propertySchema]) => {
     const resolvedProperty = resolveSchema(spec, propertySchema)
     const property = isRecord(resolvedProperty) ? resolvedProperty : isRecord(propertySchema) ? propertySchema : {}
-    const path = prefix ? `${prefix}.${name}` : name
-    const isRequired = ownRequired.includes(name)
     const isArray = isRecord(property) && property.type === 'array'
-    const itemSchema = isArray ? property.items : undefined
-    const nestedSchema = isArray ? resolveSchema(spec, itemSchema) : resolvedProperty
-    const nestedPrefix = isArray ? `${path}[]` : path
+    const childPath = path ? `${path}.${name}` : name
+    const children = getSchemaChildren({
+      spec,
+      schema: isArray ? property.items : propertySchema,
+      path: isArray ? `${childPath}[]` : childPath,
+      depth: depth + 1,
+      seen,
+    })
 
-    return [
-      {
-        key: path,
-        name: path,
-        type: schemaToType(propertySchema),
-        description: getSchemaDescription(property),
-        required: isRequired,
-      },
-      ...collectSchemaProperties({ spec, schema: nestedSchema, prefix: nestedPrefix, required: [], depth: depth + 1, seen }),
-    ]
-  }) : []
+    return {
+      key: childPath,
+      name,
+      type: schemaToType(propertySchema),
+      description: getSchemaDescription(property),
+      required: objectRequired.includes(name),
+      children,
+    }
+  })
 
-  return [...ownEntries, ...composedEntries]
+  const additionalPropertyChildren = isRecord(schema.additionalProperties)
+    ? [{
+        key: `${path || 'root'}.*`,
+        name: '*',
+        type: schemaToType(schema.additionalProperties),
+        description: getSchemaDescription(schema.additionalProperties),
+        required: false,
+        children: getSchemaChildren({ spec, schema: schema.additionalProperties, path: `${path || 'root'}.*`, depth: depth + 1, seen }),
+      }]
+    : []
+
+  const composedChildren = getComposedBranches(schema).map(({ label, schema: branchSchema }) => ({
+    key: `${path || 'root'}.${label}`,
+    name: label,
+    type: schemaToType(branchSchema),
+    description: isRecord(resolveSchema(spec, branchSchema)) ? getSchemaDescription(resolveSchema(spec, branchSchema) as Record<string, unknown>) : undefined,
+    required: false,
+    children: getSchemaChildren({ spec, schema: branchSchema, path: `${path || 'root'}.${label}`, required: objectRequired, depth: depth + 1, seen }),
+  }))
+
+  return [...arrayChildren, ...propertyChildren, ...additionalPropertyChildren, ...composedChildren]
+}
+
+function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode | undefined {
+  if (isReference(schema)) {
+    const resolvedSchema = resolveSchema(spec, schema)
+    const resolved = isRecord(resolvedSchema) ? resolvedSchema : {}
+
+    return {
+      key: schema.$ref,
+      name: resolveReferenceName(schema.$ref),
+      type: schemaToType(schema),
+      description: getSchemaDescription(resolved),
+      required: false,
+      children: getSchemaChildren({ spec, schema: resolvedSchema, path: resolveReferenceName(schema.$ref), seen: new Set([schema.$ref]) }),
+    }
+  }
+
+  if (!isRecord(schema)) return undefined
+
+  return {
+    key: 'root',
+    name: 'body',
+    type: schemaToType(schema),
+    description: getSchemaDescription(schema),
+    required: false,
+    children: getSchemaChildren({ spec, schema, path: '' }),
+  }
+}
+
+function SchemaNode(arg0: { node: SchemaTreeNode; depth?: number }): ReactNode {  const { node, depth = 0 } = arg0
+
+  const t = useBuiltInText()
+  const [expanded, setExpanded] = useState(depth < 1)
+  const hasChildren = node.children.length > 0
+  const type = [node.type, node.required ? t('openapi.requiredBadge') : undefined].filter(Boolean).join(', ') || undefined
+  const description = node.description || (node.required ? t('openapi.required') : t('openapi.optional'))
+  const rowClassName = clsx(
+    'flex min-w-0 items-start rounded py-0.5 text-left',
+    depth > 0 ? '-mx-2 w-[calc(100%+1rem)] px-2' : 'w-full px-1',
+  )
+
+  const content = (
+    <>
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span className="font-semibold text-zinc-950 dark:text-white">{node.name}</span>
+          {type ? <span className="font-mono text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{type}</span> : null}
+        </div>
+        {description ? <div className="mt-0.5 text-sm/5 text-zinc-600 dark:text-zinc-400">{description}</div> : null}
+      </div>
+      {hasChildren ? (
+        <span className="ml-2 flex h-5 w-5 flex-none items-center justify-center text-zinc-500 dark:text-zinc-400" aria-hidden="true">
+          {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </span>
+      ) : null}
+    </>
+  )
+
+  return (
+    <li className="clarify-schema-node m-0 px-0 py-2 first:pt-0 last:pb-0">
+      {hasChildren ? (
+        <button
+          type="button"
+          aria-label={expanded ? t('openapi.collapse') : t('openapi.expand')}
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+          className={clsx(rowClassName, 'cursor-pointer transition')}
+        >
+          {content}
+        </button>
+      ) : (
+        <div className={rowClassName}>{content}</div>
+      )}
+      {hasChildren && expanded ? <SchemaTree nodes={node.children} depth={depth + 1} /> : null}
+    </li>
+  )
+}
+
+function SchemaTree(arg0: { nodes: SchemaTreeNode[]; depth?: number }): ReactNode {  const { nodes, depth = 0 } = arg0
+
+  if (nodes.length === 0) return null
+
+  return (
+    <ul
+      role="list"
+      className={clsx(
+        'm-0 list-none divide-y divide-zinc-900/5 p-0 dark:divide-white/5',
+        depth > 0 && 'mt-2 rounded-lg bg-zinc-950/[0.025] px-2 py-1 dark:bg-white/[0.04]',
+      )}
+    >
+      {nodes.map((node) => <SchemaNode key={node.key} node={node} depth={depth} />)}
+    </ul>
+  )
 }
 
 export function SchemaProperties(arg0: { title: string; schema: unknown; spec: OpenAPISpec }): ReactNode {  const { title, schema, spec } = arg0
 
-  const t = useBuiltInText()
-  const entries = collectSchemaProperties({ spec, schema })
+  const root = getRootSchemaNode(spec, schema)
 
-  if (entries.length === 0) return null
+  if (!root || root.children.length === 0) return null
 
   return (
     <div>
       <h3>{title}</h3>
-      <Properties>
-        {entries.map((entry) => {
-          const type = entry.required && entry.type ? `${entry.type}, ${t('openapi.requiredBadge')}` : entry.type
-
-          return (
-            <Property key={entry.key} name={entry.name} type={type}>
-              {entry.description || (entry.required ? t('openapi.required') : t('openapi.optional'))}
-            </Property>
-          )
-        })}
-      </Properties>
+      <div className="clarify-schema-properties my-6">
+        <SchemaTree nodes={root.children} />
+      </div>
     </div>
   )
 }

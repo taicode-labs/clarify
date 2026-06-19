@@ -57,7 +57,7 @@ export function Note(arg0: { children: ReactNode }) {  const { children } = arg0
 
 export function Row(arg0: { children: ReactNode }) {  const { children } = arg0
 
-  return <div className="clarify-row grid grid-cols-1 items-start gap-x-16 gap-y-10 xl:max-w-none xl:grid-cols-2">{children}</div>
+  return <div className="clarify-row grid grid-cols-1 items-start gap-x-8 gap-y-10 xl:max-w-none xl:grid-cols-2">{children}</div>
 }
 
 export function Col(arg0: { children: ReactNode; sticky?: boolean }) {  const { children, sticky = false } = arg0
@@ -86,7 +86,7 @@ export function Property(arg0: { name: string; children: ReactNode; type?: strin
       <dl className="m-0 flex flex-wrap items-center gap-x-3 gap-y-2">
         <dt className="sr-only">Name</dt>
         <dd>
-          <code>{name}</code>
+          <span className="font-semibold text-zinc-950 dark:text-white">{name}</span>
         </dd>
         {type ? (
           <>

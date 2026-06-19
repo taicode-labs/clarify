@@ -41,8 +41,10 @@ export type BuiltInTextKey =
   | 'navbar.sections'
   | 'openapi.apiDocumentation'
   | 'openapi.bodyProperties'
+  | 'openapi.collapse'
   | 'openapi.endpointNotFound'
   | 'openapi.example'
+  | 'openapi.expand'
   | 'openapi.headers'
   | 'openapi.language'
   | 'openapi.client'
@@ -112,8 +114,10 @@ const builtInText = {
     'navbar.sections': 'Documentation sections',
     'openapi.apiDocumentation': 'API Documentation',
     'openapi.bodyProperties': 'Body properties',
+    'openapi.collapse': 'Collapse',
     'openapi.endpointNotFound': 'Endpoint not found: {endpoint}',
     'openapi.example': 'Example',
+    'openapi.expand': 'Expand',
     'openapi.headers': 'Headers',
     'openapi.language': 'Language',
     'openapi.client': 'Client',
@@ -182,8 +186,10 @@ const builtInText = {
     'navbar.sections': '文档栏目',
     'openapi.apiDocumentation': 'API 文档',
     'openapi.bodyProperties': '请求体属性',
+    'openapi.collapse': '收起',
     'openapi.endpointNotFound': '未找到端点：{endpoint}',
     'openapi.example': '示例',
+    'openapi.expand': '展开',
     'openapi.headers': '请求头',
     'openapi.language': '语言',
     'openapi.client': '客户端',
