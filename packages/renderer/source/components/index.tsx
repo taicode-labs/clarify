@@ -146,7 +146,7 @@ export function Tag(arg0: TagProps) {  const { children, variant = 'medium', col
   return (
     <span
       className={clsx(
-        'clarify-tag font-mono text-[0.625rem]/6 font-semibold',
+        'clarify-tag font-mono text-[0.625rem]/6 font-bold',
         tagVariantStyles[variant],
         tagColorStyles[resolvedColor][variant],
       )}

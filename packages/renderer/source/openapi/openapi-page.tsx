@@ -82,6 +82,56 @@ function OpenApiHeader(arg0: { spec: OpenAPISpec }): ReactNode {  const { spec }
   )
 }
 
+const endpointMethodStyles: Record<string, string> = {
+  GET: 'bg-emerald-400/15 text-emerald-600 dark:bg-emerald-400/20 dark:text-emerald-300',
+  POST: 'bg-sky-400/15 text-sky-600 dark:bg-sky-400/20 dark:text-sky-300',
+  PUT: 'bg-amber-400/15 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300',
+  PATCH: 'bg-amber-400/15 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300',
+  DELETE: 'bg-rose-400/15 text-rose-600 dark:bg-rose-400/20 dark:text-rose-300',
+}
+
+function EndpointMethodBadge(arg0: { method: string }): ReactNode {  const { method } = arg0
+
+  return (
+    <span
+      className={clsx(
+        'rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-0.5 font-mono text-xs/6 font-black tracking-wide',
+        endpointMethodStyles[method] ?? 'bg-zinc-400/15 text-zinc-700 dark:bg-zinc-400/20 dark:text-zinc-200',
+      )}
+    >
+      {method}
+    </span>
+  )
+}
+
+function EndpointIdentity(arg0: { method: string; path: string }): ReactNode {  const { method, path } = arg0
+
+  const segments = path.split('/').filter(Boolean)
+
+  return (
+    <div className="not-prose flex w-full flex-col rounded-xl border border-zinc-200/70 bg-white p-1 dark:border-white/10 dark:bg-black">
+      <div className="flex min-w-0 items-center gap-2 overflow-hidden rounded-xl px-1.5 py-1.5">
+        <EndpointMethodBadge method={method} />
+        <div className="flex min-w-0 flex-1 items-center overflow-x-auto font-mono text-sm font-bold leading-6 whitespace-nowrap">
+          {segments.length > 0 ? (
+            <>
+              <span className="text-zinc-400">/</span>
+              {segments.map((segment, index) => (
+                <span key={`${segment}-${index}`} className="flex items-center">
+                  {index > 0 ? <span className="text-zinc-400">/</span> : null}
+                  <span className="font-bold text-zinc-800 dark:text-white">{segment}</span>
+                </span>
+              ))}
+            </>
+          ) : (
+            <span className="font-bold text-zinc-800 dark:text-white">/</span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: string; operation: OpenAPIOperation }): ReactNode {  const { spec, path, method, operation } = arg0
 
   const t = useBuiltInText()
@@ -102,7 +152,8 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
 
   return (
     <section className="clarify-api-endpoint scroll-mt-24" aria-labelledby={id}>
-      <Heading id={id} tag={method} label={path}>
+      <EndpointIdentity method={method} path={path} />
+      <Heading id={id}>
         {summary}
       </Heading>
       <Row>
