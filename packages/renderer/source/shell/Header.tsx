@@ -1,12 +1,13 @@
 import { CloseButton, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import clsx from 'clsx'
+import { MoreHorizontal } from 'lucide-react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { forwardRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { ThemeToggle } from '../components'
 import { SiteLogo } from '../components/SiteLogo'
-import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, NavigationNode, NavigationTab, RouteItem } from '../types'
+import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, ClarifyNavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
 
 import { NavigationIcon } from './icons'
 import { MobileNavigation, useIsInsideMobileNavigation, useMobileNavigationStore } from './mobile'
@@ -130,6 +131,56 @@ function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  c
   )
 }
 
+function MobileNavbarMenu(arg0: { links?: ClarifyNavbarLink[]; config: ClarifyConfig; currentLocale?: string }) {
+  const { links, config, currentLocale } = arg0
+  if (!links?.length) return null
+
+  return (
+    <Menu as="div" className="clarify-mobile-navbar-menu relative md:hidden">
+      <MenuButton
+        className="clarify-mobile-navbar-menu-button relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-theme-tokens-colors-muted) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
+        aria-label="Open navigation links"
+      >
+        <span className="absolute size-12 pointer-fine:hidden" />
+        <MoreHorizontal className="h-5 w-5" />
+      </MenuButton>
+      <MenuItems
+        transition
+        anchor="bottom end"
+        className="clarify-mobile-navbar-menu-list z-50 mt-2 w-48 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 text-sm shadow-lg transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900"
+      >
+        {links.map((link) => {
+          const label = resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale)
+          const href = localizeHref(link.href, config, currentLocale)
+          const external = isExternalHref(href)
+
+          return (
+            <MenuItem key={link.href}>
+              {({ focus }) => {
+                const className = clsx(
+                  'clarify-mobile-navbar-menu-item block rounded-(--clarify-theme-tokens-radius-lg) px-3 py-2 no-underline transition',
+                  focus && 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:bg-white/5',
+                  'text-(--clarify-theme-tokens-colors-muted) hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-300 dark:hover:text-white',
+                )
+
+                return external ? (
+                  <a href={href} target="_blank" rel="noreferrer" className={className}>
+                    {label}
+                  </a>
+                ) : (
+                  <Link to={href} className={className}>
+                    {label}
+                  </Link>
+                )
+              }}
+            </MenuItem>
+          )
+        })}
+      </MenuItems>
+    </Menu>
+  )
+}
+
 function hasPath(nodes: NavigationNode[], pathname: string): boolean {
   return nodes.some((node) => node.path === pathname || hasPath(node.children ?? [], pathname))
 }
@@ -144,8 +195,8 @@ function ProductTabs(arg0: { tabs?: NavigationTab[] }) {  const { tabs } = arg0
   if (!tabs?.length) return null
 
   return (
-    <div className="clarify-product-tabs hidden h-14 border-t border-(--clarify-theme-tokens-colors-border) lg:block dark:border-white/10">
-      <nav className="clarify-product-tabs-nav mx-auto flex h-full w-full max-w-(--clarify-theme-layout-max-width) items-stretch gap-6 overflow-x-auto px-5" aria-label="Documentation sections">
+    <div className="clarify-product-tabs h-12 border-t border-(--clarify-theme-tokens-colors-border) lg:h-14 dark:border-white/10">
+      <nav className="clarify-product-tabs-nav mx-auto flex h-full w-full max-w-(--clarify-theme-layout-max-width) items-stretch gap-5 overflow-x-auto px-4 sm:px-6 lg:gap-6 lg:px-5" aria-label="Documentation sections">
         {tabs.map((tab) => {
           const active = isActiveTab(tab, pathname)
           return (
@@ -154,13 +205,13 @@ function ProductTabs(arg0: { tabs?: NavigationTab[] }) {  const { tabs } = arg0
               to={tab.path}
               aria-current={active ? 'page' : undefined}
               className={clsx(
-                'clarify-product-tab relative inline-flex shrink-0 items-center gap-2 px-0 text-sm font-medium transition',
+                'clarify-product-tab relative inline-flex shrink-0 items-center gap-1.5 px-0 text-xs font-medium transition sm:text-sm lg:gap-2',
                 active
                   ? 'text-(--clarify-theme-tokens-colors-foreground) dark:text-white'
                   : 'text-(--clarify-theme-tokens-colors-muted) hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white',
               )}
             >
-              <NavigationIcon name={tab.icon} className="h-4 w-4" />
+              <NavigationIcon name={tab.icon} className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
               <span>{tab.title}</span>
               {active ? (
                 <motion.span
@@ -220,7 +271,7 @@ export const Header = forwardRef<
       >
         <div className="clarify-header-left flex min-w-0 items-center gap-5">
           <div className="clarify-mobile-brand flex items-center gap-5 lg:hidden">
-            <MobileNavigation config={config} navigation={navigation} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
+            <MobileNavigation config={config} navigation={navigation} tabs={tabs} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
           </div>
           <CloseButton as={Link} to={localizeHref('/', config, currentLocale)} aria-label="Home" className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
             <SiteLogo logo={config.logo} className="h-6 w-6 shrink-0" />
@@ -246,6 +297,7 @@ export const Header = forwardRef<
           <MobileSearch routes={routes} navigation={navigation} />
           <LanguageSwitcher config={config} currentLocale={currentLocale} currentRoute={currentRoute} />
           <ThemeToggle />
+          <MobileNavbarMenu links={config.navbar?.links} config={config} currentLocale={currentLocale} />
         </div>
       </div>
       <ProductTabs tabs={tabs} />

@@ -47,21 +47,6 @@ function navigationToGroups(navigation: NavigationNode[]): NavGroup[] {
   })
 }
 
-function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  const { href, children } = arg0
-
-  return (
-    <li className="md:hidden">
-      <CloseButton
-        as={Link}
-        to={href}
-        className="block py-1 text-sm text-(--clarify-theme-tokens-colors-muted) transition hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white"
-      >
-        {children}
-      </CloseButton>
-    </li>
-  )
-}
-
 const sectionBadgeColorStyles: Record<string, string> = {
   GET: 'text-emerald-500 dark:text-emerald-400',
   POST: 'text-sky-500 dark:text-sky-400',
@@ -261,9 +246,8 @@ export function Navigation(arg0: { navigation: NavigationNode[]; className?: str
   return (
     <nav className={clsx('clarify-navigation', className)}>
       <ul role="list" className="clarify-navigation-list">
-        <TopLevelNavItem href="/">Home</TopLevelNavItem>
         {groups.map((group, groupIndex) => (
-          <NavigationGroup key={group.title} group={group} className={groupIndex === 0 ? 'md:mt-0' : ''} />
+          <NavigationGroup key={group.title} group={group} className={groupIndex === 0 ? 'mt-0' : ''} />
         ))}
       </ul>
     </nav>

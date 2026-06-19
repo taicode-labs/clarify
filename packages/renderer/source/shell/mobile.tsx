@@ -1,9 +1,10 @@
 import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react'
+import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { createContext, Suspense, useContext } from 'react'
 import { create } from 'zustand'
 
-import type { ClarifyConfig, NavigationNode, RouteItem } from '../types'
+import type { ClarifyConfig, NavigationNode, NavigationTab, RouteItem } from '../types'
 
 import { Header } from './Header'
 import { Navigation } from './Navigation'
@@ -30,6 +31,7 @@ function MobileNavigationDialog(arg0: {
   config: ClarifyConfig
   isOpen: boolean
   navigation: NavigationNode[]
+  tabs?: NavigationTab[]
   routes: RouteItem[]
   currentLocale?: string
   currentRoute?: RouteItem
@@ -38,6 +40,7 @@ function MobileNavigationDialog(arg0: {
   config,
   isOpen,
   navigation,
+  tabs,
   routes,
   currentLocale,
   currentRoute,
@@ -56,6 +59,7 @@ function MobileNavigationDialog(arg0: {
           <Header
             config={config}
             navigation={navigation}
+            tabs={tabs}
             routes={routes}
             currentLocale={currentLocale}
             currentRoute={currentRoute}
@@ -66,7 +70,10 @@ function MobileNavigationDialog(arg0: {
         <TransitionChild>
           <motion.div
             layoutScroll
-            className="clarify-mobile-navigation-panel fixed top-14 bottom-0 left-0 w-full overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-4 pt-6 pb-4 shadow-lg ring-1 shadow-zinc-900/10 ring-(--clarify-theme-tokens-colors-border) duration-500 ease-in-out data-closed:-translate-x-full min-[416px]:max-w-sm sm:px-6 sm:pb-10 dark:bg-zinc-950 dark:ring-zinc-800"
+            className={clsx(
+              'clarify-mobile-navigation-panel fixed bottom-0 left-0 w-full overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-4 pt-6 pb-4 shadow-lg ring-1 shadow-zinc-900/10 ring-(--clarify-theme-tokens-colors-border) duration-500 ease-in-out data-closed:-translate-x-full min-[416px]:max-w-sm sm:px-6 sm:pb-10 dark:bg-zinc-950 dark:ring-zinc-800',
+              tabs?.length ? 'top-26' : 'top-14',
+            )}
           >
             <Navigation navigation={navigation} />
           </motion.div>
@@ -95,12 +102,14 @@ export const useMobileNavigationStore = create<{
 export function MobileNavigation(arg0: {
   config: ClarifyConfig
   navigation: NavigationNode[]
+  tabs?: NavigationTab[]
   routes: RouteItem[]
   currentLocale?: string
   currentRoute?: RouteItem
 }) {  const {
   config,
   navigation,
+  tabs,
   routes,
   currentLocale,
   currentRoute,
@@ -126,6 +135,7 @@ export function MobileNavigation(arg0: {
           <MobileNavigationDialog
             config={config}
             navigation={navigation}
+            tabs={tabs}
             routes={routes}
             currentLocale={currentLocale}
             currentRoute={currentRoute}
