@@ -199,7 +199,8 @@ function ServerVariableControl(arg0: {
   variable?: OpenApiServerVariable
   value: string
   onChange: (value: string) => void
-}): ReactNode {  const { name, variable, value, onChange } = arg0
+  compact?: boolean
+}): ReactNode {  const { name, variable, value, onChange, compact = false } = arg0
 
   if (variable?.enum?.length) {
     return (
@@ -208,7 +209,7 @@ function ServerVariableControl(arg0: {
         value={value}
         options={variable.enum.map((option) => ({ value: option, label: option }))}
         onChange={onChange}
-        compact
+        compact={compact}
       />
     )
   }
@@ -219,7 +220,10 @@ function ServerVariableControl(arg0: {
       value={value}
       placeholder={variable?.default ?? name}
       onChange={(event) => onChange(event.target.value)}
-      className="pointer-events-auto mx-0.5 w-24 rounded-md border-0 bg-zinc-100/60 px-1 py-0.5 font-mono text-xs font-semibold text-zinc-800 outline-hidden transition hover:bg-zinc-100 focus:bg-zinc-100 dark:bg-white/7 dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10"
+      className={clsx(
+        'pointer-events-auto rounded-md border-0 bg-zinc-100/60 font-mono text-xs font-semibold text-zinc-800 outline-hidden transition hover:bg-zinc-100 focus:bg-zinc-100 dark:bg-white/7 dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10',
+        compact ? 'mx-0.5 w-24 px-1 py-0.5' : 'w-full px-2 py-1.5',
+      )}
     />
   )
 }
@@ -236,58 +240,34 @@ function ServerPanel(arg0: {
   const variableEntries = Object.entries(selectedServer.variables ?? {})
 
   return (
-    <div className="border-t border-zinc-200/70 bg-linear-to-b from-zinc-50/90 to-white p-3 dark:border-white/10 dark:from-white/5 dark:to-white/2">
-      <div className="rounded-xl border border-zinc-200/80 bg-white p-3 shadow-xs dark:border-white/10 dark:bg-black/20">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <div className="text-xs font-semibold text-zinc-900 dark:text-white">Server</div>
-            <div className="mt-0.5 text-2xs text-zinc-500 dark:text-zinc-400">Choose the request server and configure its variables.</div>
-          </div>
-          <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-1 font-mono text-2xs font-semibold text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
-            {getServerPreviewUrl(selectedServer, variables)}
-          </span>
-        </div>
+    <div className="border-t border-zinc-200/70 bg-zinc-50/80 p-3 dark:border-white/10 dark:bg-white/3">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
         {servers.length > 1 ? (
-          <div className="mb-3 grid gap-2 sm:grid-cols-2">
-            {servers.map((server, index) => {
-              const key = getServerKey(server, index)
-              const selected = key === selectedKey
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => onSelectServer(key)}
-                  className={clsx(
-                    'flex min-w-0 items-center justify-between gap-3 rounded-lg px-3 py-2 text-left font-mono text-xs transition',
-                    selected ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-950' : 'bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10',
-                  )}
-                >
-                  <span className="min-w-0 truncate">{getServerLabel(server, index)}</span>
-                  <CheckIcon className={clsx('h-3.5 w-3.5 shrink-0', selected ? 'opacity-100' : 'opacity-0')} aria-hidden="true" />
-                </button>
-              )
-            })}
-          </div>
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">Server</span>
+            <InlineListbox
+              label="Server"
+              value={selectedKey}
+              options={servers.map((server, index) => ({
+                value: getServerKey(server, index),
+                label: getServerLabel(server, index),
+                description: server.description,
+              }))}
+              onChange={onSelectServer}
+            />
+          </label>
         ) : null}
-        {variableEntries.length > 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {variableEntries.map(([name, variable]) => (
-              <label key={name} className="flex min-w-0 flex-col gap-1.5">
-                <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">{name}</span>
-                <div className="rounded-lg bg-zinc-50 px-1 py-1 ring-1 ring-zinc-200/80 transition dark:bg-white/5 dark:ring-white/10">
-                  <ServerVariableControl
-                    name={name}
-                    variable={variable}
-                    value={variables[name] ?? variable.default ?? ''}
-                    onChange={(value) => onChangeVariable(name, value)}
-                  />
-                </div>
-              </label>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-500 dark:bg-white/5 dark:text-zinc-400">No server variables.</div>
-        )}
+        {variableEntries.map(([name, variable]) => (
+          <label key={name} className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">{name}</span>
+            <ServerVariableControl
+              name={name}
+              variable={variable}
+              value={variables[name] ?? variable.default ?? ''}
+              onChange={(value) => onChangeVariable(name, value)}
+            />
+          </label>
+        ))}
       </div>
     </div>
   )
@@ -305,51 +285,36 @@ function AuthPanel(arg0: {
   if (authOptions.length === 0) return null
 
   return (
-    <div className="border-t border-zinc-200/70 bg-linear-to-b from-zinc-50/90 to-white p-3 dark:border-white/10 dark:from-white/5 dark:to-white/2">
-      <div className="rounded-xl border border-zinc-200/80 bg-white p-3 shadow-xs dark:border-white/10 dark:bg-black/20">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div>
-            <div className="text-xs font-semibold text-zinc-900 dark:text-white">Authentication</div>
-            <div className="mt-0.5 text-2xs text-zinc-500 dark:text-zinc-400">Configure credentials used by generated request examples.</div>
-          </div>
-          {selectedAuth ? (
-            <span className="shrink-0 rounded-full bg-emerald-400/10 px-2 py-1 font-mono text-2xs font-semibold text-emerald-600 dark:text-emerald-300">
-              {selectedAuth.scheme.type ?? 'auth'}
-            </span>
-          ) : null}
-        </div>
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
+    <div className="border-t border-zinc-200/70 bg-zinc-50/80 p-3 dark:border-white/10 dark:bg-white/3">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <label className="flex min-w-0 flex-col gap-1.5">
+          <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">Auth</span>
+          <InlineListbox
+            label="Auth"
+            value={selectedAuthName}
+            options={authOptions.map(({ name, scheme }) => ({
+              value: name,
+              label: name,
+              description: authLabel(name, scheme),
+            }))}
+            onChange={onSelectAuth}
+          />
+        </label>
+        {selectedAuth ? (
           <label className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">Scheme</span>
-            <div className="rounded-lg bg-zinc-50 px-1 py-1 ring-1 ring-zinc-200/80 transition dark:bg-white/5 dark:ring-white/10">
-              <InlineListbox
-                label="Auth"
-                value={selectedAuthName}
-                options={authOptions.map(({ name, scheme }) => ({
-                  value: name,
-                  label: name,
-                  description: authLabel(name, scheme),
-                }))}
-                onChange={onSelectAuth}
+            <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">Credential</span>
+            <div className="flex min-w-0 items-center rounded-md bg-zinc-100/60 px-2 py-1.5 dark:bg-white/7">
+              <span className="mr-2 shrink-0 font-mono text-2xs font-semibold text-zinc-400 dark:text-zinc-500">
+                {selectedAuth.scheme.type === 'apiKey' ? selectedAuth.scheme.in ?? 'apiKey' : selectedAuth.scheme.scheme ?? selectedAuth.scheme.type ?? 'token'}
+              </span>
+              <input
+                value={authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth)}
+                onChange={(event) => onChangeAuthValue(selectedAuth.name, event.target.value)}
+                className="min-w-0 flex-1 border-0 bg-transparent px-0 py-0 font-mono text-xs text-zinc-900 outline-hidden placeholder:text-zinc-400 dark:text-zinc-100"
               />
             </div>
           </label>
-          {selectedAuth ? (
-            <label className="flex min-w-0 flex-col gap-1.5">
-              <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">Credential</span>
-              <div className="flex min-w-0 items-center rounded-lg bg-zinc-50 px-2 py-1 ring-1 ring-zinc-200/80 transition dark:bg-white/5 dark:ring-white/10">
-                <span className="mr-2 shrink-0 rounded-md bg-zinc-200/70 px-1.5 py-0.5 font-mono text-2xs font-semibold text-zinc-500 dark:bg-white/10 dark:text-zinc-400">
-                  {selectedAuth.scheme.type === 'apiKey' ? selectedAuth.scheme.in ?? 'apiKey' : selectedAuth.scheme.scheme ?? selectedAuth.scheme.type ?? 'token'}
-                </span>
-                <input
-                  value={authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth)}
-                  onChange={(event) => onChangeAuthValue(selectedAuth.name, event.target.value)}
-                  className="min-w-0 flex-1 border-0 bg-transparent px-0 py-1 font-mono text-xs text-zinc-900 outline-hidden placeholder:text-zinc-400 dark:text-zinc-100"
-                />
-              </div>
-            </label>
-          ) : null}
-        </div>
+        ) : null}
       </div>
     </div>
   )
