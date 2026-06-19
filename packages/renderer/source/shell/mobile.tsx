@@ -1,12 +1,14 @@
-import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react'
+import { Dialog, DialogBackdrop, DialogPanel, Menu, MenuButton, MenuItem, MenuItems, TransitionChild } from '@headlessui/react'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { createContext, Suspense, useContext } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { create } from 'zustand'
 
 import type { ClarifyConfig, NavigationNode, NavigationTab, RouteItem } from '../types'
 
 import { Header } from './Header'
+import { NavigationIcon } from './icons'
 import { Navigation } from './Navigation'
 
 function MenuIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
@@ -26,6 +28,68 @@ function XIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 }
 
 const IsInsideMobileNavigationContext = createContext(false)
+
+function hasPath(nodes: NavigationNode[], pathname: string): boolean {
+  return nodes.some((node) => node.path === pathname || hasPath(node.children ?? [], pathname))
+}
+
+function isActiveTab(tab: NavigationTab, pathname: string): boolean {
+  return tab.path === pathname || hasPath(tab.children, pathname)
+}
+
+function MobileTabsSelect(arg0: { tabs?: NavigationTab[] }) {
+  const { tabs } = arg0
+  const pathname = useLocation().pathname
+  const { close } = useMobileNavigationStore()
+  if (!tabs?.length) return null
+
+  const activeTab = tabs.find((tab) => isActiveTab(tab, pathname)) ?? tabs[0]
+
+  return (
+    <Menu as="div" className="clarify-mobile-tabs-select mb-6">
+      <MenuButton className="clarify-mobile-tabs-select-trigger group flex h-10 w-full items-center justify-between gap-2 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) px-4 text-left text-sm text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] aria-expanded:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:border-white/10 dark:text-zinc-200 dark:hover:bg-white/5 dark:aria-expanded:bg-white/5">
+        <span className="flex min-w-0 items-center gap-2">
+          <NavigationIcon name={activeTab.icon} className="h-4 w-4 shrink-0 text-(--clarify-theme-tokens-colors-muted)" />
+          <span className="truncate">{activeTab.title}</span>
+        </span>
+        <svg width="8" height="24" viewBox="0 -9 3 24" aria-hidden="true" className="shrink-0 overflow-visible text-(--clarify-theme-tokens-colors-muted) transition-transform group-aria-expanded:rotate-180">
+          <path d="M0 0L3 3L0 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </MenuButton>
+      <MenuItems className="clarify-mobile-tabs-select-list mt-2 flex flex-col gap-1 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 text-sm shadow-lg shadow-zinc-900/5 focus:outline-none dark:border-white/10 dark:bg-zinc-900 dark:shadow-none">
+        {tabs.map((tab) => {
+          const active = isActiveTab(tab, pathname)
+
+          return (
+            <MenuItem key={`${tab.title}-${tab.path}`}>
+              <Link
+                to={tab.path}
+                onClick={close}
+                className={clsx(
+                  'clarify-mobile-tabs-select-item flex items-center justify-between gap-3 rounded-(--clarify-theme-tokens-radius-lg) px-3 py-2.5 no-underline transition',
+                  active
+                    ? 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_10%,transparent)] text-(--clarify-theme-tokens-colors-primary) dark:bg-white/10 dark:text-white'
+                    : 'text-(--clarify-theme-tokens-colors-muted) hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white',
+                )}
+                aria-current={active ? 'page' : undefined}
+              >
+                <span className="flex min-w-0 items-start gap-2">
+                  <NavigationIcon name={tab.icon} className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="min-w-0 whitespace-normal wrap-anywhere font-medium leading-5">{tab.title}</span>
+                </span>
+                {active ? (
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0">
+                    <path d="m5 10 3 3 7-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : null}
+              </Link>
+            </MenuItem>
+          )
+        })}
+      </MenuItems>
+    </Menu>
+  )
+}
 
 function MobileNavigationDialog(arg0: {
   config: ClarifyConfig
@@ -70,11 +134,9 @@ function MobileNavigationDialog(arg0: {
         <TransitionChild>
           <motion.div
             layoutScroll
-            className={clsx(
-              'clarify-mobile-navigation-panel fixed bottom-0 left-0 w-full overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-4 pt-6 pb-4 shadow-lg ring-1 shadow-zinc-900/10 ring-(--clarify-theme-tokens-colors-border) duration-500 ease-in-out data-closed:-translate-x-full min-[416px]:max-w-sm sm:px-6 sm:pb-10 dark:bg-zinc-950 dark:ring-zinc-800',
-              tabs?.length ? 'top-26' : 'top-14',
-            )}
+            className="clarify-mobile-navigation-panel fixed top-14 bottom-0 left-0 w-full overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-4 pt-6 pb-4 shadow-lg ring-1 shadow-zinc-900/10 ring-(--clarify-theme-tokens-colors-border) duration-500 ease-in-out data-closed:-translate-x-full min-[416px]:max-w-sm sm:px-6 sm:pb-10 dark:bg-zinc-950 dark:ring-zinc-800"
           >
+            <MobileTabsSelect tabs={tabs} />
             <Navigation navigation={navigation} />
           </motion.div>
         </TransitionChild>

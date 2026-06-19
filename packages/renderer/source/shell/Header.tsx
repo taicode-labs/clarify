@@ -195,8 +195,8 @@ function ProductTabs(arg0: { tabs?: NavigationTab[] }) {  const { tabs } = arg0
   if (!tabs?.length) return null
 
   return (
-    <div className="clarify-product-tabs h-12 border-t border-(--clarify-theme-tokens-colors-border) lg:h-14 dark:border-white/10">
-      <nav className="clarify-product-tabs-nav mx-auto flex h-full w-full max-w-(--clarify-theme-layout-max-width) items-stretch gap-5 overflow-x-auto px-4 sm:px-6 lg:gap-6 lg:px-5" aria-label="Documentation sections">
+    <div className="clarify-product-tabs hidden h-14 border-t border-(--clarify-theme-tokens-colors-border) lg:block dark:border-white/10">
+      <nav className="clarify-product-tabs-nav mx-auto flex h-full w-full max-w-(--clarify-theme-layout-max-width) items-stretch gap-6 overflow-x-auto px-5" aria-label="Documentation sections">
         {tabs.map((tab) => {
           const active = isActiveTab(tab, pathname)
           return (
@@ -205,13 +205,13 @@ function ProductTabs(arg0: { tabs?: NavigationTab[] }) {  const { tabs } = arg0
               to={tab.path}
               aria-current={active ? 'page' : undefined}
               className={clsx(
-                'clarify-product-tab relative inline-flex shrink-0 items-center gap-1.5 px-0 text-xs font-medium transition sm:text-sm lg:gap-2',
+                'clarify-product-tab relative inline-flex shrink-0 items-center gap-2 px-0 text-sm font-medium transition',
                 active
                   ? 'text-(--clarify-theme-tokens-colors-foreground) dark:text-white'
                   : 'text-(--clarify-theme-tokens-colors-muted) hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white',
               )}
             >
-              <NavigationIcon name={tab.icon} className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+              <NavigationIcon name={tab.icon} className="h-4 w-4" />
               <span>{tab.title}</span>
               {active ? (
                 <motion.span

@@ -82,7 +82,7 @@ export function ContentActions(arg0: ContentActionsProps) {
   const PrimaryIcon = copied === primaryAction.key ? Check : primaryAction.icon
 
   return (
-    <div className={`clarify-content-actions sticky z-20 flex justify-end py-4 ${hasTabs ? 'top-28 lg:top-[7.5rem]' : 'top-16'}`}>
+    <div className={`clarify-content-actions sticky z-20 flex justify-end py-4 ${hasTabs ? 'top-16 lg:top-30' : 'top-16'}`}>
       <Menu as="div" className="clarify-content-actions-menu relative inline-flex text-sm font-medium">
         <div className="clarify-content-actions-group inline-flex overflow-hidden rounded-full border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/90 shadow-sm shadow-zinc-900/5 backdrop-blur dark:border-white/10 dark:bg-zinc-900/80 dark:shadow-none">
           <button
