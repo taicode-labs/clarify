@@ -11,7 +11,7 @@ function normalizeBasePath(basePath: string): string {
 }
 
 function containsNonAscii(content: string): boolean {
-  return /[^\u0000-\u007F]/.test(content)
+  return [...content].some(character => character.codePointAt(0)! > 0x7F)
 }
 
 function withUtf8Signature(content: string): string {

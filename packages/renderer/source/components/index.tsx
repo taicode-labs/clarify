@@ -187,7 +187,7 @@ export function Prose<T extends ElementType = 'div'>(arg0: Omit<ComponentPropsWi
       className={clsx(
         className,
         'clarify-prose prose max-w-none dark:prose-invert',
-        '[html_:where(&>*)]:mx-auto [html_:where(&>*)]:w-full [html_:where(&>*)]:min-w-0 [html_:where(&>*)]:max-w-full @4xl:[html_:where(&>*)]:max-w-3xl @6xl:[html_:where(&>*)]:max-w-4xl [html_:where(&>.not-prose)]:max-w-full',
+        '[html_:where(&>*)]:w-full [html_:where(&>*)]:min-w-0 [html_:where(&>*)]:max-w-full',
       )}
       {...props}
     />
