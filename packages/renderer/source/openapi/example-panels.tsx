@@ -20,6 +20,7 @@ function SelectControl(arg0: {
   options: Array<string | SelectOption>
   onChange: (value: string) => void
   icon?: ReactNode
+  compact?: boolean
 }): ReactNode {
   const {
     label,
@@ -27,21 +28,24 @@ function SelectControl(arg0: {
     options,
     onChange,
     icon,
+    compact = false,
   } = arg0
 
   const normalizedOptions = options.map((option) => (typeof option === 'string' ? { value: option, label: option } : option))
   const selectedOption = normalizedOptions.find((option) => option.value === value) ?? normalizedOptions[0]
+  const wrapperClassName = compact ? 'clarify-api-select relative min-w-0 text-xs' : 'clarify-api-select relative shrink-0 text-xs'
+  const buttonSizeClassName = compact ? 'w-full min-w-0 max-w-32' : 'min-w-28 max-w-48'
 
   if (normalizedOptions.length <= 1) return null
 
   return (
     <Listbox value={value} onChange={onChange}>
-      <div className="clarify-api-select relative text-xs">
+      <div className={wrapperClassName}>
         <ListboxButton
           aria-label={label}
-          className="clarify-api-select-button flex min-w-28 items-center justify-between gap-2 rounded-lg bg-black/30 px-2 py-1 font-mono text-xs font-medium text-zinc-100 outline-hidden transition hover:bg-black/50 focus:ring-2 focus:ring-emerald-400/25 data-open:bg-white/10 data-open:ring-2 data-open:ring-emerald-400/25"
+          className={`clarify-api-select-button flex ${buttonSizeClassName} items-center justify-between gap-2 rounded-lg bg-black/30 px-2 py-1 font-mono text-xs font-medium whitespace-nowrap text-zinc-100 outline-hidden transition hover:bg-black/50 focus:ring-2 focus:ring-emerald-400/25 data-open:bg-white/10 data-open:ring-2 data-open:ring-emerald-400/25`}
         >
-          <span className="flex min-w-0 items-center gap-1.5">
+          <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
             {icon ? <span className="shrink-0 text-zinc-500">{icon}</span> : null}
             <span className="truncate">{selectedOption?.label ?? value}</span>
           </span>
@@ -49,15 +53,15 @@ function SelectControl(arg0: {
         </ListboxButton>
         <ListboxOptions
           anchor="bottom end"
-          className="clarify-api-select-options z-30 mt-1 max-h-64 w-(--button-width) min-w-40 overflow-auto rounded-xl bg-zinc-900 p-1 text-xs shadow-lg shadow-black/20 ring-1 ring-white/10 [--anchor-gap:--spacing(1)] focus:outline-none"
+          className="clarify-api-select-options z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-[min(32rem,calc(100vw-2rem))] overflow-auto rounded-xl bg-zinc-900 p-1 text-xs shadow-lg shadow-black/20 ring-1 ring-white/10 [--anchor-gap:--spacing(1)] focus:outline-none"
         >
           {normalizedOptions.map((option) => (
             <ListboxOption
               key={option.value}
               value={option.value}
-              className="clarify-api-select-option group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 font-mono text-xs text-zinc-300 select-none data-focus:bg-white/10 data-focus:text-white data-selected:text-emerald-300"
+              className="clarify-api-select-option group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 font-mono text-xs whitespace-nowrap text-zinc-300 select-none data-focus:bg-white/10 data-focus:text-white data-selected:text-emerald-300"
             >
-              <span className="truncate">{option.label}</span>
+              <span>{option.label}</span>
               <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />
             </ListboxOption>
           ))}
@@ -202,24 +206,28 @@ function ApiExampleCodeGroup(arg0: {
   return (
     <div className="clarify-api-example my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
       <div className="not-prose">
-        <div className="clarify-api-example-header flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-center gap-3 border-b border-zinc-700 bg-zinc-800 px-4 py-2 dark:border-zinc-800 dark:bg-transparent">
-          <h3 className="mr-auto shrink-0 py-1 text-xs font-semibold text-white">{title}</h3>
-          {mediaTypes && mediaTypes.length > 1 && selectedMediaType && onSelectMediaType ? (
-            <SelectControl
-              label={t('openapi.mediaType')}
-              value={selectedMediaType}
-              options={mediaTypes}
-              onChange={onSelectMediaType}
-            />
-          ) : null}
-          {examples && examples.length > 1 && selectedExampleKey && onSelectExample ? (
-            <SelectControl
-              label={t('openapi.example')}
-              value={selectedExampleKey}
-              options={examples.map((example) => ({ value: example.key, label: getExampleLabel(example, t) }))}
-              onChange={onSelectExample}
-            />
-          ) : null}
+        <div className="clarify-api-example-header flex min-h-[calc(--spacing(12)+1px)] items-center gap-3 border-b border-zinc-700 bg-zinc-800 px-4 py-2 dark:border-zinc-800 dark:bg-transparent">
+          <h3 className="mr-auto min-w-16 truncate py-1 text-xs font-semibold text-white">{title}</h3>
+          <div className="ml-auto flex min-w-0 items-center gap-2 whitespace-nowrap">
+            {mediaTypes && mediaTypes.length > 1 && selectedMediaType && onSelectMediaType ? (
+              <SelectControl
+                label={t('openapi.mediaType')}
+                value={selectedMediaType}
+                options={mediaTypes}
+                onChange={onSelectMediaType}
+                compact
+              />
+            ) : null}
+            {examples && examples.length > 1 && selectedExampleKey && onSelectExample ? (
+              <SelectControl
+                label={t('openapi.example')}
+                value={selectedExampleKey}
+                options={examples.map((example) => ({ value: example.key, label: getExampleLabel(example, t) }))}
+                onChange={onSelectExample}
+                compact
+              />
+            ) : null}
+          </div>
         </div>
         {tag || label ? (
           <div className="flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
