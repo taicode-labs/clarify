@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { slug } from 'github-slugger'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 import { Heading, Prose } from '../components'
 import { useBuiltInText } from '../i18n'
@@ -38,6 +38,8 @@ function EndpointExamples(arg0: {
   operation: OpenAPIOperation
   parameters: OpenApiParameter[]
   requestContents: MediaTypeEntry[]
+  selectedRequestMediaType: string
+  onSelectRequestMediaType: (value: string) => void
 }): ReactNode {  const {
   spec,
   path,
@@ -45,11 +47,21 @@ function EndpointExamples(arg0: {
   operation,
   parameters,
   requestContents,
+  selectedRequestMediaType,
+  onSelectRequestMediaType,
 } = arg0
 
   return (
     <div className="space-y-6">
-      <RequestExamplesPanel spec={spec} path={path} method={method} parameters={parameters} requestContents={requestContents} />
+      <RequestExamplesPanel
+        spec={spec}
+        path={path}
+        method={method}
+        parameters={parameters}
+        requestContents={requestContents}
+        selectedMediaType={selectedRequestMediaType}
+        onSelectMediaType={onSelectRequestMediaType}
+      />
       <ResponseExamplesPanel operation={operation} />
     </div>
   )
@@ -79,7 +91,9 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
   const parameters = getOperationParameters(spec, path, operation)
   const requestBody = getRequestBody(operation)
   const requestContents = getMediaTypeEntries(requestBody?.content)
-  const requestSchema = requestContents[0]?.value.schema
+  const [selectedRequestMediaType, setSelectedRequestMediaType] = useState(requestContents[0]?.mediaType ?? '')
+  const selectedRequestContent = requestContents.find((content) => content.mediaType === selectedRequestMediaType) ?? requestContents[0]
+  const requestSchema = selectedRequestContent?.value.schema
   const groupedParameters = {
     path: parameters.filter((parameter) => parameter.in === 'path'),
     query: parameters.filter((parameter) => parameter.in === 'query'),
@@ -114,6 +128,8 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
             operation={operation}
             parameters={parameters}
             requestContents={requestContents}
+            selectedRequestMediaType={selectedRequestContent?.mediaType ?? ''}
+            onSelectRequestMediaType={setSelectedRequestMediaType}
           />
         </Col>
       </Row>

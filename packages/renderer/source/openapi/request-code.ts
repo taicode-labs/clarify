@@ -14,7 +14,8 @@ export type RequestCodeInput = {
 }
 
 type RequestBody = {
-  serialized: string
+  serialized?: string
+  params?: NonNullable<HarRequest['postData']>['params']
 }
 
 type SnippetTarget<T extends TargetId = TargetId> = {
@@ -43,9 +44,56 @@ function getQueryString(parameters: OpenApiParameter[]): HarRequest['queryString
     .map((parameter) => ({ name: parameter.name, value: encodeUrlPlaceholders(`{${parameter.name}}`) }))
 }
 
+function isFormMediaType(mediaType: string): boolean {
+  return mediaType.includes('multipart/form-data') || mediaType.includes('application/x-www-form-urlencoded')
+}
+
+function isBinarySchema(schema: unknown): boolean {
+  return isRecord(schema) && schema.type === 'string' && schema.format === 'binary'
+}
+
+function getSchemaProperties(schema: unknown): Record<string, unknown> {
+  return isRecord(schema) && isRecord(schema.properties) ? schema.properties : {}
+}
+
+function getFieldValue(name: string, value: unknown, schema: unknown): unknown {
+  if (isRecord(value) && typeof value[name] !== 'undefined') return value[name]
+  if (isBinarySchema(schema)) return `@${name}`
+  return undefined
+}
+
+function getFormParams(value: unknown, requestContent: { mediaType: string; value: OpenApiMediaType }): RequestBody['params'] {
+  const properties = getSchemaProperties(requestContent.value.schema)
+  const fieldNames = Array.from(new Set([...Object.keys(properties), ...(isRecord(value) ? Object.keys(value) : [])]))
+
+  return fieldNames.flatMap((name) => {
+    const fieldValue = getFieldValue(name, value, properties[name])
+    if (typeof fieldValue === 'undefined') return []
+
+    const contentType = requestContent.value.encoding?.[name]?.contentType
+    const serializedValue = typeof fieldValue === 'string' ? fieldValue : stringifyExample(fieldValue)
+
+    return [{
+      name,
+      value: serializedValue,
+      ...(contentType ? { contentType } : {}),
+    }]
+  })
+}
+
+function getBodySize(requestBody?: RequestBody): number {
+  if (requestBody?.serialized) return requestBody.serialized.length
+  return requestBody?.params?.reduce((size: number, param: { name: string; value?: unknown }) => size + param.name.length + String(param.value ?? '').length, 0) ?? 0
+}
+
 function getRequestBody(requestContent?: { mediaType: string; value: OpenApiMediaType }): RequestBody | undefined {
   const value = getContentExample(requestContent?.value)
   if (!requestContent || typeof value === 'undefined') return undefined
+
+  if (isFormMediaType(requestContent.mediaType)) {
+    const params = getFormParams(value, requestContent)
+    return params.length > 0 ? { params } : undefined
+  }
 
   return { serialized: stringifyExample(value) }
 }
@@ -78,11 +126,12 @@ function buildHarRequest(input: RequestCodeInput): HarRequest {
     headers: Object.entries(getRequestHeaders(input.requestContent)).map(([name, value]) => ({ name, value })),
     queryString: getQueryString(input.parameters),
     headersSize: -1,
-    bodySize: requestBody ? requestBody.serialized.length : 0,
+    bodySize: getBodySize(requestBody),
     postData: requestBody
       ? {
           mimeType: input.requestContent?.mediaType ?? '',
-          text: requestBody.serialized,
+          ...(requestBody.serialized ? { text: requestBody.serialized } : {}),
+          ...(requestBody.params ? { params: requestBody.params } : {}),
         }
       : undefined,
   }

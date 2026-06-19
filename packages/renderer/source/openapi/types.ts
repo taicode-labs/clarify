@@ -14,6 +14,7 @@ export type OpenApiMediaType = {
   schema?: unknown
   example?: unknown
   examples?: Record<string, unknown>
+  encoding?: Record<string, { contentType?: string }>
 }
 
 export type OpenApiResponse = {
