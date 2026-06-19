@@ -140,6 +140,10 @@
     --clarify-ui-menu-line-height: 1.5rem;
     --clarify-ui-description-font-size: 0.75rem;
     --clarify-ui-description-line-height: 1.25rem;
+    --clarify-ui-navigation-section-font-size: var(--clarify-ui-menu-font-size);
+    --clarify-ui-navigation-section-line-height: var(--clarify-ui-menu-line-height);
+    --clarify-ui-navigation-section-badge-font-size: var(--clarify-ui-description-font-size);
+    --clarify-ui-navigation-section-badge-line-height: var(--clarify-ui-menu-line-height);
   }
 
   .dark,
@@ -304,9 +308,9 @@
 
   .clarify-navigation-anchor-link {
     color: var(--clarify-ui-text-soft);
-    font-size: var(--clarify-ui-description-font-size);
-    line-height: var(--clarify-ui-description-line-height);
-    font-weight: 400;
+    font-size: var(--clarify-ui-navigation-section-font-size);
+    line-height: var(--clarify-ui-navigation-section-line-height);
+    font-weight: 500;
   }
 
   .clarify-navigation-link:hover,
@@ -315,8 +319,8 @@
   }
 
   .clarify-navigation-section-badge {
-    font-size: 0.625rem;
-    line-height: 1.5rem;
+    font-size: var(--clarify-ui-navigation-section-badge-font-size);
+    line-height: var(--clarify-ui-navigation-section-badge-line-height);
   }
 
   .clarify-navigation-section-highlight {
