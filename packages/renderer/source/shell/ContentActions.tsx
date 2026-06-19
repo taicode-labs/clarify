@@ -5,6 +5,7 @@ import { useState } from 'react'
 import type { RouteItem } from '../types'
 
 type ContentActionsProps = {
+  hasTabs?: boolean
   route?: RouteItem
   routePrefix?: string
 }
@@ -32,7 +33,7 @@ async function copyText(text: string): Promise<void> {
 }
 
 export function ContentActions(arg0: ContentActionsProps) {
-  const { route, routePrefix } = arg0
+  const { hasTabs = false, route, routePrefix } = arg0
   const [copied, setCopied] = useState<CopyState>('idle')
 
   if (!route?.contentArtifactUrl) return null
@@ -66,7 +67,7 @@ export function ContentActions(arg0: ContentActionsProps) {
   const primaryAction = actions[0]
 
   return (
-    <div className="clarify-content-actions sticky top-16 z-20 flex justify-end py-4">
+    <div className={`clarify-content-actions sticky z-20 flex justify-end py-4 ${hasTabs ? 'top-16 lg:top-[7.5rem]' : 'top-16'}`}>
       <Menu as="div" className="clarify-content-actions-menu relative inline-flex text-xs font-medium">
         <div className="clarify-content-actions-group inline-flex overflow-hidden rounded-full border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/85 backdrop-blur dark:border-white/10 dark:bg-white/5">
           <button

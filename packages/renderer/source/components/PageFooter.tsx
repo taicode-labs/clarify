@@ -76,7 +76,7 @@ export function PageFooter() {
   return (
     <footer
       className={clsx(
-        'clarify-page-footer mx-auto flex w-full max-w-(--clarify-theme-layout-max-width) flex-col items-end gap-4 border-t border-(--clarify-theme-tokens-colors-border) px-4 py-8 sm:px-6 lg:px-5 dark:border-white/10',
+        'clarify-page-footer mx-auto mt-16 flex w-full max-w-(--clarify-theme-layout-max-width) flex-col items-end gap-4 border-t border-(--clarify-theme-tokens-colors-border) px-4 py-8 sm:px-6 lg:mt-24 lg:px-5 dark:border-white/10',
         hasCustomFooter && 'sm:flex-row sm:items-center sm:justify-between',
       )}
     >

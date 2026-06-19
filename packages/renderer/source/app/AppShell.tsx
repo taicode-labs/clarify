@@ -152,7 +152,7 @@ export function AppShell(arg0: AppShellProps) {
             <Navigation navigation={currentNavigation.items} />
           </motion.aside>
           <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
-            <ContentActions route={currentRoute} routePrefix={config.routePrefix} />
+            <ContentActions hasTabs={hasTabs} route={currentRoute} routePrefix={config.routePrefix} />
             <main className="clarify-main min-w-0 flex-auto">
               <Routes>
                 {routes.map((route) => (
