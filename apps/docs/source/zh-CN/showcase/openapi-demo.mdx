@@ -23,48 +23,41 @@
 ## 接口目录预览
 
 ```txt
-GET     /pages              List pages
-POST    /pages              Create a page
-OPTIONS /pages              Describe page collection capabilities
-GET     /pages/{pageId}     Get a page
-PUT     /pages/{pageId}     Replace a page
-PATCH   /pages/{pageId}     Patch a page
-DELETE  /pages/{pageId}     Delete a page
-HEAD    /pages/{pageId}     Check if a page exists
-POST    /assets             Upload an asset
-GET     /search             Search pages
-POST    /exports            Create an export
-GET     /system/health      Get service health
-TRACE   /system/health      Trace health request
+GET     /examples/basic-request                 Basic request structure
+POST    /examples/basic-request                 Request body variants
+GET     /examples/path-parameters/{pageId}      Path parameter example
+GET     /examples/query-parameters              Query parameter example
+POST    /examples/complex-request-body          Complex request body example
+GET     /examples/basic-response                Basic response structure
 ```
 
 ---
 
-## 示例一：列表接口
+## 示例一：基础请求结构
 
-在指南中解释“读取页面列表”时，可以直接嵌入 `GET /pages`：
+在指南中解释基础请求结构时，可以直接嵌入 `GET /examples/basic-request`：
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+<OpenApiEndpoint specPath="/api" path="/examples/basic-request" method="get" />
 ```
 
 渲染效果：
 
-<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+<OpenApiEndpoint specPath="/api" path="/examples/basic-request" method="get" />
 
 ---
 
 ## 示例二：复杂请求体和多响应
 
-`POST /exports` 覆盖更复杂的接口结构：请求体有 JSON 与 YAML 两种 media type，每种 media type 下都有多个 examples；响应包含 `202` 和 `400`，成功响应同时提供 JSON 与纯文本 media type。
+`POST /examples/complex-request-body` 覆盖更复杂的接口结构：请求体有 JSON 与 YAML 两种 media type，每种 media type 下都有多个 examples；响应包含 `202` 和 `400`，成功响应同时提供 JSON 与纯文本 media type。
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/exports" method="post" />
+<OpenApiEndpoint specPath="/api" path="/examples/complex-request-body" method="post" />
 ```
 
 渲染效果：
 
-<OpenApiEndpoint specPath="/api" path="/exports" method="post" />
+<OpenApiEndpoint specPath="/api" path="/examples/complex-request-body" method="post" />
 
 ---
 

@@ -11,13 +11,13 @@ Clarify exposes documentation-oriented components that can be used from MDX.
 Embed a single operation from an OpenAPI spec:
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+<OpenApiEndpoint specPath="/api" path="/examples/basic-request" method="get" />
 ```
 
 | Prop | Description |
 |------|-------------|
 | `specPath` | Route of the OpenAPI reference, such as `/api`. |
-| `path` | Exact OpenAPI path key, such as `/pages/{pageId}`. |
+| `path` | Exact OpenAPI path key, such as `/examples/path-parameters/{pageId}`. |
 | `method` | HTTP method, usually lowercase. |
 
 ### `OpenApiPage`

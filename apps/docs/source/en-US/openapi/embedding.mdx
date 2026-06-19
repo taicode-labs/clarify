@@ -44,7 +44,7 @@ In localized sites, put the English spec in `source/en-US/api.openapi.json` and 
 Use `OpenApiEndpoint`:
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+<OpenApiEndpoint specPath="/api" path="/examples/basic-request" method="get" />
 ```
 
 Props:
@@ -52,26 +52,26 @@ Props:
 | Prop | Required | Description |
 |------|----------|-------------|
 | `specPath` | Yes | OpenAPI Reference route without the `.openapi.json` suffix, for example `/api`. |
-| `path` | Yes | Exact key from OpenAPI `paths`, for example `/pages/{pageId}`. |
+| `path` | Yes | Exact key from OpenAPI `paths`, for example `/examples/path-parameters/{pageId}`. |
 | `method` | Yes | HTTP method, usually lowercase, such as `get`, `post`, or `patch`. |
 
 Rendered result:
 
-<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+<OpenApiEndpoint specPath="/api" path="/examples/basic-request" method="get" />
 
 ---
 
 ## Embed a complex request operation
 
-The same component works for operations with multiple request bodies, examples, response statuses, or callbacks. `POST /exports` covers JSON / YAML request bodies, multiple examples, JSON / text responses, and error responses:
+The same component works for operations with multiple request bodies, examples, response statuses, or callbacks. `POST /examples/complex-request-body` covers JSON / YAML request bodies, multiple examples, JSON / text responses, and error responses:
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/exports" method="post" />
+<OpenApiEndpoint specPath="/api" path="/examples/complex-request-body" method="post" />
 ```
 
 Rendered result:
 
-<OpenApiEndpoint specPath="/api" path="/exports" method="post" />
+<OpenApiEndpoint specPath="/api" path="/examples/complex-request-body" method="post" />
 
 ---
 

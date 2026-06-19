@@ -2,7 +2,7 @@ import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headless
 import clsx from 'clsx'
 import { slug } from 'github-slugger'
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
-import { useRef, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { Heading, Prose } from '../components'
@@ -78,6 +78,24 @@ function isReference(value: unknown): value is { $ref: string } {
 
 function resolveReferenceName(ref: string): string {
   return ref.split('/').filter(Boolean).at(-1) ?? ref
+}
+
+function resolveOpenApiRef(spec: OpenAPISpec, ref: string): unknown {
+  if (!ref.startsWith('#/')) return undefined
+
+  return ref
+    .slice(2)
+    .split('/')
+    .map((part) => part.replace(/~1/g, '/').replace(/~0/g, '~'))
+    .reduce<unknown>((current, part) => (isRecord(current) ? current[part] : undefined), spec)
+}
+
+function resolveSchema(spec: OpenAPISpec, schema: unknown, seen = new Set<string>()): unknown {
+  if (!isReference(schema)) return schema
+  if (seen.has(schema.$ref)) return schema
+
+  seen.add(schema.$ref)
+  return resolveSchema(spec, resolveOpenApiRef(spec, schema.$ref), seen) ?? schema
 }
 
 function getPathItem(spec: OpenAPISpec, path: string): OpenApiRecord | undefined {
@@ -162,6 +180,7 @@ function getContentExample(mediaType?: OpenApiMediaType): unknown {
 function schemaToType(schema: unknown): string | undefined {
   if (!isRecord(schema)) return undefined
   if (isReference(schema)) return resolveReferenceName(schema.$ref)
+  if (typeof schema.const !== 'undefined') return JSON.stringify(schema.const)
   if (Array.isArray(schema.enum)) return schema.enum.map(String).join(' | ')
 
   const oneOf = schema.oneOf ?? schema.anyOf
@@ -169,11 +188,16 @@ function schemaToType(schema: unknown): string | undefined {
     return oneOf.map(schemaToType).filter(Boolean).join(' | ')
   }
 
+  if (Array.isArray(schema.allOf)) {
+    return schema.allOf.map(schemaToType).filter(Boolean).join(' & ')
+  }
+
   if (schema.type === 'array') {
     return `${schemaToType(schema.items) ?? 'unknown'}[]`
   }
 
-  return typeof schema.type === 'string' ? schema.type : undefined
+  const type = Array.isArray(schema.type) ? schema.type.map(String).join(' | ') : schema.type
+  return typeof type === 'string' ? [type, typeof schema.format === 'string' ? `<${schema.format}>` : undefined].filter(Boolean).join('') : undefined
 }
 
 function schemaToExample(schema: unknown, depth = 0): unknown {
@@ -236,13 +260,34 @@ function buildOperationUrl(spec: OpenAPISpec, path: string, parameters: OpenApiP
   return `${serverUrl}${path}${query ? `?${query}` : ''}`
 }
 
-function buildCurlExample(arg0: {
+type RequestCodeExample = {
+  key: string
+  title: string
+  language: string
+  code: string
+}
+
+type RequestCodeInput = {
   spec: OpenAPISpec
   path: string
   method: string
   parameters: OpenApiParameter[]
   requestContent?: { mediaType: string; value: OpenApiMediaType }
-}): string {  const {
+}
+
+function getRequestExample(requestContent?: { mediaType: string; value: OpenApiMediaType }): unknown {
+  return getContentExample(requestContent?.value)
+}
+
+function getRequestHeaders(requestContent?: { mediaType: string; value: OpenApiMediaType }): Record<string, string> {
+  return {
+    Authorization: 'Bearer {token}',
+    Accept: 'application/json',
+    ...(requestContent ? { 'Content-Type': requestContent.mediaType } : {}),
+  }
+}
+
+function buildCurlExample(arg0: RequestCodeInput): string {  const {
   spec,
   path,
   method,
@@ -254,16 +299,115 @@ function buildCurlExample(arg0: {
   const lines = [`curl ${method === 'GET' ? '-G ' : ''}${shellQuote(url)}`]
 
   if (method !== 'GET') lines.push(`  -X ${method}`)
-  lines.push("  -H 'Authorization: Bearer {token}'")
-  lines.push("  -H 'Accept: application/json'")
+  for (const [name, value] of Object.entries(getRequestHeaders(requestContent))) {
+    lines.push(`  -H ${shellQuote(`${name}: ${value}`)}`)
+  }
 
-  const requestExample = getContentExample(requestContent?.value)
+  const requestExample = getRequestExample(requestContent)
   if (requestContent && typeof requestExample !== 'undefined') {
-    lines.push(`  -H 'Content-Type: ${requestContent.mediaType}'`)
     lines.push(`  -d ${shellQuote(stringifyExample(requestExample))}`)
   }
 
   return lines.join(' \\\n')
+}
+
+function buildJavaScriptExample(arg0: RequestCodeInput): string {  const {
+  spec,
+  path,
+  method,
+  parameters,
+  requestContent,
+} = arg0
+
+  const url = buildOperationUrl(spec, path, parameters)
+  const headers = JSON.stringify(getRequestHeaders(requestContent), null, 2)
+  const requestExample = getRequestExample(requestContent)
+  const body = typeof requestExample === 'undefined'
+    ? ''
+    : `\nconst body = ${stringifyExample(requestExample)}\n`
+  const bodyOption = typeof requestExample === 'undefined'
+    ? ''
+    : requestContent?.mediaType.includes('json')
+      ? ',\n  body: JSON.stringify(body)'
+      : ',\n  body'
+
+  return `${body}const response = await fetch(${JSON.stringify(url)}, {\n  method: ${JSON.stringify(method)},\n  headers: ${headers}${bodyOption}\n})\n\nconst data = await response.json()`
+}
+
+function pythonLiteral(value: unknown, indent = 0): string {
+  const nextIndent = indent + 2
+  const pad = ' '.repeat(indent)
+  const nextPad = ' '.repeat(nextIndent)
+
+  if (value === null) return 'None'
+  if (typeof value === 'string') return JSON.stringify(value)
+  if (typeof value === 'number') return String(value)
+  if (typeof value === 'boolean') return value ? 'True' : 'False'
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return '[]'
+    return `[\n${value.map((item) => `${nextPad}${pythonLiteral(item, nextIndent)}`).join(',\n')}\n${pad}]`
+  }
+
+  if (isRecord(value)) {
+    const entries = Object.entries(value)
+    if (entries.length === 0) return '{}'
+    return `{\n${entries.map(([key, item]) => `${nextPad}${JSON.stringify(key)}: ${pythonLiteral(item, nextIndent)}`).join(',\n')}\n${pad}}`
+  }
+
+  return 'None'
+}
+
+function buildPythonExample(arg0: RequestCodeInput): string {  const {
+  spec,
+  path,
+  method,
+  parameters,
+  requestContent,
+} = arg0
+
+  const url = buildOperationUrl(spec, path, parameters)
+  const headers = pythonLiteral(getRequestHeaders(requestContent))
+  const requestExample = getRequestExample(requestContent)
+  const payload = typeof requestExample === 'undefined'
+    ? ''
+    : `\npayload = ${pythonLiteral(requestExample)}`
+  const bodyArgument = typeof requestExample === 'undefined'
+    ? ''
+    : requestContent?.mediaType.includes('json')
+      ? ', json=payload'
+      : ', data=payload'
+
+  return `import requests\n\nurl = ${JSON.stringify(url)}\nheaders = ${headers}${payload}\n\nresponse = requests.request(${JSON.stringify(method)}, url, headers=headers${bodyArgument})\nprint(response.json())`
+}
+
+function buildGoExample(arg0: RequestCodeInput): string {  const {
+  spec,
+  path,
+  method,
+  parameters,
+  requestContent,
+} = arg0
+
+  const url = buildOperationUrl(spec, path, parameters)
+  const requestExample = getRequestExample(requestContent)
+  const bodyText = typeof requestExample === 'undefined' ? '' : stringifyExample(requestExample)
+  const bodyReader = bodyText ? `strings.NewReader(${JSON.stringify(bodyText)})` : 'nil'
+  const imports = bodyText ? 'import (\n  "fmt"\n  "net/http"\n  "strings"\n)' : 'import (\n  "fmt"\n  "net/http"\n)'
+  const headerLines = Object.entries(getRequestHeaders(requestContent))
+    .map(([name, value]) => `req.Header.Set(${JSON.stringify(name)}, ${JSON.stringify(value)})`)
+    .join('\n')
+
+  return `package main\n\n${imports}\n\nfunc main() {\n  req, err := http.NewRequest(${JSON.stringify(method)}, ${JSON.stringify(url)}, ${bodyReader})\n  if err != nil {\n    panic(err)\n  }\n\n${headerLines.split('\n').map((line) => `  ${line}`).join('\n')}\n\n  resp, err := http.DefaultClient.Do(req)\n  if err != nil {\n    panic(err)\n  }\n  defer resp.Body.Close()\n\n  fmt.Println(resp.Status)\n}`
+}
+
+function buildRequestCodeExamples(input: RequestCodeInput): RequestCodeExample[] {
+  return [
+    { key: 'curl', title: 'cURL', language: 'bash', code: buildCurlExample(input) },
+    { key: 'javascript', title: 'JavaScript', language: 'javascript', code: buildJavaScriptExample(input) },
+    { key: 'python', title: 'Python', language: 'python', code: buildPythonExample(input) },
+    { key: 'go', title: 'Go', language: 'go', code: buildGoExample(input) },
+  ]
 }
 
 function getResponseEntries(operation: OpenAPIOperation): Array<{ status: string; response: OpenApiResponse }> {
@@ -275,28 +419,106 @@ function getResponseEntries(operation: OpenAPIOperation): Array<{ status: string
     .map(([status, response]) => ({ status, response: response as OpenApiResponse }))
 }
 
-function SchemaProperties(arg0: { title: string; schema: unknown }): ReactNode {  const { title, schema } = arg0
+type SchemaPropertyEntry = {
+  key: string
+  name: string
+  type?: string
+  description?: string
+  required: boolean
+}
+
+function getSchemaDescription(schema: OpenApiRecord): string | undefined {
+  const details = [
+    Array.isArray(schema.enum) ? `enum: ${schema.enum.map(String).join(', ')}` : undefined,
+    typeof schema.const !== 'undefined' ? `const: ${String(schema.const)}` : undefined,
+    typeof schema.default !== 'undefined' ? `default: ${String(schema.default)}` : undefined,
+    typeof schema.pattern === 'string' ? `pattern: ${schema.pattern}` : undefined,
+    typeof schema.minimum === 'number' ? `minimum: ${String(schema.minimum)}` : undefined,
+    typeof schema.maximum === 'number' ? `maximum: ${String(schema.maximum)}` : undefined,
+    typeof schema.additionalProperties !== 'undefined' ? `additionalProperties: ${String(schema.additionalProperties)}` : undefined,
+  ].filter(Boolean)
+  const description = typeof schema.description === 'string' ? schema.description : undefined
+
+  return [description, details.length > 0 ? details.join('; ') : undefined].filter(Boolean).join(' ')
+}
+
+function collectSchemaProperties(arg0: {
+  spec: OpenAPISpec
+  schema: unknown
+  prefix?: string
+  required?: string[]
+  depth?: number
+  seen?: Set<string>
+}): SchemaPropertyEntry[] {  const {
+  spec,
+  schema,
+  prefix = '',
+  required = [],
+  depth = 0,
+  seen = new Set<string>(),
+} = arg0
+
+  if (depth > 4) return []
+  if (isReference(schema)) {
+    if (seen.has(schema.$ref)) return []
+    return collectSchemaProperties({ spec, schema: resolveSchema(spec, schema), prefix, required, depth, seen: new Set([...seen, schema.$ref]) })
+  }
+  if (!isRecord(schema)) return []
+
+  const composed = [...(Array.isArray(schema.allOf) ? schema.allOf : []), ...(Array.isArray(schema.oneOf) ? schema.oneOf : []), ...(Array.isArray(schema.anyOf) ? schema.anyOf : [])]
+  const composedEntries = composed.flatMap((item, index) => collectSchemaProperties({
+    spec,
+    schema: item,
+    prefix: prefix ? `${prefix}.${schema.oneOf ? `oneOf${index + 1}` : schema.anyOf ? `anyOf${index + 1}` : ''}`.replace(/\.$/, '') : '',
+    required,
+    depth: depth + 1,
+    seen,
+  }))
+
+  const properties = isRecord(schema.properties) ? schema.properties : undefined
+  const ownRequired = Array.isArray(schema.required) ? schema.required.map(String) : required
+  const ownEntries = properties ? Object.entries(properties).flatMap(([name, propertySchema]) => {
+    const resolvedProperty = resolveSchema(spec, propertySchema)
+    const property = isRecord(resolvedProperty) ? resolvedProperty : isRecord(propertySchema) ? propertySchema : {}
+    const path = prefix ? `${prefix}.${name}` : name
+    const isRequired = ownRequired.includes(name)
+    const isArray = isRecord(property) && property.type === 'array'
+    const itemSchema = isArray ? property.items : undefined
+    const nestedSchema = isArray ? resolveSchema(spec, itemSchema) : resolvedProperty
+    const nestedPrefix = isArray ? `${path}[]` : path
+
+    return [
+      {
+        key: path,
+        name: path,
+        type: schemaToType(propertySchema),
+        description: getSchemaDescription(property),
+        required: isRequired,
+      },
+      ...collectSchemaProperties({ spec, schema: nestedSchema, prefix: nestedPrefix, required: [], depth: depth + 1, seen }),
+    ]
+  }) : []
+
+  return [...ownEntries, ...composedEntries]
+}
+
+function SchemaProperties(arg0: { title: string; schema: unknown; spec: OpenAPISpec }): ReactNode {  const { title, schema, spec } = arg0
 
   const t = useBuiltInText()
-  const targetSchema = isReference(schema) ? undefined : schema
-  const properties = isRecord(targetSchema) && isRecord(targetSchema.properties) ? targetSchema.properties : undefined
-  const required = isRecord(targetSchema) && Array.isArray(targetSchema.required) ? targetSchema.required.map(String) : []
+  const entries = collectSchemaProperties({ spec, schema })
 
-  if (!properties || Object.keys(properties).length === 0) return null
+  if (entries.length === 0) return null
 
   return (
     <div>
       <h3>{title}</h3>
       <Properties>
-        {Object.entries(properties).map(([name, propertySchema]) => {
-          const property = isRecord(propertySchema) ? propertySchema : {}
-          const type = schemaToType(propertySchema)
-          const description = typeof property.description === 'string' ? property.description : undefined
-          const isRequired = required.includes(name)
+        {entries.map((entry) => {
+          const type = entry.required && entry.type ? `${entry.type}, ${t('openapi.requiredBadge')}` : entry.type
 
           return (
-            <Property key={name} name={name} type={isRequired && type ? `${type}, ${t('openapi.requiredBadge')}` : type}>
-              {description ?? (isRequired ? t('openapi.required') : t('openapi.optional'))}
+            <Property key={entry.key} name={entry.name} type={type}>
+              {entry.description || (entry.required ? t('openapi.required') : t('openapi.optional'))}
             </Property>
           )
         })}
@@ -362,10 +584,15 @@ function codeLanguageForMediaType(mediaType?: string): string {
   return 'text'
 }
 
+type SelectOption = {
+  value: string
+  label: string
+}
+
 function SelectControl(arg0: {
   label: string
   value: string
-  options: string[]
+  options: Array<string | SelectOption>
   onChange: (value: string) => void
 }): ReactNode {  const {
   label,
@@ -374,7 +601,10 @@ function SelectControl(arg0: {
   onChange,
 } = arg0
 
-  if (options.length <= 1) return null
+  const normalizedOptions = options.map((option) => (typeof option === 'string' ? { value: option, label: option } : option))
+  const selectedOption = normalizedOptions.find((option) => option.value === value) ?? normalizedOptions[0]
+
+  if (normalizedOptions.length <= 1) return null
 
   return (
     <Listbox value={value} onChange={onChange}>
@@ -382,7 +612,7 @@ function SelectControl(arg0: {
         <ListboxButton className="clarify-api-select-button flex min-w-32 items-center justify-between gap-2 rounded-lg border border-white/10 bg-zinc-900 px-2.5 py-1.5 font-mono text-xs font-medium tracking-normal text-zinc-100 outline-hidden transition hover:border-white/20 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 data-open:border-emerald-400 data-open:ring-2 data-open:ring-emerald-400/20">
           <span className="flex flex-col items-start gap-0.5 truncate">
             <span className="font-sans text-[0.625rem]/4 font-semibold tracking-widest text-zinc-500 uppercase">{label}</span>
-            <span className="truncate">{value}</span>
+            <span className="truncate">{selectedOption?.label ?? value}</span>
           </span>
           <ChevronsUpDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
         </ListboxButton>
@@ -390,13 +620,13 @@ function SelectControl(arg0: {
           anchor="bottom start"
           className="clarify-api-select-options z-30 mt-1 max-h-64 w-(--button-width) min-w-40 overflow-auto rounded-xl border border-white/10 bg-zinc-900 p-1 text-xs shadow-lg shadow-black/20 [--anchor-gap:--spacing(1)] focus:outline-none"
         >
-          {options.map((option) => (
+          {normalizedOptions.map((option) => (
             <ListboxOption
-              key={option}
-              value={option}
+              key={option.value}
+              value={option.value}
               className="clarify-api-select-option group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 font-mono text-xs text-zinc-300 select-none data-focus:bg-white/10 data-focus:text-white data-selected:text-emerald-300"
             >
-              <span className="truncate">{option}</span>
+              <span className="truncate">{option.label}</span>
               <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />
             </ListboxOption>
           ))}
@@ -406,72 +636,8 @@ function SelectControl(arg0: {
   )
 }
 
-function ExamplePicker(arg0: {
-  examples: ExampleEntry[]
-  selectedKey: string
-  onSelect: (key: string) => void
-}): ReactNode {  const {
-  examples,
-  selectedKey,
-  onSelect,
-} = arg0
-
-  const t = useBuiltInText()
-  const scrollerRef = useRef<HTMLDivElement | null>(null)
-
-  if (examples.length <= 1) return null
-
-  function scrollBy(direction: 1 | -1) {
-    const el = scrollerRef.current
-    if (!el) return
-    el.scrollBy({ left: direction * Math.max(120, el.clientWidth * 0.6), behavior: 'smooth' })
-  }
-
-  return (
-    <div className="relative -mr-1 flex min-w-0 flex-1 items-center gap-1">
-      <button
-        type="button"
-        aria-label={t('openapi.scrollExamplesLeft')}
-        onClick={() => scrollBy(-1)}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
-      >
-        <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3">
-          <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 010 1.06L9.06 10l3.73 3.71a.75.75 0 11-1.06 1.06l-4.25-4.24a.75.75 0 010-1.06l4.25-4.24a.75.75 0 011.06 0z" clipRule="evenodd" />
-        </svg>
-      </button>
-      <div
-        ref={scrollerRef}
-        className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap scroll-smooth scrollbar-none [&amp;::-webkit-scrollbar]:hidden"
-      >
-        {examples.map((example) => (
-          <button
-            key={example.key}
-            type="button"
-            onClick={() => onSelect(example.key)}
-            title={example.summary}
-            className={[
-              'shrink-0 rounded-md px-2 py-0.5 text-xs font-medium transition',
-              example.key === selectedKey
-                ? 'bg-white/10 text-white'
-                : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200',
-            ].join(' ')}
-          >
-            {example.generated && example.title === 'schema' ? t('openapi.schemaExample') : example.title}
-          </button>
-        ))}
-      </div>
-      <button
-        type="button"
-        aria-label={t('openapi.scrollExamplesRight')}
-        onClick={() => scrollBy(1)}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
-      >
-        <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3">
-          <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 010-1.06L10.94 10 7.21 6.29a.75.75 0 111.06-1.06l4.25 4.24a.75.75 0 010 1.06l-4.25 4.24a.75.75 0 01-1.06 0z" clipRule="evenodd" />
-        </svg>
-      </button>
-    </div>
-  )
+function getExampleLabel(example: ExampleEntry, t: ReturnType<typeof useBuiltInText>): string {
+  return example.generated && example.title === 'schema' ? t('openapi.schemaExample') : example.title
 }
 
 function CopyCodeButton(arg0: { code: string }): ReactNode {  const { code } = arg0
@@ -504,6 +670,9 @@ function ApiExampleCodeGroup(arg0: {
   examples?: ExampleEntry[]
   selectedExampleKey?: string
   onSelectExample?: (key: string) => void
+  codeOptions?: RequestCodeExample[]
+  selectedCodeKey?: string
+  onSelectCode?: (key: string) => void
 }): ReactNode {  const {
   title,
   tag,
@@ -513,15 +682,33 @@ function ApiExampleCodeGroup(arg0: {
   examples,
   selectedExampleKey,
   onSelectExample,
+  codeOptions,
+  selectedCodeKey,
+  onSelectCode,
 } = arg0
+
+  const t = useBuiltInText()
 
   return (
     <div className="clarify-api-example my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
       <div className="not-prose">
-        <div className="clarify-api-example-header flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-center gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
-          <h3 className="shrink-0 py-3 text-xs font-semibold text-white">{title}</h3>
+        <div className="clarify-api-example-header flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-center gap-3 border-b border-zinc-700 bg-zinc-800 px-4 py-2 dark:border-zinc-800 dark:bg-transparent">
+          <h3 className="mr-auto shrink-0 py-1 text-xs font-semibold text-white">{title}</h3>
           {examples && examples.length > 1 && selectedExampleKey && onSelectExample ? (
-            <ExamplePicker examples={examples} selectedKey={selectedExampleKey} onSelect={onSelectExample} />
+            <SelectControl
+              label={t('openapi.example')}
+              value={selectedExampleKey}
+              options={examples.map((example) => ({ value: example.key, label: getExampleLabel(example, t) }))}
+              onChange={onSelectExample}
+            />
+          ) : null}
+          {codeOptions && codeOptions.length > 1 && selectedCodeKey && onSelectCode ? (
+            <SelectControl
+              label={t('openapi.language')}
+              value={selectedCodeKey}
+              options={codeOptions.map((option) => ({ value: option.key, label: option.title }))}
+              onChange={onSelectCode}
+            />
           ) : null}
         </div>
         {tag || label ? (
@@ -561,9 +748,11 @@ function RequestExamplesPanel(arg0: {
   const selectedContent = requestContents.find((content) => content.mediaType === selectedMediaType) ?? requestContents[0]
   const examples = getExampleEntries(selectedContent?.value)
   const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
+  const [selectedCodeKey, setSelectedCodeKey] = useState('curl')
   const selectedExample = examples.find((example) => example.key === selectedExampleKey) ?? examples[0]
   const requestContent = selectedContent ? { ...selectedContent, value: { ...selectedContent.value, example: selectedExample?.value, examples: undefined } } : undefined
-  const curl = buildCurlExample({ spec, path, method, parameters, requestContent })
+  const codeOptions = buildRequestCodeExamples({ spec, path, method, parameters, requestContent })
+  const selectedCode = codeOptions.find((option) => option.key === selectedCodeKey) ?? codeOptions[0]
 
   return (
     <div>
@@ -582,11 +771,14 @@ function RequestExamplesPanel(arg0: {
         title={t('openapi.request')}
         tag={method}
         label={path}
-        code={curl}
-        language="bash"
+        code={selectedCode.code}
+        language={selectedCode.language}
         examples={examples}
         selectedExampleKey={selectedExample?.key}
         onSelectExample={setSelectedExampleKey}
+        codeOptions={codeOptions}
+        selectedCodeKey={selectedCode.key}
+        onSelectCode={setSelectedCodeKey}
       />
     </div>
   )
@@ -717,7 +909,7 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
             <>
               <h3>{t('openapi.requestBody')}</h3>
               {typeof requestBody.description === 'string' ? <p>{requestBody.description}</p> : null}
-              <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} />
+              <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} />
             </>
           ) : null}
           <ResponseList operation={operation} />

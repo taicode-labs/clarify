@@ -42,7 +42,9 @@ export type BuiltInTextKey =
   | 'openapi.apiDocumentation'
   | 'openapi.bodyProperties'
   | 'openapi.endpointNotFound'
+  | 'openapi.example'
   | 'openapi.headers'
+  | 'openapi.language'
   | 'openapi.mediaType'
   | 'openapi.openApiReference'
   | 'openapi.operationParameter'
@@ -110,7 +112,9 @@ const builtInText = {
     'openapi.apiDocumentation': 'API Documentation',
     'openapi.bodyProperties': 'Body properties',
     'openapi.endpointNotFound': 'Endpoint not found: {endpoint}',
+    'openapi.example': 'Example',
     'openapi.headers': 'Headers',
+    'openapi.language': 'Language',
     'openapi.mediaType': 'Media type',
     'openapi.openApiReference': 'OpenAPI Reference',
     'openapi.operationParameter': 'Operation parameter.',
@@ -177,7 +181,9 @@ const builtInText = {
     'openapi.apiDocumentation': 'API 文档',
     'openapi.bodyProperties': '请求体属性',
     'openapi.endpointNotFound': '未找到端点：{endpoint}',
+    'openapi.example': '示例',
     'openapi.headers': '请求头',
+    'openapi.language': '语言',
     'openapi.mediaType': '媒体类型',
     'openapi.openApiReference': 'OpenAPI 参考',
     'openapi.operationParameter': '操作参数。',

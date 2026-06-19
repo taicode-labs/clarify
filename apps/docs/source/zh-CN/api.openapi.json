@@ -70,9 +70,9 @@
     }
   ],
   "paths": {
-    "/pages": {
-      "summary": "页面集合",
-      "description": "创建与列出文档页面。",
+    "/examples/basic-request": {
+      "summary": "基础请求示例",
+      "description": "演示常见请求参数和响应元数据。",
       "parameters": [
         {
           "$ref": "#/components/parameters/TraceId"
@@ -82,9 +82,9 @@
         "tags": [
           "Pages"
         ],
-        "operationId": "listPages",
-        "summary": "列出页面",
-        "description": "返回分页后的页面列表，并支持可选筛选条件。",
+        "operationId": "demoBasicRequest",
+        "summary": "基础的请求结构",
+        "description": "演示路径级 Header、查询参数、示例、响应 Header、链接和安全配置覆盖。",
         "parameters": [
           {
             "$ref": "#/components/parameters/PageCursor"
@@ -177,12 +177,12 @@
         "tags": [
           "Pages"
         ],
-        "operationId": "createPage",
-        "summary": "创建页面",
-        "description": "创建一个由 MDX 驱动的新页面。该操作同时展示请求体示例、YAML 替代格式、OAuth 安全配置以及回调渲染。",
+        "operationId": "demoRequestBodyVariants",
+        "summary": "多种请求体结构",
+        "description": "演示 JSON、YAML、multipart form data、OAuth 安全配置以及回调渲染。",
         "requestBody": {
           "required": true,
-          "description": "页面负载。",
+          "description": "示例负载。",
           "content": {
             "application/json": {
               "schema": {
@@ -302,7 +302,7 @@
         ]
       }
     },
-    "/pages/{pageId}": {
+    "/examples/path-parameters/{pageId}": {
       "parameters": [
         {
           "$ref": "#/components/parameters/PageId"
@@ -312,12 +312,12 @@
         "tags": [
           "Pages"
         ],
-        "operationId": "getPage",
-        "summary": "获取页面",
-        "description": "根据 ID 获取单个页面。",
+        "operationId": "demoPathParameters",
+        "summary": "路径参数示例",
+        "description": "演示模板路径参数以及引用式响应 Schema。",
         "responses": {
           "200": {
-            "description": "页面详情。",
+            "description": "示例资源详情。",
             "content": {
               "application/json": {
                 "schema": {
@@ -340,13 +340,13 @@
         }
       }
     },
-    "/search": {
+    "/examples/query-parameters": {
       "get": {
         "tags": [
           "Search"
         ],
-        "operationId": "searchPages",
-        "summary": "搜索页面",
+        "operationId": "demoQueryParameters",
+        "summary": "查询参数示例",
         "parameters": [
           {
             "$ref": "#/components/parameters/TraceId"
@@ -398,17 +398,17 @@
         "description": "覆盖必填查询参数、以 JSON 编码的查询内容、数组响应以及 CSV 替代媒体类型。"
       }
     },
-    "/exports": {
+    "/examples/complex-request-body": {
       "post": {
         "tags": [
           "Pages"
         ],
-        "operationId": "createExport",
-        "summary": "创建导出任务",
-        "description": "在一个接口中覆盖多种请求媒体类型、多个示例、多种响应状态以及多种响应媒体类型。",
+        "operationId": "demoComplexRequestBody",
+        "summary": "复杂请求体示例",
+        "description": "在一个接口中覆盖嵌套 JSON 示例、YAML 示例、多种响应状态以及多种响应媒体类型。",
         "requestBody": {
           "required": true,
-          "description": "导出任务定义，可使用 JSON 或 YAML。",
+          "description": "复杂示例定义，可使用 JSON 或 YAML。",
           "content": {
             "application/json": {
               "schema": {
@@ -430,6 +430,73 @@
                     "format": "pdf",
                     "scope": "published",
                     "includeDrafts": false
+                  }
+                },
+                "selectedWithOptions": {
+                  "summary": "带嵌套选项的指定页面导出",
+                  "value": {
+                    "format": "html",
+                    "scope": "selected",
+                    "includeDrafts": true,
+                    "callbackUrl": "https://example.com/hooks/export",
+                    "selection": {
+                      "rootPageId": "pg_docs",
+                      "pageIds": [
+                        "pg_intro",
+                        "pg_api",
+                        "pg_guides"
+                      ],
+                      "filters": {
+                        "tags": [
+                          "release",
+                          "public"
+                        ],
+                        "updatedAfter": "2026-06-01T00:00:00Z"
+                      }
+                    },
+                    "rendering": {
+                      "theme": {
+                        "mode": "dark",
+                        "brandColor": "#2563eb",
+                        "logo": {
+                          "assetId": "asset_logo",
+                          "alt": "Clarify"
+                        }
+                      },
+                      "navigation": {
+                        "includeHidden": false,
+                        "levels": [
+                          {
+                            "depth": 1,
+                            "label": "Sections"
+                          },
+                          {
+                            "depth": 2,
+                            "label": "Pages"
+                          }
+                        ]
+                      }
+                    },
+                    "delivery": {
+                      "archive": {
+                        "type": "zip",
+                        "checksum": "sha256"
+                      },
+                      "destinations": [
+                        {
+                          "type": "webhook",
+                          "url": "https://example.com/hooks/export-ready",
+                          "headers": {
+                            "X-Project": "clarify"
+                          }
+                        },
+                        {
+                          "type": "storage",
+                          "bucket": "docs-exports",
+                          "path": "clarify/2026-06"
+                        }
+                      ]
+                    }
                   }
                 }
               }
@@ -525,13 +592,13 @@
         }
       }
     },
-    "/system/health": {
+    "/examples/basic-response": {
       "get": {
         "tags": [
           "System"
         ],
-        "operationId": "getHealth",
-        "summary": "获取服务健康状态",
+        "operationId": "demoBasicResponse",
+        "summary": "基础的响应结构",
         "security": [],
         "responses": {
           "200": {
@@ -1372,11 +1439,11 @@
     },
     "links": {
       "GetPageById": {
-        "operationId": "getPage",
+        "operationId": "demoPathParameters",
         "parameters": {
           "pageId": "$response.body#/data/0/id"
         },
-        "description": "跳转到集合中的第一个页面。"
+        "description": "使用返回结果中的第一个 ID 跳转到路径参数示例。"
       }
     },
     "callbacks": {
