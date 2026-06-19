@@ -196,23 +196,23 @@ export default defineConfig({
       pages: [
         {
           group: {
-            'zh-CN': '完整示例',
-            'en-US': 'Complete Example',
+            'zh-CN': 'OpenAPI 能力',
+            'en-US': 'OpenAPI Capabilities',
           },
           icon: 'FileJson2',
           pages: [
             {
               openapi: 'api.openapi.json',
               title: {
-                'zh-CN': 'Clarify Complete OpenAPI Example',
-                'en-US': 'Clarify Complete OpenAPI Example',
+                'zh-CN': 'OpenAPI 完整示例',
+                'en-US': 'OpenAPI Example',
               },
               icon: 'FileJson2',
             },
             {
               page: 'openapi/embedding',
               title: {
-                'zh-CN': '嵌入使用说明',
+                'zh-CN': '局部嵌入使用说明',
                 'en-US': 'Embedding OpenAPI in MDX',
               },
               icon: 'CodeXml',
