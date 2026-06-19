@@ -1,16 +1,19 @@
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import clsx from 'clsx'
 import { slug } from 'github-slugger'
+import { CheckIcon, ChevronDownIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
 import { Heading, Prose } from '../components'
 import { useBuiltInText } from '../i18n'
 import { Col, Row } from '../mdx/primitives'
 
-import { RequestExamplesPanel, ResponseExamplesPanel } from './example-panels'
+import { authLabel, authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServerLabel, getServers, RequestExamplesPanel, ResponseExamplesPanel } from './example-panels'
+import type { AuthOption } from './example-panels'
 import { getMediaTypeEntries, getOperationParameters, getRequestBody } from './helpers'
 import { SchemaProperties, ParameterList, ResponseList } from './schema-properties'
 import { useOpenApiSpec } from './spec-path'
-import type { OpenApiParameter, MediaTypeEntry } from './types'
+import type { OpenApiParameter, MediaTypeEntry, OpenApiServer, OpenApiServerVariable, RequestAuthInput } from './types'
 import { getOpenApiOperation, listOpenApiOperations } from './utils'
 import type { OpenAPIOperation, OpenAPISpec } from './utils'
 
@@ -40,6 +43,9 @@ function EndpointExamples(arg0: {
   requestContents: MediaTypeEntry[]
   selectedRequestMediaType: string
   onSelectRequestMediaType: (value: string) => void
+  selectedServer: OpenApiServer
+  serverVariables: Record<string, string>
+  auth?: RequestAuthInput
 }): ReactNode {  const {
   spec,
   path,
@@ -49,6 +55,9 @@ function EndpointExamples(arg0: {
   requestContents,
   selectedRequestMediaType,
   onSelectRequestMediaType,
+  selectedServer,
+  serverVariables,
+  auth,
 } = arg0
 
   return (
@@ -57,11 +66,13 @@ function EndpointExamples(arg0: {
         spec={spec}
         path={path}
         method={method}
-        operation={operation}
         parameters={parameters}
         requestContents={requestContents}
         selectedMediaType={selectedRequestMediaType}
         onSelectMediaType={onSelectRequestMediaType}
+        selectedServer={selectedServer}
+        serverVariables={serverVariables}
+        auth={auth}
       />
       <ResponseExamplesPanel operation={operation} />
     </div>
@@ -105,14 +116,297 @@ function EndpointMethodBadge(arg0: { method: string }): ReactNode {  const { met
   )
 }
 
-function EndpointIdentity(arg0: { method: string; path: string }): ReactNode {  const { method, path } = arg0
+type UiOption = {
+  value: string
+  label: string
+  description?: string
+}
+
+function InlineListbox(arg0: {
+  label: string
+  value: string
+  options: UiOption[]
+  onChange: (value: string) => void
+  compact?: boolean
+}): ReactNode {  const { label, value, options, onChange, compact = false } = arg0
+
+  const selected = options.find((option) => option.value === value) ?? options[0]
+
+  return (
+    <Listbox value={selected?.value ?? value} onChange={onChange}>
+      <div className="pointer-events-auto relative inline-flex min-w-0">
+        <ListboxButton
+          aria-label={label}
+          className={clsx(
+            'inline-flex min-w-0 items-center gap-1 rounded-md border-0 bg-zinc-100/60 font-mono font-semibold outline-hidden transition hover:bg-zinc-100 data-open:bg-zinc-100 dark:bg-white/7 dark:hover:bg-white/10 dark:data-open:bg-white/10',
+            compact ? 'max-w-32 px-1 py-0.5 text-xs text-zinc-800 dark:text-white' : 'w-full px-2 py-1.5 text-xs text-zinc-900 dark:text-zinc-100',
+          )}
+        >
+          <span className="truncate">{selected?.label ?? value}</span>
+          <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
+        </ListboxButton>
+        <ListboxOptions anchor="bottom start" className="z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-[min(32rem,calc(100vw-2rem))] overflow-auto rounded-xl bg-white p-1 text-xs shadow-lg shadow-black/10 ring-1 ring-zinc-950/10 [--anchor-gap:--spacing(1)] focus:outline-none dark:bg-zinc-900 dark:ring-white/10">
+          {options.map((option) => (
+            <ListboxOption key={option.value} value={option.value} className="group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 font-mono text-xs text-zinc-600 select-none data-focus:bg-zinc-100 data-selected:text-emerald-600 dark:text-zinc-300 dark:data-focus:bg-white/10 dark:data-selected:text-emerald-300">
+              <span className="min-w-0">
+                <span className="block truncate">{option.label}</span>
+                {option.description ? <span className="mt-0.5 block truncate text-2xs text-zinc-400 dark:text-zinc-500">{option.description}</span> : null}
+              </span>
+              <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />
+            </ListboxOption>
+          ))}
+        </ListboxOptions>
+      </div>
+    </Listbox>
+  )
+}
+
+function getServerPreviewUrl(server: OpenApiServer, variables: Record<string, string>): string {
+  return (server.url ?? '').replace(/\{([^}]+)\}/g, (_, name: string) => variables[name] ?? server.variables?.[name]?.default ?? `{${name}}`)
+}
+
+function ServerUrlValue(arg0: {
+  server: OpenApiServer
+  variables: Record<string, string>
+  open: boolean
+  onToggle: () => void
+}): ReactNode {  const { server, variables, open, onToggle } = arg0
+
+  const url = getServerPreviewUrl(server, variables)
+
+  return (
+    <button
+      type="button"
+      aria-expanded={open}
+      aria-label="Server"
+      onClick={onToggle}
+      className={clsx(
+        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100/50 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700 dark:bg-white/5 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-200 sm:w-auto sm:min-w-16 sm:max-w-[min(36%,16rem)] sm:px-1.5',
+        open ? 'bg-zinc-100 text-zinc-700 dark:bg-white/10 dark:text-zinc-200' : null,
+      )}
+    >
+      <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
+      <span className="hidden min-w-0 items-center gap-1 overflow-hidden sm:flex">
+        <span className="truncate font-mono text-xs">{url}</span>
+        <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
+      </span>
+    </button>
+  )
+}
+
+function ServerVariableControl(arg0: {
+  name: string
+  variable?: OpenApiServerVariable
+  value: string
+  onChange: (value: string) => void
+}): ReactNode {  const { name, variable, value, onChange } = arg0
+
+  if (variable?.enum?.length) {
+    return (
+      <InlineListbox
+        label={name}
+        value={value}
+        options={variable.enum.map((option) => ({ value: option, label: option }))}
+        onChange={onChange}
+        compact
+      />
+    )
+  }
+
+  return (
+    <input
+      aria-label={name}
+      value={value}
+      placeholder={variable?.default ?? name}
+      onChange={(event) => onChange(event.target.value)}
+      className="pointer-events-auto mx-0.5 w-24 rounded-md border-0 bg-zinc-100/60 px-1 py-0.5 font-mono text-xs font-semibold text-zinc-800 outline-hidden transition hover:bg-zinc-100 focus:bg-zinc-100 dark:bg-white/7 dark:text-white dark:hover:bg-white/10 dark:focus:bg-white/10"
+    />
+  )
+}
+
+function ServerPanel(arg0: {
+  servers: OpenApiServer[]
+  selectedKey: string
+  selectedServer: OpenApiServer
+  variables: Record<string, string>
+  onSelectServer: (key: string) => void
+  onChangeVariable: (name: string, value: string) => void
+}): ReactNode {  const { servers, selectedKey, selectedServer, variables, onSelectServer, onChangeVariable } = arg0
+
+  const variableEntries = Object.entries(selectedServer.variables ?? {})
+
+  return (
+    <div className="border-t border-zinc-200/70 bg-linear-to-b from-zinc-50/90 to-white p-3 dark:border-white/10 dark:from-white/5 dark:to-white/2">
+      <div className="rounded-xl border border-zinc-200/80 bg-white p-3 shadow-xs dark:border-white/10 dark:bg-black/20">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold text-zinc-900 dark:text-white">Server</div>
+            <div className="mt-0.5 text-2xs text-zinc-500 dark:text-zinc-400">Choose the request server and configure its variables.</div>
+          </div>
+          <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-1 font-mono text-2xs font-semibold text-zinc-500 dark:bg-white/10 dark:text-zinc-300">
+            {getServerPreviewUrl(selectedServer, variables)}
+          </span>
+        </div>
+        {servers.length > 1 ? (
+          <div className="mb-3 grid gap-2 sm:grid-cols-2">
+            {servers.map((server, index) => {
+              const key = getServerKey(server, index)
+              const selected = key === selectedKey
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => onSelectServer(key)}
+                  className={clsx(
+                    'flex min-w-0 items-center justify-between gap-3 rounded-lg px-3 py-2 text-left font-mono text-xs transition',
+                    selected ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-950' : 'bg-zinc-50 text-zinc-600 hover:bg-zinc-100 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10',
+                  )}
+                >
+                  <span className="min-w-0 truncate">{getServerLabel(server, index)}</span>
+                  <CheckIcon className={clsx('h-3.5 w-3.5 shrink-0', selected ? 'opacity-100' : 'opacity-0')} aria-hidden="true" />
+                </button>
+              )
+            })}
+          </div>
+        ) : null}
+        {variableEntries.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {variableEntries.map(([name, variable]) => (
+              <label key={name} className="flex min-w-0 flex-col gap-1.5">
+                <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">{name}</span>
+                <div className="rounded-lg bg-zinc-50 px-1 py-1 ring-1 ring-zinc-200/80 transition dark:bg-white/5 dark:ring-white/10">
+                  <ServerVariableControl
+                    name={name}
+                    variable={variable}
+                    value={variables[name] ?? variable.default ?? ''}
+                    onChange={(value) => onChangeVariable(name, value)}
+                  />
+                </div>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-500 dark:bg-white/5 dark:text-zinc-400">No server variables.</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function AuthPanel(arg0: {
+  authOptions: AuthOption[]
+  selectedAuthName: string
+  selectedAuth?: AuthOption
+  authValues: Record<string, string>
+  onSelectAuth: (name: string) => void
+  onChangeAuthValue: (name: string, value: string) => void
+}): ReactNode {  const { authOptions, selectedAuthName, selectedAuth, authValues, onSelectAuth, onChangeAuthValue } = arg0
+
+  if (authOptions.length === 0) return null
+
+  return (
+    <div className="border-t border-zinc-200/70 bg-linear-to-b from-zinc-50/90 to-white p-3 dark:border-white/10 dark:from-white/5 dark:to-white/2">
+      <div className="rounded-xl border border-zinc-200/80 bg-white p-3 shadow-xs dark:border-white/10 dark:bg-black/20">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold text-zinc-900 dark:text-white">Authentication</div>
+            <div className="mt-0.5 text-2xs text-zinc-500 dark:text-zinc-400">Configure credentials used by generated request examples.</div>
+          </div>
+          {selectedAuth ? (
+            <span className="shrink-0 rounded-full bg-emerald-400/10 px-2 py-1 font-mono text-2xs font-semibold text-emerald-600 dark:text-emerald-300">
+              {selectedAuth.scheme.type ?? 'auth'}
+            </span>
+          ) : null}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
+          <label className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">Scheme</span>
+            <div className="rounded-lg bg-zinc-50 px-1 py-1 ring-1 ring-zinc-200/80 transition dark:bg-white/5 dark:ring-white/10">
+              <InlineListbox
+                label="Auth"
+                value={selectedAuthName}
+                options={authOptions.map(({ name, scheme }) => ({
+                  value: name,
+                  label: name,
+                  description: authLabel(name, scheme),
+                }))}
+                onChange={onSelectAuth}
+              />
+            </div>
+          </label>
+          {selectedAuth ? (
+            <label className="flex min-w-0 flex-col gap-1.5">
+              <span className="text-2xs font-medium text-zinc-500 dark:text-zinc-400">Credential</span>
+              <div className="flex min-w-0 items-center rounded-lg bg-zinc-50 px-2 py-1 ring-1 ring-zinc-200/80 transition dark:bg-white/5 dark:ring-white/10">
+                <span className="mr-2 shrink-0 rounded-md bg-zinc-200/70 px-1.5 py-0.5 font-mono text-2xs font-semibold text-zinc-500 dark:bg-white/10 dark:text-zinc-400">
+                  {selectedAuth.scheme.type === 'apiKey' ? selectedAuth.scheme.in ?? 'apiKey' : selectedAuth.scheme.scheme ?? selectedAuth.scheme.type ?? 'token'}
+                </span>
+                <input
+                  value={authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth)}
+                  onChange={(event) => onChangeAuthValue(selectedAuth.name, event.target.value)}
+                  className="min-w-0 flex-1 border-0 bg-transparent px-0 py-1 font-mono text-xs text-zinc-900 outline-hidden placeholder:text-zinc-400 dark:text-zinc-100"
+                />
+              </div>
+            </label>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function EndpointIdentity(arg0: {
+  method: string
+  path: string
+  servers: OpenApiServer[]
+  selectedServerKey: string
+  selectedServer: OpenApiServer
+  serverVariables: Record<string, string>
+  serverOpen: boolean
+  authOptions: AuthOption[]
+  selectedAuthName: string
+  selectedAuth?: AuthOption
+  authValues: Record<string, string>
+  authOpen: boolean
+  onSelectServer: (key: string) => void
+  onChangeServerVariable: (name: string, value: string) => void
+  onToggleServer: () => void
+  onToggleAuth: () => void
+  onSelectAuth: (name: string) => void
+  onChangeAuthValue: (name: string, value: string) => void
+}): ReactNode {  const {
+  method,
+  path,
+  servers,
+  selectedServerKey,
+  selectedServer,
+  serverVariables,
+  serverOpen,
+  authOptions,
+  selectedAuthName,
+  selectedAuth,
+  authValues,
+  authOpen,
+  onSelectServer,
+  onChangeServerVariable,
+  onToggleServer,
+  onToggleAuth,
+  onSelectAuth,
+  onChangeAuthValue,
+} = arg0
 
   const segments = path.split('/').filter(Boolean)
 
   return (
-    <div className="not-prose flex w-full flex-col rounded-xl border border-zinc-200/70 bg-white p-1 dark:border-white/10 dark:bg-black">
-      <div className="flex min-w-0 items-center gap-2 overflow-hidden rounded-xl px-1.5 py-1.5">
+    <div className="not-prose flex w-full flex-col overflow-hidden rounded-xl border border-zinc-200/70 bg-white dark:border-white/10 dark:bg-black">
+      <div className="flex min-w-0 items-center gap-1.5 overflow-hidden px-2.5 py-2">
         <EndpointMethodBadge method={method} />
+        <ServerUrlValue
+          server={selectedServer}
+          variables={serverVariables}
+          open={serverOpen}
+          onToggle={onToggleServer}
+        />
         <div className="flex min-w-0 flex-1 items-center overflow-x-auto font-mono text-sm font-bold leading-6 whitespace-nowrap">
           {segments.length > 0 ? (
             <>
@@ -128,7 +422,41 @@ function EndpointIdentity(arg0: { method: string; path: string }): ReactNode {  
             <span className="font-bold text-zinc-800 dark:text-white">/</span>
           )}
         </div>
+        {authOptions.length > 0 ? (
+          <button
+            type="button"
+            aria-expanded={authOpen}
+            aria-label="Auth"
+            onClick={onToggleAuth}
+            className={clsx(
+              'ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-zinc-100 hover:text-emerald-600 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-emerald-300',
+              authOpen ? 'bg-emerald-400/10 text-emerald-600 dark:text-emerald-300' : 'bg-zinc-50 dark:bg-white/5',
+            )}
+          >
+            {authOpen ? <UnlockKeyholeIcon className="h-4 w-4" aria-hidden="true" /> : <LockKeyholeIcon className="h-4 w-4" aria-hidden="true" />}
+          </button>
+        ) : null}
       </div>
+      {serverOpen ? (
+        <ServerPanel
+          servers={servers}
+          selectedKey={selectedServerKey}
+          selectedServer={selectedServer}
+          variables={serverVariables}
+          onSelectServer={onSelectServer}
+          onChangeVariable={onChangeServerVariable}
+        />
+      ) : null}
+      {authOpen ? (
+        <AuthPanel
+          authOptions={authOptions}
+          selectedAuthName={selectedAuthName}
+          selectedAuth={selectedAuth}
+          authValues={authValues}
+          onSelectAuth={onSelectAuth}
+          onChangeAuthValue={onChangeAuthValue}
+        />
+      ) : null}
     </div>
   )
 }
@@ -145,6 +473,19 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
   const [selectedRequestMediaType, setSelectedRequestMediaType] = useState(requestContents[0]?.mediaType ?? '')
   const selectedRequestContent = requestContents.find((content) => content.mediaType === selectedRequestMediaType) ?? requestContents[0]
   const requestSchema = selectedRequestContent?.value.schema
+  const servers = getServers(spec, operation)
+  const [selectedServerKey, setSelectedServerKey] = useState(getServerKey(servers[0], 0))
+  const selectedServer = servers.find((server, index) => getServerKey(server, index) === selectedServerKey) ?? servers[0]
+  const [serverVariables, setServerVariables] = useState(defaultServerVariables(selectedServer))
+  const [serverOpen, setServerOpen] = useState(false)
+  const authOptions = getAuthOptions(spec, operation)
+  const [selectedAuthName, setSelectedAuthName] = useState(authOptions[0]?.name ?? '')
+  const selectedAuth = authOptions.find((option) => option.name === selectedAuthName)
+  const [authValues, setAuthValues] = useState<Record<string, string>>({})
+  const [authOpen, setAuthOpen] = useState(false)
+  const authInput: RequestAuthInput | undefined = selectedAuth
+    ? { name: selectedAuth.name, scheme: selectedAuth.scheme, value: authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth) }
+    : undefined
   const groupedParameters = {
     path: parameters.filter((parameter) => parameter.in === 'path'),
     query: parameters.filter((parameter) => parameter.in === 'query'),
@@ -152,8 +493,37 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
   }
 
   return (
-    <section className="clarify-api-endpoint scroll-mt-24" aria-labelledby={id}>
-      <EndpointIdentity method={method} path={path} />
+    <section className="clarify-api-endpoint scroll-mt-24 py-16 first:pt-0 last:pb-0" aria-labelledby={id}>
+      <EndpointIdentity
+        method={method}
+        path={path}
+        servers={servers}
+        selectedServerKey={selectedServerKey}
+        selectedServer={selectedServer}
+        serverVariables={serverVariables}
+        serverOpen={serverOpen}
+        authOptions={authOptions}
+        selectedAuthName={selectedAuthName}
+        selectedAuth={selectedAuth}
+        authValues={authValues}
+        authOpen={authOpen}
+        onSelectServer={(value) => {
+          const nextServer = servers.find((server, index) => getServerKey(server, index) === value) ?? servers[0]
+          setSelectedServerKey(value)
+          setServerVariables(defaultServerVariables(nextServer))
+        }}
+        onChangeServerVariable={(name, value) => setServerVariables((current) => ({ ...current, [name]: value }))}
+        onToggleServer={() => {
+          setServerOpen((current) => !current)
+          setAuthOpen(false)
+        }}
+        onToggleAuth={() => {
+          setAuthOpen((current) => !current)
+          setServerOpen(false)
+        }}
+        onSelectAuth={setSelectedAuthName}
+        onChangeAuthValue={(name, value) => setAuthValues((current) => ({ ...current, [name]: value }))}
+      />
       <Heading id={id} className="mt-4">
         {summary}
       </Heading>
@@ -182,6 +552,9 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
             requestContents={requestContents}
             selectedRequestMediaType={selectedRequestContent?.mediaType ?? ''}
             onSelectRequestMediaType={setSelectedRequestMediaType}
+            selectedServer={selectedServer}
+            serverVariables={serverVariables}
+            auth={authInput}
           />
         </Col>
       </Row>
@@ -198,7 +571,7 @@ function OpenApiPaths(arg0: { spec: OpenAPISpec }): ReactNode {  const { spec } 
   }))
 
   return (
-    <div className="clarify-api-endpoints space-y-16">
+    <div className="clarify-api-endpoints divide-y divide-zinc-200/70 dark:divide-white/10">
       {entries.map(({ path, method, operation }) => (
         <OpenApiOperation key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} />
       ))}

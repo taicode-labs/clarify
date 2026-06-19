@@ -1,5 +1,5 @@
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
-import { CheckIcon, ChevronsUpDownIcon, ClipboardIcon, CodeIcon, PackageIcon, ServerIcon, ShieldIcon } from 'lucide-react'
+import { CheckIcon, ChevronsUpDownIcon, ClipboardIcon, CodeIcon, PackageIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
 import { useBuiltInText } from '../i18n'
@@ -96,7 +96,7 @@ function getClientOptions(codeOptions: RequestCodeExample[] | undefined, languag
     .map((option) => ({ value: option.clientKey, label: option.clientTitle }))
 }
 
-function getServers(spec: OpenAPISpec, operation: OpenAPIOperation): OpenApiServer[] {
+export function getServers(spec: OpenAPISpec, operation: OpenAPIOperation): OpenApiServer[] {
   const operationServers = (operation as Record<string, unknown>).servers
   const servers = Array.isArray(operationServers) ? operationServers : (spec as Record<string, unknown>).servers
   if (!Array.isArray(servers)) return [{ url: 'https://api.example.com' }]
@@ -104,15 +104,15 @@ function getServers(spec: OpenAPISpec, operation: OpenAPIOperation): OpenApiServ
   return validServers.length > 0 ? validServers : [{ url: 'https://api.example.com' }]
 }
 
-function getServerKey(server: OpenApiServer, index: number): string {
+export function getServerKey(server: OpenApiServer, index: number): string {
   return `${index}:${server.url ?? ''}`
 }
 
-function getServerLabel(server: OpenApiServer, index: number): string {
+export function getServerLabel(server: OpenApiServer, index: number): string {
   return server.description ? `${server.description} (${server.url})` : server.url ?? `Server ${index + 1}`
 }
 
-function defaultServerVariables(server?: OpenApiServer): Record<string, string> {
+export function defaultServerVariables(server?: OpenApiServer): Record<string, string> {
   return Object.fromEntries(
     Object.entries(server?.variables ?? {}).map(([name, variable]) => [name, variable.default ?? variable.enum?.[0] ?? '']),
   )
@@ -135,24 +135,26 @@ function getSecurityRequirements(spec: OpenAPISpec, operation: OpenAPIOperation)
   return Array.isArray(specSecurity) ? specSecurity.filter(isRecord) as OpenApiSecurityRequirement[] : []
 }
 
-function getAuthOptions(spec: OpenAPISpec, operation: OpenAPIOperation): Array<{ name: string; scheme: OpenApiSecurityScheme }> {
+export type AuthOption = { name: string; scheme: OpenApiSecurityScheme }
+
+export function getAuthOptions(spec: OpenAPISpec, operation: OpenAPIOperation): AuthOption[] {
   const schemes = getSecuritySchemes(spec)
   const requirements = getSecurityRequirements(spec, operation)
   const names = new Set(requirements.flatMap((requirement) => Object.keys(requirement)))
 
   return Array.from(names)
     .map((name) => ({ name, scheme: schemes[name] }))
-    .filter((option): option is { name: string; scheme: OpenApiSecurityScheme } => Boolean(option.scheme))
+    .filter((option): option is AuthOption => Boolean(option.scheme))
 }
 
-function authPlaceholder(auth?: { scheme: OpenApiSecurityScheme }): string {
+export function authPlaceholder(auth?: { scheme: OpenApiSecurityScheme }): string {
   if (!auth) return ''
   if (auth.scheme.type === 'apiKey') return '{api_key}'
   if (auth.scheme.type === 'http' && auth.scheme.scheme?.toLowerCase() === 'basic') return '{base64_credentials}'
   return '{token}'
 }
 
-function authLabel(name: string, scheme: OpenApiSecurityScheme): string {
+export function authLabel(name: string, scheme: OpenApiSecurityScheme): string {
   const location = scheme.type === 'apiKey' && scheme.in && scheme.name ? ` · ${scheme.in}: ${scheme.name}` : ''
   return `${name}${location}`
 }
@@ -374,35 +376,28 @@ export function RequestExamplesPanel(arg0: {
   spec: OpenAPISpec
   path: string
   method: string
-  operation: OpenAPIOperation
   parameters: OpenApiParameter[]
   requestContents: MediaTypeEntry[]
   selectedMediaType: string
   onSelectMediaType: (value: string) => void
+  selectedServer: OpenApiServer
+  serverVariables: Record<string, string>
+  auth?: RequestAuthInput
 }): ReactNode {
   const {
     spec,
     path,
     method,
-    operation,
     parameters,
     requestContents,
     selectedMediaType,
     onSelectMediaType,
+    selectedServer,
+    serverVariables,
+    auth,
   } = arg0
 
   const t = useBuiltInText()
-  const servers = getServers(spec, operation)
-  const [selectedServerKey, setSelectedServerKey] = useState(getServerKey(servers[0], 0))
-  const selectedServer = servers.find((server, index) => getServerKey(server, index) === selectedServerKey) ?? servers[0]
-  const [serverVariables, setServerVariables] = useState(defaultServerVariables(selectedServer))
-  const authOptions = getAuthOptions(spec, operation)
-  const [selectedAuthName, setSelectedAuthName] = useState(authOptions[0]?.name ?? '')
-  const selectedAuth = authOptions.find((option) => option.name === selectedAuthName)
-  const [authValues, setAuthValues] = useState<Record<string, string>>({})
-  const authInput: RequestAuthInput | undefined = selectedAuth
-    ? { name: selectedAuth.name, scheme: selectedAuth.scheme, value: authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth) }
-    : undefined
   const selectedContent = requestContents.find((content) => content.mediaType === selectedMediaType) ?? requestContents[0]
   const examples = getExampleEntries(selectedContent?.value)
   const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
@@ -418,7 +413,7 @@ export function RequestExamplesPanel(arg0: {
     requestContent,
     server: selectedServer,
     serverVariables,
-    auth: authInput,
+    auth,
   })
   const selectedLanguage = codeOptions.find((option) => option.languageKey === selectedLanguageKey) ?? codeOptions[0]
   const selectedCode =
@@ -428,66 +423,11 @@ export function RequestExamplesPanel(arg0: {
   const clientOptions = getClientOptions(codeOptions, selectedCode.languageKey)
 
   return (
-    <>
-      <div className="not-prose mb-3 space-y-2 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-3 text-xs text-zinc-300 shadow-md">
-        <div className="flex flex-wrap items-center gap-2">
-          <SelectControl
-            label="Server"
-            value={selectedServerKey}
-            options={servers.map((server, index) => ({ value: getServerKey(server, index), label: getServerLabel(server, index) }))}
-            onChange={(value) => {
-              const nextServer = servers.find((server, index) => getServerKey(server, index) === value) ?? servers[0]
-              setSelectedServerKey(value)
-              setServerVariables(defaultServerVariables(nextServer))
-            }}
-            icon={<ServerIcon className="h-3.5 w-3.5" aria-hidden="true" />}
-          />
-          {authOptions.length > 0 ? (
-            <SelectControl
-              label="Auth"
-              value={selectedAuthName}
-              options={authOptions.map(({ name, scheme }) => ({ value: name, label: authLabel(name, scheme) }))}
-              onChange={setSelectedAuthName}
-              icon={<ShieldIcon className="h-3.5 w-3.5" aria-hidden="true" />}
-            />
-          ) : null}
-        </div>
-        {Object.entries(selectedServer?.variables ?? {}).length > 0 || selectedAuth ? (
-          <div className="grid gap-2 sm:grid-cols-2">
-            {Object.entries(selectedServer?.variables ?? {}).map(([name, variable]) => (
-              <label key={name} className="flex min-w-0 flex-col gap-1 font-mono text-2xs text-zinc-500">
-                <span>{name}</span>
-                <input
-                  value={serverVariables[name] ?? variable.default ?? ''}
-                  onChange={(event) => setServerVariables((current) => ({ ...current, [name]: event.target.value }))}
-                  list={variable.enum?.length ? `clarify-server-variable-${name}` : undefined}
-                  className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5 text-xs text-zinc-100 outline-hidden focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
-                />
-                {variable.enum?.length ? (
-                  <datalist id={`clarify-server-variable-${name}`}>
-                    {variable.enum.map((value) => <option key={value} value={value} />)}
-                  </datalist>
-                ) : null}
-              </label>
-            ))}
-            {selectedAuth ? (
-              <label className="flex min-w-0 flex-col gap-1 font-mono text-2xs text-zinc-500">
-                <span>{authLabel(selectedAuth.name, selectedAuth.scheme)}</span>
-                <input
-                  value={authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth)}
-                  onChange={(event) => setAuthValues((current) => ({ ...current, [selectedAuth.name]: event.target.value }))}
-                  className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5 text-xs text-zinc-100 outline-hidden focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
-                />
-              </label>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-      <ApiExampleCodeGroup
-        title={t('openapi.request')}
-        tag={method}
-        label={path}
-        code={selectedCode.code}
+    <ApiExampleCodeGroup
+      title={t('openapi.request')}
+      tag={method}
+      label={path}
+      code={selectedCode.code}
         language={selectedCode.language}
         mediaTypes={requestContents.map((content) => content.mediaType)}
         selectedMediaType={selectedContent?.mediaType}
@@ -505,11 +445,10 @@ export function RequestExamplesPanel(arg0: {
           setSelectedLanguageKey(nextCode?.languageKey ?? value)
           setSelectedClientKey(nextCode?.clientKey ?? '')
         }}
-        clientOptions={clientOptions}
-        selectedClientKey={selectedCode.clientKey}
-        onSelectClient={setSelectedClientKey}
-      />
-    </>
+      clientOptions={clientOptions}
+      selectedClientKey={selectedCode.clientKey}
+      onSelectClient={setSelectedClientKey}
+    />
   )
 }
 
