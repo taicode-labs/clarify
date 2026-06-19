@@ -18,6 +18,10 @@
 
 ---
 
+<p align="center">
+  <img src="./design/banner.png" alt="Clarify banner" />
+</p>
+
 ## Core Highlights
 
 Clarify is built for teams that want modern documentation without giving up source ownership, local workflows, or deployment control.

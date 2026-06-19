@@ -18,6 +18,10 @@
 
 ---
 
+<p align="center">
+  <img src="./design/banner.png" alt="Clarify banner" />
+</p>
+
 ## 核心亮点
 
 Clarify 面向希望拥有现代文档体验，同时保留源码、工作流和部署控制权的团队。
