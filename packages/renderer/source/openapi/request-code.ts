@@ -1,3 +1,6 @@
+import { snippetz } from '@scalar/snippetz'
+import type { ClientId, HarRequest, TargetId } from '@scalar/snippetz'
+
 import { getContentExample, isRecord, stringifyExample } from './helpers'
 import type { OpenApiMediaType, OpenApiParameter, RequestCodeExample } from './types'
 import type { OpenAPISpec } from './utils'
@@ -10,29 +13,41 @@ export type RequestCodeInput = {
   requestContent?: { mediaType: string; value: OpenApiMediaType }
 }
 
-function shellQuote(value: string): string {
-  return `'${value.replace(/'/g, `'"'"'`)}'`
+type RequestBody = {
+  serialized: string
 }
+
+type SnippetTarget<T extends TargetId = TargetId> = {
+  target: T
+  client: ClientId<T>
+}
+
+const snippetGenerator = snippetz()
 
 function getServerUrl(spec: OpenAPISpec): string {
   const servers = (spec as Record<string, unknown>).servers
-  if (!Array.isArray(servers)) return ''
+  if (!Array.isArray(servers)) return 'https://api.example.com'
 
   const firstServer = servers.find(isRecord)
-  return typeof firstServer?.url === 'string' ? firstServer.url : ''
+  return typeof firstServer?.url === 'string' ? firstServer.url : 'https://api.example.com'
 }
 
-function buildOperationUrl(spec: OpenAPISpec, path: string, parameters: OpenApiParameter[]): string {
-  const query = parameters
-    .filter((parameter) => parameter.in === 'query' && parameter.name)
-    .map((parameter) => `${parameter.name}={${parameter.name}}`)
-    .join('&')
+function buildOperationUrl(spec: OpenAPISpec, path: string): string {
   const serverUrl = getServerUrl(spec).replace(/\/$/, '')
-  return `${serverUrl}${path}${query ? `?${query}` : ''}`
+  return `${serverUrl}${path}`
 }
 
-function getRequestExample(requestContent?: { mediaType: string; value: OpenApiMediaType }): unknown {
-  return getContentExample(requestContent?.value)
+function getQueryString(parameters: OpenApiParameter[]): HarRequest['queryString'] {
+  return parameters
+    .filter((parameter) => parameter.in === 'query' && parameter.name)
+    .map((parameter) => ({ name: parameter.name, value: encodeUrlPlaceholders(`{${parameter.name}}`) }))
+}
+
+function getRequestBody(requestContent?: { mediaType: string; value: OpenApiMediaType }): RequestBody | undefined {
+  const value = getContentExample(requestContent?.value)
+  if (!requestContent || typeof value === 'undefined') return undefined
+
+  return { serialized: stringifyExample(value) }
 }
 
 function getRequestHeaders(requestContent?: { mediaType: string; value: OpenApiMediaType }): Record<string, string> {
@@ -43,125 +58,126 @@ function getRequestHeaders(requestContent?: { mediaType: string; value: OpenApiM
   }
 }
 
-function buildCurlExample(arg0: RequestCodeInput): string {  const {
-  spec,
-  path,
-  method,
-  parameters,
-  requestContent,
-} = arg0
-
-  const url = buildOperationUrl(spec, path, parameters)
-  const lines = [`curl ${method === 'GET' ? '-G ' : ''}${shellQuote(url)}`]
-
-  if (method !== 'GET') lines.push(`  -X ${method}`)
-  for (const [name, value] of Object.entries(getRequestHeaders(requestContent))) {
-    lines.push(`  -H ${shellQuote(`${name}: ${value}`)}`)
-  }
-
-  const requestExample = getRequestExample(requestContent)
-  if (requestContent && typeof requestExample !== 'undefined') {
-    lines.push(`  -d ${shellQuote(stringifyExample(requestExample))}`)
-  }
-
-  return lines.join(' \\\n')
+function encodeUrlPlaceholders(url: string): string {
+  return url.replace(/\{([^}]+)\}/g, (_, name: string) => `%7B${encodeURIComponent(name)}%7D`)
 }
 
-function buildJavaScriptExample(arg0: RequestCodeInput): string {  const {
-  spec,
-  path,
-  method,
-  parameters,
-  requestContent,
-} = arg0
-
-  const url = buildOperationUrl(spec, path, parameters)
-  const headers = JSON.stringify(getRequestHeaders(requestContent), null, 2)
-  const requestExample = getRequestExample(requestContent)
-  const body = typeof requestExample === 'undefined'
-    ? ''
-    : `\nconst body = ${stringifyExample(requestExample)}\n`
-  const bodyOption = typeof requestExample === 'undefined'
-    ? ''
-    : requestContent?.mediaType.includes('json')
-      ? ',\n  body: JSON.stringify(body)'
-      : ',\n  body'
-
-  return `${body}const response = await fetch(${JSON.stringify(url)}, {\n  method: ${JSON.stringify(method)},\n  headers: ${headers}${bodyOption}\n})\n\nconst data = await response.json()`
+function decodeUrlPlaceholders(code: string): string {
+  return code.replace(/%7B([^%]+)%7D/g, (_, name: string) => `{${decodeURIComponent(name)}}`)
 }
 
-function pythonLiteral(value: unknown, indent = 0): string {
-  const nextIndent = indent + 2
-  const pad = ' '.repeat(indent)
-  const nextPad = ' '.repeat(nextIndent)
+function buildHarRequest(input: RequestCodeInput): HarRequest {
+  const requestBody = getRequestBody(input.requestContent)
+  const url = encodeUrlPlaceholders(buildOperationUrl(input.spec, input.path))
 
-  if (value === null) return 'None'
-  if (typeof value === 'string') return JSON.stringify(value)
-  if (typeof value === 'number') return String(value)
-  if (typeof value === 'boolean') return value ? 'True' : 'False'
-
-  if (Array.isArray(value)) {
-    if (value.length === 0) return '[]'
-    return `[\n${value.map((item) => `${nextPad}${pythonLiteral(item, nextIndent)}`).join(',\n')}\n${pad}]`
+  return {
+    method: input.method,
+    url,
+    httpVersion: 'HTTP/1.1',
+    cookies: [],
+    headers: Object.entries(getRequestHeaders(input.requestContent)).map(([name, value]) => ({ name, value })),
+    queryString: getQueryString(input.parameters),
+    headersSize: -1,
+    bodySize: requestBody ? requestBody.serialized.length : 0,
+    postData: requestBody
+      ? {
+          mimeType: input.requestContent?.mediaType ?? '',
+          text: requestBody.serialized,
+        }
+      : undefined,
   }
-
-  if (isRecord(value)) {
-    const entries = Object.entries(value)
-    if (entries.length === 0) return '{}'
-    return `{\n${entries.map(([key, item]) => `${nextPad}${JSON.stringify(key)}: ${pythonLiteral(item, nextIndent)}`).join(',\n')}\n${pad}}`
-  }
-
-  return 'None'
 }
 
-function buildPythonExample(arg0: RequestCodeInput): string {  const {
-  spec,
-  path,
-  method,
-  parameters,
-  requestContent,
-} = arg0
-
-  const url = buildOperationUrl(spec, path, parameters)
-  const headers = pythonLiteral(getRequestHeaders(requestContent))
-  const requestExample = getRequestExample(requestContent)
-  const payload = typeof requestExample === 'undefined'
-    ? ''
-    : `\npayload = ${pythonLiteral(requestExample)}`
-  const bodyArgument = typeof requestExample === 'undefined'
-    ? ''
-    : requestContent?.mediaType.includes('json')
-      ? ', json=payload'
-      : ', data=payload'
-
-  return `import requests\n\nurl = ${JSON.stringify(url)}\nheaders = ${headers}${payload}\n\nresponse = requests.request(${JSON.stringify(method)}, url, headers=headers${bodyArgument})\nprint(response.json())`
-}
-
-function buildGoExample(arg0: RequestCodeInput): string {  const {
-  spec,
-  path,
-  method,
-  parameters,
-  requestContent,
-} = arg0
-
-  const url = buildOperationUrl(spec, path, parameters)
-  const requestExample = getRequestExample(requestContent)
-  const bodyText = typeof requestExample === 'undefined' ? '' : stringifyExample(requestExample)
-  const bodyReader = bodyText ? `strings.NewReader(${JSON.stringify(bodyText)})` : 'nil'
-  const imports = bodyText ? 'import (\n  "fmt"\n  "net/http"\n  "strings"\n)' : 'import (\n  "fmt"\n  "net/http"\n)'
-  const headerLines = Object.entries(getRequestHeaders(requestContent))
-    .map(([name, value]) => `req.Header.Set(${JSON.stringify(name)}, ${JSON.stringify(value)})`)
-    .join('\n')
-
-  return `package main\n\n${imports}\n\nfunc main() {\n  req, err := http.NewRequest(${JSON.stringify(method)}, ${JSON.stringify(url)}, ${bodyReader})\n  if err != nil {\n    panic(err)\n  }\n\n${headerLines.split('\n').map((line) => `  ${line}`).join('\n')}\n\n  resp, err := http.DefaultClient.Do(req)\n  if err != nil {\n    panic(err)\n  }\n  defer resp.Body.Close()\n\n  fmt.Println(resp.Status)\n}`
+function buildSnippet(input: RequestCodeInput, target: SnippetTarget): string {
+  const result = snippetGenerator.print(target.target, target.client, buildHarRequest(input))
+  return decodeUrlPlaceholders(result || '')
 }
 
 export function buildRequestCodeExamples(input: RequestCodeInput): RequestCodeExample[] {
   return [
-    { key: 'curl', title: 'cURL', language: 'bash', code: buildCurlExample(input) },
-    { key: 'javascript', title: 'JavaScript', language: 'javascript', code: buildJavaScriptExample(input) },
-    { key: 'python', title: 'Python', language: 'python', code: buildPythonExample(input) },
-    { key: 'go', title: 'Go', language: 'go', code: buildGoExample(input) },
+    {
+      key: 'curl',
+      title: 'cURL',
+      language: 'bash',
+      code: buildSnippet(input, { target: 'shell', client: 'curl' }),
+    },
+    {
+      key: 'javascript',
+      title: 'JavaScript',
+      language: 'javascript',
+      code: buildSnippet(input, { target: 'js', client: 'fetch' }),
+    },
+    {
+      key: 'typescript',
+      title: 'TypeScript',
+      language: 'typescript',
+      code: buildSnippet(input, { target: 'js', client: 'fetch' }),
+    },
+    {
+      key: 'python',
+      title: 'Python',
+      language: 'python',
+      code: buildSnippet(input, { target: 'python', client: 'requests' }),
+    },
+    {
+      key: 'go',
+      title: 'Go',
+      language: 'go',
+      code: buildSnippet(input, { target: 'go', client: 'native' }),
+    },
+    {
+      key: 'node',
+      title: 'Node.js',
+      language: 'javascript',
+      code: buildSnippet(input, { target: 'node', client: 'fetch' }),
+    },
+    {
+      key: 'java',
+      title: 'Java',
+      language: 'java',
+      code: buildSnippet(input, { target: 'java', client: 'nethttp' }),
+    },
+    {
+      key: 'csharp',
+      title: 'C#',
+      language: 'csharp',
+      code: buildSnippet(input, { target: 'csharp', client: 'httpclient' }),
+    },
+    {
+      key: 'php',
+      title: 'PHP',
+      language: 'php',
+      code: buildSnippet(input, { target: 'php', client: 'guzzle' }),
+    },
+    {
+      key: 'ruby',
+      title: 'Ruby',
+      language: 'ruby',
+      code: buildSnippet(input, { target: 'ruby', client: 'native' }),
+    },
+    {
+      key: 'rust',
+      title: 'Rust',
+      language: 'rust',
+      code: buildSnippet(input, { target: 'rust', client: 'reqwest' }),
+    },
+    {
+      key: 'swift',
+      title: 'Swift',
+      language: 'swift',
+      code: buildSnippet(input, { target: 'swift', client: 'nsurlsession' }),
+    },
+    {
+      key: 'kotlin',
+      title: 'Kotlin',
+      language: 'kotlin',
+      code: buildSnippet(input, { target: 'kotlin', client: 'okhttp' }),
+    },
+    {
+      key: 'powershell',
+      title: 'PowerShell',
+      language: 'powershell',
+      code: buildSnippet(input, { target: 'powershell', client: 'restmethod' }),
+    },
   ]
 }
