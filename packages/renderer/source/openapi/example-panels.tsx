@@ -1,5 +1,5 @@
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
-import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
+import { CheckIcon, ChevronsUpDownIcon, ClipboardIcon, CodeIcon, PackageIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
 import { useBuiltInText } from '../i18n'
@@ -19,12 +19,15 @@ function SelectControl(arg0: {
   value: string
   options: Array<string | SelectOption>
   onChange: (value: string) => void
-}): ReactNode {  const {
-  label,
-  value,
-  options,
-  onChange,
-} = arg0
+  icon?: ReactNode
+}): ReactNode {
+  const {
+    label,
+    value,
+    options,
+    onChange,
+    icon,
+  } = arg0
 
   const normalizedOptions = options.map((option) => (typeof option === 'string' ? { value: option, label: option } : option))
   const selectedOption = normalizedOptions.find((option) => option.value === value) ?? normalizedOptions[0]
@@ -36,9 +39,12 @@ function SelectControl(arg0: {
       <div className="clarify-api-select relative text-xs">
         <ListboxButton
           aria-label={label}
-          className="clarify-api-select-button flex min-w-28 items-center justify-between gap-2 rounded-lg bg-white/5 px-2.5 py-1.5 font-mono text-xs font-medium text-zinc-100 outline-hidden transition hover:bg-white/10 focus:ring-2 focus:ring-emerald-400/25 data-open:bg-white/10 data-open:ring-2 data-open:ring-emerald-400/25"
+          className="clarify-api-select-button flex min-w-28 items-center justify-between gap-2 rounded-lg bg-black/30 px-2 py-1 font-mono text-xs font-medium text-zinc-100 outline-hidden transition hover:bg-black/50 focus:ring-2 focus:ring-emerald-400/25 data-open:bg-white/10 data-open:ring-2 data-open:ring-emerald-400/25"
         >
-          <span className="truncate">{selectedOption?.label ?? value}</span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            {icon ? <span className="shrink-0 text-zinc-500">{icon}</span> : null}
+            <span className="truncate">{selectedOption?.label ?? value}</span>
+          </span>
           <ChevronsUpDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
         </ListboxButton>
         <ListboxOptions
@@ -65,7 +71,20 @@ function getExampleLabel(example: ExampleEntry, t: ReturnType<typeof useBuiltInT
   return example.generated && example.title === 'schema' ? t('openapi.schemaExample') : example.title
 }
 
-function CopyCodeButton(arg0: { code: string }): ReactNode {  const { code } = arg0
+function getLanguageOptions(codeOptions?: RequestCodeExample[]): SelectOption[] {
+  const languages = new Map<string, string>()
+  for (const option of codeOptions ?? []) languages.set(option.languageKey, option.title)
+  return Array.from(languages, ([value, label]) => ({ value, label }))
+}
+
+function getClientOptions(codeOptions: RequestCodeExample[] | undefined, languageKey?: string): SelectOption[] {
+  return (codeOptions ?? [])
+    .filter((option) => option.languageKey === languageKey)
+    .map((option) => ({ value: option.clientKey, label: option.clientTitle }))
+}
+
+function CopyCodeButton(arg0: { code: string }): ReactNode {
+  const { code } = arg0
 
   const t = useBuiltInText()
   const [copied, setCopied] = useState(false)
@@ -79,10 +98,63 @@ function CopyCodeButton(arg0: { code: string }): ReactNode {  const { code } = a
           window.setTimeout(() => setCopied(false), 1000)
         })
       }}
-      className="absolute top-3.5 right-4 rounded-full bg-white/5 px-3 py-1 text-2xs font-medium text-zinc-400 opacity-0 transition hover:bg-white/10 hover:text-zinc-200 group-hover:opacity-100 focus:opacity-100"
+      className="flex items-center gap-1.5 rounded-full bg-black/30 px-2.5 py-1.5 text-2xs font-medium text-zinc-400 transition hover:bg-black/50 hover:text-zinc-200 focus:bg-black/50 focus:text-zinc-200"
     >
-      {copied ? t('actions.copied') : t('actions.copy')}
+      {copied ? (
+        <CheckIcon className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true" />
+      ) : (
+        <ClipboardIcon className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
+      )}
+      <span>{copied ? t('actions.copied') : t('actions.copy')}</span>
     </button>
+  )
+}
+
+function CodeToolbar(arg0: {
+  code: string
+  languageOptions?: SelectOption[]
+  selectedLanguageKey?: string
+  onSelectLanguage?: (key: string) => void
+  clientOptions?: SelectOption[]
+  selectedClientKey?: string
+  onSelectClient?: (key: string) => void
+}): ReactNode {
+  const {
+    code,
+    languageOptions,
+    selectedLanguageKey,
+    onSelectLanguage,
+    clientOptions,
+    selectedClientKey,
+    onSelectClient,
+  } = arg0
+
+  const t = useBuiltInText()
+
+  return (
+    <div className="absolute top-3.5 right-4 left-4 z-10 flex items-center justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-2">
+        {languageOptions && languageOptions.length > 1 && selectedLanguageKey && onSelectLanguage ? (
+          <SelectControl
+            label={t('openapi.language')}
+            value={selectedLanguageKey}
+            options={languageOptions}
+            onChange={onSelectLanguage}
+            icon={<CodeIcon className="h-3.5 w-3.5" aria-hidden="true" />}
+          />
+        ) : null}
+        {clientOptions && clientOptions.length > 1 && selectedClientKey && onSelectClient ? (
+          <SelectControl
+            label={t('openapi.client')}
+            value={selectedClientKey}
+            options={clientOptions}
+            onChange={onSelectClient}
+            icon={<PackageIcon className="h-3.5 w-3.5" aria-hidden="true" />}
+          />
+        ) : null}
+      </div>
+      <CopyCodeButton code={code} />
+    </div>
   )
 }
 
@@ -98,25 +170,32 @@ function ApiExampleCodeGroup(arg0: {
   examples?: ExampleEntry[]
   selectedExampleKey?: string
   onSelectExample?: (key: string) => void
-  codeOptions?: RequestCodeExample[]
-  selectedCodeKey?: string
-  onSelectCode?: (key: string) => void
-}): ReactNode {  const {
-  title,
-  tag,
-  label,
-  code,
-  language,
-  mediaTypes,
-  selectedMediaType,
-  onSelectMediaType,
-  examples,
-  selectedExampleKey,
-  onSelectExample,
-  codeOptions,
-  selectedCodeKey,
-  onSelectCode,
-} = arg0
+  languageOptions?: SelectOption[]
+  selectedLanguageKey?: string
+  onSelectLanguage?: (key: string) => void
+  clientOptions?: SelectOption[]
+  selectedClientKey?: string
+  onSelectClient?: (key: string) => void
+}): ReactNode {
+  const {
+    title,
+    tag,
+    label,
+    code,
+    language,
+    mediaTypes,
+    selectedMediaType,
+    onSelectMediaType,
+    examples,
+    selectedExampleKey,
+    onSelectExample,
+    languageOptions,
+    selectedLanguageKey,
+    onSelectLanguage,
+    clientOptions,
+    selectedClientKey,
+    onSelectClient,
+  } = arg0
 
   const t = useBuiltInText()
 
@@ -141,14 +220,6 @@ function ApiExampleCodeGroup(arg0: {
               onChange={onSelectExample}
             />
           ) : null}
-          {codeOptions && codeOptions.length > 1 && selectedCodeKey && onSelectCode ? (
-            <SelectControl
-              label={t('openapi.language')}
-              value={selectedCodeKey}
-              options={codeOptions.map((option) => ({ value: option.key, label: option.title }))}
-              onChange={onSelectCode}
-            />
-          ) : null}
         </div>
         {tag || label ? (
           <div className="flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
@@ -158,10 +229,18 @@ function ApiExampleCodeGroup(arg0: {
           </div>
         ) : null}
         <div className="clarify-api-example-code group relative">
-          <pre className="overflow-x-auto p-4 text-xs text-white">
+          <CodeToolbar
+            code={code}
+            languageOptions={languageOptions}
+            selectedLanguageKey={selectedLanguageKey}
+            onSelectLanguage={onSelectLanguage}
+            clientOptions={clientOptions}
+            selectedClientKey={selectedClientKey}
+            onSelectClient={onSelectClient}
+          />
+          <pre className={`overflow-x-auto p-4 text-xs text-white ${languageOptions && languageOptions.length > 1 ? 'pt-14' : ''}`}>
             <code className={`language-${language}`}>{code}</code>
           </pre>
-          <CopyCodeButton code={code} />
         </div>
       </div>
     </div>
@@ -176,25 +255,32 @@ export function RequestExamplesPanel(arg0: {
   requestContents: MediaTypeEntry[]
   selectedMediaType: string
   onSelectMediaType: (value: string) => void
-}): ReactNode {  const {
-  spec,
-  path,
-  method,
-  parameters,
-  requestContents,
-  selectedMediaType,
-  onSelectMediaType,
-} = arg0
+}): ReactNode {
+  const {
+    spec,
+    path,
+    method,
+    parameters,
+    requestContents,
+    selectedMediaType,
+    onSelectMediaType,
+  } = arg0
 
   const t = useBuiltInText()
   const selectedContent = requestContents.find((content) => content.mediaType === selectedMediaType) ?? requestContents[0]
   const examples = getExampleEntries(selectedContent?.value)
   const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
-  const [selectedCodeKey, setSelectedCodeKey] = useState('curl')
+  const [selectedLanguageKey, setSelectedLanguageKey] = useState('shell')
+  const [selectedClientKey, setSelectedClientKey] = useState('curl')
   const selectedExample = examples.find((example) => example.key === selectedExampleKey) ?? examples[0]
   const requestContent = selectedContent ? { ...selectedContent, value: { ...selectedContent.value, example: selectedExample?.value, examples: undefined } } : undefined
   const codeOptions = buildRequestCodeExamples({ spec, path, method, parameters, requestContent })
-  const selectedCode = codeOptions.find((option) => option.key === selectedCodeKey) ?? codeOptions[0]
+  const selectedLanguage = codeOptions.find((option) => option.languageKey === selectedLanguageKey) ?? codeOptions[0]
+  const selectedCode =
+    codeOptions.find((option) => option.languageKey === selectedLanguage.languageKey && option.clientKey === selectedClientKey) ??
+    selectedLanguage
+  const languageOptions = getLanguageOptions(codeOptions)
+  const clientOptions = getClientOptions(codeOptions, selectedCode.languageKey)
 
   return (
     <ApiExampleCodeGroup
@@ -212,14 +298,22 @@ export function RequestExamplesPanel(arg0: {
       examples={examples}
       selectedExampleKey={selectedExample?.key}
       onSelectExample={setSelectedExampleKey}
-      codeOptions={codeOptions}
-      selectedCodeKey={selectedCode.key}
-      onSelectCode={setSelectedCodeKey}
+      languageOptions={languageOptions}
+      selectedLanguageKey={selectedCode.languageKey}
+      onSelectLanguage={(value) => {
+        const nextCode = codeOptions.find((option) => option.languageKey === value)
+        setSelectedLanguageKey(nextCode?.languageKey ?? value)
+        setSelectedClientKey(nextCode?.clientKey ?? '')
+      }}
+      clientOptions={clientOptions}
+      selectedClientKey={selectedCode.clientKey}
+      onSelectClient={setSelectedClientKey}
     />
   )
 }
 
-export function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation }): ReactNode {  const { operation } = arg0
+export function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation }): ReactNode {
+  const { operation } = arg0
 
   const t = useBuiltInText()
   const responses = getResponseEntries(operation).filter(({ response }) => getMediaTypeEntries(response.content).length > 0)

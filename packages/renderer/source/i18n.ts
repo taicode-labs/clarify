@@ -45,6 +45,7 @@ export type BuiltInTextKey =
   | 'openapi.example'
   | 'openapi.headers'
   | 'openapi.language'
+  | 'openapi.client'
   | 'openapi.mediaType'
   | 'openapi.openApiReference'
   | 'openapi.operationParameter'
@@ -115,6 +116,7 @@ const builtInText = {
     'openapi.example': 'Example',
     'openapi.headers': 'Headers',
     'openapi.language': 'Language',
+    'openapi.client': 'Client',
     'openapi.mediaType': 'Media type',
     'openapi.openApiReference': 'OpenAPI Reference',
     'openapi.operationParameter': 'Operation parameter.',
@@ -184,6 +186,7 @@ const builtInText = {
     'openapi.example': '示例',
     'openapi.headers': '请求头',
     'openapi.language': '语言',
+    'openapi.client': '客户端',
     'openapi.mediaType': '媒体类型',
     'openapi.openApiReference': 'OpenAPI 参考',
     'openapi.operationParameter': '操作参数。',

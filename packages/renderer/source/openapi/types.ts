@@ -39,5 +39,8 @@ export type RequestCodeExample = {
   key: string
   title: string
   language: string
+  languageKey: string
+  clientKey: string
+  clientTitle: string
   code: string
 }

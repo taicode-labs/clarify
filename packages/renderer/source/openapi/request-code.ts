@@ -142,91 +142,58 @@ function buildSnippet(input: RequestCodeInput, target: SnippetTarget): string {
   return decodeUrlPlaceholders(result || '')
 }
 
+type RequestSnippetOption = SnippetTarget & {
+  languageKey: string
+  title: string
+  language: string
+  clientTitle: string
+}
+
+const requestSnippetOptions: RequestSnippetOption[] = [
+  { languageKey: 'shell', title: 'Shell', language: 'bash', target: 'shell', client: 'curl', clientTitle: 'cURL' },
+  { languageKey: 'shell', title: 'Shell', language: 'bash', target: 'shell', client: 'wget', clientTitle: 'Wget' },
+  { languageKey: 'shell', title: 'Shell', language: 'bash', target: 'shell', client: 'httpie', clientTitle: 'HTTPie' },
+  { languageKey: 'javascript', title: 'JavaScript', language: 'javascript', target: 'js', client: 'fetch', clientTitle: 'Fetch' },
+  { languageKey: 'javascript', title: 'JavaScript', language: 'javascript', target: 'js', client: 'axios', clientTitle: 'Axios' },
+  { languageKey: 'javascript', title: 'JavaScript', language: 'javascript', target: 'js', client: 'ofetch', clientTitle: 'ofetch' },
+  { languageKey: 'javascript', title: 'JavaScript', language: 'javascript', target: 'js', client: 'xhr', clientTitle: 'XHR' },
+  { languageKey: 'typescript', title: 'TypeScript', language: 'typescript', target: 'js', client: 'fetch', clientTitle: 'Fetch' },
+  { languageKey: 'typescript', title: 'TypeScript', language: 'typescript', target: 'js', client: 'axios', clientTitle: 'Axios' },
+  { languageKey: 'typescript', title: 'TypeScript', language: 'typescript', target: 'js', client: 'ofetch', clientTitle: 'ofetch' },
+  { languageKey: 'python', title: 'Python', language: 'python', target: 'python', client: 'requests', clientTitle: 'Requests' },
+  { languageKey: 'python', title: 'Python', language: 'python', target: 'python', client: 'python3', clientTitle: 'http.client' },
+  { languageKey: 'python', title: 'Python', language: 'python', target: 'python', client: 'httpx_sync', clientTitle: 'HTTPX' },
+  { languageKey: 'python', title: 'Python', language: 'python', target: 'python', client: 'aiohttp', clientTitle: 'aiohttp' },
+  { languageKey: 'go', title: 'Go', language: 'go', target: 'go', client: 'native', clientTitle: 'NewRequest' },
+  { languageKey: 'node', title: 'Node.js', language: 'javascript', target: 'node', client: 'fetch', clientTitle: 'Fetch' },
+  { languageKey: 'node', title: 'Node.js', language: 'javascript', target: 'node', client: 'axios', clientTitle: 'Axios' },
+  { languageKey: 'node', title: 'Node.js', language: 'javascript', target: 'node', client: 'ofetch', clientTitle: 'ofetch' },
+  { languageKey: 'node', title: 'Node.js', language: 'javascript', target: 'node', client: 'undici', clientTitle: 'undici' },
+  { languageKey: 'java', title: 'Java', language: 'java', target: 'java', client: 'nethttp', clientTitle: 'java.net.http' },
+  { languageKey: 'java', title: 'Java', language: 'java', target: 'java', client: 'okhttp', clientTitle: 'OkHttp' },
+  { languageKey: 'java', title: 'Java', language: 'java', target: 'java', client: 'unirest', clientTitle: 'Unirest' },
+  { languageKey: 'java', title: 'Java', language: 'java', target: 'java', client: 'asynchttp', clientTitle: 'AsyncHttp' },
+  { languageKey: 'csharp', title: 'C#', language: 'csharp', target: 'csharp', client: 'httpclient', clientTitle: 'HttpClient' },
+  { languageKey: 'csharp', title: 'C#', language: 'csharp', target: 'csharp', client: 'restsharp', clientTitle: 'RestSharp' },
+  { languageKey: 'php', title: 'PHP', language: 'php', target: 'php', client: 'guzzle', clientTitle: 'Guzzle' },
+  { languageKey: 'php', title: 'PHP', language: 'php', target: 'php', client: 'curl', clientTitle: 'cURL' },
+  { languageKey: 'php', title: 'PHP', language: 'php', target: 'php', client: 'laravel', clientTitle: 'Laravel HTTP Client' },
+  { languageKey: 'ruby', title: 'Ruby', language: 'ruby', target: 'ruby', client: 'native', clientTitle: 'net::http' },
+  { languageKey: 'rust', title: 'Rust', language: 'rust', target: 'rust', client: 'reqwest', clientTitle: 'reqwest' },
+  { languageKey: 'swift', title: 'Swift', language: 'swift', target: 'swift', client: 'nsurlsession', clientTitle: 'NSURLSession' },
+  { languageKey: 'kotlin', title: 'Kotlin', language: 'kotlin', target: 'kotlin', client: 'okhttp', clientTitle: 'OkHttp' },
+  { languageKey: 'powershell', title: 'PowerShell', language: 'powershell', target: 'powershell', client: 'restmethod', clientTitle: 'Invoke-RestMethod' },
+  { languageKey: 'powershell', title: 'PowerShell', language: 'powershell', target: 'powershell', client: 'webrequest', clientTitle: 'Invoke-WebRequest' },
+]
+
 export function buildRequestCodeExamples(input: RequestCodeInput): RequestCodeExample[] {
-  return [
-    {
-      key: 'curl',
-      title: 'cURL',
-      language: 'bash',
-      code: buildSnippet(input, { target: 'shell', client: 'curl' }),
-    },
-    {
-      key: 'javascript',
-      title: 'JavaScript',
-      language: 'javascript',
-      code: buildSnippet(input, { target: 'js', client: 'fetch' }),
-    },
-    {
-      key: 'typescript',
-      title: 'TypeScript',
-      language: 'typescript',
-      code: buildSnippet(input, { target: 'js', client: 'fetch' }),
-    },
-    {
-      key: 'python',
-      title: 'Python',
-      language: 'python',
-      code: buildSnippet(input, { target: 'python', client: 'requests' }),
-    },
-    {
-      key: 'go',
-      title: 'Go',
-      language: 'go',
-      code: buildSnippet(input, { target: 'go', client: 'native' }),
-    },
-    {
-      key: 'node',
-      title: 'Node.js',
-      language: 'javascript',
-      code: buildSnippet(input, { target: 'node', client: 'fetch' }),
-    },
-    {
-      key: 'java',
-      title: 'Java',
-      language: 'java',
-      code: buildSnippet(input, { target: 'java', client: 'nethttp' }),
-    },
-    {
-      key: 'csharp',
-      title: 'C#',
-      language: 'csharp',
-      code: buildSnippet(input, { target: 'csharp', client: 'httpclient' }),
-    },
-    {
-      key: 'php',
-      title: 'PHP',
-      language: 'php',
-      code: buildSnippet(input, { target: 'php', client: 'guzzle' }),
-    },
-    {
-      key: 'ruby',
-      title: 'Ruby',
-      language: 'ruby',
-      code: buildSnippet(input, { target: 'ruby', client: 'native' }),
-    },
-    {
-      key: 'rust',
-      title: 'Rust',
-      language: 'rust',
-      code: buildSnippet(input, { target: 'rust', client: 'reqwest' }),
-    },
-    {
-      key: 'swift',
-      title: 'Swift',
-      language: 'swift',
-      code: buildSnippet(input, { target: 'swift', client: 'nsurlsession' }),
-    },
-    {
-      key: 'kotlin',
-      title: 'Kotlin',
-      language: 'kotlin',
-      code: buildSnippet(input, { target: 'kotlin', client: 'okhttp' }),
-    },
-    {
-      key: 'powershell',
-      title: 'PowerShell',
-      language: 'powershell',
-      code: buildSnippet(input, { target: 'powershell', client: 'restmethod' }),
-    },
-  ]
+  return requestSnippetOptions.map((option) => ({
+    key: `${option.languageKey}:${option.client}`,
+    title: option.title,
+    language: option.language,
+    languageKey: option.languageKey,
+    clientKey: option.client,
+    clientTitle: option.clientTitle,
+    code: buildSnippet(input, option),
+  }))
 }
