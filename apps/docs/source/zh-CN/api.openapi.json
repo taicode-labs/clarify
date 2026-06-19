@@ -1019,7 +1019,10 @@
         "type": "object",
         "required": [
           "format",
-          "scope"
+          "scope",
+          "selection",
+          "rendering",
+          "delivery"
         ],
         "properties": {
           "format": {
@@ -1049,9 +1052,195 @@
             "type": "string",
             "format": "uri",
             "description": "可选 URI，用于展示操作回调。"
+          },
+          "selection": {
+            "type": "object",
+            "required": [
+              "mode",
+              "items"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "all",
+                  "ids",
+                  "query"
+                ],
+                "description": "控制如何解析被选中的资源。"
+              },
+              "items": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "type"
+                  ],
+                  "properties": {
+                    "id": {
+                      "$ref": "#/components/schemas/Identifier",
+                      "description": "选中资源标识符。"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "page",
+                        "section",
+                        "asset"
+                      ],
+                      "description": "选中资源类型。"
+                    },
+                    "options": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "boolean"
+                          }
+                        ]
+                      },
+                      "description": "每个资源的自由选项，值可以是基础类型。"
+                    }
+                  }
+                },
+                "description": "选中资源组成的嵌套数组。"
+              },
+              "query": {
+                "$ref": "#/components/schemas/SearchFilters",
+                "description": "mode 为 query 时使用的可选对象查询。"
+              }
+            },
+            "description": "嵌套对象，用于展示必填子属性、数组、引用和 additionalProperties。"
+          },
+          "rendering": {
+            "type": "object",
+            "required": [
+              "theme",
+              "assets"
+            ],
+            "properties": {
+              "theme": {
+                "oneOf": [
+                  {
+                    "const": "system",
+                    "description": "使用默认主题。"
+                  },
+                  {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "tokens"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "自定义主题名称。"
+                      },
+                      "tokens": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string",
+                          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                        },
+                        "description": "颜色 token 映射，限制为十六进制颜色。"
+                      }
+                    }
+                  }
+                ],
+                "description": "oneOf 字段，可以是 const 字符串或内联对象。"
+              },
+              "assets": {
+                "type": "object",
+                "required": [
+                  "embed",
+                  "metadata"
+                ],
+                "properties": {
+                  "embed": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "是否内嵌资源。"
+                  },
+                  "metadata": {
+                    "$ref": "#/components/schemas/AssetMetadata",
+                    "description": "引用的嵌套元数据 schema。"
+                  }
+                }
+              }
+            },
+            "description": "渲染设置，用于展示 oneOf、const、默认值、嵌套对象和引用。"
+          },
+          "delivery": {
+            "type": "object",
+            "required": [
+              "channels"
+            ],
+            "properties": {
+              "channels": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "email"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "const": "email"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "kind",
+                        "url"
+                      ],
+                      "properties": {
+                        "kind": {
+                          "const": "webhook"
+                        },
+                        "url": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "description": "带 const 判别字段的 oneOf 渠道对象数组。"
+              },
+              "expiresAt": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "可为空的过期时间。"
+              }
+            },
+            "description": "投递配置，用于展示数组、oneOf 分支、格式和可空字段。"
           }
         },
-        "description": "Clarify 覆盖枚举驱动的任务请求、带默认值的布尔字段以及可选回调 URL。"
+        "description": "复杂嵌套导出请求，覆盖枚举、默认值、引用、数组、oneOf、const、格式、pattern 和 additionalProperties。"
       },
       "ExportJob": {
         "type": "object",
