@@ -1,0 +1,24 @@
+# Architecture
+
+Clarify is a pnpm workspace with separate packages for the CLI/docs engine and the shared renderer.
+
+---
+
+## Packages
+
+| Package | Responsibility |
+|---------|----------------|
+| `apps/docs` | Documentation playground and integration site. |
+| `apps/www` | Marketing and landing page. |
+| `packages/cli` | Config loading, content discovery, OpenAPI parsing, dev server, and static build orchestration. |
+| `packages/renderer` | React shell, documentation components, MDX runtime, and OpenAPI UI. |
+
+---
+
+## Data flow
+
+1. The CLI loads project config.
+2. It scans `source/` for MDX and OpenAPI content.
+3. It builds a route model and metadata.
+4. The renderer turns routes into React pages.
+5. The SSG step writes static HTML and assets to `output/`.

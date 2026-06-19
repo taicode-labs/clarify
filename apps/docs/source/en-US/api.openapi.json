@@ -1,0 +1,441 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Clarify Complete OpenAPI Example",
+    "summary": "A complete OpenAPI example for renderer coverage.",
+    "description": "A compact but broad OpenAPI example for Clarify. It keeps the operation count small while demonstrating full reference pages, tags, server variables, path/query/header parameters, JSON and YAML request bodies, multipart uploads, multiple response media types, examples, links, callbacks, webhooks, security schemes, schema composition, nullable fields, discriminators, and common JSON Schema validation keywords.",
+    "termsOfService": "https://clarify.local/terms",
+    "contact": {
+      "name": "Clarify Maintainers",
+      "url": "https://github.com/taicode-labs/clarify",
+      "email": "maintainers@clarify.local"
+    },
+    "license": {
+      "name": "MIT",
+      "identifier": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "servers": [
+    {
+      "url": "https://api.clarify.local/{version}",
+      "description": "Production environment.",
+      "variables": {
+        "version": {
+          "default": "v1",
+          "enum": ["v1", "v2"],
+          "description": "API version."
+        }
+      }
+    },
+    {
+      "url": "https://staging-api.clarify.local/v1",
+      "description": "Staging environment."
+    }
+  ],
+  "externalDocs": {
+    "description": "Clarify documentation.",
+    "url": "https://clarify.local/docs"
+  },
+  "tags": [
+    {
+      "name": "Pages",
+      "description": "Documentation page management.",
+      "externalDocs": {
+        "description": "Page guide.",
+        "url": "https://clarify.local/docs/pages"
+      }
+    },
+    { "name": "Assets", "description": "Asset uploads and metadata." },
+    { "name": "Search", "description": "Search indexing and queries." },
+    { "name": "System", "description": "Operational status endpoints." }
+  ],
+  "security": [{ "BearerAuth": [] }],
+  "paths": {
+    "/pages": {
+      "summary": "Page collection.",
+      "description": "Create and list documentation pages.",
+      "parameters": [{ "$ref": "#/components/parameters/TraceId" }],
+      "get": {
+        "tags": ["Pages"],
+        "operationId": "listPages",
+        "summary": "List pages",
+        "description": "Returns a paginated page collection with optional filters.",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageCursor" },
+          { "$ref": "#/components/parameters/PageLimit" },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by publishing status.",
+            "schema": { "$ref": "#/components/schemas/PageStatus" },
+            "examples": {
+              "published": { "summary": "Published pages only", "value": "published" }
+            }
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "description": "Related resources to include in the response.",
+            "style": "form",
+            "explode": false,
+            "schema": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["authors", "assets", "children"] }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page collection.",
+            "headers": {
+              "X-Request-Id": { "$ref": "#/components/headers/RequestId" },
+              "X-RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PageList" },
+                "examples": { "default": { "$ref": "#/components/examples/PageListExample" } }
+              }
+            },
+            "links": { "GetPageById": { "$ref": "#/components/links/GetPageById" } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        },
+        "security": [{ "BearerAuth": [] }, { "ApiKeyAuth": [] }]
+      },
+      "post": {
+        "tags": ["Pages"],
+        "operationId": "createPage",
+        "summary": "Create page",
+        "description": "Creates a new MDX-powered page. This operation demonstrates request body examples, an alternate YAML format, OAuth security, multipart form data, and callback rendering.",
+        "requestBody": {
+          "required": true,
+          "description": "Page payload.",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PageCreate" },
+              "examples": { "guide": { "$ref": "#/components/examples/PageCreateExample" } }
+            },
+            "application/x-yaml": {
+              "schema": { "type": "string", "description": "YAML representation of the page payload." },
+              "example": "title: Getting Started\nslug: getting-started\ncontent: '# Hello'\n"
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": { "type": "string", "format": "binary", "description": "Binary upload field rendered from string format=binary." },
+                  "metadata": { "$ref": "#/components/schemas/AssetMetadata" }
+                }
+              },
+              "encoding": { "metadata": { "contentType": "application/json" } },
+              "examples": {
+                "image": {
+                  "summary": "Image upload",
+                  "value": { "metadata": { "alt": "Clarify dashboard screenshot", "caption": "Generated docs preview", "tags": ["docs", "openapi"] } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Page created.",
+            "headers": {
+              "Location": {
+                "description": "URL of the created page.",
+                "schema": { "type": "string", "format": "uri" }
+              }
+            },
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Page" } } }
+          },
+          "202": {
+            "description": "Asset upload accepted when using multipart/form-data.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Asset" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "409": {
+            "description": "Slug already exists.",
+            "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Problem" } } }
+          },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        },
+        "callbacks": { "pagePublished": { "$ref": "#/components/callbacks/PagePublished" } },
+        "security": [{ "OAuth2": ["pages:write"] }]
+      }
+    },
+    "/pages/{pageId}": {
+      "parameters": [{ "$ref": "#/components/parameters/PageId" }],
+      "get": {
+        "tags": ["Pages"],
+        "operationId": "getPage",
+        "summary": "Get page",
+        "description": "Fetches one page by ID.",
+        "responses": {
+          "200": {
+            "description": "Page details.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Page" }, "examples": { "default": { "$ref": "#/components/examples/PageExample" } } } }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "default": { "$ref": "#/components/responses/UnexpectedError" }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": ["Search"],
+        "operationId": "searchPages",
+        "summary": "Search pages",
+        "description": "Covers required query parameters, JSON-encoded query content, array responses, and CSV as an alternate media type.",
+        "parameters": [
+          { "$ref": "#/components/parameters/TraceId" },
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string", "minLength": 1 }, "example": "openapi" },
+          { "name": "filters", "in": "query", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SearchFilters" } } } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results.",
+            "content": {
+              "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/SearchResult" } } },
+              "text/csv": { "schema": { "type": "string" }, "example": "id,title,score\npg_123,Getting Started,0.97\n" }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/exports": {
+      "post": {
+        "tags": ["Pages"],
+        "operationId": "createExport",
+        "summary": "Create export job",
+        "description": "Covers multiple request media types, several examples, multiple response statuses, and multiple response media types in one operation.",
+        "requestBody": {
+          "required": true,
+          "description": "Export job definition in JSON or YAML.",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ExportRequest" },
+              "examples": {
+                "fullSite": { "summary": "Full site export", "value": { "format": "html", "scope": "site", "includeDrafts": false, "callbackUrl": "https://example.com/hooks/export" } },
+                "publishedPdf": { "summary": "Published PDF export", "value": { "format": "pdf", "scope": "published", "includeDrafts": false } }
+              }
+            },
+            "application/x-yaml": {
+              "schema": { "type": "string", "description": "YAML representation of an export job." },
+              "examples": {
+                "siteYaml": { "summary": "Full site YAML", "value": "format: html\nscope: site\nincludeDrafts: false\ncallbackUrl: https://example.com/hooks/export\n" },
+                "draftYaml": { "summary": "Draft YAML", "value": "format: markdown\nscope: site\nincludeDrafts: true\n" }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Export job accepted.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ExportJob" },
+                "examples": {
+                  "queued": { "summary": "Queued job", "value": { "id": "exp_123", "status": "queued", "downloadUrl": null } },
+                  "processing": { "summary": "Processing job", "value": { "id": "exp_456", "status": "processing", "downloadUrl": null } }
+                }
+              },
+              "text/plain": { "schema": { "type": "string" }, "examples": { "plain": { "summary": "Plain job ID", "value": "exp_123" } } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/system/health": {
+      "get": {
+        "tags": ["System"],
+        "operationId": "getHealth",
+        "summary": "Get service health",
+        "description": "A small public endpoint that demonstrates operation-level security overrides, inline object schemas, and const values.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service is healthy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status", "time"],
+                  "properties": {
+                    "status": { "type": "string", "const": "ok" },
+                    "time": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "pageLifecycle": {
+      "post": {
+        "tags": ["Pages"],
+        "operationId": "pageLifecycleWebhook",
+        "summary": "Page lifecycle webhook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [{ "$ref": "#/components/schemas/PagePublishedEvent" }, { "$ref": "#/components/schemas/PageDeletedEvent" }],
+                "discriminator": {
+                  "propertyName": "type",
+                  "mapping": {
+                    "page.published": "#/components/schemas/PagePublishedEvent",
+                    "page.deleted": "#/components/schemas/PageDeletedEvent"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "204": { "description": "Webhook accepted." } }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PageStatus": { "type": "string", "enum": ["draft", "published", "archived"], "description": "Clarify renders string enums as constrained values and shows every option in schema tables." },
+      "Identifier": { "type": "string", "pattern": "^[a-z]{2,}_[A-Za-z0-9]+$", "examples": ["pg_123"], "description": "Reusable scalar schema that demonstrates $ref, pattern, and examples." },
+      "Timestamp": { "type": "string", "format": "date-time", "examples": ["2026-06-17T12:00:00Z"], "description": "Clarify displays string formats such as date-time and scalar examples." },
+      "PageBase": {
+        "type": "object",
+        "required": ["id", "title", "slug", "status", "content", "createdAt", "updatedAt"],
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Identifier", "description": "Reusable identifier reference." },
+          "title": { "type": "string", "minLength": 1, "maxLength": 120, "examples": ["Getting Started"], "description": "Required string with minLength and maxLength constraints." },
+          "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "description": "Route segment constrained by a pattern." },
+          "status": { "$ref": "#/components/schemas/PageStatus", "description": "Referenced enum for draft, published, and archived states." },
+          "content": { "type": "string", "contentMediaType": "text/markdown", "description": "Markdown or MDX source content marked with contentMediaType." },
+          "frontmatter": { "type": "object", "additionalProperties": true, "examples": [{ "title": "Getting Started", "description": "Install Clarify in minutes" }], "description": "Flexible metadata object demonstrating additionalProperties." },
+          "parentId": { "oneOf": [{ "$ref": "#/components/schemas/Identifier" }, { "type": "null" }], "description": "Nullable parent relation represented with oneOf and null." },
+          "createdAt": { "$ref": "#/components/schemas/Timestamp", "description": "Creation time." },
+          "updatedAt": { "$ref": "#/components/schemas/Timestamp", "description": "Update time." }
+        },
+        "description": "Base page model with required fields, nested metadata, nullable references, and Markdown content annotations."
+      },
+      "Page": {
+        "allOf": [
+          { "$ref": "#/components/schemas/PageBase" },
+          { "type": "object", "properties": { "links": { "type": "array", "items": { "type": "object", "required": ["href", "label"], "properties": { "href": { "type": "string", "format": "uri-reference", "description": "Related page link." }, "label": { "type": "string", "description": "Readable link label." } } }, "description": "Inline object array with required nested fields and URI-reference values." } } }
+        ],
+        "description": "Clarify resolves allOf composition so shared and extended fields can be shown together."
+      },
+      "PageCreate": {
+        "type": "object",
+        "required": ["title", "slug", "content"],
+        "properties": {
+          "title": { "type": "string", "description": "Title for a new page." },
+          "slug": { "type": "string", "description": "Slug for a new page." },
+          "content": { "type": "string", "description": "Submitted MDX or Markdown source." },
+          "status": { "$ref": "#/components/schemas/PageStatus", "description": "Optional reusable enum." },
+          "frontmatter": { "type": "object", "additionalProperties": true, "description": "Flexible frontmatter object accepted by create requests." }
+        },
+        "additionalProperties": false,
+        "description": "Request-only object schema with required fields and additionalProperties constraints."
+      },
+      "PageList": {
+        "type": "object",
+        "required": ["data", "pagination"],
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Page" }, "description": "Array of referenced Page objects." },
+          "pagination": { "$ref": "#/components/schemas/Pagination" }
+        },
+        "description": "Clarify renders arrays of referenced objects and nested pagination models."
+      },
+      "Pagination": {
+        "type": "object",
+        "required": ["limit", "hasMore"],
+        "properties": {
+          "cursor": { "type": "string", "description": "Opaque pagination cursor." },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20, "description": "Integer with minimum, maximum, and default." },
+          "hasMore": { "type": "boolean", "description": "Whether another page is available." }
+        },
+        "description": "Pagination model with integer ranges, defaults, and booleans."
+      },
+      "AssetMetadata": {
+        "type": "object",
+        "properties": {
+          "alt": { "type": "string", "description": "Image alternative text." },
+          "caption": { "type": "string", "description": "Optional asset caption." },
+          "tags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true, "description": "Unique string array for array constraint rendering." }
+        },
+        "description": "Metadata used by multipart upload examples."
+      },
+      "Asset": {
+        "type": "object",
+        "required": ["id", "url", "contentType", "size"],
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Identifier", "description": "Reusable asset identifier." },
+          "url": { "type": "string", "format": "uri", "description": "Absolute uploaded asset URI." },
+          "contentType": { "type": "string", "description": "Returned MIME type." },
+          "size": { "type": "integer", "minimum": 0, "description": "Non-negative byte size." },
+          "metadata": { "$ref": "#/components/schemas/AssetMetadata", "description": "Nested metadata reused from multipart requests." }
+        },
+        "description": "Asset model covering URI strings, non-negative integers, and nested metadata."
+      },
+      "SearchFilters": { "type": "object", "properties": { "tags": { "type": "array", "items": { "type": "string" }, "description": "Array filters encoded in a JSON query parameter." }, "updatedAfter": { "type": "string", "format": "date-time", "description": "date-time filter used inside query content." } }, "description": "Object query parameter encoded as JSON content." },
+      "SearchResult": { "type": "object", "required": ["id", "title", "score"], "properties": { "id": { "$ref": "#/components/schemas/Identifier", "description": "Matched page identifier." }, "title": { "type": "string", "description": "Matched page title." }, "score": { "type": "number", "minimum": 0, "maximum": 1, "description": "Score between 0 and 1 for numeric boundary rendering." }, "highlight": { "type": "string", "description": "Optional highlighted snippet." } }, "description": "Search result object used in array responses." },
+      "ExportRequest": { "type": "object", "required": ["format", "scope"], "properties": { "format": { "type": "string", "enum": ["html", "pdf", "markdown"], "description": "Output format enum." }, "scope": { "type": "string", "enum": ["site", "published", "selected"], "description": "Export scope enum." }, "includeDrafts": { "type": "boolean", "default": false, "description": "Boolean with default value." }, "callbackUrl": { "type": "string", "format": "uri", "description": "Optional callback URL for operation callbacks." } }, "description": "Enum-driven export task request with defaults and optional callback URL." },
+      "ExportJob": { "type": "object", "required": ["id", "status", "downloadUrl"], "properties": { "id": { "$ref": "#/components/schemas/Identifier", "description": "Reusable job identifier." }, "status": { "type": "string", "enum": ["queued", "processing", "ready", "failed"], "description": "Async job lifecycle enum." }, "downloadUrl": { "oneOf": [{ "type": "string", "format": "uri" }, { "type": "null" }], "description": "Nullable URI available when export completes." } }, "description": "Async job model with nullable fields and status enums." },
+      "Problem": { "type": "object", "required": ["type", "title", "status"], "properties": { "type": { "type": "string", "format": "uri-reference", "description": "Problem type URI-reference." }, "title": { "type": "string", "description": "Short readable error title." }, "status": { "type": "integer", "description": "HTTP status code." }, "detail": { "type": "string", "description": "Optional detailed error message." }, "instance": { "type": "string", "format": "uri-reference", "description": "Optional URI-reference for this error instance." }, "errors": { "type": "array", "items": { "type": "object", "required": ["path", "message"], "properties": { "path": { "type": "string", "description": "JSON Pointer or dotted invalid field path." }, "message": { "type": "string", "description": "Validation message for the field path." } } }, "description": "Nested validation errors with required child properties." } }, "description": "RFC 7807-style problem details with nested validation errors." },
+      "EventBase": { "type": "object", "required": ["id", "type", "createdAt"], "properties": { "id": { "$ref": "#/components/schemas/Identifier", "description": "Reusable event identifier." }, "type": { "type": "string", "description": "Event type used by the discriminator." }, "createdAt": { "$ref": "#/components/schemas/Timestamp", "description": "Event emission time." } }, "description": "Event envelope reused by callbacks and webhooks." },
+      "PagePublishedEvent": { "allOf": [{ "$ref": "#/components/schemas/EventBase" }, { "type": "object", "required": ["type", "data"], "properties": { "type": { "const": "page.published", "description": "Const event type used by discriminator mapping." }, "data": { "$ref": "#/components/schemas/Page", "description": "Event payload rendered from a referenced schema." } } }], "description": "Event variant combining allOf and const for discriminator support." },
+      "PageDeletedEvent": { "allOf": [{ "$ref": "#/components/schemas/EventBase" }, { "type": "object", "required": ["type", "data"], "properties": { "type": { "const": "page.deleted", "description": "Const event type used by discriminator mapping." }, "data": { "type": "object", "required": ["id"], "properties": { "id": { "$ref": "#/components/schemas/Identifier" } }, "description": "Compact event payload rendered from an inline schema." } } }], "description": "Second discriminator branch using a compact data payload." }
+    },
+    "responses": {
+      "BadRequest": { "description": "Invalid request.", "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Problem" }, "examples": { "invalidCursor": { "summary": "Invalid cursor", "value": { "type": "https://clarify.local/problems/invalid-cursor", "title": "Invalid cursor", "status": 400, "detail": "The cursor is malformed." } } } } } },
+      "Unauthorized": { "description": "Missing or invalid credentials." },
+      "NotFound": { "description": "Resource not found.", "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Problem" } } } },
+      "UnexpectedError": { "description": "Unexpected error.", "content": { "application/problem+json": { "schema": { "$ref": "#/components/schemas/Problem" } } } }
+    },
+    "parameters": {
+      "TraceId": { "name": "X-Trace-Id", "in": "header", "description": "Optional trace ID propagated through the request chain.", "required": false, "schema": { "type": "string" } },
+      "PageId": { "name": "pageId", "in": "path", "required": true, "description": "Page identifier.", "schema": { "$ref": "#/components/schemas/Identifier" } },
+      "PageCursor": { "name": "cursor", "in": "query", "required": false, "schema": { "type": "string" } },
+      "PageLimit": { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 } }
+    },
+    "examples": {
+      "PageExample": { "summary": "Published page", "value": { "id": "pg_123", "title": "Getting Started", "slug": "getting-started", "status": "published", "content": "# Getting Started\n\nInstall Clarify.", "frontmatter": { "description": "Install Clarify in minutes" }, "parentId": null, "createdAt": "2026-06-17T12:00:00Z", "updatedAt": "2026-06-17T12:00:00Z", "links": [{ "href": "/getting-started", "label": "View page" }] } },
+      "PageListExample": { "summary": "Paginated page list", "value": { "data": [{ "id": "pg_123", "title": "Getting Started", "slug": "getting-started", "status": "published", "content": "# Getting Started", "frontmatter": {}, "parentId": null, "createdAt": "2026-06-17T12:00:00Z", "updatedAt": "2026-06-17T12:00:00Z", "links": [] }], "pagination": { "limit": 20, "hasMore": false } } },
+      "PageCreateExample": { "summary": "Create guide page", "value": { "title": "Getting Started", "slug": "getting-started", "content": "# Getting Started\n\nInstall Clarify.", "status": "draft", "frontmatter": { "description": "Install Clarify in minutes" } } }
+    },
+    "requestBodies": {
+      "PageUpsert": { "required": true, "description": "Full page replacement payload.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PageCreate" } } } }
+    },
+    "headers": {
+      "RequestId": { "description": "Request identifier.", "schema": { "type": "string" } },
+      "RateLimitRemaining": { "description": "Remaining request count in the current window.", "schema": { "type": "integer", "minimum": 0 } }
+    },
+    "securitySchemes": {
+      "BearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" },
+      "ApiKeyAuth": { "type": "apiKey", "in": "header", "name": "X-API-Key" },
+      "OAuth2": { "type": "oauth2", "flows": { "authorizationCode": { "authorizationUrl": "https://auth.clarify.local/oauth/authorize", "tokenUrl": "https://auth.clarify.local/oauth/token", "scopes": { "pages:read": "Read pages", "pages:write": "Create and update pages" } } } },
+      "OpenIdConnect": { "type": "openIdConnect", "openIdConnectUrl": "https://auth.clarify.local/.well-known/openid-configuration" }
+    },
+    "links": {
+      "GetPageById": { "operationId": "getPage", "parameters": { "pageId": "$response.body#/data/0/id" }, "description": "Jump to the first page in the collection." }
+    },
+    "callbacks": {
+      "PagePublished": { "{$request.body#/callbackUrl}": { "post": { "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PagePublishedEvent" } } } }, "responses": { "204": { "description": "Callback accepted." } } } } }
+    },
+    "pathItems": {
+      "Health": { "get": { "summary": "Reusable health check", "responses": { "200": { "description": "OK" } } } }
+    }
+  }
+}

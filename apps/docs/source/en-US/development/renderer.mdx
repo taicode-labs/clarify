@@ -1,0 +1,22 @@
+# Renderer Architecture
+
+The renderer package provides the shared React UI used by Clarify sites.
+
+---
+
+## Responsibilities
+
+- Render the application shell, navbar, tabs, sidebars, and footer.
+- Render MDX content with built-in components.
+- Render OpenAPI Reference pages and embedded operations.
+- Provide client and server entry points for static generation and hydration.
+- Keep documentation UI consistent across apps.
+
+---
+
+## Design goals
+
+- Keep renderer components reusable and tree-shakeable.
+- Prefer explicit TypeScript types.
+- Keep styling close to components and theme tokens.
+- Avoid side-effectful imports in shared packages.

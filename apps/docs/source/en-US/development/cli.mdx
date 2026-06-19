@@ -1,0 +1,24 @@
+# CLI and Engine
+
+The CLI is the user-facing entry point for Clarify projects. It starts development servers, runs production builds, and initializes projects.
+
+---
+
+## Responsibilities
+
+- Load `clarify.ts`, `clarify.js`, or `clarify.json`.
+- Resolve project, content, public, and output directories.
+- Discover MDX pages and OpenAPI specs.
+- Validate and dereference OpenAPI documents.
+- Prepare route metadata for the renderer.
+- Orchestrate Vite development and production builds.
+
+---
+
+## Commands
+
+| Command | Purpose |
+|---------|---------|
+| `clarify dev` | Start local development. |
+| `clarify build` | Generate a static production site. |
+| `clarify init` | Scaffold starter project files. |

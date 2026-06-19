@@ -1,0 +1,71 @@
+# Clarify
+
+An open-source documentation publishing tool built for MDX and OpenAPI.
+
+Clarify lets you write docs with familiar Markdown plus React components, then generate SEO-friendly static sites automatically.
+
+---
+
+## Where to start
+
+| Goal | Recommended reading |
+|------|---------------------|
+| Try Clarify for the first time | [Get Started](/getting-started) |
+| Understand the core capabilities | [Feature Overview](/features) |
+| Write MDX, organize files, and use components | [Writing Docs](/guides/writing-content) |
+| Configure navigation, theme, i18n, and routes | [Configure Site](/guides/navigation) |
+| Generate API Reference pages and embed endpoints | [API Documentation](/features/openapi) |
+| Build static output, deploy it, and publish `llms.txt` | [Deployment](/guides/deployment) |
+
+---
+
+## Core features
+
+| Feature | Description |
+|---------|-------------|
+| **MDX support** | Use React components directly in Markdown, with syntax highlighting and custom components. |
+| **File-based routing** | Generate routes from the content directory without manual route configuration. |
+| **Static generation (SSG)** | Build standalone HTML for every page for fast first loads and search-friendly output. |
+| **Built-in styling system** | Use a consistent documentation UI from the Clarify renderer with basic brand color configuration. |
+| **OpenAPI integration** | Generate API Reference pages from the same specification and embed individual operations in MDX guides. |
+
+---
+
+## Quick preview
+
+A typical Clarify docs site only needs the CLI and content files:
+
+```bash
+pnpm add -D @clarify-labs/cli
+pnpm exec clarify init
+pnpm dev
+```
+
+**clarify.json**
+
+```json
+{
+  "title": "My Docs",
+  "description": "A documentation site powered by Clarify"
+}
+```
+
+Then write `.md` / `.mdx` files in `source` or add `.openapi.json` specifications. Clarify handles routing, rendering, the development server, and static builds.
+
+---
+
+## Who is it for?
+
+- **Open-source maintainers** — keep docs and code in the same repository.
+- **Technical writers** — write primarily in Markdown while adding interactive React components when needed.
+- **Team knowledge bases** — ship a consistent internal documentation site with navigation, search, and brand color.
+
+---
+
+## Stack
+
+- React 19
+- Tailwind CSS 4 (internal styling pipeline)
+- Vite 8 (internal CLI build tool)
+- MDX 3
+- TypeScript 5 in strict mode

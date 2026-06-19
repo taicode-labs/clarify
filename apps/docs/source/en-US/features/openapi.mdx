@@ -1,0 +1,165 @@
+# API Documentation
+
+This page explains Clarify's OpenAPI support: generating full API Reference pages, embedding individual operations in MDX guides, organizing product-level API docs, and exposing raw specs to AI tools.
+
+Clarify treats OpenAPI specs as first-class content sources. The spec contains interface facts; MDX explains business workflows.
+
+---
+
+## What can you build with it?
+
+| Goal | Recommended capability |
+|------|------------------------|
+| Publish a full endpoint list | Generate API Reference pages from `.openapi.json` / `.openapi.yaml` automatically. |
+| Show one endpoint inside a guide | Use `OpenApiEndpoint`. |
+| Add context around a full reference page | Use `OpenApiPage`. |
+| Let AI / LLM tools read the raw spec | Publish raw `.openapi.*` files and `llms.txt` in the build output. |
+| Maintain API docs in localized sites | Put specs under locale folders, for example `source/en-US/api.openapi.json`. |
+
+---
+
+## Minimal example
+
+Put an OpenAPI file in the content directory:
+
+```txt
+source/
+├── index.mdx
+└── api.openapi.json
+```
+
+Clarify generates:
+
+| Output | Description |
+|--------|-------------|
+| `/api` | Full API Reference page. |
+| `/api.openapi.json` | Raw OpenAPI spec output. |
+| OpenAPI links in `llms.txt` | Easier discovery for AI tools. |
+
+If you maintain the sidebar explicitly, add an `openapi` entry to `tabs`:
+
+```ts
+{
+  openapi: 'api.openapi.json',
+  title: 'API Reference',
+  icon: 'FileJson2',
+}
+```
+
+---
+
+## Spec formats and routes
+
+Clarify supports OpenAPI 3.0 / 3.1 and these extensions:
+
+| Format | Example | Route |
+|--------|---------|-------|
+| JSON | `api.openapi.json` | `/api` |
+| YAML | `billing.openapi.yaml` | `/billing` |
+| YAML shorthand | `admin.openapi.yml` | `/admin` |
+
+With i18n enabled, OpenAPI files follow locale directory rules:
+
+```txt
+source/
+└── en-US/
+    └── api.openapi.json  → /api
+```
+
+During builds, Clarify parses and dereferences specs with `@apidevtools/swagger-parser`. Invalid specs fail production builds so outdated or broken API docs are not published.
+
+---
+
+## Embed operations in guides
+
+Product-level API docs should not be reference-only. Write guides around real tasks and embed the relevant operation near each step.
+
+```mdx
+# Authentication
+
+Use an access token for protected endpoints. When the token expires, create a new session.
+
+<OpenApiEndpoint specPath="/api" path="/sessions" method="post" />
+```
+
+`OpenApiEndpoint` props:
+
+| Prop | Description |
+|------|-------------|
+| `specPath` | OpenAPI route without the `.openapi.json` suffix, for example `/api`. |
+| `path` | A path key from OpenAPI `paths`; it must match exactly. |
+| `method` | HTTP method, usually lowercase, such as `get`, `post`, or `patch`. |
+
+To insert the full reference in MDX, use:
+
+```mdx
+<OpenApiPage specPath="/api" />
+```
+
+---
+
+## Recommended API docs structure
+
+```txt
+source/
+├── guides/
+│   ├── authentication.mdx
+│   ├── pagination.mdx
+│   └── webhooks.mdx
+├── api.openapi.json
+└── index.mdx
+```
+
+Responsibilities:
+
+| Role | Owns |
+|------|------|
+| Backend / API platform | OpenAPI spec, schemas, status codes, authentication. |
+| Technical writing | Guide structure, workflows, and error explanations. |
+| Frontend / SDK | Code samples, SDK behavior, and integration scenarios. |
+| Product / developer experience | Information architecture, naming, and reader task paths. |
+
+Before publishing:
+
+- The OpenAPI file can be parsed successfully during build.
+- The sidebar has a clear API Reference entry.
+- Key business workflows have guides, not only endpoint lists.
+- Request and response examples do not leak test data.
+- Error responses are clearly documented.
+- `llms.txt` lists raw OpenAPI spec links.
+
+---
+
+## Content quality tips
+
+The quality of API Reference pages depends mostly on the OpenAPI spec itself. At minimum, fill in:
+
+- `info.title`, `info.version`, and `info.description`
+- `servers`
+- `tags`
+- `summary` and `description` for every operation
+- Parameter `description`, `schema`, `example`, or `examples`
+- Request and response media types
+- Main response codes and error responses
+- Reusable `components.schemas`
+- Authentication schemes in `components.securitySchemes`
+
+---
+
+## FAQ
+
+### Why does the API page not appear in the sidebar?
+
+If you configure `tabs[].pages` explicitly, Clarify does not automatically insert every file into the sidebar. Add an `openapi` entry manually.
+
+### `OpenAPI spec not found`?
+
+Check that:
+
+- The OpenAPI file is under `source`.
+- The filename uses `.openapi.json`, `.openapi.yaml`, or `.openapi.yml`.
+- `specPath` is the route, not the filename.
+
+### `Endpoint not found`?
+
+Check that `path` exactly matches an OpenAPI `paths` key, path parameters use `{id}` syntax, and the `method` exists under that path.

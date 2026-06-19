@@ -1,0 +1,26 @@
+# Contributing
+
+Thanks for contributing to Clarify.
+
+---
+
+## Development conventions
+
+- Use `pnpm` for all package operations.
+- Use `source/` as the source directory name.
+- Write TypeScript with strict types.
+- Keep packages tree-shakeable.
+- Prefer small, focused changes.
+- Write commit messages in English.
+
+---
+
+## Before submitting changes
+
+Run the relevant build or checks for the package you changed. For documentation changes, validate with:
+
+```bash
+pnpm --filter @clarify-labs/docs build
+```
+
+If you change shared packages, build the affected package before validating apps that depend on it.

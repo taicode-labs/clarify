@@ -1,0 +1,35 @@
+# Built-in Components
+
+Clarify exposes documentation-oriented components that can be used from MDX.
+
+---
+
+## OpenAPI components
+
+### `OpenApiEndpoint`
+
+Embed a single operation from an OpenAPI spec:
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+```
+
+| Prop | Description |
+|------|-------------|
+| `specPath` | Route of the OpenAPI reference, such as `/api`. |
+| `path` | Exact OpenAPI path key, such as `/pages/{pageId}`. |
+| `method` | HTTP method, usually lowercase. |
+
+### `OpenApiPage`
+
+Embed a complete OpenAPI Reference page in MDX:
+
+```mdx
+<OpenApiPage specPath="/api" />
+```
+
+---
+
+## Custom MDX components
+
+Applications can provide additional MDX components through the renderer integration. Keep public components stable and document their props for authors.

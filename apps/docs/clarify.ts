@@ -168,14 +168,6 @@ export default defineConfig({
               icon: 'Puzzle',
             },
             {
-              openapi: 'api.openapi.json',
-              title: {
-                'zh-CN': 'API Reference',
-                'en-US': 'API Reference',
-              },
-              icon: 'FileJson2',
-            },
-            {
               page: 'roadmap',
               title: {
                 'zh-CN': '产品路线图',
@@ -190,6 +182,40 @@ export default defineConfig({
                 'en-US': 'Changelog',
               },
               icon: 'History',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      tab: {
+        'zh-CN': 'OpenAPI',
+        'en-US': 'OpenAPI',
+      },
+      icon: 'FileJson2',
+      pages: [
+        {
+          group: {
+            'zh-CN': '完整示例',
+            'en-US': 'Complete Example',
+          },
+          icon: 'FileJson2',
+          pages: [
+            {
+              openapi: 'api.openapi.json',
+              title: {
+                'zh-CN': 'Clarify Complete OpenAPI Example',
+                'en-US': 'Clarify Complete OpenAPI Example',
+              },
+              icon: 'FileJson2',
+            },
+            {
+              page: 'openapi/embedding',
+              title: {
+                'zh-CN': '嵌入使用说明',
+                'en-US': 'Embedding OpenAPI in MDX',
+              },
+              icon: 'CodeXml',
             },
           ],
         },

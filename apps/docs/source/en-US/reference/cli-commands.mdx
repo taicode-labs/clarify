@@ -1,0 +1,39 @@
+# CLI Reference
+
+The Clarify CLI provides commands for local development, production builds, and project setup.
+
+---
+
+## `clarify dev`
+
+Start the local development server.
+
+```bash
+pnpm exec clarify dev
+```
+
+Common options include selecting the project root, content directory, output directory, and development port.
+
+---
+
+## `clarify build`
+
+Build a production static site.
+
+```bash
+pnpm exec clarify build --output output
+```
+
+The build validates content and OpenAPI specs, renders pages, writes static assets, copies public files, and emits `llms.txt`.
+
+---
+
+## `clarify init`
+
+Create the initial project files for a Clarify documentation site.
+
+```bash
+pnpm exec clarify init
+```
+
+Use this command when starting a new docs project from scratch.

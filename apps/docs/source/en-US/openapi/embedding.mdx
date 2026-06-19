@@ -1,0 +1,127 @@
+# Embedding OpenAPI in MDX
+
+Clarify can render `.openapi.json` / `.openapi.yaml` files as full API Reference pages, and it can also embed a single operation or a complete reference inside MDX. This keeps interface facts and workflow explanations on the same page.
+
+---
+
+## When to use it
+
+| Scenario | Recommended component |
+|----------|-----------------------|
+| Explain which endpoint is called in a tutorial step | `OpenApiEndpoint` |
+| Show full parameters and responses for one core endpoint | `OpenApiEndpoint` |
+| Add context before rendering a full API Reference in MDX | `OpenApiPage` |
+| Let readers see workflow prose and machine-readable specs together | MDX prose + OpenAPI embed + raw spec link |
+
+---
+
+## Prepare an OpenAPI file
+
+Place the spec under the current locale directory:
+
+```txt
+source/
+└── en-US/
+    ├── api.openapi.json
+    └── openapi/
+        └── embedding.mdx
+```
+
+The filename determines the reference route:
+
+| File | Reference route | Raw spec output |
+|------|-----------------|-----------------|
+| `api.openapi.json` | `/api` | `/api.openapi.json` |
+| `billing.openapi.yaml` | `/billing` | `/billing.openapi.yaml` |
+| `admin.openapi.yml` | `/admin` | `/admin.openapi.yml` |
+
+In localized sites, put the English spec in `source/en-US/api.openapi.json` and the Chinese spec in `source/zh-CN/api.openapi.json`. Clarify reads the file for the active locale first, then follows the configured i18n fallback behavior when content is missing.
+
+---
+
+## Embed one operation
+
+Use `OpenApiEndpoint`:
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+```
+
+Props:
+
+| Prop | Required | Description |
+|------|----------|-------------|
+| `specPath` | Yes | OpenAPI Reference route without the `.openapi.json` suffix, for example `/api`. |
+| `path` | Yes | Exact key from OpenAPI `paths`, for example `/pages/{pageId}`. |
+| `method` | Yes | HTTP method, usually lowercase, such as `get`, `post`, or `patch`. |
+
+Rendered result:
+
+<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+
+---
+
+## Embed a complex request operation
+
+The same component works for operations with multiple request bodies, examples, response statuses, or callbacks. `POST /exports` covers JSON / YAML request bodies, multiple examples, JSON / text responses, and error responses:
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/exports" method="post" />
+```
+
+Rendered result:
+
+<OpenApiEndpoint specPath="/api" path="/exports" method="post" />
+
+---
+
+## Embed a full reference
+
+Use `OpenApiPage` when you want to write business context first and then render the full API Reference inside MDX:
+
+```mdx
+# API Reference
+
+Below is the complete endpoint list for this service.
+
+<OpenApiPage specPath="/api" />
+```
+
+This is useful for:
+
+- Adding authentication, rate limit, or error format notes before the reference.
+- Combining product explanations with the full interface list.
+- Temporarily placing a complete reference inside a topical document.
+
+---
+
+## Troubleshooting
+
+### `OpenAPI spec not found`
+
+Check that:
+
+- The OpenAPI file is under `source` or the current locale directory.
+- The filename uses `.openapi.json`, `.openapi.yaml`, or `.openapi.yml`.
+- `specPath` is a route such as `/api`, not a filename such as `api.openapi.json`.
+
+### `Endpoint not found`
+
+Check that:
+
+- `path` exactly matches an OpenAPI `paths` key.
+- Path parameters use OpenAPI syntax such as `{pageId}`, not `:pageId`.
+- `method` exists and matches the component convention.
+
+### The page fails to build
+
+Production builds parse and dereference the OpenAPI spec. Invalid specs fail the build. First verify JSON / YAML syntax, then check that every `$ref` can be resolved.
+
+---
+
+## Recommended writing pattern
+
+- Keep the real interface structure in OpenAPI; do not hand-write parameter tables in MDX.
+- Use MDX for workflows, authentication prerequisites, common errors, and best practices.
+- Place `OpenApiEndpoint` next to the workflow step where the endpoint is used.
+- Reuse the same spec for the full reference, embedded operations, raw spec output, and `llms.txt`.

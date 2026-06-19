@@ -1,0 +1,158 @@
+# Get Started
+
+This guide shows the shortest path through Clarify: install the CLI, create content, start a local site, and build static output.
+
+Clarify = MDX content + `clarify.ts` config + OpenAPI specs + static site generation. You mainly maintain `source/` and the config file; Clarify handles the development server, routing, rendering, and builds.
+
+---
+
+## 1. Prepare the environment
+
+Required:
+
+- Node.js ≥ 20
+- pnpm ≥ 9
+
+Create a project and install the CLI:
+
+```bash
+mkdir my-docs
+cd my-docs
+pnpm init
+pnpm add -D @clarify-labs/cli
+```
+
+Add scripts to `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "clarify dev",
+    "build": "clarify build --output output"
+  }
+}
+```
+
+---
+
+## 2. Add site config
+
+`clarify.ts` is recommended because it provides type hints and leaves room for plugins.
+
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  title: 'My Docs',
+  description: 'A documentation site built with Clarify',
+  navbar: {
+    links: [
+      { label: 'Docs', href: '/getting-started' },
+      { label: 'GitHub', href: 'https://github.com/example/project', external: true },
+    ],
+  },
+})
+```
+
+Small projects can also use `clarify.json`:
+
+```json
+{
+  "title": "My Docs",
+  "description": "A documentation site built with Clarify"
+}
+```
+
+See [Configuration Reference](/reference/clarify-config) for the complete field list.
+
+---
+
+## 3. Write the first pages
+
+Clarify reads `source/` by default. Adding an `.mdx` file adds a page.
+
+```txt
+my-docs/
+├── clarify.ts
+├── package.json
+└── source/
+    ├── index.mdx
+    └── getting-started.mdx
+```
+
+`source/index.mdx`:
+
+```mdx
+---
+title: Home
+description: My product documentation home page
+---
+
+# Welcome
+
+This is the docs home page.
+```
+
+`source/getting-started.mdx`:
+
+```mdx
+---
+title: Get Started
+---
+
+# Get Started
+
+This is the first guide.
+```
+
+Routes are generated automatically:
+
+| File | Route |
+|------|-------|
+| `source/index.mdx` | `/` |
+| `source/getting-started.mdx` | `/getting-started` |
+| `source/guide/index.mdx` | `/guide` |
+| `source/guide/auth.mdx` | `/guide/auth` |
+
+---
+
+## 4. Start the development server
+
+```bash
+pnpm dev
+```
+
+Open the local URL printed in the terminal. The development server regenerates pages when MDX, config, or OpenAPI files change.
+
+---
+
+## 5. Build for production
+
+```bash
+pnpm build
+```
+
+By default, output is written to `output/`:
+
+```txt
+output/
+├── index.html
+├── getting-started/
+│   └── index.html
+├── assets/
+└── llms.txt
+```
+
+These are static files and can be deployed to Vercel, Netlify, GitHub Pages, S3, Nginx, or any static hosting platform.
+
+---
+
+## Next steps
+
+| Goal | Read |
+|------|------|
+| Write well-structured docs | [Writing Docs](/guides/writing-content) |
+| Configure navigation, theme, and i18n | [Configure Site](/guides/navigation) |
+| Generate API Reference pages or embed endpoints | [API Documentation](/features/openapi) |
+| Ship to production and expose raw content for AI tools | [Deployment](/guides/deployment) |
+| Migrate from Mintlify | [Migrate from Mintlify](/guides/migrate-from-mintlify) |

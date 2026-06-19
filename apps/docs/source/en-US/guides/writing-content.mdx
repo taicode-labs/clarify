@@ -1,0 +1,58 @@
+# Writing Docs
+
+Clarify uses the `source/` directory as the content root. Write Markdown or MDX files there, and Clarify turns them into routes automatically.
+
+---
+
+## File routes
+
+| File | Route |
+|------|-------|
+| `source/index.mdx` | `/` |
+| `source/getting-started.mdx` | `/getting-started` |
+| `source/guides/index.mdx` | `/guides` |
+| `source/guides/writing-content.mdx` | `/guides/writing-content` |
+
+For localized sites, place files under locale folders:
+
+```txt
+source/
+├── zh-CN/
+│   └── index.mdx
+└── en-US/
+    └── index.mdx
+```
+
+---
+
+## MDX basics
+
+Use regular Markdown for prose and MDX for components:
+
+```mdx
+# Guide title
+
+Use Markdown for the main content.
+
+<MyComponent name="Clarify" />
+```
+
+Clarify also supports code blocks, tables, frontmatter, and renderer-provided documentation components.
+
+---
+
+## Recommended structure
+
+```txt
+source/
+├── index.mdx
+├── getting-started.mdx
+├── guides/
+│   ├── index.mdx
+│   └── writing-content.mdx
+├── reference/
+│   └── clarify-config.mdx
+└── api.openapi.json
+```
+
+Keep task-oriented guides in `guides/`, stable API or configuration details in `reference/`, and OpenAPI specs beside the documentation they support.

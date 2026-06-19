@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Clarify Complete OpenAPI Example",
-    "summary": "A comprehensive OpenAPI fixture for renderer coverage.",
-    "description": "This fixture intentionally exercises most OpenAPI structures Clarify needs to ingest and render: references, parameters, request bodies, responses, examples, callbacks, webhooks, security schemes, schema composition, nullable fields, discriminators and multiple content types.",
+    "summary": "用于覆盖渲染能力的完整 OpenAPI 示例。",
+    "description": "这是一个精简但覆盖面完整的 OpenAPI 示例：在控制接口数量的同时，用于展示 Clarify 对完整 Reference 页、标签、服务器变量、路径/查询/Header 参数、JSON 与 YAML 请求体、多种响应媒体类型、示例、链接、回调、Webhooks、安全方案、Schema 组合、可空字段、Discriminator 以及常见 JSON Schema 校验关键字的渲染支持。",
     "termsOfService": "https://clarify.local/terms",
     "contact": {
       "name": "Clarify Maintainers",
@@ -21,44 +21,47 @@
   "servers": [
     {
       "url": "https://api.clarify.local/{version}",
-      "description": "Production",
+      "description": "生产环境",
       "variables": {
         "version": {
           "default": "v1",
-          "enum": ["v1", "v2"],
-          "description": "API version"
+          "enum": [
+            "v1",
+            "v2"
+          ],
+          "description": "API 版本"
         }
       }
     },
     {
       "url": "https://staging-api.clarify.local/v1",
-      "description": "Staging"
+      "description": "预发环境"
     }
   ],
   "externalDocs": {
-    "description": "Clarify documentation",
+    "description": "Clarify 文档",
     "url": "https://clarify.local/docs"
   },
   "tags": [
     {
       "name": "Pages",
-      "description": "Document page management",
+      "description": "文档页面管理",
       "externalDocs": {
-        "description": "Page guide",
+        "description": "页面指南",
         "url": "https://clarify.local/docs/pages"
       }
     },
     {
       "name": "Assets",
-      "description": "Asset upload and metadata"
+      "description": "资源上传与元数据"
     },
     {
       "name": "Search",
-      "description": "Search indexes and queries"
+      "description": "搜索索引与查询"
     },
     {
       "name": "System",
-      "description": "Operational endpoints"
+      "description": "运行状态接口"
     }
   ],
   "security": [
@@ -68,18 +71,20 @@
   ],
   "paths": {
     "/pages": {
-      "summary": "Pages collection",
-      "description": "Create and list documentation pages.",
+      "summary": "页面集合",
+      "description": "创建与列出文档页面。",
       "parameters": [
         {
           "$ref": "#/components/parameters/TraceId"
         }
       ],
       "get": {
-        "tags": ["Pages"],
+        "tags": [
+          "Pages"
+        ],
         "operationId": "listPages",
-        "summary": "List pages",
-        "description": "Returns a paginated list of pages with optional filters.",
+        "summary": "列出页面",
+        "description": "返回分页后的页面列表，并支持可选筛选条件。",
         "parameters": [
           {
             "$ref": "#/components/parameters/PageCursor"
@@ -90,13 +95,13 @@
           {
             "name": "status",
             "in": "query",
-            "description": "Filter by publish status.",
+            "description": "按发布状态筛选。",
             "schema": {
               "$ref": "#/components/schemas/PageStatus"
             },
             "examples": {
               "published": {
-                "summary": "Only published pages",
+                "summary": "仅发布页面",
                 "value": "published"
               }
             }
@@ -104,21 +109,25 @@
           {
             "name": "include",
             "in": "query",
-            "description": "Related resources to include.",
+            "description": "需要一并返回的关联资源。",
             "style": "form",
             "explode": false,
             "schema": {
               "type": "array",
               "items": {
                 "type": "string",
-                "enum": ["authors", "assets", "children"]
+                "enum": [
+                  "authors",
+                  "assets",
+                  "children"
+                ]
               }
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "A page collection.",
+            "description": "页面集合。",
             "headers": {
               "X-Request-Id": {
                 "$ref": "#/components/headers/RequestId"
@@ -165,13 +174,15 @@
         ]
       },
       "post": {
-        "tags": ["Pages"],
+        "tags": [
+          "Pages"
+        ],
         "operationId": "createPage",
-        "summary": "Create a page",
-        "description": "Creates a new MDX-backed page.",
+        "summary": "创建页面",
+        "description": "创建一个由 MDX 驱动的新页面。该操作同时展示请求体示例、YAML 替代格式、OAuth 安全配置以及回调渲染。",
         "requestBody": {
           "required": true,
-          "description": "Page payload.",
+          "description": "页面负载。",
           "content": {
             "application/json": {
               "schema": {
@@ -186,18 +197,56 @@
             "application/x-yaml": {
               "schema": {
                 "type": "string",
-                "description": "YAML representation of the page payload."
+                "description": "页面负载的 YAML 表示。"
               },
               "example": "title: Getting Started\nslug: getting-started\ncontent: '# Hello'\n"
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "二进制文件字段；Clarify 会以 string format=binary 的方式渲染上传字段。"
+                  },
+                  "metadata": {
+                    "$ref": "#/components/schemas/AssetMetadata"
+                  }
+                }
+              },
+              "encoding": {
+                "metadata": {
+                  "contentType": "application/json"
+                }
+              },
+              "examples": {
+                "image": {
+                  "summary": "图片上传",
+                  "value": {
+                    "metadata": {
+                      "alt": "Clarify dashboard screenshot",
+                      "caption": "Generated docs preview",
+                      "tags": [
+                        "docs",
+                        "openapi"
+                      ]
+                    }
+                  }
+                }
+              }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Page created.",
+            "description": "页面已创建。",
             "headers": {
               "Location": {
-                "description": "URL of the created page.",
+                "description": "已创建页面的 URL。",
                 "schema": {
                   "type": "string",
                   "format": "uri"
@@ -212,11 +261,21 @@
               }
             }
           },
+          "202": {
+            "description": "使用 multipart/form-data 时，资源上传请求已被接受。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              }
+            }
+          },
           "400": {
             "$ref": "#/components/responses/BadRequest"
           },
           "409": {
-            "description": "Slug already exists.",
+            "description": "Slug 已存在。",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -233,26 +292,14 @@
           "pagePublished": {
             "$ref": "#/components/callbacks/PagePublished"
           }
-        }
-      },
-      "options": {
-        "tags": ["System"],
-        "operationId": "pagesOptions",
-        "summary": "Describe page collection capabilities",
-        "responses": {
-          "204": {
-            "description": "No content.",
-            "headers": {
-              "Allow": {
-                "description": "Allowed methods.",
-                "schema": {
-                  "type": "string",
-                  "example": "GET,POST,OPTIONS"
-                }
-              }
-            }
+        },
+        "security": [
+          {
+            "OAuth2": [
+              "pages:write"
+            ]
           }
-        }
+        ]
       }
     },
     "/pages/{pageId}": {
@@ -262,13 +309,15 @@
         }
       ],
       "get": {
-        "tags": ["Pages"],
+        "tags": [
+          "Pages"
+        ],
         "operationId": "getPage",
-        "summary": "Get a page",
-        "description": "Gets a single page by ID.",
+        "summary": "获取页面",
+        "description": "根据 ID 获取单个页面。",
         "responses": {
           "200": {
-            "description": "Page details.",
+            "description": "页面详情。",
             "content": {
               "application/json": {
                 "schema": {
@@ -289,145 +338,19 @@
             "$ref": "#/components/responses/UnexpectedError"
           }
         }
-      },
-      "put": {
-        "tags": ["Pages"],
-        "operationId": "replacePage",
-        "summary": "Replace a page",
-        "requestBody": {
-          "$ref": "#/components/requestBodies/PageUpsert"
-        },
-        "responses": {
-          "200": {
-            "description": "Updated page.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Page"
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      },
-      "patch": {
-        "tags": ["Pages"],
-        "operationId": "patchPage",
-        "summary": "Patch a page",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/merge-patch+json": {
-              "schema": {
-                "$ref": "#/components/schemas/PagePatch"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Patched page.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Page"
-                }
-              }
-            }
-          },
-          "422": {
-            "$ref": "#/components/responses/ValidationError"
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Pages"],
-        "operationId": "deletePage",
-        "summary": "Delete a page",
-        "responses": {
-          "204": {
-            "description": "Deleted."
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      },
-      "head": {
-        "tags": ["Pages"],
-        "operationId": "headPage",
-        "summary": "Check if a page exists",
-        "responses": {
-          "200": {
-            "description": "Page exists.",
-            "headers": {
-              "ETag": {
-                "description": "Entity tag.",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      }
-    },
-    "/assets": {
-      "post": {
-        "tags": ["Assets"],
-        "operationId": "uploadAsset",
-        "summary": "Upload an asset",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "required": ["file"],
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary"
-                  },
-                  "metadata": {
-                    "$ref": "#/components/schemas/AssetMetadata"
-                  }
-                }
-              },
-              "encoding": {
-                "metadata": {
-                  "contentType": "application/json"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Upload accepted.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Asset"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/search": {
       "get": {
-        "tags": ["Search"],
+        "tags": [
+          "Search"
+        ],
         "operationId": "searchPages",
-        "summary": "Search pages",
+        "summary": "搜索页面",
         "parameters": [
+          {
+            "$ref": "#/components/parameters/TraceId"
+          },
           {
             "name": "q",
             "in": "query",
@@ -452,7 +375,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Search results.",
+            "description": "搜索结果。",
             "content": {
               "application/json": {
                 "schema": {
@@ -471,18 +394,21 @@
             }
           }
         },
-        "deprecated": false
+        "deprecated": false,
+        "description": "覆盖必填查询参数、以 JSON 编码的查询内容、数组响应以及 CSV 替代媒体类型。"
       }
     },
     "/exports": {
       "post": {
-        "tags": ["Pages"],
+        "tags": [
+          "Pages"
+        ],
         "operationId": "createExport",
-        "summary": "Create an export",
-        "description": "Exercises multiple request media types, multiple request examples, multiple response statuses, and multiple response media types.",
+        "summary": "创建导出任务",
+        "description": "在一个接口中覆盖多种请求媒体类型、多个示例、多种响应状态以及多种响应媒体类型。",
         "requestBody": {
           "required": true,
-          "description": "Export job definition in either JSON or YAML.",
+          "description": "导出任务定义，可使用 JSON 或 YAML。",
           "content": {
             "application/json": {
               "schema": {
@@ -490,7 +416,7 @@
               },
               "examples": {
                 "fullSite": {
-                  "summary": "Full site export",
+                  "summary": "整站导出",
                   "value": {
                     "format": "html",
                     "scope": "site",
@@ -499,7 +425,7 @@
                   }
                 },
                 "publishedPdf": {
-                  "summary": "Published PDF export",
+                  "summary": "已发布内容 PDF 导出",
                   "value": {
                     "format": "pdf",
                     "scope": "published",
@@ -511,15 +437,15 @@
             "application/x-yaml": {
               "schema": {
                 "type": "string",
-                "description": "YAML representation of an export job."
+                "description": "导出任务的 YAML 表示。"
               },
               "examples": {
                 "siteYaml": {
-                  "summary": "Full site YAML",
+                  "summary": "整站 YAML",
                   "value": "format: html\nscope: site\nincludeDrafts: false\ncallbackUrl: https://example.com/hooks/export\n"
                 },
                 "draftYaml": {
-                  "summary": "Drafts YAML",
+                  "summary": "草稿 YAML",
                   "value": "format: markdown\nscope: site\nincludeDrafts: true\n"
                 }
               }
@@ -528,7 +454,7 @@
         },
         "responses": {
           "202": {
-            "description": "Export job accepted.",
+            "description": "导出任务已接受。",
             "content": {
               "application/json": {
                 "schema": {
@@ -536,7 +462,7 @@
                 },
                 "examples": {
                   "queued": {
-                    "summary": "Queued job",
+                    "summary": "排队中的任务",
                     "value": {
                       "id": "exp_123",
                       "status": "queued",
@@ -544,7 +470,7 @@
                     }
                   },
                   "processing": {
-                    "summary": "Processing job",
+                    "summary": "处理中的任务",
                     "value": {
                       "id": "exp_456",
                       "status": "processing",
@@ -559,7 +485,7 @@
                 },
                 "examples": {
                   "plain": {
-                    "summary": "Plain job id",
+                    "summary": "纯文本任务 ID",
                     "value": "exp_123"
                   }
                 }
@@ -567,7 +493,7 @@
             }
           },
           "400": {
-            "description": "Invalid export request.",
+            "description": "无效的导出请求。",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -575,7 +501,7 @@
                 },
                 "examples": {
                   "unsupportedFormat": {
-                    "summary": "Unsupported format",
+                    "summary": "不支持的格式",
                     "value": {
                       "type": "https://clarify.local/problems/unsupported-export-format",
                       "title": "Unsupported export format",
@@ -584,7 +510,7 @@
                     }
                   },
                   "missingScope": {
-                    "summary": "Missing scope",
+                    "summary": "缺少导出范围",
                     "value": {
                       "type": "https://clarify.local/problems/missing-export-scope",
                       "title": "Missing export scope",
@@ -601,18 +527,23 @@
     },
     "/system/health": {
       "get": {
-        "tags": ["System"],
+        "tags": [
+          "System"
+        ],
         "operationId": "getHealth",
-        "summary": "Get service health",
+        "summary": "获取服务健康状态",
         "security": [],
         "responses": {
           "200": {
-            "description": "Healthy service.",
+            "description": "服务健康。",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["status", "time"],
+                  "required": [
+                    "status",
+                    "time"
+                  ],
                   "properties": {
                     "status": {
                       "type": "string",
@@ -627,33 +558,19 @@
               }
             }
           }
-        }
-      },
-      "trace": {
-        "tags": ["System"],
-        "operationId": "traceHealth",
-        "summary": "Trace health request",
-        "responses": {
-          "200": {
-            "description": "Trace response.",
-            "content": {
-              "message/http": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
+        },
+        "description": "一个小型公开接口，用于展示操作级安全覆盖、内联对象 Schema 和 const 值。"
       }
     }
   },
   "webhooks": {
     "pageLifecycle": {
       "post": {
-        "tags": ["Pages"],
+        "tags": [
+          "Pages"
+        ],
         "operationId": "pageLifecycleWebhook",
-        "summary": "Page lifecycle webhook",
+        "summary": "页面生命周期 Webhook",
         "requestBody": {
           "required": true,
           "content": {
@@ -680,7 +597,7 @@
         },
         "responses": {
           "204": {
-            "description": "Webhook accepted."
+            "description": "Webhook 已接受。"
           }
         }
       }
@@ -690,41 +607,67 @@
     "schemas": {
       "PageStatus": {
         "type": "string",
-        "enum": ["draft", "published", "archived"]
+        "enum": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "description": "Clarify 会将字符串枚举渲染为受限取值，并在 Schema 表格中展示所有可选枚举值。"
       },
       "Identifier": {
         "type": "string",
         "pattern": "^[a-z]{2,}_[A-Za-z0-9]+$",
-        "examples": ["pg_123"]
+        "examples": [
+          "pg_123"
+        ],
+        "description": "Clarify 支持通过 $ref 复用基础类型 Schema，并展示正则 pattern 与 examples。"
       },
       "Timestamp": {
         "type": "string",
         "format": "date-time",
-        "examples": ["2026-06-17T12:00:00Z"]
+        "examples": [
+          "2026-06-17T12:00:00Z"
+        ],
+        "description": "Clarify 会展示 date-time 等字符串 format，并为标量字段展示 examples。"
       },
       "PageBase": {
         "type": "object",
-        "required": ["id", "title", "slug", "status", "content", "createdAt", "updatedAt"],
+        "required": [
+          "id",
+          "title",
+          "slug",
+          "status",
+          "content",
+          "createdAt",
+          "updatedAt"
+        ],
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Identifier"
+            "$ref": "#/components/schemas/Identifier",
+            "description": "可复用的标识符引用；用于验证对象属性中的 $ref 解析。"
           },
           "title": {
             "type": "string",
             "minLength": 1,
             "maxLength": 120,
-            "examples": ["Getting Started"]
+            "examples": [
+              "Getting Started"
+            ],
+            "description": "必填字符串字段，包含 minLength/maxLength，便于 Clarify 展示校验约束。"
           },
           "slug": {
             "type": "string",
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "description": "带 pattern 约束的路由片段，会作为字符串 Schema 渲染。"
           },
           "status": {
-            "$ref": "#/components/schemas/PageStatus"
+            "$ref": "#/components/schemas/PageStatus",
+            "description": "引用枚举，展示 draft、published、archived 三种状态。"
           },
           "content": {
             "type": "string",
-            "contentMediaType": "text/markdown"
+            "contentMediaType": "text/markdown",
+            "description": "使用 contentMediaType 标注文档内容字符串，用于展示富文本负载。"
           },
           "frontmatter": {
             "type": "object",
@@ -732,9 +675,10 @@
             "examples": [
               {
                 "title": "Getting Started",
-                "description": "Install Clarify in minutes"
+                "description": "几分钟内安装 Clarify"
               }
-            ]
+            ],
+            "description": "自由结构对象，用于展示 additionalProperties 与对象示例。"
           },
           "parentId": {
             "oneOf": [
@@ -744,15 +688,19 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "可空父级关系，使用 oneOf 和 null 表示。"
           },
           "createdAt": {
-            "$ref": "#/components/schemas/Timestamp"
+            "$ref": "#/components/schemas/Timestamp",
+            "description": "引用 date-time 字符串，表示创建时间。"
           },
           "updatedAt": {
-            "$ref": "#/components/schemas/Timestamp"
+            "$ref": "#/components/schemas/Timestamp",
+            "description": "引用 date-time 字符串，表示更新时间。"
           }
-        }
+        },
+        "description": "Clarify 会渲染必填对象字段、嵌套元数据、可空引用以及 Markdown 内容标注。"
       },
       "Page": {
         "allOf": [
@@ -766,56 +714,76 @@
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": ["href", "label"],
+                  "required": [
+                    "href",
+                    "label"
+                  ],
                   "properties": {
                     "href": {
                       "type": "string",
-                      "format": "uri-reference"
+                      "format": "uri-reference",
+                      "description": "每个相关页面链接使用 URI-reference 渲染。"
                     },
                     "label": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "嵌套内联对象中的可读链接标签。"
                     }
                   }
-                }
+                },
+                "description": "内联对象数组，用于验证嵌套数组、必填子字段和 URI-reference 格式。"
               }
             }
           }
-        ]
+        ],
+        "description": "Clarify 会解析 allOf 组合，让共享基础字段与扩展字段可以一起展示。"
       },
       "PageCreate": {
         "type": "object",
-        "required": ["title", "slug", "content"],
+        "required": [
+          "title",
+          "slug",
+          "content"
+        ],
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "创建页面时的标题字段；Clarify 会展示简单请求字符串和必填标记。"
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "description": "创建页面时的 slug 字段，用于在示例中展示类似 pattern 的标识符。"
           },
           "content": {
-            "type": "string"
+            "type": "string",
+            "description": "作者提交的 MDX 或 Markdown 源内容。"
           },
           "status": {
-            "$ref": "#/components/schemas/PageStatus"
+            "$ref": "#/components/schemas/PageStatus",
+            "description": "可选枚举字段，使用可复用 Schema 引用。"
           },
           "frontmatter": {
             "type": "object",
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "创建请求接受的自由结构 frontmatter 对象。"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Clarify 会展示仅用于请求的对象 Schema、必填字段、校验限制和 additionalProperties 约束。"
       },
       "PagePatch": {
         "type": "object",
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "可选 patch 字符串；父级 minProperties 确保至少提供一个字段。"
           },
           "content": {
-            "type": "string"
+            "type": "string",
+            "description": "merge-patch 示例中的可选替换内容。"
           },
           "status": {
-            "$ref": "#/components/schemas/PageStatus"
+            "$ref": "#/components/schemas/PageStatus",
+            "description": "局部更新负载中的可选引用枚举。"
           },
           "parentId": {
             "oneOf": [
@@ -825,84 +793,113 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "patch 请求中的可空关系字段。"
           }
         },
-        "minProperties": 1
+        "minProperties": 1,
+        "description": "Clarify 支持带 minProperties 与可空 oneOf 字段的局部更新负载。"
       },
       "PageList": {
         "type": "object",
-        "required": ["data", "pagination"],
+        "required": [
+          "data",
+          "pagination"
+        ],
         "properties": {
           "data": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Page"
-            }
+            },
+            "description": "引用 Page 对象的数组；用于展示 items 为 $ref Schema 的数组。"
           },
           "pagination": {
             "$ref": "#/components/schemas/Pagination"
           }
-        }
+        },
+        "description": "Clarify 会渲染引用对象数组以及嵌套分页对象。"
       },
       "Pagination": {
         "type": "object",
-        "required": ["limit", "hasMore"],
+        "required": [
+          "limit",
+          "hasMore"
+        ],
         "properties": {
           "cursor": {
-            "type": "string"
+            "type": "string",
+            "description": "不透明分页游标；可选字段不会显示必填标记。"
           },
           "limit": {
             "type": "integer",
             "minimum": 1,
             "maximum": 100,
-            "default": 20
+            "default": 20,
+            "description": "包含 minimum、maximum 和 default 的整数。"
           },
           "hasMore": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "布尔标记，用于表示是否还有下一页。"
           }
-        }
+        },
+        "description": "Clarify 会在分页模型中展示整数范围、默认值和布尔值。"
       },
       "AssetMetadata": {
         "type": "object",
         "properties": {
           "alt": {
-            "type": "string"
+            "type": "string",
+            "description": "上传元数据示例中的图片替代文本。"
           },
           "caption": {
-            "type": "string"
+            "type": "string",
+            "description": "用于资源展示的可选说明文字。"
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "uniqueItems": true
+            "uniqueItems": true,
+            "description": "唯一字符串数组，用于验证数组约束。"
           }
-        }
+        },
+        "description": "Clarify 覆盖数组、uniqueItems 以及 multipart 示例中的自由结构元数据。"
       },
       "Asset": {
         "type": "object",
-        "required": ["id", "url", "contentType", "size"],
+        "required": [
+          "id",
+          "url",
+          "contentType",
+          "size"
+        ],
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Identifier"
+            "$ref": "#/components/schemas/Identifier",
+            "description": "可复用资源标识符。"
           },
           "url": {
             "type": "string",
-            "format": "uri"
+            "format": "uri",
+            "description": "已上传资源的绝对 URI。"
           },
           "contentType": {
-            "type": "string"
+            "type": "string",
+            "description": "上传后返回的 MIME 类型字符串。"
           },
           "size": {
             "type": "integer",
-            "minimum": 0
+            "minimum": 0,
+            "description": "非负整数字节大小。"
           },
           "metadata": {
-            "$ref": "#/components/schemas/AssetMetadata"
+            "$ref": "#/components/schemas/AssetMetadata",
+            "description": "从 multipart 请求示例复用的嵌套元数据对象。"
           }
-        }
+        },
+        "description": "Clarify 覆盖 URI 字符串、非负整数和可复用嵌套元数据对象。"
       },
       "SearchFilters": {
         "type": "object",
@@ -911,66 +908,105 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "description": "编码在 JSON 查询参数中的数组筛选条件。"
           },
           "updatedAfter": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "date-time 筛选条件，用于展示带 format 的查询内容。"
           }
-        }
+        },
+        "description": "Clarify 支持以 JSON 内容编码的对象型查询参数。"
       },
       "SearchResult": {
         "type": "object",
-        "required": ["id", "title", "score"],
+        "required": [
+          "id",
+          "title",
+          "score"
+        ],
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Identifier"
+            "$ref": "#/components/schemas/Identifier",
+            "description": "匹配页面的引用标识符。"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "匹配页面标题。"
           },
           "score": {
             "type": "number",
             "minimum": 0,
-            "maximum": 1
+            "maximum": 1,
+            "description": "0 到 1 之间的数字，便于 Clarify 展示数值边界。"
           },
           "highlight": {
-            "type": "string"
+            "type": "string",
+            "description": "搜索返回的可选高亮片段。"
           }
-        }
+        },
+        "description": "Clarify 会在响应数组中展示数值范围、可选字符串和引用标识符。"
       },
       "ExportRequest": {
         "type": "object",
-        "required": ["format", "scope"],
+        "required": [
+          "format",
+          "scope"
+        ],
         "properties": {
           "format": {
             "type": "string",
-            "enum": ["html", "pdf", "markdown"]
+            "enum": [
+              "html",
+              "pdf",
+              "markdown"
+            ],
+            "description": "枚举字段，用于展示可选输出格式。"
           },
           "scope": {
             "type": "string",
-            "enum": ["site", "published", "selected"]
+            "enum": [
+              "site",
+              "published",
+              "selected"
+            ],
+            "description": "枚举字段，用于控制导出整站、已发布子集或选中页面。"
           },
           "includeDrafts": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "带默认值的布尔字段。"
           },
           "callbackUrl": {
             "type": "string",
-            "format": "uri"
+            "format": "uri",
+            "description": "可选 URI，用于展示操作回调。"
           }
-        }
+        },
+        "description": "Clarify 覆盖枚举驱动的任务请求、带默认值的布尔字段以及可选回调 URL。"
       },
       "ExportJob": {
         "type": "object",
-        "required": ["id", "status", "downloadUrl"],
+        "required": [
+          "id",
+          "status",
+          "downloadUrl"
+        ],
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Identifier"
+            "$ref": "#/components/schemas/Identifier",
+            "description": "可复用任务标识符。"
           },
           "status": {
             "type": "string",
-            "enum": ["queued", "processing", "ready", "failed"]
+            "enum": [
+              "queued",
+              "processing",
+              "ready",
+              "failed"
+            ],
+            "description": "异步任务的枚举生命周期。"
           },
           "downloadUrl": {
             "oneOf": [
@@ -981,62 +1017,88 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "导出完成后可用的可空 URI。"
           }
-        }
+        },
+        "description": "Clarify 会通过 oneOf/null 渲染可空字段，并展示异步任务状态枚举。"
       },
       "Problem": {
         "type": "object",
-        "required": ["type", "title", "status"],
+        "required": [
+          "type",
+          "title",
+          "status"
+        ],
         "properties": {
           "type": {
             "type": "string",
-            "format": "uri-reference"
+            "format": "uri-reference",
+            "description": "问题类型 URI-reference。"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "简短且可读的错误标题。"
           },
           "status": {
-            "type": "integer"
+            "type": "integer",
+            "description": "用整数表示的 HTTP 状态码。"
           },
           "detail": {
-            "type": "string"
+            "type": "string",
+            "description": "可选的详细错误说明。"
           },
           "instance": {
             "type": "string",
-            "format": "uri-reference"
+            "format": "uri-reference",
+            "description": "本次错误实例的可选 URI-reference。"
           },
           "errors": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["path", "message"],
+              "required": [
+                "path",
+                "message"
+              ],
               "properties": {
                 "path": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "无效字段的 JSON Pointer 或点分路径。"
                 },
                 "message": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "与字段路径关联的校验消息。"
                 }
               }
-            }
+            },
+            "description": "嵌套校验错误数组，并包含必填子属性。"
           }
-        }
+        },
+        "description": "Clarify 支持 RFC 7807 风格错误结构、嵌套校验错误数组和 URI-reference 格式。"
       },
       "EventBase": {
         "type": "object",
-        "required": ["id", "type", "createdAt"],
+        "required": [
+          "id",
+          "type",
+          "createdAt"
+        ],
         "properties": {
           "id": {
-            "$ref": "#/components/schemas/Identifier"
+            "$ref": "#/components/schemas/Identifier",
+            "description": "可复用事件标识符。"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "description": "Discriminator 使用的事件类型字符串。"
           },
           "createdAt": {
-            "$ref": "#/components/schemas/Timestamp"
+            "$ref": "#/components/schemas/Timestamp",
+            "description": "事件发出的 date-time 时间。"
           }
-        }
+        },
+        "description": "Clarify 会展示回调与 Webhooks 共用的事件信封结构。"
       },
       "PagePublishedEvent": {
         "allOf": [
@@ -1045,17 +1107,23 @@
           },
           {
             "type": "object",
-            "required": ["type", "data"],
+            "required": [
+              "type",
+              "data"
+            ],
             "properties": {
               "type": {
-                "const": "page.published"
+                "const": "page.published",
+                "description": "Discriminator 映射使用的 const 事件类型。"
               },
               "data": {
-                "$ref": "#/components/schemas/Page"
+                "$ref": "#/components/schemas/Page",
+                "description": "从引用或内联 Schema 渲染的事件负载。"
               }
             }
           }
-        ]
+        ],
+        "description": "Clarify 展示 allOf 与 const 字段组合，以支持适合 Discriminator 的事件变体。"
       },
       "PageDeletedEvent": {
         "allOf": [
@@ -1064,28 +1132,36 @@
           },
           {
             "type": "object",
-            "required": ["type", "data"],
+            "required": [
+              "type",
+              "data"
+            ],
             "properties": {
               "type": {
-                "const": "page.deleted"
+                "const": "page.deleted",
+                "description": "Discriminator 映射使用的 const 事件类型。"
               },
               "data": {
                 "type": "object",
-                "required": ["id"],
+                "required": [
+                  "id"
+                ],
                 "properties": {
                   "id": {
                     "$ref": "#/components/schemas/Identifier"
                   }
-                }
+                },
+                "description": "从引用或内联 Schema 渲染的事件负载。"
               }
             }
           }
-        ]
+        ],
+        "description": "Clarify 展示另一个 Discriminator 映射分支，并使用紧凑数据负载。"
       }
     },
     "responses": {
       "BadRequest": {
-        "description": "Invalid request.",
+        "description": "请求无效。",
         "content": {
           "application/problem+json": {
             "schema": {
@@ -1093,7 +1169,7 @@
             },
             "examples": {
               "invalidCursor": {
-                "summary": "Invalid cursor",
+                "summary": "游标无效",
                 "value": {
                   "type": "https://clarify.local/problems/invalid-cursor",
                   "title": "Invalid cursor",
@@ -1106,10 +1182,10 @@
         }
       },
       "Unauthorized": {
-        "description": "Missing or invalid credentials."
+        "description": "凭证缺失或无效。"
       },
       "NotFound": {
-        "description": "Resource not found.",
+        "description": "资源不存在。",
         "content": {
           "application/problem+json": {
             "schema": {
@@ -1119,7 +1195,7 @@
         }
       },
       "ValidationError": {
-        "description": "Validation failed.",
+        "description": "校验失败。",
         "content": {
           "application/problem+json": {
             "schema": {
@@ -1129,7 +1205,7 @@
         }
       },
       "UnexpectedError": {
-        "description": "Unexpected error.",
+        "description": "未知错误。",
         "content": {
           "application/problem+json": {
             "schema": {
@@ -1143,7 +1219,7 @@
       "TraceId": {
         "name": "X-Trace-Id",
         "in": "header",
-        "description": "Optional trace ID propagated through the request.",
+        "description": "请求链路中透传的可选 Trace ID。",
         "required": false,
         "schema": {
           "type": "string"
@@ -1153,7 +1229,7 @@
         "name": "pageId",
         "in": "path",
         "required": true,
-        "description": "Page identifier.",
+        "description": "页面标识符。",
         "schema": {
           "$ref": "#/components/schemas/Identifier"
         }
@@ -1180,7 +1256,7 @@
     },
     "examples": {
       "PageExample": {
-        "summary": "A published page",
+        "summary": "已发布页面",
         "value": {
           "id": "pg_123",
           "title": "Getting Started",
@@ -1188,7 +1264,7 @@
           "status": "published",
           "content": "# Getting Started\n\nInstall Clarify.",
           "frontmatter": {
-            "description": "Install Clarify in minutes"
+            "description": "几分钟内安装 Clarify"
           },
           "parentId": null,
           "createdAt": "2026-06-17T12:00:00Z",
@@ -1202,7 +1278,7 @@
         }
       },
       "PageListExample": {
-        "summary": "A paginated page list",
+        "summary": "分页页面列表",
         "value": {
           "data": [
             {
@@ -1225,14 +1301,14 @@
         }
       },
       "PageCreateExample": {
-        "summary": "Create a guide page",
+        "summary": "创建指南页面",
         "value": {
           "title": "Getting Started",
           "slug": "getting-started",
           "content": "# Getting Started\n\nInstall Clarify.",
           "status": "draft",
           "frontmatter": {
-            "description": "Install Clarify in minutes"
+            "description": "几分钟内安装 Clarify"
           }
         }
       }
@@ -1240,7 +1316,7 @@
     "requestBodies": {
       "PageUpsert": {
         "required": true,
-        "description": "Full page replacement payload.",
+        "description": "完整页面替换负载。",
         "content": {
           "application/json": {
             "schema": {
@@ -1252,13 +1328,13 @@
     },
     "headers": {
       "RequestId": {
-        "description": "Request identifier.",
+        "description": "请求标识符。",
         "schema": {
           "type": "string"
         }
       },
       "RateLimitRemaining": {
-        "description": "Remaining requests in the current window.",
+        "description": "当前窗口内剩余请求数。",
         "schema": {
           "type": "integer",
           "minimum": 0
@@ -1300,7 +1376,7 @@
         "parameters": {
           "pageId": "$response.body#/data/0/id"
         },
-        "description": "Follow the first page in the collection."
+        "description": "跳转到集合中的第一个页面。"
       }
     },
     "callbacks": {
@@ -1319,7 +1395,7 @@
             },
             "responses": {
               "204": {
-                "description": "Callback accepted."
+                "description": "回调已接受。"
               }
             }
           }
@@ -1329,10 +1405,10 @@
     "pathItems": {
       "Health": {
         "get": {
-          "summary": "Reusable health check",
+          "summary": "可复用健康检查",
           "responses": {
             "200": {
-              "description": "OK"
+              "description": "正常"
             }
           }
         }

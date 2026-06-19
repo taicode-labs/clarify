@@ -1,0 +1,27 @@
+# Plugin API Reference
+
+Clarify plugins are build-time extensions configured from JavaScript or TypeScript config files.
+
+---
+
+## Plugin shape
+
+```ts
+type ClarifyPlugin = {
+  name: string
+  setup: (api: ClarifyPluginApi) => void | Promise<void>
+}
+```
+
+A plugin should have a stable `name` and register behavior through the API passed to `setup`.
+
+---
+
+## Guidance
+
+- Prefer explicit plugin names.
+- Keep plugins side-effect free unless they are intentionally integrating external systems.
+- Validate plugin configuration early.
+- Use TypeScript for better API discovery.
+
+The plugin API is intended for advanced integrations. Most documentation sites should start with the default pipeline.

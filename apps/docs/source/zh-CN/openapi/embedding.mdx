@@ -1,0 +1,127 @@
+# OpenAPI 嵌入使用说明
+
+Clarify 不只会把 `.openapi.json` / `.openapi.yaml` 渲染成完整 API Reference，也允许你在 MDX 指南里嵌入单个接口或完整 Reference。这样可以把“接口事实”和“业务流程说明”放在同一个页面里。
+
+---
+
+## 适用场景
+
+| 场景 | 推荐方式 |
+|------|----------|
+| 在教程中解释某一步调用哪个接口 | `OpenApiEndpoint` |
+| 在专题页中展示某个核心接口的完整参数和响应 | `OpenApiEndpoint` |
+| 在 MDX 页面里补充说明后再展示完整 API Reference | `OpenApiPage` |
+| 让读者同时看到业务说明和机器可读规范 | MDX 说明 + OpenAPI 嵌入 + 原始规范链接 |
+
+---
+
+## 准备 OpenAPI 文件
+
+把规范放在当前语言目录下，例如：
+
+```txt
+source/
+└── zh-CN/
+    ├── api.openapi.json
+    └── openapi/
+        └── embedding.mdx
+```
+
+文件名决定 Reference 路由：
+
+| 文件 | Reference 路由 | 原始规范输出 |
+|------|----------------|--------------|
+| `api.openapi.json` | `/api` | `/api.openapi.json` |
+| `billing.openapi.yaml` | `/billing` | `/billing.openapi.yaml` |
+| `admin.openapi.yml` | `/admin` | `/admin.openapi.yml` |
+
+在多语言站点中，英文规范可以放在 `source/en-US/api.openapi.json`，中文规范放在 `source/zh-CN/api.openapi.json`。Clarify 会按当前语言读取对应文件；缺失时再按 i18n fallback 策略处理。
+
+---
+
+## 嵌入单个接口
+
+使用 `OpenApiEndpoint`：
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+```
+
+参数说明：
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `specPath` | 是 | OpenAPI Reference 的路由，不写 `.openapi.json` 后缀，例如 `/api` |
+| `path` | 是 | OpenAPI `paths` 中的路径，必须和规范完全一致，例如 `/pages/{pageId}` |
+| `method` | 是 | HTTP 方法，建议小写，例如 `get`、`post`、`patch` |
+
+渲染效果：
+
+<OpenApiEndpoint specPath="/api" path="/pages" method="get" />
+
+---
+
+## 嵌入复杂请求接口
+
+当接口包含多种请求体、多个 examples、多状态码响应或回调时，也可以直接嵌入同一个组件。下面的 `POST /exports` 覆盖 JSON / YAML 请求体、多示例、JSON / text 响应和错误响应：
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/exports" method="post" />
+```
+
+渲染效果：
+
+<OpenApiEndpoint specPath="/api" path="/exports" method="post" />
+
+---
+
+## 嵌入完整 Reference
+
+如果你希望在 MDX 页面中先写业务背景，再展示完整 API Reference，可以使用 `OpenApiPage`：
+
+```mdx
+# API Reference
+
+下面是当前服务的完整接口列表。
+
+<OpenApiPage specPath="/api" />
+```
+
+这适合用于：
+
+- 在 Reference 前补充认证、限流、错误格式说明。
+- 在产品页中组合“说明 + 完整接口”。
+- 临时把完整 Reference 放入某个专题文档中。
+
+---
+
+## 常见错误排查
+
+### `OpenAPI spec not found`
+
+检查：
+
+- OpenAPI 文件是否位于 `source` 或当前语言目录下。
+- 文件名是否为 `.openapi.json` / `.openapi.yaml` / `.openapi.yml`。
+- `specPath` 是否写的是路由，例如 `/api`，而不是文件名 `api.openapi.json`。
+
+### `Endpoint not found`
+
+检查：
+
+- `path` 是否与 OpenAPI `paths` 键完全一致。
+- 路径参数是否使用 `{pageId}` 这种 OpenAPI 写法，而不是 `:pageId`。
+- `method` 是否存在，并且大小写与组件约定一致。
+
+### 页面构建失败
+
+生产构建会解析并 dereference OpenAPI 规范。若规范无效，构建会失败。建议先确认 JSON / YAML 语法正确，再检查 `$ref` 是否能解析。
+
+---
+
+## 推荐写法
+
+- 用 OpenAPI 规范维护真实接口结构，不要在 MDX 里手写参数表。
+- 用 MDX 解释业务流程、认证前置条件、常见错误和最佳实践。
+- 在关键步骤旁嵌入 `OpenApiEndpoint`，减少读者在指南和 Reference 之间来回跳转。
+- 同一份规范同时用于完整 Reference、嵌入接口、原始规范输出和 `llms.txt`。

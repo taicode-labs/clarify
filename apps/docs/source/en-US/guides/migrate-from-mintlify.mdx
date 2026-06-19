@@ -1,0 +1,44 @@
+# Migrate from Mintlify
+
+This guide outlines how to move an existing Mintlify-style docs site to Clarify.
+
+---
+
+## Migration checklist
+
+1. Create a Clarify project and install `@clarify-labs/cli`.
+2. Move documentation files into `source/`.
+3. Convert Mintlify navigation into `tabs` in `clarify.ts`.
+4. Move static assets into `public/`.
+5. Add OpenAPI specs as `.openapi.json`, `.openapi.yaml`, or `.openapi.yml` files.
+6. Run a production build and fix invalid links or MDX errors.
+
+---
+
+## Navigation mapping
+
+Mintlify navigation groups usually map to Clarify tab groups:
+
+```ts
+export default defineConfig({
+  tabs: [
+    {
+      tab: 'Docs',
+      pages: [
+        {
+          group: 'Guides',
+          pages: [
+            { page: 'getting-started', title: 'Get Started' },
+          ],
+        },
+      ],
+    },
+  ],
+})
+```
+
+---
+
+## OpenAPI specs
+
+Place OpenAPI specs directly in `source/` or a locale directory. Clarify will generate a route based on the file name and copy the raw spec into the build output.

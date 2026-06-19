@@ -1,0 +1,41 @@
+# Developer Guide
+
+This section is for contributors who want to understand or change Clarify itself.
+
+---
+
+## Repository layout
+
+```txt
+apps/
+  docs/      Documentation playground and dev site
+  www/       Marketing site
+packages/
+  cli/       CLI and docs engine
+  renderer/  Shared React renderer and UI components
+```
+
+---
+
+## Common commands
+
+Use pnpm workspace commands from the repository root:
+
+```bash
+pnpm install
+pnpm --filter @clarify-labs/docs build
+```
+
+Use `source/` for source files. Do not add new `src/` directories in this repository.
+
+---
+
+## Read next
+
+| Page | Description |
+|------|-------------|
+| [Architecture](/development/architecture) | High-level package responsibilities. |
+| [CLI and Engine](/development/cli) | How the CLI discovers config, content, and build inputs. |
+| [Renderer Architecture](/development/renderer) | How docs pages are rendered. |
+| [SSG Pipeline](/development/ssg) | Static generation flow. |
+| [Contributing](/development/contributing) | Contribution expectations. |

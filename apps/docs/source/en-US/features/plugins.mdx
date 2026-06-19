@@ -1,0 +1,35 @@
+# Plugin System
+
+Clarify plugins extend the build pipeline. They are configured in `clarify.ts` or `clarify.js` because plugins are functions, not plain JSON data.
+
+---
+
+## Basic shape
+
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  plugins: [
+    {
+      name: 'example-plugin',
+      setup(api) {
+        // Register plugin behavior here.
+      },
+    },
+  ],
+})
+```
+
+---
+
+## When to use plugins
+
+Use plugins when you need to:
+
+- transform content during the build,
+- add custom integrations,
+- inspect generated routes or metadata,
+- connect Clarify to internal tooling.
+
+For normal documentation sites, start without plugins and add them only when the built-in behavior is not enough.

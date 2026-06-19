@@ -1,0 +1,51 @@
+# Deployment
+
+Clarify builds a static site that can be hosted by any static hosting platform.
+
+---
+
+## Build output
+
+Run:
+
+```bash
+pnpm build
+```
+
+or directly:
+
+```bash
+pnpm exec clarify build --output output
+```
+
+The output directory contains HTML, assets, copied public files, raw OpenAPI specs, and `llms.txt`.
+
+```txt
+output/
+├── index.html
+├── getting-started/
+│   └── index.html
+├── api.openapi.json
+├── llms.txt
+└── assets/
+```
+
+---
+
+## Hosting targets
+
+Because the output is static, it can be deployed to:
+
+- Vercel
+- Netlify
+- GitHub Pages
+- S3-compatible object storage
+- Nginx or any static file server
+
+Set the build command to `pnpm build` and the publish directory to `output`.
+
+---
+
+## OpenAPI and AI output
+
+Clarify copies raw `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` files into the build output. It also lists discoverable pages and specs in `llms.txt`, which makes the published docs easier for AI tools to read.

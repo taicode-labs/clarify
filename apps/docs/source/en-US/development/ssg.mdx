@@ -1,0 +1,22 @@
+# SSG Pipeline
+
+Clarify builds documentation into static files that can be hosted anywhere.
+
+---
+
+## Pipeline
+
+1. Load config and resolve directories.
+2. Discover content from `source/`.
+3. Parse MDX and OpenAPI documents.
+4. Build the route manifest.
+5. Render each route to HTML.
+6. Write assets, copied public files, raw OpenAPI specs, and `llms.txt`.
+
+---
+
+## Failure behavior
+
+Production builds should fail when required content or OpenAPI specs are invalid. This prevents publishing broken documentation.
+
+Use the generated `output/` directory as the deployment artifact.
