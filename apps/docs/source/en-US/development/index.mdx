@@ -1,6 +1,8 @@
 # Developer Guide
 
-This section is for contributors who want to understand or change Clarify itself.
+This section explains how Clarify is designed internally. It is written for maintainers, contributors, and future developers who need to change the docs engine safely.
+
+Clarify has one central product boundary: users write content and configuration, while Clarify owns the build pipeline, routing model, renderer runtime, and static output.
 
 ---
 
@@ -8,34 +10,72 @@ This section is for contributors who want to understand or change Clarify itself
 
 ```txt
 apps/
-  docs/      Documentation playground and dev site
-  www/       Marketing site
+  docs/       Documentation playground and integration site
+  www/        Marketing site
 packages/
-  cli/       CLI and docs engine
-  renderer/  Shared React renderer and UI components
-```
-
----
-
-## Common commands
-
-Use pnpm workspace commands from the repository root:
-
-```bash
-pnpm install
-pnpm --filter @clarify-labs/docs build
+  cli/        CLI, content engine, Vite integration, and SSG pipeline
+  renderer/   React shell, MDX components, OpenAPI UI, and runtime entries
 ```
 
 Use `source/` for source files. Do not add new `src/` directories in this repository.
 
 ---
 
-## Read next
+## Mental model
 
-| Page | Description |
-|------|-------------|
-| [Architecture](/development/architecture) | High-level package responsibilities. |
-| [CLI and Engine](/development/cli) | How the CLI discovers config, content, and build inputs. |
-| [Renderer Architecture](/development/renderer) | How docs pages are rendered. |
-| [SSG Pipeline](/development/ssg) | Static generation flow. |
-| [Contributing](/development/contributing) | Contribution expectations. |
+Clarify is split into two major packages:
+
+| Layer | Owns | Must not own |
+|------|------|--------------|
+| `packages/cli` | Config loading, content discovery, route and navigation models, plugin hooks, Vite orchestration, static generation, raw content artifacts | Visual presentation details that belong in React components |
+| `packages/renderer` | Application shell, navigation UI, MDX primitives, OpenAPI rendering, hydration, client/server rendering entry points | File-system scanning, config file loading, or build orchestration |
+
+The build-time data flow is:
+
+```txt
+clarify.ts/js/json
+  → resolved project config
+  → source/ content discovery
+  → ContentRoute[] and NavigationTree
+  → virtual modules
+  → renderer client + server entries
+  → output/ static HTML, assets, raw content, llms.txt
+```
+
+---
+
+## Common commands
+
+Run workspace commands from the repository root:
+
+```bash
+pnpm install
+pnpm dev:docs
+pnpm dev:www
+pnpm typecheck
+pnpm build
+```
+
+Package builds currently use Vite library builds. User-facing docs should still present `clarify dev` and `clarify build` as the public interface; Vite is an internal implementation detail.
+
+---
+
+## How to read this section
+
+| Page | What it explains | Read before changing |
+|------|------------------|----------------------|
+| [Architecture](/development/architecture) | Package boundaries, data model, route/navigation model, and extension points. | Any cross-package change. |
+| [CLI and Engine](/development/cli) | How `clarify dev`, `clarify build`, config loading, content discovery, plugins, and virtual modules work. | CLI behavior, content pipeline, OpenAPI ingestion, plugins. |
+| [Renderer Architecture](/development/renderer) | How the React shell consumes virtual modules and renders MDX/OpenAPI routes. | UI, navigation, theme, hydration, content actions. |
+| [SSG Pipeline](/development/ssg) | How the production build generates static HTML and raw content artifacts. | Build output, SEO, deployment, SSG failures. |
+| [Contributing](/development/contributing) | Coding conventions, validation commands, and PR expectations. | Any contribution. |
+
+---
+
+## Design rules for future work
+
+- Keep the CLI and renderer boundary explicit: the CLI prepares data; the renderer displays it.
+- Prefer adding build-time metadata to `ContentRoute` and virtual modules instead of doing runtime file access.
+- Keep generated output static and host-agnostic.
+- Prefer `clarify.ts` for typed configuration and plugins; keep `clarify.js` and `clarify.json` supported for simpler projects.
+- Document only implemented behavior, or clearly mark planned behavior as future work.

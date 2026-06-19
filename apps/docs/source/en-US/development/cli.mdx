@@ -1,24 +1,160 @@
 # CLI and Engine
 
-The CLI is the user-facing entry point for Clarify projects. It starts development servers, runs production builds, and initializes projects.
+`packages/cli` is both the public command-line package and the internal documentation engine. It hides build-tool details behind `clarify dev`, `clarify build`, and `clarify init`.
 
 ---
 
 ## Responsibilities
 
-- Load `clarify.ts`, `clarify.js`, or `clarify.json`.
-- Resolve project, content, public, and output directories.
-- Discover MDX pages and OpenAPI specs.
-- Validate and dereference OpenAPI documents.
-- Prepare route metadata for the renderer.
-- Orchestrate Vite development and production builds.
+| Area | Responsibility |
+|------|----------------|
+| Config | Find and load `clarify.ts`, `clarify.js`, or `clarify.json`; validate project config; apply defaults. |
+| Content | Scan `rootDirectory` (default: `source`) for `.md`, `.mdx`, and `.openapi.json/.yaml/.yml`. |
+| Routing | Convert files into `ContentRoute[]`, attach locale metadata, sections, alternates, and content artifact URLs. |
+| Navigation | Build file-tree navigation or configured `tabs` navigation. |
+| Plugins | Run built-in and user-provided hooks at deterministic points. |
+| Vite | Provide internal Vite plugins for MDX, virtual modules, Tailwind, React, dev server, and production build. |
+| SSG | Build client assets, build a temporary SSR bundle, render routes to HTML, and write extra artifacts. |
+
+---
+
+## Configuration loading
+
+The config lookup order is:
+
+1. `clarify.ts`
+2. `clarify.js`
+3. `clarify.json`
+
+`clarify.ts` is preferred for typed configuration and plugins:
+
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  title: 'My Docs',
+  description: 'Product documentation',
+  routePrefix: '/',
+  i18n: {
+    defaultLocale: 'en-US',
+    locales: [{ code: 'en-US', label: 'English' }],
+  },
+})
+```
+
+JSON configs are validated and can express project settings, but not executable plugins.
 
 ---
 
 ## Commands
 
-| Command | Purpose |
-|---------|---------|
-| `clarify dev` | Start local development. |
-| `clarify build` | Generate a static production site. |
-| `clarify init` | Scaffold starter project files. |
+| Command | Purpose | Internal flow |
+|---------|---------|---------------|
+| `clarify dev` | Start local development. | Load config, create an HTML shell if needed, install Clarify Vite plugins, watch config/content changes, rebuild routes, invalidate virtual modules, and full-reload the browser. |
+| `clarify build` | Generate a static production site. | Load config, run Vite client build, build SSR bundle in `closeBundle`, render every route, then write raw content artifacts and `llms.txt`. |
+| `clarify init` | Scaffold a starter project. | Create initial config, package scripts, and `source/index.mdx`. |
+
+---
+
+## Content pipeline
+
+```txt
+source files
+  → route discovery
+  → frontmatter / OpenAPI parsing
+  → route enrichment
+  → navigation resolution
+  → content artifact URLs
+  → virtual modules
+```
+
+### MDX and Markdown
+
+For `.md` and `.mdx` files, the CLI:
+
+- parses frontmatter with `gray-matter`;
+- extracts `title`, `description`, and `keywords` / `keyword` / `tags` metadata;
+- extracts H2/H3 headings as page sections;
+- compiles the content through `@mdx-js/rollup` with Clarify MDX components.
+
+### OpenAPI
+
+For `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` files, the built-in OpenAPI plugin:
+
+- discovers OpenAPI files as routes;
+- reads and parses OpenAPI 3.0/3.1 specs;
+- uses `info.title` and `info.description` as route metadata;
+- extracts endpoint sections for sidebar and on-page navigation;
+- generates virtual modules consumed by the renderer's OpenAPI page.
+
+Invalid OpenAPI specs become diagnostic routes during route resolution so the build can surface useful errors instead of silently omitting API docs.
+
+---
+
+## Route model
+
+A route is represented as `ContentRoute`:
+
+```ts
+type ContentRoute = {
+  path: string
+  basePath?: string
+  locale?: string
+  isFallback?: boolean
+  alternates?: Record<string, string>
+  title: string
+  description?: string
+  keywords?: string[]
+  filePath: string
+  virtualModuleId: string
+  kind: 'mdx' | 'openapi'
+  frontmatter?: Record<string, unknown>
+  content?: string
+  sections?: ContentSection[]
+  contentArtifactUrl?: string
+}
+```
+
+`contentArtifactUrl` points to the raw Markdown or OpenAPI artifact that is served in development and written during production builds. The renderer uses it for copy/download-style content actions.
+
+---
+
+## Virtual modules
+
+The CLI sends build-time data to the renderer through virtual modules:
+
+| Module | Contains |
+|--------|----------|
+| `virtual:clarify-config` | Resolved project config plus build options. |
+| `virtual:clarify-routes` | Client route list, lazy page imports, and navigation tree. |
+| `virtual:clarify-routes/server` | Server route list with eager page imports for SSR. |
+| `virtual:clarify-openapi-registry` | Parsed OpenAPI specs keyed by virtual module ID. |
+| `virtual:clarify-entry-client` | Generated client entry importing renderer CSS and calling `render()`. |
+| `virtual:clarify-page/*` | Per-page modules that re-export MDX files or OpenAPI page modules. |
+
+Because virtual modules are regenerated on config/content changes, the dev server can update routing without asking users to maintain application entry files.
+
+---
+
+## Hook lifecycle
+
+The Clarify Vite plugin runs built-in plugins first and user plugins after them:
+
+```txt
+routes:discover
+  → routes:discovered
+  → build default navigation
+  → routes:resolved
+  → buildVirtualModules
+  → modules:before
+  → html:transform
+  → dev:configureServer / build closeBundle
+  → build:done
+```
+
+Guidelines for new hooks and plugins:
+
+- Prefer modifying structured data (`routes`, `navigation`, `modules`) instead of string-rewriting generated output.
+- Make hook order explicit and deterministic.
+- Include enough context in `ClarifyHookContext` so plugins do not read internal globals.
+- Fail loudly with plugin name and hook name when a plugin throws.

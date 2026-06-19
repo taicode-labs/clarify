@@ -77,7 +77,7 @@ Clarify 采用虚拟模块模式实现更清晰的分离：
 | `virtual:clarify-routes` | 路由清单、导航树和页面章节数据 |
 | `virtual:clarify-openapi-registry` | 解析后的 OpenAPI 规范注册表 |
 | `virtual:clarify-entry-client` | CLI 注入的客户端入口 |
-| `virtual:clarify-pages/*` | 每个内容页面对应的虚拟模块 |
+| `virtual:clarify-page/*` | 每个内容页面对应的虚拟模块 |
 
 这些模块由 `clarifyPlugin.resolveId()` 解析，由 `clarifyPlugin.load()` 生成。
 
@@ -151,8 +151,71 @@ Vite 运行正常构建：
      virtualModuleId: string
      kind: 'mdx' | 'openapi'
      sections?: ContentSection[]
-     rawContentUrl?: string
+     contentArtifactUrl?: string
    }
    ```
 
 5. 注册虚拟模块，以便 `virtual:clarify-routes` 可以提供路由清单和导航树
+
+### 步骤 3：SSR bundle 构建
+
+客户端包构建完成后，`clarifyPlugin.closeBundle()` 会：
+
+1. 创建临时 `entry-server.ts`；
+2. 使用 Vite SSR 模式构建到 `output/.ssr/entry-server.js`；
+3. 导入 SSR bundle；
+4. 对每条 `ContentRoute` 调用 `render(url)`。
+
+SSR 使用 `virtual:clarify-routes/server`，页面组件为 eager import，保证构建阶段可以同步渲染。
+
+### 步骤 4：HTML 写入
+
+每条路由会基于客户端构建产物中的 `index.html` 模板生成独立 HTML：
+
+```txt
+/                 → output/index.html
+/getting-started  → output/getting-started/index.html
+/en-US/guides     → output/en-US/guides/index.html
+```
+
+写入时会同步更新：
+
+- `<title>`；
+- `description` meta；
+- `keywords` meta；
+- `<html lang>`；
+- 可选的 `<html dir>`。
+
+### 步骤 5：内容制品与 `llms.txt`
+
+内置 content artifacts 插件在 `routes:resolved` 阶段为路由附加 `contentArtifactUrl`，在开发服务器中提供对应内容，并在 `build:done` 阶段写入文件。
+
+这些制品用于：
+
+- 复制原始 Markdown / OpenAPI 内容；
+- 复制 raw content 链接；
+- 为 AI/LLM 工具提供可读取的文档入口；
+- 保留 OpenAPI 原始规范；
+- 生成 `llms.txt`。
+
+---
+
+## 错误行为
+
+`generateOptions.ssg.failOnError` 默认是 `true`。任一路由 SSR 失败时，生产构建会失败，避免发布不完整文档。
+
+如果未来需要 best-effort 输出，应通过显式配置开启，并在文档中说明代价；默认行为应继续偏向构建期发现问题。
+
+---
+
+## 扩展建议
+
+| 需求 | 推荐 Hook |
+|------|-----------|
+| 生成搜索索引 | `build:done` |
+| 给路由附加额外元数据 | `routes:resolved` |
+| 向 Renderer 提供虚拟数据 | `modules:before` |
+| 注入 HTML 标签或改写 shell | `html:transform` |
+| 提供开发期中间件 | `dev:configureServer` |
+
+尽量保持输出确定性，确保本地构建和部署预览可复现。

@@ -32,8 +32,9 @@ pnpm dev:www     # 营销站点
 ### 目录约定
 
 - 使用 `source/` 作为源码目录，而不是 `src/`
-- 包使用 `tsup` 构建（ESM + CJS + DTS）
+- 包当前使用 Vite library build 输出 ESM / CJS / DTS
 - 应用使用 Vite + `@tailwindcss/vite` + `@vitejs/plugin-react`
+- 面向用户的文档应描述 `clarify dev` / `clarify build`，不要要求用户维护内部 Vite 配置
 
 ---
 
@@ -78,6 +79,40 @@ docs: update deployment guide with Vercel examples
 2. **编写代码** 并确保通过类型检查
 3. **更新文档** 如果更改了用户可见的行为
 4. **提交 PR** 并提供清晰的描述，说明做了什么和为什么
+
+---
+
+## 如何选择修改位置
+
+| 变更类型 | 通常修改位置 |
+|----------|--------------|
+| 配置加载、路由发现、插件 hooks、SSG、raw content artifacts | `packages/cli` |
+| Header、侧边栏、MDX 组件、OpenAPI UI、内容操作、主题行为 | `packages/renderer` |
+| 官方文档内容 | `apps/docs/source` |
+| 营销文案和落地页 | `apps/www/source` |
+
+跨 CLI 和 Renderer 的功能应先定义构建时数据形状，通过虚拟模块暴露，再在 Renderer 中消费。
+
+---
+
+## 验证命令
+
+根据变更范围运行：
+
+```bash
+pnpm typecheck
+pnpm build
+```
+
+聚焦单包时可使用：
+
+```bash
+pnpm --filter @clarify-labs/cli typecheck
+pnpm --filter @clarify-labs/renderer typecheck
+pnpm --filter @clarify-labs/docs build
+```
+
+文档变更也应尽量运行 docs build，因为 MDX 内容会参与编译。
 
 ---
 

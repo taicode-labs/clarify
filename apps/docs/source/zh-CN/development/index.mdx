@@ -1,34 +1,77 @@
 # 开发指南
 
-本章面向希望深入了解 Clarify 实现、参与贡献或进行二次开发的用户。
+本章面向希望深入了解 Clarify 实现、参与贡献或进行二次开发的开发者。目标不是只列文件，而是说明 Clarify 的设计边界：用户编写内容和配置，Clarify 负责内容引擎、路由模型、渲染运行时和静态输出。
 
 ---
 
-## 内容
+## 代码库结构
 
-- [整体架构](/development/architecture) — Monorepo 结构、包职责、数据流
-- [CLI 与引擎设计](/development/cli) — `packages/cli` 的命令层和内部引擎
-- [渲染器架构](/development/renderer) — `packages/renderer` 的客户端运行时设计
-- [静态生成流程](/development/ssg) — 构建时 SSR 的详细流程
-- [参与贡献](/development/contributing) — 代码规范、提交规范、PR 流程
+```txt
+apps/
+  docs/       文档游乐场和集成站点
+  www/        营销站点
+packages/
+  cli/        CLI、内容引擎、Vite 集成和 SSG 流程
+  renderer/   React 应用壳、MDX 组件、OpenAPI UI 和运行时入口
+```
+
+仓库约定使用 `source/` 作为源码目录，不新增 `src/`。
+
+---
+
+## 核心理解模型
+
+| 层级 | 负责 | 不应负责 |
+|------|------|----------|
+| `packages/cli` | 配置加载、内容发现、路由/导航模型、插件 hooks、Vite 编排、静态生成、raw content artifacts | 具体视觉展示和 React 组件布局 |
+| `packages/renderer` | 应用壳、导航 UI、MDX 原语、OpenAPI 展示、客户端 Hydration、服务端渲染入口 | 文件系统扫描、配置文件加载、构建编排 |
+
+构建时数据流是：
+
+```txt
+clarify.ts/js/json
+  → 解析后的项目配置
+  → source/ 内容发现
+  → ContentRoute[] 和 NavigationTree
+  → 虚拟模块
+  → renderer client/server entries
+  → output/ 静态 HTML、资源、raw content、llms.txt
+```
 
 ---
 
 ## 快速开始（开发者）
 
 ```bash
-# 克隆仓库
 git clone https://github.com/taicode-labs/clarify.git
 cd clarify
-
-# 安装依赖
 pnpm install
-
-# 启动文档站点（开发模式）
 pnpm dev:docs
-
-# 启动营销站点
 pnpm dev:www
+pnpm typecheck
+pnpm build
 ```
 
-文档站点通过 `@clarify-labs/cli` 启动，CLI 内部会直接消费 workspace 包的 `source/` 入口以获得快速反馈。
+包构建当前使用 Vite library build。面向用户的文档仍应把 `clarify dev` / `clarify build` 作为公共入口；Vite 是 CLI 内部实现细节。
+
+---
+
+## 阅读顺序
+
+| 页面 | 说明 | 修改前建议阅读 |
+|------|------|----------------|
+| [整体架构](/development/architecture) | 包职责、系统边界、数据模型、路由/导航模型和插件扩展点。 | 任何跨包改动。 |
+| [CLI 与引擎设计](/development/cli) | `clarify dev` / `build`、配置加载、内容发现、插件和虚拟模块。 | CLI、内容管线、OpenAPI、插件。 |
+| [渲染器架构](/development/renderer) | React 应用壳如何消费虚拟模块并渲染 MDX/OpenAPI 页面。 | UI、导航、主题、Hydration、内容操作。 |
+| [静态生成流程](/development/ssg) | 生产构建如何生成静态 HTML 和内容制品。 | 构建输出、SEO、部署、SSG 错误。 |
+| [参与贡献](/development/contributing) | 代码规范、验证命令和 PR 期望。 | 所有贡献。 |
+
+---
+
+## 后续开发原则
+
+- 保持 CLI 和 Renderer 边界清晰：CLI 准备数据，Renderer 展示数据。
+- 优先把构建期元数据放进 `ContentRoute` 和虚拟模块，不在运行时访问文件系统。
+- 保持输出为静态、可自托管、可复现的 `output/`。
+- 优先使用 `clarify.ts` 承载类型安全配置和插件，同时继续支持 `clarify.js` / `clarify.json`。
+- 文档只描述已实现行为；未实现内容应明确标记为未来计划。

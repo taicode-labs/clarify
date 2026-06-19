@@ -1,22 +1,120 @@
 # SSG Pipeline
 
-Clarify builds documentation into static files that can be hosted anywhere.
+Clarify builds documentation into static files that can be hosted anywhere. There is no production server requirement: SSR runs only during `clarify build`.
 
 ---
 
-## Pipeline
+## Goals
 
-1. Load config and resolve directories.
-2. Discover content from `source/`.
-3. Parse MDX and OpenAPI documents.
-4. Build the route manifest.
-5. Render each route to HTML.
-6. Write assets, copied public files, raw OpenAPI specs, and `llms.txt`.
+| Goal | Implementation |
+|------|----------------|
+| Static deployment | Write one `index.html` for every route under `output/`. |
+| Fast first load | Server-render route HTML during build. |
+| Client navigation | Hydrate the static HTML into a React Router app. |
+| Content portability | Write raw Markdown/OpenAPI artifacts and `llms.txt`. |
+| Host agnostic output | Produce plain HTML, CSS, JS, copied public files, and content artifacts. |
+
+---
+
+## Build overview
+
+```txt
+clarify build
+  → Vite client build
+    → output/index.html
+    → output/assets/*
+  → clarify closeBundle
+    → create temporary SSR entry
+    → Vite SSR build
+    → output/.ssr/entry-server.js
+    → import render(url)
+    → render every ContentRoute
+    → write output/<route>/index.html
+  → build:done hooks
+    → write raw content artifacts
+    → write llms.txt
+```
+
+The final deployment artifact is `output/` or the directory passed through build options.
+
+---
+
+## Client build
+
+The client build uses the generated `virtual:clarify-entry-client` module. That entry imports renderer CSS, route data, config, OpenAPI registry, and calls the renderer client `render()` function.
+
+Vite owns JS/CSS bundling, hashed assets, and HTML asset injection. Clarify owns the virtual modules that make the docs app possible.
+
+---
+
+## SSR bundle
+
+After the client build finishes, the Clarify Vite plugin runs its `closeBundle` phase:
+
+1. create a temporary `entry-server.ts` file;
+2. build it with Vite in SSR mode;
+3. output the SSR bundle to `output/.ssr/entry-server.js`;
+4. import that bundle in Node.js;
+5. call `render(url)` for each discovered route.
+
+The SSR entry imports `virtual:clarify-routes/server`, which uses eager page imports so every page component is available synchronously during static rendering.
+
+---
+
+## HTML generation
+
+For every route, Clarify:
+
+1. reads the client build's `index.html` template;
+2. calls `renderToHTML()` through the SSR bundle;
+3. injects the rendered markup into `<div id="root">`;
+4. updates `<title>`, `description`, `keywords`, `<html lang>`, and optional `dir`;
+5. writes the result to `output/<route>/index.html`.
+
+Examples:
+
+```txt
+/                 → output/index.html
+/getting-started  → output/getting-started/index.html
+/en-US/guides     → output/en-US/guides/index.html
+```
+
+---
+
+## Raw content artifacts
+
+The built-in content artifacts plugin attaches `contentArtifactUrl` during `routes:resolved`, serves those URLs in development, and writes files during `build:done`.
+
+Artifacts are used for:
+
+- copy raw page content actions;
+- copy raw content links;
+- AI-readable documentation ingestion;
+- preserving OpenAPI specs next to rendered API reference pages;
+- generating `llms.txt`.
+
+This is why content artifacts are route metadata, not renderer-only behavior. The renderer only displays actions; the CLI decides where artifacts live and how they are written.
 
 ---
 
 ## Failure behavior
 
-Production builds should fail when required content or OpenAPI specs are invalid. This prevents publishing broken documentation.
+`generateOptions.ssg.failOnError` defaults to `true`. When SSR fails for a route, the build fails instead of publishing incomplete documentation. If a future integration needs best-effort output, it should make that behavior explicit in config and document the tradeoff.
 
-Use the generated `output/` directory as the deployment artifact.
+Production builds should fail when required content or OpenAPI specs are invalid. Broken docs should be caught before deployment.
+
+---
+
+## Extension points
+
+SSG-related extensions should prefer hooks over direct output mutation:
+
+| Need | Preferred hook |
+|------|----------------|
+| Add search index data | `build:done` |
+| Attach extra route metadata | `routes:resolved` |
+| Provide virtual data to the renderer | `modules:before` |
+| Add HTML tags or transform shell HTML | `html:transform` |
+| Serve development-only artifacts | `dev:configureServer` |
+
+Keep generated output deterministic so deploy previews and local builds are reproducible.

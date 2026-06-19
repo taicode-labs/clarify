@@ -59,7 +59,7 @@ Clarify 采用 Monorepo 结构组织，包含应用和包两个层级。
   - **路由生成**：自动从文件系统生成路由清单（例如 `docs/getting-started.mdx` → `/getting-started`）
   - **开发服务器**：为内容和 API 规范变更提供热更新
   - **构建集成**：发出适合部署的静态预渲染站点
-- **配置**：用户主要通过 `clarify.json` 和 CLI 参数自定义站点
+- **配置**：支持 `clarify.ts`、`clarify.js` 和 `clarify.json`；推荐 `clarify.ts` 用于类型安全配置和插件
 - **分发**：发布为 `@clarify-labs/cli`，暴露 `clarify` bin
 
 ---
@@ -68,17 +68,85 @@ Clarify 采用 Monorepo 结构组织，包含应用和包两个层级。
 
 ```mermaid
 graph TD
-    A[apps/docs] -->|导入 UI| B[packages/renderer]
-    A -->|运行 CLI| C[packages/cli]
-    C -->|渲染 UI| B
-    C -->|读取| D[MDX 文件]
-    C -->|读取| E[OpenAPI 规范]
+    A[clarify.ts/js/json] --> B[ResolvedProjectConfig]
+    B --> C[Content discovery]
+    C --> D[ContentRoute array]
+    D --> E[NavigationTree]
+    E --> F[Virtual modules]
+    F --> G[Renderer client/server entries]
+    G --> H[output static site]
+    C --> I[Raw content artifacts]
+    I --> H
 ```
 
-1. **作者**在 `source/` 中编写 MDX/Markdown 文档和 OpenAPI 规范
-2. **`@clarify-labs/cli`**扫描内容目录，编译 MDX，摄取 OpenAPI，并生成路由
-3. **`renderer`**组件被编译后的 MDX 和 CLI 生成的页面导入以渲染 UI
-4. **CLI 内部构建管线**将所有内容打包为静态站点
+1. **作者**在 `source/` 中编写 MDX/Markdown 文档和 OpenAPI 规范。
+2. **`@clarify-labs/cli`**加载配置、扫描内容目录、解析 MDX/OpenAPI，并生成 `ContentRoute[]`。
+3. **CLI** 根据路由和 `tabs` 配置生成 `NavigationTree`，并通过虚拟模块把数据交给渲染器。
+4. **`packages/renderer`**消费 `config`、`routes`、`navigation` 和 `openApis`，渲染客户端和服务端入口。
+5. **SSG 管线**输出静态 HTML、JS/CSS 资源、raw Markdown/OpenAPI 制品和 `llms.txt`。
+
+---
+
+## 系统边界
+
+| 边界 | 输入 | 输出 |
+|------|------|------|
+| 用户项目 → CLI | `clarify.ts/js/json`、`source/`、`public/`、CLI 参数 | 解析后的配置、路由模型、虚拟模块、构建产物 |
+| CLI → Renderer | `config`、`routes`、`navigation`、`openApis` | React 应用壳和页面 |
+| Build → Deploy | `output/` | 静态 HTML、资源、复制的 public 文件、raw content artifacts、`llms.txt` |
+
+不要把文件系统扫描、配置加载放进 Renderer；也不要把组件视觉逻辑放进 CLI，除非它被表达为稳定的数据模型。
+
+---
+
+## 核心数据模型
+
+| 类型 | 所属 | 用途 |
+|------|------|------|
+| `ResolvedProjectConfig` | CLI | 站点标题、描述、路径前缀、主题、导航、页脚、i18n 和 tabs 的默认值。 |
+| `ResolvedBuildOptions` | CLI | 内容根目录、输出目录和 SSG 行为。 |
+| `ContentRoute` | CLI → Renderer | 单个可渲染路由，包含路径、语言、标题、描述、文件路径、虚拟模块、章节和 `contentArtifactUrl`。 |
+| `NavigationTree` | CLI → Renderer | 侧边栏和 tab 导航，可本地化。 |
+
+---
+
+## 路由与导航模型
+
+Clarify 从 `rootDirectory`（默认 `source`）派生路由：
+
+```txt
+source/index.mdx              → /
+source/getting-started.mdx    → /getting-started
+source/guides/index.mdx       → /guides
+source/api.openapi.json       → /api
+```
+
+多语言项目使用 locale 目录。默认语言不带语言前缀，非默认语言带语言前缀；当 `i18n.missing` 为 `fallback` 时，缺失翻译会复用默认语言内容并标记为 fallback route。
+
+导航有两种来源：
+
+1. 未配置 `tabs` 时，基于文件树生成侧边栏。
+2. 配置 `tabs` 时，每个 tab 拥有自己的 `pages`，可使用 `FileTree` 或显式分组。
+
+Renderer 不从文件系统推断导航，只消费 CLI 生成的 `NavigationTree`。
+
+---
+
+## 插件模型
+
+Clarify 内置 OpenAPI、content artifacts、HTML shell 等能力都通过插件 hook 接入。当前实现的 hook 包括：
+
+| Hook | 作用 |
+|------|------|
+| `routes:discover` | 在路由发现阶段添加或修改路由。 |
+| `routes:discovered` | 路由发现后补充元数据，例如解析 OpenAPI。 |
+| `routes:resolved` | 修改最终路由和导航。 |
+| `modules:before` | 在 Vite 消费前添加或修改虚拟模块。 |
+| `html:transform` | 转换 HTML shell 和注入标签。 |
+| `dev:configureServer` | 添加开发服务器中间件。 |
+| `build:done` | SSG 后写入额外制品。 |
+
+这套模型应该继续承载搜索索引、分析脚本、AI 翻译等后续扩展，避免在构建流程中添加一次性的特殊分支。
 
 ---
 
@@ -101,7 +169,7 @@ graph TD
 | 样式 | Tailwind CSS | 4.x | 工具优先，最小 CSS 输出，设计系统友好 |
 | CLI 内部构建工具 | Vite | 8.x | 快速 HMR，优化生产构建，作为实现细节封装在 CLI 内部 |
 | 语言 | TypeScript | 5.x | 严格模式，出色的 DX，类型安全的 MDX/OpenAPI 摄取 |
-| 包构建器 | tsup | 8.5.x | 包的快速 ESM/CJS + DTS 构建 |
+| 包构建器 | Vite library build | 8.x | 当前包构建脚本使用 `vite build` 输出 ESM / CJS / DTS |
 | 包管理器 | pnpm | 9.x | Workspace 原生，确定性，磁盘高效 |
 | Monorepo | pnpm workspaces | - | 简单，快速，无需额外工具 |
 

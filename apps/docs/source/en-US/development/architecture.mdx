@@ -1,24 +1,134 @@
 # Architecture
 
-Clarify is a pnpm workspace with separate packages for the CLI/docs engine and the shared renderer.
+Clarify is a pnpm workspace that separates product apps from reusable packages. The repository is intentionally small: the CLI owns the documentation engine, and the renderer owns the React runtime.
 
 ---
 
-## Packages
+## Workspace structure
 
-| Package | Responsibility |
-|---------|----------------|
-| `apps/docs` | Documentation playground and integration site. |
-| `apps/www` | Marketing and landing page. |
-| `packages/cli` | Config loading, content discovery, OpenAPI parsing, dev server, and static build orchestration. |
-| `packages/renderer` | React shell, documentation components, MDX runtime, and OpenAPI UI. |
+```txt
+apps/
+  docs/       Documentation playground and integration site
+  www/        Marketing and landing page
+packages/
+  cli/        CLI, config loading, route discovery, plugins, Vite integration, SSG
+  renderer/   React shell, MDX primitives, OpenAPI UI, client/server render entries
+```
+
+---
+
+## Package responsibilities
+
+| Package | Responsibility | Notes |
+|---------|----------------|-------|
+| `apps/docs` | Real Clarify project used as the documentation playground. | Uses `clarify.ts`, localized `source/` content, tabs, MDX pages, and OpenAPI examples. |
+| `apps/www` | Independent marketing site. | Does not depend on `packages/*`; this keeps marketing deployment separate from the docs engine. |
+| `packages/cli` | Public CLI and internal documentation engine. | Exposes `clarify dev`, `clarify build`, `clarify init`, and `defineConfig`. |
+| `packages/renderer` | Shared React renderer. | Exposes `@clarify-labs/renderer`, `@clarify-labs/renderer/client`, `@clarify-labs/renderer/server`, and `style.css`. |
+
+Package builds currently use Vite library builds (`vite build`) and type declarations. User projects should not need to know this; the public interface remains the Clarify CLI.
+
+---
+
+## System boundary
+
+Clarify has three boundaries that should stay clear:
+
+| Boundary | Input | Output |
+|----------|-------|--------|
+| User project → CLI | `clarify.ts/js/json`, `source/`, `public/`, CLI flags | Resolved config, route model, virtual modules, build output |
+| CLI → Renderer | `config`, `routes`, `navigation`, `openApis` virtual modules | React application shell and pages |
+| Build → Deployment | `output/` | Static HTML, assets, copied public files, raw content artifacts, `llms.txt` |
+
+Do not move file-system concerns into the renderer. Do not move visual component logic into the CLI unless it is represented as data.
 
 ---
 
 ## Data flow
 
-1. The CLI loads project config.
-2. It scans `source/` for MDX and OpenAPI content.
-3. It builds a route model and metadata.
-4. The renderer turns routes into React pages.
-5. The SSG step writes static HTML and assets to `output/`.
+```txt
+clarify.ts / clarify.js / clarify.json
+  → loadClarifyConfig()
+  → validateProjectConfig()
+  → resolveProjectConfig() + resolveBuildOptions()
+  → findContentRoutes() + OpenAPI discovery
+  → ContentRoute[]
+  → NavigationTree
+  → buildVirtualModules()
+  → renderer client/server entries
+  → output/
+```
+
+The most important internal data types are:
+
+| Type | Owner | Purpose |
+|------|-------|---------|
+| `ResolvedProjectConfig` | CLI | Site title, description, route prefix, theme, navbar, footer, i18n, and tabs with defaults applied. |
+| `ResolvedBuildOptions` | CLI | Content root, output directory, and SSG behavior. |
+| `ContentRoute` | CLI → Renderer | One renderable route. Includes path, locale, title, description, kind, file path, virtual module ID, sections, alternates, and optional `contentArtifactUrl`. |
+| `NavigationTree` | CLI → Renderer | Sidebar and tab navigation, optionally localized. |
+
+---
+
+## Route and content model
+
+Clarify derives routes from files under `rootDirectory` (default: `source`):
+
+```txt
+source/index.mdx              → /
+source/getting-started.mdx    → /getting-started
+source/guides/index.mdx       → /guides
+source/api.openapi.json       → /api
+```
+
+For localized projects, content lives under locale folders:
+
+```txt
+source/zh-CN/index.mdx        → /
+source/en-US/index.mdx        → /en-US
+source/en-US/guides.mdx       → /en-US/guides
+```
+
+The default locale is shown without a locale prefix. Non-default locales are prefixed with the locale code. When `i18n.missing` is `fallback`, missing localized pages reuse the default locale route content and are marked as fallback routes.
+
+---
+
+## Navigation model
+
+Navigation is generated in one of two ways:
+
+1. **File tree navigation**: when no explicit tab/page config exists, the sidebar follows discovered routes.
+2. **Configured tabs**: `tabs` defines top-level product areas. Each tab can use `pages: 'FileTree'` or explicit groups and pages.
+
+The renderer does not infer navigation from files. It receives a fully built `NavigationTree` and only decides which subset to display for the current locale and active tab.
+
+---
+
+## Plugin model
+
+Clarify plugins are build-time extensions. They run inside the CLI pipeline and can transform routes, virtual modules, HTML, dev server middleware, and build completion behavior.
+
+Current implemented hook families include:
+
+| Hook | Purpose |
+|------|---------|
+| `routes:discover` | Add or modify discovered routes before OpenAPI and navigation resolution. |
+| `routes:discovered` | Enrich discovered routes, such as parsing OpenAPI specs. |
+| `routes:resolved` | Modify final routes and navigation. |
+| `modules:before` | Add or modify virtual modules before Vite consumes them. |
+| `html:transform` | Transform the HTML shell and injected tags. |
+| `dev:configureServer` | Add development server middleware. |
+| `build:done` | Write extra artifacts after SSG. |
+
+The built-in OpenAPI, content artifact, and HTML shell features are implemented as Clarify plugins. This keeps future features like search indexes, analytics snippets, or AI translation in the same extension model.
+
+---
+
+## Development constraints
+
+- Use `pnpm` and workspace dependencies.
+- Keep source files under `source/`.
+- Keep packages application-independent.
+- Keep the renderer tree-shakeable and free of CLI-only file-system dependencies.
+- Prefer typed configuration and typed route metadata over ad-hoc runtime globals.
+- Validate both type checking and production build when changing cross-package behavior.

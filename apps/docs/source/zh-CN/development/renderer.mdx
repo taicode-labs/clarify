@@ -21,7 +21,7 @@ CLI 生成 `virtual:clarify-entry-client`，并在 HTML 中注入该入口。入
 
 ```ts
 import '@clarify-labs/renderer/style.css'
-import { render } from '@clarify-labs/renderer'
+import { render } from '@clarify-labs/renderer/client'
 import { routes, navigation } from 'virtual:clarify-routes'
 import { config } from 'virtual:clarify-config'
 import { openApis } from 'virtual:clarify-openapi-registry'
@@ -37,7 +37,7 @@ render({ config, routes, navigation, openApis })
 
 ```ts
 import { renderToHTML } from '@clarify-labs/renderer/server'
-import { routes, navigation } from 'virtual:clarify-routes'
+import { routes, navigation } from 'virtual:clarify-routes/server'
 import { config } from 'virtual:clarify-config'
 import { openApis } from 'virtual:clarify-openapi-registry'
 
@@ -80,7 +80,7 @@ export const routes: Array<{
   component: React.ComponentType
   kind: 'mdx' | 'openapi'
   sections?: Array<{ id: string; title: string }>
-  rawContentUrl?: string
+  contentArtifactUrl?: string
 }>
 
 export const navigation: NavigationTree
@@ -102,14 +102,33 @@ export const openApis: Record<string, OpenAPISpec>
 export const config: ResolvedProjectConfig & ResolvedBuildOptions
 ```
 
-### `virtual:clarify-pages/*`
+### `virtual:clarify-page/*`
 
 每个 MDX / Markdown 页面是一个独立的虚拟模块：
 
 ```typescript
-// virtual:clarify-pages/getting-started
+// virtual:clarify-page/getting-started
 export { default } from '/absolute/path/to/source/getting-started.mdx'
 ```
+
+---
+
+## Renderer 消费的路由数据
+
+Renderer 不关心文件系统，只消费 CLI 生成的 route item：
+
+| 字段 | 用途 |
+|------|------|
+| `path` | React Router 匹配和导航 active 状态。 |
+| `title` | 页面标题和导航显示。 |
+| `description` / `keywords` | Hydration 后的运行时 metadata 更新。 |
+| `kind` | 区分 MDX 和 OpenAPI 页面。 |
+| `locale`、`basePath`、`alternates`、`isFallback` | 语言上下文和语言切换。 |
+| `sections` | 侧边栏锚点和页面内导航。 |
+| `contentArtifactUrl` | raw Markdown/OpenAPI 内容复制和链接操作。 |
+| `component` / `lazy` | 页面组件导入策略。 |
+
+如果需要新增渲染器消费的 route 字段，应先确认 CLI 能同时为客户端和服务端虚拟模块稳定生成该字段。
 
 ---
 
