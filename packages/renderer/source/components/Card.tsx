@@ -24,7 +24,7 @@ function CardIcon(arg0: { name?: string }) {
   if (!Icon) return null
 
   return (
-    <span className="flex size-9 flex-none items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 ring-1 ring-emerald-500/10 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-emerald-400/20">
+    <span className="flex size-9 flex-none items-center justify-center rounded-[var(--clarify-theme-tokens-radius-lg)] bg-(--clarify-ui-accent-background) text-(--clarify-ui-accent-text) ring-1 ring-(--clarify-ui-accent-border)">
       <Icon className="size-5" aria-hidden="true" />
     </span>
   )
@@ -69,20 +69,20 @@ export function Card(arg0: CardProps) {
       <div className="flex items-start gap-4">
         <CardIcon name={icon} />
         <div className="min-w-0 flex-1">
-          <h3 className="m-0 text-base font-semibold text-zinc-900 dark:text-white">{title}</h3>
+          <h3 className="m-0 text-base font-semibold text-[var(--clarify-theme-tokens-colors-foreground)] dark:text-white">{title}</h3>
           {children ? (
-            <div className="mt-2 text-sm/6 text-zinc-600 dark:text-zinc-400 *:m-0">
+            <div className="mt-2 text-sm/6 text-[var(--clarify-theme-tokens-colors-muted)] dark:text-zinc-400 *:m-0">
               {children}
             </div>
           ) : null}
         </div>
       </div>
-      {href ? <span className="absolute inset-0 rounded-2xl" aria-hidden="true" /> : null}
+      {href ? <span className="absolute inset-0 rounded-[var(--clarify-theme-tokens-radius-xl)]" aria-hidden="true" /> : null}
     </>
   )
 
   const classes = clsx(
-    'group relative block rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-emerald-300 hover:shadow-md dark:border-white/10 dark:bg-zinc-900/50 dark:hover:border-emerald-400/40',
+    'group relative block rounded-[var(--clarify-theme-tokens-radius-xl)] border border-[color:var(--clarify-theme-tokens-colors-border)] bg-[var(--clarify-theme-tokens-colors-surface)] p-5 shadow-sm shadow-(--clarify-ui-accent-glow) transition hover:border-(--clarify-ui-accent-border) hover:shadow-md dark:bg-zinc-900/50',
     className,
   )
 

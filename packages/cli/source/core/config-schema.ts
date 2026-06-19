@@ -98,14 +98,55 @@ export const clarifyPagesConfigSchema = z.union([
   z.literal('FileTree'),
 ])
 
+export const clarifyTabItemSchema = z.object({
+  tab: clarifyLocalizedTextSchema,
+  icon: z.string().optional(),
+  pages: clarifyPagesConfigSchema.optional(),
+})
+
+export const clarifyTabsConfigSchema = z.array(clarifyTabItemSchema)
+
+export const clarifyThemePresetSchema = z.enum(['default', 'base'])
+
+export const clarifyThemeColorTokensConfigSchema = z.object({
+  primary: z.string().optional(),
+  accent: z.string().optional(),
+  background: z.string().optional(),
+  foreground: z.string().optional(),
+  surface: z.string().optional(),
+  muted: z.string().optional(),
+  border: z.string().optional(),
+  codeBackground: z.string().optional(),
+})
+
+export const clarifyThemeRadiusTokensConfigSchema = z.object({
+  sm: z.string().optional(),
+  md: z.string().optional(),
+  lg: z.string().optional(),
+  xl: z.string().optional(),
+})
+
+export const clarifyThemeTokensConfigSchema = z.object({
+  colors: clarifyThemeColorTokensConfigSchema.optional(),
+  radius: clarifyThemeRadiusTokensConfigSchema.optional(),
+})
+
+export const clarifyThemeLayoutConfigSchema = z.object({
+  maxWidth: z.string().optional(),
+})
+
+export const clarifyThemeConfigSchema = z.object({
+  preset: clarifyThemePresetSchema.optional(),
+  tokens: clarifyThemeTokensConfigSchema.optional(),
+  layout: clarifyThemeLayoutConfigSchema.optional(),
+})
+
 export const clarifyProjectConfigSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   logo: clarifyLogoConfigSchema.optional(),
   favicon: clarifyFaviconConfigSchema.optional(),
-  theme: z.object({
-    primary: z.string().optional(),
-  }).optional(),
+  theme: clarifyThemeConfigSchema.optional(),
   routePrefix: z.string().optional(),
   navbar: z.object({
     links: z.array(clarifyNavbarLinkSchema).optional(),
@@ -113,7 +154,7 @@ export const clarifyProjectConfigSchema = z.object({
   banner: clarifyBannerConfigSchema.optional(),
   footer: clarifyFooterConfigSchema.optional(),
   i18n: clarifyI18nConfigSchema.optional(),
-  pages: clarifyPagesConfigSchema.optional(),
+  tabs: clarifyTabsConfigSchema.optional(),
 }) satisfies z.ZodType<ClarifyProjectConfig>
 
 export type ClarifyProjectConfigInput = z.input<typeof clarifyProjectConfigSchema>

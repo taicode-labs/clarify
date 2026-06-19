@@ -64,14 +64,18 @@ type ResolvedProjectConfig = {
   title: string
   logo?: string | { light?: string; dark?: string }
   favicon?: string | { light?: string; dark?: string }
-  theme: { primary?: string }
+  theme: {
+    preset: 'default' | 'base'
+    tokens: ResolvedClarifyThemeTokensConfig
+    layout: ResolvedClarifyThemeLayoutConfig
+  }
   description: string
   routePrefix: string
   navbar?: { links?: ClarifyNavbarLink[] }
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig
   i18n?: ResolvedClarifyI18nConfig
-  pages?: ClarifyPagesConfig
+  tabs?: ClarifyTabsConfig
 }
 ```
 
@@ -146,9 +150,25 @@ type ContentRoute = {
 ## 导航类型
 
 ```ts
-type NavigationTree = ClarifyNavigationNode[] | LocalizedNavigation
+type NavigationTree =
+  | ClarifyNavigationNode[]
+  | LocalizedNavigation
+  | TabbedNavigation
+  | LocalizedTabbedNavigation
 
 type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
+
+type TabbedNavigation = { tabs: ClarifyNavigationTab[] }
+
+type LocalizedTabbedNavigation = Record<string, TabbedNavigation>
+
+type ClarifyNavigationTab = {
+  type: 'tab'
+  path: string
+  title: string
+  icon?: string
+  children: ClarifyNavigationNode[]
+}
 
 type ClarifyNavigationNode = {
   path: string
@@ -159,7 +179,7 @@ type ClarifyNavigationNode = {
 }
 ```
 
-启用 i18n 时，`navigation` 是按 locale 分组的对象；未启用 i18n 时，`navigation` 是普通数组。
+启用 `tabs` 时，`navigation` 是 `{ tabs }` 结构；同时启用 i18n 时，`navigation` 是按 locale 分组的 `{ tabs }` 对象。未启用 `tabs` 时仍是普通侧边栏数组，启用 i18n 时是按 locale 分组的侧边栏数组。
 
 ---
 

@@ -71,20 +71,26 @@ source/
 
 ## 加入侧边栏
 
-如果没有配置 `pages`，Clarify 会按文件树生成导航。
+如果没有配置 `tabs`，Clarify 会按文件树生成导航。
 
-如果你手动维护侧边栏，需要使用 `openapi` 条目引用规范文件：
+如果你手动维护侧边栏，需要在对应 tab 的 `pages` 中使用 `openapi` 条目引用规范文件：
 
 ```json
 {
-  "pages": [
+  "tabs": [
     {
-      "group": "API 文档",
+      "tab": "API",
+      "icon": "BookOpenCheck",
       "pages": [
         {
-          "openapi": "api.openapi.json",
-          "title": "API Reference",
-          "icon": "BookOpenCheck"
+          "group": "API 文档",
+          "pages": [
+            {
+              "openapi": "api.openapi.json",
+              "title": "API Reference",
+              "icon": "BookOpenCheck"
+            }
+          ]
         }
       ]
     }
@@ -146,7 +152,7 @@ Clarify 会尽量渲染规范中已有的信息，但不会替你补全缺失的
 
 ### 为什么页面没有出现在侧边栏？
 
-如果你显式配置了 `pages`，Clarify 不会自动把所有文件插入侧边栏。需要手动添加 `openapi` 条目。
+如果你显式配置了 `tabs[].pages`，Clarify 不会自动把所有文件插入该 tab 的侧边栏。需要手动添加 `openapi` 条目。
 
 ### 为什么构建失败？
 

@@ -2,6 +2,8 @@ import clsx from 'clsx'
 import { AlertTriangle, CheckCircle2, Info, Lightbulb, XCircle } from 'lucide-react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 
+import { useBuiltInText } from '../i18n'
+
 export type CalloutType = 'info' | 'note' | 'tip' | 'warning' | 'danger' | 'success'
 
 type CalloutStyle = {
@@ -50,13 +52,13 @@ const calloutStyles: Record<CalloutType, CalloutStyle> = {
   },
 }
 
-const defaultTitles: Record<CalloutType, string> = {
-  info: 'Info',
-  note: 'Note',
-  tip: 'Tip',
-  warning: 'Warning',
-  danger: 'Danger',
-  success: 'Success',
+const defaultTitleKeys: Record<CalloutType, Parameters<ReturnType<typeof useBuiltInText>>[0]> = {
+  info: 'callout.info',
+  note: 'callout.note',
+  tip: 'callout.tip',
+  warning: 'callout.warning',
+  danger: 'callout.danger',
+  success: 'callout.success',
 }
 
 export type CalloutProps = {
@@ -77,14 +79,15 @@ export function Callout(arg0: CalloutProps) {
     ...props
   } = arg0
 
+  const t = useBuiltInText()
   const style = calloutStyles[type]
   const Icon = style.Icon
-  const resolvedTitle = title === undefined ? defaultTitles[type] : title
+  const resolvedTitle = title === undefined ? t(defaultTitleKeys[type]) : title
 
   return (
     <div
       className={clsx(
-        'clarify-callout my-6 flex gap-3 rounded-2xl border p-4 text-sm/6',
+        'clarify-callout my-6 flex gap-3 rounded-(--clarify-theme-tokens-radius-xl) border p-4 text-sm/6',
         style.container,
         className,
       )}

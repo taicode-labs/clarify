@@ -6,7 +6,7 @@ import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
 import { visit } from 'unist-util-visit'
 
-import type { ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, LocalizedNavigation, ResolvedClarifyI18nConfig } from '../types.js'
+import type { ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, ResolvedClarifyI18nConfig, TabbedNavigation } from '../types.js'
 
 import { parseFrontmatter } from './frontmatter.js'
 
@@ -222,6 +222,35 @@ function resolvePageItem(
   return { pageRef: item.page, redirect: item.redirect, title: item.title, icon: item.icon }
 }
 
+function firstNavigationPath(nodes: ClarifyNavigationNode[]): string {
+  for (const node of nodes) {
+    if (node.path) return node.path
+    const childPath = node.children ? firstNavigationPath(node.children) : undefined
+    if (childPath) return childPath
+  }
+  return '/'
+}
+
+function buildNavigationFromPagesConfig(routes: ContentRoute[], config?: ClarifyPagesConfig): ClarifyNavigationNode[] {
+  if (!config || config === 'FileTree') return buildNavigation(routes)
+  return buildNavigationFromConfig(routes, config)
+}
+
+export function buildNavigationFromTabsConfig(routes: ContentRoute[], tabs: ClarifyTabsConfig): TabbedNavigation {
+  return {
+    tabs: tabs.map(tab => {
+      const children = buildNavigationFromPagesConfig(routes, tab.pages)
+      return {
+        type: 'tab',
+        path: firstNavigationPath(children),
+        title: resolveLocalizedText(tab.tab, '', '') ?? '',
+        icon: tab.icon,
+        children,
+      }
+    }),
+  }
+}
+
 export function buildNavigationFromConfig(routes: ContentRoute[], config: ClarifyPagesGroup[]): ClarifyNavigationNode[] {
   const routeMap = new Map(routes.map(r => [r.path, r]))
 
@@ -268,43 +297,69 @@ function localizeNavigationPaths(nodes: ClarifyNavigationNode[], locale: string,
   }))
 }
 
-export function buildLocalizedNavigation(routes: ContentRoute[], config: ClarifyPagesGroup[] | 'FileTree' | undefined, i18n?: ResolvedClarifyI18nConfig): LocalizedNavigation | undefined {
+export function buildLocalizedNavigation(routes: ContentRoute[], config: ClarifyPagesConfig | undefined, i18n?: ResolvedClarifyI18nConfig): LocalizedNavigation | undefined {
   if (!i18n) return undefined
 
   const result: LocalizedNavigation = {}
   for (const locale of i18n.locales) {
     const localeRoutes = routes.filter(route => route.locale === locale.code)
-    if (!config || config === 'FileTree') {
-      const baseNavigation = buildNavigation(localeRoutes.map(route => ({ ...route, path: route.basePath ?? route.path })))
-      result[locale.code] = localizeNavigationPaths(baseNavigation, locale.code, i18n)
-      continue
-    }
+    result[locale.code] = buildLocalizedNavigationForLocale(localeRoutes, config, locale.code, i18n)
+  }
 
-    const routeMap = new Map(localeRoutes.map(route => [route.basePath ?? route.path, route]))
-    result[locale.code] = config.map(group => {
-      const children = group.pages.map(item => {
-        const { pageRef, openapiRef, redirect, title, icon } = resolvePageItem(item)
-        const ref = openapiRef ?? pageRef ?? ''
-        const basePath = basePathFromRef(ref)
-        const route = routeMap.get(basePath)
-        const path = route?.path ?? localizedRoutePath(basePath, locale.code, i18n)
-        const redirectPath = redirect ? localizedRoutePath(basePathFromRef(redirect), locale.code, i18n) : undefined
+  return result
+}
 
-        return {
-          path: redirectPath ?? path,
-          title: resolveLocalizedText(title, locale.code, i18n.defaultLocale) ?? route?.title ?? kebabToTitle(basePath.split('/').pop() ?? ref),
-          icon,
-          sections: route?.sections ? navigationSections(route.sections) : undefined,
-        }
-      })
+function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: ClarifyPagesConfig | undefined, locale: string, i18n: ResolvedClarifyI18nConfig): ClarifyNavigationNode[] {
+  if (!config || config === 'FileTree') {
+    const baseNavigation = buildNavigation(routes.map(route => ({ ...route, path: route.basePath ?? route.path })))
+    return localizeNavigationPaths(baseNavigation, locale, i18n)
+  }
+
+  const routeMap = new Map(routes.map(route => [route.basePath ?? route.path, route]))
+  return config.map(group => {
+    const children = group.pages.map(item => {
+      const { pageRef, openapiRef, redirect, title, icon } = resolvePageItem(item)
+      const ref = openapiRef ?? pageRef ?? ''
+      const basePath = basePathFromRef(ref)
+      const route = routeMap.get(basePath)
+      const path = route?.path ?? localizedRoutePath(basePath, locale, i18n)
+      const redirectPath = redirect ? localizedRoutePath(basePathFromRef(redirect), locale, i18n) : undefined
 
       return {
-        path: children[0]?.path ?? localizedRoutePath('/', locale.code, i18n),
-        title: resolveLocalizedText(group.group, locale.code, i18n.defaultLocale) ?? '',
-        icon: group.icon,
-        children,
+        path: redirectPath ?? path,
+        title: resolveLocalizedText(title, locale, i18n.defaultLocale) ?? route?.title ?? kebabToTitle(basePath.split('/').pop() ?? ref),
+        icon,
+        sections: route?.sections ? navigationSections(route.sections) : undefined,
       }
     })
+
+    return {
+      path: children[0]?.path ?? localizedRoutePath('/', locale, i18n),
+      title: resolveLocalizedText(group.group, locale, i18n.defaultLocale) ?? '',
+      icon: group.icon,
+      children,
+    }
+  })
+}
+
+export function buildLocalizedNavigationFromTabsConfig(routes: ContentRoute[], tabs: ClarifyTabsConfig, i18n?: ResolvedClarifyI18nConfig): LocalizedTabbedNavigation | undefined {
+  if (!i18n) return undefined
+
+  const result: LocalizedTabbedNavigation = {}
+  for (const locale of i18n.locales) {
+    const localeRoutes = routes.filter(route => route.locale === locale.code)
+    result[locale.code] = {
+      tabs: tabs.map(tab => {
+        const children = buildLocalizedNavigationForLocale(localeRoutes, tab.pages, locale.code, i18n)
+        return {
+          type: 'tab',
+          path: firstNavigationPath(children),
+          title: resolveLocalizedText(tab.tab, locale.code, i18n.defaultLocale) ?? '',
+          icon: tab.icon,
+          children,
+        }
+      }),
+    }
   }
 
   return result

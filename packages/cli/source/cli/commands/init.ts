@@ -43,7 +43,7 @@ export function runInit(options: ResolvedCliOptions, force: boolean): void {
 export default defineConfig({
   title: 'Clarify Docs',
   description: 'Documentation powered by Clarify',
-  theme: { primary: '#0ea5e9' },
+  theme: { preset: 'default' },
 })
 `, force)
   ;(clarifyConfigCreated ? created : skipped).push('clarify.ts')

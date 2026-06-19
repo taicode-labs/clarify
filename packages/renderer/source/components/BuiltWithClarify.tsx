@@ -1,5 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 
+import { useBuiltInText } from '../i18n'
+
 function ClarifyMark(props: ComponentPropsWithoutRef<'svg'>) {
   return (
     <svg viewBox="0 0 279 200" aria-hidden="true" {...props}>
@@ -11,17 +13,19 @@ function ClarifyMark(props: ComponentPropsWithoutRef<'svg'>) {
 }
 
 export function BuiltWithClarify() {
+  const t = useBuiltInText()
+
   return (
     <a
       href="https://clarify.pub"
       target="_blank"
       rel="noreferrer"
-      aria-label="Built with Clarify"
-      className="clarify-built-with inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium text-zinc-500 no-underline transition hover:bg-zinc-900/2.5 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-white/5 dark:hover:text-white"
+      aria-label={t('builtWith.label')}
+      className="clarify-built-with inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-medium no-underline transition"
     >
-      <span>Built with</span>
+      <span>{t('builtWith.prefix')}</span>
       <ClarifyMark className="clarify-built-with-logo h-3.5 w-5 flex-none" />
-      <span className="font-semibold text-zinc-700 dark:text-zinc-300">Clarify</span>
+      <span className="clarify-built-with-brand font-semibold">Clarify</span>
     </a>
   )
 }

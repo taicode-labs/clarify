@@ -13,6 +13,8 @@ import {
 } from 'react'
 import { create } from 'zustand'
 
+import { useBuiltInText } from '../i18n'
+
 const languageNames: Record<string, string> = {
   js: 'JavaScript',
   ts: 'TypeScript',
@@ -30,11 +32,11 @@ const languageNames: Record<string, string> = {
   json: 'JSON',
 }
 
-function getPanelTitle(arg0: { title?: string; language?: string }) {  const { title, language } = arg0
+function getPanelTitle(arg0: { title?: string; language?: string; fallbackTitle?: string }) {  const { title, language, fallbackTitle = 'Code' } = arg0
 
   if (title) return title
   if (language && language in languageNames) return languageNames[language]
-  return 'Code'
+  return fallbackTitle
 }
 
 function getNodeText(node: ReactNode): string {
@@ -62,6 +64,7 @@ function ClipboardIcon(props: ComponentPropsWithoutRef<'svg'>) {
 
 function CopyButton(arg0: { code: string }) {  const { code } = arg0
 
+  const t = useBuiltInText()
   const [copyCount, setCopyCount] = useState(0)
   const copied = copyCount > 0
 
@@ -79,7 +82,7 @@ function CopyButton(arg0: { code: string }) {  const { code } = arg0
       className={clsx(
         'clarify-code-copy group/button absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 text-2xs font-medium opacity-0 backdrop-blur-sm transition group-hover:opacity-100 focus:opacity-100',
         copied
-          ? 'bg-emerald-400/10 ring-1 ring-emerald-400/20 ring-inset'
+          ? 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_24%,transparent)] ring-inset'
           : 'bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5',
       )}
       onClick={() => {
@@ -96,16 +99,16 @@ function CopyButton(arg0: { code: string }) {  const { code } = arg0
         )}
       >
         <ClipboardIcon className="h-5 w-5 fill-zinc-500/20 stroke-zinc-500 transition-colors group-hover/button:stroke-zinc-400" />
-        Copy
+        {t('actions.copy')}
       </span>
       <span
         aria-hidden={!copied}
         className={clsx(
-          'pointer-events-none absolute inset-0 flex items-center justify-center text-emerald-400 transition duration-300',
+          'pointer-events-none absolute inset-0 flex items-center justify-center text-[var(--clarify-theme-tokens-colors-primary)] transition duration-300',
           !copied && 'translate-y-1.5 opacity-0',
         )}
       >
-        Copied!
+        {t('actions.copied')}
       </span>
     </button>
   )
@@ -117,7 +120,7 @@ function CodePanelHeader(arg0: { tag?: string; label?: string }) {  const { tag,
 
   return (
     <div className="clarify-code-panel-header flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
-      {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-emerald-400">{tag}</span> : null}
+      {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-[var(--clarify-theme-tokens-colors-primary)]">{tag}</span> : null}
       {tag && label ? <span className="h-0.5 w-0.5 rounded-full bg-zinc-500" /> : null}
       {label ? <span className="font-mono text-xs text-zinc-400">{label}</span> : null}
     </div>
@@ -157,6 +160,7 @@ function CodePanel(arg0: {
 
 function CodeGroupHeader(arg0: { title?: string; children: ReactNode; selectedIndex: number }) {  const { title, children, selectedIndex } = arg0
 
+  const t = useBuiltInText()
   const hasTabs = Children.count(children) > 1
 
   if (!title && !hasTabs) return null
@@ -171,11 +175,11 @@ function CodeGroupHeader(arg0: { title?: string; children: ReactNode; selectedIn
               className={clsx(
                 'clarify-code-tab border-b py-3 transition data-selected:not-data-focus:outline-hidden',
                 childIndex === selectedIndex
-                  ? 'border-emerald-500 text-emerald-400'
+                  ? 'border-[var(--clarify-theme-tokens-colors-primary)] text-[var(--clarify-theme-tokens-colors-primary)]'
                   : 'border-transparent text-zinc-400 hover:text-zinc-300',
               )}
             >
-              {getPanelTitle(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {})}
+              {getPanelTitle({ ...(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {}), fallbackTitle: t('actions.code') })}
             </Tab>
           ))}
         </TabList>
@@ -271,9 +275,10 @@ export function CodeGroup(arg0: ComponentPropsWithoutRef<typeof CodeGroupPanels>
   ...props
 } = arg0
 
+  const t = useBuiltInText()
   const languages =
     Children.map(children, (child) =>
-      getPanelTitle(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {}),
+      getPanelTitle({ ...(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {}), fallbackTitle: t('actions.code') }),
     ) ?? []
   const tabGroupProps = useTabGroupProps(languages)
   const hasTabs = Children.count(children) > 1

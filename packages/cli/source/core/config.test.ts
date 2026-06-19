@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { clarifyProjectConfigSchema } from './config-schema.js'
 import { resolveProjectConfig } from './config.js'
 import { resolveBuildOptions } from './options.js'
+import { clarifyThemePresets } from './theme.js'
 
 describe('clarifyProjectConfigSchema', () => {
   it('validates project config', () => {
@@ -13,7 +14,9 @@ describe('clarifyProjectConfigSchema', () => {
         defaultLocale: 'zh-CN',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
       },
-      pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }],
+      tabs: [
+        { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+      ],
     })).toEqual({
       title: 'Docs',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
@@ -21,7 +24,9 @@ describe('clarifyProjectConfigSchema', () => {
         defaultLocale: 'zh-CN',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
       },
-      pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }],
+      tabs: [
+        { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+      ],
     })
   })
 
@@ -55,12 +60,35 @@ describe('resolveProjectConfig', () => {
       logo: undefined,
       favicon: undefined,
       routePrefix: '/',
-      theme: {},
+      theme: {
+        preset: 'default',
+        tokens: {
+          colors: {
+            primary: '#00D492',
+            accent: '#00F6C9',
+            background: '#ffffff',
+            foreground: '#111827',
+            surface: '#ffffff',
+            muted: '#64748b',
+            border: 'rgb(15 23 42 / 0.12)',
+            codeBackground: '#f7fefb',
+          },
+          radius: {
+            sm: '6px',
+            md: '10px',
+            lg: '14px',
+            xl: '18px',
+          },
+        },
+        layout: {
+          maxWidth: '82rem',
+        },
+      },
       navbar: undefined,
       banner: undefined,
       footer: undefined,
       i18n: undefined,
-      pages: undefined,
+      tabs: undefined,
     })
   })
 
@@ -68,7 +96,7 @@ describe('resolveProjectConfig', () => {
     const config = {
       title: 'Project Docs',
       description: 'Desc',
-      theme: { primary: '#333' },
+      theme: { tokens: { colors: { primary: '#333' } } },
       favicon: '/favicon.svg',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
       banner: { content: 'v2 is out', dismissible: true },
@@ -80,15 +108,15 @@ describe('resolveProjectConfig', () => {
           { code: 'en-US', label: 'English' },
         ],
       },
-      pages: [
-        { group: 'Getting Started', pages: ['index', 'quickstart'] },
-        { group: 'Advanced', pages: ['advanced/ssg'] },
+      tabs: [
+        { tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] },
       ],
     }
     const result = resolveProjectConfig(config)
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
-    expect(result.theme).toEqual({ primary: '#333' })
+    expect(result.theme.tokens.colors.primary).toBe('#333')
+    expect(result.theme.layout).toEqual({ maxWidth: '82rem' })
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
@@ -101,10 +129,47 @@ describe('resolveProjectConfig', () => {
         { code: 'en-US', label: 'English' },
       ],
     })
-    expect(result.pages).toEqual([
-      { group: 'Getting Started', pages: ['index', 'quickstart'] },
-      { group: 'Advanced', pages: ['advanced/ssg'] },
+    expect(result.tabs).toEqual([
+      { tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] },
     ])
+  })
+
+  it('applies theme presets before project overrides', () => {
+    const baseTheme = resolveProjectConfig({ theme: { preset: 'base' } }).theme
+    expect(baseTheme.preset).toBe('base')
+    expect(baseTheme.tokens.colors.primary).toBe('#18181b')
+    expect(baseTheme.tokens.colors.accent).toBe('#52525b')
+    expect(baseTheme.layout).toEqual({ maxWidth: '80rem' })
+
+    const customizedBaseTheme = resolveProjectConfig({
+      theme: {
+        preset: 'base',
+        tokens: { colors: { primary: '#333' } },
+        layout: {},
+      },
+    }).theme
+    expect(customizedBaseTheme.preset).toBe('base')
+    expect(customizedBaseTheme.tokens.colors.primary).toBe('#333')
+    expect(customizedBaseTheme.tokens.colors.accent).toBe('#52525b')
+    expect(customizedBaseTheme.layout).toEqual({ maxWidth: '80rem' })
+  })
+
+  it('defines every built-in theme token and layout value', () => {
+    const requiredColorTokens = ['primary', 'accent', 'background', 'foreground', 'surface', 'muted', 'border', 'codeBackground'] as const
+    const requiredRadiusTokens = ['sm', 'md', 'lg', 'xl'] as const
+    const requiredLayoutValues = ['maxWidth'] as const
+
+    for (const theme of Object.values(clarifyThemePresets)) {
+      for (const token of requiredColorTokens) {
+        expect(theme.tokens.colors[token]).toBeTruthy()
+      }
+      for (const token of requiredRadiusTokens) {
+        expect(theme.tokens.radius[token]).toBeTruthy()
+      }
+      for (const value of requiredLayoutValues) {
+        expect(theme.layout[value]).toBeTruthy()
+      }
+    }
   })
 })
 

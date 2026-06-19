@@ -13,7 +13,7 @@ Mintlify 的 `docs.json` 与 Clarify 的 `clarify.json` 字段基本兼容：
 | `name` | `title` | 同义 |
 | `description` | `description` | 直接对应 |
 | `logo` | `logo` | 直接对应 |
-| `colors.primary` | `theme.primary` | 路径调整 |
+| `colors.primary` | `theme.tokens.colors.primary` | 路径调整，可与 `theme.preset` 搭配使用 |
 
 Clarify 会接受未知的 Mintlify 字段并静默忽略（附带警告），提供平滑的迁移路径。
 
@@ -34,7 +34,7 @@ mv docs.json clarify.json
 {
   "name": "我的文档",
   "colors": {
-    "primary": "#0ea5e9"
+    "primary": "#00D492"
   }
 }
 
@@ -42,7 +42,12 @@ mv docs.json clarify.json
 {
   "title": "我的文档",
   "theme": {
-    "primary": "#0ea5e9"
+    "preset": "default",
+    "tokens": {
+      "colors": {
+        "primary": "#00D492"
+      }
+    }
   }
 }
 ```

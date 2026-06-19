@@ -4,6 +4,7 @@ import { join } from 'node:path'
 
 import { describe, expect, it, afterEach, beforeEach } from 'vitest'
 
+import { resolveThemeConfig } from '../../core/theme.js'
 import type { ClarifyHookContext, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 import { createOpenAPIPlugin } from './index.js'
@@ -12,7 +13,7 @@ const projectConfig: ResolvedProjectConfig = {
   title: 'Test',
   description: 'Test docs',
   routePrefix: '/',
-  theme: { primary: '#000000' },
+  theme: resolveThemeConfig({ tokens: { colors: { primary: '#000000' } } }),
 }
 
 const generateOptions: ResolvedBuildOptions = {

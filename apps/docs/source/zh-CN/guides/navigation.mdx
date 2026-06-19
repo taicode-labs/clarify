@@ -42,9 +42,11 @@ Clarify 默认可以根据文件系统生成导航，也可以通过 `clarify.js
 
 ---
 
-## 侧边栏模式
+## Tabs 与侧边栏模式
 
-`pages` 支持两种模式：
+Clarify 使用根级 `tabs` 做站点的一层业务分类。每个 tab 下的 `pages` 定义该分类的侧边栏；根级不再支持 `pages`。
+
+每个 tab 的 `pages` 支持两种模式：
 
 | 模式 | 适用场景 |
 |------|----------|
@@ -55,7 +57,13 @@ Clarify 默认可以根据文件系统生成导航，也可以通过 `clarify.js
 
 ```json
 {
-  "pages": "FileTree"
+  "tabs": [
+    {
+      "tab": "文档",
+      "icon": "BookOpen",
+      "pages": "FileTree"
+    }
+  ]
 }
 ```
 
@@ -69,18 +77,24 @@ Clarify 默认可以根据文件系统生成导航，也可以通过 `clarify.js
 
 ```json
 {
-  "pages": [
+  "tabs": [
     {
-      "group": "开始使用",
-      "icon": "Rocket",
+      "tab": "文档",
+      "icon": "BookOpen",
       "pages": [
         {
-          "page": "getting-started",
-          "icon": "Map"
-        },
-        {
-          "page": "getting-started/installation",
-          "icon": "Download"
+          "group": "开始使用",
+          "icon": "Rocket",
+          "pages": [
+            {
+              "page": "getting-started",
+              "icon": "Map"
+            },
+            {
+              "page": "getting-started/installation",
+              "icon": "Download"
+            }
+          ]
         }
       ]
     }
@@ -98,30 +112,36 @@ Clarify 默认可以根据文件系统生成导航，也可以通过 `clarify.js
 
 ```json
 {
-  "pages": [
+  "tabs": [
     {
-      "group": "API 文档",
+      "tab": "API",
+      "icon": "BookOpenCheck",
       "pages": [
         {
-          "page": "features/openapi",
-          "icon": "Braces"
-        },
-        {
-          "page": "guides/api-docs-workflow",
-          "icon": "Workflow"
-        },
-        {
-          "page": "features/api-reference",
-          "icon": "BookOpenCheck"
-        },
-        {
-          "page": "features/openapi-embedding",
-          "icon": "PanelTopOpen"
-        },
-        {
-          "openapi": "api.openapi.json",
-          "title": "API Reference",
-          "icon": "FileJson2"
+          "group": "API 文档",
+          "pages": [
+            {
+              "page": "features/openapi",
+              "icon": "Braces"
+            },
+            {
+              "page": "guides/api-docs-workflow",
+              "icon": "Workflow"
+            },
+            {
+              "page": "features/api-reference",
+              "icon": "BookOpenCheck"
+            },
+            {
+              "page": "features/openapi-embedding",
+              "icon": "PanelTopOpen"
+            },
+            {
+              "openapi": "api.openapi.json",
+              "title": "API Reference",
+              "icon": "FileJson2"
+            }
+          ]
         }
       ]
     }
@@ -149,4 +169,4 @@ Clarify 默认可以根据文件系统生成导航，也可以通过 `clarify.js
 
 ## 隐藏页面
 
-目前 Clarify 不提供隐藏页面的 frontmatter 选项。如需隐藏，请使用显式分组模式，不将对应页面加入 `pages` 数组即可。页面文件仍然存在，可通过 URL 直接访问。
+目前 Clarify 不提供隐藏页面的 frontmatter 选项。如需隐藏，请使用显式分组模式，不将对应页面加入对应 tab 的 `pages` 数组即可。页面文件仍然存在，可通过 URL 直接访问。

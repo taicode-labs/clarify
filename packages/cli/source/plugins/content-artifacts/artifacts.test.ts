@@ -4,6 +4,7 @@ import { join } from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
+import { resolveThemeConfig } from '../../core/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 import { attachContentArtifactUrls, createLlmsTxt, readRouteContent, writeContentArtifactFiles } from './artifacts.js'
@@ -78,7 +79,7 @@ describe('content artifact helpers', () => {
       title: 'Docs',
       description: 'Helpful docs',
       routePrefix: '/docs',
-      theme: {},
+      theme: resolveThemeConfig(),
     }
     const routes = [
       route({ path: '/guide', title: 'Guide', contentArtifactUrl: '/guide.md' }),

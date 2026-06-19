@@ -65,6 +65,41 @@ export type ClarifyFooterConfig = {
   copyright?: ClarifyLocalizedText;
 };
 
+export type ClarifyThemePreset = 'default' | 'base';
+
+export type ClarifyThemeColorTokensConfig = {
+  primary: string;
+  accent: string;
+  background: string;
+  foreground: string;
+  surface: string;
+  muted: string;
+  border: string;
+  codeBackground: string;
+};
+
+export type ClarifyThemeRadiusTokensConfig = {
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+};
+
+export type ClarifyThemeTokensConfig = {
+  colors: ClarifyThemeColorTokensConfig;
+  radius: ClarifyThemeRadiusTokensConfig;
+};
+
+export type ClarifyThemeLayoutConfig = {
+  maxWidth: string;
+};
+
+export type ClarifyThemeConfig = {
+  preset: ClarifyThemePreset;
+  tokens: ClarifyThemeTokensConfig;
+  layout: ClarifyThemeLayoutConfig;
+};
+
 export type ClarifyPagesItem =
   | string
   | {
@@ -87,11 +122,19 @@ export type ClarifyPagesGroup = {
 
 export type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree';
 
+export type ClarifyTabItem = {
+  tab: ClarifyLocalizedText;
+  icon?: string;
+  pages?: ClarifyPagesConfig;
+};
+
+export type ClarifyTabsConfig = ClarifyTabItem[];
+
 export type ClarifyConfig = {
   title: string;
   logo?: ClarifyLogoConfig;
   favicon?: ClarifyFaviconConfig;
-  theme: { primary?: string };
+  theme: ClarifyThemeConfig;
   description: string;
   rootDirectory: string;
   routePrefix: string;
@@ -100,12 +143,24 @@ export type ClarifyConfig = {
   banner?: ClarifyBannerConfig;
   footer?: ClarifyFooterConfig;
   i18n?: ClarifyI18nConfig;
-  pages?: ClarifyPagesConfig;
+  tabs?: ClarifyTabsConfig;
 };
+
+export type NavigationTab = {
+  type: 'tab';
+  path: string;
+  title: string;
+  icon?: string;
+  children: NavigationNode[];
+};
+
+export type TabbedNavigation = { tabs: NavigationTab[] };
 
 export type LocalizedNavigation = Record<string, NavigationNode[]>;
 
-export type NavigationTree = NavigationNode[] | LocalizedNavigation;
+export type LocalizedTabbedNavigation = Record<string, TabbedNavigation>;
+
+export type NavigationTree = NavigationNode[] | LocalizedNavigation | TabbedNavigation | LocalizedTabbedNavigation;
 
 export type RenderOptions = {
   /** 从 virtual:clarify-config 导入的 config */

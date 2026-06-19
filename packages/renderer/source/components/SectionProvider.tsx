@@ -126,7 +126,16 @@ export function SectionProvider(arg0: {
   useVisibleSections(sectionStore)
 
   useIsomorphicLayoutEffect(() => {
-    sectionStore.setState({ sections })
+    sectionStore.setState((state) => ({
+      sections: sections.map((section) => {
+        const registeredSection = state.sections.find((item) => item.id === section.id)
+        return {
+          ...section,
+          headingRef: registeredSection?.headingRef,
+          offsetRem: registeredSection?.offsetRem ?? section.offsetRem,
+        }
+      }),
+    }))
   }, [sectionStore, sections])
 
   return <SectionStoreContext.Provider value={sectionStore}>{children}</SectionStoreContext.Provider>

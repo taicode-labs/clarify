@@ -1,15 +1,16 @@
 import { CloseButton } from '@headlessui/react'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
-import * as LucideIcons from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { Tag } from '../components'
 import { useSectionStore } from '../components/SectionProvider'
+import { useBuiltInText } from '../i18n'
 import type { NavigationNode } from '../types'
 import { remToPx } from '../utils/remToPx'
 
+import { NavigationIcon } from './icons'
 import { useIsInsideMobileNavigation } from './mobile'
 
 type NavGroup = {
@@ -22,18 +23,6 @@ type NavGroup = {
   }>
 }
 
-type LucideIconComponent = React.ComponentType<React.SVGProps<SVGSVGElement>>
-
-function NavigationIcon(arg0: { name?: string; className?: string }) {  const { name, className } = arg0
-
-  if (!name) return null
-  const Icon = (LucideIcons as unknown as Record<string, LucideIconComponent>)[name]
-
-  if (!Icon) return null
-
-  return <Icon className={clsx('shrink-0 stroke-current', className)} aria-hidden="true" />
-}
-
 function useInitialValue<T>(value: T, condition = true) {
   const [initialValue] = useState(value)
   return condition ? initialValue : value
@@ -43,12 +32,12 @@ function normalizePath(path: string) {
   return path === '' ? '/' : path
 }
 
-function navigationToGroups(navigation: NavigationNode[]): NavGroup[] {
+function navigationToGroups(navigation: NavigationNode[], defaultTitle: string): NavGroup[] {
   return navigation.map((node) => {
     const children = node.children?.length ? node.children : [node]
 
     return {
-      title: node.children?.length ? node.title : 'Documentation',
+      title: node.children?.length ? node.title : defaultTitle,
       icon: node.icon,
       links: children.map((child) => ({
         title: child.title,
@@ -57,21 +46,6 @@ function navigationToGroups(navigation: NavigationNode[]): NavGroup[] {
       })),
     }
   })
-}
-
-function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  const { href, children } = arg0
-
-  return (
-    <li className="md:hidden">
-      <CloseButton
-        as={Link}
-        to={href}
-        className="block py-1 text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-      >
-        {children}
-      </CloseButton>
-    </li>
-  )
 }
 
 const sectionBadgeColorStyles: Record<string, string> = {
@@ -90,8 +64,8 @@ function SectionBadge(arg0: { children: string }) {  const { children } = arg0
   return (
     <span
       className={clsx(
-        'inline-flex shrink-0 justify-end font-mono text-[0.625rem]/6 font-semibold uppercase tracking-wide',
-        sectionBadgeColorStyles[children.toUpperCase()] ?? 'text-zinc-500 dark:text-zinc-400',
+        'clarify-navigation-section-badge inline-flex shrink-0 justify-end font-mono font-semibold uppercase tracking-wide',
+        sectionBadgeColorStyles[children.toUpperCase()] ?? 'clarify-ui-menu-description',
       )}
     >
       {children}
@@ -126,6 +100,9 @@ function NavLink(arg0: {
     const targetId = decodeURIComponent(href.slice(hashIndex + 1))
     window.requestAnimationFrame(() => {
       document.getElementById(targetId)?.scrollIntoView()
+      window.requestAnimationFrame(() => {
+        window.dispatchEvent(new Event('scroll'))
+      })
     })
   }
 
@@ -136,11 +113,8 @@ function NavLink(arg0: {
       aria-current={active ? 'page' : undefined}
       onClick={handleClick}
       className={clsx(
-        'clarify-navigation-link flex justify-between gap-2 py-1 pr-3 text-sm transition',
+        'clarify-navigation-link flex h-8 items-center justify-between gap-2 pr-3 transition',
         isAnchorLink ? 'clarify-navigation-anchor-link pl-7' : 'pl-4',
-        active
-          ? 'text-zinc-900 dark:text-white'
-          : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
       )}
     >
       <span className="flex min-w-0 flex-1 items-center gap-2">
@@ -183,8 +157,8 @@ function VisibleSectionHighlight(arg0: { group: NavGroup; pathname: string }) { 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
       exit={{ opacity: 0 }}
-      className="absolute inset-x-0 top-0 bg-zinc-800/2.5 will-change-transform dark:bg-white/2.5"
-      style={{ borderRadius: 8, height, top }}
+      className="clarify-navigation-section-highlight absolute inset-x-0 top-0 will-change-transform"
+      style={{ borderRadius: 'var(--clarify-theme-tokens-radius-sm)', height, top }}
     />
   )
 }
@@ -199,7 +173,7 @@ function ActivePageMarker(arg0: { group: NavGroup; pathname: string }) {  const 
   return (
     <motion.div
       layout
-      className="absolute left-2 h-6 w-px bg-emerald-500"
+      className="absolute left-2 h-6 w-px bg-(--clarify-theme-tokens-colors-primary)"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
       exit={{ opacity: 0 }}
@@ -219,15 +193,15 @@ function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const
 
   return (
     <li className={clsx('clarify-navigation-group relative mt-6', className)}>
-      <motion.h2 layout="position" className="clarify-navigation-group-title flex items-center gap-2 text-xs font-semibold text-zinc-900 dark:text-white">
-        <NavigationIcon name={group.icon} className="h-3.5 w-3.5" />
+      <motion.h2 layout="position" className="clarify-navigation-group-title flex items-center gap-2">
+        <NavigationIcon name={group.icon} className="clarify-navigation-group-title-icon h-3.5 w-3.5" />
         <span>{group.title}</span>
       </motion.h2>
       <div className="relative mt-3 pl-2">
         <AnimatePresence initial={!isInsideMobileNavigation}>
           {isActiveGroup ? <VisibleSectionHighlight group={group} pathname={pathname} /> : null}
         </AnimatePresence>
-        <motion.div layout className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/5" />
+        <motion.div layout className="absolute inset-y-0 left-2 w-px bg-(--clarify-theme-tokens-colors-border) dark:bg-white/5" />
         <AnimatePresence initial={false}>
           {isActiveGroup ? <ActivePageMarker group={group} pathname={pathname} /> : null}
         </AnimatePresence>
@@ -265,14 +239,14 @@ function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const
 
 export function Navigation(arg0: { navigation: NavigationNode[]; className?: string }) {  const { navigation, className } = arg0
 
-  const groups = navigationToGroups(navigation)
+  const t = useBuiltInText()
+  const groups = navigationToGroups(navigation, t('navigation.documentation'))
 
   return (
     <nav className={clsx('clarify-navigation', className)}>
       <ul role="list" className="clarify-navigation-list">
-        <TopLevelNavItem href="/">Home</TopLevelNavItem>
         {groups.map((group, groupIndex) => (
-          <NavigationGroup key={group.title} group={group} className={groupIndex === 0 ? 'md:mt-0' : ''} />
+          <NavigationGroup key={group.title} group={group} className={groupIndex === 0 ? 'mt-0' : ''} />
         ))}
       </ul>
     </nav>

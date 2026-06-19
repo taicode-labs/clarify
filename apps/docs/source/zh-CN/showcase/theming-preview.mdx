@@ -1,20 +1,39 @@
 # 主题定制预览
 
-Clarify 支持通过配置文件设置品牌主色。本页只展示当前稳定的主题配置能力。
+Clarify 支持通过配置文件选择主题预设，并在预设基础上覆盖主题 token。本页只展示当前稳定的主题配置能力。
 
 ---
 
-## 默认主题色
+## 主题预设
 
-```json
-{
-  "theme": {
-    "primary": "#0ea5e9"
-  }
-}
+```ts
+export default defineConfig({
+  theme: {
+    preset: 'default',
+  },
+})
 ```
 
-`#0ea5e9`（天蓝色）是当前站点配置中的品牌主色值。
+`default` 采用 Clarify 自己的主题色系统，主色参考 SVG Logo 中的 `#00D492`，并搭配 `#00F6C9` 作为辅助色。`base` 则没有颜色偏好，使用黑、白、灰构成标准主题。
+
+---
+
+## 覆盖品牌主色
+
+```ts
+export default defineConfig({
+  theme: {
+    preset: 'base',
+    tokens: {
+      colors: {
+        primary: '#00D492',
+      },
+    },
+  },
+})
+```
+
+`tokens.colors.primary` 会在预设基础上覆盖主色。
 
 ---
 

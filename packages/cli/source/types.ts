@@ -55,6 +55,66 @@ export type ClarifyFooterConfig = {
   copyright?: ClarifyLocalizedText
 }
 
+export type ClarifyThemePreset = 'default' | 'base'
+
+export type ClarifyThemeColorTokensConfig = {
+  /** Brand primary color for active states, links, and emphasis. */
+  primary?: string
+  /** Secondary accent color for subtle emphasis. */
+  accent?: string
+  /** Page background color. */
+  background?: string
+  /** Primary text color. */
+  foreground?: string
+  /** Card and elevated surface background color. */
+  surface?: string
+  /** Muted text and secondary UI color. */
+  muted?: string
+  /** Border and divider color. */
+  border?: string
+  /** Inline code and code block background color. */
+  codeBackground?: string
+}
+
+export type ClarifyThemeRadiusTokensConfig = {
+  sm?: string
+  md?: string
+  lg?: string
+  xl?: string
+}
+
+export type ClarifyThemeTokensConfig = {
+  colors?: ClarifyThemeColorTokensConfig
+  radius?: ClarifyThemeRadiusTokensConfig
+}
+
+export type ClarifyThemeLayoutConfig = {
+  /** Max width for the overall documentation layout. */
+  maxWidth?: string
+}
+
+export type ClarifyThemeConfig = {
+  /** Visual baseline for built-in styles. Overrides below are applied on top. */
+  preset?: ClarifyThemePreset
+  /** Design token overrides applied on top of the selected preset. */
+  tokens?: ClarifyThemeTokensConfig
+  /** Documentation layout overrides applied on top of the selected preset. */
+  layout?: ClarifyThemeLayoutConfig
+}
+
+export type ResolvedClarifyThemeTokensConfig = {
+  colors: Required<ClarifyThemeColorTokensConfig>
+  radius: Required<ClarifyThemeRadiusTokensConfig>
+}
+
+export type ResolvedClarifyThemeLayoutConfig = Required<ClarifyThemeLayoutConfig>
+
+export type ResolvedClarifyThemeConfig = {
+  preset: ClarifyThemePreset
+  tokens: ResolvedClarifyThemeTokensConfig
+  layout: ResolvedClarifyThemeLayoutConfig
+}
+
 export type ClarifyPagesItem =
   | string
   | {
@@ -85,6 +145,16 @@ export type ClarifyPagesGroup = {
 /** Use the string "FileTree" to auto-generate pages from the file system. */
 export type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree'
 
+export type ClarifyTabItem = {
+  tab: ClarifyLocalizedText
+  /** Icon name from lucide-react, e.g. "BookOpen". */
+  icon?: string
+  /** Sidebar pages within this tab. Defaults to "FileTree". */
+  pages?: ClarifyPagesConfig
+}
+
+export type ClarifyTabsConfig = ClarifyTabItem[]
+
 export type ClarifyProjectConfig = {
   /** Site title. Used in Header and SEO meta tags. */
   title?: string
@@ -98,10 +168,8 @@ export type ClarifyProjectConfig = {
   /** Favicon path or light/dark variants. */
   favicon?: ClarifyFaviconConfig
 
-  /** Theme token overrides. */
-  theme?: {
-    primary?: string
-  }
+  /** Theme preset and token overrides. */
+  theme?: ClarifyThemeConfig
 
   /** Base path for the docs site. Default: '/' */
   routePrefix?: string
@@ -120,11 +188,8 @@ export type ClarifyProjectConfig = {
   /** Native multi-language support. Locale content lives under rootDirectory/{locale}. */
   i18n?: ClarifyI18nConfig
 
-  /** Sidebar pages. Array of groups with ordered page references, or "FileTree" for auto-generation.
-   *  If omitted, pages are auto-generated from the file system (same as "FileTree").
-   *  Page references are locale-independent paths without .mdx extension, e.g. "index", "advanced/ssg".
-   */
-  pages?: ClarifyPagesConfig
+  /** Top-level documentation tabs. Each tab owns its own sidebar pages. */
+  tabs?: ClarifyTabsConfig
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -134,15 +199,15 @@ export type ClarifyProjectConfig = {
 export type ResolvedProjectConfig = {
   title: string
   logo?: ClarifyLogoConfig
-  favicon?: ClarifyFaviconConfig
-  theme: { primary?: string }
   description: string
   routePrefix: string
+  favicon?: ClarifyFaviconConfig
+  theme: ResolvedClarifyThemeConfig
   navbar?: { links?: ClarifyNavbarLink[] }
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig
   i18n?: ResolvedClarifyI18nConfig
-  pages?: ClarifyPagesConfig
+  tabs?: ClarifyTabsConfig
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -182,9 +247,21 @@ export type ContentRoute = {
   contentArtifactUrl?: string
 }
 
+export type ClarifyNavigationTab = {
+  type: 'tab'
+  path: string
+  title: string
+  icon?: string
+  children: ClarifyNavigationNode[]
+}
+
+export type TabbedNavigation = { tabs: ClarifyNavigationTab[] }
+
 export type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
 
-export type NavigationTree = ClarifyNavigationNode[] | LocalizedNavigation
+export type LocalizedTabbedNavigation = Record<string, TabbedNavigation>
+
+export type NavigationTree = ClarifyNavigationNode[] | LocalizedNavigation | TabbedNavigation | LocalizedTabbedNavigation
 
 export type ClarifyPage = {
   path: string

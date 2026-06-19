@@ -107,8 +107,14 @@ import { defineConfig } from '@clarify-labs/cli'
 export default defineConfig({
   title: 'Clarify Docs',
   description: 'Documentation powered by Clarify',
-  theme: { primary: '#0ea5e9' },
-  pages: 'FileTree',
+  theme: { preset: 'default' },
+  tabs: [
+    {
+      tab: 'Docs',
+      icon: 'BookOpen',
+      pages: 'FileTree',
+    },
+  ],
   plugins: [
     // searchPlugin(),
     // translatePlugin(),
