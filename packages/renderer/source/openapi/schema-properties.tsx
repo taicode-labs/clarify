@@ -180,7 +180,7 @@ function SchemaNode(arg0: { node: SchemaTreeNode; depth?: number }): ReactNode {
     <>
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
-          <span className="font-semibold text-zinc-950 dark:text-white">{node.name}</span>
+          <span className="text-sm/5 font-semibold text-zinc-950 dark:text-white">{node.name}</span>
           {type ? <span className="font-mono text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{type}</span> : null}
         </div>
         {description ? <div className="mt-0.5 text-sm/5 text-zinc-600 dark:text-zinc-400">{description}</div> : null}

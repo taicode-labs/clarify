@@ -86,7 +86,7 @@ export function Property(arg0: { name: string; children: ReactNode; type?: strin
       <dl className="m-0 flex flex-wrap items-center gap-x-3 gap-y-2">
         <dt className="sr-only">Name</dt>
         <dd>
-          <span className="font-semibold text-zinc-950 dark:text-white">{name}</span>
+          <span className="text-sm/5 font-semibold text-zinc-950 dark:text-white">{name}</span>
         </dd>
         {type ? (
           <>
