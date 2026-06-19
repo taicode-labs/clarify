@@ -153,7 +153,7 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
   return (
     <section className="clarify-api-endpoint scroll-mt-24" aria-labelledby={id}>
       <EndpointIdentity method={method} path={path} />
-      <Heading id={id}>
+      <Heading id={id} className="mt-4">
         {summary}
       </Heading>
       <Row>

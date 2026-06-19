@@ -241,6 +241,7 @@ export function Heading<Level extends 2 | 3>(arg0: ComponentPropsWithoutRef<`h${
   anchor?: boolean
 }) {  const {
   children,
+  className,
   tag,
   label,
   level,
@@ -271,7 +272,7 @@ export function Heading<Level extends 2 | 3>(arg0: ComponentPropsWithoutRef<`h${
   return (
     <>
       <Eyebrow tag={tag} label={label} />
-      <Component ref={ref} className={clsx('clarify-heading', tag || label ? 'mt-2 scroll-mt-32' : 'scroll-mt-24')} {...props}>
+      <Component ref={ref} className={clsx('clarify-heading', tag || label ? 'mt-2 scroll-mt-32' : 'scroll-mt-24', className)} {...props}>
         {anchor ? (
           <Anchor id={props.id} inView={inView}>
             {children}
