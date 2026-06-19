@@ -22,6 +22,36 @@ export type OpenApiResponse = {
   content?: Record<string, OpenApiMediaType>
 }
 
+export type OpenApiServerVariable = {
+  default?: string
+  enum?: string[]
+  description?: string
+}
+
+export type OpenApiServer = {
+  url?: string
+  description?: string
+  variables?: Record<string, OpenApiServerVariable>
+}
+
+export type OpenApiSecurityScheme = {
+  type?: string
+  scheme?: string
+  bearerFormat?: string
+  in?: string
+  name?: string
+  flows?: unknown
+  openIdConnectUrl?: string
+}
+
+export type OpenApiSecurityRequirement = Record<string, string[]>
+
+export type RequestAuthInput = {
+  name: string
+  value: string
+  scheme: OpenApiSecurityScheme
+}
+
 export type MediaTypeEntry = {
   mediaType: string
   value: OpenApiMediaType

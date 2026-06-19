@@ -347,6 +347,37 @@
         ],
         "operationId": "demoQueryParameters",
         "summary": "查询参数示例",
+        "description": "覆盖必填查询参数、JSON 编码的查询内容、数组响应、Query API Key 鉴权，以及作为可选媒体类型的 CSV。",
+        "security": [
+          {
+            "QueryApiKeyAuth": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://search.clarify.local/{region}/{version}",
+            "description": "区域搜索服务器",
+            "variables": {
+              "region": {
+                "default": "us",
+                "enum": [
+                  "us",
+                  "eu",
+                  "apac"
+                ],
+                "description": "搜索区域"
+              },
+              "version": {
+                "default": "v1",
+                "enum": [
+                  "v1",
+                  "v2"
+                ],
+                "description": "搜索 API 版本"
+              }
+            }
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/TraceId"
@@ -1607,6 +1638,11 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-API-Key"
+      },
+      "QueryApiKeyAuth": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "api_key"
       },
       "OAuth2": {
         "type": "oauth2",

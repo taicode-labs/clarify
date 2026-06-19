@@ -9,6 +9,7 @@ import { SectionProvider, type Section } from '../components/SectionProvider'
 import { ClarifyLocaleContext } from '../context'
 import { ContentActions, Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
+import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 export type AppShellProps = {
   config: ClarifyConfig
@@ -19,7 +20,7 @@ export type AppShellProps = {
 type ThemeCssVariables = CSSProperties & Record<`--clarify-theme-${string}`, string>
 
 function routeForPath(routes: RouteItem[], pathname: string): RouteItem | undefined {
-  return routes.find((route) => route.path === pathname || `/${route.path}` === pathname)
+  return routes.find((route) => isSameRoutePath(route.path, pathname))
 }
 
 function sectionsForRoute(route?: RouteItem): Section[] {
@@ -63,7 +64,7 @@ function isTabbedNavigation(navigation: NavigationTree): navigation is TabbedNav
 }
 
 function hasPath(nodes: NavigationNode[], pathname: string): boolean {
-  return nodes.some((node) => node.path === pathname || hasPath(node.children ?? [], pathname))
+  return nodes.some((node) => isSameRoutePath(node.path, pathname) || hasPath(node.children ?? [], pathname))
 }
 
 type NavigationState = {
@@ -72,7 +73,7 @@ type NavigationState = {
 }
 
 function navigationFromTabs(navigation: TabbedNavigation, pathname: string): NavigationState {
-  const currentTab = navigation.tabs.find((tab) => tab.path === pathname || hasPath(tab.children, pathname))
+  const currentTab = navigation.tabs.find((tab) => isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname))
   return {
     items: currentTab?.children ?? navigation.tabs[0]?.children ?? [],
     tabs: navigation.tabs,
@@ -152,10 +153,11 @@ function applyRootThemeVariables(themeVariables: ThemeCssVariables): () => void 
 export function AppShell(arg0: AppShellProps) {
   const { config, routes, navigation } = arg0
   const location = useLocation()
-  const currentRoute = routeForPath(routes, location.pathname)
-  const currentLocale = localeForPath(config, location.pathname, currentRoute)
+  const pathname = normalizeRoutePath(location.pathname)
+  const currentRoute = routeForPath(routes, pathname)
+  const currentLocale = localeForPath(config, pathname, currentRoute)
   const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
-  const currentNavigation = navigationForLocale(navigation, currentLocale, location.pathname)
+  const currentNavigation = navigationForLocale(navigation, currentLocale, pathname)
   const sections = sectionsForRoute(currentRoute)
   const hasTabs = Boolean(currentNavigation.tabs?.length)
   const themeVariables = themeStyle(config)
@@ -167,7 +169,15 @@ export function AppShell(arg0: AppShellProps) {
   useEffect(() => applyRootThemeVariables(themeVariables), [themeVariables])
 
   useEffect(() => {
-    scrollToHash(location.hash)
+    if (location.hash) {
+      scrollToHash(location.hash)
+      return
+    }
+
+    window.scrollTo({ top: 0, left: 0 })
+    window.requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('scroll'))
+    })
   }, [location.hash, location.pathname])
 
   useEffect(() => {

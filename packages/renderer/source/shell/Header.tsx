@@ -9,6 +9,7 @@ import { ThemeToggle } from '../components'
 import { SiteLogo } from '../components/SiteLogo'
 import { useBuiltInText } from '../i18n'
 import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, ClarifyNavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
+import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { NavigationIcon } from './icons'
 import { MobileNavigation, useIsInsideMobileNavigation, useMobileNavigationStore } from './mobile'
@@ -184,17 +185,17 @@ function MobileNavbarMenu(arg0: { links?: ClarifyNavbarLink[]; config: ClarifyCo
 }
 
 function hasPath(nodes: NavigationNode[], pathname: string): boolean {
-  return nodes.some((node) => node.path === pathname || hasPath(node.children ?? [], pathname))
+  return nodes.some((node) => isSameRoutePath(node.path, pathname) || hasPath(node.children ?? [], pathname))
 }
 
 function isActiveTab(tab: NavigationTab, pathname: string): boolean {
-  return tab.path === pathname || hasPath(tab.children, pathname)
+  return isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname)
 }
 
 function ProductTabs(arg0: { tabs?: NavigationTab[] }) {  const { tabs } = arg0
 
   const t = useBuiltInText()
-  const pathname = useLocation().pathname
+  const pathname = normalizeRoutePath(useLocation().pathname)
   if (!tabs?.length) return null
 
   return (

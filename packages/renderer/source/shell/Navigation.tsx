@@ -8,6 +8,7 @@ import { Tag } from '../components'
 import { useSectionStore } from '../components/SectionProvider'
 import { useBuiltInText } from '../i18n'
 import type { NavigationNode } from '../types'
+import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 import { remToPx } from '../utils/remToPx'
 
 import { NavigationIcon } from './icons'
@@ -149,7 +150,7 @@ function VisibleSectionHighlight(arg0: { group: NavGroup; pathname: string }) { 
   )
   const itemHeight = remToPx(2)
   const height = isPresent ? Math.max(1, visibleSections.length) * itemHeight : itemHeight
-  const top = group.links.findIndex((link) => link.href === pathname) * itemHeight + firstVisibleSectionIndex * itemHeight
+  const top = group.links.findIndex((link) => isSameRoutePath(link.href, pathname)) * itemHeight + firstVisibleSectionIndex * itemHeight
 
   return (
     <motion.div
@@ -167,7 +168,7 @@ function ActivePageMarker(arg0: { group: NavGroup; pathname: string }) {  const 
 
   const itemHeight = remToPx(2)
   const offset = remToPx(0.25)
-  const activePageIndex = group.links.findIndex((link) => link.href === pathname)
+  const activePageIndex = group.links.findIndex((link) => isSameRoutePath(link.href, pathname))
   const top = offset + activePageIndex * itemHeight
 
   return (
@@ -186,10 +187,10 @@ function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const
 
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const [pathname, sections] = useInitialValue(
-    [useLocation().pathname, useSectionStore((s) => s.sections)],
+    [normalizeRoutePath(useLocation().pathname), useSectionStore((s) => s.sections)],
     isInsideMobileNavigation,
   )
-  const isActiveGroup = group.links.findIndex((link) => link.href === pathname) !== -1
+  const isActiveGroup = group.links.findIndex((link) => isSameRoutePath(link.href, pathname)) !== -1
 
   return (
     <li className={clsx('clarify-navigation-group relative mt-6', className)}>
@@ -206,31 +207,34 @@ function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const
           {isActiveGroup ? <ActivePageMarker group={group} pathname={pathname} /> : null}
         </AnimatePresence>
         <ul role="list" className="border-l border-transparent">
-          {group.links.map((link) => (
-            <motion.li key={link.href} layout="position" className="relative">
-              <NavLink href={link.href} icon={link.icon} active={link.href === pathname}>
-                {link.title}
-              </NavLink>
-              <AnimatePresence mode="popLayout" initial={false}>
-                {link.href === pathname && sections.length > 0 ? (
-                  <motion.ul
-                    role="list"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1, transition: { delay: 0.1 } }}
-                    exit={{ opacity: 0, transition: { duration: 0.15 } }}
-                  >
-                    {sections.map((section) => (
-                      <li key={section.id}>
-                        <NavLink href={`${link.href}#${section.id}`} badge={section.badge} tags={section.tags} isAnchorLink>
-                          {section.title}
-                        </NavLink>
-                      </li>
-                    ))}
-                  </motion.ul>
-                ) : null}
-              </AnimatePresence>
-            </motion.li>
-          ))}
+          {group.links.map((link) => {
+            const active = isSameRoutePath(link.href, pathname)
+            return (
+              <motion.li key={link.href} layout="position" className="relative">
+                <NavLink href={link.href} icon={link.icon} active={active}>
+                  {link.title}
+                </NavLink>
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {active && sections.length > 0 ? (
+                    <motion.ul
+                      role="list"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1, transition: { delay: 0.1 } }}
+                      exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                    >
+                      {sections.map((section) => (
+                        <li key={section.id}>
+                          <NavLink href={`${link.href}#${section.id}`} badge={section.badge} tags={section.tags} isAnchorLink>
+                            {section.title}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </motion.ul>
+                  ) : null}
+                </AnimatePresence>
+              </motion.li>
+            )
+          })}
         </ul>
       </div>
     </li>

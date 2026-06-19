@@ -347,7 +347,37 @@
         ],
         "operationId": "demoQueryParameters",
         "summary": "Query parameter example",
-        "description": "Covers required query parameters, JSON-encoded query content, array responses, and CSV as an alternate media type.",
+        "description": "Covers required query parameters, JSON-encoded query content, array responses, query API key authentication, and CSV as an alternate media type.",
+        "security": [
+          {
+            "QueryApiKeyAuth": []
+          }
+        ],
+        "servers": [
+          {
+            "url": "https://search.clarify.local/{region}/{version}",
+            "description": "Regional search server.",
+            "variables": {
+              "region": {
+                "default": "us",
+                "enum": [
+                  "us",
+                  "eu",
+                  "apac"
+                ],
+                "description": "Search region."
+              },
+              "version": {
+                "default": "v1",
+                "enum": [
+                  "v1",
+                  "v2"
+                ],
+                "description": "Search API version."
+              }
+            }
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/TraceId"
@@ -1540,6 +1570,11 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-API-Key"
+      },
+      "QueryApiKeyAuth": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "api_key"
       },
       "OAuth2": {
         "type": "oauth2",

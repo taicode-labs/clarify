@@ -2,7 +2,7 @@ import { snippetz } from '@scalar/snippetz'
 import type { ClientId, HarRequest, TargetId } from '@scalar/snippetz'
 
 import { getContentExample, isRecord, stringifyExample } from './helpers'
-import type { OpenApiMediaType, OpenApiParameter, RequestCodeExample } from './types'
+import type { OpenApiMediaType, OpenApiParameter, OpenApiServer, RequestAuthInput, RequestCodeExample } from './types'
 import type { OpenAPISpec } from './utils'
 
 export type RequestCodeInput = {
@@ -11,6 +11,9 @@ export type RequestCodeInput = {
   method: string
   parameters: OpenApiParameter[]
   requestContent?: { mediaType: string; value: OpenApiMediaType }
+  server?: OpenApiServer
+  serverVariables?: Record<string, string>
+  auth?: RequestAuthInput
 }
 
 type RequestBody = {
@@ -25,23 +28,36 @@ type SnippetTarget<T extends TargetId = TargetId> = {
 
 const snippetGenerator = snippetz()
 
-function getServerUrl(spec: OpenAPISpec): string {
+function getDefaultServer(spec: OpenAPISpec): OpenApiServer {
   const servers = (spec as Record<string, unknown>).servers
-  if (!Array.isArray(servers)) return 'https://api.example.com'
+  if (!Array.isArray(servers)) return { url: 'https://api.example.com' }
 
   const firstServer = servers.find(isRecord)
-  return typeof firstServer?.url === 'string' ? firstServer.url : 'https://api.example.com'
+  return firstServer && typeof firstServer.url === 'string' ? firstServer : { url: 'https://api.example.com' }
 }
 
-function buildOperationUrl(spec: OpenAPISpec, path: string): string {
-  const serverUrl = getServerUrl(spec).replace(/\/$/, '')
-  return `${serverUrl}${path}`
+function expandServerUrl(server: OpenApiServer, serverVariables: Record<string, string> = {}): string {
+  return (server.url ?? 'https://api.example.com').replace(/\{([^}]+)\}/g, (_, name: string) => {
+    const fallback = server.variables?.[name]?.default ?? name
+    return serverVariables[name] ?? fallback
+  })
 }
 
-function getQueryString(parameters: OpenApiParameter[]): HarRequest['queryString'] {
-  return parameters
+function buildOperationUrl(input: RequestCodeInput): string {
+  const serverUrl = expandServerUrl(input.server ?? getDefaultServer(input.spec), input.serverVariables).replace(/\/$/, '')
+  return `${serverUrl}${input.path}`
+}
+
+function getQueryString(parameters: OpenApiParameter[], auth?: RequestAuthInput): HarRequest['queryString'] {
+  const queryString = parameters
     .filter((parameter) => parameter.in === 'query' && parameter.name)
     .map((parameter) => ({ name: parameter.name, value: encodeUrlPlaceholders(`{${parameter.name}}`) }))
+
+  if (auth?.scheme.type === 'apiKey' && auth.scheme.in === 'query' && auth.scheme.name) {
+    queryString.push({ name: auth.scheme.name, value: auth.value })
+  }
+
+  return queryString
 }
 
 function isFormMediaType(mediaType: string): boolean {
@@ -98,9 +114,27 @@ function getRequestBody(requestContent?: { mediaType: string; value: OpenApiMedi
   return { serialized: stringifyExample(value) }
 }
 
-function getRequestHeaders(requestContent?: { mediaType: string; value: OpenApiMediaType }): Record<string, string> {
+function getAuthorizationValue(auth: RequestAuthInput): string | undefined {
+  if (auth.scheme.type === 'http' && auth.scheme.scheme?.toLowerCase() === 'bearer') return `Bearer ${auth.value}`
+  if (auth.scheme.type === 'http' && auth.scheme.scheme?.toLowerCase() === 'basic') return `Basic ${auth.value}`
+  if (auth.scheme.type === 'oauth2' || auth.scheme.type === 'openIdConnect') return `Bearer ${auth.value}`
+  return undefined
+}
+
+function getAuthHeaders(auth?: RequestAuthInput): Record<string, string> {
+  if (!auth) return {}
+
+  if (auth.scheme.type === 'apiKey' && auth.scheme.in === 'header' && auth.scheme.name) {
+    return { [auth.scheme.name]: auth.value }
+  }
+
+  const authorization = getAuthorizationValue(auth)
+  return authorization ? { Authorization: authorization } : {}
+}
+
+function getRequestHeaders(requestContent?: { mediaType: string; value: OpenApiMediaType }, auth?: RequestAuthInput): Record<string, string> {
   return {
-    Authorization: 'Bearer {token}',
+    ...getAuthHeaders(auth),
     Accept: 'application/json',
     ...(requestContent ? { 'Content-Type': requestContent.mediaType } : {}),
   }
@@ -116,15 +150,15 @@ function decodeUrlPlaceholders(code: string): string {
 
 function buildHarRequest(input: RequestCodeInput): HarRequest {
   const requestBody = getRequestBody(input.requestContent)
-  const url = encodeUrlPlaceholders(buildOperationUrl(input.spec, input.path))
+  const url = encodeUrlPlaceholders(buildOperationUrl(input))
 
   return {
     method: input.method,
     url,
     httpVersion: 'HTTP/1.1',
     cookies: [],
-    headers: Object.entries(getRequestHeaders(input.requestContent)).map(([name, value]) => ({ name, value })),
-    queryString: getQueryString(input.parameters),
+    headers: Object.entries(getRequestHeaders(input.requestContent, input.auth)).map(([name, value]) => ({ name, value })),
+    queryString: getQueryString(input.parameters, input.auth),
     headersSize: -1,
     bodySize: getBodySize(requestBody),
     postData: requestBody

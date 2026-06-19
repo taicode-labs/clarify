@@ -57,6 +57,7 @@ function EndpointExamples(arg0: {
         spec={spec}
         path={path}
         method={method}
+        operation={operation}
         parameters={parameters}
         requestContents={requestContents}
         selectedMediaType={selectedRequestMediaType}

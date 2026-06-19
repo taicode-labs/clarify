@@ -7,6 +7,7 @@ import { create } from 'zustand'
 
 import { useBuiltInText } from '../i18n'
 import type { ClarifyConfig, NavigationNode, NavigationTab, RouteItem } from '../types'
+import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { Header } from './Header'
 import { NavigationIcon } from './icons'
@@ -31,16 +32,16 @@ function XIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 const IsInsideMobileNavigationContext = createContext(false)
 
 function hasPath(nodes: NavigationNode[], pathname: string): boolean {
-  return nodes.some((node) => node.path === pathname || hasPath(node.children ?? [], pathname))
+  return nodes.some((node) => isSameRoutePath(node.path, pathname) || hasPath(node.children ?? [], pathname))
 }
 
 function isActiveTab(tab: NavigationTab, pathname: string): boolean {
-  return tab.path === pathname || hasPath(tab.children, pathname)
+  return isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname)
 }
 
 function MobileTabsSelect(arg0: { tabs?: NavigationTab[] }) {
   const { tabs } = arg0
-  const pathname = useLocation().pathname
+  const pathname = normalizeRoutePath(useLocation().pathname)
   const { close } = useMobileNavigationStore()
   if (!tabs?.length) return null
 
