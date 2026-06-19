@@ -4,13 +4,10 @@ import { Link } from 'react-router-dom'
 
 import { useBuiltInText } from '../i18n'
 import type { NavigationNode, RouteItem } from '../types'
-
-function normalizePath(path: string): string {
-  return path.startsWith('/') ? path : `/${path}`
-}
+import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 function flattenNavigation(nodes: NavigationNode[]): NavigationNode[] {
-  return nodes.flatMap((node) => [node, ...flattenNavigation(node.children ?? [])])
+  return nodes.flatMap((node) => node.children?.length ? flattenNavigation(node.children) : [node])
 }
 
 export function PageNavigation(arg0: { navigation: NavigationNode[]; currentRoute?: RouteItem }) {
@@ -19,7 +16,7 @@ export function PageNavigation(arg0: { navigation: NavigationNode[]; currentRout
   if (!currentRoute) return null
 
   const pageRoutes = flattenNavigation(navigation)
-  const currentIndex = pageRoutes.findIndex((route) => route.path === currentRoute.path)
+  const currentIndex = pageRoutes.findIndex((route) => isSameRoutePath(route.path, currentRoute.path))
   if (currentIndex === -1) return null
 
   const previous = pageRoutes[currentIndex - 1]
@@ -43,7 +40,7 @@ function PageNavigationLink(arg0: { direction: 'previous' | 'next'; route?: Navi
 
   return (
     <Link
-      to={normalizePath(route.path)}
+      to={normalizeRoutePath(route.path)}
       className={clsx(
         'group flex min-w-0 items-center gap-3 rounded-lg border border-(--clarify-theme-tokens-colors-border) px-4 py-3 no-underline transition hover:border-(--clarify-theme-tokens-colors-primary) hover:bg-(--clarify-theme-tokens-colors-surface) dark:border-white/10 dark:hover:border-(--clarify-theme-tokens-colors-primary) dark:hover:bg-white/2.5',
         isNext && '@3xl:justify-end @3xl:text-right',
