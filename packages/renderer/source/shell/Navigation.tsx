@@ -6,6 +6,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 import { Tag } from '../components'
 import { useSectionStore } from '../components/SectionProvider'
+import { useBuiltInText } from '../i18n'
 import type { NavigationNode } from '../types'
 import { remToPx } from '../utils/remToPx'
 
@@ -31,12 +32,12 @@ function normalizePath(path: string) {
   return path === '' ? '/' : path
 }
 
-function navigationToGroups(navigation: NavigationNode[]): NavGroup[] {
+function navigationToGroups(navigation: NavigationNode[], defaultTitle: string): NavGroup[] {
   return navigation.map((node) => {
     const children = node.children?.length ? node.children : [node]
 
     return {
-      title: node.children?.length ? node.title : 'Documentation',
+      title: node.children?.length ? node.title : defaultTitle,
       icon: node.icon,
       links: children.map((child) => ({
         title: child.title,
@@ -238,7 +239,8 @@ function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const
 
 export function Navigation(arg0: { navigation: NavigationNode[]; className?: string }) {  const { navigation, className } = arg0
 
-  const groups = navigationToGroups(navigation)
+  const t = useBuiltInText()
+  const groups = navigationToGroups(navigation, t('navigation.documentation'))
 
   return (
     <nav className={clsx('clarify-navigation', className)}>

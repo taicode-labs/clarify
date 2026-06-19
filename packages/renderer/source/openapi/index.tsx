@@ -7,6 +7,7 @@ import { useLocation } from 'react-router-dom'
 
 import { Heading, Prose } from '../components'
 import { useClarifyConfig, useOpenApis } from '../context'
+import { useBuiltInText } from '../i18n'
 import { Col, Properties, Property, Row } from '../mdx/primitives'
 
 import { getOpenApiOperation, listOpenApiOperations } from './utils'
@@ -151,7 +152,7 @@ function getExampleEntries(mediaType?: OpenApiMediaType): ExampleEntry[] {
   }
 
   const generated = schemaToExample(mediaType.schema)
-  return typeof generated === 'undefined' ? [] : [{ key: 'schema', title: 'Schema example', value: generated, generated: true }]
+  return typeof generated === 'undefined' ? [] : [{ key: 'schema', title: 'schema', value: generated, generated: true }]
 }
 
 function getContentExample(mediaType?: OpenApiMediaType): unknown {
@@ -276,6 +277,7 @@ function getResponseEntries(operation: OpenAPIOperation): Array<{ status: string
 
 function SchemaProperties(arg0: { title: string; schema: unknown }): ReactNode {  const { title, schema } = arg0
 
+  const t = useBuiltInText()
   const targetSchema = isReference(schema) ? undefined : schema
   const properties = isRecord(targetSchema) && isRecord(targetSchema.properties) ? targetSchema.properties : undefined
   const required = isRecord(targetSchema) && Array.isArray(targetSchema.required) ? targetSchema.required.map(String) : []
@@ -293,8 +295,8 @@ function SchemaProperties(arg0: { title: string; schema: unknown }): ReactNode {
           const isRequired = required.includes(name)
 
           return (
-            <Property key={name} name={name} type={isRequired && type ? `${type}, required` : type}>
-              {description ?? (isRequired ? 'Required.' : 'Optional.')}
+            <Property key={name} name={name} type={isRequired && type ? `${type}, ${t('openapi.requiredBadge')}` : type}>
+              {description ?? (isRequired ? t('openapi.required') : t('openapi.optional'))}
             </Property>
           )
         })}
@@ -305,6 +307,7 @@ function SchemaProperties(arg0: { title: string; schema: unknown }): ReactNode {
 
 function ParameterList(arg0: { title: string; parameters: OpenApiParameter[] }): ReactNode {  const { title, parameters } = arg0
 
+  const t = useBuiltInText()
   if (parameters.length === 0) return null
 
   return (
@@ -314,10 +317,10 @@ function ParameterList(arg0: { title: string; parameters: OpenApiParameter[] }):
         {parameters.map((parameter) => (
           <Property
             key={`${parameter.in}-${parameter.name}`}
-            name={parameter.name ?? 'parameter'}
-            type={[schemaToType(parameter.schema), parameter.required ? 'required' : undefined].filter(Boolean).join(', ') || undefined}
+            name={parameter.name ?? t('openapi.parameter')}
+            type={[schemaToType(parameter.schema), parameter.required ? t('openapi.requiredBadge') : undefined].filter(Boolean).join(', ') || undefined}
           >
-            {parameter.description ?? `${parameter.in ?? 'Operation'} parameter.`}
+            {parameter.description ?? t('openapi.operationParameter')}
           </Property>
         ))}
       </Properties>
@@ -327,12 +330,13 @@ function ParameterList(arg0: { title: string; parameters: OpenApiParameter[] }):
 
 function ResponseList(arg0: { operation: OpenAPIOperation }): ReactNode {  const { operation } = arg0
 
+  const t = useBuiltInText()
   const responses = getResponseEntries(operation)
   if (responses.length === 0) return null
 
   return (
     <div>
-      <h3>Responses</h3>
+      <h3>{t('openapi.responses')}</h3>
       <Properties>
         {responses.map(({ status, response }) => {
           const content = getJsonLikeContent(response.content)
@@ -340,7 +344,7 @@ function ResponseList(arg0: { operation: OpenAPIOperation }): ReactNode {  const
 
           return (
             <Property key={status} name={status} type={type}>
-              {response.description ?? 'Response.'}
+              {response.description ?? `${t('openapi.response')}.`}
             </Property>
           )
         })}
@@ -412,6 +416,7 @@ function ExamplePicker(arg0: {
   onSelect,
 } = arg0
 
+  const t = useBuiltInText()
   const scrollerRef = useRef<HTMLDivElement | null>(null)
 
   if (examples.length <= 1) return null
@@ -426,7 +431,7 @@ function ExamplePicker(arg0: {
     <div className="relative -mr-1 flex min-w-0 flex-1 items-center gap-1">
       <button
         type="button"
-        aria-label="Scroll examples left"
+        aria-label={t('openapi.scrollExamplesLeft')}
         onClick={() => scrollBy(-1)}
         className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
       >
@@ -451,13 +456,13 @@ function ExamplePicker(arg0: {
                 : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200',
             ].join(' ')}
           >
-            {example.title}
+            {example.generated && example.title === 'schema' ? t('openapi.schemaExample') : example.title}
           </button>
         ))}
       </div>
       <button
         type="button"
-        aria-label="Scroll examples right"
+        aria-label={t('openapi.scrollExamplesRight')}
         onClick={() => scrollBy(1)}
         className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
       >
@@ -471,6 +476,7 @@ function ExamplePicker(arg0: {
 
 function CopyCodeButton(arg0: { code: string }): ReactNode {  const { code } = arg0
 
+  const t = useBuiltInText()
   const [copied, setCopied] = useState(false)
 
   return (
@@ -484,7 +490,7 @@ function CopyCodeButton(arg0: { code: string }): ReactNode {  const { code } = a
       }}
       className="absolute top-3.5 right-4 rounded-full bg-white/5 px-3 py-1 text-2xs font-medium text-zinc-400 opacity-0 transition hover:bg-white/10 hover:text-zinc-200 group-hover:opacity-100 focus:opacity-100"
     >
-      {copied ? 'Copied!' : 'Copy'}
+      {copied ? t('actions.copied') : t('actions.copy')}
     </button>
   )
 }
@@ -550,6 +556,7 @@ function RequestExamplesPanel(arg0: {
   requestContents,
 } = arg0
 
+  const t = useBuiltInText()
   const [selectedMediaType, setSelectedMediaType] = useState(requestContents[0]?.mediaType ?? '')
   const selectedContent = requestContents.find((content) => content.mediaType === selectedMediaType) ?? requestContents[0]
   const examples = getExampleEntries(selectedContent?.value)
@@ -562,7 +569,7 @@ function RequestExamplesPanel(arg0: {
     <div>
       <div className="mb-3 flex flex-wrap gap-3">
         <SelectControl
-          label="Media type"
+          label={t('openapi.mediaType')}
           value={selectedContent?.mediaType ?? ''}
           options={requestContents.map((content) => content.mediaType)}
           onChange={(value) => {
@@ -572,7 +579,7 @@ function RequestExamplesPanel(arg0: {
         />
       </div>
       <ApiExampleCodeGroup
-        title="Request"
+        title={t('openapi.request')}
         tag={method}
         label={path}
         code={curl}
@@ -587,6 +594,7 @@ function RequestExamplesPanel(arg0: {
 
 function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation }): ReactNode {  const { operation } = arg0
 
+  const t = useBuiltInText()
   const responses = getResponseEntries(operation).filter(({ response }) => getMediaTypeEntries(response.content).length > 0)
   const [selectedStatus, setSelectedStatus] = useState(responses.find(({ status }) => status.startsWith('2'))?.status ?? responses[0]?.status ?? '')
   const selectedResponse = responses.find(({ status }) => status === selectedStatus) ?? responses[0]
@@ -604,7 +612,7 @@ function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation }): ReactNode
     <div>
       <div className="mb-3 flex flex-wrap gap-3">
         <SelectControl
-          label="Status"
+          label={t('openapi.status')}
           value={selectedResponse.status}
           options={responses.map(({ status }) => status)}
           onChange={(value) => {
@@ -616,7 +624,7 @@ function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation }): ReactNode
           }}
         />
         <SelectControl
-          label="Media type"
+          label={t('openapi.mediaType')}
           value={selectedContent.mediaType}
           options={responseContents.map((content) => content.mediaType)}
           onChange={(value) => {
@@ -626,7 +634,7 @@ function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation }): ReactNode
         />
       </div>
       <ApiExampleCodeGroup
-        title="Response"
+        title={t('openapi.response')}
         tag={selectedResponse.status}
         label={selectedContent.mediaType}
         code={responseCode}
@@ -665,20 +673,22 @@ function EndpointExamples(arg0: {
 
 function OpenApiHeader(arg0: { spec: OpenAPISpec }): ReactNode {  const { spec } = arg0
 
+  const t = useBuiltInText()
   return (
     <header className="mb-16">
       <p className="mb-3 font-mono text-xs/6 font-medium tracking-widest text-emerald-500 uppercase dark:text-emerald-400">
-        OpenAPI Reference
+        {t('openapi.openApiReference')}
       </p>
-      <h1>{spec.info?.title ?? 'API Documentation'}</h1>
+      <h1>{spec.info?.title ?? t('openapi.apiDocumentation')}</h1>
       {spec.info?.description ? <p className="lead">{spec.info.description}</p> : null}
-      {spec.info?.version ? <p className="text-sm text-zinc-500 dark:text-zinc-400">Version {spec.info.version}</p> : null}
+      {spec.info?.version ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{t('openapi.version', { version: spec.info.version })}</p> : null}
     </header>
   )
 }
 
 function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: string; operation: OpenAPIOperation }): ReactNode {  const { spec, path, method, operation } = arg0
 
+  const t = useBuiltInText()
   const id = slug(`${method.toLowerCase()} ${path}`)
   const summary = operation.summary ?? `${method} ${path}`
   const description = operation.description
@@ -700,14 +710,14 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
       <Row>
         <Col>
           {description ? <p>{description}</p> : null}
-          <ParameterList title="Path parameters" parameters={groupedParameters.path} />
-          <ParameterList title="Query parameters" parameters={groupedParameters.query} />
-          <ParameterList title="Headers" parameters={groupedParameters.header} />
+          <ParameterList title={t('openapi.pathParameters')} parameters={groupedParameters.path} />
+          <ParameterList title={t('openapi.queryParameters')} parameters={groupedParameters.query} />
+          <ParameterList title={t('openapi.headers')} parameters={groupedParameters.header} />
           {requestBody && requestContents.length > 0 ? (
             <>
-              <h3>Request body</h3>
+              <h3>{t('openapi.requestBody')}</h3>
               {typeof requestBody.description === 'string' ? <p>{requestBody.description}</p> : null}
-              <SchemaProperties title="Body properties" schema={requestSchema} />
+              <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} />
             </>
           ) : null}
           <ResponseList operation={operation} />
@@ -798,10 +808,11 @@ function WarningBox(arg0: { children: ReactNode; tone?: 'amber' | 'red' }): Reac
 
 export function OpenApiPage(arg0: OpenApiPageProps): ReactNode {
   const { spec, specPath } = arg0
+  const t = useBuiltInText()
   const resolved = useOpenApiSpec(spec, specPath)
 
   if (!resolved) {
-    return <WarningBox>OpenAPI spec not found: {specPath ?? '（未提供 spec 或 specPath）'}</WarningBox>
+    return <WarningBox>{t('openapi.specNotFound', { specPath: specPath ?? t('openapi.specPathMissing') })}</WarningBox>
   }
 
   return (
@@ -816,10 +827,11 @@ export function OpenApiPage(arg0: OpenApiPageProps): ReactNode {
 
 export function ApiEndpoint(arg0: ApiEndpointProps): ReactNode {
   const { spec, path, method } = arg0
+  const t = useBuiltInText()
   const op = getOpenApiOperation(spec, path, method)
 
   if (!op) {
-    return <WarningBox tone="red">Endpoint not found: {method.toUpperCase()} {path}</WarningBox>
+    return <WarningBox tone="red">{t('openapi.endpointNotFound', { endpoint: `${method.toUpperCase()} ${path}` })}</WarningBox>
   }
 
   return <OpenApiOperation spec={spec} path={path} method={method.toUpperCase()} operation={op} />
@@ -827,10 +839,11 @@ export function ApiEndpoint(arg0: ApiEndpointProps): ReactNode {
 
 export function OpenApiEndpoint(arg0: OpenApiEndpointProps): ReactNode {
   const { specPath, path, method } = arg0
+  const t = useBuiltInText()
   const spec = useOpenApiSpec(undefined, specPath)
 
   if (!spec) {
-    return <WarningBox>OpenAPI spec not found: {specPath}</WarningBox>
+    return <WarningBox>{t('openapi.specNotFound', { specPath })}</WarningBox>
   }
 
   return <ApiEndpoint spec={spec} path={path} method={method} />

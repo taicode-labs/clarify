@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { Fragment, Suspense, forwardRef, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { useBuiltInText } from '../i18n'
 import type { NavigationNode, RouteItem } from '../types'
 
 type SearchItem = {
@@ -149,6 +150,7 @@ const SearchInput = forwardRef<
     activeDescendantId?: string
   }
 >(function SearchInput(arg0, inputRef) {  const { query, setQuery, onClose, onSubmit, activeDescendantId } = arg0
+  const t = useBuiltInText()
 
   return (
     <div className="clarify-search-input group relative flex h-12">
@@ -172,7 +174,7 @@ const SearchInput = forwardRef<
             onSubmit()
           }
         }}
-        placeholder="Find something..."
+        placeholder={t('search.placeholder')}
         className="clarify-search-field flex-auto appearance-none bg-transparent pr-4 pl-10 outline-hidden focus:w-full focus:flex-none [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden"
       />
     </div>
@@ -195,6 +197,7 @@ function SearchDialog(arg0: {
   onNavigate = () => {},
 } = arg0
 
+  const t = useBuiltInText()
   const navigate = useNavigate()
   const location = useLocation()
   const inputRef = useRef<React.ElementRef<typeof SearchInput>>(null)
@@ -276,8 +279,7 @@ function SearchDialog(arg0: {
               <div className="p-6 text-center">
                 <NoResultsIcon className="mx-auto h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-zinc-600" />
                 <p className="mt-2 text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">
-                  Nothing found for{' '}
-                  <strong className="font-semibold wrap-break-word text-(--clarify-theme-tokens-colors-foreground) dark:text-white">&lsquo;{query}&rsquo;</strong>.
+                  {t('search.noResults', { query })}
                 </p>
               </div>
             ) : null}
@@ -326,6 +328,7 @@ function getModifierKey() {
 
 export function Search(arg0: { routes: RouteItem[]; navigation: NavigationNode[] }) {  const { routes, navigation } = arg0
 
+  const t = useBuiltInText()
   const modifierKey = getModifierKey()
   const { buttonProps, dialogProps } = useSearchProps()
 
@@ -337,7 +340,7 @@ export function Search(arg0: { routes: RouteItem[]; navigation: NavigationNode[]
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
-        Search...
+        {t('search.button')}
         <kbd className="clarify-search-shortcut ml-auto rounded-(--clarify-theme-tokens-radius-sm) bg-(--clarify-theme-tokens-colors-background) px-1.5 py-0.5 ring-1 ring-(--clarify-theme-tokens-colors-border) dark:bg-white/5 dark:ring-white/10">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
@@ -360,6 +363,7 @@ export function MobileSearch(arg0: {
   onNavigate,
 } = arg0
 
+  const t = useBuiltInText()
   const { buttonProps, dialogProps } = useSearchProps()
 
   return (
@@ -367,7 +371,7 @@ export function MobileSearch(arg0: {
       <button
         type="button"
         className="clarify-mobile-search-button clarify-ui-control relative flex size-6 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition lg:hidden"
-        aria-label="Find something..."
+        aria-label={t('search.placeholder')}
         {...buttonProps}
       >
         <span className="absolute size-12 pointer-fine:hidden" />

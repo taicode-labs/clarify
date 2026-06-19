@@ -7,6 +7,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 import { ThemeToggle } from '../components'
 import { SiteLogo } from '../components/SiteLogo'
+import { useBuiltInText } from '../i18n'
 import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, ClarifyNavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
 
 import { NavigationIcon } from './icons'
@@ -47,6 +48,7 @@ function LanguageIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 
 function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string; currentRoute?: RouteItem }) {  const { config, currentLocale, currentRoute } = arg0
 
+  const t = useBuiltInText()
   const location = useLocation()
   const i18n = config.i18n
   if (!i18n || i18n.locales.length < 2) return null
@@ -59,7 +61,7 @@ function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string;
     <Menu as="div" className="clarify-language-switcher relative">
       <MenuButton
         className="clarify-language-switcher-button clarify-ui-control flex h-7 items-center gap-1.5 rounded-(--clarify-theme-tokens-radius-md) px-1.5 transition"
-        aria-label="Switch language"
+        aria-label={t('language.switch')}
       >
         <span className="absolute size-12 pointer-fine:hidden" />
         <LanguageIcon className="h-5 w-5 stroke-current" />
@@ -133,13 +135,14 @@ function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  c
 
 function MobileNavbarMenu(arg0: { links?: ClarifyNavbarLink[]; config: ClarifyConfig; currentLocale?: string }) {
   const { links, config, currentLocale } = arg0
+  const t = useBuiltInText()
   if (!links?.length) return null
 
   return (
     <Menu as="div" className="clarify-mobile-navbar-menu relative md:hidden">
       <MenuButton
         className="clarify-mobile-navbar-menu-button clarify-ui-control relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
-        aria-label="Open navigation links"
+        aria-label={t('navbar.openLinks')}
       >
         <span className="absolute size-12 pointer-fine:hidden" />
         <MoreHorizontal className="h-5 w-5" />
@@ -190,12 +193,13 @@ function isActiveTab(tab: NavigationTab, pathname: string): boolean {
 
 function ProductTabs(arg0: { tabs?: NavigationTab[] }) {  const { tabs } = arg0
 
+  const t = useBuiltInText()
   const pathname = useLocation().pathname
   if (!tabs?.length) return null
 
   return (
     <div className="clarify-product-tabs hidden h-14 border-t border-(--clarify-theme-tokens-colors-border) lg:block dark:border-white/10">
-      <nav className="clarify-product-tabs-nav mx-auto flex h-full w-full max-w-(--clarify-theme-layout-max-width) items-stretch gap-6 overflow-x-auto px-5" aria-label="Documentation sections">
+      <nav className="clarify-product-tabs-nav mx-auto flex h-full w-full max-w-(--clarify-theme-layout-max-width) items-stretch gap-6 overflow-x-auto px-5" aria-label={t('navbar.sections')}>
         {tabs.map((tab) => {
           const active = isActiveTab(tab, pathname)
           return (
@@ -237,6 +241,7 @@ export const Header = forwardRef<
   }
 >(function Header(arg0, ref) {  const { config, navigation, tabs, routes, currentLocale, currentRoute, className, ...props } = arg0
 
+  const t = useBuiltInText()
   const { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
 
@@ -270,7 +275,7 @@ export const Header = forwardRef<
           <div className="clarify-mobile-brand flex items-center gap-5 lg:hidden">
             <MobileNavigation config={config} navigation={navigation} tabs={tabs} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
           </div>
-          <CloseButton as={Link} to={localizeHref('/', config, currentLocale)} aria-label="Home" className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
+          <CloseButton as={Link} to={localizeHref('/', config, currentLocale)} aria-label={t('navbar.home')} className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
             <SiteLogo logo={config.logo} className="h-6 w-6 shrink-0" />
             <span className="clarify-brand-title truncate font-semibold">{config.title}</span>
           </CloseButton>

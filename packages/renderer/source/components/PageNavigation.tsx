@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { useBuiltInText } from '../i18n'
 import type { NavigationNode, RouteItem } from '../types'
 
 function normalizePath(path: string): string {
@@ -14,6 +15,7 @@ function flattenNavigation(nodes: NavigationNode[]): NavigationNode[] {
 
 export function PageNavigation(arg0: { navigation: NavigationNode[]; currentRoute?: RouteItem }) {
   const { navigation, currentRoute } = arg0
+  const t = useBuiltInText()
   if (!currentRoute) return null
 
   const pageRoutes = flattenNavigation(navigation)
@@ -25,7 +27,7 @@ export function PageNavigation(arg0: { navigation: NavigationNode[]; currentRout
   if (!previous && !next) return null
 
   return (
-    <nav className="clarify-page-navigation mt-6 grid gap-3 @3xl:grid-cols-2" aria-label="Previous and next pages">
+    <nav className="clarify-page-navigation mt-6 grid gap-3 @3xl:grid-cols-2" aria-label={t('navigation.previousNext')}>
       <PageNavigationLink direction="previous" route={previous} />
       <PageNavigationLink direction="next" route={next} />
     </nav>
@@ -34,6 +36,7 @@ export function PageNavigation(arg0: { navigation: NavigationNode[]; currentRout
 
 function PageNavigationLink(arg0: { direction: 'previous' | 'next'; route?: NavigationNode }) {
   const { direction, route } = arg0
+  const t = useBuiltInText()
   if (!route) return <div className="hidden @3xl:block" />
 
   const isNext = direction === 'next'
@@ -48,7 +51,7 @@ function PageNavigationLink(arg0: { direction: 'previous' | 'next'; route?: Navi
     >
       {!isNext ? <ChevronLeft className="h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-muted) transition group-hover:text-(--clarify-theme-tokens-colors-primary)" /> : null}
       <span className="min-w-0 flex-1">
-        <span className="block text-[0.6875rem] font-medium uppercase tracking-wide text-(--clarify-theme-tokens-colors-muted)">{isNext ? 'Next' : 'Previous'}</span>
+        <span className="block text-[0.6875rem] font-medium uppercase tracking-wide text-(--clarify-theme-tokens-colors-muted)">{isNext ? t('navigation.next') : t('navigation.previous')}</span>
         <span className="mt-0.5 block truncate text-[0.8125rem] font-semibold text-(--clarify-theme-tokens-colors-foreground) dark:text-white">{route.title}</span>
       </span>
       {isNext ? <ChevronRight className="h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-muted) transition group-hover:text-(--clarify-theme-tokens-colors-primary)" /> : null}

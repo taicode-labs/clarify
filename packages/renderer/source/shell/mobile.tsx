@@ -5,6 +5,7 @@ import { createContext, Suspense, useContext } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { create } from 'zustand'
 
+import { useBuiltInText } from '../i18n'
 import type { ClarifyConfig, NavigationNode, NavigationTab, RouteItem } from '../types'
 
 import { Header } from './Header'
@@ -177,6 +178,7 @@ export function MobileNavigation(arg0: {
 
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const { isOpen, toggle, close } = useMobileNavigationStore()
+  const t = useBuiltInText()
   const ToggleIcon = isOpen ? XIcon : MenuIcon
 
   return (
@@ -184,7 +186,7 @@ export function MobileNavigation(arg0: {
       <button
         type="button"
         className="clarify-mobile-navigation-button clarify-ui-icon-button relative flex size-6 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
-        aria-label="Toggle navigation"
+        aria-label={t('navigation.toggle')}
         onClick={toggle}
       >
         <span className="absolute size-12 pointer-fine:hidden" />

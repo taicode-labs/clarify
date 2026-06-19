@@ -4,6 +4,7 @@ import type { OpenAPISpec } from './openapi/utils'
 import type { ClarifyConfig } from './types'
 
 export const ClarifyConfigContext = createContext<ClarifyConfig | null>(null)
+export const ClarifyLocaleContext = createContext<string | undefined>(undefined)
 export const OpenApisContext = createContext<Record<string, OpenAPISpec>>({})
 
 export function useClarifyConfig(): ClarifyConfig {
@@ -14,6 +15,10 @@ export function useClarifyConfig(): ClarifyConfig {
     )
   }
   return config
+}
+
+export function useClarifyLocale(): string | undefined {
+  return useContext(ClarifyLocaleContext)
 }
 
 export function useOpenApis(): Record<string, OpenAPISpec> {

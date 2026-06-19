@@ -2,6 +2,7 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Check, ChevronDown, Copy, ExternalLink, FileText, Link2 } from 'lucide-react'
 import { useState } from 'react'
 
+import { useBuiltInText } from '../i18n'
 import type { RouteItem } from '../types'
 
 type ContentActionsProps = {
@@ -35,6 +36,7 @@ async function copyText(text: string): Promise<void> {
 
 export function ContentActions(arg0: ContentActionsProps) {
   const { hasTabs = false, route, routePrefix } = arg0
+  const t = useBuiltInText()
   const [copied, setCopied] = useState<CopyState>('idle')
 
   if (!route?.contentArtifactUrl) return null
@@ -42,8 +44,9 @@ export function ContentActions(arg0: ContentActionsProps) {
   const contentArtifactUrl = resolveContentArtifactUrl(route.contentArtifactUrl, routePrefix)
   const isOpenApi = route.kind === 'openapi'
   const contentTypeLabel = isOpenApi ? 'OpenAPI' : 'Markdown'
-  const viewLabel = isOpenApi ? '查看 OpenAPI 原始内容' : '以 Markdown 格式查看'
-  const viewDescription = isOpenApi ? '在新标签页打开 API 描述文件' : '以纯文本查看此页面'
+  const replacements = { contentType: contentTypeLabel }
+  const viewLabel = isOpenApi ? t('contentActions.viewOpenApi') : t('contentActions.viewMarkdown')
+  const viewDescription = isOpenApi ? t('contentActions.viewOpenApiDescription') : t('contentActions.viewMarkdownDescription')
 
   function markCopied(state: Exclude<CopyState, 'idle'>) {
     setCopied(state)
@@ -65,15 +68,15 @@ export function ContentActions(arg0: ContentActionsProps) {
   const actions: CopyAction[] = [
     {
       key: 'content',
-      label: '复制页面',
-      description: `将页面以 ${contentTypeLabel} 格式复制给 LLMs`,
+      label: t('contentActions.copyContent'),
+      description: t('contentActions.copyContentDescription', replacements),
       icon: Copy,
       run: handleCopyContent,
     },
     {
       key: 'link',
-      label: `复制 ${contentTypeLabel} 链接`,
-      description: `复制当前页面的 ${contentTypeLabel} 原始内容链接`,
+      label: t('contentActions.copyLink', replacements),
+      description: t('contentActions.copyLinkDescription', replacements),
       icon: Link2,
       run: handleCopyLink,
     },
@@ -91,9 +94,9 @@ export function ContentActions(arg0: ContentActionsProps) {
             className="clarify-content-actions-primary clarify-ui-control inline-flex h-8 items-center gap-1.5 px-3 transition"
           >
             <PrimaryIcon className="h-3.5 w-3.5" />
-            {copied === primaryAction.key ? '已复制' : primaryAction.label}
+            {copied === primaryAction.key ? t('actions.copied') : primaryAction.label}
           </button>
-          <MenuButton className="clarify-content-actions-trigger clarify-ui-control inline-flex h-8 w-8 items-center justify-center border-l border-(--clarify-theme-tokens-colors-border) transition dark:border-white/10" aria-label="选择复制选项">
+          <MenuButton className="clarify-content-actions-trigger clarify-ui-control inline-flex h-8 w-8 items-center justify-center border-l border-(--clarify-theme-tokens-colors-border) transition dark:border-white/10" aria-label={t('contentActions.copyOptions')}>
             <ChevronDown className="h-3.5 w-3.5" />
           </MenuButton>
         </div>
@@ -116,7 +119,7 @@ export function ContentActions(arg0: ContentActionsProps) {
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col px-1">
-                    <span className="clarify-ui-menu-title">{isCopied ? '已复制页面' : action.label}</span>
+                    <span className="clarify-ui-menu-title">{isCopied ? t('contentActions.copiedContent') : action.label}</span>
                     <span className="clarify-ui-menu-description truncate">{action.description}</span>
                   </span>
                   <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${isCopied ? 'opacity-100' : 'opacity-0'}`} />
@@ -159,7 +162,7 @@ export function ContentActions(arg0: ContentActionsProps) {
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col px-1">
-                    <span className="clarify-ui-menu-title">{isCopied ? '已复制链接' : action.label}</span>
+                    <span className="clarify-ui-menu-title">{isCopied ? t('contentActions.copiedLink') : action.label}</span>
                     <span className="clarify-ui-menu-description truncate">{action.description}</span>
                   </span>
                   <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${isCopied ? 'opacity-100' : 'opacity-0'}`} />

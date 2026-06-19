@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 
+import { ClarifyLocaleContext } from '../context'
 import { PageFooter, PageNavigation } from '../components'
 import { SectionProvider, type Section } from '../components/SectionProvider'
 import { ContentActions, Header, Navigation } from '../shell'
@@ -146,44 +147,46 @@ export function AppShell(arg0: AppShellProps) {
   }, [currentLocale, currentLocaleConfig?.dir])
 
   return (
-    <SectionProvider sections={sections}>
-      <div
-        className="clarify-app h-full min-h-screen bg-(--clarify-theme-tokens-colors-background) text-(--clarify-theme-tokens-colors-foreground) dark:bg-zinc-950 dark:text-white"
-        data-theme-preset={config.theme.preset}
-        style={themeVariables}
-      >
-        <Header
-          config={config}
-          navigation={currentNavigation.items}
-          tabs={currentNavigation.tabs}
-          routes={routes}
-          currentLocale={currentLocale}
-          currentRoute={currentRoute}
-        />
-        <div className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-[18rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)]">
-          <motion.aside
-            layoutScroll
-            className={clsx(
-              'clarify-sidebar hidden lg:sticky lg:z-30 lg:block lg:h-[calc(100vh-3.5rem)] lg:self-start lg:overflow-y-auto lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 lg:pb-8 xl:px-6 lg:dark:bg-zinc-950',
-              hasTabs ? 'lg:top-28 lg:h-[calc(100vh-7rem)] lg:pt-6' : 'lg:top-14 lg:pt-6',
-            )}
-          >
-            <Navigation navigation={currentNavigation.items} />
-          </motion.aside>
-          <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
-            <ContentActions hasTabs={hasTabs} route={currentRoute} routePrefix={config.routePrefix} />
-            <main className="clarify-main min-w-0 flex-auto">
-              <Routes>
-                {routes.map((route) => (
-                  <Route key={route.path} path={route.path} element={<route.component />} />
-                ))}
-              </Routes>
-            </main>
-            <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
+    <ClarifyLocaleContext.Provider value={currentLocale}>
+      <SectionProvider sections={sections}>
+        <div
+          className="clarify-app h-full min-h-screen bg-(--clarify-theme-tokens-colors-background) text-(--clarify-theme-tokens-colors-foreground) dark:bg-zinc-950 dark:text-white"
+          data-theme-preset={config.theme.preset}
+          style={themeVariables}
+        >
+          <Header
+            config={config}
+            navigation={currentNavigation.items}
+            tabs={currentNavigation.tabs}
+            routes={routes}
+            currentLocale={currentLocale}
+            currentRoute={currentRoute}
+          />
+          <div className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-[18rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)]">
+            <motion.aside
+              layoutScroll
+              className={clsx(
+                'clarify-sidebar hidden lg:sticky lg:z-30 lg:block lg:h-[calc(100vh-3.5rem)] lg:self-start lg:overflow-y-auto lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 lg:pb-8 xl:px-6 lg:dark:bg-zinc-950',
+                hasTabs ? 'lg:top-28 lg:h-[calc(100vh-7rem)] lg:pt-6' : 'lg:top-14 lg:pt-6',
+              )}
+            >
+              <Navigation navigation={currentNavigation.items} />
+            </motion.aside>
+            <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
+              <ContentActions hasTabs={hasTabs} route={currentRoute} routePrefix={config.routePrefix} />
+              <main className="clarify-main min-w-0 flex-auto">
+                <Routes>
+                  {routes.map((route) => (
+                    <Route key={route.path} path={route.path} element={<route.component />} />
+                  ))}
+                </Routes>
+              </main>
+              <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
+            </div>
           </div>
+          <PageFooter />
         </div>
-        <PageFooter />
-      </div>
-    </SectionProvider>
+      </SectionProvider>
+    </ClarifyLocaleContext.Provider>
   )
 }

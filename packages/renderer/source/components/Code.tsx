@@ -13,6 +13,8 @@ import {
 } from 'react'
 import { create } from 'zustand'
 
+import { useBuiltInText } from '../i18n'
+
 const languageNames: Record<string, string> = {
   js: 'JavaScript',
   ts: 'TypeScript',
@@ -30,11 +32,11 @@ const languageNames: Record<string, string> = {
   json: 'JSON',
 }
 
-function getPanelTitle(arg0: { title?: string; language?: string }) {  const { title, language } = arg0
+function getPanelTitle(arg0: { title?: string; language?: string; fallbackTitle?: string }) {  const { title, language, fallbackTitle = 'Code' } = arg0
 
   if (title) return title
   if (language && language in languageNames) return languageNames[language]
-  return 'Code'
+  return fallbackTitle
 }
 
 function getNodeText(node: ReactNode): string {
@@ -62,6 +64,7 @@ function ClipboardIcon(props: ComponentPropsWithoutRef<'svg'>) {
 
 function CopyButton(arg0: { code: string }) {  const { code } = arg0
 
+  const t = useBuiltInText()
   const [copyCount, setCopyCount] = useState(0)
   const copied = copyCount > 0
 
@@ -96,7 +99,7 @@ function CopyButton(arg0: { code: string }) {  const { code } = arg0
         )}
       >
         <ClipboardIcon className="h-5 w-5 fill-zinc-500/20 stroke-zinc-500 transition-colors group-hover/button:stroke-zinc-400" />
-        Copy
+        {t('actions.copy')}
       </span>
       <span
         aria-hidden={!copied}
@@ -105,7 +108,7 @@ function CopyButton(arg0: { code: string }) {  const { code } = arg0
           !copied && 'translate-y-1.5 opacity-0',
         )}
       >
-        Copied!
+        {t('actions.copied')}
       </span>
     </button>
   )
@@ -157,6 +160,7 @@ function CodePanel(arg0: {
 
 function CodeGroupHeader(arg0: { title?: string; children: ReactNode; selectedIndex: number }) {  const { title, children, selectedIndex } = arg0
 
+  const t = useBuiltInText()
   const hasTabs = Children.count(children) > 1
 
   if (!title && !hasTabs) return null
@@ -175,7 +179,7 @@ function CodeGroupHeader(arg0: { title?: string; children: ReactNode; selectedIn
                   : 'border-transparent text-zinc-400 hover:text-zinc-300',
               )}
             >
-              {getPanelTitle(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {})}
+              {getPanelTitle({ ...(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {}), fallbackTitle: t('actions.code') })}
             </Tab>
           ))}
         </TabList>
@@ -271,9 +275,10 @@ export function CodeGroup(arg0: ComponentPropsWithoutRef<typeof CodeGroupPanels>
   ...props
 } = arg0
 
+  const t = useBuiltInText()
   const languages =
     Children.map(children, (child) =>
-      getPanelTitle(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {}),
+      getPanelTitle({ ...(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {}), fallbackTitle: t('actions.code') }),
     ) ?? []
   const tabGroupProps = useTabGroupProps(languages)
   const hasTabs = Children.count(children) > 1
