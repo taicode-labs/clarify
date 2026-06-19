@@ -1,12 +1,12 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { useEffect } from 'react'
-import type { CSSProperties } from 'react'
+import { Suspense, lazy, useEffect, useMemo } from 'react'
+import type { CSSProperties, ComponentType } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 
-import { ClarifyLocaleContext } from '../context'
 import { PageFooter, PageNavigation } from '../components'
 import { SectionProvider, type Section } from '../components/SectionProvider'
+import { ClarifyLocaleContext } from '../context'
 import { ContentActions, Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 
@@ -31,6 +31,11 @@ function sectionsForRoute(route?: RouteItem): Section[] {
       tags: section.tags,
     })) ?? []
   )
+}
+
+function resolveRouteComponent(route: RouteItem): ComponentType {
+  if (route.lazy) return lazy(route.component as () => Promise<{ default: ComponentType }>)
+  return route.component as ComponentType
 }
 
 function scrollToHash(hash: string) {
@@ -129,6 +134,10 @@ export function AppShell(arg0: AppShellProps) {
   const sections = sectionsForRoute(currentRoute)
   const hasTabs = Boolean(currentNavigation.tabs?.length)
   const themeVariables = themeStyle(config)
+  const renderRoutes = useMemo(
+    () => routes.map(route => ({ ...route, component: resolveRouteComponent(route) })),
+    [routes],
+  )
 
   useEffect(() => applyRootThemeVariables(themeVariables), [themeVariables])
 
@@ -175,11 +184,13 @@ export function AppShell(arg0: AppShellProps) {
             <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
               <ContentActions hasTabs={hasTabs} route={currentRoute} routePrefix={config.routePrefix} />
               <main className="clarify-main min-w-0 flex-auto">
-                <Routes>
-                  {routes.map((route) => (
-                    <Route key={route.path} path={route.path} element={<route.component />} />
-                  ))}
-                </Routes>
+                <Suspense fallback={null}>
+                  <Routes>
+                    {renderRoutes.map((route) => (
+                      <Route key={route.path} path={route.path} element={<route.component />} />
+                    ))}
+                  </Routes>
+                </Suspense>
               </main>
               <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
             </div>

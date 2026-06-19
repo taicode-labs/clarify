@@ -2,6 +2,8 @@ import type { ComponentType } from 'react'
 
 import type { OpenAPISpec } from './openapi/utils'
 
+export type RouteComponent = ComponentType | (() => Promise<{ default: ComponentType }>)
+
 export type RouteSection = {
   id: string;
   title: string;
@@ -24,7 +26,8 @@ export type RouteItem = {
   isFallback?: boolean;
   alternates?: Record<string, string>;
   title: string;
-  component: ComponentType;
+  component: RouteComponent;
+  lazy?: boolean;
   kind?: 'mdx' | 'openapi';
   sections?: RouteSection[];
   contentArtifactUrl?: string;
@@ -175,11 +178,15 @@ export type RenderOptions = {
   container?: Element | null;
 };
 
+export type ServerRouteItem = Omit<RouteItem, 'component'> & {
+  component: ComponentType;
+};
+
 export type ServerRenderOptions = {
   /** 从 virtual:clarify-config 导入的 config */
   config: ClarifyConfig;
-  /** 从 virtual:clarify-routes 导入的路由数组 */
-  routes: RouteItem[];
+  /** 从 virtual:clarify-routes 导入的服务端路由数组 */
+  routes: ServerRouteItem[];
   /** 从 virtual:clarify-routes 导入的导航树；启用 i18n 时为按 locale 分组的导航树 */
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */

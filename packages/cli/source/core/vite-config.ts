@@ -83,9 +83,41 @@ export async function createViteConfig(options: ClarifyViteConfigOptions, env: C
     },
     build: {
       outDir: options.output,
-      rollupOptions: {
+      rolldownOptions: {
         input: {
           index: entryHtmlPath,
+        },
+        checks: {
+          pluginTimings: false,
+        },
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                name: 'react-vendor',
+                test: /node_modules[\\/](react|react-dom|react-router|react-router-dom)[\\/]/,
+                priority: 40,
+              },
+              {
+                name: 'icons-vendor',
+                test: /node_modules[\\/]lucide-react[\\/]/,
+                priority: 35,
+                maxSize: 450 * 1024,
+              },
+              {
+                name: 'ui-vendor',
+                test: /node_modules[\\/](@headlessui|framer-motion)[\\/]/,
+                priority: 30,
+                maxSize: 450 * 1024,
+              },
+              {
+                name: 'vendor',
+                test: /node_modules[\\/]/,
+                priority: 10,
+                maxSize: 450 * 1024,
+              },
+            ],
+          },
         },
       },
     },

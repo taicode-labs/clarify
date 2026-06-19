@@ -58,7 +58,7 @@ export function injectSSRIntoTemplate(template: string, appHtml: string, project
 }
 
 export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify-labs/renderer/server';
-import { routes, navigation } from 'virtual:clarify-routes';
+import { routes, navigation } from 'virtual:clarify-routes/server';
 import { config } from 'virtual:clarify-config';
 import { openApis } from 'virtual:clarify-openapi-registry';
 
@@ -85,8 +85,11 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
       ssr: ssrEntry,
       outDir: ssrOutDir,
       emptyOutDir: true,
-      rollupOptions: {
+      rolldownOptions: {
         input: ssrEntry,
+        checks: {
+          pluginTimings: false,
+        },
       },
     },
   })

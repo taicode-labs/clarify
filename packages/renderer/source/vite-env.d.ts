@@ -1,7 +1,13 @@
 declare module 'virtual:clarify-routes' {
-  import type { ComponentType } from 'react';
-  export const routes: Array<{ path: string; component: ComponentType }>;
-  export const navigation: Array<unknown>;
+  import type { RouteItem, NavigationTree } from './types';
+  export const routes: RouteItem[];
+  export const navigation: NavigationTree;
+}
+
+declare module 'virtual:clarify-routes/server' {
+  import type { ServerRouteItem, NavigationTree } from './types';
+  export const routes: ServerRouteItem[];
+  export const navigation: NavigationTree;
 }
 
 declare module 'virtual:clarify-config' {

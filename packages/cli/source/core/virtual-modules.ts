@@ -4,6 +4,7 @@ import type { ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjec
 
 export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
+export const VIRTUAL_SERVER_ROUTES = 'virtual:clarify-routes/server'
 export const VIRTUAL_OPENAPI_REGISTRY = openApiRegistryModuleId
 export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-entry-client'
 export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
@@ -22,8 +23,10 @@ export function generateConfigModule(projectConfig: ResolvedProjectConfig, build
   return `export const config = ${JSON.stringify({ ...projectConfig, ...buildOptions })};`
 }
 
-export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig): string {
-  const imports = routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
+export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig, mode: 'client' | 'server' = 'client'): string {
+  const imports = mode === 'server'
+    ? routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
+    : ''
   const routesArray = routes.map((r, i) => {
     const sections = r.sections && r.sections.length > 0
       ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, badge: s.badge, tags: s.tags })))}`
@@ -33,7 +36,9 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
     const locale = r.locale ? `, locale: ${JSON.stringify(r.locale)}` : ''
     const isFallback = r.isFallback ? ', isFallback: true' : ''
     const alternates = r.alternates ? `, alternates: ${JSON.stringify(r.alternates)}` : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: Page${i}, kind: '${r.kind}'${basePath}${locale}${isFallback}${alternates}${sections}${contentArtifactUrl} }`
+    const component = mode === 'server' ? `Page${i}` : `() => import('${r.virtualModuleId}')`
+    const lazy = mode === 'client' ? ', lazy: true' : ''
+    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: '${r.kind}'${basePath}${locale}${isFallback}${alternates}${sections}${contentArtifactUrl} }`
   }).join(',\n')
 
   const navigation = resolvedNavigation ?? (projectConfig?.tabs
@@ -63,7 +68,8 @@ export function buildVirtualModules(args: {
 }): VirtualModules {
   const modules: VirtualModules = new Map()
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
-  modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig))
+  modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
+  modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
   modules.set(VIRTUAL_OPENAPI_REGISTRY, 'export const openApis = {};')
   modules.set(VIRTUAL_CLIENT_ENTRY, createClientEntryModule())
   modules.set(RESOLVED_CLIENT_ENTRY, createClientEntryModule())
