@@ -39,7 +39,7 @@ function FooterLink(arg0: { link: ClarifyNavbarLink; locale?: string; config: Cl
       href={href}
       target={external ? '_blank' : undefined}
       rel={external ? 'noreferrer' : undefined}
-      className="clarify-footer-link text-sm text-(--clarify-theme-tokens-colors-muted) no-underline transition hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white"
+      className="clarify-footer-link no-underline transition"
     >
       {resolveLocalizedText(link.label, locale, config.i18n?.defaultLocale)}
     </a>
@@ -54,7 +54,7 @@ function SocialLink(arg0: { name: string; href: string }) {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="clarify-footer-social text-sm capitalize text-(--clarify-theme-tokens-colors-muted) no-underline transition hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white"
+      className="clarify-footer-social capitalize no-underline transition"
     >
       {name}
     </a>
@@ -83,7 +83,7 @@ export function PageFooter() {
       {hasCustomFooter ? (
         <div className="clarify-footer-content flex flex-col gap-3 text-right sm:text-left">
           {copyright ? (
-            <p className="clarify-footer-copyright m-0 text-sm text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">{copyright}</p>
+            <p className="clarify-footer-copyright m-0">{copyright}</p>
           ) : null}
           {links.length > 0 || socials.length > 0 ? (
             <div className="clarify-footer-links flex flex-wrap justify-end gap-x-4 gap-y-2 sm:justify-start">

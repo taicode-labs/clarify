@@ -106,7 +106,7 @@ export const clarifyTabItemSchema = z.object({
 
 export const clarifyTabsConfigSchema = z.array(clarifyTabItemSchema)
 
-export const clarifyThemePresetSchema = z.enum(['default', 'mint', 'violet'])
+export const clarifyThemePresetSchema = z.enum(['default', 'base'])
 
 export const clarifyThemeColorTokensConfigSchema = z.object({
   primary: z.string().optional(),

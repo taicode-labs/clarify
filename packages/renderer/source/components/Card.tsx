@@ -24,7 +24,7 @@ function CardIcon(arg0: { name?: string }) {
   if (!Icon) return null
 
   return (
-    <span className="flex size-9 flex-none items-center justify-center rounded-[var(--clarify-theme-tokens-radius-lg)] bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_10%,transparent)] text-[var(--clarify-theme-tokens-colors-primary)] ring-1 ring-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_18%,transparent)] dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-emerald-400/20">
+    <span className="flex size-9 flex-none items-center justify-center rounded-[var(--clarify-theme-tokens-radius-lg)] bg-(--clarify-ui-accent-background) text-(--clarify-ui-accent-text) ring-1 ring-(--clarify-ui-accent-border)">
       <Icon className="size-5" aria-hidden="true" />
     </span>
   )
@@ -82,7 +82,7 @@ export function Card(arg0: CardProps) {
   )
 
   const classes = clsx(
-    'group relative block rounded-[var(--clarify-theme-tokens-radius-xl)] border border-[color:var(--clarify-theme-tokens-colors-border)] bg-[var(--clarify-theme-tokens-colors-surface)] p-5 shadow-sm transition hover:border-[color:var(--clarify-theme-tokens-colors-primary)] hover:shadow-md dark:border-white/10 dark:bg-zinc-900/50 dark:hover:border-emerald-400/40',
+    'group relative block rounded-[var(--clarify-theme-tokens-radius-xl)] border border-[color:var(--clarify-theme-tokens-colors-border)] bg-[var(--clarify-theme-tokens-colors-surface)] p-5 shadow-sm shadow-(--clarify-ui-accent-glow) transition hover:border-(--clarify-ui-accent-border) hover:shadow-md dark:bg-zinc-900/50',
     className,
   )
 

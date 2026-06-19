@@ -109,7 +109,7 @@ function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  c
       <li>
         <a
           href={href}
-          className="clarify-ui-top-link text-sm/5 font-medium transition"
+          className="clarify-ui-top-link transition"
           target="_blank"
           rel="noreferrer"
         >
@@ -123,7 +123,7 @@ function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  c
     <li>
       <Link
         to={href}
-        className="clarify-ui-top-link text-sm/5 font-medium transition"
+        className="clarify-ui-top-link transition"
       >
         {children}
       </Link>
@@ -204,7 +204,7 @@ function ProductTabs(arg0: { tabs?: NavigationTab[] }) {  const { tabs } = arg0
               to={tab.path}
               aria-current={active ? 'page' : undefined}
               className={clsx(
-                'clarify-product-tab clarify-ui-tab relative inline-flex shrink-0 items-center gap-2 px-0 text-sm font-medium transition',
+                'clarify-product-tab clarify-ui-tab relative inline-flex shrink-0 items-center gap-2 px-0 transition',
                 active && 'clarify-ui-tab-active',
               )}
             >
@@ -272,7 +272,7 @@ export const Header = forwardRef<
           </div>
           <CloseButton as={Link} to={localizeHref('/', config, currentLocale)} aria-label="Home" className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
             <SiteLogo logo={config.logo} className="h-6 w-6 shrink-0" />
-            <span className="clarify-brand-title truncate text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) dark:text-white">{config.title}</span>
+            <span className="clarify-brand-title truncate font-semibold">{config.title}</span>
           </CloseButton>
         </div>
         <div className="clarify-header-center absolute left-1/2 hidden -translate-x-1/2 lg:block">

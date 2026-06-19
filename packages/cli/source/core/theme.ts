@@ -5,62 +5,38 @@ export const clarifyThemePresets = {
     preset: 'default',
     tokens: {
       colors: {
-        primary: '#10b981',
-        accent: '#059669',
+        primary: '#00D492',
+        accent: '#00F6C9',
+        background: '#ffffff',
+        foreground: '#111827',
+        surface: '#ffffff',
+        muted: '#64748b',
+        border: 'rgb(15 23 42 / 0.12)',
+        codeBackground: '#f7fefb',
+      },
+      radius: {
+        sm: '6px',
+        md: '10px',
+        lg: '14px',
+        xl: '18px',
+      },
+    },
+    layout: {
+      maxWidth: '82rem',
+    },
+  },
+  base: {
+    preset: 'base',
+    tokens: {
+      colors: {
+        primary: '#18181b',
+        accent: '#52525b',
         background: '#ffffff',
         foreground: '#18181b',
         surface: '#ffffff',
         muted: '#71717a',
-        border: 'rgb(24 24 27 / 0.1)',
+        border: 'rgb(24 24 27 / 0.12)',
         codeBackground: '#f4f4f5',
-      },
-      radius: {
-        sm: '6px',
-        md: '8px',
-        lg: '12px',
-        xl: '16px',
-      },
-    },
-    layout: {
-      maxWidth: '80rem',
-    },
-  },
-  mint: {
-    preset: 'mint',
-    tokens: {
-      colors: {
-        primary: '#10b981',
-        accent: '#14b8a6',
-        background: '#ffffff',
-        foreground: '#0f172a',
-        surface: '#ffffff',
-        muted: '#64748b',
-        border: '#e2e8f0',
-        codeBackground: '#f8fafc',
-      },
-      radius: {
-        sm: '6px',
-        md: '8px',
-        lg: '12px',
-        xl: '16px',
-      },
-    },
-    layout: {
-      maxWidth: '80rem',
-    },
-  },
-  violet: {
-    preset: 'violet',
-    tokens: {
-      colors: {
-        primary: '#8b5cf6',
-        accent: '#a78bfa',
-        background: '#ffffff',
-        foreground: '#0f172a',
-        surface: '#ffffff',
-        muted: '#64748b',
-        border: '#e2e8f0',
-        codeBackground: '#f8fafc',
       },
       radius: {
         sm: '6px',

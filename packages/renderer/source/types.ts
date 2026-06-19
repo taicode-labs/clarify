@@ -65,7 +65,7 @@ export type ClarifyFooterConfig = {
   copyright?: ClarifyLocalizedText;
 };
 
-export type ClarifyThemePreset = 'default' | 'mint' | 'violet';
+export type ClarifyThemePreset = 'default' | 'base';
 
 export type ClarifyThemeColorTokensConfig = {
   primary: string;

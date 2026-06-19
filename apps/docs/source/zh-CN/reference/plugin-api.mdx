@@ -65,8 +65,9 @@ type ResolvedProjectConfig = {
   logo?: string | { light?: string; dark?: string }
   favicon?: string | { light?: string; dark?: string }
   theme: {
-    preset: 'default' | 'mint' | 'violet'
-    primary: string
+    preset: 'default' | 'base'
+    tokens: ResolvedClarifyThemeTokensConfig
+    layout: ResolvedClarifyThemeLayoutConfig
   }
   description: string
   routePrefix: string

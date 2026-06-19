@@ -333,12 +333,12 @@ export function Search(arg0: { routes: RouteItem[]; navigation: NavigationNode[]
     <div className="clarify-search hidden w-80 max-w-[36vw] lg:block">
       <button
         type="button"
-        className="clarify-search-button hidden h-9 w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) pr-3 pl-2.5 text-sm font-medium ring-1 ring-(--clarify-theme-tokens-colors-border) transition hover:bg-(--clarify-theme-tokens-colors-background) lg:flex dark:bg-white/5 dark:ring-white/10 dark:ring-inset dark:hover:bg-white/10"
+        className="clarify-search-button hidden h-9 w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) pr-3 pl-2.5 font-medium ring-1 ring-(--clarify-theme-tokens-colors-border) transition hover:bg-(--clarify-theme-tokens-colors-background) lg:flex dark:bg-white/5 dark:ring-white/10 dark:ring-inset dark:hover:bg-white/10"
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
         Search...
-        <kbd className="ml-auto rounded-(--clarify-theme-tokens-radius-sm) bg-(--clarify-theme-tokens-colors-background) px-1.5 py-0.5 text-2xs text-(--clarify-theme-tokens-colors-muted) ring-1 ring-(--clarify-theme-tokens-colors-border) dark:bg-white/5 dark:text-zinc-500 dark:ring-white/10">
+        <kbd className="clarify-search-shortcut ml-auto rounded-(--clarify-theme-tokens-radius-sm) bg-(--clarify-theme-tokens-colors-background) px-1.5 py-0.5 ring-1 ring-(--clarify-theme-tokens-colors-border) dark:bg-white/5 dark:ring-white/10">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
         </kbd>

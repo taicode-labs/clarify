@@ -128,12 +128,16 @@
     --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 10%, transparent);
     --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 4%, transparent);
     --clarify-ui-overlay-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-muted) 25%, transparent);
+    --clarify-ui-accent-text: var(--clarify-theme-tokens-colors-primary);
+    --clarify-ui-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 9%, transparent);
+    --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 18%, transparent);
+    --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 18%, transparent);
     --clarify-ui-menu-width: 13rem;
     --clarify-ui-action-menu-width: 19.5rem;
     --clarify-ui-control-font-size: 0.875rem;
     --clarify-ui-control-line-height: 1.25rem;
-    --clarify-ui-menu-font-size: 0.8125rem;
-    --clarify-ui-menu-line-height: 1.25rem;
+    --clarify-ui-menu-font-size: 0.875rem;
+    --clarify-ui-menu-line-height: 1.5rem;
     --clarify-ui-description-font-size: 0.75rem;
     --clarify-ui-description-line-height: 1.25rem;
   }
@@ -145,9 +149,13 @@
     --clarify-ui-text-soft: var(--color-zinc-300);
     --clarify-ui-text-faint: var(--color-zinc-400);
     --clarify-ui-hover-background: rgb(255 255 255 / 0.05);
-    --clarify-ui-active-background: rgb(255 255 255 / 0.1);
-    --clarify-ui-subtle-background: rgb(255 255 255 / 0.05);
+    --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 18%, transparent);
+    --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 10%, transparent);
     --clarify-ui-overlay-background: rgb(0 0 0 / 0.4);
+    --clarify-ui-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 72%, white);
+    --clarify-ui-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 16%, transparent);
+    --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 28%, transparent);
+    --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 28%, transparent);
   }
 
   .clarify-ui-control {
@@ -194,12 +202,8 @@
   }
 
   .clarify-ui-menu-item-active {
-    color: var(--clarify-theme-tokens-colors-primary);
+    color: var(--clarify-ui-accent-text);
     background: var(--clarify-ui-active-background);
-  }
-
-  .dark .clarify-ui-menu-item-active {
-    color: var(--color-white);
   }
 
   .clarify-ui-menu-title {
@@ -228,11 +232,53 @@
   .clarify-ui-top-link,
   .clarify-ui-tab {
     color: var(--clarify-ui-text);
+    font-size: var(--clarify-ui-menu-font-size);
+    line-height: var(--clarify-ui-menu-line-height);
+    font-weight: 500;
   }
 
   .clarify-ui-top-link:hover,
   .clarify-ui-tab:hover,
   .clarify-ui-tab-active {
+    color: var(--clarify-ui-text-strong);
+  }
+
+  .clarify-brand-title,
+  .clarify-footer-link,
+  .clarify-footer-social,
+  .clarify-footer-copyright,
+  .clarify-search-button {
+    font-size: var(--clarify-ui-menu-font-size);
+    line-height: var(--clarify-ui-menu-line-height);
+  }
+
+  .clarify-brand-title {
+    color: var(--clarify-ui-text-strong);
+  }
+
+  .clarify-footer-link,
+  .clarify-footer-social,
+  .clarify-footer-copyright {
+    color: var(--clarify-ui-text-soft);
+  }
+
+  .clarify-footer-link:hover,
+  .clarify-footer-social:hover {
+    color: var(--clarify-ui-text-strong);
+  }
+
+  .clarify-built-with {
+    color: var(--clarify-ui-text-soft);
+    font-size: var(--clarify-ui-description-font-size);
+    line-height: var(--clarify-ui-description-line-height);
+  }
+
+  .clarify-built-with:hover {
+    color: var(--clarify-ui-text-strong);
+    background: var(--clarify-ui-hover-background);
+  }
+
+  .clarify-built-with-brand {
     color: var(--clarify-ui-text-strong);
   }
 
@@ -291,11 +337,7 @@
   }
 
   .clarify-search-result[aria-selected='true'] .clarify-search-result-title {
-    color: var(--clarify-theme-tokens-colors-primary);
-  }
-
-  .dark .clarify-search-result[aria-selected='true'] .clarify-search-result-title {
-    color: var(--color-white);
+    color: var(--clarify-ui-accent-text);
   }
 
   .clarify-search-result-hierarchy {
@@ -332,6 +374,12 @@
   .clarify-search-button:hover {
     color: var(--clarify-ui-text-strong);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 28%, transparent);
+  }
+
+  .clarify-search-shortcut {
+    color: var(--clarify-ui-text-faint);
+    font-size: var(--clarify-ui-description-font-size);
+    line-height: var(--clarify-ui-description-line-height);
   }
 
   .prose .contains-task-list {

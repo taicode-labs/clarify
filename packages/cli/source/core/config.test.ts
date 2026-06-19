@@ -64,24 +64,24 @@ describe('resolveProjectConfig', () => {
         preset: 'default',
         tokens: {
           colors: {
-            primary: '#10b981',
-            accent: '#059669',
+            primary: '#00D492',
+            accent: '#00F6C9',
             background: '#ffffff',
-            foreground: '#18181b',
+            foreground: '#111827',
             surface: '#ffffff',
-            muted: '#71717a',
-            border: 'rgb(24 24 27 / 0.1)',
-            codeBackground: '#f4f4f5',
+            muted: '#64748b',
+            border: 'rgb(15 23 42 / 0.12)',
+            codeBackground: '#f7fefb',
           },
           radius: {
             sm: '6px',
-            md: '8px',
-            lg: '12px',
-            xl: '16px',
+            md: '10px',
+            lg: '14px',
+            xl: '18px',
           },
         },
         layout: {
-          maxWidth: '80rem',
+          maxWidth: '82rem',
         },
       },
       navbar: undefined,
@@ -116,7 +116,7 @@ describe('resolveProjectConfig', () => {
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
     expect(result.theme.tokens.colors.primary).toBe('#333')
-    expect(result.theme.layout).toEqual({ maxWidth: '80rem' })
+    expect(result.theme.layout).toEqual({ maxWidth: '82rem' })
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
@@ -135,21 +135,23 @@ describe('resolveProjectConfig', () => {
   })
 
   it('applies theme presets before project overrides', () => {
-    const mintTheme = resolveProjectConfig({ theme: { preset: 'mint' } }).theme
-    expect(mintTheme.preset).toBe('mint')
-    expect(mintTheme.tokens.colors.primary).toBe('#10b981')
+    const baseTheme = resolveProjectConfig({ theme: { preset: 'base' } }).theme
+    expect(baseTheme.preset).toBe('base')
+    expect(baseTheme.tokens.colors.primary).toBe('#18181b')
+    expect(baseTheme.tokens.colors.accent).toBe('#52525b')
+    expect(baseTheme.layout).toEqual({ maxWidth: '80rem' })
 
-    const violetTheme = resolveProjectConfig({
+    const customizedBaseTheme = resolveProjectConfig({
       theme: {
-        preset: 'violet',
-        tokens: { colors: { primary: '#7c3aed' } },
+        preset: 'base',
+        tokens: { colors: { primary: '#333' } },
         layout: {},
       },
     }).theme
-    expect(violetTheme.preset).toBe('violet')
-    expect(violetTheme.tokens.colors.primary).toBe('#7c3aed')
-    expect(violetTheme.tokens.colors.accent).toBe('#a78bfa')
-    expect(violetTheme.layout).toEqual({ maxWidth: '80rem' })
+    expect(customizedBaseTheme.preset).toBe('base')
+    expect(customizedBaseTheme.tokens.colors.primary).toBe('#333')
+    expect(customizedBaseTheme.tokens.colors.accent).toBe('#52525b')
+    expect(customizedBaseTheme.layout).toEqual({ maxWidth: '80rem' })
   })
 
   it('defines every built-in theme token and layout value', () => {
