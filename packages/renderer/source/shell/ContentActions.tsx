@@ -88,18 +88,18 @@ export function ContentActions(arg0: ContentActionsProps) {
           <button
             type="button"
             onClick={primaryAction.run}
-            className="clarify-content-actions-primary inline-flex h-8 items-center gap-1.5 px-3 text-(--clarify-theme-tokens-colors-muted) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white"
+            className="clarify-content-actions-primary clarify-ui-control inline-flex h-8 items-center gap-1.5 px-3 transition"
           >
             <PrimaryIcon className="h-3.5 w-3.5" />
             {copied === primaryAction.key ? '已复制' : primaryAction.label}
           </button>
-          <MenuButton className="clarify-content-actions-trigger inline-flex h-8 w-8 items-center justify-center border-l border-(--clarify-theme-tokens-colors-border) text-(--clarify-theme-tokens-colors-muted) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] hover:text-(--clarify-theme-tokens-colors-foreground) dark:border-white/10 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-white" aria-label="选择复制选项">
+          <MenuButton className="clarify-content-actions-trigger clarify-ui-control inline-flex h-8 w-8 items-center justify-center border-l border-(--clarify-theme-tokens-colors-border) transition dark:border-white/10" aria-label="选择复制选项">
             <ChevronDown className="h-3.5 w-3.5" />
           </MenuButton>
         </div>
         <MenuItems
           anchor="bottom end"
-          className="clarify-content-actions-list z-30 mt-2 w-[18rem] origin-top-right rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 text-sm shadow-xl shadow-zinc-900/5 transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900 dark:shadow-none"
+          className="clarify-content-actions-list clarify-ui-menu z-30 mt-2 w-(--clarify-ui-action-menu-width) origin-top-right rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1.5 shadow-xl shadow-zinc-900/5 transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900 dark:shadow-none"
         >
           {actions.slice(0, 1).map((action) => {
             const Icon = action.icon
@@ -110,14 +110,14 @@ export function ContentActions(arg0: ContentActionsProps) {
                 <button
                   type="button"
                   onClick={action.run}
-                  className="clarify-content-actions-item group flex w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) px-1.5 py-1.5 text-left text-(--clarify-theme-tokens-colors-muted) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] data-focus:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] data-focus:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:bg-white/5 dark:data-focus:bg-white/5 dark:data-focus:text-white"
+                  className="clarify-content-actions-item clarify-ui-menu-item group flex w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) px-1.5 py-1.5 text-left transition"
                 >
-                  <span className="flex shrink-0 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) p-1.5 text-(--clarify-theme-tokens-colors-muted) dark:border-white/10 dark:text-zinc-300">
+                  <span className="clarify-ui-menu-icon flex shrink-0 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) p-1.5 dark:border-white/10">
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col px-1">
-                    <span className="text-sm font-medium text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-200">{isCopied ? '已复制页面' : action.label}</span>
-                    <span className="truncate text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">{action.description}</span>
+                    <span className="clarify-ui-menu-title">{isCopied ? '已复制页面' : action.label}</span>
+                    <span className="clarify-ui-menu-description truncate">{action.description}</span>
                   </span>
                   <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${isCopied ? 'opacity-100' : 'opacity-0'}`} />
                 </button>
@@ -129,17 +129,17 @@ export function ContentActions(arg0: ContentActionsProps) {
               href={contentArtifactUrl}
               target="_blank"
               rel="noreferrer"
-              className="clarify-content-actions-item group flex w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) px-1.5 py-1.5 text-left no-underline text-(--clarify-theme-tokens-colors-muted) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] data-focus:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] data-focus:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:bg-white/5 dark:data-focus:bg-white/5 dark:data-focus:text-white"
+              className="clarify-content-actions-item clarify-ui-menu-item group flex w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) px-1.5 py-1.5 text-left no-underline transition"
             >
-              <span className="flex shrink-0 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) p-1.5 text-(--clarify-theme-tokens-colors-muted) dark:border-white/10 dark:text-zinc-300">
+              <span className="clarify-ui-menu-icon flex shrink-0 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) p-1.5 dark:border-white/10">
                 <FileText className="h-4 w-4" />
               </span>
               <span className="flex min-w-0 flex-1 flex-col px-1">
-                <span className="flex items-center gap-1 text-sm font-medium text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-200">
+                <span className="clarify-ui-menu-title flex items-center gap-1">
                   {viewLabel}
-                  <ExternalLink className="h-3 w-3 text-(--clarify-theme-tokens-colors-muted)" />
+                  <ExternalLink className="clarify-ui-menu-icon h-3 w-3" />
                 </span>
-                <span className="truncate text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">{viewDescription}</span>
+                <span className="clarify-ui-menu-description truncate">{viewDescription}</span>
               </span>
               <Check className="h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) opacity-0" />
             </a>
@@ -153,14 +153,14 @@ export function ContentActions(arg0: ContentActionsProps) {
                 <button
                   type="button"
                   onClick={action.run}
-                  className="clarify-content-actions-item group flex w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) px-1.5 py-1.5 text-left text-(--clarify-theme-tokens-colors-muted) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] data-focus:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] data-focus:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:bg-white/5 dark:data-focus:bg-white/5 dark:data-focus:text-white"
+                  className="clarify-content-actions-item clarify-ui-menu-item group flex w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) px-1.5 py-1.5 text-left transition"
                 >
-                  <span className="flex shrink-0 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) p-1.5 text-(--clarify-theme-tokens-colors-muted) dark:border-white/10 dark:text-zinc-300">
+                  <span className="clarify-ui-menu-icon flex shrink-0 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) p-1.5 dark:border-white/10">
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col px-1">
-                    <span className="text-sm font-medium text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-200">{isCopied ? '已复制链接' : action.label}</span>
-                    <span className="truncate text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">{action.description}</span>
+                    <span className="clarify-ui-menu-title">{isCopied ? '已复制链接' : action.label}</span>
+                    <span className="clarify-ui-menu-description truncate">{action.description}</span>
                   </span>
                   <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${isCopied ? 'opacity-100' : 'opacity-0'}`} />
                 </button>

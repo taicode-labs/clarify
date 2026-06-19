@@ -58,7 +58,7 @@ function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string;
   return (
     <Menu as="div" className="clarify-language-switcher relative">
       <MenuButton
-        className="clarify-language-switcher-button flex h-7 items-center gap-1.5 rounded-(--clarify-theme-tokens-radius-md) px-1.5 text-sm/5 font-medium text-(--clarify-theme-tokens-colors-muted) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
+        className="clarify-language-switcher-button clarify-ui-control flex h-7 items-center gap-1.5 rounded-(--clarify-theme-tokens-radius-md) px-1.5 transition"
         aria-label="Switch language"
       >
         <span className="absolute size-12 pointer-fine:hidden" />
@@ -67,7 +67,7 @@ function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string;
       </MenuButton>
       <MenuItems
         transition
-        className="clarify-language-switcher-menu absolute right-0 z-50 mt-2 w-44 rounded-(--clarify-theme-tokens-radius-xl) bg-(--clarify-theme-tokens-colors-surface) p-1 text-sm shadow-lg ring-1 shadow-zinc-900/5 ring-(--clarify-theme-tokens-colors-border) transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-zinc-900 dark:ring-white/10"
+        className="clarify-language-switcher-menu clarify-ui-menu absolute right-0 z-50 mt-2 w-(--clarify-ui-menu-width) rounded-(--clarify-theme-tokens-radius-xl) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg ring-1 shadow-zinc-900/5 ring-(--clarify-theme-tokens-colors-border) transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-zinc-900 dark:ring-white/10"
       >
         {i18n.locales.flatMap((locale: ClarifyLocaleConfig) => {
           const localizedPath = localizedRoutePath(config, locale.code, currentRoute)
@@ -80,16 +80,16 @@ function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string;
                 <Link
                   to={`${localizedPath}${suffix}`}
                   className={clsx(
-                    'clarify-language-switcher-item flex items-center justify-between rounded-(--clarify-theme-tokens-radius-lg) px-3 py-2 no-underline transition',
-                    focus && 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:bg-white/5',
-                    selected ? 'text-(--clarify-theme-tokens-colors-foreground) dark:text-white' : 'text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400',
+                    'clarify-language-switcher-item clarify-ui-menu-item flex items-center justify-between rounded-(--clarify-theme-tokens-radius-lg) px-3 py-2 no-underline transition',
+                    focus && 'clarify-ui-menu-item-focus',
+                    selected && 'clarify-ui-menu-item-active',
                   )}
                   aria-current={selected ? 'true' : undefined}
                   lang={locale.code}
                   dir={locale.dir}
                 >
                   <span>{locale.label}</span>
-                  <span className="text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{locale.code}</span>
+                  <span className="clarify-ui-menu-code">{locale.code}</span>
                 </Link>
               )}
             </MenuItem>,
@@ -109,7 +109,7 @@ function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  c
       <li>
         <a
           href={href}
-          className="text-sm/5 font-medium text-(--clarify-theme-tokens-colors-muted) transition hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white"
+          className="clarify-ui-top-link text-sm/5 font-medium transition"
           target="_blank"
           rel="noreferrer"
         >
@@ -123,7 +123,7 @@ function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  c
     <li>
       <Link
         to={href}
-        className="text-sm/5 font-medium text-(--clarify-theme-tokens-colors-muted) transition hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white"
+        className="clarify-ui-top-link text-sm/5 font-medium transition"
       >
         {children}
       </Link>
@@ -138,7 +138,7 @@ function MobileNavbarMenu(arg0: { links?: ClarifyNavbarLink[]; config: ClarifyCo
   return (
     <Menu as="div" className="clarify-mobile-navbar-menu relative md:hidden">
       <MenuButton
-        className="clarify-mobile-navbar-menu-button relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-theme-tokens-colors-muted) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
+        className="clarify-mobile-navbar-menu-button clarify-ui-control relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
         aria-label="Open navigation links"
       >
         <span className="absolute size-12 pointer-fine:hidden" />
@@ -147,7 +147,7 @@ function MobileNavbarMenu(arg0: { links?: ClarifyNavbarLink[]; config: ClarifyCo
       <MenuItems
         transition
         anchor="bottom end"
-        className="clarify-mobile-navbar-menu-list z-50 mt-2 w-48 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 text-sm shadow-lg transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900"
+        className="clarify-mobile-navbar-menu-list clarify-ui-menu z-50 mt-2 w-(--clarify-ui-menu-width) rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900"
       >
         {links.map((link) => {
           const label = resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale)
@@ -158,9 +158,8 @@ function MobileNavbarMenu(arg0: { links?: ClarifyNavbarLink[]; config: ClarifyCo
             <MenuItem key={link.href}>
               {({ focus }) => {
                 const className = clsx(
-                  'clarify-mobile-navbar-menu-item block rounded-(--clarify-theme-tokens-radius-lg) px-3 py-2 no-underline transition',
-                  focus && 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:bg-white/5',
-                  'text-(--clarify-theme-tokens-colors-muted) hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-300 dark:hover:text-white',
+                  'clarify-mobile-navbar-menu-item clarify-ui-menu-item block rounded-(--clarify-theme-tokens-radius-lg) px-3 py-2 no-underline transition',
+                  focus && 'clarify-ui-menu-item-focus',
                 )
 
                 return external ? (
@@ -205,10 +204,8 @@ function ProductTabs(arg0: { tabs?: NavigationTab[] }) {  const { tabs } = arg0
               to={tab.path}
               aria-current={active ? 'page' : undefined}
               className={clsx(
-                'clarify-product-tab relative inline-flex shrink-0 items-center gap-2 px-0 text-sm font-medium transition',
-                active
-                  ? 'text-(--clarify-theme-tokens-colors-foreground) dark:text-white'
-                  : 'text-(--clarify-theme-tokens-colors-muted) hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white',
+                'clarify-product-tab clarify-ui-tab relative inline-flex shrink-0 items-center gap-2 px-0 text-sm font-medium transition',
+                active && 'clarify-ui-tab-active',
               )}
             >
               <NavigationIcon name={tab.icon} className="h-4 w-4" />

@@ -47,16 +47,16 @@ function MobileTabsSelect(arg0: { tabs?: NavigationTab[] }) {
 
   return (
     <Menu as="div" className="clarify-mobile-tabs-select mb-6">
-      <MenuButton className="clarify-mobile-tabs-select-trigger group flex h-10 w-full items-center justify-between gap-2 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) px-4 text-left text-sm text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] aria-expanded:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:border-white/10 dark:text-zinc-200 dark:hover:bg-white/5 dark:aria-expanded:bg-white/5">
+      <MenuButton className="clarify-mobile-tabs-select-trigger clarify-ui-control group flex h-10 w-full items-center justify-between gap-2 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) px-4 text-left font-semibold shadow-xs shadow-zinc-900/5 transition dark:border-white/10">
         <span className="flex min-w-0 items-center gap-2">
-          <NavigationIcon name={activeTab.icon} className="h-4 w-4 shrink-0 text-(--clarify-theme-tokens-colors-muted)" />
-          <span className="truncate">{activeTab.title}</span>
+          <NavigationIcon name={activeTab.icon} className="h-4 w-4 shrink-0 text-(--clarify-theme-tokens-colors-primary)" />
+          <span className="truncate tracking-[-0.01em]">{activeTab.title}</span>
         </span>
         <svg width="8" height="24" viewBox="0 -9 3 24" aria-hidden="true" className="shrink-0 overflow-visible text-(--clarify-theme-tokens-colors-muted) transition-transform group-aria-expanded:rotate-180">
           <path d="M0 0L3 3L0 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       </MenuButton>
-      <MenuItems className="clarify-mobile-tabs-select-list mt-2 flex flex-col gap-1 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 text-sm shadow-lg shadow-zinc-900/5 focus:outline-none dark:border-white/10 dark:bg-zinc-900 dark:shadow-none">
+      <MenuItems className="clarify-mobile-tabs-select-list clarify-ui-menu mt-2 flex flex-col gap-1 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg shadow-zinc-900/5 focus:outline-none dark:border-white/10 dark:bg-zinc-900 dark:shadow-none">
         {tabs.map((tab) => {
           const active = isActiveTab(tab, pathname)
 
@@ -66,10 +66,8 @@ function MobileTabsSelect(arg0: { tabs?: NavigationTab[] }) {
                 to={tab.path}
                 onClick={close}
                 className={clsx(
-                  'clarify-mobile-tabs-select-item flex items-center justify-between gap-3 rounded-(--clarify-theme-tokens-radius-lg) px-3 py-2.5 no-underline transition',
-                  active
-                    ? 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_10%,transparent)] text-(--clarify-theme-tokens-colors-primary) dark:bg-white/10 dark:text-white'
-                    : 'text-(--clarify-theme-tokens-colors-muted) hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white',
+                  'clarify-mobile-tabs-select-item clarify-ui-menu-item flex items-center justify-between gap-3 rounded-(--clarify-theme-tokens-radius-lg) px-3 py-2.5 no-underline transition',
+                  active && 'clarify-ui-menu-item-active',
                 )}
                 aria-current={active ? 'page' : undefined}
               >
@@ -115,7 +113,7 @@ function MobileNavigationDialog(arg0: {
     <Dialog transition open={isOpen} onClose={close} className="clarify-mobile-navigation-dialog fixed inset-0 z-50 lg:hidden">
       <DialogBackdrop
         transition
-        className="clarify-mobile-navigation-backdrop fixed inset-0 top-14 bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-muted)_20%,transparent)] backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in dark:bg-black/40"
+        className="clarify-mobile-navigation-backdrop clarify-ui-backdrop fixed inset-0 top-14 backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
       />
 
       <DialogPanel>
@@ -185,7 +183,7 @@ export function MobileNavigation(arg0: {
     <IsInsideMobileNavigationContext.Provider value={true}>
       <button
         type="button"
-        className="clarify-mobile-navigation-button relative flex size-6 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:hover:bg-white/5"
+        className="clarify-mobile-navigation-button clarify-ui-icon-button relative flex size-6 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
         aria-label="Toggle navigation"
         onClick={toggle}
       >

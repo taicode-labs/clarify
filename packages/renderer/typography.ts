@@ -42,7 +42,7 @@ export default {
           '--tw-prose-invert-td-borders': theme('colors.zinc.700'),
 
           color: 'var(--tw-prose-body)',
-          fontSize: theme('fontSize.sm')[0],
+          fontSize: theme('fontSize.base')[0],
           lineHeight: theme('lineHeight.7'),
 
           p: {
@@ -50,8 +50,8 @@ export default {
             marginBottom: theme('spacing.6'),
           },
           '[class~="lead"]': {
-            fontSize: theme('fontSize.base')[0],
-            ...theme('fontSize.base')[1],
+            fontSize: theme('fontSize.lg')[0],
+            ...theme('fontSize.lg')[1],
           },
 
           ol: {

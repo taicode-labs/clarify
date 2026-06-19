@@ -63,8 +63,8 @@ function SectionBadge(arg0: { children: string }) {  const { children } = arg0
   return (
     <span
       className={clsx(
-        'inline-flex shrink-0 justify-end font-mono text-[0.625rem]/6 font-semibold uppercase tracking-wide',
-        sectionBadgeColorStyles[children.toUpperCase()] ?? 'text-zinc-500 dark:text-zinc-400',
+        'clarify-navigation-section-badge inline-flex shrink-0 justify-end font-mono font-semibold uppercase tracking-wide',
+        sectionBadgeColorStyles[children.toUpperCase()] ?? 'clarify-ui-menu-description',
       )}
     >
       {children}
@@ -112,11 +112,8 @@ function NavLink(arg0: {
       aria-current={active ? 'page' : undefined}
       onClick={handleClick}
       className={clsx(
-        'clarify-navigation-link flex h-8 items-center justify-between gap-2 pr-3 text-sm transition',
+        'clarify-navigation-link flex h-8 items-center justify-between gap-2 pr-3 transition',
         isAnchorLink ? 'clarify-navigation-anchor-link pl-7' : 'pl-4',
-        active
-          ? 'text-(--clarify-theme-tokens-colors-foreground) dark:text-white'
-          : 'text-(--clarify-theme-tokens-colors-muted) hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white',
       )}
     >
       <span className="flex min-w-0 flex-1 items-center gap-2">
@@ -159,7 +156,7 @@ function VisibleSectionHighlight(arg0: { group: NavGroup; pathname: string }) { 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
       exit={{ opacity: 0 }}
-      className="absolute inset-x-0 top-0 bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_3%,transparent)] will-change-transform dark:bg-white/2.5"
+      className="clarify-navigation-section-highlight absolute inset-x-0 top-0 will-change-transform"
       style={{ borderRadius: 'var(--clarify-theme-tokens-radius-sm)', height, top }}
     />
   )
@@ -195,8 +192,8 @@ function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const
 
   return (
     <li className={clsx('clarify-navigation-group relative mt-6', className)}>
-      <motion.h2 layout="position" className="clarify-navigation-group-title flex items-center gap-2 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) dark:text-white">
-        <NavigationIcon name={group.icon} className="h-3.5 w-3.5" />
+      <motion.h2 layout="position" className="clarify-navigation-group-title flex items-center gap-2">
+        <NavigationIcon name={group.icon} className="clarify-navigation-group-title-icon h-3.5 w-3.5" />
         <span>{group.title}</span>
       </motion.h2>
       <div className="relative mt-3 pl-2">

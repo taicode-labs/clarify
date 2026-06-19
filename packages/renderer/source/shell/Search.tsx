@@ -113,8 +113,8 @@ function SearchResult(arg0: { result: SearchItem; query: string; active: boolean
     <li
       id={id}
       className={clsx(
-        'clarify-search-result group block cursor-default px-4 py-3 aria-selected:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:aria-selected:bg-zinc-800/50',
-        active && 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:bg-zinc-800/50',
+        'clarify-search-result group block cursor-default px-4 py-3',
+        active && 'clarify-search-result-active',
       )}
       aria-selected={active}
       onMouseDown={(event) => {
@@ -122,15 +122,15 @@ function SearchResult(arg0: { result: SearchItem; query: string; active: boolean
         onSelect()
       }}
     >
-      <div className="text-sm font-medium text-(--clarify-theme-tokens-colors-foreground) group-aria-selected:text-(--clarify-theme-tokens-colors-primary) dark:text-white">
+      <div className="clarify-search-result-title">
         <HighlightQuery text={result.title} query={query} />
       </div>
       {hierarchy.length > 0 ? (
-        <div className="mt-1 truncate text-2xs whitespace-nowrap text-(--clarify-theme-tokens-colors-muted)">
+        <div className="clarify-search-result-hierarchy mt-1 truncate whitespace-nowrap">
           {hierarchy.map((item, itemIndex, items) => (
             <Fragment key={`${item}-${itemIndex}`}>
               <HighlightQuery text={item} query={query} />
-              <span className={itemIndex === items.length - 1 ? 'sr-only' : 'mx-2 text-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-muted)_45%,transparent)] dark:text-zinc-700'}>/</span>
+              <span className={itemIndex === items.length - 1 ? 'sr-only' : 'clarify-search-result-separator mx-2'}>/</span>
             </Fragment>
           ))}
         </div>
@@ -173,7 +173,7 @@ const SearchInput = forwardRef<
           }
         }}
         placeholder="Find something..."
-        className="flex-auto appearance-none bg-transparent pr-4 pl-10 text-(--clarify-theme-tokens-colors-foreground) outline-hidden placeholder:text-(--clarify-theme-tokens-colors-muted) focus:w-full focus:flex-none sm:text-sm dark:text-white [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden"
+        className="clarify-search-field flex-auto appearance-none bg-transparent pr-4 pl-10 outline-hidden focus:w-full focus:flex-none [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden"
       />
     </div>
   )
@@ -246,7 +246,7 @@ function SearchDialog(arg0: {
     <Dialog open={open} onClose={closeDialog} className={clsx('clarify-search-dialog fixed inset-0 z-50', className)}>
       <DialogBackdrop
         transition
-        className="clarify-search-backdrop fixed inset-0 bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-muted)_25%,transparent)] backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in dark:bg-black/40"
+        className="clarify-search-backdrop clarify-ui-backdrop fixed inset-0 backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
       />
 
       <div className="fixed inset-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-20 md:py-32 lg:px-8 lg:py-[15vh]">
@@ -333,7 +333,7 @@ export function Search(arg0: { routes: RouteItem[]; navigation: NavigationNode[]
     <div className="clarify-search hidden w-80 max-w-[36vw] lg:block">
       <button
         type="button"
-        className="clarify-search-button hidden h-9 w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) pr-3 pl-2.5 text-sm text-(--clarify-theme-tokens-colors-muted) ring-1 ring-(--clarify-theme-tokens-colors-border) transition hover:bg-(--clarify-theme-tokens-colors-background) hover:ring-(--clarify-theme-tokens-colors-muted) lg:flex dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:ring-inset dark:hover:bg-white/10 dark:hover:ring-white/20"
+        className="clarify-search-button hidden h-9 w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) pr-3 pl-2.5 text-sm font-medium ring-1 ring-(--clarify-theme-tokens-colors-border) transition hover:bg-(--clarify-theme-tokens-colors-background) lg:flex dark:bg-white/5 dark:ring-white/10 dark:ring-inset dark:hover:bg-white/10"
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
@@ -366,7 +366,7 @@ export function MobileSearch(arg0: {
     <div className="clarify-mobile-search contents lg:hidden">
       <button
         type="button"
-        className="clarify-mobile-search-button relative flex size-6 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] lg:hidden dark:hover:bg-white/5"
+        className="clarify-mobile-search-button clarify-ui-control relative flex size-6 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition lg:hidden"
         aria-label="Find something..."
         {...buttonProps}
       >
