@@ -102,7 +102,7 @@ function CopyCodeButton(arg0: { code: string }): ReactNode {
           window.setTimeout(() => setCopied(false), 1000)
         })
       }}
-      className="flex items-center gap-1.5 rounded-full bg-black/30 px-2.5 py-1.5 text-2xs font-medium text-zinc-400 transition hover:bg-black/50 hover:text-zinc-200 focus:bg-black/50 focus:text-zinc-200"
+      className="flex items-center gap-1.5 rounded-full bg-black/ px-2.5 py-1.5 text-2xs font-medium text-zinc-400 transition hover:bg-black/50 hover:text-zinc-200 focus:bg-black/50 focus:text-zinc-200"
     >
       {copied ? (
         <CheckIcon className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true" />
@@ -112,6 +112,22 @@ function CopyCodeButton(arg0: { code: string }): ReactNode {
       <span>{copied ? t('actions.copied') : t('actions.copy')}</span>
     </button>
   )
+}
+
+function ExampleMetaValue(arg0: {
+  label: string
+  value: string
+  options?: string[]
+  onChange?: (value: string) => void
+  className: string
+}): ReactNode {
+  const { label, value, options, onChange, className } = arg0
+
+  if (options && options.length > 1 && onChange) {
+    return <SelectControl label={label} value={value} options={options} onChange={onChange} />
+  }
+
+  return <span className={className}>{value}</span>
 }
 
 function CodeToolbar(arg0: {
@@ -165,7 +181,12 @@ function CodeToolbar(arg0: {
 function ApiExampleCodeGroup(arg0: {
   title: string
   tag?: string
+  tagOptions?: string[]
+  onSelectTag?: (key: string) => void
   label?: string
+  labelOptions?: string[]
+  onSelectLabel?: (key: string) => void
+  comfortableMeta?: boolean
   code: string
   language: string
   mediaTypes?: string[]
@@ -184,7 +205,12 @@ function ApiExampleCodeGroup(arg0: {
   const {
     title,
     tag,
+    tagOptions,
+    onSelectTag,
     label,
+    labelOptions,
+    onSelectLabel,
+    comfortableMeta = false,
     code,
     language,
     mediaTypes,
@@ -202,6 +228,9 @@ function ApiExampleCodeGroup(arg0: {
   } = arg0
 
   const t = useBuiltInText()
+  const metaClassName = comfortableMeta
+    ? 'flex min-h-11 min-w-0 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 py-2 dark:border-b-white/5 dark:bg-white/1'
+    : 'flex h-9 min-w-0 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1'
 
   return (
     <div className="clarify-api-example my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
@@ -230,10 +259,26 @@ function ApiExampleCodeGroup(arg0: {
           </div>
         </div>
         {tag || label ? (
-          <div className="flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
-            {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-emerald-400">{tag}</span> : null}
-            {tag && label ? <span className="h-0.5 w-0.5 rounded-full bg-zinc-500" /> : null}
-            {label ? <span className="font-mono text-xs text-zinc-400">{label}</span> : null}
+          <div className={metaClassName}>
+            {tag ? (
+              <ExampleMetaValue
+                label={t('openapi.status')}
+                value={tag}
+                options={tagOptions}
+                onChange={onSelectTag}
+                className="font-mono text-[0.625rem]/6 font-semibold text-emerald-400"
+              />
+            ) : null}
+            {tag && label ? <span className="h-0.5 w-0.5 shrink-0 rounded-full bg-zinc-500" /> : null}
+            {label ? (
+              <ExampleMetaValue
+                label={t('openapi.mediaType')}
+                value={label}
+                options={labelOptions}
+                onChange={onSelectLabel}
+                className="min-w-0 truncate font-mono text-xs text-zinc-400"
+              />
+            ) : null}
           </div>
         ) : null}
         <div className="clarify-api-example-code group relative">
@@ -338,40 +383,29 @@ export function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation }): Re
   if (!selectedResponse || !selectedContent || !responseCode) return null
 
   return (
-    <div>
-      <div className="mb-3 flex flex-wrap gap-3">
-        <SelectControl
-          label={t('openapi.status')}
-          value={selectedResponse.status}
-          options={responses.map(({ status }) => status)}
-          onChange={(value) => {
-            const nextResponse = responses.find(({ status }) => status === value)
-            const nextContents = getMediaTypeEntries(nextResponse?.response.content)
-            setSelectedStatus(value)
-            setSelectedMediaType(nextContents[0]?.mediaType ?? '')
-            setSelectedExampleKey(getExampleEntries(nextContents[0]?.value)[0]?.key ?? '')
-          }}
-        />
-        <SelectControl
-          label={t('openapi.mediaType')}
-          value={selectedContent.mediaType}
-          options={responseContents.map((content) => content.mediaType)}
-          onChange={(value) => {
-            setSelectedMediaType(value)
-            setSelectedExampleKey(getExampleEntries(responseContents.find((content) => content.mediaType === value)?.value)[0]?.key ?? '')
-          }}
-        />
-      </div>
-      <ApiExampleCodeGroup
-        title={t('openapi.response')}
-        tag={selectedResponse.status}
-        label={selectedContent.mediaType}
-        code={responseCode}
-        language={codeLanguageForMediaType(selectedContent.mediaType)}
-        examples={examples}
-        selectedExampleKey={selectedExample?.key}
-        onSelectExample={setSelectedExampleKey}
-      />
-    </div>
+    <ApiExampleCodeGroup
+      title={t('openapi.response')}
+      tag={selectedResponse.status}
+      tagOptions={responses.map(({ status }) => status)}
+      onSelectTag={(value) => {
+        const nextResponse = responses.find(({ status }) => status === value)
+        const nextContents = getMediaTypeEntries(nextResponse?.response.content)
+        setSelectedStatus(value)
+        setSelectedMediaType(nextContents[0]?.mediaType ?? '')
+        setSelectedExampleKey(getExampleEntries(nextContents[0]?.value)[0]?.key ?? '')
+      }}
+      label={selectedContent.mediaType}
+      labelOptions={responseContents.map((content) => content.mediaType)}
+      onSelectLabel={(value) => {
+        setSelectedMediaType(value)
+        setSelectedExampleKey(getExampleEntries(responseContents.find((content) => content.mediaType === value)?.value)[0]?.key ?? '')
+      }}
+      comfortableMeta
+      code={responseCode}
+      language={codeLanguageForMediaType(selectedContent.mediaType)}
+      examples={examples}
+      selectedExampleKey={selectedExample?.key}
+      onSelectExample={setSelectedExampleKey}
+    />
   )
 }
