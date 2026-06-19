@@ -1,26 +1,38 @@
 # Feature Overview
 
-Clarify is designed around one goal: publish high-quality technical documentation from content files that live with your project.
+Clarify puts content authoring, API reference generation, static publishing, and AI-readable documentation output into one local-first workflow.
 
 ---
 
-## Main capabilities
+## Core highlights
 
-| Capability | What it does |
-|------------|--------------|
-| MDX content | Write Markdown and use React components inline. |
-| File routes | Turn the `source/` directory into site routes. |
-| OpenAPI | Generate full API Reference pages and embed single operations. |
-| Static output | Build HTML, assets, copied public files, and `llms.txt`. |
-| i18n | Organize localized content under locale folders such as `source/en-US`. |
-| Configurable navigation | Define tabs, groups, pages, external links, and icons in `clarify.ts`. |
+| Highlight | What Clarify provides | Continue reading |
+|-----------|-----------------------|------------------|
+| **Fast site setup** | `clarify dev`, `clarify build`, a default docs shell, file routes, and static output. | [Get Started](/getting-started) |
+| **MDX authoring** | Frontmatter, React components, syntax highlighting, built-in Callout/Card/Code components, and directory-based routes. | [Writing Docs](/guides/writing-content) |
+| **First-class OpenAPI** | `.openapi.json/.yaml/.yml` parsing, full API Reference pages, `OpenApiEndpoint` embedding, and build-time validation. | [API Documentation](/features/openapi) |
+| **AI-ready publishing** | Raw Markdown/OpenAPI artifacts, page copy actions, raw-content links, and `llms.txt` discovery. | [Deployment](/guides/deployment) |
+| **i18n and navigation** | Locale folders, missing-translation behavior, tabs, grouped sidebars, external links, icons, and localized labels. | [Configure Site](/guides/navigation) |
+| **Theme and branding** | React 19 + Tailwind CSS 4 renderer, theme presets, color tokens, radius tokens, layout width, and dark/light bootstrapping. | [Configuration Reference](/reference/clarify-config) |
+| **Extensible build pipeline** | `routes:resolved`, `modules:before`, and `build:done` hooks for search indexes, governance reports, or internal artifacts. | [Plugin System](/features/plugins) |
+| **Deployment control** | Static output, `routePrefix` support, and deployment to Vercel, Netlify, GitHub Pages, Nginx, or any static host. | [Deployment](/guides/deployment) |
 
 ---
 
 ## Recommended path
 
-1. Start with [Get Started](/getting-started).
-2. Learn how content and file routing work in [Writing Docs](/guides/writing-content).
-3. Configure navigation and localization in [Configure Site](/guides/navigation).
-4. Add OpenAPI specs using [API Documentation](/features/openapi).
-5. Build and deploy with [Deployment](/guides/deployment).
+1. **Start the site**: install the CLI, create `clarify.ts`, and add `source/`.
+2. **Write content**: use MDX for home pages, guides, references, and component examples.
+3. **Add APIs**: drop in OpenAPI specs, generate references, and embed key endpoints in guides.
+4. **Shape information architecture**: configure tabs, groups, navigation, footer links, and locales.
+5. **Publish for humans and AI**: build static HTML plus raw content files and `llms.txt`.
+6. **Extend team workflows**: add plugins for governance, translation checks, search indexes, or custom artifacts.
+
+---
+
+## Design principles
+
+1. **Task-oriented**: docs are organized around starting, writing, configuring, APIs, publishing, and extending.
+2. **Content close to code**: MDX, OpenAPI, and config live in the repository for versioning and review.
+3. **Static-first**: output can be hosted anywhere and consumed by search engines, knowledge bases, and AI tools.
+4. **Progressive extension**: built-in behavior works by default; plugins are available when teams need more control.

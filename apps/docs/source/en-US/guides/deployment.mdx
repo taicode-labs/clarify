@@ -1,6 +1,8 @@
 # Deployment
 
-Clarify builds a static site that can be hosted by any static hosting platform.
+This page explains Clarify's publishing capabilities: static generation, common hosting targets, route prefixes, raw content output, and `llms.txt`.
+
+Clarify builds pure static files that can be hosted by any platform capable of serving HTML, CSS, and JavaScript.
 
 ---
 
@@ -9,43 +11,151 @@ Clarify builds a static site that can be hosted by any static hosting platform.
 Run:
 
 ```bash
-pnpm build
+pnpm exec clarify build
 ```
 
-or directly:
+The default output directory is `output/`. You can override it:
 
 ```bash
-pnpm exec clarify build --output output
+pnpm exec clarify build --output dist
 ```
 
-The output directory contains HTML, assets, copied public files, raw OpenAPI specs, and `llms.txt`.
+A typical build looks like this:
 
 ```txt
 output/
 ├── index.html
 ├── getting-started/
 │   └── index.html
-├── api.openapi.json
+├── assets/
 ├── llms.txt
-└── assets/
+├── index.md
+└── api.openapi.json
 ```
+
+Every route has its own HTML file for fast first loads, direct linking, and search-friendly output. After JavaScript loads, users get client-side navigation.
 
 ---
 
 ## Hosting targets
 
-Because the output is static, it can be deployed to:
+### Vercel
 
-- Vercel
-- Netlify
-- GitHub Pages
-- S3-compatible object storage
-- Nginx or any static file server
+1. Push the repository to GitHub, GitLab, or Bitbucket.
+2. Import the project in Vercel.
+3. Build command: `pnpm exec clarify build`.
+4. Output directory: `output`.
 
-Set the build command to `pnpm build` and the publish directory to `output`.
+### Netlify
+
+1. Connect the Git repository.
+2. Build command: `pnpm exec clarify build`.
+3. Publish directory: `output`.
+
+### GitHub Pages
+
+If the repository is named `my-repo` and the site URL is `https://username.github.io/my-repo/`, configure:
+
+```ts
+export default defineConfig({
+  routePrefix: '/my-repo/',
+})
+```
+
+Example GitHub Actions workflow:
+
+```yaml
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - run: pnpm install
+      - run: pnpm exec clarify build
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+```
+
+### CDN / Nginx
+
+Upload `output/` to your web root:
+
+```bash
+rsync -avz output/ user@server:/var/www/html/
+```
+
+Nginx example:
+
+```nginx
+server {
+    listen 80;
+    root /var/www/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
 
 ---
 
-## OpenAPI and AI output
+## Raw content output
 
-Clarify copies raw `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` files into the build output. It also lists discoverable pages and specs in `llms.txt`, which makes the published docs easier for AI tools to read.
+Clarify exposes raw content during development and production builds. This is useful for search, knowledge bases, and AI tools.
+
+| Page route | Raw content URL |
+|------------|-----------------|
+| `/` | `/index.md` |
+| `/getting-started` | `/getting-started.md` |
+| `/features/openapi` | `/features/openapi.md` |
+| `/api` | `/api.openapi.json` |
+
+The page content actions use these URLs to copy raw page content, copy raw content links, or let AI tools reference stable Markdown/OpenAPI addresses.
+
+---
+
+## `llms.txt`
+
+The build output includes `llms.txt`, listing the site title, description, MDX pages, and OpenAPI entry points:
+
+```txt
+# Clarify
+
+> Open-source documentation publishing for MDX and OpenAPI.
+
+## Docs
+- [Get Started](/getting-started.md)
+- [API Documentation](/features/openapi.md)
+
+## OpenAPI
+- [API Reference](/api.openapi.json)
+```
+
+It is useful for:
+
+- AI coding assistants;
+- internal knowledge-base indexing;
+- documentation quality tools;
+- search or Q&A systems as a discovery manifest.
+
+If `routePrefix` is configured, links in `llms.txt` automatically include the same prefix.
+
+---
+
+## Pre-publish checklist
+
+- `pnpm exec clarify build` completes successfully.
+- `output/` contains the expected HTML, assets, raw Markdown/OpenAPI files, and `llms.txt`.
+- `routePrefix` is configured when deploying under a subpath.
+- Raw OpenAPI output does not include internal-only information.
+- The hosting platform points to `output` or your custom output directory.

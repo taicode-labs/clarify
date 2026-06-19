@@ -1,19 +1,32 @@
 # 能力概览
 
-Clarify 的用户文档按任务收敛为少量核心页面。先理解能力边界，再进入对应任务页。
+Clarify 的定位很清晰：把“写文档、生成 API Reference、发布静态站点、让 AI 读取文档”放进同一个本地优先工作流。
 
 ---
 
-## 核心能力
+## 核心亮点
 
-| 能力 | Clarify 负责什么 | 继续阅读 |
-|------|------------------|----------|
-| 快速建站 | CLI、开发服务器、静态构建和默认文档外壳 | [快速开始](/getting-started) |
-| 内容写作 | MDX、Frontmatter、文件路由、代码高亮和内置组件 | [写作文档](/guides/writing-content) |
-| 站点配置 | 顶部导航、Tabs、侧边栏、主题、国际化和部署子路径 | [配置站点](/guides/navigation) |
-| API 文档 | OpenAPI Reference、单接口嵌入和 API 文档工作流 | [API 文档](/features/openapi) |
-| 发布与 AI 读取 | SSG、静态部署、原始 Markdown/OpenAPI 输出和 `llms.txt` | [发布上线](/guides/deployment) |
-| 插件扩展 | 构建期 Hook、导航治理、虚拟模块和额外产物 | [插件机制](/features/plugins) |
+| 亮点 | Clarify 已经提供什么 | 继续阅读 |
+|------|----------------------|----------|
+| **快速建站** | `clarify dev`、`clarify build`、默认文档外壳、文件路由和静态输出 | [快速开始](/getting-started) |
+| **MDX 内容写作** | Frontmatter、React 组件、代码高亮、内置 Callout/Card/Code 组件、目录结构路由 | [写作文档](/guides/writing-content) |
+| **OpenAPI 一等支持** | `.openapi.json/.yaml/.yml` 解析、完整 API Reference、`OpenApiEndpoint` 单接口嵌入、构建时校验 | [API 文档](/features/openapi) |
+| **AI-ready 发布** | 原始 Markdown/OpenAPI 输出、页面复制操作、原始内容链接、`llms.txt` 发现入口 | [发布上线](/guides/deployment) |
+| **多语言与导航** | locale 目录、缺失翻译策略、Tabs、分组侧边栏、外链、图标和本地化文案 | [配置站点](/guides/navigation) |
+| **主题与品牌** | React 19 + Tailwind CSS 4 渲染器、主题预设、颜色 token、圆角 token、布局宽度、亮暗主题启动脚本 | [配置参考](/reference/clarify-config) |
+| **可扩展构建管线** | `routes:resolved`、`modules:before`、`build:done` Hook，可生成搜索索引、治理报告或内部平台产物 | [插件机制](/features/plugins) |
+| **部署控制权** | 纯静态产物、`routePrefix` 子路径、Vercel/Netlify/GitHub Pages/Nginx 等平台部署 | [发布上线](/guides/deployment) |
+
+---
+
+## 用户路径
+
+1. **启动站点**：安装 CLI，创建 `clarify.ts` 和 `source/`。
+2. **写内容**：用 MDX 组织首页、指南、参考页和组件示例。
+3. **接入 API**：放入 OpenAPI 规范，生成 Reference，并在指南里嵌入关键接口。
+4. **配置信息架构**：用 Tabs、分组、导航、页脚和多语言配置组织阅读路径。
+5. **发布和供 AI 读取**：构建静态站点，同时输出原始内容文件和 `llms.txt`。
+6. **扩展团队流程**：需要内容治理、翻译检查、搜索索引或自定义产物时接入插件。
 
 ---
 

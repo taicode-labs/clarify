@@ -18,6 +18,18 @@
 
 ---
 
+## Core Highlights
+
+Clarify is built for teams that want modern documentation without giving up source ownership, local workflows, or deployment control.
+
+| Highlight | What you get |
+|-----------|--------------|
+| **Docs live with code** | Version MDX pages, OpenAPI specs, navigation, and theme config in the same repository. |
+| **MDX + OpenAPI in one site** | Combine tutorials, product guides, and generated API reference pages without a separate docs product. |
+| **Static, self-hostable output** | Build standalone HTML, assets, copied public files, raw Markdown/OpenAPI artifacts, and `llms.txt`. |
+| **AI-readable by default** | Expose raw page content, raw specs, and discovery metadata so agents and internal tools can read your docs. |
+| **Typed, extensible publishing** | Configure navigation, i18n, theme tokens, footer, route prefixes, and build plugins in TypeScript. |
+
 ## What is Clarify?
 
 Clarify is an open-source documentation publishing tool for teams that want their docs to stay close to the codebase. It turns MDX content, OpenAPI specifications, and a typed `clarify.ts` configuration into a production-ready static documentation site.
@@ -26,13 +38,14 @@ The project is designed for product docs, API references, engineering handbooks,
 
 ## Core Features
 
-- **MDX-first authoring** — Write Markdown, embed React components, and keep examples, guides, and reference pages in the same content workflow.
-- **OpenAPI documentation** — Render OpenAPI specs as navigable API reference pages without moving API docs into a separate hosted product.
-- **Static site generation** — Build deployable static output for any platform that can serve HTML, CSS, and JavaScript.
-- **Built-in internationalization** — Organize localized content by locale folders and configure locale fallback behavior in `clarify.ts`.
-- **Typed configuration** — Define navigation, tabs, theme tokens, navbar links, footer links, and metadata with TypeScript.
-- **Themeable React renderer** — Customize a Tailwind CSS 4 + React 19 documentation shell instead of being locked into a fixed SaaS theme.
-- **AI-ready output** — Generate documentation artifacts such as `llms.txt` for AI agents and developer tools.
+- **MDX-first authoring** — Write Markdown, embed React components, use built-in callouts/cards/code blocks, and keep examples, guides, and reference pages in one content workflow.
+- **OpenAPI documentation** — Render OpenAPI 3.0/3.1 specs as navigable API reference pages and embed individual operations inside MDX guides.
+- **Static site generation** — Build deployable static output with one HTML file per route, client-side navigation, copied public assets, and route-prefix support.
+- **Built-in internationalization** — Organize localized content by locale folders, configure locale fallback behavior, and localize navigation/footer labels in `clarify.ts`.
+- **Typed configuration** — Define tabs, sidebars, navbar links, footer links, theme tokens, route prefixes, favicon/logo variants, and metadata with TypeScript.
+- **Themeable React renderer** — Customize a Tailwind CSS 4 + React 19 documentation shell with presets, color tokens, radius tokens, and layout width settings.
+- **AI-ready output** — Generate raw `.md` / `.openapi.*` artifacts, page copy actions, stable raw-content links, and `llms.txt` for AI agents and developer tools.
+- **Plugin-ready pipeline** — Extend route resolution, virtual modules, and build completion hooks for governance, search indexes, translation workflows, or custom artifacts.
 - **Local-first workflow** — Use `clarify dev` and `clarify build` in the repository where the docs live.
 
 ## Why Clarify instead of Mintlify?

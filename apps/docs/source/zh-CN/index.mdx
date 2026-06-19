@@ -1,8 +1,20 @@
 # Clarify
 
-开源文档发布工具，为 MDX 和 OpenAPI 而生。
+开源文档发布工具，为 MDX、OpenAPI 和 AI 可读知识库而生。
 
-Clarify 让你用熟悉的 Markdown + React 组件编写文档，自动生成为 SEO 友好的静态站点。
+Clarify 让文档留在代码仓库里：你维护 `source/`、OpenAPI 规范和 `clarify.ts`，它负责本地开发、路由生成、React 渲染、静态构建和 AI 友好的内容产物。
+
+---
+
+## 一眼看懂核心亮点
+
+| 亮点 | 用户价值 |
+|------|----------|
+| **文档即代码** | MDX、OpenAPI、导航和主题配置都能进入 Git，天然适合 Review、版本化和协作。 |
+| **MDX + OpenAPI 一体化** | 产品指南、教程、组件示例和 API Reference 放在同一个文档站点里。 |
+| **纯静态发布** | 每个路由生成独立 HTML，同时保留客户端导航体验，可部署到任意静态托管平台。 |
+| **AI-ready 输出** | 构建 `.md`、`.openapi.*` 和 `llms.txt`，页面上也提供复制原始内容和原始链接的操作。 |
+| **可配置、可扩展** | TypeScript 配置覆盖导航、Tabs、国际化、主题 token、部署子路径、页脚和插件。 |
 
 ---
 
@@ -11,29 +23,18 @@ Clarify 让你用熟悉的 Markdown + React 组件编写文档，自动生成为
 | 你想做什么 | 推荐阅读 |
 |------------|----------|
 | 第一次使用 Clarify | [快速开始](/getting-started) |
-| 理解整体能力 | [能力概览](/features) |
-| 编写 MDX、组织目录和使用组件 | [写作文档](/guides/writing-content) |
+| 理解整体能力和适用场景 | [能力概览](/features) |
+| 编写 MDX、组织目录和使用内置组件 | [写作文档](/guides/writing-content) |
 | 配置导航、主题、国际化和路由 | [配置站点](/guides/navigation) |
 | 生成 API Reference 并嵌入接口 | [API 文档](/features/openapi) |
 | 静态构建、部署和输出 `llms.txt` | [发布上线](/guides/deployment) |
-
----
-
-## 核心特性
-
-| 特性 | 说明 |
-|------|------|
-| **MDX 支持** | 在 Markdown 中直接使用 React 组件，支持代码高亮、自定义组件 |
-| **文件路由** | 按照文件目录结构自动生成路由，无需手动配置 |
-| **静态生成 (SSG)** | 构建时为每个页面生成独立的 HTML，首屏加载快且对搜索引擎友好 |
-| **内置样式系统** | 由 Clarify 渲染器提供一致的文档 UI，并支持基础品牌色配置 |
-| **OpenAPI 集成** | 从同一份规范生成 API Reference，并在 MDX 指南中嵌入单个接口 |
+| 接入内容治理、搜索索引或额外产物 | [插件机制](/features/plugins) |
 
 ---
 
 ## 快速预览
 
-一个典型的 Clarify 文档站点只需要安装 CLI 并编写内容：
+一个典型的 Clarify 文档站点只需要安装 CLI、添加配置并编写内容：
 
 ```bash
 pnpm add -D @clarify-labs/cli
@@ -41,24 +42,28 @@ pnpm exec clarify init
 pnpm dev
 ```
 
-**clarify.json**
+**clarify.ts**
 
-```json
-{
-  "title": "我的文档",
-  "description": "这是 Clarify 驱动的文档站点"
-}
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  title: '我的文档',
+  description: '这是 Clarify 驱动的文档站点',
+  tabs: [{ tab: '文档', pages: 'FileTree' }],
+})
 ```
 
-然后在 `source` 目录下编写 `.md` / `.mdx` 文件（或放置 `.openapi.json` 规范），Clarify 会自动为你生成路由和页面。CLI 会自动装配开发服务器、客户端入口和静态构建流程。
+然后在 `source/` 目录下编写 `.md` / `.mdx` 文件，或放置 `.openapi.json` / `.openapi.yaml` 规范。Clarify 会自动生成路由、页面、静态 HTML、原始内容文件和 `llms.txt`。
 
 ---
 
 ## 适合谁用
 
-- **开源项目维护者** — 需要为项目编写文档，希望文档和代码在同一个仓库
-- **技术写作者** — 习惯 Markdown，偶尔需要在文档中嵌入交互组件
-- **团队知识库** — 快速搭建内部文档站点，统一导航、搜索和品牌主色
+- **开源项目维护者** — 需要文档和代码同仓库，方便社区贡献和版本追踪。
+- **技术写作者 / DevRel** — 以 Markdown 为主，同时需要 React 组件、API Reference 和统一信息架构。
+- **API 平台团队** — 希望把 OpenAPI 规范、任务型指南和 AI 可读接口源文件一起发布。
+- **内部知识库团队** — 需要可自托管、可接入内容治理和搜索索引的静态文档门户。
 
 ---
 

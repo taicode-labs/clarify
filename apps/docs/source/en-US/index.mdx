@@ -1,8 +1,20 @@
 # Clarify
 
-An open-source documentation publishing tool built for MDX and OpenAPI.
+An open-source documentation publishing tool built for MDX, OpenAPI, and AI-readable knowledge bases.
 
-Clarify lets you write docs with familiar Markdown plus React components, then generate SEO-friendly static sites automatically.
+Clarify keeps documentation in your repository: you maintain `source/`, OpenAPI specs, and `clarify.ts`; Clarify handles local development, route generation, React rendering, static builds, and AI-friendly content artifacts.
+
+---
+
+## Core highlights at a glance
+
+| Highlight | User value |
+|-----------|------------|
+| **Docs as code** | Version MDX, OpenAPI, navigation, and theme configuration in Git for reviewable collaboration. |
+| **MDX + OpenAPI together** | Publish product guides, tutorials, component examples, and API Reference pages in one site. |
+| **Static publishing** | Generate standalone HTML for every route while keeping client-side navigation after hydration. |
+| **AI-ready output** | Build `.md`, `.openapi.*`, and `llms.txt`; pages also expose copy actions for raw content and raw links. |
+| **Configurable and extensible** | TypeScript config covers navigation, tabs, i18n, theme tokens, route prefixes, footer links, and plugins. |
 
 ---
 
@@ -11,29 +23,18 @@ Clarify lets you write docs with familiar Markdown plus React components, then g
 | Goal | Recommended reading |
 |------|---------------------|
 | Try Clarify for the first time | [Get Started](/getting-started) |
-| Understand the core capabilities | [Feature Overview](/features) |
-| Write MDX, organize files, and use components | [Writing Docs](/guides/writing-content) |
+| Understand the core capabilities and use cases | [Feature Overview](/features) |
+| Write MDX, organize files, and use built-in components | [Writing Docs](/guides/writing-content) |
 | Configure navigation, theme, i18n, and routes | [Configure Site](/guides/navigation) |
 | Generate API Reference pages and embed endpoints | [API Documentation](/features/openapi) |
 | Build static output, deploy it, and publish `llms.txt` | [Deployment](/guides/deployment) |
-
----
-
-## Core features
-
-| Feature | Description |
-|---------|-------------|
-| **MDX support** | Use React components directly in Markdown, with syntax highlighting and custom components. |
-| **File-based routing** | Generate routes from the content directory without manual route configuration. |
-| **Static generation (SSG)** | Build standalone HTML for every page for fast first loads and search-friendly output. |
-| **Built-in styling system** | Use a consistent documentation UI from the Clarify renderer with basic brand color configuration. |
-| **OpenAPI integration** | Generate API Reference pages from the same specification and embed individual operations in MDX guides. |
+| Add governance, search indexes, or custom artifacts | [Plugin System](/features/plugins) |
 
 ---
 
 ## Quick preview
 
-A typical Clarify docs site only needs the CLI and content files:
+A typical Clarify docs site only needs the CLI, a config file, and content:
 
 ```bash
 pnpm add -D @clarify-labs/cli
@@ -41,24 +42,28 @@ pnpm exec clarify init
 pnpm dev
 ```
 
-**clarify.json**
+**clarify.ts**
 
-```json
-{
-  "title": "My Docs",
-  "description": "A documentation site powered by Clarify"
-}
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  title: 'My Docs',
+  description: 'A documentation site powered by Clarify',
+  tabs: [{ tab: 'Docs', pages: 'FileTree' }],
+})
 ```
 
-Then write `.md` / `.mdx` files in `source` or add `.openapi.json` specifications. Clarify handles routing, rendering, the development server, and static builds.
+Then write `.md` / `.mdx` files in `source/` or add `.openapi.json` / `.openapi.yaml` specs. Clarify generates routes, pages, static HTML, raw content files, and `llms.txt`.
 
 ---
 
 ## Who is it for?
 
-- **Open-source maintainers** — keep docs and code in the same repository.
-- **Technical writers** — write primarily in Markdown while adding interactive React components when needed.
-- **Team knowledge bases** — ship a consistent internal documentation site with navigation, search, and brand color.
+- **Open-source maintainers** — keep docs and code in the same repository for community contributions and version tracking.
+- **Technical writers / DevRel teams** — write primarily in Markdown while using React components, API Reference pages, and structured navigation.
+- **API platform teams** — publish OpenAPI specs, task-oriented guides, and AI-readable interface source files together.
+- **Internal knowledge-base teams** — ship a self-hosted static docs portal that can plug into governance and search-index workflows.
 
 ---
 
