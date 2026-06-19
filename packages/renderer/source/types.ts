@@ -92,7 +92,6 @@ export type ClarifyThemeTokensConfig = {
 
 export type ClarifyThemeLayoutConfig = {
   maxWidth: string;
-  proseWidth: string;
 };
 
 export type ClarifyThemeConfig = {

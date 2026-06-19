@@ -66,8 +66,8 @@
   }
 
   body {
-    background: var(--color-white);
-    color: var(--color-zinc-900);
+    background: var(--clarify-theme-tokens-colors-background, var(--color-white));
+    color: var(--clarify-theme-tokens-colors-foreground, var(--color-zinc-900));
   }
 
   .dark body {
@@ -132,6 +132,6 @@
   .prose .task-list-item > input[type='checkbox'] {
     margin-top: 0.45rem;
     flex: none;
-    accent-color: var(--color-emerald-500);
+    accent-color: var(--clarify-theme-tokens-colors-primary, var(--color-emerald-500));
   }
 }

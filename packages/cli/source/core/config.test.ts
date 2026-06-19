@@ -63,14 +63,14 @@ describe('resolveProjectConfig', () => {
         preset: 'default',
         tokens: {
           colors: {
-            primary: '#0ea5e9',
-            accent: '#38bdf8',
+            primary: '#10b981',
+            accent: '#059669',
             background: '#ffffff',
-            foreground: '#0f172a',
+            foreground: '#18181b',
             surface: '#ffffff',
-            muted: '#64748b',
-            border: '#e2e8f0',
-            codeBackground: '#f8fafc',
+            muted: '#71717a',
+            border: 'rgb(24 24 27 / 0.1)',
+            codeBackground: '#f4f4f5',
           },
           radius: {
             sm: '6px',
@@ -80,8 +80,7 @@ describe('resolveProjectConfig', () => {
           },
         },
         layout: {
-          maxWidth: '1200px',
-          proseWidth: '48rem',
+          maxWidth: '80rem',
         },
       },
       navbar: undefined,
@@ -116,7 +115,7 @@ describe('resolveProjectConfig', () => {
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
     expect(result.theme.tokens.colors.primary).toBe('#333')
-    expect(result.theme.layout).toEqual({ maxWidth: '1200px', proseWidth: '48rem' })
+    expect(result.theme.layout).toEqual({ maxWidth: '80rem' })
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
@@ -143,13 +142,13 @@ describe('resolveProjectConfig', () => {
       theme: {
         preset: 'violet',
         tokens: { colors: { primary: '#7c3aed' } },
-        layout: { proseWidth: '52rem' },
+        layout: {},
       },
     }).theme
     expect(violetTheme.preset).toBe('violet')
     expect(violetTheme.tokens.colors.primary).toBe('#7c3aed')
     expect(violetTheme.tokens.colors.accent).toBe('#a78bfa')
-    expect(violetTheme.layout).toEqual({ maxWidth: '1200px', proseWidth: '52rem' })
+    expect(violetTheme.layout).toEqual({ maxWidth: '80rem' })
   })
 })
 

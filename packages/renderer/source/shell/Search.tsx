@@ -93,7 +93,7 @@ function HighlightQuery(arg0: { text: string; query: string }) {  const { text, 
     <>
       {parts.map((part, index) =>
         part.toLowerCase() === query.toLowerCase() ? (
-          <mark key={index} className="bg-transparent text-emerald-500 underline">
+          <mark key={index} className="bg-transparent text-(--clarify-theme-tokens-colors-primary) underline">
             {part}
           </mark>
         ) : (
@@ -113,8 +113,8 @@ function SearchResult(arg0: { result: SearchItem; query: string; active: boolean
     <li
       id={id}
       className={clsx(
-        'clarify-search-result group block cursor-default px-4 py-3 aria-selected:bg-zinc-50 dark:aria-selected:bg-zinc-800/50',
-        active && 'bg-zinc-50 dark:bg-zinc-800/50',
+        'clarify-search-result group block cursor-default px-4 py-3 aria-selected:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:aria-selected:bg-zinc-800/50',
+        active && 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:bg-zinc-800/50',
       )}
       aria-selected={active}
       onMouseDown={(event) => {
@@ -122,15 +122,15 @@ function SearchResult(arg0: { result: SearchItem; query: string; active: boolean
         onSelect()
       }}
     >
-      <div className="text-sm font-medium text-zinc-900 group-aria-selected:text-emerald-500 dark:text-white">
+      <div className="text-sm font-medium text-(--clarify-theme-tokens-colors-foreground) group-aria-selected:text-(--clarify-theme-tokens-colors-primary) dark:text-white">
         <HighlightQuery text={result.title} query={query} />
       </div>
       {hierarchy.length > 0 ? (
-        <div className="mt-1 truncate text-2xs whitespace-nowrap text-zinc-500">
+        <div className="mt-1 truncate text-2xs whitespace-nowrap text-(--clarify-theme-tokens-colors-muted)">
           {hierarchy.map((item, itemIndex, items) => (
             <Fragment key={`${item}-${itemIndex}`}>
               <HighlightQuery text={item} query={query} />
-              <span className={itemIndex === items.length - 1 ? 'sr-only' : 'mx-2 text-zinc-300 dark:text-zinc-700'}>/</span>
+              <span className={itemIndex === items.length - 1 ? 'sr-only' : 'mx-2 text-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-muted)_45%,transparent)] dark:text-zinc-700'}>/</span>
             </Fragment>
           ))}
         </div>
@@ -152,7 +152,7 @@ const SearchInput = forwardRef<
 
   return (
     <div className="clarify-search-input group relative flex h-12">
-      <SearchIcon className="pointer-events-none absolute top-0 left-3 h-full w-5 stroke-zinc-500" />
+      <SearchIcon className="pointer-events-none absolute top-0 left-3 h-full w-5 stroke-(--clarify-theme-tokens-colors-muted)" />
       <input
         ref={inputRef}
         data-autofocus
@@ -173,7 +173,7 @@ const SearchInput = forwardRef<
           }
         }}
         placeholder="Find something..."
-        className="flex-auto appearance-none bg-transparent pr-4 pl-10 text-zinc-900 outline-hidden placeholder:text-zinc-500 focus:w-full focus:flex-none sm:text-sm dark:text-white [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden"
+        className="flex-auto appearance-none bg-transparent pr-4 pl-10 text-(--clarify-theme-tokens-colors-foreground) outline-hidden placeholder:text-(--clarify-theme-tokens-colors-muted) focus:w-full focus:flex-none sm:text-sm dark:text-white [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden"
       />
     </div>
   )
@@ -246,13 +246,13 @@ function SearchDialog(arg0: {
     <Dialog open={open} onClose={closeDialog} className={clsx('clarify-search-dialog fixed inset-0 z-50', className)}>
       <DialogBackdrop
         transition
-        className="clarify-search-backdrop fixed inset-0 bg-zinc-400/25 backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in dark:bg-black/40"
+        className="clarify-search-backdrop fixed inset-0 bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-muted)_25%,transparent)] backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in dark:bg-black/40"
       />
 
       <div className="fixed inset-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-20 md:py-32 lg:px-8 lg:py-[15vh]">
         <DialogPanel
           transition
-          className="clarify-search-panel mx-auto transform-gpu overflow-hidden rounded-lg bg-zinc-50 shadow-xl ring-1 ring-zinc-900/7.5 data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
+          className="clarify-search-panel mx-auto transform-gpu overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) shadow-xl ring-1 ring-(--clarify-theme-tokens-colors-border) data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
           onKeyDown={(event) => {
             if (event.key === 'ArrowDown') {
               event.preventDefault()
@@ -271,13 +271,13 @@ function SearchDialog(arg0: {
             onClose={closeDialog}
             onSubmit={() => selectResult()}
           />
-          <div className="border-t border-zinc-200 bg-white empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5">
+          <div className="border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5">
             {query && results.length === 0 ? (
               <div className="p-6 text-center">
-                <NoResultsIcon className="mx-auto h-5 w-5 stroke-zinc-900 dark:stroke-zinc-600" />
-                <p className="mt-2 text-xs text-zinc-700 dark:text-zinc-400">
+                <NoResultsIcon className="mx-auto h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-zinc-600" />
+                <p className="mt-2 text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">
                   Nothing found for{' '}
-                  <strong className="font-semibold wrap-break-word text-zinc-900 dark:text-white">&lsquo;{query}&rsquo;</strong>.
+                  <strong className="font-semibold wrap-break-word text-(--clarify-theme-tokens-colors-foreground) dark:text-white">&lsquo;{query}&rsquo;</strong>.
                 </p>
               </div>
             ) : null}
@@ -333,12 +333,12 @@ export function Search(arg0: { routes: RouteItem[]; navigation: NavigationNode[]
     <div className="clarify-search hidden w-80 max-w-[36vw] lg:block">
       <button
         type="button"
-        className="clarify-search-button hidden h-9 w-full items-center gap-2 rounded-lg bg-zinc-50 pr-3 pl-2.5 text-sm text-zinc-500 ring-1 ring-zinc-900/10 transition hover:bg-white hover:ring-zinc-900/20 lg:flex dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:ring-inset dark:hover:bg-white/10 dark:hover:ring-white/20"
+        className="clarify-search-button hidden h-9 w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) pr-3 pl-2.5 text-sm text-(--clarify-theme-tokens-colors-muted) ring-1 ring-(--clarify-theme-tokens-colors-border) transition hover:bg-(--clarify-theme-tokens-colors-background) hover:ring-(--clarify-theme-tokens-colors-muted) lg:flex dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:ring-inset dark:hover:bg-white/10 dark:hover:ring-white/20"
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
         Search...
-        <kbd className="ml-auto rounded bg-white px-1.5 py-0.5 text-2xs text-zinc-400 ring-1 ring-zinc-900/10 dark:bg-white/5 dark:text-zinc-500 dark:ring-white/10">
+        <kbd className="ml-auto rounded-(--clarify-theme-tokens-radius-sm) bg-(--clarify-theme-tokens-colors-background) px-1.5 py-0.5 text-2xs text-(--clarify-theme-tokens-colors-muted) ring-1 ring-(--clarify-theme-tokens-colors-border) dark:bg-white/5 dark:text-zinc-500 dark:ring-white/10">
           <kbd className="font-sans">{modifierKey}</kbd>
           <kbd className="font-sans">K</kbd>
         </kbd>
@@ -366,12 +366,12 @@ export function MobileSearch(arg0: {
     <div className="clarify-mobile-search contents lg:hidden">
       <button
         type="button"
-        className="clarify-mobile-search-button relative flex size-6 items-center justify-center rounded-md transition hover:bg-zinc-900/5 lg:hidden dark:hover:bg-white/5"
+        className="clarify-mobile-search-button relative flex size-6 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] lg:hidden dark:hover:bg-white/5"
         aria-label="Find something..."
         {...buttonProps}
       >
         <span className="absolute size-12 pointer-fine:hidden" />
-        <SearchIcon className="h-5 w-5 stroke-zinc-900 dark:stroke-white" />
+        <SearchIcon className="h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-white" />
       </button>
       <Suspense fallback={null}>
         <SearchDialog className="lg:hidden" routes={routes} navigation={navigation} onNavigate={onNavigate} {...dialogProps} />

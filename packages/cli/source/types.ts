@@ -91,8 +91,6 @@ export type ClarifyThemeTokensConfig = {
 export type ClarifyThemeLayoutConfig = {
   /** Max width for the overall documentation layout. */
   maxWidth?: string
-  /** Max width for regular prose content. */
-  proseWidth?: string
 }
 
 export type ClarifyThemeConfig = {

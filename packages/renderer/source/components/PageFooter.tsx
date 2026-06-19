@@ -39,7 +39,7 @@ function FooterLink(arg0: { link: ClarifyNavbarLink; locale?: string; config: Cl
       href={href}
       target={external ? '_blank' : undefined}
       rel={external ? 'noreferrer' : undefined}
-      className="clarify-footer-link text-sm text-zinc-500 no-underline transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+      className="clarify-footer-link text-sm text-(--clarify-theme-tokens-colors-muted) no-underline transition hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white"
     >
       {resolveLocalizedText(link.label, locale, config.i18n?.defaultLocale)}
     </a>
@@ -54,7 +54,7 @@ function SocialLink(arg0: { name: string; href: string }) {
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="clarify-footer-social text-sm capitalize text-zinc-500 no-underline transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+      className="clarify-footer-social text-sm capitalize text-(--clarify-theme-tokens-colors-muted) no-underline transition hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white"
     >
       {name}
     </a>
@@ -76,14 +76,14 @@ export function PageFooter() {
   return (
     <footer
       className={clsx(
-        'clarify-page-footer mx-auto mt-16 flex w-full max-w-3xl flex-col items-end gap-4 border-t border-zinc-900/10 pt-8 xl:max-w-[56rem] 2xl:max-w-[64rem] dark:border-white/10',
+        'clarify-page-footer mx-auto flex w-full max-w-(--clarify-theme-layout-max-width) flex-col items-end gap-4 border-t border-(--clarify-theme-tokens-colors-border) px-4 py-8 sm:px-6 lg:px-5 dark:border-white/10',
         hasCustomFooter && 'sm:flex-row sm:items-center sm:justify-between',
       )}
     >
       {hasCustomFooter ? (
         <div className="clarify-footer-content flex flex-col gap-3 text-right sm:text-left">
           {copyright ? (
-            <p className="clarify-footer-copyright m-0 text-sm text-zinc-500 dark:text-zinc-400">{copyright}</p>
+            <p className="clarify-footer-copyright m-0 text-sm text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">{copyright}</p>
           ) : null}
           {links.length > 0 || socials.length > 0 ? (
             <div className="clarify-footer-links flex flex-wrap justify-end gap-x-4 gap-y-2 sm:justify-start">

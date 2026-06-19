@@ -79,7 +79,7 @@ function CopyButton(arg0: { code: string }) {  const { code } = arg0
       className={clsx(
         'clarify-code-copy group/button absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 text-2xs font-medium opacity-0 backdrop-blur-sm transition group-hover:opacity-100 focus:opacity-100',
         copied
-          ? 'bg-emerald-400/10 ring-1 ring-emerald-400/20 ring-inset'
+          ? 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_24%,transparent)] ring-inset'
           : 'bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5',
       )}
       onClick={() => {
@@ -101,7 +101,7 @@ function CopyButton(arg0: { code: string }) {  const { code } = arg0
       <span
         aria-hidden={!copied}
         className={clsx(
-          'pointer-events-none absolute inset-0 flex items-center justify-center text-emerald-400 transition duration-300',
+          'pointer-events-none absolute inset-0 flex items-center justify-center text-[var(--clarify-theme-tokens-colors-primary)] transition duration-300',
           !copied && 'translate-y-1.5 opacity-0',
         )}
       >
@@ -117,7 +117,7 @@ function CodePanelHeader(arg0: { tag?: string; label?: string }) {  const { tag,
 
   return (
     <div className="clarify-code-panel-header flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
-      {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-emerald-400">{tag}</span> : null}
+      {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-[var(--clarify-theme-tokens-colors-primary)]">{tag}</span> : null}
       {tag && label ? <span className="h-0.5 w-0.5 rounded-full bg-zinc-500" /> : null}
       {label ? <span className="font-mono text-xs text-zinc-400">{label}</span> : null}
     </div>
@@ -171,7 +171,7 @@ function CodeGroupHeader(arg0: { title?: string; children: ReactNode; selectedIn
               className={clsx(
                 'clarify-code-tab border-b py-3 transition data-selected:not-data-focus:outline-hidden',
                 childIndex === selectedIndex
-                  ? 'border-emerald-500 text-emerald-400'
+                  ? 'border-[var(--clarify-theme-tokens-colors-primary)] text-[var(--clarify-theme-tokens-colors-primary)]'
                   : 'border-transparent text-zinc-400 hover:text-zinc-300',
               )}
             >

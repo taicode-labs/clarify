@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 
+import { PageFooter, PageNavigation } from '../components'
 import { SectionProvider, type Section } from '../components/SectionProvider'
 import { ContentActions, Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
@@ -81,10 +82,23 @@ function navigationForLocale(navigation: NavigationTree, locale: string | undefi
 }
 
 function themeStyle(config: ClarifyConfig): CSSProperties {
+  const { colors, radius } = config.theme.tokens
+  const { layout } = config.theme
+
   return {
-    '--clarify-color-primary': config.theme.tokens.colors.primary,
-    '--clarify-layout-max-width': config.theme.layout.maxWidth,
-    '--clarify-layout-prose-width': config.theme.layout.proseWidth,
+    '--clarify-theme-tokens-colors-primary': colors.primary,
+    '--clarify-theme-tokens-colors-accent': colors.accent,
+    '--clarify-theme-tokens-colors-background': colors.background,
+    '--clarify-theme-tokens-colors-foreground': colors.foreground,
+    '--clarify-theme-tokens-colors-surface': colors.surface,
+    '--clarify-theme-tokens-colors-muted': colors.muted,
+    '--clarify-theme-tokens-colors-border': colors.border,
+    '--clarify-theme-tokens-colors-code-background': colors.codeBackground,
+    '--clarify-theme-tokens-radius-sm': radius.sm,
+    '--clarify-theme-tokens-radius-md': radius.md,
+    '--clarify-theme-tokens-radius-lg': radius.lg,
+    '--clarify-theme-tokens-radius-xl': radius.xl,
+    '--clarify-theme-layout-max-width': layout.maxWidth,
   } as CSSProperties
 }
 
@@ -115,7 +129,7 @@ export function AppShell(arg0: AppShellProps) {
   return (
     <SectionProvider sections={sections}>
       <div
-        className="clarify-app h-full min-h-screen bg-white dark:bg-zinc-950"
+        className="clarify-app h-full min-h-screen bg-(--clarify-theme-tokens-colors-background) text-(--clarify-theme-tokens-colors-foreground) dark:bg-zinc-950 dark:text-white"
         data-theme-preset={config.theme.preset}
         style={themeStyle(config)}
       >
@@ -127,25 +141,29 @@ export function AppShell(arg0: AppShellProps) {
           currentLocale={currentLocale}
           currentRoute={currentRoute}
         />
-        <motion.aside
-          layoutScroll
-          className={clsx(
-            'clarify-sidebar hidden lg:fixed lg:bottom-0 lg:left-0 lg:z-30 lg:block lg:w-72 lg:overflow-y-auto lg:border-r lg:border-zinc-900/10 lg:bg-white lg:px-5 lg:pb-8 xl:w-80 lg:dark:border-white/10 lg:dark:bg-zinc-950',
-            hasTabs ? 'lg:top-28 lg:pt-6' : 'lg:top-14 lg:pt-6',
-          )}
-        >
-          <Navigation navigation={currentNavigation.items} />
-        </motion.aside>
-        <div className={clsx('clarify-content relative flex min-h-screen flex-col px-4 sm:px-6 lg:ml-72 lg:px-10 xl:ml-80', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
-          <ContentActions route={currentRoute} routePrefix={config.routePrefix} />
-          <main className="clarify-main flex-auto">
-            <Routes>
-              {routes.map((route) => (
-                <Route key={route.path} path={route.path} element={<route.component />} />
-              ))}
-            </Routes>
-          </main>
+        <div className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-[18rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)]">
+          <motion.aside
+            layoutScroll
+            className={clsx(
+              'clarify-sidebar hidden lg:sticky lg:z-30 lg:block lg:h-[calc(100vh-3.5rem)] lg:self-start lg:overflow-y-auto lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 lg:pb-8 xl:px-6 lg:dark:bg-zinc-950',
+              hasTabs ? 'lg:top-28 lg:h-[calc(100vh-7rem)] lg:pt-6' : 'lg:top-14 lg:pt-6',
+            )}
+          >
+            <Navigation navigation={currentNavigation.items} />
+          </motion.aside>
+          <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
+            <ContentActions route={currentRoute} routePrefix={config.routePrefix} />
+            <main className="clarify-main min-w-0 flex-auto">
+              <Routes>
+                {routes.map((route) => (
+                  <Route key={route.path} path={route.path} element={<route.component />} />
+                ))}
+              </Routes>
+            </main>
+            <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
+          </div>
         </div>
+        <PageFooter />
       </div>
     </SectionProvider>
   )

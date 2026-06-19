@@ -20,12 +20,7 @@
     ]
   },
   "theme": {
-    "preset": "default",
-    "tokens": {
-      "colors": {
-        "primary": "#0ea5e9"
-      }
-    }
+    "preset": "default"
   },
   "navbar": {
     "links": [

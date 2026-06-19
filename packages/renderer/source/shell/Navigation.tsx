@@ -54,7 +54,7 @@ function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  c
       <CloseButton
         as={Link}
         to={href}
-        className="block py-1 text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+        className="block py-1 text-sm text-(--clarify-theme-tokens-colors-muted) transition hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white"
       >
         {children}
       </CloseButton>
@@ -130,8 +130,8 @@ function NavLink(arg0: {
         'clarify-navigation-link flex h-8 items-center justify-between gap-2 pr-3 text-sm transition',
         isAnchorLink ? 'clarify-navigation-anchor-link pl-7' : 'pl-4',
         active
-          ? 'text-zinc-900 dark:text-white'
-          : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
+          ? 'text-(--clarify-theme-tokens-colors-foreground) dark:text-white'
+          : 'text-(--clarify-theme-tokens-colors-muted) hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:hover:text-white',
       )}
     >
       <span className="flex min-w-0 flex-1 items-center gap-2">
@@ -174,8 +174,8 @@ function VisibleSectionHighlight(arg0: { group: NavGroup; pathname: string }) { 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
       exit={{ opacity: 0 }}
-      className="absolute inset-x-0 top-0 bg-zinc-800/2.5 will-change-transform dark:bg-white/2.5"
-      style={{ borderRadius: 8, height, top }}
+      className="absolute inset-x-0 top-0 bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_3%,transparent)] will-change-transform dark:bg-white/2.5"
+      style={{ borderRadius: 'var(--clarify-theme-tokens-radius-sm)', height, top }}
     />
   )
 }
@@ -190,7 +190,7 @@ function ActivePageMarker(arg0: { group: NavGroup; pathname: string }) {  const 
   return (
     <motion.div
       layout
-      className="absolute left-2 h-6 w-px bg-[var(--clarify-color-primary)]"
+      className="absolute left-2 h-6 w-px bg-(--clarify-theme-tokens-colors-primary)"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
       exit={{ opacity: 0 }}
@@ -210,7 +210,7 @@ function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const
 
   return (
     <li className={clsx('clarify-navigation-group relative mt-6', className)}>
-      <motion.h2 layout="position" className="clarify-navigation-group-title flex items-center gap-2 text-xs font-semibold text-zinc-900 dark:text-white">
+      <motion.h2 layout="position" className="clarify-navigation-group-title flex items-center gap-2 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) dark:text-white">
         <NavigationIcon name={group.icon} className="h-3.5 w-3.5" />
         <span>{group.title}</span>
       </motion.h2>
@@ -218,7 +218,7 @@ function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const
         <AnimatePresence initial={!isInsideMobileNavigation}>
           {isActiveGroup ? <VisibleSectionHighlight group={group} pathname={pathname} /> : null}
         </AnimatePresence>
-        <motion.div layout className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/5" />
+        <motion.div layout className="absolute inset-y-0 left-2 w-px bg-(--clarify-theme-tokens-colors-border) dark:bg-white/5" />
         <AnimatePresence initial={false}>
           {isActiveGroup ? <ActivePageMarker group={group} pathname={pathname} /> : null}
         </AnimatePresence>

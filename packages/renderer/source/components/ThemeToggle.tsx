@@ -29,12 +29,12 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="clarify-theme-toggle relative flex size-8 items-center justify-center rounded-md transition hover:bg-zinc-900/5 dark:hover:bg-white/5"
+      className="clarify-theme-toggle relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:hover:bg-white/5"
       aria-label={`Switch to ${otherTheme} theme`}
       onClick={() => setTheme(otherTheme)}
     >
       <span className="absolute size-12 pointer-fine:hidden" />
-      <SunIcon className="h-5 w-5 stroke-zinc-900 dark:hidden" />
+      <SunIcon className="h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:hidden" />
       <MoonIcon className="hidden h-5 w-5 stroke-white dark:block" />
     </button>
   )

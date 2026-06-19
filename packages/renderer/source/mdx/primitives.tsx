@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { createElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { Button, Callout, Card, CardGroup, Heading, PageFooter, Prose } from '../components'
+import { Button, Callout, Card, CardGroup, Heading, Prose } from '../components'
 import { Code, CodeGroup, Pre } from '../components/Code'
 
 export function wrapper(arg0: { children: ReactNode }) {  const { children } = arg0
@@ -10,7 +10,6 @@ export function wrapper(arg0: { children: ReactNode }) {  const { children } = a
   return (
     <article className="clarify-mdx-page flex h-full flex-col pt-16 pb-10">
       <Prose className="flex-auto">{children}</Prose>
-      <PageFooter />
     </article>
   )
 }
@@ -49,8 +48,8 @@ function InfoIcon(props: ComponentPropsWithoutRef<'svg'>) {
 export function Note(arg0: { children: ReactNode }) {  const { children } = arg0
 
   return (
-    <div className="clarify-note my-6 flex gap-2.5 rounded-2xl border border-emerald-500/20 bg-emerald-50/50 p-4 text-sm/6 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/5 dark:text-emerald-200 dark:[--tw-prose-links-hover:var(--color-emerald-300)] dark:[--tw-prose-links:var(--color-white)]">
-      <InfoIcon className="mt-1 h-4 w-4 flex-none fill-emerald-500 stroke-white dark:fill-emerald-200/20 dark:stroke-emerald-200" />
+    <div className="clarify-note my-6 flex gap-2.5 rounded-(--clarify-theme-tokens-radius-xl) border border-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_8%,transparent)] p-4 text-sm/6 text-(--clarify-theme-tokens-colors-foreground) dark:border-emerald-500/30 dark:bg-emerald-500/5 dark:text-emerald-200 dark:[--tw-prose-links-hover:var(--color-emerald-300)] dark:[--tw-prose-links:var(--color-white)]">
+      <InfoIcon className="mt-1 h-4 w-4 flex-none fill-(--clarify-theme-tokens-colors-primary) stroke-(--clarify-theme-tokens-colors-surface) dark:fill-emerald-200/20 dark:stroke-emerald-200" />
       <div className="*:first:mt-0 *:last:mb-0">{children}</div>
     </div>
   )
@@ -92,7 +91,7 @@ export function Property(arg0: { name: string; children: ReactNode; type?: strin
         {type ? (
           <>
             <dt className="sr-only">Type</dt>
-            <dd className="font-mono text-xs text-zinc-400 dark:text-zinc-500">{type}</dd>
+            <dd className="font-mono text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{type}</dd>
           </>
         ) : null}
         <dt className="sr-only">Description</dt>

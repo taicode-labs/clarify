@@ -84,7 +84,7 @@ export function Callout(arg0: CalloutProps) {
   return (
     <div
       className={clsx(
-        'clarify-callout my-6 flex gap-3 rounded-2xl border p-4 text-sm/6',
+        'clarify-callout my-6 flex gap-3 rounded-(--clarify-theme-tokens-radius-xl) border p-4 text-sm/6',
         style.container,
         className,
       )}

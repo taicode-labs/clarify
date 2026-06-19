@@ -17,11 +17,11 @@ export function BuiltWithClarify() {
       target="_blank"
       rel="noreferrer"
       aria-label="Built with Clarify"
-      className="clarify-built-with inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium text-zinc-500 no-underline transition hover:bg-zinc-900/2.5 hover:text-zinc-900 dark:text-zinc-500 dark:hover:bg-white/5 dark:hover:text-white"
+      className="clarify-built-with inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium text-(--clarify-theme-tokens-colors-muted) no-underline transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_3%,transparent)] hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-500 dark:hover:bg-white/5 dark:hover:text-white"
     >
       <span>Built with</span>
       <ClarifyMark className="clarify-built-with-logo h-3.5 w-5 flex-none" />
-      <span className="font-semibold text-zinc-700 dark:text-zinc-300">Clarify</span>
+      <span className="font-semibold text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-300">Clarify</span>
     </a>
   )
 }

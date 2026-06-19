@@ -133,7 +133,6 @@ export const clarifyThemeTokensConfigSchema = z.object({
 
 export const clarifyThemeLayoutConfigSchema = z.object({
   maxWidth: z.string().optional(),
-  proseWidth: z.string().optional(),
 })
 
 export const clarifyThemeConfigSchema = z.object({

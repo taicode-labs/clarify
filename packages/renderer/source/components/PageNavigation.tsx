@@ -1,0 +1,57 @@
+import clsx from 'clsx'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+import type { NavigationNode, RouteItem } from '../types'
+
+function normalizePath(path: string): string {
+  return path.startsWith('/') ? path : `/${path}`
+}
+
+function flattenNavigation(nodes: NavigationNode[]): NavigationNode[] {
+  return nodes.flatMap((node) => [node, ...flattenNavigation(node.children ?? [])])
+}
+
+export function PageNavigation(arg0: { navigation: NavigationNode[]; currentRoute?: RouteItem }) {
+  const { navigation, currentRoute } = arg0
+  if (!currentRoute) return null
+
+  const pageRoutes = flattenNavigation(navigation)
+  const currentIndex = pageRoutes.findIndex((route) => route.path === currentRoute.path)
+  if (currentIndex === -1) return null
+
+  const previous = pageRoutes[currentIndex - 1]
+  const next = pageRoutes[currentIndex + 1]
+  if (!previous && !next) return null
+
+  return (
+    <nav className="clarify-page-navigation mt-8 grid gap-4 @3xl:grid-cols-2" aria-label="Previous and next pages">
+      <PageNavigationLink direction="previous" route={previous} />
+      <PageNavigationLink direction="next" route={next} />
+    </nav>
+  )
+}
+
+function PageNavigationLink(arg0: { direction: 'previous' | 'next'; route?: NavigationNode }) {
+  const { direction, route } = arg0
+  if (!route) return <div className="hidden @3xl:block" />
+
+  const isNext = direction === 'next'
+
+  return (
+    <Link
+      to={normalizePath(route.path)}
+      className={clsx(
+        'group flex min-w-0 items-center gap-4 rounded-xl border border-(--clarify-theme-tokens-colors-border) px-5 py-4 no-underline transition hover:border-(--clarify-theme-tokens-colors-primary) hover:bg-(--clarify-theme-tokens-colors-surface) dark:border-white/10 dark:hover:border-(--clarify-theme-tokens-colors-primary) dark:hover:bg-white/2.5',
+        isNext && '@3xl:justify-end @3xl:text-right',
+      )}
+    >
+      {!isNext ? <ChevronLeft className="h-4 w-4 shrink-0 text-(--clarify-theme-tokens-colors-muted) transition group-hover:text-(--clarify-theme-tokens-colors-primary)" /> : null}
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-medium text-(--clarify-theme-tokens-colors-muted)">{isNext ? 'Next' : 'Previous'}</span>
+        <span className="mt-1 block truncate text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) dark:text-white">{route.title}</span>
+      </span>
+      {isNext ? <ChevronRight className="h-4 w-4 shrink-0 text-(--clarify-theme-tokens-colors-muted) transition group-hover:text-(--clarify-theme-tokens-colors-primary)" /> : null}
+    </Link>
+  )
+}
