@@ -1,0 +1,76 @@
+---
+title: Configuration
+description: A practical overview of the Clarify configuration fields used by this starter.
+---
+
+# Configuration
+
+The `clarify.ts` file controls the site shell, theme, navigation, and OpenAPI entries.
+
+<Properties>
+  <Property name="title" type="string">
+    Product or documentation site name.
+  </Property>
+  <Property name="description" type="string">
+    Default SEO description for the site.
+  </Property>
+  <Property name="logo" type="string | { light?: string; dark?: string }">
+    Path to a logo in `public` or an absolute URL.
+  </Property>
+  <Property name="favicon" type="string | { light?: string; dark?: string }">
+    Browser favicon path.
+  </Property>
+  <Property name="banner" type="{ content: string; dismissible?: boolean }">
+    Optional announcement banner shown above the site.
+  </Property>
+  <Property name="theme" type="ClarifyThemeConfig">
+    Preset, color tokens, radius tokens, and layout settings.
+  </Property>
+  <Property name="navbar" type="{ links?: ClarifyNavbarLink[] }">
+    Top navigation links. Use `external: true` for off-site links.
+  </Property>
+  <Property name="footer" type="ClarifyFooterConfig">
+    Footer links, social links, and copyright text.
+  </Property>
+  <Property name="tabs" type="ClarifyTabsConfig">
+    Top-level navigation tabs and sidebar pages.
+  </Property>
+  <Property name="i18n" type="ClarifyI18nConfig">
+    Optional locale configuration for multilingual sites.
+  </Property>
+</Properties>
+
+## Theme example
+
+```ts title="clarify.ts"
+theme: {
+  preset: 'default',
+  tokens: {
+    colors: {
+      primary: '#2563eb',
+      accent: '#7c3aed',
+      background: '#ffffff',
+      foreground: '#111827',
+    },
+    radius: {
+      lg: '0.75rem',
+      xl: '1rem',
+    },
+  },
+}
+```
+
+## i18n example
+
+```ts title="clarify.ts"
+i18n: {
+  defaultLocale: 'en-US',
+  missing: 'fallback',
+  locales: [
+    { code: 'en-US', label: 'English', dir: 'ltr' },
+    { code: 'zh-CN', label: '简体中文', dir: 'ltr' },
+  ],
+}
+```
+
+When i18n is enabled, place content under locale folders such as `{{contentDir}}/en-US/index.mdx` and `{{contentDir}}/zh-CN/index.mdx`.

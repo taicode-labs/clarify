@@ -40,6 +40,7 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
     "@clarify-labs/renderer": "workspace:*",
+    "@clarify-labs/templates": "workspace:*",
     "@mdx-js/rollup": "^3.1.1",
     "@tailwindcss/vite": "^4.1.11",
     "@vitejs/plugin-react": "^6.0.2",

@@ -1,0 +1,42 @@
+{
+  "name": "@clarify-labs/templates",
+  "version": "0.4.0",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taicode-labs/clarify",
+    "directory": "packages/templates"
+  },
+  "main": "output/index.cjs",
+  "module": "output/index.js",
+  "types": "output/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./output/index.d.ts",
+      "import": "./output/index.js",
+      "require": "./output/index.cjs",
+      "default": "./output/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "LICENSE",
+    "minimal",
+    "standard",
+    "complete",
+    "output"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "lint": "eslint index.ts",
+    "lint:fix": "eslint index.ts --fix",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.3",
+    "vite": "^8.0.15",
+    "vite-plugin-dts": "^4.5.4"
+  }
+}

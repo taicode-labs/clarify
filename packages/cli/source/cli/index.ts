@@ -38,10 +38,11 @@ async function main(): Promise<void> {
       await runBuild(resolveOptions(options))
     })
 
-  withSharedOptions(cli.command('init', 'Create a minimal Clarify project scaffold'))
+  withSharedOptions(cli.command('init', 'Create a Clarify project scaffold'))
     .option('--force', 'Overwrite files created by init')
-    .action((options: CliOptions & { force?: boolean }) => {
-      runInit(resolveOptions(options), options.force === true)
+    .option('--template <name>', 'Template to use: minimal, standard, or complete')
+    .action((options: CliOptions & { force?: boolean; template?: string }) => {
+      runInit(resolveOptions(options), options.force === true, options.template)
     })
 
   const args = process.argv.slice(2)

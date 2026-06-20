@@ -1,0 +1,70 @@
+---
+title: Navigation
+description: Configure tabs, sidebar groups, page links, navbar links, and footer links.
+---
+
+# Navigation
+
+Clarify navigation is configured in `clarify.ts`. The starter uses explicit tabs so users can see how every part fits together.
+
+## Tabs and sidebar groups
+
+```ts title="clarify.ts"
+export default defineConfig({
+  tabs: [
+    {
+      tab: 'Docs',
+      icon: 'BookOpen',
+      pages: [
+        {
+          group: 'Start here',
+          icon: 'Rocket',
+          pages: [
+            { page: 'index', title: 'Overview', icon: 'Sparkles' },
+            { page: 'guides/writing-content', title: 'Writing content', icon: 'PenLine' },
+            { page: 'changelog', title: 'Changelog', icon: 'History' },
+          ],
+        },
+      ],
+    },
+  ],
+})
+```
+
+## File tree mode
+
+For smaller docs, use `FileTree` and let Clarify derive navigation from files.
+
+```ts title="clarify.ts"
+export default defineConfig({
+  tabs: [
+    {
+      tab: 'Docs',
+      pages: 'FileTree',
+    },
+  ],
+})
+```
+
+## Navbar and footer
+
+```ts title="clarify.ts"
+export default defineConfig({
+  navbar: {
+    links: [
+      { label: 'Guides', href: '/guides/writing-content' },
+      { label: 'Changelog', href: '/changelog' },
+      { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
+    ],
+  },
+  footer: {
+    copyright: '© 2026 Your Company.',
+    links: [{ label: 'Changelog', href: '/changelog' }],
+    socials: { GitHub: 'https://github.com/taicode-labs/clarify' },
+  },
+})
+```
+
+## Next step
+
+If your docs need an API reference, initialize the `complete` template or add an OpenAPI file and navigation entry later.

@@ -1,0 +1,36 @@
+---
+title: Embed API endpoints
+description: Render OpenAPI operations inside workflow-focused MDX pages.
+---
+
+# Embed API endpoints
+
+Use embedded OpenAPI components when an endpoint belongs next to a tutorial, setup guide, or integration workflow.
+
+## Embed one operation
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/v1/projects" method="get" />
+```
+
+<OpenApiEndpoint specPath="/api" path="/v1/projects" method="get" />
+
+## Embed a request body operation
+
+```mdx
+<OpenApiEndpoint specPath="/api" path="/v1/projects" method="post" />
+```
+
+<OpenApiEndpoint specPath="/api" path="/v1/projects" method="post" />
+
+## Embed the full API page
+
+Use `OpenApiPage` if you want prose before a complete reference.
+
+```mdx
+<OpenApiPage specPath="/api" />
+```
+
+<Callout title="Spec path convention">
+  `specPath` is the route generated from the OpenAPI filename. `api.openapi.json` becomes `/api`.
+</Callout>

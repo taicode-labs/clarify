@@ -1,0 +1,30 @@
+---
+title: 编写内容
+description: 学习如何在 Clarify 模板中组织多语言 MDX 页面。
+---
+
+# 编写内容
+
+Clarify 会根据 `clarify.ts` 里的 `i18n.locales` 扫描语言目录。默认语言 `en-US` 直接渲染在根路径，其他语言会带上语言前缀，例如 `/zh-CN/guides/writing-content`。
+
+## 翻译一个页面
+
+如果英文页面位于：
+
+```txt
+{{contentDir}}/en-US/guides/writing-content.mdx
+```
+
+对应中文页面应放在：
+
+```txt
+{{contentDir}}/zh-CN/guides/writing-content.mdx
+```
+
+## 渐进式翻译
+
+本模板设置了 `missing: 'fallback'`。当某个页面还没有中文版本时，Clarify 会临时使用默认语言页面，方便你逐步完成翻译。
+
+<Note>
+  页面 frontmatter 也可以按语言分别维护，例如中文页面使用中文 `title` 和 `description`。
+</Note>

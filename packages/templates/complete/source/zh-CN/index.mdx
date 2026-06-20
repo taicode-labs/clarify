@@ -1,0 +1,39 @@
+---
+title: 概览
+description: 一个展示 Clarify i18n 工作流的中文示例页面。
+keywords:
+  - 文档
+  - i18n
+  - mdx
+---
+
+# 使用 Clarify 构建多语言文档
+
+这个页面演示了 Clarify 的原生 i18n 目录约定。默认语言内容位于 `{{contentDir}}/en-US`，中文内容位于 `{{contentDir}}/zh-CN`。
+
+<Callout title="i18n 提示">
+  当前模板只翻译了首页和写作指南，其他页面会根据 `missing: 'fallback'` 自动回退到英文内容。
+</Callout>
+
+## 目录结构
+
+```txt
+{{contentDir}}/
+  en-US/
+    index.mdx
+    guides/writing-content.mdx
+  zh-CN/
+    index.mdx
+    guides/writing-content.mdx
+```
+
+## 下一步
+
+<CardGroup cols={2}>
+  <Card title="编辑中文内容" icon="Languages" href="/zh-CN/guides/writing-content">
+    在 `{{contentDir}}/zh-CN` 中添加或更新中文页面。
+  </Card>
+  <Card title="保留回退内容" icon="GitBranch" href="/reference/configuration">
+    未翻译页面会使用默认语言内容，适合渐进式翻译。
+  </Card>
+</CardGroup>

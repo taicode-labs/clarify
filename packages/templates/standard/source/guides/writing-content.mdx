@@ -1,0 +1,102 @@
+---
+title: Writing content
+description: Learn the Clarify MDX patterns included in the starter template.
+---
+
+# Writing content
+
+Clarify pages are MDX files. You can start with plain Markdown and add components when a page needs richer structure.
+
+## Frontmatter
+
+Use frontmatter to control page metadata.
+
+```mdx title="page.mdx"
+---
+title: Writing content
+description: Explain how authors write documentation.
+keywords:
+  - mdx
+  - docs
+---
+
+# Writing content
+```
+
+## Callouts
+
+<Callout title="Use callouts for important notes">
+  Callouts are useful for setup requirements, warnings, migration notes, and product constraints.
+</Callout>
+
+<Note>
+  `Note` is a lightweight MDX primitive for contextual information inside a section.
+</Note>
+
+## Cards
+
+<CardGroup cols={3}>
+  <Card title="Concept" icon="Lightbulb">
+    Explain the idea behind a feature.
+  </Card>
+  <Card title="Guide" icon="Route">
+    Walk users through a workflow step by step.
+  </Card>
+  <Card title="Reference" icon="Library">
+    Document exact options, props, commands, or API shapes.
+  </Card>
+</CardGroup>
+
+## Code groups
+
+Use code groups when users need package-manager or framework variants.
+
+<CodeGroup title="Install dependencies">
+
+```bash title="pnpm"
+pnpm add @clarify-labs/cli
+```
+
+```bash title="npm"
+npm install @clarify-labs/cli
+```
+
+```bash title="bun"
+bun add @clarify-labs/cli
+```
+
+</CodeGroup>
+
+## Properties
+
+Use properties for configuration, component props, environment variables, or response fields.
+
+<Properties>
+  <Property name="title" type="string">
+    Site title used in the header and SEO metadata.
+  </Property>
+  <Property name="description" type="string">
+    Default description used for pages without a custom description.
+  </Property>
+  <Property name="tabs" type="ClarifyTabsConfig">
+    Top-level navigation areas. Each tab owns its sidebar groups and pages.
+  </Property>
+</Properties>
+
+## Two-column layout
+
+<Row>
+  <Col>
+    ### Explain the workflow
+
+    Put prose, diagrams, and decisions in the left column. This keeps the guide readable.
+  </Col>
+  <Col sticky>
+    ```ts title="example.ts"
+    export const docs = {
+      format: 'MDX',
+      api: 'OpenAPI',
+    }
+    ```
+  </Col>
+</Row>

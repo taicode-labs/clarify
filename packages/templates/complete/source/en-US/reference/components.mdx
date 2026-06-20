@@ -1,0 +1,67 @@
+---
+title: MDX components
+description: Examples of built-in MDX components available in Clarify pages.
+---
+
+# MDX components
+
+This page shows the built-in components available in MDX pages.
+
+## Cards
+
+<CardGroup cols={2}>
+  <Card title="Linked card" icon="ArrowRight" href="/guides/writing-content">
+    Cards can link to internal or external destinations.
+  </Card>
+  <Card title="Static card" icon="Box">
+    Cards can also be used as static feature summaries.
+  </Card>
+</CardGroup>
+
+## Callout and note
+
+<Callout title="Callout">
+  Use this for important guidance that should stand out from normal prose.
+</Callout>
+
+<Note>
+  Use notes for lightweight contextual tips.
+</Note>
+
+## Properties
+
+<Properties>
+  <Property name="children" type="ReactNode">
+    The content rendered inside the component.
+  </Property>
+  <Property name="title" type="string">
+    A short label used by cards, callouts, or headings.
+  </Property>
+  <Property name="icon" type="string">
+    Icon names are resolved from Lucide icons.
+  </Property>
+</Properties>
+
+## Code
+
+```ts title="typed-example.ts"
+type Feature = {
+  name: string
+  stable: boolean
+}
+
+export const feature: Feature = {
+  name: 'Clarify starter',
+  stable: true,
+}
+```
+
+## API endpoint cards
+
+<ApiEndpointCard method="GET" path="/v1/projects" href="/api#operation/listProjects">
+  List projects visible to the current API token.
+</ApiEndpointCard>
+
+<ApiEndpointCard method="POST" path="/v1/projects" href="/api#operation/createProject">
+  Create a project from a JSON request body.
+</ApiEndpointCard>

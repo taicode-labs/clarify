@@ -1,0 +1,77 @@
+---
+title: Overview
+description: A complete starter showing the core Clarify features you can edit.
+keywords:
+  - documentation
+  - mdx
+  - openapi
+---
+
+# Build documentation with Clarify
+
+This starter includes a working site configuration, navigation, MDX pages, built-in components, and an OpenAPI reference. Use it as a checklist: replace the sample content with your product docs and keep the pieces you need.
+
+<Callout title="Starter tip">
+  All editable content lives in `{{contentDir}}`. Start with `clarify.ts` for site structure, then edit the MDX and OpenAPI files.
+</Callout>
+
+## What is included
+
+<CardGroup cols={2}>
+  <Card title="Site configuration" icon="Settings2" href="/reference/configuration">
+    Navbar links, footer links, banner, theme tokens, tabs, sidebar groups, and OpenAPI navigation.
+  </Card>
+  <Card title="MDX authoring" icon="PenLine" href="/guides/writing-content">
+    Frontmatter, headings, tables, cards, callouts, code groups, properties, and layout primitives.
+  </Card>
+  <Card title="OpenAPI reference" icon="Webhook" href="/api">
+    A complete `.openapi.json` file that renders a full API reference page automatically.
+  </Card>
+  <Card title="Embedded endpoints" icon="CodeXml" href="/api/embedding">
+    Use `OpenApiEndpoint` inside MDX when an API operation belongs next to a guide step.
+  </Card>
+</CardGroup>
+
+## Quick edits
+
+1. Update `clarify.ts` with your product name, logo, theme, navbar, footer, tabs, and sidebar pages.
+2. Replace pages under `{{contentDir}}/guides` and `{{contentDir}}/reference` with your real documentation.
+3. Replace `{{contentDir}}/api.openapi.json` with your API description.
+4. Run `pnpm dev` to preview and `pnpm build` to create the static site.
+
+## Example workflow
+
+<Row>
+  <Col>
+    ### Write docs in MDX
+
+    Use Markdown for normal documentation and MDX components for richer product explanations.
+
+    <Properties>
+      <Property name="Frontmatter" type="YAML">
+        Page metadata such as `title`, `description`, and `keywords`.
+      </Property>
+      <Property name="Navigation" type="clarify.ts">
+        Tabs, groups, page links, icons, and OpenAPI entries.
+      </Property>
+      <Property name="API specs" type="OpenAPI 3.x">
+        `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` files become API reference pages.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    ```ts title="clarify.ts"
+    import { defineConfig } from '@clarify-labs/cli'
+
+    export default defineConfig({
+      title: 'Your Docs',
+      tabs: [
+        {
+          tab: 'Docs',
+          pages: 'FileTree',
+        },
+      ],
+    })
+    ```
+  </Col>
+</Row>

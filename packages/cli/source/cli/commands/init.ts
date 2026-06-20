@@ -1,14 +1,27 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import { copyTemplateDirectory, getTemplateDirectory, resolveTemplate } from '@clarify-labs/templates'
 
 import type { ResolvedCliOptions } from '../options.js'
 
-function writeTextFile(filePath: string, content: string, force: boolean): boolean {
-  if (existsSync(filePath) && !force) return false
-  mkdirSync(dirname(filePath), { recursive: true })
-  writeFileSync(filePath, content, 'utf-8')
-  return true
+const require = createRequire(import.meta.url)
+
+function findTemplatesPackagePath(): string {
+  try {
+    return require.resolve('@clarify-labs/templates/package.json')
+  } catch {
+    const currentDirectory = dirname(fileURLToPath(import.meta.url))
+    const workspacePackagePath = resolve(currentDirectory, '../../../../templates/package.json')
+    if (existsSync(workspacePackagePath)) return workspacePackagePath
+    throw new Error('[clarify] Templates package not found.')
+  }
 }
+
+const templatesPackagePath = findTemplatesPackagePath()
+const templatesDirectory = dirname(templatesPackagePath)
 
 function updatePackageJson(root: string, force: boolean): boolean {
   const packageJsonPath = resolve(root, 'package.json')
@@ -34,34 +47,17 @@ function updatePackageJson(root: string, force: boolean): boolean {
   return true
 }
 
-export function runInit(options: ResolvedCliOptions, force: boolean): void {
-  const created: string[] = []
-  const skipped: string[] = []
-
-  const clarifyConfigCreated = writeTextFile(resolve(options.root, 'clarify.ts'), `import { defineConfig } from '@clarify-labs/cli'
-
-export default defineConfig({
-  title: 'Clarify Docs',
-  description: 'Documentation powered by Clarify',
-  theme: { preset: 'default' },
-})
-`, force)
-  ;(clarifyConfigCreated ? created : skipped).push('clarify.ts')
-
-  const contentCreated = writeTextFile(resolve(options.root, options.content, 'index.mdx'), `---
-title: Welcome
----
-
-# Welcome to Clarify
-
-Start writing your documentation in \`${options.content}\`.
-`, force)
-  ;(contentCreated ? created : skipped).push(`${options.content}/index.mdx`)
+export function runInit(options: ResolvedCliOptions, force: boolean, template?: string): void {
+  const selectedTemplate = resolveTemplate(template)
+  const templateDirectory = getTemplateDirectory(templatesDirectory, selectedTemplate)
+  const { created } = copyTemplateDirectory(templateDirectory, options.root, {
+    contentDir: options.content,
+    force,
+  })
 
   const packageJsonUpdated = updatePackageJson(options.root, force)
   if (packageJsonUpdated) created.push('package.json')
 
-  console.log('[clarify] Init complete.')
+  console.log(`[clarify] Init complete with ${selectedTemplate} template.`)
   if (created.length > 0) console.log(`[clarify] Created or updated: ${created.join(', ')}`)
-  if (skipped.length > 0) console.log(`[clarify] Skipped existing files: ${skipped.join(', ')}. Use --force to overwrite.`)
 }

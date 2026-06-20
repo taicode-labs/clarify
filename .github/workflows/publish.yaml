@@ -71,9 +71,38 @@ jobs:
         working-directory: packages/renderer
         run: npm publish --access public
 
+  publish-templates:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build templates
+        run: pnpm --filter @clarify-labs/templates build
+
+      - name: Publish templates
+        working-directory: packages/templates
+        run: npm publish --access public
+
   publish-cli:
     runs-on: ubuntu-latest
-    needs: publish-renderer
+    needs: [publish-renderer, publish-templates]
     steps:
       - name: Checkout release tag
         uses: actions/checkout@v6
@@ -99,7 +128,7 @@ jobs:
       - name: Prepare CLI package manifest
         working-directory: packages/cli
         run: |
-          node -e "const fs=require('node:fs'); const path='package.json'; const pkg=JSON.parse(fs.readFileSync(path,'utf8')); pkg.dependencies['@clarify-labs/renderer']=pkg.version; fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');"
+          node -e "const fs=require('node:fs'); const path='package.json'; const pkg=JSON.parse(fs.readFileSync(path,'utf8')); pkg.dependencies['@clarify-labs/renderer']=pkg.version; pkg.dependencies['@clarify-labs/templates']=pkg.version; fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');"
 
       - name: Publish CLI
         working-directory: packages/cli

@@ -1,0 +1,77 @@
+---
+title: Overview
+description: A standard starter showing the common Clarify docs workflow.
+keywords:
+  - documentation
+  - mdx
+  - guides
+---
+
+# Build documentation with Clarify
+
+This standard starter includes a practical site configuration, navigation, MDX pages, built-in components, and a changelog. Use it as a clean starting point for product docs, internal docs, or project guides.
+
+<Callout title="Starter tip">
+  All editable content lives in `{{contentDir}}`. Start with `clarify.ts` for site structure, then edit the MDX pages.
+</Callout>
+
+## What is included
+
+<CardGroup cols={2}>
+  <Card title="Site configuration" icon="Settings2" href="/guides/navigation">
+    Navbar links, footer links, banner, theme tokens, tabs, sidebar groups, and Clarify branding.
+  </Card>
+  <Card title="MDX authoring" icon="PenLine" href="/guides/writing-content">
+    Frontmatter, headings, cards, callouts, code groups, properties, and layout primitives.
+  </Card>
+  <Card title="Navigation guide" icon="PanelLeft" href="/guides/navigation">
+    Learn how to edit tabs, sidebar groups, navbar links, and footer links.
+  </Card>
+  <Card title="Changelog" icon="History" href="/changelog">
+    A simple page for documenting notable product and documentation changes.
+  </Card>
+</CardGroup>
+
+## Quick edits
+
+1. Update `clarify.ts` with your product name, theme, navbar, footer, tabs, and sidebar pages.
+2. Replace pages under `{{contentDir}}/guides` with your real documentation.
+3. Update `{{contentDir}}/changelog.mdx` with your release notes.
+4. Run `pnpm dev` to preview and `pnpm build` to create the static site.
+
+## Example workflow
+
+<Row>
+  <Col>
+    ### Write docs in MDX
+
+    Use Markdown for normal documentation and MDX components for richer product explanations.
+
+    <Properties>
+      <Property name="Frontmatter" type="YAML">
+        Page metadata such as `title`, `description`, and `keywords`.
+      </Property>
+      <Property name="Navigation" type="clarify.ts">
+        Tabs, groups, page links, icons, and top-level links.
+      </Property>
+      <Property name="Content" type="MDX">
+        Pages under `{{contentDir}}` become routes in the generated documentation site.
+      </Property>
+    </Properties>
+  </Col>
+  <Col sticky>
+    ```ts title="clarify.ts"
+    import { defineConfig } from '@clarify-labs/cli'
+
+    export default defineConfig({
+      title: 'Your Docs',
+      tabs: [
+        {
+          tab: 'Docs',
+          pages: 'FileTree',
+        },
+      ],
+    })
+    ```
+  </Col>
+</Row>

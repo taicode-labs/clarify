@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -24,15 +24,22 @@ describe('runInit', () => {
     rmSync(tempDir, { recursive: true, force: true })
   })
 
-  it('creates the minimal Clarify project scaffold', () => {
+  it('creates the standard Clarify project template by default', () => {
     runInit({
       root: tempDir,
       content: 'source',
       output: 'output',
     }, false)
 
-    expect(readFileSync(join(tempDir, 'clarify.ts'), 'utf-8')).toContain('defineConfig')
-    expect(readFileSync(join(tempDir, 'source/index.mdx'), 'utf-8')).toContain('# Welcome to Clarify')
+    expect(readFileSync(join(tempDir, 'clarify.ts'), 'utf-8')).toContain('tabs')
+    expect(readFileSync(join(tempDir, 'source/index.mdx'), 'utf-8')).toContain('# Build documentation with Clarify')
+    expect(readFileSync(join(tempDir, 'source/guides/writing-content.mdx'), 'utf-8')).toContain('# Writing content')
+    expect(readFileSync(join(tempDir, 'source/guides/navigation.mdx'), 'utf-8')).toContain('# Navigation')
+    expect(readFileSync(join(tempDir, 'source/changelog.mdx'), 'utf-8')).toContain('# Changelog')
+    expect(existsSync(join(tempDir, 'source/api.openapi.json'))).toBe(false)
+    expect(existsSync(join(tempDir, 'source/reference/components.mdx'))).toBe(false)
+    expect(readFileSync(join(tempDir, 'public/logo.svg'), 'utf-8')).toContain('clarify')
+    expect(readFileSync(join(tempDir, 'public/favicon.svg'), 'utf-8')).toContain('clarify')
 
     const packageJson = readJson(join(tempDir, 'package.json'))
     expect(packageJson.scripts).toEqual({
@@ -44,7 +51,67 @@ describe('runInit', () => {
     })
   })
 
-  it('preserves existing files and scripts unless forced', () => {
+  it('creates the minimal Clarify project template when selected', () => {
+    runInit({
+      root: tempDir,
+      content: 'docs',
+      output: 'dist',
+    }, false, 'minimal')
+
+    expect(readFileSync(join(tempDir, 'clarify.ts'), 'utf-8')).toContain('Documentation powered by Clarify')
+    expect(readFileSync(join(tempDir, 'clarify.ts'), 'utf-8')).toContain("logo: '/logo.svg'")
+    expect(readFileSync(join(tempDir, 'docs/index.mdx'), 'utf-8')).toContain('Start writing your documentation in `docs`.')
+    expect(readFileSync(join(tempDir, 'public/logo.svg'), 'utf-8')).toContain('clarify')
+    expect(existsSync(join(tempDir, 'docs/api.openapi.json'))).toBe(false)
+  })
+
+  it('creates the complete Clarify project template when selected', () => {
+    runInit({
+      root: tempDir,
+      content: 'docs',
+      output: 'dist',
+    }, false, 'complete')
+
+    const config = readFileSync(join(tempDir, 'clarify.ts'), 'utf-8')
+    expect(config).toContain('i18n')
+    expect(config).toContain("defaultLocale: 'en-US'")
+    expect(readFileSync(join(tempDir, 'docs/en-US/reference/configuration.mdx'), 'utf-8')).toContain('# Configuration')
+    expect(readFileSync(join(tempDir, 'docs/en-US/changelog.mdx'), 'utf-8')).toContain('# Changelog')
+    expect(readJson(join(tempDir, 'docs/en-US/api.openapi.json')).openapi).toBe('3.1.0')
+    expect(readFileSync(join(tempDir, 'docs/zh-CN/index.mdx'), 'utf-8')).toContain('# 使用 Clarify 构建多语言文档')
+    expect(readFileSync(join(tempDir, 'docs/zh-CN/guides/writing-content.mdx'), 'utf-8')).toContain('# 编写内容')
+  })
+
+  it('rejects unknown templates', () => {
+    expect(() => runInit({
+      root: tempDir,
+      content: 'source',
+      output: 'output',
+    }, false, 'default')).toThrow('Available templates: minimal, standard, complete')
+  })
+
+  it('fails before writing files when template files conflict', () => {
+    writeFileSync(join(tempDir, 'clarify.ts'), 'export default {}\n', 'utf-8')
+    writeFileSync(join(tempDir, 'package.json'), JSON.stringify({
+      scripts: { dev: 'custom dev' },
+      devDependencies: { typescript: '^5.0.0' },
+    }), 'utf-8')
+
+    expect(() => runInit({
+      root: tempDir,
+      content: 'docs',
+      output: 'dist',
+    }, false)).toThrow('Init target has conflicting files')
+
+    expect(readFileSync(join(tempDir, 'clarify.ts'), 'utf-8')).toBe('export default {}\n')
+    expect(existsSync(join(tempDir, 'docs/index.mdx'))).toBe(false)
+
+    const packageJson = readJson(join(tempDir, 'package.json'))
+    expect(packageJson.scripts).toEqual({ dev: 'custom dev' })
+    expect(packageJson.devDependencies).toEqual({ typescript: '^5.0.0' })
+  })
+
+  it('overwrites conflicting files and scripts when forced', () => {
     writeFileSync(join(tempDir, 'clarify.ts'), 'export default {}\n', 'utf-8')
     writeFileSync(join(tempDir, 'package.json'), JSON.stringify({
       scripts: { dev: 'custom dev' },
@@ -55,13 +122,14 @@ describe('runInit', () => {
       root: tempDir,
       content: 'docs',
       output: 'dist',
-    }, false)
+    }, true)
 
-    expect(readFileSync(join(tempDir, 'clarify.ts'), 'utf-8')).toBe('export default {}\n')
+    expect(readFileSync(join(tempDir, 'clarify.ts'), 'utf-8')).toContain('Clarify Docs')
+    expect(readFileSync(join(tempDir, 'docs/index.mdx'), 'utf-8')).toContain('# Build documentation with Clarify')
 
     const packageJson = readJson(join(tempDir, 'package.json'))
     expect(packageJson.scripts).toEqual({
-      dev: 'custom dev',
+      dev: 'clarify dev',
       build: 'clarify build',
     })
     expect(packageJson.devDependencies).toEqual({
