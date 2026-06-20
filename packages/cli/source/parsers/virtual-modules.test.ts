@@ -38,9 +38,19 @@ describe('generateRoutesModule', () => {
     ]
     const code = generateRoutesModule(routes)
     expect(code).not.toContain('import Page')
-    expect(code).toContain('{ path: "/", title: "Home", component: () => import(\'virtual:clarify-page/index\'), lazy: true, kind: \'mdx\' }')
-    expect(code).toContain('{ path: "/about", title: "About", component: () => import(\'virtual:clarify-page/about\'), lazy: true, kind: \'mdx\' }')
+    expect(code).toContain('{ path: "/", title: "Home", component: () => import("virtual:clarify-page/index"), lazy: true, kind: "mdx" }')
+    expect(code).toContain('{ path: "/about", title: "About", component: () => import("virtual:clarify-page/about"), lazy: true, kind: "mdx" }')
     expect(code).toContain('"title": "About"')
+  })
+
+  it('escapes route module specifiers', () => {
+    const routes: ContentRoute[] = [
+      { path: '/quote', title: 'Quote', filePath: '/a/quote.mdx', virtualModuleId: 'virtual:clarify-page/doc\'s/quote', kind: 'mdx' },
+    ]
+    const clientCode = generateRoutesModule(routes)
+    const serverCode = generateRoutesModule(routes, undefined, undefined, 'server')
+    expect(clientCode).toContain('import("virtual:clarify-page/doc\'s/quote")')
+    expect(serverCode).toContain('import Page0 from "virtual:clarify-page/doc\'s/quote";')
   })
 
   it('uses tabbed navigation when tabs are provided', () => {

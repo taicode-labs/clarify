@@ -31,4 +31,11 @@ describe('resolveCliOptions', () => {
       open: '/guide',
     })
   })
+
+  it.each(['abc', '4173abc', '1.5', '0', '65536'])(
+    'rejects invalid port value %s',
+    (port) => {
+      expect(() => resolveCliOptions({ port })).toThrow('[clarify] --port must be an integer between 1 and 65535')
+    }
+  )
 })

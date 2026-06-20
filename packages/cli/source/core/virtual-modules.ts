@@ -23,9 +23,13 @@ export function generateConfigModule(projectConfig: ResolvedProjectConfig, build
   return `export const config = ${JSON.stringify({ ...projectConfig, ...buildOptions })};`
 }
 
+function moduleSpecifier(value: string): string {
+  return JSON.stringify(value)
+}
+
 export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig, mode: 'client' | 'server' = 'client'): string {
   const imports = mode === 'server'
-    ? routes.map((r, i) => `import Page${i} from '${r.virtualModuleId}';`).join('\n')
+    ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.virtualModuleId)};`).join('\n')
     : ''
   const routesArray = routes.map((r, i) => {
     const sections = r.sections && r.sections.length > 0
@@ -38,9 +42,9 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
     const alternates = r.alternates ? `, alternates: ${JSON.stringify(r.alternates)}` : ''
     const description = r.description ? `, description: ${JSON.stringify(r.description)}` : ''
     const keywords = r.keywords && r.keywords.length > 0 ? `, keywords: ${JSON.stringify(r.keywords)}` : ''
-    const component = mode === 'server' ? `Page${i}` : `() => import('${r.virtualModuleId}')`
+    const component = mode === 'server' ? `Page${i}` : `() => import(${moduleSpecifier(r.virtualModuleId)})`
     const lazy = mode === 'client' ? ', lazy: true' : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: '${r.kind}'${basePath}${locale}${isFallback}${alternates}${description}${keywords}${sections}${contentArtifactUrl} }`
+    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${alternates}${description}${keywords}${sections}${contentArtifactUrl} }`
   }).join(',\n')
 
   const navigation = resolvedNavigation ?? (projectConfig?.tabs
@@ -78,7 +82,7 @@ export function buildVirtualModules(args: {
 
   for (const route of args.routes) {
     if (route.kind === 'openapi') continue
-    modules.set(route.virtualModuleId, `export { default } from '${route.filePath}';`)
+    modules.set(route.virtualModuleId, `export { default } from ${moduleSpecifier(route.filePath)};`)
   }
 
   return modules
