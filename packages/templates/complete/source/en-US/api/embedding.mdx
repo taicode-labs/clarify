@@ -7,6 +7,16 @@ description: Render OpenAPI operations inside workflow-focused MDX pages.
 
 Use embedded OpenAPI components when an endpoint belongs next to a tutorial, setup guide, or integration workflow.
 
+## Markdown descriptions
+
+OpenAPI `description` strings render Markdown in both full references and embedded operations. This keeps interface notes close to the spec while preserving links, lists, emphasis, and `inline code`.
+
+```json
+{
+  "description": "Returns **active** projects.\n\n- Use `limit` for page size.\n- Use `nextCursor` for pagination."
+}
+```
+
 ## Embed one operation
 
 ```mdx

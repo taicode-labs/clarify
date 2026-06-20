@@ -6,6 +6,7 @@ import { useState, type ReactNode } from 'react'
 
 import { Heading, Prose } from '../components'
 import { useBuiltInText } from '../i18n'
+import { Markdown } from '../mdx/Markdown'
 import { Col, Row } from '../mdx/primitives'
 
 import { authLabel, authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServerLabel, getServers, RequestExamplesPanel, ResponseExamplesPanel } from './example-panels'
@@ -46,19 +47,20 @@ function EndpointExamples(arg0: {
   selectedServer: OpenApiServer
   serverVariables: Record<string, string>
   auth?: RequestAuthInput
-}): ReactNode {  const {
-  spec,
-  path,
-  method,
-  operation,
-  parameters,
-  requestContents,
-  selectedRequestMediaType,
-  onSelectRequestMediaType,
-  selectedServer,
-  serverVariables,
-  auth,
-} = arg0
+}): ReactNode {
+  const {
+    spec,
+    path,
+    method,
+    operation,
+    parameters,
+    requestContents,
+    selectedRequestMediaType,
+    onSelectRequestMediaType,
+    selectedServer,
+    serverVariables,
+    auth,
+  } = arg0
 
   return (
     <div className="space-y-6">
@@ -79,7 +81,8 @@ function EndpointExamples(arg0: {
   )
 }
 
-function OpenApiHeader(arg0: { spec: OpenAPISpec }): ReactNode {  const { spec } = arg0
+function OpenApiHeader(arg0: { spec: OpenAPISpec }): ReactNode {
+  const { spec } = arg0
 
   const t = useBuiltInText()
   return (
@@ -88,7 +91,7 @@ function OpenApiHeader(arg0: { spec: OpenAPISpec }): ReactNode {  const { spec }
         {t('openapi.openApiReference')}
       </p>
       <h1>{spec.info?.title ?? t('openapi.apiDocumentation')}</h1>
-      {spec.info?.description ? <p className="lead">{spec.info.description}</p> : null}
+      {spec.info?.description ? <Markdown className="lead *:first:mt-0 *:last:mb-0">{spec.info.description}</Markdown> : null}
       {spec.info?.version ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{t('openapi.version', { version: spec.info.version })}</p> : null}
     </header>
   )
@@ -102,7 +105,8 @@ const endpointMethodStyles: Record<string, string> = {
   DELETE: 'bg-rose-400/15 text-rose-600 dark:bg-rose-400/20 dark:text-rose-300',
 }
 
-function EndpointMethodBadge(arg0: { method: string }): ReactNode {  const { method } = arg0
+function EndpointMethodBadge(arg0: { method: string }): ReactNode {
+  const { method } = arg0
 
   return (
     <span
@@ -128,7 +132,8 @@ function InlineListbox(arg0: {
   options: UiOption[]
   onChange: (value: string) => void
   compact?: boolean
-}): ReactNode {  const { label, value, options, onChange, compact = false } = arg0
+}): ReactNode {
+  const { label, value, options, onChange, compact = false } = arg0
 
   const selected = options.find((option) => option.value === value) ?? options[0]
 
@@ -170,7 +175,8 @@ function ServerUrlValue(arg0: {
   variables: Record<string, string>
   open: boolean
   onToggle: () => void
-}): ReactNode {  const { server, variables, open, onToggle } = arg0
+}): ReactNode {
+  const { server, variables, open, onToggle } = arg0
 
   const url = getServerPreviewUrl(server, variables)
 
@@ -200,7 +206,8 @@ function ServerVariableControl(arg0: {
   value: string
   onChange: (value: string) => void
   compact?: boolean
-}): ReactNode {  const { name, variable, value, onChange, compact = false } = arg0
+}): ReactNode {
+  const { name, variable, value, onChange, compact = false } = arg0
 
   if (variable?.enum?.length) {
     return (
@@ -235,7 +242,8 @@ function ServerPanel(arg0: {
   variables: Record<string, string>
   onSelectServer: (key: string) => void
   onChangeVariable: (name: string, value: string) => void
-}): ReactNode {  const { servers, selectedKey, selectedServer, variables, onSelectServer, onChangeVariable } = arg0
+}): ReactNode {
+  const { servers, selectedKey, selectedServer, variables, onSelectServer, onChangeVariable } = arg0
 
   const variableEntries = Object.entries(selectedServer.variables ?? {})
 
@@ -280,7 +288,8 @@ function AuthPanel(arg0: {
   authValues: Record<string, string>
   onSelectAuth: (name: string) => void
   onChangeAuthValue: (name: string, value: string) => void
-}): ReactNode {  const { authOptions, selectedAuthName, selectedAuth, authValues, onSelectAuth, onChangeAuthValue } = arg0
+}): ReactNode {
+  const { authOptions, selectedAuthName, selectedAuth, authValues, onSelectAuth, onChangeAuthValue } = arg0
 
   if (authOptions.length === 0) return null
 
@@ -339,26 +348,27 @@ function EndpointIdentity(arg0: {
   onToggleAuth: () => void
   onSelectAuth: (name: string) => void
   onChangeAuthValue: (name: string, value: string) => void
-}): ReactNode {  const {
-  method,
-  path,
-  servers,
-  selectedServerKey,
-  selectedServer,
-  serverVariables,
-  serverOpen,
-  authOptions,
-  selectedAuthName,
-  selectedAuth,
-  authValues,
-  authOpen,
-  onSelectServer,
-  onChangeServerVariable,
-  onToggleServer,
-  onToggleAuth,
-  onSelectAuth,
-  onChangeAuthValue,
-} = arg0
+}): ReactNode {
+  const {
+    method,
+    path,
+    servers,
+    selectedServerKey,
+    selectedServer,
+    serverVariables,
+    serverOpen,
+    authOptions,
+    selectedAuthName,
+    selectedAuth,
+    authValues,
+    authOpen,
+    onSelectServer,
+    onChangeServerVariable,
+    onToggleServer,
+    onToggleAuth,
+    onSelectAuth,
+    onChangeAuthValue,
+  } = arg0
 
   const segments = path.split('/').filter(Boolean)
 
@@ -426,7 +436,8 @@ function EndpointIdentity(arg0: {
   )
 }
 
-function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: string; operation: OpenAPIOperation }): ReactNode {  const { spec, path, method, operation } = arg0
+function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: string; operation: OpenAPIOperation }): ReactNode {
+  const { spec, path, method, operation } = arg0
 
   const t = useBuiltInText()
   const id = slug(`${method.toLowerCase()} ${path}`)
@@ -489,19 +500,19 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
         onSelectAuth={setSelectedAuthName}
         onChangeAuthValue={(name, value) => setAuthValues((current) => ({ ...current, [name]: value }))}
       />
-      <Heading id={id} className="mt-4">
+      <Heading id={id} className="mt-6">
         {summary}
       </Heading>
       <Row>
         <Col>
-          {description ? <p>{description}</p> : null}
+          {description ? <Markdown className="mt-4 *:first:mt-0 *:last:mb-0">{description}</Markdown> : null}
           <ParameterList title={t('openapi.pathParameters')} parameters={groupedParameters.path} />
           <ParameterList title={t('openapi.queryParameters')} parameters={groupedParameters.query} />
           <ParameterList title={t('openapi.headers')} parameters={groupedParameters.header} />
           {requestBody && requestContents.length > 0 ? (
             <>
               <h3>{t('openapi.requestBody')}</h3>
-              {typeof requestBody.description === 'string' ? <p>{requestBody.description}</p> : null}
+              {typeof requestBody.description === 'string' ? <Markdown>{requestBody.description}</Markdown> : null}
               <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} />
             </>
           ) : null}
@@ -527,7 +538,8 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
   )
 }
 
-function OpenApiPaths(arg0: { spec: OpenAPISpec }): ReactNode {  const { spec } = arg0
+function OpenApiPaths(arg0: { spec: OpenAPISpec }): ReactNode {
+  const { spec } = arg0
 
   const entries = listOpenApiOperations(spec).map(({ path, method, operation }) => ({
     path,
@@ -544,7 +556,8 @@ function OpenApiPaths(arg0: { spec: OpenAPISpec }): ReactNode {  const { spec } 
   )
 }
 
-function WarningBox(arg0: { children: ReactNode; tone?: 'amber' | 'red' }): ReactNode {  const { children, tone = 'amber' } = arg0
+function WarningBox(arg0: { children: ReactNode; tone?: 'amber' | 'red' }): ReactNode {
+  const { children, tone = 'amber' } = arg0
 
   const classes = tone === 'red'
     ? 'rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200'

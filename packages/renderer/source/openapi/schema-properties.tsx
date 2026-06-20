@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
 import { useBuiltInText } from '../i18n'
+import { Markdown } from '../mdx/Markdown'
 import { Properties, Property } from '../mdx/primitives'
 
 import { getJsonLikeContent, getResponseEntries, isRecord, isReference, resolveReferenceName, resolveSchema, schemaHasType, schemaToType } from './helpers'
@@ -14,6 +15,7 @@ type SchemaTreeNode = {
   name: string
   type?: string
   description?: string
+  details?: string
   required: boolean
   children: SchemaTreeNode[]
 }
@@ -23,7 +25,7 @@ type SchemaTreeBranch = {
   schema: unknown
 }
 
-function getSchemaDescription(schema: Record<string, unknown>): string | undefined {
+function getSchemaDetails(schema: Record<string, unknown>): string | undefined {
   const details = [
     Array.isArray(schema.enum) ? `enum: ${schema.enum.map(String).join(', ')}` : undefined,
     typeof schema.const !== 'undefined' ? `const: ${String(schema.const)}` : undefined,
@@ -33,9 +35,12 @@ function getSchemaDescription(schema: Record<string, unknown>): string | undefin
     typeof schema.maximum === 'number' ? `maximum: ${String(schema.maximum)}` : undefined,
     typeof schema.additionalProperties === 'boolean' ? `additionalProperties: ${String(schema.additionalProperties)}` : undefined,
   ].filter(Boolean)
-  const description = typeof schema.description === 'string' ? schema.description : undefined
 
-  return [description, details.length > 0 ? details.join('; ') : undefined].filter(Boolean).join(' ')
+  return details.length > 0 ? details.join('; ') : undefined
+}
+
+function getSchemaDescription(schema: Record<string, unknown>): string | undefined {
+  return typeof schema.description === 'string' ? schema.description : undefined
 }
 
 function getComposedBranches(schema: Record<string, unknown>): SchemaTreeBranch[] {
@@ -109,6 +114,7 @@ function getSchemaChildren(arg0: {
       name,
       type: schemaToType(propertySchema),
       description: getSchemaDescription(property),
+      details: getSchemaDetails(property),
       required: objectRequired.includes(name),
       children,
     }
@@ -120,19 +126,26 @@ function getSchemaChildren(arg0: {
         name: '*',
         type: schemaToType(schema.additionalProperties),
         description: getSchemaDescription(schema.additionalProperties),
+        details: getSchemaDetails(schema.additionalProperties),
         required: false,
         children: getSchemaChildren({ spec, schema: schema.additionalProperties, path: `${path || 'root'}.*`, depth: depth + 1, seen }),
       }]
     : []
 
-  const composedChildren = getComposedBranches(schema).map(({ label, schema: branchSchema }) => ({
-    key: `${path || 'root'}.${label}`,
-    name: label,
-    type: schemaToType(branchSchema),
-    description: isRecord(resolveSchema(spec, branchSchema)) ? getSchemaDescription(resolveSchema(spec, branchSchema) as Record<string, unknown>) : undefined,
-    required: false,
-    children: getSchemaChildren({ spec, schema: branchSchema, path: `${path || 'root'}.${label}`, required: objectRequired, depth: depth + 1, seen }),
-  }))
+  const composedChildren = getComposedBranches(schema).map(({ label, schema: branchSchema }) => {
+    const resolvedBranch = resolveSchema(spec, branchSchema)
+    const branch = isRecord(resolvedBranch) ? resolvedBranch : undefined
+
+    return {
+      key: `${path || 'root'}.${label}`,
+      name: label,
+      type: schemaToType(branchSchema),
+      description: branch ? getSchemaDescription(branch) : undefined,
+      details: branch ? getSchemaDetails(branch) : undefined,
+      required: false,
+      children: getSchemaChildren({ spec, schema: branchSchema, path: `${path || 'root'}.${label}`, required: objectRequired, depth: depth + 1, seen }),
+    }
+  })
 
   return [...arrayChildren, ...propertyChildren, ...additionalPropertyChildren, ...composedChildren]
 }
@@ -147,6 +160,7 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode |
       name: resolveReferenceName(schema.$ref),
       type: schemaToType(schema),
       description: getSchemaDescription(resolved),
+      details: getSchemaDetails(resolved),
       required: false,
       children: getSchemaChildren({ spec, schema: resolvedSchema, path: resolveReferenceName(schema.$ref), seen: new Set([schema.$ref]) }),
     }
@@ -159,6 +173,7 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode |
     name: 'body',
     type: schemaToType(schema),
     description: getSchemaDescription(schema),
+    details: getSchemaDetails(schema),
     required: false,
     children: getSchemaChildren({ spec, schema, path: '' }),
   }
@@ -170,7 +185,7 @@ function SchemaNode(arg0: { node: SchemaTreeNode; depth?: number }): ReactNode {
   const [expanded, setExpanded] = useState(depth < 1)
   const hasChildren = node.children.length > 0
   const type = [node.type, node.required ? t('openapi.requiredBadge') : undefined].filter(Boolean).join(', ') || undefined
-  const description = node.description || (node.required ? t('openapi.required') : t('openapi.optional'))
+  const fallbackDescription = node.required ? t('openapi.required') : t('openapi.optional')
   const rowClassName = clsx(
     'flex min-w-0 items-start rounded py-0.5 text-left',
     depth > 0 ? '-mx-2 w-[calc(100%+1rem)] px-2' : 'w-full px-1',
@@ -183,7 +198,10 @@ function SchemaNode(arg0: { node: SchemaTreeNode; depth?: number }): ReactNode {
           <span className="text-sm/5 font-semibold text-zinc-950 dark:text-white">{node.name}</span>
           {type ? <span className="font-mono text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{type}</span> : null}
         </div>
-        {description ? <div className="mt-0.5 text-sm/5 text-zinc-600 dark:text-zinc-400">{description}</div> : null}
+        <div className="mt-0.5 text-sm/5 text-zinc-600 *:first:mt-0 *:last:mb-0 dark:text-zinc-400">
+          {node.description ? <Markdown>{node.description}</Markdown> : fallbackDescription}
+          {node.details ? <p className="font-mono text-xs text-zinc-500 dark:text-zinc-500">{node.details}</p> : null}
+        </div>
       </div>
       {hasChildren ? (
         <span className="ml-2 flex h-5 w-5 flex-none items-center justify-center text-zinc-500 dark:text-zinc-400" aria-hidden="true">
@@ -261,7 +279,7 @@ export function ParameterList(arg0: { title: string; parameters: OpenApiParamete
             name={parameter.name ?? t('openapi.parameter')}
             type={[schemaToType(parameter.schema), parameter.required ? t('openapi.requiredBadge') : undefined].filter(Boolean).join(', ') || undefined}
           >
-            {parameter.description ?? t('openapi.operationParameter')}
+            {parameter.description ? <Markdown>{parameter.description}</Markdown> : t('openapi.operationParameter')}
           </Property>
         ))}
       </Properties>
@@ -285,7 +303,7 @@ export function ResponseList(arg0: { operation: OpenAPIOperation; spec?: OpenAPI
 
           return (
             <Property key={status} name={status} type={type}>
-              {response.description ?? `${t('openapi.response')}.`}
+              {response.description ? <Markdown>{response.description}</Markdown> : `${t('openapi.response')}.`}
             </Property>
           )
         })}

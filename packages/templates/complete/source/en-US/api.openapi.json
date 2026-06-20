@@ -3,7 +3,7 @@
   "info": {
     "title": "Starter API",
     "summary": "A compact OpenAPI example for Clarify.",
-    "description": "Replace this file with your real OpenAPI description. The starter demonstrates tags, security, parameters, request bodies, response examples, schemas, and reusable components.",
+    "description": "Replace this file with your real OpenAPI description.\n\n**Markdown descriptions are supported** in API reference pages and embedded endpoints. Use `inline code`, links, lists, and tables for interface notes while keeping reusable components in MDX.\n\n| Field | Use |\n| --- | --- |\n| `limit` | Page size |\n| `cursor` | Pagination token |",
     "version": "1.0.0"
   },
   "servers": [
@@ -37,12 +37,12 @@
         "tags": ["Projects"],
         "operationId": "listProjects",
         "summary": "List projects",
-        "description": "Returns projects visible to the current API token.",
+        "description": "Returns projects visible to the current API token.\n\n- Use `limit` to control page size.\n- Pass the returned `nextCursor` to continue pagination.",
         "parameters": [
           {
             "name": "limit",
             "in": "query",
-            "description": "Maximum number of projects to return.",
+            "description": "Maximum number of projects to return.\n\n| Value | Behavior |\n| --- | --- |\n| `20` | Default page size |\n| `100` | Largest allowed page |",
             "schema": {
               "type": "integer",
               "minimum": 1,
@@ -102,6 +102,7 @@
         "description": "Creates a new project from a JSON request body.",
         "requestBody": {
           "required": true,
+          "description": "Send **JSON** with a `name` and optional `description`.",
           "content": {
             "application/json": {
               "schema": {
@@ -211,7 +212,8 @@
     "schemas": {
       "ProjectStatus": {
         "type": "string",
-        "enum": ["active", "archived"]
+        "enum": ["active", "archived"],
+        "description": "Project lifecycle state: `active` projects appear in default lists; `archived` projects are retained for history."
       },
       "Project": {
         "type": "object",
@@ -226,7 +228,8 @@
             "minLength": 1
           },
           "description": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "description": "Optional public summary. Markdown such as **bold text** and `inline code` is allowed in OpenAPI descriptions."
           },
           "status": {
             "$ref": "#/components/schemas/ProjectStatus"
@@ -282,7 +285,7 @@
     },
     "responses": {
       "BadRequest": {
-        "description": "Invalid request.",
+        "description": "Invalid request.\n\nCheck the response `code` and `message` before retrying.",
         "content": {
           "application/json": {
             "schema": {

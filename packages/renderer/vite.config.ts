@@ -44,6 +44,7 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, 'source/index.tsx'),
+        markdown: resolve(__dirname, 'source/markdown.ts'),
         client: resolve(__dirname, 'source/client.tsx'),
         server: resolve(__dirname, 'source/server.tsx'),
       },
