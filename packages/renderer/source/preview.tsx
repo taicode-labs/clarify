@@ -602,7 +602,7 @@ export function MainPreview() {
     <PreviewEnvironment initialEntry={mainPreviewPath} sections={mainPreviewSections}>
       <Chrome title="source/en-US/openapi/embedding.mdx" status="Rendered from OpenAPI + MDX">
         <div className="clarify-preview-shell grid">
-          <aside className="hidden border-r border-zinc-200 bg-zinc-50/80 px-1 py-4 text-sm/7 dark:border-white/10 dark:bg-white/5 lg:block">
+          <aside className="border-r border-zinc-200 bg-zinc-50/80 px-1 py-4 text-sm/7 dark:border-white/10 dark:bg-white/5">
             <PreviewNavigation endpoint={embeddedEndpoint} guide={embeddedGuide} outputs={embeddedGuide.outputs ?? []} />
           </aside>
           <MainContentPreview />
