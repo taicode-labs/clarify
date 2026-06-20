@@ -9,6 +9,7 @@ import { SectionProvider, type Section } from '../components/SectionProvider'
 import { ClarifyLocaleContext } from '../context'
 import { ContentActions, Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
+import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 export type AppShellProps = {
@@ -42,7 +43,7 @@ function resolveRouteComponent(route: RouteItem): ComponentType {
 function scrollToHash(hash: string) {
   if (!hash) return
 
-  const targetId = decodeURIComponent(hash.slice(1))
+  const targetId = safeDecodeURIComponent(hash.slice(1))
   window.requestAnimationFrame(() => {
     document.getElementById(targetId)?.scrollIntoView()
     window.requestAnimationFrame(() => {
@@ -158,9 +159,9 @@ export function AppShell(arg0: AppShellProps) {
   const currentLocale = localeForPath(config, pathname, currentRoute)
   const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
   const currentNavigation = navigationForLocale(navigation, currentLocale, pathname)
-  const sections = sectionsForRoute(currentRoute)
+  const sections = useMemo(() => sectionsForRoute(currentRoute), [currentRoute])
   const hasTabs = Boolean(currentNavigation.tabs?.length)
-  const themeVariables = themeStyle(config)
+  const themeVariables = useMemo(() => themeStyle(config), [config])
   const renderRoutes = useMemo(
     () => routes.map(route => ({ ...route, component: resolveRouteComponent(route) })),
     [routes],

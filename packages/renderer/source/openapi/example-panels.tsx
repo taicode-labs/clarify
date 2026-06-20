@@ -3,8 +3,9 @@ import { CheckIcon, ChevronsUpDownIcon, ClipboardIcon, CodeIcon, PackageIcon } f
 import { useState, type ReactNode } from 'react'
 
 import { useBuiltInText } from '../i18n'
+import { copyTextToClipboard } from '../utils/clipboard'
 
-import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getResponseEntries, isRecord, stringifyExample } from './helpers'
+import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getPathItem, getResponseEntries, isRecord, stringifyExample } from './helpers'
 import { buildRequestCodeExamples } from './request-code'
 import type {
   ExampleEntry,
@@ -96,9 +97,14 @@ function getClientOptions(codeOptions: RequestCodeExample[] | undefined, languag
     .map((option) => ({ value: option.clientKey, label: option.clientTitle }))
 }
 
-export function getServers(spec: OpenAPISpec, operation: OpenAPIOperation): OpenApiServer[] {
+export function getServers(spec: OpenAPISpec, operation: OpenAPIOperation, path?: string): OpenApiServer[] {
   const operationServers = (operation as Record<string, unknown>).servers
-  const servers = Array.isArray(operationServers) ? operationServers : (spec as Record<string, unknown>).servers
+  const pathServers = path ? getPathItem(spec, path)?.servers : undefined
+  const servers = Array.isArray(operationServers)
+    ? operationServers
+    : Array.isArray(pathServers)
+      ? pathServers
+      : (spec as Record<string, unknown>).servers
   if (!Array.isArray(servers)) return [{ url: 'https://api.example.com' }]
   const validServers = servers.filter((server): server is OpenApiServer => isRecord(server) && typeof server.url === 'string')
   return validServers.length > 0 ? validServers : [{ url: 'https://api.example.com' }]
@@ -169,7 +175,8 @@ function CopyCodeButton(arg0: { code: string }): ReactNode {
     <button
       type="button"
       onClick={() => {
-        void window.navigator.clipboard.writeText(code).then(() => {
+        void copyTextToClipboard(code).then((ok) => {
+          if (!ok) return
           setCopied(true)
           window.setTimeout(() => setCopied(false), 1000)
         })
@@ -452,14 +459,14 @@ export function RequestExamplesPanel(arg0: {
   )
 }
 
-export function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation }): ReactNode {
-  const { operation } = arg0
+export function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation; spec?: OpenAPISpec }): ReactNode {
+  const { operation, spec } = arg0
 
   const t = useBuiltInText()
-  const responses = getResponseEntries(operation).filter(({ response }) => getMediaTypeEntries(response.content).length > 0)
+  const responses = getResponseEntries(operation, spec).filter(({ response }) => getMediaTypeEntries(response.content, spec).length > 0)
   const [selectedStatus, setSelectedStatus] = useState(responses.find(({ status }) => status.startsWith('2'))?.status ?? responses[0]?.status ?? '')
   const selectedResponse = responses.find(({ status }) => status === selectedStatus) ?? responses[0]
-  const responseContents = getMediaTypeEntries(selectedResponse?.response.content)
+  const responseContents = getMediaTypeEntries(selectedResponse?.response.content, spec)
   const [selectedMediaType, setSelectedMediaType] = useState(responseContents[0]?.mediaType ?? '')
   const selectedContent = responseContents.find((content) => content.mediaType === selectedMediaType) ?? responseContents[0]
   const examples = getExampleEntries(selectedContent?.value)
@@ -476,7 +483,7 @@ export function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation }): Re
       tagOptions={responses.map(({ status }) => status)}
       onSelectTag={(value) => {
         const nextResponse = responses.find(({ status }) => status === value)
-        const nextContents = getMediaTypeEntries(nextResponse?.response.content)
+        const nextContents = getMediaTypeEntries(nextResponse?.response.content, spec)
         setSelectedStatus(value)
         setSelectedMediaType(nextContents[0]?.mediaType ?? '')
         setSelectedExampleKey(getExampleEntries(nextContents[0]?.value)[0]?.key ?? '')

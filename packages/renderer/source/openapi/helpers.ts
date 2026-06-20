@@ -1,4 +1,4 @@
-import type { ExampleEntry, MediaTypeEntry, OpenApiMediaType, OpenApiParameter, OpenApiRecord, OpenApiResponse } from './types'
+import type { ExampleEntry, MediaTypeEntry, OpenApiMediaType, OpenApiParameter, OpenApiPathItem, OpenApiRecord, OpenApiResponse } from './types'
 import type { OpenAPIOperation, OpenAPISpec } from './utils'
 
 export function isRecord(value: unknown): value is OpenApiRecord {
@@ -31,30 +31,50 @@ export function resolveSchema(spec: OpenAPISpec, schema: unknown, seen = new Set
   return resolveSchema(spec, resolveOpenApiRef(spec, schema.$ref), seen) ?? schema
 }
 
-export function getPathItem(spec: OpenAPISpec, path: string): OpenApiRecord | undefined {
-  const pathItem = spec.paths?.[path]
-  return isRecord(pathItem) ? pathItem : undefined
+export function getPathItem(spec: OpenAPISpec, path: string): OpenApiPathItem | undefined {
+  return resolveObjectRef<OpenApiPathItem>(spec, spec.paths?.[path])
+}
+
+function resolveObjectRef<T extends OpenApiRecord>(spec: OpenAPISpec | undefined, value: unknown): T | undefined {
+  const resolved = spec && isReference(value) ? resolveOpenApiRef(spec, value.$ref) : value
+  return isRecord(resolved) && !isReference(resolved) ? resolved as T : undefined
+}
+
+export function schemaHasType(schema: unknown, type: string): boolean {
+  if (!isRecord(schema)) return false
+  return schema.type === type || (Array.isArray(schema.type) && schema.type.includes(type))
 }
 
 export function getOperationParameters(spec: OpenAPISpec, path: string, operation: OpenAPIOperation): OpenApiParameter[] {
   const pathParameters = getPathItem(spec, path)?.parameters
   const operationParameters = (operation as OpenApiRecord).parameters
+  const parameters = [...(Array.isArray(pathParameters) ? pathParameters : []), ...(Array.isArray(operationParameters) ? operationParameters : [])]
+    .map((parameter) => resolveObjectRef<OpenApiParameter>(spec, parameter))
+    .filter((parameter): parameter is OpenApiParameter => Boolean(parameter))
+  const deduped = new Map<string, OpenApiParameter>()
 
-  return [...(Array.isArray(pathParameters) ? pathParameters : []), ...(Array.isArray(operationParameters) ? operationParameters : [])]
-    .filter((parameter): parameter is OpenApiParameter => isRecord(parameter) && !isReference(parameter))
+  for (const parameter of parameters) {
+    const key = parameter.name && parameter.in ? `${parameter.in}:${parameter.name}` : undefined
+    if (key) deduped.set(key, parameter)
+  }
+
+  return parameters.filter((parameter) => {
+    const key = parameter.name && parameter.in ? `${parameter.in}:${parameter.name}` : undefined
+    return key ? deduped.get(key) === parameter : true
+  })
 }
 
-export function getRequestBody(operation: OpenAPIOperation): OpenApiRecord | undefined {
+export function getRequestBody(spec: OpenAPISpec, operation: OpenAPIOperation): OpenApiRecord | undefined {
   const requestBody = (operation as OpenApiRecord).requestBody
-  return isRecord(requestBody) && !isReference(requestBody) ? requestBody : undefined
+  return resolveObjectRef(spec, requestBody)
 }
 
-export function getMediaTypeEntries(content: unknown): MediaTypeEntry[] {
+export function getMediaTypeEntries(content: unknown, spec?: OpenAPISpec): MediaTypeEntry[] {
   if (!isRecord(content)) return []
 
   return Object.entries(content)
-    .filter(([, value]) => isRecord(value) && !isReference(value))
-    .map(([mediaType, value]) => ({ mediaType, value: value as OpenApiMediaType }))
+    .map(([mediaType, value]) => ({ mediaType, value: resolveObjectRef<OpenApiMediaType>(spec, value) }))
+    .filter((entry): entry is MediaTypeEntry => Boolean(entry.value))
     .sort((a, z) => {
       const aJson = a.mediaType.includes('json') ? 0 : 1
       const zJson = z.mediaType.includes('json') ? 0 : 1
@@ -62,8 +82,8 @@ export function getMediaTypeEntries(content: unknown): MediaTypeEntry[] {
     })
 }
 
-export function getJsonLikeContent(content: unknown): MediaTypeEntry | undefined {
-  return getMediaTypeEntries(content)[0]
+export function getJsonLikeContent(content: unknown, spec?: OpenAPISpec): MediaTypeEntry | undefined {
+  return getMediaTypeEntries(content, spec)[0]
 }
 
 function getExampleValue(example: unknown): unknown {
@@ -125,7 +145,7 @@ export function schemaToType(schema: unknown): string | undefined {
     return schema.allOf.map(schemaToType).filter(Boolean).join(' & ')
   }
 
-  if (schema.type === 'array') {
+  if (schemaHasType(schema, 'array')) {
     return `${schemaToType(schema.items) ?? 'unknown'}[]`
   }
 
@@ -140,11 +160,11 @@ export function schemaToExample(schema: unknown, depth = 0): unknown {
   if (Array.isArray(schema.enum)) return schema.enum[0]
   if (isReference(schema)) return { id: resolveReferenceName(schema.$ref) }
 
-  if (schema.type === 'array') {
+  if (schemaHasType(schema, 'array')) {
     return [schemaToExample(schema.items, depth + 1) ?? 'string']
   }
 
-  if (schema.type === 'object' || isRecord(schema.properties)) {
+  if (schemaHasType(schema, 'object') || isRecord(schema.properties)) {
     const properties = isRecord(schema.properties) ? schema.properties : {}
     return Object.fromEntries(
       Object.entries(properties).slice(0, 8).map(([name, propertySchema]) => [
@@ -172,13 +192,13 @@ export function stringifyExample(value: unknown): string {
   return JSON.stringify(value, null, 2)
 }
 
-export function getResponseEntries(operation: OpenAPIOperation): Array<{ status: string; response: OpenApiResponse }> {
+export function getResponseEntries(operation: OpenAPIOperation, spec?: OpenAPISpec): Array<{ status: string; response: OpenApiResponse }> {
   const responses = (operation as OpenApiRecord).responses
   if (!isRecord(responses)) return []
 
   return Object.entries(responses)
-    .filter(([, response]) => isRecord(response) && !isReference(response))
-    .map(([status, response]) => ({ status, response: response as OpenApiResponse }))
+    .map(([status, response]) => ({ status, response: resolveObjectRef<OpenApiResponse>(spec, response) }))
+    .filter((entry): entry is { status: string; response: OpenApiResponse } => Boolean(entry.response))
 }
 
 export function codeLanguageForMediaType(mediaType?: string): string {

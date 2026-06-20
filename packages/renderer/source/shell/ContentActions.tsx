@@ -4,6 +4,8 @@ import { useState } from 'react'
 
 import { useBuiltInText } from '../i18n'
 import type { RouteItem } from '../types'
+import { copyTextToClipboard } from '../utils/clipboard'
+import { prefixHref } from '../utils/href'
 
 type ContentActionsProps = {
   hasTabs?: boolean
@@ -21,17 +23,12 @@ type CopyAction = {
 }
 
 function resolveContentArtifactUrl(contentArtifactUrl: string, routePrefix: string = '/'): string {
-  if (!routePrefix || routePrefix === '/') return contentArtifactUrl
-  return `/${routePrefix.replace(/^\/+|\/+$/g, '')}${contentArtifactUrl}`
+  return prefixHref(contentArtifactUrl, routePrefix)
 }
 
 function getAbsoluteUrl(path: string): string {
   if (typeof window === 'undefined') return path
   return new URL(path, window.location.href).href
-}
-
-async function copyText(text: string): Promise<void> {
-  await navigator.clipboard.writeText(text)
 }
 
 export function ContentActions(arg0: ContentActionsProps) {
@@ -56,13 +53,11 @@ export function ContentActions(arg0: ContentActionsProps) {
   async function handleCopyContent() {
     const response = await fetch(contentArtifactUrl)
     const text = await response.text()
-    await copyText(text)
-    markCopied('content')
+    if (await copyTextToClipboard(text)) markCopied('content')
   }
 
   async function handleCopyLink() {
-    await copyText(getAbsoluteUrl(contentArtifactUrl))
-    markCopied('link')
+    if (await copyTextToClipboard(getAbsoluteUrl(contentArtifactUrl))) markCopied('link')
   }
 
   const actions: CopyAction[] = [

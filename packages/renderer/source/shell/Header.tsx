@@ -9,6 +9,7 @@ import { ThemeToggle } from '../components'
 import { SiteLogo } from '../components/SiteLogo'
 import { useBuiltInText } from '../i18n'
 import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, ClarifyNavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
+import { isExternalHref, localizeHref } from '../utils/href'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { NavigationIcon } from './icons'
@@ -18,17 +19,6 @@ import { MobileSearch, Search } from './Search'
 function resolveLocalizedText(text: ClarifyLocalizedText, locale?: string, fallbackLocale?: string): string {
   if (typeof text === 'string') return text
   return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
-}
-
-function isExternalHref(href: string): boolean {
-  return /^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//')
-}
-
-function localizeHref(href: string, config: ClarifyConfig, locale?: string): string {
-  if (!locale || !config.i18n || isExternalHref(href) || href.startsWith('#')) return href
-  if (locale === config.i18n.defaultLocale) return href
-  const cleanHref = href === '/' ? '' : href.replace(/^\/+/, '')
-  return `/${locale}${cleanHref ? `/${cleanHref}` : ''}`
 }
 
 function localizedRoutePath(config: ClarifyConfig, locale: string, route?: RouteItem): string | undefined {

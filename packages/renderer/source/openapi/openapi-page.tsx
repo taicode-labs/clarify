@@ -74,7 +74,7 @@ function EndpointExamples(arg0: {
         serverVariables={serverVariables}
         auth={auth}
       />
-      <ResponseExamplesPanel operation={operation} />
+      <ResponseExamplesPanel operation={operation} spec={spec} />
     </div>
   )
 }
@@ -433,12 +433,12 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
   const summary = operation.summary ?? `${method} ${path}`
   const description = operation.description
   const parameters = getOperationParameters(spec, path, operation)
-  const requestBody = getRequestBody(operation)
-  const requestContents = getMediaTypeEntries(requestBody?.content)
+  const requestBody = getRequestBody(spec, operation)
+  const requestContents = getMediaTypeEntries(requestBody?.content, spec)
   const [selectedRequestMediaType, setSelectedRequestMediaType] = useState(requestContents[0]?.mediaType ?? '')
   const selectedRequestContent = requestContents.find((content) => content.mediaType === selectedRequestMediaType) ?? requestContents[0]
   const requestSchema = selectedRequestContent?.value.schema
-  const servers = getServers(spec, operation)
+  const servers = getServers(spec, operation, path)
   const [selectedServerKey, setSelectedServerKey] = useState(getServerKey(servers[0], 0))
   const selectedServer = servers.find((server, index) => getServerKey(server, index) === selectedServerKey) ?? servers[0]
   const [serverVariables, setServerVariables] = useState(defaultServerVariables(selectedServer))
@@ -505,7 +505,7 @@ function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: strin
               <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} />
             </>
           ) : null}
-          <ResponseList operation={operation} />
+          <ResponseList operation={operation} spec={spec} />
         </Col>
         <Col sticky>
           <EndpointExamples
@@ -581,7 +581,8 @@ export function ApiEndpoint(arg0: ApiEndpointProps): ReactNode {
     return <WarningBox tone="red">{t('openapi.endpointNotFound', { endpoint: `${method.toUpperCase()} ${path}` })}</WarningBox>
   }
 
-  return <OpenApiOperation spec={spec} path={path} method={method.toUpperCase()} operation={op} />
+  const normalizedMethod = method.toUpperCase()
+  return <OpenApiOperation key={`${normalizedMethod}-${path}`} spec={spec} path={path} method={normalizedMethod} operation={op} />
 }
 
 export function OpenApiEndpoint(arg0: OpenApiEndpointProps): ReactNode {

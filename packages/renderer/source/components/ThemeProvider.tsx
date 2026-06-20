@@ -27,8 +27,22 @@ function getStoredTheme(): Theme {
     return 'system'
   }
 
-  const storedTheme = window.localStorage.getItem(storageKey)
-  return storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system' ? storedTheme : 'system'
+  try {
+    const storedTheme = window.localStorage.getItem(storageKey)
+    return storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system' ? storedTheme : 'system'
+  } catch {
+    return 'system'
+  }
+}
+
+function storeTheme(theme: Theme) {
+  if (typeof window === 'undefined') return
+
+  try {
+    window.localStorage.setItem(storageKey, theme)
+  } catch {
+    // Ignore storage failures from private mode or restricted embeds.
+  }
 }
 
 function applyTheme(resolvedTheme: ResolvedTheme) {
@@ -73,10 +87,7 @@ export function ThemeProvider(arg0: { children: ReactNode }) {  const { children
       resolvedTheme,
       setTheme(nextTheme) {
         setThemeState(nextTheme)
-
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(storageKey, nextTheme)
-        }
+        storeTheme(nextTheme)
       },
     }),
     [resolvedTheme, theme],

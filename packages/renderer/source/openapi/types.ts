@@ -22,6 +22,11 @@ export type OpenApiResponse = {
   content?: Record<string, OpenApiMediaType>
 }
 
+export type OpenApiPathItem = OpenApiRecord & {
+  parameters?: unknown
+  servers?: unknown
+}
+
 export type OpenApiServerVariable = {
   default?: string
   enum?: string[]

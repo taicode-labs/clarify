@@ -8,6 +8,7 @@ import { Tag } from '../components'
 import { useSectionStore } from '../components/SectionProvider'
 import { useBuiltInText } from '../i18n'
 import type { NavigationNode } from '../types'
+import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 import { remToPx } from '../utils/remToPx'
 
@@ -98,7 +99,7 @@ function NavLink(arg0: {
     const hashIndex = href.indexOf('#')
     if (hashIndex === -1) return
 
-    const targetId = decodeURIComponent(href.slice(hashIndex + 1))
+    const targetId = safeDecodeURIComponent(href.slice(hashIndex + 1))
     window.requestAnimationFrame(() => {
       document.getElementById(targetId)?.scrollIntoView()
       window.requestAnimationFrame(() => {

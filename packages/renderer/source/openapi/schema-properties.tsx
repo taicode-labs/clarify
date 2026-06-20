@@ -5,7 +5,7 @@ import { useState, type ReactNode } from 'react'
 import { useBuiltInText } from '../i18n'
 import { Properties, Property } from '../mdx/primitives'
 
-import { getJsonLikeContent, getResponseEntries, isRecord, isReference, resolveReferenceName, resolveSchema, schemaToType } from './helpers'
+import { getJsonLikeContent, getResponseEntries, isRecord, isReference, resolveReferenceName, resolveSchema, schemaHasType, schemaToType } from './helpers'
 import type { OpenApiParameter } from './types'
 import type { OpenAPIOperation, OpenAPISpec } from './utils'
 
@@ -85,7 +85,7 @@ function getSchemaChildren(arg0: {
 
   if (!isRecord(schema)) return []
 
-  const arrayChildren = schema.type === 'array'
+  const arrayChildren = schemaHasType(schema, 'array')
     ? getSchemaChildren({ spec, schema: schema.items, path: `${path}[]`, depth: depth + 1, seen })
     : []
 
@@ -94,7 +94,7 @@ function getSchemaChildren(arg0: {
   const propertyChildren = Object.entries(properties).map(([name, propertySchema]) => {
     const resolvedProperty = resolveSchema(spec, propertySchema)
     const property = isRecord(resolvedProperty) ? resolvedProperty : isRecord(propertySchema) ? propertySchema : {}
-    const isArray = isRecord(property) && property.type === 'array'
+    const isArray = schemaHasType(property, 'array')
     const childPath = path ? `${path}.${name}` : name
     const children = getSchemaChildren({
       spec,
@@ -222,7 +222,7 @@ function SchemaTree(arg0: { nodes: SchemaTreeNode[]; depth?: number }): ReactNod
       role="list"
       className={clsx(
         'm-0 list-none divide-y divide-zinc-900/5 p-0 dark:divide-white/5',
-        depth > 0 && 'mt-2 rounded-lg bg-zinc-950/[0.025] px-2 py-1 dark:bg-white/[0.04]',
+        depth > 0 && 'mt-2 rounded-lg bg-zinc-950/2.5 px-2 py-1 dark:bg-white/4',
       )}
     >
       {nodes.map((node) => <SchemaNode key={node.key} node={node} depth={depth} />)}
@@ -269,10 +269,10 @@ export function ParameterList(arg0: { title: string; parameters: OpenApiParamete
   )
 }
 
-export function ResponseList(arg0: { operation: OpenAPIOperation }): ReactNode {  const { operation } = arg0
+export function ResponseList(arg0: { operation: OpenAPIOperation; spec?: OpenAPISpec }): ReactNode {  const { operation, spec } = arg0
 
   const t = useBuiltInText()
-  const responses = getResponseEntries(operation)
+  const responses = getResponseEntries(operation, spec)
   if (responses.length === 0) return null
 
   return (
@@ -280,7 +280,7 @@ export function ResponseList(arg0: { operation: OpenAPIOperation }): ReactNode {
       <h3>{t('openapi.responses')}</h3>
       <Properties>
         {responses.map(({ status, response }) => {
-          const content = getJsonLikeContent(response.content)
+          const content = getJsonLikeContent(response.content, spec)
           const type = schemaToType(content?.value.schema)
 
           return (

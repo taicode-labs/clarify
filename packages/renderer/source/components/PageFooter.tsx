@@ -1,18 +1,15 @@
 import clsx from 'clsx'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 import { useClarifyConfig } from '../context'
 import type { ClarifyConfig, ClarifyLocalizedText, ClarifyNavbarLink } from '../types'
+import { isExternalHref, localizeHref } from '../utils/href'
 
 import { BuiltWithClarify } from './BuiltWithClarify'
 
 function resolveLocalizedText(text: ClarifyLocalizedText, locale?: string, fallbackLocale?: string): string {
   if (typeof text === 'string') return text
   return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
-}
-
-function isExternalHref(href: string): boolean {
-  return /^[a-z][a-z0-9+.-]*:/i.test(href) || href.startsWith('//')
 }
 
 function localeForPath(config: ClarifyConfig, pathname: string): string | undefined {
@@ -22,27 +19,25 @@ function localeForPath(config: ClarifyConfig, pathname: string): string | undefi
   return i18n.locales.find((locale) => locale.code === firstSegment)?.code ?? i18n.defaultLocale
 }
 
-function localizeHref(href: string, config: ClarifyConfig, locale?: string): string {
-  if (!locale || !config.i18n || isExternalHref(href) || href.startsWith('#')) return href
-  if (locale === config.i18n.defaultLocale) return href
-  const cleanHref = href === '/' ? '' : href.replace(/^\/+/, '')
-  return `/${locale}${cleanHref ? `/${cleanHref}` : ''}`
-}
-
 function FooterLink(arg0: { link: ClarifyNavbarLink; locale?: string; config: ClarifyConfig }) {
   const { link, locale, config } = arg0
   const external = link.external ?? isExternalHref(link.href)
   const href = external ? link.href : localizeHref(link.href, config, locale)
+  const className = "clarify-footer-link no-underline transition"
+  const label = resolveLocalizedText(link.label, locale, config.i18n?.defaultLocale)
+
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className={className}>
+        {label}
+      </a>
+    )
+  }
 
   return (
-    <a
-      href={href}
-      target={external ? '_blank' : undefined}
-      rel={external ? 'noreferrer' : undefined}
-      className="clarify-footer-link no-underline transition"
-    >
-      {resolveLocalizedText(link.label, locale, config.i18n?.defaultLocale)}
-    </a>
+    <Link to={href} className={className}>
+      {label}
+    </Link>
   )
 }
 

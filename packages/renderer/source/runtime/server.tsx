@@ -6,6 +6,7 @@ import { AppShell } from '../app/AppShell'
 import { ThemeProvider } from '../components/ThemeProvider'
 import { ClarifyConfigContext, OpenApisContext } from '../context'
 import type { ServerRenderOptions } from '../types'
+import { prefixHref } from '../utils/href'
 
 /**
  * Clarify 服务端渲染入口。
@@ -14,10 +15,11 @@ import type { ServerRenderOptions } from '../types'
  */
 export function renderToHTML(options: ServerRenderOptions): string {
   const { config, routes, navigation, openApis = {}, url } = options
+  const location = prefixHref(url, config.routePrefix)
 
   return renderToString(
     <StrictMode>
-      <StaticRouter basename={config.routePrefix} location={url}>
+      <StaticRouter basename={config.routePrefix} location={location}>
         <ClarifyConfigContext.Provider value={config}>
           <OpenApisContext.Provider value={openApis}>
             <ThemeProvider>

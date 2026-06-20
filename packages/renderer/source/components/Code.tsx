@@ -14,6 +14,7 @@ import {
 import { create } from 'zustand'
 
 import { useBuiltInText } from '../i18n'
+import { copyTextToClipboard } from '../utils/clipboard'
 
 const languageNames: Record<string, string> = {
   js: 'JavaScript',
@@ -86,8 +87,8 @@ function CopyButton(arg0: { code: string }) {  const { code } = arg0
           : 'bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5',
       )}
       onClick={() => {
-        void window.navigator.clipboard.writeText(code).then(() => {
-          setCopyCount((count) => count + 1)
+        void copyTextToClipboard(code).then((ok) => {
+          if (ok) setCopyCount((count) => count + 1)
         })
       }}
     >
@@ -104,7 +105,7 @@ function CopyButton(arg0: { code: string }) {  const { code } = arg0
       <span
         aria-hidden={!copied}
         className={clsx(
-          'pointer-events-none absolute inset-0 flex items-center justify-center text-[var(--clarify-theme-tokens-colors-primary)] transition duration-300',
+          'pointer-events-none absolute inset-0 flex items-center justify-center text-(--clarify-theme-tokens-colors-primary) transition duration-300',
           !copied && 'translate-y-1.5 opacity-0',
         )}
       >
@@ -120,7 +121,7 @@ function CodePanelHeader(arg0: { tag?: string; label?: string }) {  const { tag,
 
   return (
     <div className="clarify-code-panel-header flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
-      {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-[var(--clarify-theme-tokens-colors-primary)]">{tag}</span> : null}
+      {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-(--clarify-theme-tokens-colors-primary)">{tag}</span> : null}
       {tag && label ? <span className="h-0.5 w-0.5 rounded-full bg-zinc-500" /> : null}
       {label ? <span className="font-mono text-xs text-zinc-400">{label}</span> : null}
     </div>
@@ -175,7 +176,7 @@ function CodeGroupHeader(arg0: { title?: string; children: ReactNode; selectedIn
               className={clsx(
                 'clarify-code-tab border-b py-3 transition data-selected:not-data-focus:outline-hidden',
                 childIndex === selectedIndex
-                  ? 'border-[var(--clarify-theme-tokens-colors-primary)] text-[var(--clarify-theme-tokens-colors-primary)]'
+                  ? 'border-(--clarify-theme-tokens-colors-primary) text-(--clarify-theme-tokens-colors-primary)'
                   : 'border-transparent text-zinc-400 hover:text-zinc-300',
               )}
             >
