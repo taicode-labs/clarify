@@ -15,6 +15,17 @@
       rel="stylesheet"
     />
     <title>Clarify — MDX and OpenAPI documentation publishing</title>
+    <script>
+      ;(function () {
+        try {
+          var storedTheme = localStorage.getItem('clarify:theme')
+          var theme = storedTheme === 'dark' || storedTheme === 'light' || storedTheme === 'system' ? storedTheme : 'system'
+          var isDark = theme === 'system' ? window.matchMedia('(prefers-color-scheme: dark)').matches : theme === 'dark'
+          document.documentElement.classList.toggle('dark', isDark)
+          document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
+        } catch (error) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

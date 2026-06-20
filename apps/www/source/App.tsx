@@ -1,4 +1,4 @@
-import { Monitor, Moon, Sun } from 'lucide-react'
+import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -43,18 +43,21 @@ type StatItem = { stat: string; text: string }
 type WorkflowItem = { label: string; title: string; text: string }
 type FaqItem = { question: string; answer: string }
 type TestimonialItem = [quote: string, name: string, byline: string]
-type ThemePreference = 'system' | 'light' | 'dark'
+type ThemePreference = 'light' | 'dark' | 'system'
+type ResolvedTheme = 'light' | 'dark'
+
+const themeStorageKey = 'clarify:theme'
 
 export default function App({ path = '/' }: { path?: string }) {
   const normalizedPath = normalizePath(path)
 
   return (
-    <>
+    <div className="clarify-app min-h-screen">
       <AppEffects />
       <Navbar />
       <Main>{renderRoute(normalizedPath)}</Main>
       <Footer />
-    </>
+    </div>
   )
 }
 
@@ -146,23 +149,33 @@ function Navbar() {
 
 function ThemeToggle() {
   const { t } = useTranslation()
-  const [theme, setTheme] = useState<ThemePreference>(() => getStoredTheme())
+  const [theme, setThemeState] = useState<ThemePreference>(() => getStoredTheme())
+  const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(() => getSystemTheme())
+  const resolvedTheme = theme === 'system' ? systemTheme : theme
+  const nextTheme: ResolvedTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
+  const label = nextTheme === 'dark' ? t('common.theme.switchToDark') : t('common.theme.switchToLight')
 
   useEffect(() => {
-    const media = window.matchMedia('(prefers-color-scheme: dark)')
-    const applyTheme = () => {
-      document.documentElement.classList.toggle('dark', theme === 'dark' || (theme === 'system' && media.matches))
+    applyTheme(resolvedTheme)
+  }, [resolvedTheme])
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+
+    function updateSystemTheme() {
+      setSystemTheme(mediaQuery.matches ? 'dark' : 'light')
     }
 
-    applyTheme()
-    media.addEventListener('change', applyTheme)
-    localStorage.setItem('clarify-theme', theme)
+    updateSystemTheme()
+    mediaQuery.addEventListener('change', updateSystemTheme)
 
-    return () => media.removeEventListener('change', applyTheme)
-  }, [theme])
+    return () => mediaQuery.removeEventListener('change', updateSystemTheme)
+  }, [])
 
-  const nextTheme: ThemePreference = theme === 'system' ? 'dark' : theme === 'dark' ? 'light' : 'system'
-  const label = theme === 'dark' ? t('common.theme.switchToLight') : t('common.theme.switchToDark')
+  function setTheme(nextTheme: ThemePreference) {
+    setThemeState(nextTheme)
+    storeTheme(nextTheme)
+  }
 
   return (
     <button
@@ -170,9 +183,10 @@ function ThemeToggle() {
       aria-label={label}
       title={label}
       onClick={() => setTheme(nextTheme)}
-      className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10"
+      className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:text-white dark:hover:bg-white/5"
     >
-      {theme === 'dark' ? <Moon className="size-4" /> : theme === 'light' ? <Sun className="size-4" /> : <Monitor className="size-4" />}
+      <Sun className="size-5 dark:hidden" aria-hidden="true" />
+      <Moon className="hidden size-5 dark:block" aria-hidden="true" />
     </button>
   )
 }
@@ -196,13 +210,46 @@ function LanguageToggle({ currentLocale }: { currentLocale: AppLocale }) {
   )
 }
 
+function getSystemTheme(): ResolvedTheme {
+  if (typeof window === 'undefined') {
+    return 'light'
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
 function getStoredTheme(): ThemePreference {
   if (typeof window === 'undefined') {
     return 'system'
   }
 
-  const storedTheme = localStorage.getItem('clarify-theme')
-  return storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system' ? storedTheme : 'system'
+  try {
+    const storedTheme = window.localStorage.getItem(themeStorageKey)
+    return storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system' ? storedTheme : 'system'
+  } catch {
+    return 'system'
+  }
+}
+
+function storeTheme(theme: ThemePreference) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    window.localStorage.setItem(themeStorageKey, theme)
+  } catch {
+    // Ignore storage failures from private mode or restricted embeds.
+  }
+}
+
+function applyTheme(resolvedTheme: ResolvedTheme) {
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
+  document.documentElement.style.colorScheme = resolvedTheme
 }
 
 function toAppLocale(locale: string): AppLocale {

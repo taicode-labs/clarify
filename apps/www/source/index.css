@@ -20,38 +20,135 @@
 }
 
 @layer base {
+  :root {
+    --clarify-theme-tokens-colors-primary: #00d492;
+    --clarify-theme-tokens-colors-accent: #00f6c9;
+    --clarify-theme-tokens-colors-background: #ffffff;
+    --clarify-theme-tokens-colors-foreground: #111827;
+    --clarify-theme-tokens-colors-surface: #ffffff;
+    --clarify-theme-tokens-colors-muted: #64748b;
+    --clarify-theme-tokens-colors-border: rgb(15 23 42 / 0.12);
+    --clarify-theme-tokens-colors-code-background: #f7fefb;
+    --clarify-theme-tokens-radius-sm: 6px;
+    --clarify-theme-tokens-radius-md: 10px;
+    --clarify-theme-tokens-radius-lg: 14px;
+    --clarify-theme-tokens-radius-xl: 18px;
+    --clarify-theme-layout-max-width: 82rem;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: var(--color-mist-100);
+    background-color: var(--clarify-theme-tokens-colors-background);
     scroll-behavior: smooth;
     --scroll-padding-top: 0;
     scroll-padding-top: var(--scroll-padding-top);
   }
 
   html.dark {
-    background-color: var(--color-mist-950);
+    background-color: var(--color-zinc-950);
   }
 
   body {
     margin: 0;
     min-height: 100vh;
-    background: var(--color-mist-100);
-    color: var(--color-mist-950);
+    background: var(--clarify-theme-tokens-colors-background);
+    color: var(--clarify-theme-tokens-colors-foreground);
     font-family: var(--font-sans);
   }
 
   .dark body {
-    background: var(--color-mist-950);
+    background: var(--color-zinc-950);
     color: white;
   }
 
+  body,
   #root {
     min-height: 100vh;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-zinc-300) transparent;
+  }
+
+  .dark * {
+    scrollbar-color: var(--color-zinc-700) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-color: var(--color-zinc-300);
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-zinc-400);
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: var(--color-zinc-700);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-zinc-600);
   }
 }
 
 @layer components {
+  :root,
+  .clarify-app {
+    --clarify-ui-text-strong: var(--clarify-theme-tokens-colors-foreground);
+    --clarify-ui-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 88%, transparent);
+    --clarify-ui-text-soft: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 68%, transparent);
+    --clarify-ui-text-faint: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 54%, transparent);
+    --clarify-ui-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 5%, transparent);
+    --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 10%, transparent);
+    --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 4%, transparent);
+    --clarify-ui-overlay-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-muted) 25%, transparent);
+    --clarify-ui-accent-text: var(--clarify-theme-tokens-colors-primary);
+    --clarify-ui-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 9%, transparent);
+    --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 18%, transparent);
+    --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 18%, transparent);
+  }
+
+  .dark,
+  .dark .clarify-app {
+    --clarify-ui-text-strong: var(--color-white);
+    --clarify-ui-text: var(--color-zinc-200);
+    --clarify-ui-text-soft: var(--color-zinc-300);
+    --clarify-ui-text-faint: var(--color-zinc-400);
+    --clarify-ui-hover-background: rgb(255 255 255 / 0.05);
+    --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 18%, transparent);
+    --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 10%, transparent);
+    --clarify-ui-overlay-background: rgb(0 0 0 / 0.4);
+    --clarify-ui-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 72%, white);
+    --clarify-ui-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 16%, transparent);
+    --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 28%, transparent);
+    --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 28%, transparent);
+  }
+
+  .clarify-app {
+    min-height: 100vh;
+    background: var(--clarify-theme-tokens-colors-background);
+    color: var(--clarify-theme-tokens-colors-foreground);
+  }
+
+  .dark .clarify-app {
+    background: var(--color-zinc-950);
+    color: var(--color-white);
+  }
+
   .www-heading-display {
     font-family: var(--font-display);
     font-size: var(--text-5xl);
