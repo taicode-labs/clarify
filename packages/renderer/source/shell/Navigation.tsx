@@ -66,7 +66,7 @@ function SectionBadge(arg0: { children: string }) {  const { children } = arg0
   return (
     <span
       className={clsx(
-        'clarify-navigation-section-badge inline-flex shrink-0 justify-end font-mono font-semibold uppercase tracking-wide',
+        'clarify-navigation-section-badge inline-flex shrink-0 justify-end font-semibold uppercase tracking-wide',
         sectionBadgeColorStyles[children.toUpperCase()] ?? 'clarify-ui-menu-description',
       )}
     >

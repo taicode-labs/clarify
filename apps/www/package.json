@@ -6,19 +6,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5174",
-    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "build": "tsc -p tsconfig.json --noEmit && vite build && vite build --ssr source/entry-server.tsx --outDir output-server && node scripts/prerender.mjs",
     "preview": "vite preview",
     "lint": "eslint source/",
     "lint:fix": "eslint source/ --fix",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@headlessui/react": "^2.2.10",
-    "i18next": "^26.3.1",
-    "i18next-browser-languagedetector": "^8.2.1",
+    "@clarify-labs/renderer": "workspace:^",
+    "lucide-react": "^1.20.0",
+    "clsx": "^2.1.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-i18next": "^17.0.8"
+    "react-router-dom": "^7.0.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.11",

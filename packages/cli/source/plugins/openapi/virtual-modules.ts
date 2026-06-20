@@ -21,7 +21,7 @@ const diagnostic = ${JSON.stringify(diagnostic)};
 export default function OpenApiErrorRoutePage() {
   return createElement('article', { className: 'flex h-full flex-col pt-16 pb-10' },
     createElement('div', { className: 'prose max-w-none flex-auto dark:prose-invert' },
-      createElement('p', { className: 'mb-3 font-mono text-xs/6 font-medium tracking-widest text-red-500 uppercase dark:text-red-400' }, 'OpenAPI Error'),
+      createElement('p', { className: 'mb-3 text-xs/6 font-medium tracking-widest text-red-500 uppercase dark:text-red-400' }, 'OpenAPI Error'),
       createElement('h1', null, diagnostic.title),
       createElement('p', { className: 'lead' }, diagnostic.message),
       diagnostic.filePath ? createElement('div', { className: 'not-prose mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm dark:border-white/10 dark:bg-white/5' },
@@ -30,7 +30,7 @@ export default function OpenApiErrorRoutePage() {
       ) : null,
       diagnostic.cause ? createElement('div', { className: 'not-prose mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200' },
         createElement('div', { className: 'mb-1 font-semibold' }, 'Why it happened'),
-        createElement('pre', { className: 'whitespace-pre-wrap break-words font-mono text-xs' }, diagnostic.cause)
+        createElement('pre', { className: 'whitespace-pre-wrap break-words text-xs' }, diagnostic.cause)
       ) : null
     )
   );

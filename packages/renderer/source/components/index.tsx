@@ -146,7 +146,7 @@ export function Tag(arg0: TagProps) {  const { children, variant = 'medium', col
   return (
     <span
       className={clsx(
-        'clarify-tag font-mono text-[0.625rem]/6 font-bold',
+        'clarify-tag font-bold',
         tagVariantStyles[variant],
         tagColorStyles[resolvedColor][variant],
       )}
@@ -212,7 +212,7 @@ function Eyebrow(arg0: { tag?: string; label?: string }) {  const { tag, label }
     <div className="flex items-center gap-x-3">
       {tag ? <Tag>{tag}</Tag> : null}
       {tag && label ? <span className="h-0.5 w-0.5 rounded-full bg-zinc-300 dark:bg-zinc-600" /> : null}
-      {label ? <span className="font-mono text-xs text-zinc-400">{label}</span> : null}
+      {label ? <span className="text-xs text-zinc-400">{label}</span> : null}
     </div>
   )
 }

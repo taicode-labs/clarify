@@ -132,6 +132,16 @@ Component styles should follow this rule:
 - Use renderer-internal semantic classes or variables for component roles such as nav hover state, search result state, mobile drawer state, or active tab state.
 - Avoid duplicating color mixing, spacing, and interaction rules across components.
 
+Renderer style authoring should also follow these principles:
+
+- Prefer adaptive layout over fixed dimensions. Use fluid grids, `minmax(0, 1fr)`, `w-full`, `h-full`, and explicit overflow boundaries instead of hard-coded JSX width snapshots.
+- Do not put one-off sizes, font sizes, line heights, masks, or grid tracks in JSX through Tailwind arbitrary values. Move them into renderer CSS classes so the structure stays readable and reusable.
+- Promote a value to a CSS variable only when it is part of the public theme surface, is expected to be configured by users, or is reused as a semantic rule across multiple components.
+- Keep private, single-use implementation details as ordinary declarations inside internal renderer classes. Avoid creating global variables for values that are not reused or intended to be configured.
+- Use the project spacing, radius, color, and typography scale where possible. When a repeated UI role needs a value that does not exist yet, add a semantic renderer class or variable based on whether the value should be reused/configured.
+- Keep preview and marketing-oriented renderer surfaces on the same system as production documentation UI. Preview code may crop overflowing content, but private measurements should remain in renderer CSS rather than component markup.
+- If a component needs a minimum readable area, express that through responsive layout constraints, internal classes, and container overflow behavior, not fixed `w-*` snapshots.
+
 ---
 
 ## Design goals

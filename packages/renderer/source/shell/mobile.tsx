@@ -52,7 +52,7 @@ function MobileTabsSelect(arg0: { tabs?: NavigationTab[] }) {
       <MenuButton className="clarify-mobile-tabs-select-trigger clarify-ui-control group flex h-10 w-full items-center justify-between gap-2 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) px-4 text-left font-semibold shadow-xs shadow-zinc-900/5 transition dark:border-white/10">
         <span className="flex min-w-0 items-center gap-2">
           <NavigationIcon name={activeTab.icon} className="h-4 w-4 shrink-0 text-(--clarify-theme-tokens-colors-primary)" />
-          <span className="truncate tracking-[-0.01em]">{activeTab.title}</span>
+          <span className="truncate">{activeTab.title}</span>
         </span>
         <svg width="8" height="24" viewBox="0 -9 3 24" aria-hidden="true" className="shrink-0 overflow-visible text-(--clarify-theme-tokens-colors-muted) transition-transform group-aria-expanded:rotate-180">
           <path d="M0 0L3 3L0 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

@@ -121,9 +121,9 @@ function CodePanelHeader(arg0: { tag?: string; label?: string }) {  const { tag,
 
   return (
     <div className="clarify-code-panel-header flex h-9 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1">
-      {tag ? <span className="font-mono text-[0.625rem]/6 font-semibold text-(--clarify-theme-tokens-colors-primary)">{tag}</span> : null}
+      {tag ? <span className="clarify-code-panel-tag font-semibold text-(--clarify-theme-tokens-colors-primary)">{tag}</span> : null}
       {tag && label ? <span className="h-0.5 w-0.5 rounded-full bg-zinc-500" /> : null}
-      {label ? <span className="font-mono text-xs text-zinc-400">{label}</span> : null}
+      {label ? <span className="text-xs text-zinc-400">{label}</span> : null}
     </div>
   )
 }

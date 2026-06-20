@@ -45,6 +45,7 @@ export default defineConfig({
       entry: {
         index: resolve(__dirname, 'source/index.tsx'),
         markdown: resolve(__dirname, 'source/markdown.ts'),
+        preview: resolve(__dirname, 'source/preview.tsx'),
         client: resolve(__dirname, 'source/client.tsx'),
         server: resolve(__dirname, 'source/server.tsx'),
       },

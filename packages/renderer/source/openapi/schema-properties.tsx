@@ -196,11 +196,11 @@ function SchemaNode(arg0: { node: SchemaTreeNode; depth?: number }): ReactNode {
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
           <span className="text-sm/5 font-semibold text-zinc-950 dark:text-white">{node.name}</span>
-          {type ? <span className="font-mono text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{type}</span> : null}
+          {type ? <span className="text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{type}</span> : null}
         </div>
         <div className="mt-0.5 text-sm/5 text-zinc-600 *:first:mt-0 *:last:mb-0 dark:text-zinc-400">
           {node.description ? <Markdown>{node.description}</Markdown> : fallbackDescription}
-          {node.details ? <p className="font-mono text-xs text-zinc-500 dark:text-zinc-500">{node.details}</p> : null}
+          {node.details ? <p className="text-xs text-zinc-500 dark:text-zinc-500">{node.details}</p> : null}
         </div>
       </div>
       {hasChildren ? (

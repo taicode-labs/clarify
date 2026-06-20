@@ -24,6 +24,12 @@
       "require": "./output/markdown.cjs",
       "default": "./output/markdown.js"
     },
+    "./preview": {
+      "types": "./output/preview.d.ts",
+      "import": "./output/preview.js",
+      "require": "./output/preview.cjs",
+      "default": "./output/preview.js"
+    },
     "./client": {
       "types": "./output/client.d.ts",
       "import": "./output/client.js",

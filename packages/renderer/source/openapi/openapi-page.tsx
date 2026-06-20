@@ -35,6 +35,13 @@ export type OpenApiEndpointProps = {
   method: string
 }
 
+export type OpenApiOperationProps = {
+  spec: OpenAPISpec
+  path: string
+  method: string
+  operation: OpenAPIOperation
+}
+
 function EndpointExamples(arg0: {
   spec: OpenAPISpec
   path: string
@@ -87,7 +94,7 @@ function OpenApiHeader(arg0: { spec: OpenAPISpec }): ReactNode {
   const t = useBuiltInText()
   return (
     <header className="mb-16">
-      <p className="mb-3 font-mono text-xs/6 font-medium tracking-widest text-emerald-500 uppercase dark:text-emerald-400">
+      <p className="mb-3 text-xs/6 font-medium tracking-widest text-emerald-500 uppercase dark:text-emerald-400">
         {t('openapi.openApiReference')}
       </p>
       <h1>{spec.info?.title ?? t('openapi.apiDocumentation')}</h1>
@@ -111,7 +118,7 @@ function EndpointMethodBadge(arg0: { method: string }): ReactNode {
   return (
     <span
       className={clsx(
-        'rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-0.5 font-mono text-xs/6 font-black tracking-wide',
+        'rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-0.5 text-xs/6 font-black tracking-wide',
         endpointMethodStyles[method] ?? 'bg-zinc-400/15 text-zinc-700 dark:bg-zinc-400/20 dark:text-zinc-200',
       )}
     >
@@ -143,7 +150,7 @@ function InlineListbox(arg0: {
         <ListboxButton
           aria-label={label}
           className={clsx(
-            'inline-flex min-w-0 items-center gap-1 rounded-md border border-zinc-200 bg-white font-mono font-semibold text-zinc-900 shadow-xs outline-hidden transition hover:border-zinc-300 hover:bg-zinc-50 data-open:border-zinc-300 data-open:bg-zinc-50 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-white/15 dark:hover:bg-zinc-900 dark:data-open:border-white/15 dark:data-open:bg-zinc-900',
+            'inline-flex min-w-0 items-center gap-1 rounded-md border border-zinc-200 bg-white font-semibold text-zinc-900 shadow-xs outline-hidden transition hover:border-zinc-300 hover:bg-zinc-50 data-open:border-zinc-300 data-open:bg-zinc-50 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-white/15 dark:hover:bg-zinc-900 dark:data-open:border-white/15 dark:data-open:bg-zinc-900',
             compact ? 'max-w-32 px-1.5 py-0.5 text-xs' : 'w-full px-2.5 py-1.5 text-xs',
           )}
         >
@@ -152,7 +159,7 @@ function InlineListbox(arg0: {
         </ListboxButton>
         <ListboxOptions anchor="bottom start" className="z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-[min(32rem,calc(100vw-2rem))] overflow-auto rounded-xl bg-white p-1 text-xs shadow-lg shadow-black/10 ring-1 ring-zinc-950/10 [--anchor-gap:--spacing(1)] focus:outline-none dark:bg-zinc-950 dark:ring-white/10">
           {options.map((option) => (
-            <ListboxOption key={option.value} value={option.value} className="group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 font-mono text-xs text-zinc-700 select-none data-focus:bg-zinc-100 data-selected:text-emerald-700 dark:text-zinc-200 dark:data-focus:bg-white/10 dark:data-selected:text-emerald-300">
+            <ListboxOption key={option.value} value={option.value} className="group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs text-zinc-700 select-none data-focus:bg-zinc-100 data-selected:text-emerald-700 dark:text-zinc-200 dark:data-focus:bg-white/10 dark:data-selected:text-emerald-300">
               <span className="min-w-0">
                 <span className="block truncate">{option.label}</span>
                 {option.description ? <span className="mt-0.5 block truncate text-2xs text-zinc-500 dark:text-zinc-400">{option.description}</span> : null}
@@ -193,7 +200,7 @@ function ServerUrlValue(arg0: {
     >
       <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
       <span className="hidden min-w-0 items-center gap-1 overflow-hidden sm:flex">
-        <span className="truncate font-mono text-xs">{url}</span>
+        <span className="truncate text-xs">{url}</span>
         <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
       </span>
     </button>
@@ -228,7 +235,7 @@ function ServerVariableControl(arg0: {
       placeholder={variable?.default ?? name}
       onChange={(event) => onChange(event.target.value)}
       className={clsx(
-        'pointer-events-auto rounded-md border border-zinc-200 bg-white font-mono text-xs font-semibold text-zinc-900 shadow-xs outline-hidden transition placeholder:text-zinc-500 hover:border-zinc-300 hover:bg-zinc-50 focus:border-zinc-400 focus:bg-white dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-white/15 dark:hover:bg-zinc-900 dark:focus:border-white/20 dark:focus:bg-zinc-950',
+        'pointer-events-auto rounded-md border border-zinc-200 bg-white text-xs font-semibold text-zinc-900 shadow-xs outline-hidden transition placeholder:text-zinc-500 hover:border-zinc-300 hover:bg-zinc-50 focus:border-zinc-400 focus:bg-white dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-white/15 dark:hover:bg-zinc-900 dark:focus:border-white/20 dark:focus:bg-zinc-950',
         compact ? 'mx-0.5 w-24 px-1.5 py-0.5' : 'w-full px-2.5 py-1.5',
       )}
     />
@@ -313,13 +320,13 @@ function AuthPanel(arg0: {
           <label className="flex min-w-0 flex-col gap-1.5">
             <span className="text-2xs font-semibold text-zinc-700 dark:text-zinc-300">Credential</span>
             <div className="flex min-w-0 items-center rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 shadow-xs dark:border-white/10 dark:bg-zinc-950">
-              <span className="mr-2 shrink-0 font-mono text-2xs font-semibold text-zinc-600 dark:text-zinc-400">
+              <span className="mr-2 shrink-0 text-2xs font-semibold text-zinc-600 dark:text-zinc-400">
                 {selectedAuth.scheme.type === 'apiKey' ? selectedAuth.scheme.in ?? 'apiKey' : selectedAuth.scheme.scheme ?? selectedAuth.scheme.type ?? 'token'}
               </span>
               <input
                 value={authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth)}
                 onChange={(event) => onChangeAuthValue(selectedAuth.name, event.target.value)}
-                className="min-w-0 flex-1 border-0 bg-transparent px-0 py-0 font-mono text-xs font-semibold text-zinc-900 outline-hidden placeholder:text-zinc-500 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                className="min-w-0 flex-1 border-0 bg-transparent px-0 py-0 text-xs font-semibold text-zinc-900 outline-hidden placeholder:text-zinc-500 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               />
             </div>
           </label>
@@ -329,7 +336,7 @@ function AuthPanel(arg0: {
   )
 }
 
-function EndpointIdentity(arg0: {
+export function EndpointIdentity(arg0: {
   method: string
   path: string
   servers: OpenApiServer[]
@@ -382,7 +389,7 @@ function EndpointIdentity(arg0: {
           open={serverOpen}
           onToggle={onToggleServer}
         />
-        <div className="flex min-w-0 flex-1 items-center overflow-x-auto font-mono text-sm font-bold leading-6 whitespace-nowrap">
+        <div className="flex min-w-0 flex-1 items-center overflow-x-auto text-sm font-bold leading-6 whitespace-nowrap">
           {segments.length > 0 ? (
             <>
               <span className="text-zinc-400">/</span>
@@ -436,7 +443,7 @@ function EndpointIdentity(arg0: {
   )
 }
 
-function OpenApiOperation(arg0: { spec: OpenAPISpec; path: string; method: string; operation: OpenAPIOperation }): ReactNode {
+export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const { spec, path, method, operation } = arg0
 
   const t = useBuiltInText()

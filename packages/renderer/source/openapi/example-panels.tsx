@@ -53,7 +53,7 @@ function SelectControl(arg0: {
       <div className={wrapperClassName}>
         <ListboxButton
           aria-label={label}
-          className={`clarify-api-select-button flex ${buttonSizeClassName} items-center justify-between gap-2 rounded-lg bg-black/30 px-2 py-1 font-mono text-xs font-medium whitespace-nowrap text-zinc-100 outline-hidden transition hover:bg-black/50 focus:ring-2 focus:ring-emerald-400/25 data-open:bg-white/10 data-open:ring-2 data-open:ring-emerald-400/25`}
+          className={`clarify-api-select-button flex ${buttonSizeClassName} items-center justify-between gap-2 rounded-lg bg-black/30 px-2 py-1 text-xs font-medium whitespace-nowrap text-zinc-100 outline-hidden transition hover:bg-black/50 focus:ring-2 focus:ring-emerald-400/25 data-open:bg-white/10 data-open:ring-2 data-open:ring-emerald-400/25`}
         >
           <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
             {icon ? <span className="shrink-0 text-zinc-500">{icon}</span> : null}
@@ -69,7 +69,7 @@ function SelectControl(arg0: {
             <ListboxOption
               key={option.value}
               value={option.value}
-              className="clarify-api-select-option group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 font-mono text-xs whitespace-nowrap text-zinc-300 select-none data-focus:bg-white/10 data-focus:text-white data-selected:text-emerald-300"
+              className="clarify-api-select-option group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs whitespace-nowrap text-zinc-300 select-none data-focus:bg-white/10 data-focus:text-white data-selected:text-emerald-300"
             >
               <span>{option.label}</span>
               <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />
@@ -345,7 +345,7 @@ function ApiExampleCodeGroup(arg0: {
                 value={tag}
                 options={tagOptions}
                 onChange={onSelectTag}
-                className="font-mono text-[0.625rem]/6 font-semibold text-emerald-400"
+                className="clarify-api-example-status font-semibold text-emerald-400"
               />
             ) : null}
             {tag && label ? <span className="h-0.5 w-0.5 shrink-0 rounded-full bg-zinc-500" /> : null}
@@ -355,7 +355,7 @@ function ApiExampleCodeGroup(arg0: {
                 value={label}
                 options={labelOptions}
                 onChange={onSelectLabel}
-                className="min-w-0 truncate font-mono text-xs text-zinc-400"
+                className="min-w-0 truncate text-xs text-zinc-400"
               />
             ) : null}
           </div>

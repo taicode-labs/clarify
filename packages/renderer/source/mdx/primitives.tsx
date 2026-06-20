@@ -91,7 +91,7 @@ export function Property(arg0: { name: string; children: ReactNode; type?: strin
         {type ? (
           <>
             <dt className="sr-only">Type</dt>
-            <dd className="font-mono text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{type}</dd>
+            <dd className="text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{type}</dd>
           </>
         ) : null}
         <dt className="sr-only">Description</dt>
