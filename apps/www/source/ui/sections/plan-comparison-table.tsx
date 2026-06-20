@@ -26,7 +26,7 @@ function FeatureGroup<Plan extends string>({
         <th
           colSpan={plans.length + 1}
           scope="colgroup"
-          className="border-t border-b border-t-mist-950/5 border-b-mist-950/10 pt-14 pb-4 font-semibold text-mist-950 dark:border-t-white/5 dark:border-b-white/10 dark:text-white"
+          className="border-t border-b border-(--clarify-theme-tokens-colors-border) pt-14 pb-4 font-semibold text-(--clarify-ui-text-strong)"
         >
           {group.title}
         </th>
@@ -35,7 +35,7 @@ function FeatureGroup<Plan extends string>({
         <tr key={String(feature.name)} className="group">
           <th
             scope="row"
-            className="border-t border-mist-950/5 py-4 pr-3 font-normal text-mist-700 group-first:border-mist-950/10 dark:border-white/5 dark:text-mist-400 dark:group-first:border-white/10"
+            className="border-t border-(--clarify-theme-tokens-colors-border) py-4 pr-3 font-normal text-(--clarify-ui-text-soft)"
           >
             {feature.name}
           </th>
@@ -45,12 +45,12 @@ function FeatureGroup<Plan extends string>({
             return (
               <td
                 key={plan}
-                className="border-t border-mist-950/5 px-3 py-4 text-center text-mist-700 group-first:border-mist-950/10 dark:border-white/10 dark:text-mist-400 dark:group-first:border-white/10"
+                className="border-t border-(--clarify-theme-tokens-colors-border) px-3 py-4 text-center text-(--clarify-ui-text-soft)"
               >
                 {value === true ? (
-                  <CheckmarkIcon aria-label={includedLabel} className="stroke-mist-950 dark:stroke-white" />
+                  <CheckmarkIcon aria-label={includedLabel} className="stroke-(--clarify-ui-text-strong)" />
                 ) : value === false ? (
-                  <MinusIcon aria-label={notIncludedLabel} className="stroke-mist-950 dark:stroke-white" />
+                  <MinusIcon aria-label={notIncludedLabel} className="stroke-(--clarify-ui-text-strong)" />
                 ) : (
                   value
                 )}
@@ -97,13 +97,13 @@ export function PlanComparisonTable<const Plan extends string>({
           </colgroup>
           <thead>
             <tr>
-              <th className="sticky top-(--scroll-padding-top) bg-mist-100 py-5 pr-3 text-base/7 font-medium text-mist-950 dark:bg-mist-950 dark:text-white">
+              <th className="sticky top-(--scroll-padding-top) bg-(--clarify-theme-tokens-colors-background) py-5 pr-3 text-base/7 font-medium text-(--clarify-ui-text-strong) dark:bg-zinc-950">
                 {compareLabel}
               </th>
               {plans.map((plan, index) => (
                 <th
                   key={index}
-                  className="sticky top-(--scroll-padding-top) bg-mist-100 p-3 text-center font-semibold text-mist-950 dark:bg-mist-950 dark:text-white"
+                  className="sticky top-(--scroll-padding-top) bg-(--clarify-theme-tokens-colors-background) p-3 text-center font-semibold text-(--clarify-ui-text-strong) dark:bg-zinc-950"
                 >
                   {plan}
                 </th>
@@ -122,7 +122,7 @@ export function PlanComparisonTable<const Plan extends string>({
                 <button
                   key={plan}
                   type="button"
-                  className="relative -mb-px flex-1 border-b border-b-transparent px-2 py-6 text-sm/5 font-medium text-mist-500 aria-selected:border-mist-950 aria-selected:text-mist-950 dark:aria-selected:border-white dark:aria-selected:text-white"
+                  className="relative -mb-px flex-1 border-b border-b-transparent px-2 py-6 text-sm/5 font-medium text-(--clarify-ui-text-faint) aria-selected:border-(--clarify-ui-text-strong) aria-selected:text-(--clarify-ui-text-strong)"
                 >
                   {plan}
                 </button>

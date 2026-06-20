@@ -11,7 +11,7 @@ export function Heading({
     <h1
       className={clsx(
         'www-heading-display text-balance',
-        color === 'dark/light' && 'text-mist-950 dark:text-white',
+        color === 'dark/light' && 'text-(--clarify-ui-text-strong)',
         color === 'light' && 'text-white',
         className,
       )}

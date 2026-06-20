@@ -1,22 +1,25 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps, ReactNode } from 'react'
+
 import { Section } from '../elements/section'
 
-export function Stat({
+export function Stat(arg0: { stat: ReactNode; text: ReactNode } & ComponentProps<'div'>) {  const {
   stat,
   text,
   className,
   ...props
-}: { stat: ReactNode; text: ReactNode } & ComponentProps<'div'>) {
+} = arg0
+
   return (
-    <div className={clsx('rounded-xl bg-mist-950/2.5 p-6 dark:bg-white/5', className)} {...props}>
-      <div className="text-2xl/10 tracking-tight text-mist-950 dark:text-white">{stat}</div>
-      <p className="mt-2 text-sm/7 text-mist-700 dark:text-mist-400">{text}</p>
+    <div className={clsx('rounded-xl bg-(--clarify-ui-subtle-background) p-6', className)} {...props}>
+      <div className="text-2xl/10 tracking-tight text-(--clarify-ui-text-strong)">{stat}</div>
+      <p className="mt-2 text-sm/7 text-(--clarify-ui-text-soft)">{text}</p>
     </div>
   )
 }
 
-export function StatsFourColumns({ children, ...props }: ComponentProps<typeof Section>) {
+export function StatsFourColumns(arg0: ComponentProps<typeof Section>) {  const { children, ...props } = arg0
+
   return (
     <Section {...props}>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">{children}</div>

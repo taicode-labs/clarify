@@ -5,7 +5,7 @@ export function Subheading({ children, className, ...props }: ComponentProps<'h2
   return (
     <h2
       className={clsx(
-        'www-subheading-display text-pretty text-mist-950 dark:text-white',
+        'www-subheading-display text-pretty text-(--clarify-ui-text-strong)',
         className,
       )}
       {...props}

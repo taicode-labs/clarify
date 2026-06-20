@@ -5,7 +5,7 @@ export function ClarifyLogo(props: ComponentProps<'span'>) {
 
   return (
     <span
-      className={className ?? 'inline-flex h-9 items-center gap-1.5 text-base font-semibold tracking-tight text-mist-950 dark:text-white'}
+      className={className ?? 'inline-flex h-9 items-center gap-1.5 text-base font-semibold tracking-tight text-(--clarify-ui-text-strong)'}
       {...spanProps}
     >
       <img

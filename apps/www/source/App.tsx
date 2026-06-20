@@ -48,11 +48,13 @@ type ResolvedTheme = 'light' | 'dark'
 
 const themeStorageKey = 'clarify:theme'
 
-export default function App({ path = '/' }: { path?: string }) {
-  const normalizedPath = normalizePath(path)
+type AppProps = { path?: string }
+
+export default function App(props: AppProps) {
+  const normalizedPath = normalizePath(props.path ?? '/')
 
   return (
-    <div className="clarify-app min-h-screen">
+    <div className="www-app clarify-app min-h-screen">
       <AppEffects />
       <Navbar />
       <Main>{renderRoute(normalizedPath)}</Main>
@@ -183,16 +185,20 @@ function ThemeToggle() {
       aria-label={label}
       title={label}
       onClick={() => setTheme(nextTheme)}
-      className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:text-white dark:hover:bg-white/5"
+      className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-strong) transition hover:bg-(--clarify-ui-hover-background)"
     >
-      <Sun className="size-5 dark:hidden" aria-hidden="true" />
-      <Moon className="hidden size-5 dark:block" aria-hidden="true" />
+      <span className="absolute size-12 pointer-fine:hidden" />
+      <Sun className="size-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:hidden" aria-hidden="true" />
+      <Moon className="hidden size-5 stroke-white dark:block" aria-hidden="true" />
     </button>
   )
 }
 
-function LanguageToggle({ currentLocale }: { currentLocale: AppLocale }) {
+type LanguageToggleProps = { currentLocale: AppLocale }
+
+function LanguageToggle(props: LanguageToggleProps) {
   const { i18n, t } = useTranslation()
+  const currentLocale = props.currentLocale
   const nextLocale = currentLocale === 'en' ? 'zh-CN' : 'en'
 
   return (
@@ -203,7 +209,7 @@ function LanguageToggle({ currentLocale }: { currentLocale: AppLocale }) {
         localStorage.setItem('clarify-locale', nextLocale)
         void i18n.changeLanguage(nextLocale)
       }}
-      className="inline-flex shrink-0 items-center justify-center rounded-full px-3 py-1 text-sm/7 font-medium text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10"
+      className="inline-flex shrink-0 items-center justify-center rounded-full px-3 py-1 text-sm/7 font-medium text-(--clarify-ui-text-strong) hover:bg-(--clarify-ui-hover-background)"
     >
       {currentLocale === 'en' ? '简' : 'EN'}
     </button>
@@ -457,7 +463,7 @@ function TestimonialsSection() {
         <Testimonial
           key={name}
           quote={<p>{quote}</p>}
-          img={<img src={`/img/avatars/${index + 10}-size-160.webp`} alt="" className="bg-white/75 dark:bg-black/75" width={160} height={160} />}
+          img={<img src={`/img/avatars/${index + 10}-size-160.webp`} alt="" className="bg-(--clarify-ui-hover-background)" width={160} height={160} />}
           name={name}
           byline={byline}
         />
@@ -487,10 +493,10 @@ function WorkflowSection() {
       cta={
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
           {workflow.map((step) => (
-            <div key={step.label} className="rounded-xl bg-mist-950/2.5 p-6 dark:bg-white/5">
-              <div className="text-sm/7 font-semibold text-mist-500">{step.label}</div>
-              <h3 className="mt-2 text-xl/8 text-mist-950 dark:text-white">{step.title}</h3>
-              <p className="mt-2 text-sm/7 text-mist-700 dark:text-mist-400">{step.text}</p>
+            <div key={step.label} className="rounded-xl bg-(--clarify-ui-subtle-background) p-6">
+              <div className="text-sm/7 font-semibold text-(--clarify-ui-text-faint)">{step.label}</div>
+              <h3 className="mt-2 text-xl/8 text-(--clarify-ui-text-strong)">{step.title}</h3>
+              <p className="mt-2 text-sm/7 text-(--clarify-ui-text-soft)">{step.text}</p>
             </div>
           ))}
         </div>
