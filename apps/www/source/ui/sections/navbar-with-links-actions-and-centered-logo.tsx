@@ -52,8 +52,14 @@ export function NavbarWithLinksActionsAndCenteredLogo(arg0: {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   return (
-    <header className={clsx('sticky top-0 z-10 bg-(--clarify-theme-tokens-colors-background)/90 backdrop-blur dark:bg-zinc-950/90', className)} {...props}>
-      <style>{`:root { --scroll-padding-top: 5.25rem }`}</style>
+    <header
+      className={clsx(
+        'sticky top-0 z-10 border-b border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background)/90 backdrop-blur',
+        className,
+      )}
+      {...props}
+    >
+      <style>{`:root { --scroll-padding-top: 3.5rem }`}</style>
       <nav>
         <div className="mx-auto flex h-(--scroll-padding-top) max-w-7xl items-center gap-4 px-6 lg:px-10">
           <div className="flex flex-1 gap-8 max-lg:hidden">{links}</div>
@@ -76,8 +82,8 @@ export function NavbarWithLinksActionsAndCenteredLogo(arg0: {
 
         <Dialog className={clsx('lg:hidden', !isMobileMenuOpen && 'hidden')}>
           <div id="mobile-menu" role="dialog" aria-modal="true">
-            <DialogPanel className="fixed inset-0 z-50 bg-(--clarify-theme-tokens-colors-background) px-6 py-6 lg:px-10 dark:bg-zinc-950">
-              <div className="flex items-center justify-between">
+            <DialogPanel className="fixed inset-0 z-50 bg-(--clarify-theme-tokens-colors-background) px-6 py-4 lg:px-10">
+              <div className="flex items-center justify-between border-b border-(--clarify-theme-tokens-colors-border) pb-4">
                 {logo}
                 <button
                   type="button"

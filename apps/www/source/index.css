@@ -146,6 +146,12 @@
 
   .dark,
   .dark .clarify-app {
+    --clarify-theme-tokens-colors-background: var(--color-zinc-950);
+    --clarify-theme-tokens-colors-foreground: var(--color-white);
+    --clarify-theme-tokens-colors-surface: var(--color-zinc-900);
+    --clarify-theme-tokens-colors-muted: var(--color-zinc-400);
+    --clarify-theme-tokens-colors-border: rgb(255 255 255 / 0.1);
+    --clarify-theme-tokens-colors-code-background: rgb(255 255 255 / 0.05);
     --clarify-ui-text-strong: var(--color-white);
     --clarify-ui-text: var(--color-zinc-200);
     --clarify-ui-text-soft: var(--color-zinc-300);

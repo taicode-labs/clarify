@@ -95,7 +95,7 @@ export function PricingHeroMultiTier<T extends string>(arg0: {
                 <button
                   key={option}
                   type="button"
-                  className="rounded-full px-4 py-1 text-sm/7 font-medium text-(--clarify-ui-text-strong) aria-selected:bg-(--clarify-ui-text-strong) aria-selected:text-(--clarify-theme-tokens-colors-background) dark:aria-selected:bg-white dark:aria-selected:text-zinc-950"
+                  className="rounded-full px-4 py-1 text-sm/7 font-medium text-(--clarify-ui-text-strong) aria-selected:bg-(--clarify-ui-text-strong) aria-selected:text-(--clarify-theme-tokens-colors-background)"
                 >
                   {option}
                 </button>

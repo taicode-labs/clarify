@@ -5,7 +5,9 @@ import { Container } from '../elements/container'
 import { ArrowNarrowRightIcon } from '../icons/arrow-narrow-right-icon'
 import Link from '../primitives/router-link'
 
-export function FooterCategory({ title, children, ...props }: { title: ReactNode } & ComponentProps<'div'>) {
+export function FooterCategory(arg0: { title: ReactNode } & ComponentProps<'div'>) {
+  const { title, children, ...props } = arg0
+
   return (
     <div {...props}>
       <h3>{title}</h3>
@@ -16,7 +18,9 @@ export function FooterCategory({ title, children, ...props }: { title: ReactNode
   )
 }
 
-export function FooterLink({ href, className, ...props }: { href: string } & Omit<ComponentProps<'a'>, 'href'>) {
+export function FooterLink(arg0: { href: string } & Omit<ComponentProps<'a'>, 'href'>) {
+  const { href, className, ...props } = arg0
+
   return (
     <li className={clsx('text-(--clarify-ui-text-soft)', className)}>
       <Link href={href} {...props} />
@@ -24,15 +28,12 @@ export function FooterLink({ href, className, ...props }: { href: string } & Omi
   )
 }
 
-export function SocialLink({
-  href,
-  name,
-  className,
-  ...props
-}: {
+export function SocialLink(arg0: {
   href: string
   name: string
 } & Omit<ComponentProps<'a'>, 'href'>) {
+  const { href, name, className, ...props } = arg0
+
   return (
     <Link
       href={href}
@@ -44,19 +45,14 @@ export function SocialLink({
   )
 }
 
-export function NewsletterForm({
-  headline,
-  subheadline,
-  emailLabel = 'Email',
-  subscribeLabel = 'Subscribe',
-  className,
-  ...props
-}: {
+export function NewsletterForm(arg0: {
   headline: ReactNode
   subheadline: ReactNode
   emailLabel?: string
   subscribeLabel?: string
 } & ComponentProps<'form'>) {
+  const { headline, subheadline, emailLabel = 'Email', subscribeLabel = 'Subscribe', className, ...props } = arg0
+
   return (
     <form className={clsx('flex max-w-sm flex-col gap-2', className)} {...props}>
       <p>{headline}</p>
@@ -80,21 +76,16 @@ export function NewsletterForm({
   )
 }
 
-export function FooterWithNewsletterFormCategoriesAndSocialIcons({
-  cta,
-  links,
-  fineprint,
-  socialLinks,
-  className,
-  ...props
-}: {
+export function FooterWithNewsletterFormCategoriesAndSocialIcons(arg0: {
   cta: ReactNode
   links: ReactNode
   fineprint: ReactNode
   socialLinks?: ReactNode
 } & ComponentProps<'footer'>) {
+  const { cta, links, fineprint, socialLinks, className, ...props } = arg0
+
   return (
-    <footer className={clsx('pt-16', className)} {...props}>
+    <footer className={clsx('border-t border-(--clarify-theme-tokens-colors-border) pt-16', className)} {...props}>
       <div className="bg-(--clarify-ui-subtle-background) py-16 text-(--clarify-ui-text-strong)">
         <Container className="flex flex-col gap-16">
           <div className="grid grid-cols-1 gap-x-6 gap-y-16 text-sm/7 lg:grid-cols-2">

@@ -97,13 +97,13 @@ export function PlanComparisonTable<const Plan extends string>({
           </colgroup>
           <thead>
             <tr>
-              <th className="sticky top-(--scroll-padding-top) bg-(--clarify-theme-tokens-colors-background) py-5 pr-3 text-base/7 font-medium text-(--clarify-ui-text-strong) dark:bg-zinc-950">
+              <th className="sticky top-(--scroll-padding-top) bg-(--clarify-theme-tokens-colors-background) py-5 pr-3 text-base/7 font-medium text-(--clarify-ui-text-strong)">
                 {compareLabel}
               </th>
               {plans.map((plan, index) => (
                 <th
                   key={index}
-                  className="sticky top-(--scroll-padding-top) bg-(--clarify-theme-tokens-colors-background) p-3 text-center font-semibold text-(--clarify-ui-text-strong) dark:bg-zinc-950"
+                  className="sticky top-(--scroll-padding-top) bg-(--clarify-theme-tokens-colors-background) p-3 text-center font-semibold text-(--clarify-ui-text-strong)"
                 >
                   {plan}
                 </th>

@@ -11,13 +11,13 @@ const sizes = {
 
 const solidButtonStyles = {
   'dark/light':
-    'bg-(--clarify-theme-tokens-colors-foreground) text-(--clarify-theme-tokens-colors-background) hover:opacity-85 dark:bg-white dark:text-zinc-950',
-  light: 'bg-white text-zinc-950 hover:bg-zinc-100 dark:bg-zinc-100 dark:hover:bg-white',
+    'bg-(--clarify-theme-tokens-colors-foreground) text-(--clarify-theme-tokens-colors-background) hover:opacity-85',
+  light: 'bg-white text-zinc-950 hover:bg-zinc-100',
 }
 
 const plainButtonStyles = {
   'dark/light': 'text-(--clarify-ui-text-strong) hover:bg-(--clarify-ui-hover-background)',
-  light: 'text-white hover:bg-white/15 dark:hover:bg-white/10',
+  light: 'text-white hover:bg-white/15',
 }
 
 const softButtonStyles =
