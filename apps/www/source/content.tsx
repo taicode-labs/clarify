@@ -3,7 +3,7 @@ import { ArrowNarrowRightIcon } from './ui/icons/arrow-narrow-right-icon'
 import { ChevronIcon } from './ui/icons/chevron-icon'
 
 export const site = {
-  docsUrl: 'https://clarify.taicode.dev',
+  docsUrl: 'https://docs.clarify.pub',
   githubUrl: 'https://github.com/taicode-labs/clarify',
   contactUrl: 'mailto:hello@taicode.com',
 }
