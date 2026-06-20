@@ -1,14 +1,21 @@
 import type { ComponentProps } from 'react'
 
-export function ClarifyLogo({ className, ...props }: ComponentProps<'span'>) {
+export function ClarifyLogo(props: ComponentProps<'span'>) {
+  const { className, ...spanProps } = props
+
   return (
-    <span className={className} {...props}>
-      <span className="flex items-center gap-2 text-xl font-semibold tracking-tight text-mist-950 dark:text-white">
-        <span className="grid size-8 place-items-center rounded-lg bg-mist-950 text-sm font-bold text-white dark:bg-white dark:text-mist-950">
-          C
-        </span>
-        Clarify
-      </span>
+    <span
+      className={className ?? 'inline-flex h-9 items-center gap-1.5 text-base font-semibold tracking-tight text-mist-950 dark:text-white'}
+      {...spanProps}
+    >
+      <img
+        src="/clarify.svg"
+        alt=""
+        width={34}
+        height={24}
+        className="h-6 w-auto object-contain"
+      />
+      Clarify
     </span>
   )
 }
