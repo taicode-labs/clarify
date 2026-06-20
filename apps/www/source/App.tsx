@@ -188,8 +188,8 @@ function ThemeToggle() {
       className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-strong) transition hover:bg-(--clarify-ui-hover-background)"
     >
       <span className="absolute size-12 pointer-fine:hidden" />
-      <Sun className="size-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:hidden" aria-hidden="true" />
-      <Moon className="hidden size-5 stroke-white dark:block" aria-hidden="true" />
+      <Sun className="size-5 stroke-(--clarify-ui-text-strong) dark:hidden" aria-hidden="true" />
+      <Moon className="hidden size-5 stroke-(--clarify-ui-text-strong) dark:block" aria-hidden="true" />
     </button>
   )
 }

@@ -10,14 +10,15 @@ export function AnnouncementBadge(arg0: {
   href: string
   cta?: ReactNode
   variant?: 'normal' | 'overlay'
-} & Omit<ComponentProps<'a'>, 'href' | 'children'>) {  const {
-  text,
-  href,
-  cta = 'Learn more',
-  variant = 'normal',
-  className,
-  ...props
-} = arg0
+} & Omit<ComponentProps<'a'>, 'href' | 'children'>) {
+  const {
+    text,
+    href,
+    cta = 'Learn more',
+    variant = 'normal',
+    className,
+    ...props
+  } = arg0
 
   return (
     <Link
@@ -29,7 +30,7 @@ export function AnnouncementBadge(arg0: {
         variant === 'normal' &&
           'bg-(--clarify-ui-hover-background) text-(--clarify-ui-text-strong) hover:bg-(--clarify-ui-active-background) inset-ring-1 inset-ring-(--clarify-theme-tokens-colors-border)',
         variant === 'overlay' &&
-          'bg-mist-950/15 text-white hover:bg-mist-950/20 dark:bg-mist-950/20 dark:hover:bg-mist-950/25',
+          'bg-(--clarify-ui-overlay-background) text-(--clarify-ui-text-strong) hover:bg-(--clarify-ui-hover-background) inset-ring-1 inset-ring-(--clarify-theme-tokens-colors-border)',
         className,
       )}
     >
@@ -38,7 +39,7 @@ export function AnnouncementBadge(arg0: {
         className={clsx(
           'h-3 w-px max-sm:hidden',
           variant === 'normal' && 'bg-(--clarify-theme-tokens-colors-border)',
-          variant === 'overlay' && 'bg-white/20',
+          variant === 'overlay' && 'bg-(--clarify-theme-tokens-colors-border)',
         )}
       />
       <span

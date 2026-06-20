@@ -106,10 +106,10 @@ pnpm lint
 
 | Package | Version | Description |
 |---------|---------|-------------|
-| `@clarify-labs/docs` | 0.4.0 | Documentation playground app |
-| `@clarify-labs/www` | 0.4.0 | Marketing website app |
-| `@clarify-labs/renderer` | 0.4.0 | Shared React rendering primitives |
-| `@clarify-labs/cli` | 0.4.0 | User-facing Clarify CLI and docs engine |
+| `@clarify-labs/docs` | 0.5.0 | Documentation playground app |
+| `@clarify-labs/www` | 0.5.0 | Marketing website app |
+| `@clarify-labs/renderer` | 0.5.0 | Shared React rendering primitives |
+| `@clarify-labs/cli` | 0.5.0 | User-facing Clarify CLI and docs engine |
 
 ## License
 

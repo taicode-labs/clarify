@@ -12,12 +12,12 @@ const sizes = {
 const solidButtonStyles = {
   'dark/light':
     'bg-(--clarify-theme-tokens-colors-foreground) text-(--clarify-theme-tokens-colors-background) hover:opacity-85',
-  light: 'bg-white text-zinc-950 hover:bg-zinc-100',
+  light: 'bg-(--clarify-theme-tokens-colors-surface) text-(--clarify-ui-text-strong) hover:bg-(--clarify-ui-hover-background)',
 }
 
 const plainButtonStyles = {
   'dark/light': 'text-(--clarify-ui-text-strong) hover:bg-(--clarify-ui-hover-background)',
-  light: 'text-white hover:bg-white/15',
+  light: 'text-(--clarify-ui-text-strong) hover:bg-(--clarify-ui-hover-background)',
 }
 
 const softButtonStyles =
@@ -26,13 +26,14 @@ const softButtonStyles =
 export function Button(arg0: {
   size?: keyof typeof sizes
   color?: 'dark/light' | 'light'
-} & ComponentProps<'button'>) {  const {
-  size = 'md',
-  type = 'button',
-  color = 'dark/light',
-  className,
-  ...props
-} = arg0
+} & ComponentProps<'button'>) {
+  const {
+    size = 'md',
+    type = 'button',
+    color = 'dark/light',
+    className,
+    ...props
+  } = arg0
 
   return (
     <button
@@ -52,13 +53,14 @@ export function ButtonLink(arg0: {
   href: string
   size?: keyof typeof sizes
   color?: 'dark/light' | 'light'
-} & Omit<ComponentProps<'a'>, 'href'>) {  const {
-  size = 'md',
-  color = 'dark/light',
-  className,
-  href,
-  ...props
-} = arg0
+} & Omit<ComponentProps<'a'>, 'href'>) {
+  const {
+    size = 'md',
+    color = 'dark/light',
+    className,
+    href,
+    ...props
+  } = arg0
 
   return (
     <Link
@@ -76,12 +78,13 @@ export function ButtonLink(arg0: {
 
 export function SoftButton(arg0: {
   size?: keyof typeof sizes
-} & ComponentProps<'button'>) {  const {
-  size = 'md',
-  type = 'button',
-  className,
-  ...props
-} = arg0
+} & ComponentProps<'button'>) {
+  const {
+    size = 'md',
+    type = 'button',
+    className,
+    ...props
+  } = arg0
 
   return <button type={type} className={clsx(softButtonStyles, sizes[size], className)} {...props} />
 }
@@ -89,12 +92,13 @@ export function SoftButton(arg0: {
 export function SoftButtonLink(arg0: {
   href: string
   size?: keyof typeof sizes
-} & Omit<ComponentProps<'a'>, 'href'>) {  const {
-  size = 'md',
-  href,
-  className,
-  ...props
-} = arg0
+} & Omit<ComponentProps<'a'>, 'href'>) {
+  const {
+    size = 'md',
+    href,
+    className,
+    ...props
+  } = arg0
 
   return <Link href={href} className={clsx(softButtonStyles, sizes[size], className)} {...props} />
 }
@@ -102,13 +106,14 @@ export function SoftButtonLink(arg0: {
 export function PlainButton(arg0: {
   size?: keyof typeof sizes
   color?: 'dark/light' | 'light'
-} & ComponentProps<'button'>) {  const {
-  size = 'md',
-  color = 'dark/light',
-  type = 'button',
-  className,
-  ...props
-} = arg0
+} & ComponentProps<'button'>) {
+  const {
+    size = 'md',
+    color = 'dark/light',
+    type = 'button',
+    className,
+    ...props
+  } = arg0
 
   return (
     <button
@@ -128,13 +133,14 @@ export function PlainButtonLink(arg0: {
   href: string
   size?: keyof typeof sizes
   color?: 'dark/light' | 'light'
-} & Omit<ComponentProps<'a'>, 'href'>) {  const {
-  size = 'md',
-  color = 'dark/light',
-  href,
-  className,
-  ...props
-} = arg0
+} & Omit<ComponentProps<'a'>, 'href'>) {
+  const {
+    size = 'md',
+    color = 'dark/light',
+    href,
+    className,
+    ...props
+  } = arg0
 
   return (
     <Link

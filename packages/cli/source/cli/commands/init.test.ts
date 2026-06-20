@@ -47,7 +47,7 @@ describe('runInit', () => {
       build: 'clarify build',
     })
     expect(packageJson.devDependencies).toEqual({
-      '@clarify-labs/cli': '^0.4.0',
+      '@clarify-labs/cli': '^0.5.0',
     })
   })
 
@@ -134,7 +134,7 @@ describe('runInit', () => {
     })
     expect(packageJson.devDependencies).toEqual({
       typescript: '^5.0.0',
-      '@clarify-labs/cli': '^0.4.0',
+      '@clarify-labs/cli': '^0.5.0',
     })
   })
 })

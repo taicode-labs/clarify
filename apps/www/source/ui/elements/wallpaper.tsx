@@ -27,12 +27,14 @@ const noisePattern = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent
   `.replace(/\s+/g, ' '),
 )}")`
 
-export function Wallpaper({
-  children,
-  color,
-  className,
-  ...props
-}: { color: 'green' | 'blue' | 'purple' | 'brown' } & ComponentProps<'div'>) {
+export function Wallpaper(arg0: { color: 'green' | 'blue' | 'purple' | 'brown' } & ComponentProps<'div'>) {
+  const {
+    children,
+    color,
+    className,
+    ...props
+  } = arg0
+
   return (
     <div
       data-color={color}

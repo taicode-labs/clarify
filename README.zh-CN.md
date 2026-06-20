@@ -106,10 +106,10 @@ pnpm lint
 
 | 包 | 版本 | 说明 |
 |---------|---------|-------------|
-| `@clarify-labs/docs` | 0.4.0 | 文档 playground 应用 |
-| `@clarify-labs/www` | 0.4.0 | 营销网站应用 |
-| `@clarify-labs/renderer` | 0.4.0 | 共享 React 渲染基础组件 |
-| `@clarify-labs/cli` | 0.4.0 | 面向用户的 Clarify CLI 与文档引擎 |
+| `@clarify-labs/docs` | 0.5.0 | 文档 playground 应用 |
+| `@clarify-labs/www` | 0.5.0 | 营销网站应用 |
+| `@clarify-labs/renderer` | 0.5.0 | 共享 React 渲染基础组件 |
+| `@clarify-labs/cli` | 0.5.0 | 面向用户的 Clarify CLI 与文档引擎 |
 
 ## 许可
 
