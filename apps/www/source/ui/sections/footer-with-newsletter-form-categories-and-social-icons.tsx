@@ -1,9 +1,9 @@
-import Link from '../primitives/router-link'
-
 import { clsx } from 'clsx/lite'
 import type { ComponentProps, ReactNode } from 'react'
+
 import { Container } from '../elements/container'
 import { ArrowNarrowRightIcon } from '../icons/arrow-narrow-right-icon'
+import Link from '../primitives/router-link'
 
 export function FooterCategory({ title, children, ...props }: { title: ReactNode } & ComponentProps<'div'>) {
   return (
@@ -47,11 +47,15 @@ export function SocialLink({
 export function NewsletterForm({
   headline,
   subheadline,
+  emailLabel = 'Email',
+  subscribeLabel = 'Subscribe',
   className,
   ...props
 }: {
   headline: ReactNode
   subheadline: ReactNode
+  emailLabel?: string
+  subscribeLabel?: string
 } & ComponentProps<'form'>) {
   return (
     <form className={clsx('flex max-w-sm flex-col gap-2', className)} {...props}>
@@ -60,13 +64,13 @@ export function NewsletterForm({
       <div className="flex items-center border-b border-mist-950/20 py-2 has-[input:focus]:border-mist-950 dark:border-white/20 dark:has-[input:focus]:border-white">
         <input
           type="email"
-          placeholder="Email"
-          aria-label="Email"
+          placeholder={emailLabel}
+          aria-label={emailLabel}
           className="flex-1 text-mist-950 focus:outline-hidden dark:text-white"
         />
         <button
           type="submit"
-          aria-label="Subscribe"
+          aria-label={subscribeLabel}
           className="relative inline-flex size-7 items-center justify-center rounded-full after:absolute after:-inset-2 hover:bg-mist-950/10 dark:hover:bg-white/10 after:pointer-fine:hidden"
         >
           <ArrowNarrowRightIcon />

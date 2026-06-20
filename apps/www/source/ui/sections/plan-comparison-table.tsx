@@ -1,19 +1,24 @@
-import { TabGroup, TabList, TabPanels } from '../primitives/interactive'
 import { clsx } from 'clsx/lite'
 import { type ComponentProps, type ReactNode } from 'react'
+
 import { Container } from '../elements/container'
 import { CheckmarkIcon } from '../icons/checkmark-icon'
 import { MinusIcon } from '../icons/minus-icon'
+import { TabGroup, TabList, TabPanels } from '../primitives/interactive'
 
 function FeatureGroup<Plan extends string>({
   group,
   plans,
+  includedLabel,
+  notIncludedLabel,
 }: {
   group: {
     title: ReactNode
     features: { name: ReactNode; value: ReactNode | Record<Plan, ReactNode> }[]
   }
   plans: Plan[]
+  includedLabel: string
+  notIncludedLabel: string
 }) {
   return (
     <tbody>
@@ -35,10 +40,7 @@ function FeatureGroup<Plan extends string>({
             {feature.name}
           </th>
           {plans.map((plan) => {
-            const value = ((value: any): value is Record<Plan, ReactNode> =>
-              typeof value === 'object' && value !== null && plan in value)(feature.value)
-              ? feature.value[plan]
-              : feature.value
+            const value = isPlanValue(feature.value, plan) ? feature.value[plan] : feature.value
 
             return (
               <td
@@ -46,9 +48,9 @@ function FeatureGroup<Plan extends string>({
                 className="border-t border-mist-950/5 px-3 py-4 text-center text-mist-700 group-first:border-mist-950/10 dark:border-white/10 dark:text-mist-400 dark:group-first:border-white/10"
               >
                 {value === true ? (
-                  <CheckmarkIcon aria-label="Included" className="stroke-mist-950 dark:stroke-white" />
+                  <CheckmarkIcon aria-label={includedLabel} className="stroke-mist-950 dark:stroke-white" />
                 ) : value === false ? (
-                  <MinusIcon aria-label="Not included" className="stroke-mist-950 dark:stroke-white" />
+                  <MinusIcon aria-label={notIncludedLabel} className="stroke-mist-950 dark:stroke-white" />
                 ) : (
                   value
                 )}
@@ -61,9 +63,16 @@ function FeatureGroup<Plan extends string>({
   )
 }
 
+function isPlanValue<Plan extends string>(value: ReactNode | Record<Plan, ReactNode>, plan: Plan): value is Record<Plan, ReactNode> {
+  return typeof value === 'object' && value !== null && plan in value
+}
+
 export function PlanComparisonTable<const Plan extends string>({
   plans,
   features,
+  compareLabel = 'Compare features',
+  includedLabel = 'Included',
+  notIncludedLabel = 'Not included',
   className,
   ...props
 }: {
@@ -72,6 +81,9 @@ export function PlanComparisonTable<const Plan extends string>({
     title: ReactNode
     features: { name: ReactNode; value: ReactNode | Record<Plan, ReactNode> }[]
   }[]
+  compareLabel?: ReactNode
+  includedLabel?: string
+  notIncludedLabel?: string
 } & ComponentProps<'section'>) {
   return (
     <section className={clsx('py-16', className)} {...props}>
@@ -86,7 +98,7 @@ export function PlanComparisonTable<const Plan extends string>({
           <thead>
             <tr>
               <th className="sticky top-(--scroll-padding-top) bg-mist-100 py-5 pr-3 text-base/7 font-medium text-mist-950 dark:bg-mist-950 dark:text-white">
-                Compare features
+                {compareLabel}
               </th>
               {plans.map((plan, index) => (
                 <th
@@ -99,7 +111,7 @@ export function PlanComparisonTable<const Plan extends string>({
             </tr>
           </thead>
           {features.map((group, index) => (
-            <FeatureGroup key={index} group={group} plans={plans} />
+            <FeatureGroup key={index} group={group} plans={plans} includedLabel={includedLabel} notIncludedLabel={notIncludedLabel} />
           ))}
         </table>
 
@@ -124,7 +136,7 @@ export function PlanComparisonTable<const Plan extends string>({
                     <col className="w-1/4" />
                   </colgroup>
                   {features.map((group, index) => (
-                    <FeatureGroup key={index} group={group} plans={[plan]} />
+                    <FeatureGroup key={index} group={group} plans={[plan]} includedLabel={includedLabel} notIncludedLabel={notIncludedLabel} />
                   ))}
                 </table>
               ))}

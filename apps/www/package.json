@@ -16,8 +16,10 @@
     "@clarify-labs/renderer": "workspace:^",
     "lucide-react": "^1.20.0",
     "clsx": "^2.1.1",
+    "i18next": "^25.7.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-i18next": "^16.4.0",
     "react-router-dom": "^7.0.0"
   },
   "devDependencies": {

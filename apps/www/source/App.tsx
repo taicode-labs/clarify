@@ -1,7 +1,14 @@
+import { Monitor, Moon, Sun } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+
 import { MainPreview, MdxPreview, OpenApiPreview } from '@clarify-labs/renderer/preview'
 
+import { site } from './content'
+import { type AppLocale, isAppLocale, localeLabels, locales } from './i18n'
 import { AnnouncementBadge } from './ui/elements/announcement-badge'
-import { ButtonLink, PlainButtonLink } from './ui/elements/button'
+import { ButtonLink, PlainButtonLink, SoftButtonLink } from './ui/elements/button'
 import { Main } from './ui/elements/main'
 import { Screenshot } from './ui/elements/screenshot'
 import { ArrowNarrowRightIcon } from './ui/icons/arrow-narrow-right-icon'
@@ -31,29 +38,44 @@ import { PlanComparisonTable } from './ui/sections/plan-comparison-table'
 import { Plan, PricingMultiTier } from './ui/sections/pricing-multi-tier'
 import { Stat, StatsFourColumns } from './ui/sections/stats-four-columns'
 import { Testimonial, TestimonialThreeColumnGrid } from './ui/sections/testimonials-three-column-grid'
-import {
-  comparisonFeatures,
-  faqs,
-  finalCta,
-  hero,
-  navLinks,
-  pricingPlans,
-  primaryCta,
-  site,
-  stats,
-  workflow,
-} from './content'
 
-export default function App({ path = window.location.pathname }: { path?: string }) {
+type StatItem = { stat: string; text: string }
+type WorkflowItem = { label: string; title: string; text: string }
+type FaqItem = { question: string; answer: string }
+type TestimonialItem = [quote: string, name: string, byline: string]
+type ThemePreference = 'system' | 'light' | 'dark'
+
+export default function App({ path = '/' }: { path?: string }) {
   const normalizedPath = normalizePath(path)
 
   return (
     <>
+      <AppEffects />
       <Navbar />
       <Main>{renderRoute(normalizedPath)}</Main>
       <Footer />
     </>
   )
+}
+
+function AppEffects() {
+  const { i18n } = useTranslation()
+
+  useEffect(() => {
+    const storedLocale = localStorage.getItem('clarify-locale')
+    const browserLocale = navigator.language === 'zh-CN' || navigator.language.startsWith('zh') ? 'zh-CN' : 'en'
+    const locale = storedLocale && isAppLocale(storedLocale) ? storedLocale : browserLocale
+
+    if (i18n.language !== locale) {
+      void i18n.changeLanguage(locale)
+    }
+  }, [i18n])
+
+  useEffect(() => {
+    document.documentElement.lang = i18n.language === 'zh-CN' ? 'zh-CN' : 'en'
+  }, [i18n.language])
+
+  return null
 }
 
 function normalizePath(path: string) {
@@ -85,6 +107,14 @@ function renderRoute(path: string) {
 }
 
 function Navbar() {
+  const { i18n, t } = useTranslation()
+  const navLinks = [
+    { href: '/#features', label: t('nav.features') },
+    { href: '/pricing/', label: t('nav.pricing') },
+    { href: '/about/', label: t('nav.about') },
+    { href: site.docsUrl, label: t('nav.docs') },
+  ]
+
   return (
     <NavbarWithLinksActionsAndCenteredLogo
       id="navbar"
@@ -104,51 +134,120 @@ function Navbar() {
       }
       actions={
         <>
-          <PlainButtonLink href={site.githubUrl}>
-            GitHub
-          </PlainButtonLink>
-          <ButtonLink href={site.docsUrl}>Get started</ButtonLink>
+          <ThemeToggle />
+          <LanguageToggle currentLocale={toAppLocale(i18n.language)} />
+          <PlainButtonLink href={site.githubUrl}>{t('common.github')}</PlainButtonLink>
+          <ButtonLink href={site.docsUrl}>{t('common.getStarted')}</ButtonLink>
         </>
       }
     />
   )
 }
 
+function ThemeToggle() {
+  const { t } = useTranslation()
+  const [theme, setTheme] = useState<ThemePreference>(() => getStoredTheme())
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const applyTheme = () => {
+      document.documentElement.classList.toggle('dark', theme === 'dark' || (theme === 'system' && media.matches))
+    }
+
+    applyTheme()
+    media.addEventListener('change', applyTheme)
+    localStorage.setItem('clarify-theme', theme)
+
+    return () => media.removeEventListener('change', applyTheme)
+  }, [theme])
+
+  const nextTheme: ThemePreference = theme === 'system' ? 'dark' : theme === 'dark' ? 'light' : 'system'
+  const label = theme === 'dark' ? t('common.theme.switchToLight') : t('common.theme.switchToDark')
+
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={() => setTheme(nextTheme)}
+      className="inline-flex shrink-0 items-center justify-center rounded-full p-2 text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10"
+    >
+      {theme === 'dark' ? <Moon className="size-4" /> : theme === 'light' ? <Sun className="size-4" /> : <Monitor className="size-4" />}
+    </button>
+  )
+}
+
+function LanguageToggle({ currentLocale }: { currentLocale: AppLocale }) {
+  const { i18n, t } = useTranslation()
+  const nextLocale = currentLocale === 'en' ? 'zh-CN' : 'en'
+
+  return (
+    <button
+      type="button"
+      aria-label={t('common.language.switchTo', { language: localeLabels[nextLocale] })}
+      onClick={() => {
+        localStorage.setItem('clarify-locale', nextLocale)
+        void i18n.changeLanguage(nextLocale)
+      }}
+      className="inline-flex shrink-0 items-center justify-center rounded-full px-3 py-1 text-sm/7 font-medium text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10"
+    >
+      {currentLocale === 'en' ? '简' : 'EN'}
+    </button>
+  )
+}
+
+function getStoredTheme(): ThemePreference {
+  if (typeof window === 'undefined') {
+    return 'system'
+  }
+
+  const storedTheme = localStorage.getItem('clarify-theme')
+  return storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system' ? storedTheme : 'system'
+}
+
+function toAppLocale(locale: string): AppLocale {
+  return isAppLocale(locale) ? locale : locales.find((item) => locale.startsWith(item)) ?? 'en'
+}
+
 function Footer() {
+  const { t } = useTranslation()
+
   return (
     <FooterWithNewsletterFormCategoriesAndSocialIcons
       id="footer"
       cta={
         <NewsletterForm
-          headline="Stay close to Clarify"
-          subheadline={<p>Get product notes, release updates, and implementation tips from Taicode Labs.</p>}
+          headline={t('footer.newsletterHeadline')}
+          subheadline={<p>{t('footer.newsletterSubheadline')}</p>}
+          emailLabel={t('common.email')}
+          subscribeLabel={t('common.subscribe')}
           action={site.contactUrl}
         />
       }
       links={
         <>
-          <FooterCategory title="Product">
-            <FooterLink href="/#features">Features</FooterLink>
-            <FooterLink href="/pricing/">Pricing</FooterLink>
-            <FooterLink href={site.docsUrl}>Documentation</FooterLink>
+          <FooterCategory title={t('footer.product')}>
+            <FooterLink href="/#features">{t('nav.features')}</FooterLink>
+            <FooterLink href="/pricing/">{t('nav.pricing')}</FooterLink>
+            <FooterLink href={site.docsUrl}>{t('footer.documentation')}</FooterLink>
           </FooterCategory>
-          <FooterCategory title="Company">
-            <FooterLink href="/about/">About</FooterLink>
-            <FooterLink href={site.contactUrl}>Contact</FooterLink>
-            <FooterLink href={site.githubUrl}>GitHub</FooterLink>
+          <FooterCategory title={t('footer.company')}>
+            <FooterLink href="/about/">{t('nav.about')}</FooterLink>
+            <FooterLink href={site.contactUrl}>{t('footer.contact')}</FooterLink>
+            <FooterLink href={site.githubUrl}>{t('common.github')}</FooterLink>
           </FooterCategory>
-          <FooterCategory title="Resources">
-            <FooterLink href={`${site.docsUrl}/getting-started`}>Getting started</FooterLink>
-            <FooterLink href={`${site.docsUrl}/guides`}>Guides</FooterLink>
-            <FooterLink href={`${site.docsUrl}/api`}>API Reference</FooterLink>
+          <FooterCategory title={t('footer.resources')}>
+            <FooterLink href={`${site.docsUrl}/getting-started`}>{t('footer.gettingStarted')}</FooterLink>
+            <FooterLink href={`${site.docsUrl}/guides`}>{t('footer.guides')}</FooterLink>
+            <FooterLink href={`${site.docsUrl}/api`}>{t('footer.apiReference')}</FooterLink>
           </FooterCategory>
-          <FooterCategory title="Legal">
-            <FooterLink href="/privacy-policy/">Privacy Policy</FooterLink>
-            <FooterLink href="/pricing/">Commercial Services</FooterLink>
+          <FooterCategory title={t('footer.legal')}>
+            <FooterLink href="/privacy-policy/">{t('footer.privacyPolicy')}</FooterLink>
+            <FooterLink href="/pricing/">{t('footer.commercialServices')}</FooterLink>
           </FooterCategory>
         </>
       }
-      fineprint="AGPL-3.0-only © 2026 Taicode Labs"
+      fineprint={t('footer.fineprint')}
       socialLinks={
         <>
           <SocialLink href="https://x.com/taicode" name="X">
@@ -167,22 +266,26 @@ function Footer() {
 }
 
 function HomePage() {
+  const { t } = useTranslation()
+  const stats = t('stats.items', { returnObjects: true }) as StatItem[]
+  const pricingPlans = usePricingPlans()
+
   return (
     <>
       <HeroLeftAlignedWithDemo
         id="hero"
-        eyebrow={<AnnouncementBadge href="/#workflow" text={hero.badge} cta={hero.badgeCta} />}
-        headline={hero.headline}
-        subheadline={<p>{hero.subheadline}</p>}
-        cta={primaryCta()}
+        eyebrow={<AnnouncementBadge href="/#workflow" text={t('hero.badge')} cta={t('hero.badgeCta')} />}
+        headline={t('hero.headline')}
+        subheadline={<p>{t('hero.subheadline')}</p>}
+        cta={<PrimaryCta />}
         demo={<ProductDemo />}
       />
 
       <StatsFourColumns
         id="stats"
-        eyebrow="Built for static publishing"
-        headline="A documentation pipeline that stays simple."
-        subheadline={<p>Clarify keeps authoring flexible while preserving static deployment as the production default.</p>}
+        eyebrow={t('stats.eyebrow')}
+        headline={t('stats.headline')}
+        subheadline={<p>{t('stats.subheadline')}</p>}
       >
         {stats.map((item) => (
           <Stat key={item.stat} stat={item.stat} text={item.text} />
@@ -197,18 +300,18 @@ function HomePage() {
 
       <PricingMultiTier
         id="pricing-preview"
-        eyebrow="Pricing"
-        headline="Free core, optional delivery partnership."
-        subheadline={<p>Use Clarify freely, then work with Taicode Labs when you need migration, customization, and launch support.</p>}
+        eyebrow={t('pricing.eyebrow')}
+        headline={t('pricing.previewHeadline')}
+        subheadline={<p>{t('pricing.previewSubheadline')}</p>}
         cta={
           <PlainButtonLink href="/pricing/" size="lg">
-            Compare plans <ArrowNarrowRightIcon />
+            {t('pricing.comparePlans')} <ArrowNarrowRightIcon />
           </PlainButtonLink>
         }
         plans={
           <>
             {pricingPlans.map((plan) => (
-              <Plan key={plan.name} {...plan} subheadline={<p>{plan.subheadline}</p>} />
+              <Plan key={String(plan.name)} {...plan} subheadline={<p>{plan.subheadline}</p>} />
             ))}
           </>
         }
@@ -218,21 +321,53 @@ function HomePage() {
 
       <CallToActionSimpleCentered
         id="call-to-action"
-        headline="Launch clearer docs without starting from a blank page."
-        subheadline={<p>Start with the open-source tool or ask Taicode Labs to migrate and launch your production documentation site.</p>}
-        cta={finalCta()}
+        headline={t('finalCta.headline')}
+        subheadline={<p>{t('finalCta.subheadline')}</p>}
+        cta={<FinalCta />}
       />
     </>
   )
 }
 
+function PrimaryCta() {
+  const { t } = useTranslation()
+
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      <ButtonLink href={site.docsUrl} size="lg">
+        {t('hero.startBuilding')}
+      </ButtonLink>
+      <PlainButtonLink href={site.githubUrl} size="lg">
+        {t('hero.viewGithub')} <ArrowNarrowRightIcon />
+      </PlainButtonLink>
+    </div>
+  )
+}
+
+function FinalCta() {
+  const { t } = useTranslation()
+
+  return (
+    <div className="flex flex-wrap items-center justify-start gap-4">
+      <ButtonLink href={site.docsUrl} size="lg">
+        {t('finalCta.docs')}
+      </ButtonLink>
+      <PlainButtonLink href={site.contactUrl} size="lg">
+        {t('finalCta.services')} <ChevronIcon />
+      </PlainButtonLink>
+    </div>
+  )
+}
+
 function PowerfulFeaturesSection() {
+  const { t } = useTranslation()
+
   return (
     <FeaturesTwoColumnWithDemos
       id="features"
-      eyebrow="Powerful features"
-      headline="Everything you need to publish polished developer documentation."
-      subheadline={<p>Keep the template's strongest visual module, but use it to show Clarify's MDX authoring, OpenAPI rendering, and static publishing workflow.</p>}
+      eyebrow={t('features.eyebrow')}
+      headline={t('features.headline')}
+      subheadline={<p>{t('features.subheadline')}</p>}
       features={
         <>
           <FeatureWithDemo
@@ -241,9 +376,9 @@ function PowerfulFeaturesSection() {
                 <MdxPreview />
               </Screenshot>
             }
-            headline="MDX content that feels like product UI"
-            subheadline={<p>Author guides as files, embed React components, and keep docs close to the code they explain.</p>}
-            cta={<PlainButtonLink className="px-0 hover:bg-transparent" href={site.docsUrl}>Explore authoring <ArrowNarrowRightIcon /></PlainButtonLink>}
+            headline={t('features.mdxHeadline')}
+            subheadline={<p>{t('features.mdxSubheadline')}</p>}
+            cta={<PlainButtonLink className="px-0 hover:bg-transparent" href={site.docsUrl}>{t('features.mdxCta')} <ArrowNarrowRightIcon /></PlainButtonLink>}
           />
           <FeatureWithDemo
             demo={
@@ -251,9 +386,9 @@ function PowerfulFeaturesSection() {
                 <OpenApiPreview />
               </Screenshot>
             }
-            headline="OpenAPI references and static deployment"
-            subheadline={<p>Generate readable endpoint pages from schemas, then ship pure static HTML, CSS, and JavaScript with Vite SSG.</p>}
-            cta={<PlainButtonLink className="px-0 hover:bg-transparent" href={`${site.docsUrl}/api`}>View API docs <ArrowNarrowRightIcon /></PlainButtonLink>}
+            headline={t('features.openApiHeadline')}
+            subheadline={<p>{t('features.openApiSubheadline')}</p>}
+            cta={<PlainButtonLink className="px-0 hover:bg-transparent" href={`${site.docsUrl}/api`}>{t('features.openApiCta')} <ArrowNarrowRightIcon /></PlainButtonLink>}
           />
         </>
       }
@@ -262,20 +397,14 @@ function PowerfulFeaturesSection() {
 }
 
 function TestimonialsSection() {
-  const testimonials = [
-    ['Clarify helped us turn scattered Markdown and OpenAPI files into a documentation site that finally feels intentional.', 'Maya Chen', 'Developer Experience Lead'],
-    ['The static output model made deployment boring in the best way. We pushed it to our CDN and stopped worrying about runtime infrastructure.', 'Ethan Brooks', 'Platform Engineer'],
-    ['Taicode Labs kept the migration pragmatic: preserve what worked, clean up the navigation, and ship the first version quickly.', 'Nora Kim', 'Product Lead'],
-    ['The renderer components gave our docs the polish of a product surface without forcing the engineering team into a full redesign.', 'Leo Martin', 'Engineering Manager'],
-    ['OpenAPI pages no longer feel bolted on. They sit next to guides, examples, and release notes in one coherent experience.', 'Ava Patel', 'API Program Manager'],
-    ['We started free, then brought in Delivery Partner support when deadlines got tight. That path made adoption much easier.', 'Sam Rivera', 'Founder'],
-  ]
+  const { t } = useTranslation()
+  const testimonials = t('testimonials.items', { returnObjects: true }) as TestimonialItem[]
 
   return (
     <TestimonialThreeColumnGrid
       id="testimonial"
-      headline="What our customers are saying"
-      subheadline={<p>Teams use Clarify to move quickly from raw docs content to a polished, static documentation site.</p>}
+      headline={t('testimonials.headline')}
+      subheadline={<p>{t('testimonials.subheadline')}</p>}
     >
       {testimonials.map(([quote, name, byline], index) => (
         <Testimonial
@@ -299,12 +428,15 @@ function ProductDemo() {
 }
 
 function WorkflowSection() {
+  const { t } = useTranslation()
+  const workflow = t('workflow.items', { returnObjects: true }) as WorkflowItem[]
+
   return (
     <CallToActionSimple
       id="workflow"
-      eyebrow="Workflow"
-      headline="From source files to deployable static output."
-      subheadline={<p>Clarify keeps the authoring flow understandable: write, configure, build, and ship.</p>}
+      eyebrow={t('workflow.eyebrow')}
+      headline={t('workflow.headline')}
+      subheadline={<p>{t('workflow.subheadline')}</p>}
       cta={
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
           {workflow.map((step) => (
@@ -320,30 +452,109 @@ function WorkflowSection() {
   )
 }
 
+function usePricingPlans() {
+  const { t } = useTranslation()
+
+  return [
+    {
+      name: t('pricing.freeName'),
+      price: t('pricing.freePrice'),
+      period: t('pricing.freePeriod'),
+      subheadline: t('pricing.freeSubheadline'),
+      features: t('pricing.freeFeatures', { returnObjects: true }) as ReactNode[],
+      cta: (
+        <SoftButtonLink href={site.githubUrl} size="lg">
+          {t('pricing.freeCta')}
+        </SoftButtonLink>
+      ),
+    },
+    {
+      name: t('pricing.partnerName'),
+      price: t('pricing.partnerPrice'),
+      period: t('pricing.partnerPeriod'),
+      badge: t('pricing.partnerBadge'),
+      subheadline: t('pricing.partnerSubheadline'),
+      features: t('pricing.partnerFeatures', { returnObjects: true }) as ReactNode[],
+      cta: (
+        <ButtonLink href={site.contactUrl} size="lg">
+          {t('pricing.partnerCta')}
+        </ButtonLink>
+      ),
+    },
+  ]
+}
+
+function useComparisonFeatures() {
+  const { t } = useTranslation()
+  const freeName = t('pricing.freeName')
+  const partnerName = t('pricing.partnerName')
+
+  return [
+    {
+      title: t('pricing.comparison.publishing'),
+      features: [
+        { name: t('pricing.comparison.staticSiteGeneration'), value: true },
+        { name: t('pricing.comparison.mdxPages'), value: true },
+        { name: t('pricing.comparison.openApiGeneration'), value: true },
+        { name: t('pricing.comparison.customDomainReview'), value: { [freeName]: false, [partnerName]: true } },
+      ],
+    },
+    {
+      title: t('pricing.comparison.support'),
+      features: [
+        { name: t('pricing.comparison.communitySupport'), value: true },
+        { name: t('pricing.comparison.privateSupport'), value: { [freeName]: false, [partnerName]: true } },
+        { name: t('pricing.comparison.migrationPlanning'), value: { [freeName]: false, [partnerName]: true } },
+        { name: t('pricing.comparison.doneForYouDelivery'), value: { [freeName]: false, [partnerName]: true } },
+      ],
+    },
+    {
+      title: t('pricing.comparison.customization'),
+      features: [
+        { name: t('pricing.comparison.themeTokens'), value: true },
+        { name: t('pricing.comparison.rendererReuse'), value: true },
+        { name: t('pricing.comparison.customLandingSections'), value: { [freeName]: t('pricing.comparison.selfServe'), [partnerName]: true } },
+        { name: t('pricing.comparison.bespokeIntegrations'), value: { [freeName]: false, [partnerName]: true } },
+      ],
+    },
+  ]
+}
+
 function PricingPage() {
+  const { t } = useTranslation()
+  const pricingPlans = usePricingPlans()
+  const comparisonFeatures = useComparisonFeatures()
+  const planNames = [t('pricing.freeName'), t('pricing.partnerName')]
+
   return (
     <>
       <PricingMultiTier
         id="pricing"
-        eyebrow="Pricing"
-        headline="Free when you self-host, custom when we deliver."
-        subheadline={<p>Clarify has no fixed paid tier. The product stays free to use; commercial work is scoped as a Delivery Partner engagement.</p>}
+        eyebrow={t('pricing.eyebrow')}
+        headline={t('pricing.pageHeadline')}
+        subheadline={<p>{t('pricing.pageSubheadline')}</p>}
         plans={
           <>
             {pricingPlans.map((plan) => (
-              <Plan key={plan.name} {...plan} subheadline={<p>{plan.subheadline}</p>} />
+              <Plan key={String(plan.name)} {...plan} subheadline={<p>{plan.subheadline}</p>} />
             ))}
           </>
         }
       />
-      <PlanComparisonTable plans={['Free', 'Delivery Partner']} features={comparisonFeatures} />
+      <PlanComparisonTable
+        plans={planNames}
+        features={comparisonFeatures}
+        compareLabel={t('common.compareFeatures')}
+        includedLabel={t('common.included')}
+        notIncludedLabel={t('common.notIncluded')}
+      />
       <FAQs />
       <CallToActionSimpleCentered
-        headline="Need a documentation partner?"
-        subheadline={<p>Taicode Labs can help migrate content, tune the visual system, and prepare a static deployment pipeline.</p>}
+        headline={t('pricing.ctaHeadline')}
+        subheadline={<p>{t('pricing.ctaSubheadline')}</p>}
         cta={
           <ButtonLink href={site.contactUrl} size="lg">
-            Talk to Delivery Partner services
+            {t('pricing.ctaButton')}
           </ButtonLink>
         }
       />
@@ -352,58 +563,67 @@ function PricingPage() {
 }
 
 function AboutPage() {
+  const { t } = useTranslation()
+  const stats = t('about.stats', { returnObjects: true }) as StatItem[]
+
   return (
     <>
       <CallToActionSimple
         id="about"
-        eyebrow="About Clarify"
-        headline="An open-source documentation publishing tool from Taicode Labs."
-        subheadline={<p>Clarify exists to make developer documentation easier to own: static by default, content-driven, API-aware, and friendly to React teams.</p>}
+        eyebrow={t('about.eyebrow')}
+        headline={t('about.headline')}
+        subheadline={<p>{t('about.subheadline')}</p>}
         cta={
           <div className="flex flex-wrap items-center gap-4">
-            <ButtonLink href={site.docsUrl} size="lg">Read the docs</ButtonLink>
-            <PlainButtonLink href={site.githubUrl} size="lg">Explore source <ChevronIcon /></PlainButtonLink>
+            <ButtonLink href={site.docsUrl} size="lg">{t('about.docs')}</ButtonLink>
+            <PlainButtonLink href={site.githubUrl} size="lg">{t('about.source')} <ChevronIcon /></PlainButtonLink>
           </div>
         }
       />
-      <StatsFourColumns headline="What we optimize for" subheadline={<p>Practical documentation infrastructure for small teams that need credible output quickly.</p>}>
-        <Stat stat="Open" text="Transparent source, clear licensing, and a community-friendly starting point." />
-        <Stat stat="Static" text="No runtime server requirement for public documentation deployments." />
-        <Stat stat="Typed" text="TypeScript packages for CLI, renderer, and app integration." />
-        <Stat stat="Service" text="Commercial help is available when timelines are tight." />
+      <StatsFourColumns headline={t('about.statsHeadline')} subheadline={<p>{t('about.statsSubheadline')}</p>}>
+        {stats.map((item) => (
+          <Stat key={item.stat} stat={item.stat} text={item.text} />
+        ))}
       </StatsFourColumns>
     </>
   )
 }
 
 function PrivacyPolicyPage() {
+  const { t } = useTranslation()
+
   return (
     <CallToActionSimple
       id="privacy"
-      eyebrow="Privacy"
-      headline="Privacy Policy"
-      subheadline={<p>Clarify's marketing site is a static website. If you contact Taicode Labs, the information you provide is used to respond to your request and deliver the requested service.</p>}
-      cta={<PlainButtonLink href={site.contactUrl}>Contact us <ChevronIcon /></PlainButtonLink>}
+      eyebrow={t('privacy.eyebrow')}
+      headline={t('privacy.headline')}
+      subheadline={<p>{t('privacy.subheadline')}</p>}
+      cta={<PlainButtonLink href={site.contactUrl}>{t('privacy.contact')} <ChevronIcon /></PlainButtonLink>}
     />
   )
 }
 
 function NotFoundPage() {
+  const { t } = useTranslation()
+
   return (
     <CallToActionSimpleCentered
-      headline="Page not found"
-      subheadline={<p>The page you are looking for does not exist or has moved.</p>}
-      cta={<ButtonLink href="/">Back home</ButtonLink>}
+      headline={t('notFound.headline')}
+      subheadline={<p>{t('notFound.subheadline')}</p>}
+      cta={<ButtonLink href="/">{t('notFound.home')}</ButtonLink>}
     />
   )
 }
 
 function FAQs() {
+  const { t } = useTranslation()
+  const faqs = t('faqs.items', { returnObjects: true }) as FaqItem[]
+
   return (
     <FAQsTwoColumnAccordion
       id="faqs"
-      headline="Questions teams ask before adopting Clarify."
-      subheadline={<p>Clarify is designed to start simple and scale into a complete developer documentation workflow.</p>}
+      headline={t('faqs.headline')}
+      subheadline={<p>{t('faqs.subheadline')}</p>}
     >
       {faqs.map((faq) => (
         <Faq key={faq.question} question={faq.question} answer={<p>{faq.answer}</p>} />
