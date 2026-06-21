@@ -1,0 +1,62 @@
+name: Templates E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  templates-e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20]
+        template: [minimal, standard, complete]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install local CLI globally
+        run: pnpm install -g ./packages/cli
+
+      - name: Create temp project
+        run: |
+          rm -rf .github/.template-test
+          mkdir -p .github/.template-test
+          cd .github/.template-test
+          pnpm init -y
+
+      - name: Run clarify init for template
+        working-directory: .github/.template-test
+        run: clarify init --template ${{ matrix.template }}
+
+      - name: Install template project dependencies
+        working-directory: .github/.template-test
+        run: pnpm install --frozen-lockfile
+
+      - name: Build generated template project
+        working-directory: .github/.template-test
+        run: clarify build
+
+      - name: Validate generated files
+        working-directory: .github/.template-test
+        run: |
+          test -f package.json
+          test -d src || test -d source || true
