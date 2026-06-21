@@ -1,6 +1,7 @@
-import { describe, expect, it, beforeEach, afterEach } from 'vitest'
-import { rmSync, writeFileSync, readFileSync, existsSync } from 'node:fs'
+import { rmSync, readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
+
+import { describe, expect, it, beforeEach, afterEach } from 'vitest'
 
 import { logBuildError } from './log.js'
 

@@ -1,10 +1,10 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { copyTemplateDirectory, getTemplateDirectory, resolveTemplate } from '@clarify-labs/templates'
+import { spawnSync } from '../spawn.js'
 
 import type { ResolvedCliOptions } from '../options.js'
 import { cliPackageVersionWithCaret } from '../package.js'
@@ -30,7 +30,9 @@ function commandExists(program: string): boolean {
   return result.status === 0 && result.error === undefined
 }
 
-function getInstallCommand(): { command: string; args: string[] } {
+type InstallCommand = { command: string; args: string[] }
+
+function getInstallCommand(): InstallCommand {
   if (commandExists('pnpm')) return { command: 'pnpm', args: ['install'] }
   if (commandExists('npm')) return { command: 'npm', args: ['install'] }
   if (commandExists('yarn')) return { command: 'yarn', args: ['install'] }

@@ -1,9 +1,11 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import * as childProcess from 'node:child_process'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { cliPackageVersionWithCaret } from '../package.js'
+import * as spawnModule from '../spawn.js'
 
 import { runInit } from './init.js'
 
@@ -48,7 +50,7 @@ describe('runInit', () => {
       build: 'clarify build',
     })
     expect(packageJson.devDependencies).toEqual({
-      '@clarify-labs/cli': '^0.5.0',
+      '@clarify-labs/cli': cliPackageVersionWithCaret,
     })
   })
 
@@ -135,12 +137,12 @@ describe('runInit', () => {
     })
     expect(packageJson.devDependencies).toEqual({
       typescript: '^5.0.0',
-      '@clarify-labs/cli': '^0.5.0',
+      '@clarify-labs/cli': cliPackageVersionWithCaret,
     })
   })
 
   it('installs dependencies when the install flag is enabled', () => {
-    const spawnSpy = vi.spyOn(childProcess, 'spawnSync').mockImplementation(() => ({ status: 0 } as any))
+    const spawnSpy = vi.spyOn(spawnModule, 'spawnSync').mockImplementation(() => ({ status: 0 } as unknown as ReturnType<typeof spawnModule.spawnSync>))
 
     runInit({
       root: tempDir,

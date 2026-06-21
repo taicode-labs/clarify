@@ -1,5 +1,4 @@
 import clsx from 'clsx'
-import { motion } from 'framer-motion'
 import { Suspense, lazy, useEffect, useMemo } from 'react'
 import type { CSSProperties, ComponentType } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
