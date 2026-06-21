@@ -54,9 +54,9 @@ jobs:
         working-directory: .github/.template-test
         run: clarify init --template ${{ matrix.template }}
 
-      - name: Add local @clarify-labs/cli dependency to template project
+      - name: Link local @clarify-labs/cli into template project
         working-directory: .github/.template-test
-        run: pnpm add -D ../../packages/cli
+        run: pnpm link @clarify-labs/cli
 
       - name: Install template project dependencies
         working-directory: .github/.template-test
