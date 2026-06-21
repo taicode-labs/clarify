@@ -41,7 +41,6 @@ jobs:
           rm -rf .github/.template-test
           mkdir -p .github/.template-test
           cd .github/.template-test
-          pnpm init -y
 
       - name: Run clarify init for template
         working-directory: .github/.template-test
