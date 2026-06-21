@@ -34,7 +34,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Build local clarify CLI
-        run: pnpm --filter @clarify-labs/cli build
+        run: pnpm build
 
       - name: Link local clarify globally
         run: pnpm --dir packages/cli link --global .
