@@ -41,17 +41,32 @@ pnpm add -D @clarify-labs/cli
 
 ## `clarify init`
 
-创建最小 Clarify 项目结构。
+创建一个 Clarify 项目骨架，并自动更新 `package.json` 中的 `dev` 和 `build` 脚本。
 
 ```bash
 pnpm exec clarify init
 ```
 
-该命令会创建或更新：
+默认情况下，`clarify init` 会生成或更新以下内容：
 
 - `clarify.ts`
 - `source/index.mdx`
 - `package.json` 中的 `dev` / `build` 脚本
+- `@clarify-labs/cli` 开发依赖
+
+如果希望初始化完成后立即安装依赖，可以使用：
+
+```bash
+pnpm exec clarify init --install
+```
+
+未使用 `--install` 时，命令会提示下一步操作，例如：
+
+```bash
+cd <project-root>
+pnpm install
+clarify dev
+```
 
 常用选项：
 
@@ -59,7 +74,9 @@ pnpm exec clarify init
 |------|------|--------|
 | `--root <dir>` | 项目根目录 | 当前目录 |
 | `--content <dir>` | 内容目录 | `source` |
+| `--template <name>` | `minimal`、`standard` 或 `complete` 模板 | `standard` |
 | `--force` | 覆盖已存在的初始化文件 | `false` |
+| `--install` | 初始化后安装依赖 | `false` |
 
 ---
 

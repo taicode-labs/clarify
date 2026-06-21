@@ -1,4 +1,5 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import * as childProcess from 'node:child_process'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -136,5 +137,22 @@ describe('runInit', () => {
       typescript: '^5.0.0',
       '@clarify-labs/cli': '^0.5.0',
     })
+  })
+
+  it('installs dependencies when the install flag is enabled', () => {
+    const spawnSpy = vi.spyOn(childProcess, 'spawnSync').mockImplementation(() => ({ status: 0 } as any))
+
+    runInit({
+      root: tempDir,
+      content: 'docs',
+      output: 'dist',
+    }, false, undefined, true)
+
+    expect(spawnSpy).toHaveBeenCalledWith('pnpm', ['--version'], { stdio: 'ignore' })
+    expect(spawnSpy).toHaveBeenCalledWith('pnpm', ['install'], expect.objectContaining({ cwd: tempDir, stdio: 'inherit' }))
+    expect(logSpy).toHaveBeenCalledWith('[clarify] Dependencies installed successfully.')
+    expect(logSpy).toHaveBeenCalledWith('[clarify] You can now run `clarify dev` to start the local documentation server.')
+
+    spawnSpy.mockRestore()
   })
 })

@@ -10,6 +10,7 @@ import { cliPackageVersion } from './package.js'
 type InitCommandOptions = CliOptions & {
   force?: boolean
   template?: string
+  install?: boolean
 }
 
 function withSharedOptions(command: ReturnType<ReturnType<typeof cac>['command']>) {
@@ -46,8 +47,9 @@ async function main(): Promise<void> {
   withSharedOptions(cli.command('init', 'Create a Clarify project scaffold'))
     .option('--force', 'Overwrite files created by init')
     .option('--template <name>', 'Template to use: minimal, standard, or complete')
+    .option('--install', 'Install dependencies after init')
     .action((options: InitCommandOptions) => {
-      runInit(resolveOptions(options), options.force === true, options.template)
+      runInit(resolveOptions(options), options.force === true, options.template, options.install === true)
     })
 
   const args = process.argv.slice(2)

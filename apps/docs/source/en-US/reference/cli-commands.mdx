@@ -56,4 +56,29 @@ Create the initial project files for a Clarify documentation site.
 pnpm exec clarify init
 ```
 
-Use this command when starting a new docs project from scratch.
+This command scaffolds a new project and updates `package.json` with `dev` and `build` scripts.
+It also adds `@clarify-labs/cli` as a dev dependency so your project is ready to run.
+
+If you want Clarify to install dependencies automatically after scaffolding, use:
+
+```bash
+pnpm exec clarify init --install
+```
+
+If you skip `--install`, the command prints the next steps, for example:
+
+```bash
+cd <project-root>
+pnpm install
+clarify dev
+```
+
+Common options:
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--root <dir>` | Project root directory | Current working directory |
+| `--content <dir>` | Content directory relative to root | `source` |
+| `--template <name>` | `minimal`, `standard`, or `complete` template | `standard` |
+| `--force` | Overwrite existing init files | `false` |
+| `--install` | Install dependencies after init | `false` |
