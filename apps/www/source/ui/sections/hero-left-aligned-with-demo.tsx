@@ -1,10 +1,18 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps, ReactNode } from 'react'
+
 import { Container } from '../elements/container'
 import { Heading } from '../elements/heading'
 import { Text } from '../elements/text'
 
-export function HeroLeftAlignedWithDemo({
+export function HeroLeftAlignedWithDemo(arg0: {
+  eyebrow?: ReactNode
+  headline: ReactNode
+  subheadline: ReactNode
+  cta?: ReactNode
+  demo?: ReactNode
+  footer?: ReactNode
+} & ComponentProps<'section'>) {  const {
   eyebrow,
   headline,
   subheadline,
@@ -13,14 +21,8 @@ export function HeroLeftAlignedWithDemo({
   footer,
   className,
   ...props
-}: {
-  eyebrow?: ReactNode
-  headline: ReactNode
-  subheadline: ReactNode
-  cta?: ReactNode
-  demo?: ReactNode
-  footer?: ReactNode
-} & ComponentProps<'section'>) {
+} = arg0
+
   return (
     <section className={clsx('py-16', className)} {...props}>
       <Container className="flex flex-col gap-16">

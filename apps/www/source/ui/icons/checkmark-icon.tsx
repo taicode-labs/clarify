@@ -1,7 +1,8 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps } from 'react'
 
-export function CheckmarkIcon({ className, ...props }: ComponentProps<'svg'>) {
+export function CheckmarkIcon(arg0: ComponentProps<'svg'>) {  const { className, ...props } = arg0
+
   return (
     <svg
       width={13}

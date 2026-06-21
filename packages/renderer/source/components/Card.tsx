@@ -1,26 +1,18 @@
 import clsx from 'clsx'
-import * as LucideIcons from 'lucide-react'
-import type { ComponentPropsWithoutRef, ComponentType, ReactNode, SVGProps } from 'react'
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-type LucideIconComponent = ComponentType<SVGProps<SVGSVGElement>>
-
-function toPascalCase(value: string): string {
-  return value
-    .split(/[^a-zA-Z0-9]+/)
-    .filter(Boolean)
-    .map(part => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
-    .join('')
-}
+import { lucideIconRegistry, resolveLucideIconName } from '../utils/lucide'
 
 function CardIcon(arg0: { name?: string }) {
   const { name } = arg0
 
   if (!name) return null
 
-  const iconName = toPascalCase(name)
-  const Icon = (LucideIcons as unknown as Record<string, LucideIconComponent>)[iconName]
+  const iconName = resolveLucideIconName(name)
+  if (!iconName) return null
 
+  const Icon = lucideIconRegistry[iconName]
   if (!Icon) return null
 
   return (

@@ -1,7 +1,8 @@
 import { Children, cloneElement, isValidElement, useState } from 'react'
 import type { ComponentProps, ReactElement, ReactNode } from 'react'
 
-export function Dialog({ children, ...props }: ComponentProps<'div'>) {
+export function Dialog(arg0: ComponentProps<'div'>) {  const { children, ...props } = arg0
+
   return <div {...props}>{children}</div>
 }
 
@@ -9,15 +10,18 @@ export function DialogPanel(props: ComponentProps<'div'>) {
   return <div {...props} />
 }
 
-export function Disclosure({ hidden: _hidden, ...props }: ComponentProps<'div'>) {
+export function Disclosure(arg0: ComponentProps<'div'>) {  const { hidden: _hidden, ...props } = arg0
+
   return <div {...props} />
 }
 
-export function Copyable({ children, ...props }: ComponentProps<'span'>) {
+export function Copyable(arg0: ComponentProps<'span'>) {  const { children, ...props } = arg0
+
   return <span {...props}>{children}</span>
 }
 
-export function TabGroup({ children, ...props }: ComponentProps<'div'>) {
+export function TabGroup(arg0: ComponentProps<'div'>) {  const { children, ...props } = arg0
+
   const [selectedIndex, setSelectedIndex] = useState(0)
   const context = { selectedIndex, setSelectedIndex }
 
@@ -47,7 +51,8 @@ function injectTabContext(children: ReactNode, context: { selectedIndex: number;
   })
 }
 
-export function TabList({ children, __tabContext, ...props }: ComponentProps<'div'> & { __tabContext?: { selectedIndex: number; setSelectedIndex: (index: number) => void } }) {
+export function TabList(arg0: ComponentProps<'div'> & { __tabContext?: { selectedIndex: number; setSelectedIndex: (index: number) => void } }) {  const { children, __tabContext, ...props } = arg0
+
   return (
     <div {...props}>
       {Children.map(children, (child, index) => {
@@ -69,7 +74,8 @@ export function TabList({ children, __tabContext, ...props }: ComponentProps<'di
   )
 }
 
-export function TabPanels({ children, __tabContext, ...props }: ComponentProps<'div'> & { __tabContext?: { selectedIndex: number } }) {
+export function TabPanels(arg0: ComponentProps<'div'> & { __tabContext?: { selectedIndex: number } }) {  const { children, __tabContext, ...props } = arg0
+
   return (
     <div {...props}>
       {Children.map(children, (child, index) => (

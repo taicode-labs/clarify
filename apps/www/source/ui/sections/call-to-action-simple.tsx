@@ -1,23 +1,25 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps, ReactNode } from 'react'
+
 import { Container } from '../elements/container'
 import { Eyebrow } from '../elements/eyebrow'
 import { Subheading } from '../elements/subheading'
 import { Text } from '../elements/text'
 
-export function CallToActionSimple({
+export function CallToActionSimple(arg0: {
+  eyebrow?: ReactNode
+  headline: ReactNode
+  subheadline?: ReactNode
+  cta?: ReactNode
+} & ComponentProps<'section'>) {  const {
   eyebrow,
   headline,
   subheadline,
   cta,
   className,
   ...props
-}: {
-  eyebrow?: ReactNode
-  headline: ReactNode
-  subheadline?: ReactNode
-  cta?: ReactNode
-} & ComponentProps<'section'>) {
+} = arg0
+
   return (
     <section className={clsx('py-16', className)} {...props}>
       <Container className="flex flex-col gap-10">

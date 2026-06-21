@@ -6,12 +6,7 @@ import { CheckmarkIcon } from '../icons/checkmark-icon'
 import { MinusIcon } from '../icons/minus-icon'
 import { TabGroup, TabList, TabPanels } from '../primitives/interactive'
 
-function FeatureGroup<Plan extends string>({
-  group,
-  plans,
-  includedLabel,
-  notIncludedLabel,
-}: {
+function FeatureGroup<Plan extends string>(arg0: {
   group: {
     title: ReactNode
     features: { name: ReactNode; value: ReactNode | Record<Plan, ReactNode> }[]
@@ -19,7 +14,13 @@ function FeatureGroup<Plan extends string>({
   plans: Plan[]
   includedLabel: string
   notIncludedLabel: string
-}) {
+}) {  const {
+  group,
+  plans,
+  includedLabel,
+  notIncludedLabel,
+} = arg0
+
   return (
     <tbody>
       <tr>
@@ -67,15 +68,7 @@ function isPlanValue<Plan extends string>(value: ReactNode | Record<Plan, ReactN
   return typeof value === 'object' && value !== null && plan in value
 }
 
-export function PlanComparisonTable<const Plan extends string>({
-  plans,
-  features,
-  compareLabel = 'Compare features',
-  includedLabel = 'Included',
-  notIncludedLabel = 'Not included',
-  className,
-  ...props
-}: {
+export function PlanComparisonTable<const Plan extends string>(arg0: {
   plans: Plan[]
   features: {
     title: ReactNode
@@ -84,7 +77,16 @@ export function PlanComparisonTable<const Plan extends string>({
   compareLabel?: ReactNode
   includedLabel?: string
   notIncludedLabel?: string
-} & ComponentProps<'section'>) {
+} & ComponentProps<'section'>) {  const {
+  plans,
+  features,
+  compareLabel = 'Compare features',
+  includedLabel = 'Included',
+  notIncludedLabel = 'Not included',
+  className,
+  ...props
+} = arg0
+
   return (
     <section className={clsx('py-16', className)} {...props}>
       <Container>

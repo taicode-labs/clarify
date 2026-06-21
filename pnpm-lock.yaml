@@ -15,8 +15,8 @@ importers:
         specifier: ^9.6.1
         version: 9.6.1
       '@yinxulai/eslint-plugin-peculiar':
-        specifier: ^1.0.4
-        version: 1.0.4(eslint@10.5.0(jiti@2.7.0))
+        specifier: ^1.0.6
+        version: 1.0.6(eslint@10.5.0(jiti@2.7.0))
       eslint:
         specifier: ^10.5.0
         version: 10.5.0(jiti@2.7.0)
@@ -1476,8 +1476,8 @@ packages:
   '@vue/shared@3.5.38':
     resolution: {integrity: sha512-FTW0AFZNaK5/mOqvGBwVfUlNLU38TiQn4+DQgIFUnrBBJQ1crMJ82yeGQLV5jyKFsO8yRukpbuP7x+nRbH6aug==}
 
-  '@yinxulai/eslint-plugin-peculiar@1.0.4':
-    resolution: {integrity: sha512-4Cn9V+bWS1oSY+pu0+ggaNkOWrzNR4FZ307YHDS2qg0yZsjrgkMIY6b3YbMJHh7oThbxKruxEvmQw1ixLKihog==}
+  '@yinxulai/eslint-plugin-peculiar@1.0.6':
+    resolution: {integrity: sha512-T2rZK7wwxgrYYOjBnBD1emnFAuQrLwl16YoSfVWIA+UM6QnriCwHX28Y3Q0fDgUUSTMGk46++epC4O+/FPjpQg==}
     engines: {node: '>=16'}
     peerDependencies:
       eslint: '>=8.40.0'
@@ -4481,7 +4481,7 @@ snapshots:
 
   '@vue/shared@3.5.38': {}
 
-  '@yinxulai/eslint-plugin-peculiar@1.0.4(eslint@10.5.0(jiti@2.7.0))':
+  '@yinxulai/eslint-plugin-peculiar@1.0.6(eslint@10.5.0(jiti@2.7.0))':
     dependencies:
       eslint: 10.5.0(jiti@2.7.0)
 

@@ -1,7 +1,8 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps } from 'react'
 
-export function CodeSquareIcon({ className, ...props }: ComponentProps<'svg'>) {
+export function CodeSquareIcon(arg0: ComponentProps<'svg'>) {  const { className, ...props } = arg0
+
   return (
     <svg
       width={13}

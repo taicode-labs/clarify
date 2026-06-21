@@ -11,7 +11,8 @@ const markdownComponents: Components = {
   code(props) {
     return <MarkdownCode {...props} />
   },
-  pre({ children, ...props }) {
+  pre(arg0) {    const { children, ...props } = arg0
+
     return <MarkdownPre {...props}>{children}</MarkdownPre>
   },
 }

@@ -1,7 +1,8 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps } from 'react'
 
-export function Document2StackedIcon({ className, ...props }: ComponentProps<'svg'>) {
+export function Document2StackedIcon(arg0: ComponentProps<'svg'>) {  const { className, ...props } = arg0
+
   return (
     <svg
       width={11}

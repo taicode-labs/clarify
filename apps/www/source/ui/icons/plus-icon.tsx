@@ -1,7 +1,8 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps } from 'react'
 
-export function PlusIcon({ className, ...props }: ComponentProps<'svg'>) {
+export function PlusIcon(arg0: ComponentProps<'svg'>) {  const { className, ...props } = arg0
+
   return (
     <svg
       width={13}

@@ -56,7 +56,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
 
   // peculiar 推荐规则（函数定义风格）
-  ...peculiar.configs['flat/recommended'],
+  ...peculiar.configs['flat/strict'],
 
   // MDX 文件基础处理（关闭代码规则）
   {

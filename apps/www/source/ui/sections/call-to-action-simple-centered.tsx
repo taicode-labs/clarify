@@ -1,20 +1,22 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps, ReactNode } from 'react'
+
 import { Container } from '../elements/container'
 import { Subheading } from '../elements/subheading'
 import { Text } from '../elements/text'
 
-export function CallToActionSimpleCentered({
+export function CallToActionSimpleCentered(arg0: {
+  headline: ReactNode
+  subheadline?: ReactNode
+  cta?: ReactNode
+} & ComponentProps<'section'>) {  const {
   headline,
   subheadline,
   cta,
   className,
   ...props
-}: {
-  headline: ReactNode
-  subheadline?: ReactNode
-  cta?: ReactNode
-} & ComponentProps<'section'>) {
+} = arg0
+
   return (
     <section className={clsx('py-16', className)} {...props}>
       <Container className="flex flex-col items-start gap-10">
