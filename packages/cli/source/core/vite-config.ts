@@ -1,8 +1,10 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
-import type { ConfigEnv, InlineConfig, Plugin } from 'vite'
+import { createLogger } from 'vite'
+import type { ConfigEnv, InlineConfig, Plugin, LogLevel, Logger, LogOptions, LogErrorOptions, LogType } from 'vite'
 
+import { logBuildErrorSync } from './log.js'
 import type { ClarifyBuildOptions } from './options.js'
 import { clarifyPlugin } from './plugin.js'
 import { createClarifyRuntimeAliases } from './runtime-deps.js'
@@ -27,6 +29,41 @@ function ensureHtmlEntry(root: string): string {
   mkdirSync(dirname(generatedHtmlPath), { recursive: true })
   writeFileSync(generatedHtmlPath, DEFAULT_HTML, 'utf-8')
   return generatedHtmlPath
+}
+
+function createClarifyLogger(root: string, env: ConfigEnv, level: LogLevel): Logger | undefined {
+  if (env.command !== 'build') return undefined
+
+  const baseLogger = createLogger(level, { allowClearScreen: true })
+
+  return {
+    info(msg: string, options?: LogOptions) {
+      baseLogger.info(msg, options)
+    },
+    warn(msg: string, options?: LogOptions) {
+      baseLogger.warn(msg, options)
+    },
+    warnOnce(msg: string, options?: LogOptions) {
+      baseLogger.warnOnce(msg, options)
+    },
+    error(msg: string, options?: LogErrorOptions) {
+      baseLogger.error(msg, options)
+      if (options?.error) {
+        logBuildErrorSync(root, options.error)
+      } else {
+        logBuildErrorSync(root, typeof msg === 'string' ? new Error(msg) : msg)
+      }
+    },
+    clearScreen(type: LogType) {
+      baseLogger.clearScreen(type)
+    },
+    hasErrorLogged(error: Error | unknown) {
+      return baseLogger.hasErrorLogged(error as Error)
+    },
+    get hasWarned() {
+      return baseLogger.hasWarned
+    },
+  }
 }
 
 function createHtmlFallbackPlugin(): Plugin {
@@ -72,6 +109,7 @@ export async function createViteConfig(options: ClarifyViteConfigOptions, env: C
     resolve: {
       alias: createClarifyRuntimeAliases(),
     },
+    customLogger: createClarifyLogger(options.root, env, 'info'),
     plugins: [
       clarifyPlugin(buildOptions),
       createHtmlFallbackPlugin(),
