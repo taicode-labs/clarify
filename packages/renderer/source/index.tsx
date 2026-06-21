@@ -20,4 +20,15 @@ import { remToPx } from './utils/remToPx'
 
 export type { ApiEndpointProps, OpenApiEndpointProps, OpenApiPageProps, OpenAPIOperation, OpenAPISpec } from './openapi'
 export type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions, Section }
-export { AppShell, render, OpenApiPage, ApiEndpoint, OpenApiEndpoint, ClarifyConfigContext, OpenApisContext, useClarifyConfig, useOpenApis, BuiltWithClarify, Button, Callout, Card, CardGroup, Code, CodeGroup, DocShell, ApiEndpointCard, Feedback, GridPattern, Heading, HeroPattern, Logo, Markdown, PageFooter, Pre, Prose, Tag, ThemeProvider, ThemeToggle, useTheme, SectionProvider, useSectionStore, remToPx, useMDXComponents, markdownRemarkPlugins }
+
+// App and runtime exports
+export { AppShell, render, ClarifyConfigContext, OpenApisContext, useClarifyConfig, useOpenApis, BuiltWithClarify, PageFooter, ThemeProvider, ThemeToggle, useTheme, SectionProvider, useSectionStore, remToPx }
+
+// Built-in MDX and UI components
+export { Button, Callout, Card, CardGroup, Code, CodeGroup, Pre, Prose, Heading, Logo, GridPattern, HeroPattern, Feedback, Tag }
+
+// MDX integration helpers
+export { DocShell, Markdown, useMDXComponents, markdownRemarkPlugins }
+
+// OpenAPI components
+export { OpenApiPage, ApiEndpoint, OpenApiEndpoint, ApiEndpointCard }

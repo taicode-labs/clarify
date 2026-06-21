@@ -1,6 +1,20 @@
 # Built-in Components
 
-Clarify exposes documentation-oriented components that can be used from MDX.
+Clarify registers a set of documentation components automatically in MDX.
+You do not need to import them manually in `.mdx` content.
+
+---
+
+## Built-in MDX components
+
+The following components are available directly in MDX:
+
+- `Callout`
+- `CardGroup` / `Card`
+- `Button`
+- `CodeGroup`
+- `OpenApiEndpoint`
+- `OpenApiPage`
 
 ---
 
@@ -32,4 +46,14 @@ Embed a complete OpenAPI Reference page in MDX:
 
 ## Custom MDX components
 
-Applications can provide additional MDX components through the renderer integration. Keep public components stable and document their props for authors.
+Applications can provide additional MDX components through the renderer integration. These custom components must be imported explicitly in the MDX file:
+
+```mdx
+import { Alert } from '../components/Alert'
+
+<Alert type="warning">
+  This is a project-specific component.
+</Alert>
+```
+
+Keep the renderer's public components stable and document their props for authors.

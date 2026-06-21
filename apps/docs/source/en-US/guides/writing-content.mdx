@@ -41,6 +41,43 @@ Clarify also supports code blocks, tables, frontmatter, and renderer-provided do
 
 ---
 
+## Built-in MDX components
+
+Clarify provides default MDX components that are available automatically in `.mdx` pages.
+You do not need to import them before use.
+
+- `Callout`
+- `CardGroup` / `Card`
+- `Button`
+- `CodeGroup`
+- `OpenApiEndpoint`
+- `OpenApiPage`
+
+Example:
+
+```mdx
+<Callout type="tip">
+  Use built-in components for structured content and callouts.
+</Callout>
+
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="rocket" href="/getting-started">
+    Install the CLI and create a Clarify docs site.
+  </Card>
+  <Card title="API docs" icon="braces" href="/features/openapi">
+    Embed OpenAPI content directly in MDX.
+  </Card>
+</CardGroup>
+```
+
+For project-specific components, import them explicitly at the top of the MDX file:
+
+```mdx
+import { Alert } from '../components/Alert'
+```
+
+---
+
 ## Recommended structure
 
 ```txt

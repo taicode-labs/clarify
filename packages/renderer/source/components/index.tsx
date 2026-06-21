@@ -1,3 +1,4 @@
+// Built-in UI components available to renderer consumers and MDX pages
 export { Button } from './Button'
 export type { ButtonProps } from './Button'
 export { Callout } from './Callout'

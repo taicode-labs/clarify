@@ -1,6 +1,19 @@
 # 内置公开组件
 
-Clarify 在 MDX 中默认注册了一组公开组件。你不需要手动 `import`，可以直接在 `.mdx` 文件里使用它们来组织首页入口、提示信息、操作按钮和代码示例。
+Clarify 在 MDX 中默认注册了一组公开组件。你无需手动 `import`，可直接在 `.mdx` 文件里使用它们来组织首页入口、提示信息、操作按钮和代码示例。
+
+---
+
+## 自动可用的 MDX 组件
+
+以下组件可直接在 MDX 页面中使用：
+
+- `Callout`
+- `CardGroup` / `Card`
+- `Button`
+- `CodeGroup`
+- `OpenApiEndpoint`
+- `OpenApiPage`
 
 ---
 
@@ -216,3 +229,19 @@ npm install @clarify-labs/cli
 - 与正文强相关的限制、风险和补充说明使用 `Callout`。
 - 引导用户继续阅读或执行操作时使用 `Button`。
 - 多语言、多环境、多包管理器示例使用 `CodeGroup`。
+
+---
+
+## 自定义 MDX 组件
+
+如果你需要项目专属组件，可以在 MDX 文件顶部显式导入：
+
+```mdx
+import { Alert } from '../components/Alert'
+
+<Alert type="warning">
+  这是一个自定义 React 组件示例。
+</Alert>
+```
+
+Clarify 的内置组件会自动在 MDX 中注册；自定义组件需要手动导入。

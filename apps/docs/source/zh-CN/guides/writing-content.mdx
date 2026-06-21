@@ -149,16 +149,14 @@ function greet(name: string): string {
 
 ## 内置组件
 
-Clarify 在 MDX 中默认注册了一组公开组件，不需要手动导入：
+Clarify 在 MDX 中默认注册了一组公开组件，无需手动导入即可直接使用：
 
-| 组件 | 用途 |
-|------|------|
-| `Callout` | 展示提示、注意、警告、危险和成功状态 |
-| `CardGroup` / `Card` | 制作入口卡片、功能矩阵和章节索引 |
-| `Button` | 提供明确行动入口 |
-| `CodeGroup` | 展示多语言、多包管理器或多环境代码示例 |
-| `OpenApiEndpoint` | 在指南中嵌入单个 OpenAPI operation |
-| `OpenApiPage` | 在 MDX 页面中嵌入完整 API Reference |
+- `Callout`
+- `CardGroup` / `Card`
+- `Button`
+- `CodeGroup`
+- `OpenApiEndpoint`
+- `OpenApiPage`
 
 示例：
 
@@ -177,7 +175,13 @@ Clarify 在 MDX 中默认注册了一组公开组件，不需要手动导入：
 </CardGroup>
 ```
 
-完整属性见 [内置公开组件](/reference/built-in-components)。
+完整属性请参考 [内置公开组件](/reference/built-in-components)。
+
+如果你需要项目专属组件，可以通过 MDX `import` 导入本地 React 组件：
+
+```mdx
+import { Alert } from '../components/Alert'
+```
 
 ---
 
