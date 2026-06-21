@@ -10,7 +10,9 @@ function flattenNavigation(nodes: NavigationNode[]): NavigationNode[] {
   return nodes.flatMap((node) => node.children?.length ? flattenNavigation(node.children) : [node])
 }
 
-export function PageNavigation(arg0: { navigation: NavigationNode[]; currentRoute?: RouteItem }) {
+type PageNavigationProps = { navigation: NavigationNode[]; currentRoute?: RouteItem }
+
+export function PageNavigation(arg0: PageNavigationProps) {
   const { navigation, currentRoute } = arg0
   const t = useBuiltInText()
   if (!currentRoute) return null
@@ -31,7 +33,9 @@ export function PageNavigation(arg0: { navigation: NavigationNode[]; currentRout
   )
 }
 
-function PageNavigationLink(arg0: { direction: 'previous' | 'next'; route?: NavigationNode }) {
+type PageNavigationLinkProps = { direction: 'previous' | 'next'; route?: NavigationNode }
+
+function PageNavigationLink(arg0: PageNavigationLinkProps) {
   const { direction, route } = arg0
   const t = useBuiltInText()
   if (!route) return <div className="hidden @3xl:block" />

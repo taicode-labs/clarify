@@ -58,14 +58,16 @@ function getComposedBranches(schema: Record<string, unknown>): SchemaTreeBranch[
   return entries
 }
 
-function getSchemaChildren(arg0: {
+type GetSchemaChildrenArgs = {
   spec: OpenAPISpec
   schema: unknown
   path: string
   required?: string[]
   depth?: number
   seen?: Set<string>
-}): SchemaTreeNode[] {  const {
+}
+
+function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {  const {
   spec,
   schema,
   path,
@@ -179,7 +181,9 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode |
   }
 }
 
-function SchemaNode(arg0: { node: SchemaTreeNode; depth?: number }): ReactNode {  const { node, depth = 0 } = arg0
+type SchemaNodeProps = { node: SchemaTreeNode; depth?: number }
+
+function SchemaNode(arg0: SchemaNodeProps): ReactNode {  const { node, depth = 0 } = arg0
 
   const t = useBuiltInText()
   const [expanded, setExpanded] = useState(depth < 1)
@@ -231,7 +235,9 @@ function SchemaNode(arg0: { node: SchemaTreeNode; depth?: number }): ReactNode {
   )
 }
 
-function SchemaTree(arg0: { nodes: SchemaTreeNode[]; depth?: number }): ReactNode {  const { nodes, depth = 0 } = arg0
+type SchemaTreeProps = { nodes: SchemaTreeNode[]; depth?: number }
+
+function SchemaTree(arg0: SchemaTreeProps): ReactNode {  const { nodes, depth = 0 } = arg0
 
   if (nodes.length === 0) return null
 
@@ -248,7 +254,9 @@ function SchemaTree(arg0: { nodes: SchemaTreeNode[]; depth?: number }): ReactNod
   )
 }
 
-export function SchemaProperties(arg0: { title: string; schema: unknown; spec: OpenAPISpec }): ReactNode {  const { title, schema, spec } = arg0
+type SchemaPropertiesProps = { title: string; schema: unknown; spec: OpenAPISpec }
+
+export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {  const { title, schema, spec } = arg0
 
   const root = getRootSchemaNode(spec, schema)
 
@@ -264,7 +272,9 @@ export function SchemaProperties(arg0: { title: string; schema: unknown; spec: O
   )
 }
 
-export function ParameterList(arg0: { title: string; parameters: OpenApiParameter[] }): ReactNode {  const { title, parameters } = arg0
+type ParameterListProps = { title: string; parameters: OpenApiParameter[] }
+
+export function ParameterList(arg0: ParameterListProps): ReactNode {  const { title, parameters } = arg0
 
   const t = useBuiltInText()
   if (parameters.length === 0) return null
@@ -287,7 +297,9 @@ export function ParameterList(arg0: { title: string; parameters: OpenApiParamete
   )
 }
 
-export function ResponseList(arg0: { operation: OpenAPIOperation; spec?: OpenAPISpec }): ReactNode {  const { operation, spec } = arg0
+type ResponseListProps = { operation: OpenAPIOperation; spec?: OpenAPISpec }
+
+export function ResponseList(arg0: ResponseListProps): ReactNode {  const { operation, spec } = arg0
 
   const t = useBuiltInText()
   const responses = getResponseEntries(operation, spec)

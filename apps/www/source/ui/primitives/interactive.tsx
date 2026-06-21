@@ -1,7 +1,15 @@
 import { Children, cloneElement, isValidElement, useState } from 'react'
 import type { ComponentProps, ReactElement, ReactNode } from 'react'
 
-export function Dialog(arg0: ComponentProps<'div'>) {  const { children, ...props } = arg0
+type DialogProps = ComponentProps<'div'>
+type DisclosureProps = ComponentProps<'div'>
+type CopyableProps = ComponentProps<'span'>
+type TabGroupProps = ComponentProps<'div'>
+type TabContext = { selectedIndex: number; setSelectedIndex: (index: number) => void }
+type TabListProps = ComponentProps<'div'> & { __tabContext?: TabContext }
+type TabPanelsProps = ComponentProps<'div'> & { __tabContext?: Pick<TabContext, 'selectedIndex'> }
+
+export function Dialog(arg0: DialogProps) {  const { children, ...props } = arg0
 
   return <div {...props}>{children}</div>
 }
@@ -10,17 +18,17 @@ export function DialogPanel(props: ComponentProps<'div'>) {
   return <div {...props} />
 }
 
-export function Disclosure(arg0: ComponentProps<'div'>) {  const { hidden: _hidden, ...props } = arg0
+export function Disclosure(arg0: DisclosureProps) {  const { hidden: _hidden, ...props } = arg0
 
   return <div {...props} />
 }
 
-export function Copyable(arg0: ComponentProps<'span'>) {  const { children, ...props } = arg0
+export function Copyable(arg0: CopyableProps) {  const { children, ...props } = arg0
 
   return <span {...props}>{children}</span>
 }
 
-export function TabGroup(arg0: ComponentProps<'div'>) {  const { children, ...props } = arg0
+export function TabGroup(arg0: TabGroupProps) {  const { children, ...props } = arg0
 
   const [selectedIndex, setSelectedIndex] = useState(0)
   const context = { selectedIndex, setSelectedIndex }
@@ -28,7 +36,7 @@ export function TabGroup(arg0: ComponentProps<'div'>) {  const { children, ...pr
   return <div {...props}>{injectTabContext(children, context)}</div>
 }
 
-function injectTabContext(children: ReactNode, context: { selectedIndex: number; setSelectedIndex: (index: number) => void }): ReactNode {
+function injectTabContext(children: ReactNode, context: TabContext): ReactNode {
   return Children.map(children, (child) => {
     if (!isValidElement(child)) {
       return child
@@ -51,7 +59,7 @@ function injectTabContext(children: ReactNode, context: { selectedIndex: number;
   })
 }
 
-export function TabList(arg0: ComponentProps<'div'> & { __tabContext?: { selectedIndex: number; setSelectedIndex: (index: number) => void } }) {  const { children, __tabContext, ...props } = arg0
+export function TabList(arg0: TabListProps) {  const { children, __tabContext, ...props } = arg0
 
   return (
     <div {...props}>
@@ -74,7 +82,7 @@ export function TabList(arg0: ComponentProps<'div'> & { __tabContext?: { selecte
   )
 }
 
-export function TabPanels(arg0: ComponentProps<'div'> & { __tabContext?: { selectedIndex: number } }) {  const { children, __tabContext, ...props } = arg0
+export function TabPanels(arg0: TabPanelsProps) {  const { children, __tabContext, ...props } = arg0
 
   return (
     <div {...props}>

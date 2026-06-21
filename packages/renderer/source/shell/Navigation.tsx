@@ -61,7 +61,9 @@ const sectionBadgeColorStyles: Record<string, string> = {
   TRACE: 'text-fuchsia-500 dark:text-fuchsia-400',
 }
 
-function SectionBadge(arg0: { children: string }) {  const { children } = arg0
+type SectionBadgeProps = { children: string }
+
+function SectionBadge(arg0: SectionBadgeProps) {  const { children } = arg0
 
   return (
     <span
@@ -75,7 +77,7 @@ function SectionBadge(arg0: { children: string }) {  const { children } = arg0
   )
 }
 
-function NavLink(arg0: {
+type NavLinkProps = {
   href: string
   children: React.ReactNode
   badge?: string
@@ -83,7 +85,9 @@ function NavLink(arg0: {
   tags?: string[]
   active?: boolean
   isAnchorLink?: boolean
-}) {  const {
+}
+
+function NavLink(arg0: NavLinkProps) {  const {
   href,
   children,
   badge,
@@ -137,7 +141,9 @@ function NavLink(arg0: {
   )
 }
 
-function VisibleSectionHighlight(arg0: { group: NavGroup; pathname: string }) {  const { group, pathname } = arg0
+type VisibleSectionHighlightProps = { group: NavGroup; pathname: string }
+
+function VisibleSectionHighlight(arg0: VisibleSectionHighlightProps) {  const { group, pathname } = arg0
 
   const [sections, visibleSections] = useInitialValue(
     [useSectionStore((s) => s.sections), useSectionStore((s) => s.visibleSections)],
@@ -165,7 +171,9 @@ function VisibleSectionHighlight(arg0: { group: NavGroup; pathname: string }) { 
   )
 }
 
-function ActivePageMarker(arg0: { group: NavGroup; pathname: string }) {  const { group, pathname } = arg0
+type ActivePageMarkerProps = { group: NavGroup; pathname: string }
+
+function ActivePageMarker(arg0: ActivePageMarkerProps) {  const { group, pathname } = arg0
 
   const itemHeight = remToPx(2)
   const offset = remToPx(0.25)
@@ -184,7 +192,9 @@ function ActivePageMarker(arg0: { group: NavGroup; pathname: string }) {  const 
   )
 }
 
-function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const { group, className } = arg0
+type NavigationGroupProps = { group: NavGroup; className?: string }
+
+function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className } = arg0
 
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const [pathname, sections] = useInitialValue(
@@ -242,7 +252,9 @@ function NavigationGroup(arg0: { group: NavGroup; className?: string }) {  const
   )
 }
 
-export function Navigation(arg0: { navigation: NavigationNode[]; className?: string }) {  const { navigation, className } = arg0
+export type NavigationProps = { navigation: NavigationNode[]; className?: string }
+
+export function Navigation(arg0: NavigationProps) {  const { navigation, className } = arg0
 
   const t = useBuiltInText()
   const groups = navigationToGroups(navigation, t('navigation.documentation'))

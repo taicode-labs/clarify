@@ -17,7 +17,9 @@ const markdownComponents: Components = {
   },
 }
 
-export function Markdown(arg0: { children?: string; className?: string }): ReactNode {
+type MarkdownProps = { children?: string; className?: string }
+
+export function Markdown(arg0: MarkdownProps): ReactNode {
   const { children, className } = arg0
 
   if (!children) return null

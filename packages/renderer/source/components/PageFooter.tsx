@@ -19,7 +19,9 @@ function localeForPath(config: ClarifyConfig, pathname: string): string | undefi
   return i18n.locales.find((locale) => locale.code === firstSegment)?.code ?? i18n.defaultLocale
 }
 
-function FooterLink(arg0: { link: ClarifyNavbarLink; locale?: string; config: ClarifyConfig }) {
+type FooterLinkProps = { link: ClarifyNavbarLink; locale?: string; config: ClarifyConfig }
+
+function FooterLink(arg0: FooterLinkProps) {
   const { link, locale, config } = arg0
   const external = link.external ?? isExternalHref(link.href)
   const href = external ? link.href : localizeHref(link.href, config, locale)
@@ -41,7 +43,9 @@ function FooterLink(arg0: { link: ClarifyNavbarLink; locale?: string; config: Cl
   )
 }
 
-function SocialLink(arg0: { name: string; href: string }) {
+type SocialLinkProps = { name: string; href: string }
+
+function SocialLink(arg0: SocialLinkProps) {
   const { name, href } = arg0
 
   return (

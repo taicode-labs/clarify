@@ -3,11 +3,18 @@ import type { ComponentProps, ReactNode } from 'react'
 
 import { Section } from '../elements/section'
 
-export function Feature(arg0: {
+type FeatureProps = {
   icon?: ReactNode
   headline: ReactNode
   subheadline: ReactNode
-} & ComponentProps<'div'>) {  const {
+} & ComponentProps<'div'>
+
+type FeaturesThreeColumnProps = {
+  demo?: ReactNode
+  features: ReactNode
+} & Omit<ComponentProps<typeof Section>, 'children'>
+
+export function Feature(arg0: FeatureProps) {  const {
   icon,
   headline,
   subheadline,
@@ -26,10 +33,7 @@ export function Feature(arg0: {
   )
 }
 
-export function FeaturesThreeColumn(arg0: {
-  demo?: ReactNode
-  features: ReactNode
-} & Omit<ComponentProps<typeof Section>, 'children'>) {  const {
+export function FeaturesThreeColumn(arg0: FeaturesThreeColumnProps) {  const {
   features,
   ...props
 } = arg0

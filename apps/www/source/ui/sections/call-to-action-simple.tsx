@@ -6,12 +6,14 @@ import { Eyebrow } from '../elements/eyebrow'
 import { Subheading } from '../elements/subheading'
 import { Text } from '../elements/text'
 
-export function CallToActionSimple(arg0: {
+type CallToActionSimpleProps = {
   eyebrow?: ReactNode
   headline: ReactNode
   subheadline?: ReactNode
   cta?: ReactNode
-} & ComponentProps<'section'>) {  const {
+} & ComponentProps<'section'>
+
+export function CallToActionSimple(arg0: CallToActionSimpleProps) {  const {
   eyebrow,
   headline,
   subheadline,

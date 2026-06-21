@@ -4,36 +4,16 @@ import { slug } from 'github-slugger'
 import { CheckIcon, ChevronDownIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
-import { Heading, Prose } from '../components'
+import { Heading } from '../components'
 import { useBuiltInText } from '../i18n'
-import { Markdown } from '../mdx/Markdown'
 import { Col, Row } from '../mdx/primitives'
 
 import { authLabel, authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServerLabel, getServers, RequestExamplesPanel, ResponseExamplesPanel } from './example-panels'
 import type { AuthOption } from './example-panels'
 import { getMediaTypeEntries, getOperationParameters, getRequestBody } from './helpers'
 import { SchemaProperties, ParameterList, ResponseList } from './schema-properties'
-import { useOpenApiSpec } from './spec-path'
 import type { OpenApiParameter, MediaTypeEntry, OpenApiServer, OpenApiServerVariable, RequestAuthInput } from './types'
-import { getOpenApiOperation, listOpenApiOperations } from './utils'
 import type { OpenAPIOperation, OpenAPISpec } from './utils'
-
-export type OpenApiPageProps = {
-  spec?: OpenAPISpec
-  specPath?: string
-}
-
-export type ApiEndpointProps = {
-  spec: OpenAPISpec
-  path: string
-  method: string
-}
-
-export type OpenApiEndpointProps = {
-  specPath: string
-  path: string
-  method: string
-}
 
 export type OpenApiOperationProps = {
   spec: OpenAPISpec
@@ -42,7 +22,7 @@ export type OpenApiOperationProps = {
   operation: OpenAPIOperation
 }
 
-function EndpointExamples(arg0: {
+type EndpointExamplesProps = {
   spec: OpenAPISpec
   path: string
   method: string
@@ -54,7 +34,9 @@ function EndpointExamples(arg0: {
   selectedServer: OpenApiServer
   serverVariables: Record<string, string>
   auth?: RequestAuthInput
-}): ReactNode {
+}
+
+function EndpointExamples(arg0: EndpointExamplesProps): ReactNode {
   const {
     spec,
     path,
@@ -88,22 +70,6 @@ function EndpointExamples(arg0: {
   )
 }
 
-function OpenApiHeader(arg0: { spec: OpenAPISpec }): ReactNode {
-  const { spec } = arg0
-
-  const t = useBuiltInText()
-  return (
-    <header className="mb-16">
-      <p className="mb-3 text-xs/6 font-medium tracking-widest text-emerald-500 uppercase dark:text-emerald-400">
-        {t('openapi.openApiReference')}
-      </p>
-      <h1>{spec.info?.title ?? t('openapi.apiDocumentation')}</h1>
-      {spec.info?.description ? <Markdown className="lead *:first:mt-0 *:last:mb-0">{spec.info.description}</Markdown> : null}
-      {spec.info?.version ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{t('openapi.version', { version: spec.info.version })}</p> : null}
-    </header>
-  )
-}
-
 const endpointMethodStyles: Record<string, string> = {
   GET: 'bg-emerald-400/15 text-emerald-600 dark:bg-emerald-400/20 dark:text-emerald-300',
   POST: 'bg-sky-400/15 text-sky-600 dark:bg-sky-400/20 dark:text-sky-300',
@@ -112,7 +78,9 @@ const endpointMethodStyles: Record<string, string> = {
   DELETE: 'bg-rose-400/15 text-rose-600 dark:bg-rose-400/20 dark:text-rose-300',
 }
 
-function EndpointMethodBadge(arg0: { method: string }): ReactNode {
+type EndpointMethodBadgeProps = { method: string }
+
+function EndpointMethodBadge(arg0: EndpointMethodBadgeProps): ReactNode {
   const { method } = arg0
 
   return (
@@ -133,13 +101,15 @@ type UiOption = {
   description?: string
 }
 
-function InlineListbox(arg0: {
+type InlineListboxProps = {
   label: string
   value: string
   options: UiOption[]
   onChange: (value: string) => void
   compact?: boolean
-}): ReactNode {
+}
+
+function InlineListbox(arg0: InlineListboxProps): ReactNode {
   const { label, value, options, onChange, compact = false } = arg0
 
   const selected = options.find((option) => option.value === value) ?? options[0]
@@ -177,12 +147,14 @@ function getServerPreviewUrl(server: OpenApiServer, variables: Record<string, st
   return (server.url ?? '').replace(/\{([^}]+)\}/g, (_, name: string) => variables[name] ?? server.variables?.[name]?.default ?? `{${name}}`)
 }
 
-function ServerUrlValue(arg0: {
+type ServerUrlValueProps = {
   server: OpenApiServer
   variables: Record<string, string>
   open: boolean
   onToggle: () => void
-}): ReactNode {
+}
+
+function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
   const { server, variables, open, onToggle } = arg0
 
   const url = getServerPreviewUrl(server, variables)
@@ -207,13 +179,15 @@ function ServerUrlValue(arg0: {
   )
 }
 
-function ServerVariableControl(arg0: {
+type ServerVariableControlProps = {
   name: string
   variable?: OpenApiServerVariable
   value: string
   onChange: (value: string) => void
   compact?: boolean
-}): ReactNode {
+}
+
+function ServerVariableControl(arg0: ServerVariableControlProps): ReactNode {
   const { name, variable, value, onChange, compact = false } = arg0
 
   if (variable?.enum?.length) {
@@ -242,14 +216,16 @@ function ServerVariableControl(arg0: {
   )
 }
 
-function ServerPanel(arg0: {
+type ServerPanelProps = {
   servers: OpenApiServer[]
   selectedKey: string
   selectedServer: OpenApiServer
   variables: Record<string, string>
   onSelectServer: (key: string) => void
   onChangeVariable: (name: string, value: string) => void
-}): ReactNode {
+}
+
+function ServerPanel(arg0: ServerPanelProps): ReactNode {
   const { servers, selectedKey, selectedServer, variables, onSelectServer, onChangeVariable } = arg0
 
   const variableEntries = Object.entries(selectedServer.variables ?? {})
@@ -288,14 +264,16 @@ function ServerPanel(arg0: {
   )
 }
 
-function AuthPanel(arg0: {
+type AuthPanelProps = {
   authOptions: AuthOption[]
   selectedAuthName: string
   selectedAuth?: AuthOption
   authValues: Record<string, string>
   onSelectAuth: (name: string) => void
   onChangeAuthValue: (name: string, value: string) => void
-}): ReactNode {
+}
+
+function AuthPanel(arg0: AuthPanelProps): ReactNode {
   const { authOptions, selectedAuthName, selectedAuth, authValues, onSelectAuth, onChangeAuthValue } = arg0
 
   if (authOptions.length === 0) return null
@@ -336,7 +314,7 @@ function AuthPanel(arg0: {
   )
 }
 
-export function EndpointIdentity(arg0: {
+type EndpointIdentityProps = {
   method: string
   path: string
   servers: OpenApiServer[]
@@ -355,7 +333,9 @@ export function EndpointIdentity(arg0: {
   onToggleAuth: () => void
   onSelectAuth: (name: string) => void
   onChangeAuthValue: (name: string, value: string) => void
-}): ReactNode {
+}
+
+export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
   const {
     method,
     path,
@@ -543,76 +523,4 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
       </Row>
     </section>
   )
-}
-
-function OpenApiPaths(arg0: { spec: OpenAPISpec }): ReactNode {
-  const { spec } = arg0
-
-  const entries = listOpenApiOperations(spec).map(({ path, method, operation }) => ({
-    path,
-    method: method.toUpperCase(),
-    operation,
-  }))
-
-  return (
-    <div className="clarify-api-endpoints divide-y divide-zinc-200/70 dark:divide-white/10">
-      {entries.map(({ path, method, operation }) => (
-        <OpenApiOperation key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} />
-      ))}
-    </div>
-  )
-}
-
-function WarningBox(arg0: { children: ReactNode; tone?: 'amber' | 'red' }): ReactNode {
-  const { children, tone = 'amber' } = arg0
-
-  const classes = tone === 'red'
-    ? 'rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200'
-    : 'rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200'
-
-  return <div className={clsx('clarify-warning', classes)}>{children}</div>
-}
-
-export function OpenApiPage(arg0: OpenApiPageProps): ReactNode {
-  const { spec, specPath } = arg0
-  const t = useBuiltInText()
-  const resolved = useOpenApiSpec(spec, specPath)
-
-  if (!resolved) {
-    return <WarningBox>{t('openapi.specNotFound', { specPath: specPath ?? t('openapi.specPathMissing') })}</WarningBox>
-  }
-
-  return (
-    <article className="clarify-openapi-page flex h-full flex-col pt-16 pb-10">
-      <Prose className="flex-auto">
-        <OpenApiHeader spec={resolved} />
-        <OpenApiPaths spec={resolved} />
-      </Prose>
-    </article>
-  )
-}
-
-export function ApiEndpoint(arg0: ApiEndpointProps): ReactNode {
-  const { spec, path, method } = arg0
-  const t = useBuiltInText()
-  const op = getOpenApiOperation(spec, path, method)
-
-  if (!op) {
-    return <WarningBox tone="red">{t('openapi.endpointNotFound', { endpoint: `${method.toUpperCase()} ${path}` })}</WarningBox>
-  }
-
-  const normalizedMethod = method.toUpperCase()
-  return <OpenApiOperation key={`${normalizedMethod}-${path}`} spec={spec} path={path} method={normalizedMethod} operation={op} />
-}
-
-export function OpenApiEndpoint(arg0: OpenApiEndpointProps): ReactNode {
-  const { specPath, path, method } = arg0
-  const t = useBuiltInText()
-  const spec = useOpenApiSpec(undefined, specPath)
-
-  if (!spec) {
-    return <WarningBox>{t('openapi.specNotFound', { specPath })}</WarningBox>
-  }
-
-  return <ApiEndpoint spec={spec} path={path} method={method} />
 }

@@ -1,16 +1,17 @@
-
 import { clsx } from 'clsx/lite'
 import type { ComponentProps, ReactNode } from 'react'
 
 import { ChevronIcon } from '../icons/chevron-icon'
 import Link from '../primitives/router-link'
 
-export function AnnouncementBadge(arg0: {
+type AnnouncementBadgeProps = {
   text: ReactNode
   href: string
   cta?: ReactNode
   variant?: 'normal' | 'overlay'
-} & Omit<ComponentProps<'a'>, 'href' | 'children'>) {
+} & Omit<ComponentProps<'a'>, 'href' | 'children'>
+
+export function AnnouncementBadge(arg0: AnnouncementBadgeProps) {
   const {
     text,
     href,

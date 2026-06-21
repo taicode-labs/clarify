@@ -113,10 +113,12 @@ const SectionStoreContext = createContext<StoreApi<SectionState> | null>(null)
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
-export function SectionProvider(arg0: {
+type SectionProviderProps = {
   sections: Section[]
   children: ReactNode
-}) {  const {
+}
+
+export function SectionProvider(arg0: SectionProviderProps) {  const {
   sections,
   children,
 } = arg0

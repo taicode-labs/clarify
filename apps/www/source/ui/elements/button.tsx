@@ -23,10 +23,38 @@ const plainButtonStyles = {
 const softButtonStyles =
   'inline-flex shrink-0 items-center justify-center gap-1 rounded-full bg-(--clarify-ui-hover-background) text-sm/7 font-medium text-(--clarify-ui-text-strong) transition hover:bg-(--clarify-ui-active-background)'
 
-export function Button(arg0: {
+type ButtonProps = {
   size?: keyof typeof sizes
   color?: 'dark/light' | 'light'
-} & ComponentProps<'button'>) {
+} & ComponentProps<'button'>
+
+type ButtonLinkProps = {
+  href: string
+  size?: keyof typeof sizes
+  color?: 'dark/light' | 'light'
+} & Omit<ComponentProps<'a'>, 'href'>
+
+type SoftButtonProps = {
+  size?: keyof typeof sizes
+} & ComponentProps<'button'>
+
+type SoftButtonLinkProps = {
+  href: string
+  size?: keyof typeof sizes
+} & Omit<ComponentProps<'a'>, 'href'>
+
+type PlainButtonProps = {
+  size?: keyof typeof sizes
+  color?: 'dark/light' | 'light'
+} & ComponentProps<'button'>
+
+type PlainButtonLinkProps = {
+  href: string
+  size?: keyof typeof sizes
+  color?: 'dark/light' | 'light'
+} & Omit<ComponentProps<'a'>, 'href'>
+
+export function Button(arg0: ButtonProps) {
   const {
     size = 'md',
     type = 'button',
@@ -49,11 +77,7 @@ export function Button(arg0: {
   )
 }
 
-export function ButtonLink(arg0: {
-  href: string
-  size?: keyof typeof sizes
-  color?: 'dark/light' | 'light'
-} & Omit<ComponentProps<'a'>, 'href'>) {
+export function ButtonLink(arg0: ButtonLinkProps) {
   const {
     size = 'md',
     color = 'dark/light',
@@ -76,9 +100,7 @@ export function ButtonLink(arg0: {
   )
 }
 
-export function SoftButton(arg0: {
-  size?: keyof typeof sizes
-} & ComponentProps<'button'>) {
+export function SoftButton(arg0: SoftButtonProps) {
   const {
     size = 'md',
     type = 'button',
@@ -89,10 +111,7 @@ export function SoftButton(arg0: {
   return <button type={type} className={clsx(softButtonStyles, sizes[size], className)} {...props} />
 }
 
-export function SoftButtonLink(arg0: {
-  href: string
-  size?: keyof typeof sizes
-} & Omit<ComponentProps<'a'>, 'href'>) {
+export function SoftButtonLink(arg0: SoftButtonLinkProps) {
   const {
     size = 'md',
     href,
@@ -103,10 +122,7 @@ export function SoftButtonLink(arg0: {
   return <Link href={href} className={clsx(softButtonStyles, sizes[size], className)} {...props} />
 }
 
-export function PlainButton(arg0: {
-  size?: keyof typeof sizes
-  color?: 'dark/light' | 'light'
-} & ComponentProps<'button'>) {
+export function PlainButton(arg0: PlainButtonProps) {
   const {
     size = 'md',
     color = 'dark/light',
@@ -129,11 +145,7 @@ export function PlainButton(arg0: {
   )
 }
 
-export function PlainButtonLink(arg0: {
-  href: string
-  size?: keyof typeof sizes
-  color?: 'dark/light' | 'light'
-} & Omit<ComponentProps<'a'>, 'href'>) {
+export function PlainButtonLink(arg0: PlainButtonLinkProps) {
   const {
     size = 'md',
     color = 'dark/light',

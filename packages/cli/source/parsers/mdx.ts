@@ -19,6 +19,10 @@ type HastParent = HastNode & {
   children: HastNode[]
 }
 
+type ShikiRenderElementArgs = {
+  children: string
+}
+
 function getLanguage(className: unknown): string {
   const classes = Array.isArray(className) ? className : typeof className === 'string' ? className.split(/\s+/) : []
   const languageClass = classes.find((item): item is string => typeof item === 'string' && item.startsWith('language-'))
@@ -83,9 +87,9 @@ export function rehypeShiki() {
           const tokens = shikiHighlighter.codeToThemedTokens(code, language)
           highlighted = shiki.renderToHtml(tokens, {
             elements: {
-              pre: ({ children }: { children: string }) => children,
-              code: ({ children }: { children: string }) => children,
-              line: ({ children }: { children: string }) => `<span>${children}</span>`,
+              pre: ({ children }: ShikiRenderElementArgs) => children,
+              code: ({ children }: ShikiRenderElementArgs) => children,
+              line: ({ children }: ShikiRenderElementArgs) => `<span>${children}</span>`,
             },
           })
         } catch {

@@ -39,7 +39,9 @@ function isActiveTab(tab: NavigationTab, pathname: string): boolean {
   return isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname)
 }
 
-function MobileTabsSelect(arg0: { tabs?: NavigationTab[] }) {
+type MobileTabsSelectProps = { tabs?: NavigationTab[] }
+
+function MobileTabsSelect(arg0: MobileTabsSelectProps) {
   const { tabs } = arg0
   const pathname = normalizeRoutePath(useLocation().pathname)
   const { close } = useMobileNavigationStore()
@@ -91,7 +93,7 @@ function MobileTabsSelect(arg0: { tabs?: NavigationTab[] }) {
   )
 }
 
-function MobileNavigationDialog(arg0: {
+type MobileNavigationDialogProps = {
   config: ClarifyConfig
   isOpen: boolean
   navigation: NavigationNode[]
@@ -100,7 +102,9 @@ function MobileNavigationDialog(arg0: {
   currentLocale?: string
   currentRoute?: RouteItem
   close: () => void
-}) {  const {
+}
+
+function MobileNavigationDialog(arg0: MobileNavigationDialogProps) {  const {
   config,
   isOpen,
   navigation,
@@ -161,14 +165,16 @@ export const useMobileNavigationStore = create<{
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
 }))
 
-export function MobileNavigation(arg0: {
+export type MobileNavigationProps = {
   config: ClarifyConfig
   navigation: NavigationNode[]
   tabs?: NavigationTab[]
   routes: RouteItem[]
   currentLocale?: string
   currentRoute?: RouteItem
-}) {  const {
+}
+
+export function MobileNavigation(arg0: MobileNavigationProps) {  const {
   config,
   navigation,
   tabs,

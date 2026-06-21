@@ -171,10 +171,12 @@ export function Logo(props: ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-export function Prose<T extends ElementType = 'div'>(arg0: Omit<ComponentPropsWithoutRef<T>, 'as' | 'className'> & {
+type ProseProps<T extends ElementType = 'div'> = Omit<ComponentPropsWithoutRef<T>, 'as' | 'className'> & {
   as?: T
   className?: string
-}) {  const {
+}
+
+export function Prose<T extends ElementType = 'div'>(arg0: ProseProps<T>) {  const {
   as,
   className,
   ...props
@@ -202,7 +204,9 @@ function AnchorIcon(props: ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-function Eyebrow(arg0: { tag?: string; label?: string }) {  const { tag, label } = arg0
+type EyebrowProps = { tag?: string; label?: string }
+
+function Eyebrow(arg0: EyebrowProps) {  const { tag, label } = arg0
 
   if (!tag && !label) {
     return null
@@ -217,7 +221,9 @@ function Eyebrow(arg0: { tag?: string; label?: string }) {  const { tag, label }
   )
 }
 
-function Anchor(arg0: { id: string; inView: boolean; children: ReactNode }) {  const { id, inView, children } = arg0
+type AnchorProps = { id: string; inView: boolean; children: ReactNode }
+
+function Anchor(arg0: AnchorProps) {  const { id, inView, children } = arg0
 
   return (
     <a href={`#${id}`} className="clarify-anchor group text-inherit no-underline hover:text-inherit">
@@ -233,13 +239,15 @@ function Anchor(arg0: { id: string; inView: boolean; children: ReactNode }) {  c
   )
 }
 
-export function Heading<Level extends 2 | 3>(arg0: ComponentPropsWithoutRef<`h${Level}`> & {
+type HeadingProps<Level extends 2 | 3> = ComponentPropsWithoutRef<`h${Level}`> & {
   id: string
   tag?: string
   label?: string
   level?: Level
   anchor?: boolean
-}) {  const {
+}
+
+export function Heading<Level extends 2 | 3>(arg0: HeadingProps<Level>) {  const {
   children,
   className,
   tag,

@@ -7,7 +7,7 @@ import { Text } from '../elements/text'
 import { CheckmarkIcon } from '../icons/checkmark-icon'
 import { TabGroup, TabList, TabPanels } from '../primitives/interactive'
 
-export function Plan(arg0: {
+type PlanProps = {
   name: ReactNode
   price: ReactNode
   period?: ReactNode
@@ -15,7 +15,18 @@ export function Plan(arg0: {
   badge?: ReactNode
   features: ReactNode[]
   cta: ReactNode
-} & ComponentProps<'div'>) {  const {
+} & ComponentProps<'div'>
+
+type PricingHeroMultiTierProps<T extends string> = {
+  eyebrow?: ReactNode
+  headline: ReactNode
+  subheadline: ReactNode
+  options: readonly T[]
+  plans: Record<T, ReactNode>
+  footer?: ReactNode
+} & ComponentProps<'section'>
+
+export function Plan(arg0: PlanProps) {  const {
   name,
   price,
   period,
@@ -62,14 +73,7 @@ export function Plan(arg0: {
   )
 }
 
-export function PricingHeroMultiTier<T extends string>(arg0: {
-  eyebrow?: ReactNode
-  headline: ReactNode
-  subheadline: ReactNode
-  options: readonly T[]
-  plans: Record<T, ReactNode>
-  footer?: ReactNode
-} & ComponentProps<'section'>) {  const {
+export function PricingHeroMultiTier<T extends string>(arg0: PricingHeroMultiTierProps<T>) {  const {
   eyebrow,
   headline,
   subheadline,

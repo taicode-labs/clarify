@@ -1,6 +1,10 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps } from 'react'
 
+type WallpaperProps = {
+  color: 'green' | 'blue' | 'purple' | 'brown'
+} & ComponentProps<'div'>
+
 const html = String.raw
 
 const noisePattern = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(
@@ -27,7 +31,7 @@ const noisePattern = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent
   `.replace(/\s+/g, ' '),
 )}")`
 
-export function Wallpaper(arg0: { color: 'green' | 'blue' | 'purple' | 'brown' } & ComponentProps<'div'>) {
+export function Wallpaper(arg0: WallpaperProps) {
   const {
     children,
     color,

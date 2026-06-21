@@ -24,14 +24,16 @@ type SelectOption = {
   label: string
 }
 
-function SelectControl(arg0: {
+type SelectControlProps = {
   label: string
   value: string
   options: Array<string | SelectOption>
   onChange: (value: string) => void
   icon?: ReactNode
   compact?: boolean
-}): ReactNode {
+}
+
+function SelectControl(arg0: SelectControlProps): ReactNode {
   const {
     label,
     value,
@@ -153,7 +155,9 @@ export function getAuthOptions(spec: OpenAPISpec, operation: OpenAPIOperation): 
     .filter((option): option is AuthOption => Boolean(option.scheme))
 }
 
-export function authPlaceholder(auth?: { scheme: OpenApiSecurityScheme }): string {
+type AuthPlaceholderArg = { scheme: OpenApiSecurityScheme }
+
+export function authPlaceholder(auth?: AuthPlaceholderArg): string {
   if (!auth) return ''
   if (auth.scheme.type === 'apiKey') return '{api_key}'
   if (auth.scheme.type === 'http' && auth.scheme.scheme?.toLowerCase() === 'basic') return '{base64_credentials}'
@@ -165,7 +169,9 @@ export function authLabel(name: string, scheme: OpenApiSecurityScheme): string {
   return `${name}${location}`
 }
 
-function CopyCodeButton(arg0: { code: string }): ReactNode {
+type CopyCodeButtonProps = { code: string }
+
+function CopyCodeButton(arg0: CopyCodeButtonProps): ReactNode {
   const { code } = arg0
 
   const t = useBuiltInText()
@@ -193,13 +199,15 @@ function CopyCodeButton(arg0: { code: string }): ReactNode {
   )
 }
 
-function ExampleMetaValue(arg0: {
+type ExampleMetaValueProps = {
   label: string
   value: string
   options?: string[]
   onChange?: (value: string) => void
   className: string
-}): ReactNode {
+}
+
+function ExampleMetaValue(arg0: ExampleMetaValueProps): ReactNode {
   const { label, value, options, onChange, className } = arg0
 
   if (options && options.length > 1 && onChange) {
@@ -209,7 +217,7 @@ function ExampleMetaValue(arg0: {
   return <span className={className}>{value}</span>
 }
 
-function CodeToolbar(arg0: {
+type CodeToolbarProps = {
   code: string
   languageOptions?: SelectOption[]
   selectedLanguageKey?: string
@@ -217,7 +225,9 @@ function CodeToolbar(arg0: {
   clientOptions?: SelectOption[]
   selectedClientKey?: string
   onSelectClient?: (key: string) => void
-}): ReactNode {
+}
+
+function CodeToolbar(arg0: CodeToolbarProps): ReactNode {
   const {
     code,
     languageOptions,
@@ -257,7 +267,7 @@ function CodeToolbar(arg0: {
   )
 }
 
-function ApiExampleCodeGroup(arg0: {
+type ApiExampleCodeGroupProps = {
   title: string
   tag?: string
   tagOptions?: string[]
@@ -280,7 +290,9 @@ function ApiExampleCodeGroup(arg0: {
   clientOptions?: SelectOption[]
   selectedClientKey?: string
   onSelectClient?: (key: string) => void
-}): ReactNode {
+}
+
+function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
   const {
     title,
     tag,
@@ -379,7 +391,7 @@ function ApiExampleCodeGroup(arg0: {
   )
 }
 
-export function RequestExamplesPanel(arg0: {
+type RequestExamplesPanelProps = {
   spec: OpenAPISpec
   path: string
   method: string
@@ -390,7 +402,9 @@ export function RequestExamplesPanel(arg0: {
   selectedServer: OpenApiServer
   serverVariables: Record<string, string>
   auth?: RequestAuthInput
-}): ReactNode {
+}
+
+export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode {
   const {
     spec,
     path,
@@ -459,7 +473,9 @@ export function RequestExamplesPanel(arg0: {
   )
 }
 
-export function ResponseExamplesPanel(arg0: { operation: OpenAPIOperation; spec?: OpenAPISpec }): ReactNode {
+type ResponseExamplesPanelProps = { operation: OpenAPIOperation; spec?: OpenAPISpec }
+
+export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNode {
   const { operation, spec } = arg0
 
   const t = useBuiltInText()

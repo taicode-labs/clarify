@@ -3,10 +3,12 @@ import type { ComponentProps } from 'react'
 
 import { Wallpaper } from './wallpaper'
 
-export function Screenshot(arg0: {
+type ScreenshotProps = {
   wallpaper: 'green' | 'blue' | 'purple' | 'brown'
   placement: 'bottom' | 'bottom-left' | 'bottom-right' | 'top' | 'top-left' | 'top-right'
-} & Omit<ComponentProps<'div'>, 'color'>) {  const {
+} & Omit<ComponentProps<'div'>, 'color'>
+
+export function Screenshot(arg0: ScreenshotProps) {  const {
   children,
   wallpaper,
   placement,

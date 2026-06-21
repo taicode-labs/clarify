@@ -6,12 +6,14 @@ import { Eyebrow } from './eyebrow'
 import { Subheading } from './subheading'
 import { Text } from './text'
 
-export function Section(arg0: {
+type SectionProps = {
   eyebrow?: ReactNode
   headline?: ReactNode
   subheadline?: ReactNode
   cta?: ReactNode
-} & ComponentProps<'section'>) {  const {
+} & ComponentProps<'section'>
+
+export function Section(arg0: SectionProps) {  const {
   eyebrow,
   headline,
   subheadline,

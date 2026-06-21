@@ -8,7 +8,14 @@ import { MinusIcon } from '../icons/minus-icon'
 import { PlusIcon } from '../icons/plus-icon'
 import { Disclosure } from '../primitives/interactive'
 
-export function Faq(arg0: { question: ReactNode; answer: ReactNode } & ComponentProps<'div'>) {
+type FaqProps = { question: ReactNode; answer: ReactNode } & ComponentProps<'div'>
+
+type FAQsTwoColumnAccordionProps = {
+  headline?: ReactNode
+  subheadline?: ReactNode
+} & ComponentProps<'section'>
+
+export function Faq(arg0: FaqProps) {
   const { id: providedId, question, answer, ...props } = arg0
   const autoId = useId()
   const id = providedId || autoId
@@ -37,10 +44,7 @@ export function Faq(arg0: { question: ReactNode; answer: ReactNode } & Component
   )
 }
 
-export function FAQsTwoColumnAccordion(arg0: {
-  headline?: ReactNode
-  subheadline?: ReactNode
-} & ComponentProps<'section'>) {
+export function FAQsTwoColumnAccordion(arg0: FAQsTwoColumnAccordionProps) {
   const { headline, subheadline, className, children, ...props } = arg0
 
   return (

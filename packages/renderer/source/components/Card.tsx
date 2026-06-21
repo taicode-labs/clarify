@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom'
 
 import { lucideIconRegistry, resolveLucideIconName } from '../utils/lucide'
 
-function CardIcon(arg0: { name?: string }) {
+type CardIconProps = { name?: string }
+
+function CardIcon(arg0: CardIconProps) {
   const { name } = arg0
 
   if (!name) return null

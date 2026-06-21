@@ -1,12 +1,17 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps } from 'react'
 
-export function Heading(arg0: { color?: 'dark/light' | 'light' } & ComponentProps<'h1'>) {  const {
-  children,
-  color = 'dark/light',
-  className,
-  ...props
-} = arg0
+type HeadingProps = {
+  color?: 'dark/light' | 'light'
+} & ComponentProps<'h1'>
+
+export function Heading(arg0: HeadingProps) {
+  const {
+    children,
+    color = 'dark/light',
+    className,
+    ...props
+  } = arg0
 
   return (
     <h1

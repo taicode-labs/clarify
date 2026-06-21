@@ -33,7 +33,9 @@ const languageNames: Record<string, string> = {
   json: 'JSON',
 }
 
-function getPanelTitle(arg0: { title?: string; language?: string; fallbackTitle?: string }) {  const { title, language, fallbackTitle = 'Code' } = arg0
+type GetPanelTitleArgs = { title?: string; language?: string; fallbackTitle?: string }
+
+function getPanelTitle(arg0: GetPanelTitleArgs) {  const { title, language, fallbackTitle = 'Code' } = arg0
 
   if (title) return title
   if (language && language in languageNames) return languageNames[language]
@@ -63,7 +65,9 @@ function ClipboardIcon(props: ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-function CopyButton(arg0: { code: string }) {  const { code } = arg0
+type CopyButtonProps = { code: string }
+
+function CopyButton(arg0: CopyButtonProps) {  const { code } = arg0
 
   const t = useBuiltInText()
   const [copyCount, setCopyCount] = useState(0)
@@ -115,7 +119,9 @@ function CopyButton(arg0: { code: string }) {  const { code } = arg0
   )
 }
 
-function CodePanelHeader(arg0: { tag?: string; label?: string }) {  const { tag, label } = arg0
+type CodePanelHeaderProps = { tag?: string; label?: string }
+
+function CodePanelHeader(arg0: CodePanelHeaderProps) {  const { tag, label } = arg0
 
   if (!tag && !label) return null
 
@@ -128,12 +134,14 @@ function CodePanelHeader(arg0: { tag?: string; label?: string }) {  const { tag,
   )
 }
 
-function CodePanel(arg0: {
+type CodePanelProps = {
   children: ReactNode
   tag?: string
   label?: string
   code?: string
-}) {
+}
+
+function CodePanel(arg0: CodePanelProps) {
   const { children } = arg0
   let { tag, label, code } = arg0
 
@@ -159,7 +167,9 @@ function CodePanel(arg0: {
   )
 }
 
-function CodeGroupHeader(arg0: { title?: string; children: ReactNode; selectedIndex: number }) {  const { title, children, selectedIndex } = arg0
+type CodeGroupHeaderProps = { title?: string; children: ReactNode; selectedIndex: number }
+
+function CodeGroupHeader(arg0: CodeGroupHeaderProps) {  const { title, children, selectedIndex } = arg0
 
   const t = useBuiltInText()
   const hasTabs = Children.count(children) > 1
@@ -189,7 +199,9 @@ function CodeGroupHeader(arg0: { title?: string; children: ReactNode; selectedIn
   )
 }
 
-function CodeGroupPanels(arg0: ComponentPropsWithoutRef<typeof CodePanel>) {  const { children, ...props } = arg0
+type CodeGroupPanelsProps = ComponentPropsWithoutRef<typeof CodePanel>
+
+function CodeGroupPanels(arg0: CodeGroupPanelsProps) {  const { children, ...props } = arg0
 
   const hasTabs = Children.count(children) > 1
 
@@ -270,7 +282,9 @@ function useTabGroupProps(availableLanguages: string[]) {
 
 const CodeGroupContext = createContext(false)
 
-export function CodeGroup(arg0: ComponentPropsWithoutRef<typeof CodeGroupPanels> & { title?: string }) {  const {
+type CodeGroupProps = ComponentPropsWithoutRef<typeof CodeGroupPanels> & { title?: string }
+
+export function CodeGroup(arg0: CodeGroupProps) {  const {
   children,
   title,
   ...props
@@ -312,7 +326,9 @@ export function CodeGroup(arg0: ComponentPropsWithoutRef<typeof CodeGroupPanels>
   )
 }
 
-export function Code(arg0: ComponentPropsWithoutRef<'code'> & { code?: string; language?: string; title?: string }) {  const { children, ...props } = arg0
+type CodeProps = ComponentPropsWithoutRef<'code'> & { code?: string; language?: string; title?: string }
+
+export function Code(arg0: CodeProps) {  const { children, ...props } = arg0
 
   const isGrouped = useContext(CodeGroupContext)
 

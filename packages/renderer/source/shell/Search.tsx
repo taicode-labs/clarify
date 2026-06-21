@@ -84,7 +84,9 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-function HighlightQuery(arg0: { text: string; query: string }) {  const { text, query } = arg0
+type HighlightQueryProps = { text: string; query: string }
+
+function HighlightQuery(arg0: HighlightQueryProps) {  const { text, query } = arg0
 
   if (!query) return text
 
@@ -105,7 +107,9 @@ function HighlightQuery(arg0: { text: string; query: string }) {  const { text, 
   )
 }
 
-function SearchResult(arg0: { result: SearchItem; query: string; active: boolean; onSelect: () => void }) {  const { result, query, active, onSelect } = arg0
+type SearchResultProps = { result: SearchItem; query: string; active: boolean; onSelect: () => void }
+
+function SearchResult(arg0: SearchResultProps) {  const { result, query, active, onSelect } = arg0
 
   const id = useId()
   const hierarchy = [result.sectionTitle, result.pageTitle].filter((value): value is string => typeof value === 'string')
@@ -181,14 +185,16 @@ const SearchInput = forwardRef<
   )
 })
 
-function SearchDialog(arg0: {
+type SearchDialogProps = {
   open: boolean
   setOpen: (open: boolean) => void
   routes: RouteItem[]
   navigation: NavigationNode[]
   className?: string
   onNavigate?: () => void
-}) {  const {
+}
+
+function SearchDialog(arg0: SearchDialogProps) {  const {
   open,
   setOpen,
   routes,
@@ -326,7 +332,9 @@ function getModifierKey() {
   return /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? '⌘' : 'Ctrl '
 }
 
-export function Search(arg0: { routes: RouteItem[]; navigation: NavigationNode[] }) {  const { routes, navigation } = arg0
+export type SearchProps = { routes: RouteItem[]; navigation: NavigationNode[] }
+
+export function Search(arg0: SearchProps) {  const { routes, navigation } = arg0
 
   const t = useBuiltInText()
   const modifierKey = getModifierKey()
@@ -353,11 +361,13 @@ export function Search(arg0: { routes: RouteItem[]; navigation: NavigationNode[]
   )
 }
 
-export function MobileSearch(arg0: {
+export type MobileSearchProps = {
   routes: RouteItem[]
   navigation: NavigationNode[]
   onNavigate?: () => void
-}) {  const {
+}
+
+export function MobileSearch(arg0: MobileSearchProps) {  const {
   routes,
   navigation,
   onNavigate,

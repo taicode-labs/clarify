@@ -5,11 +5,13 @@ import { Container } from '../elements/container'
 import { Subheading } from '../elements/subheading'
 import { Text } from '../elements/text'
 
-export function CallToActionSimpleCentered(arg0: {
+type CallToActionSimpleCenteredProps = {
   headline: ReactNode
   subheadline?: ReactNode
   cta?: ReactNode
-} & ComponentProps<'section'>) {  const {
+} & ComponentProps<'section'>
+
+export function CallToActionSimpleCentered(arg0: CallToActionSimpleCenteredProps) {  const {
   headline,
   subheadline,
   cta,

@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { Section } from '../elements/section'
 import { CheckmarkIcon } from '../icons/checkmark-icon'
 
-export function Plan(arg0: {
+type PlanProps = {
   name: ReactNode
   price: ReactNode
   period?: ReactNode
@@ -12,7 +12,13 @@ export function Plan(arg0: {
   badge?: ReactNode
   features: ReactNode[]
   cta: ReactNode
-} & ComponentProps<'div'>) {  const {
+} & ComponentProps<'div'>
+
+type PricingMultiTierProps = {
+  plans: ReactNode
+} & ComponentProps<typeof Section>
+
+export function Plan(arg0: PlanProps) {  const {
   name,
   price,
   period,
@@ -59,9 +65,7 @@ export function Plan(arg0: {
   )
 }
 
-export function PricingMultiTier(arg0: {
-  plans: ReactNode
-} & ComponentProps<typeof Section>) {  const {
+export function PricingMultiTier(arg0: PricingMultiTierProps) {  const {
   plans,
   ...props
 } = arg0

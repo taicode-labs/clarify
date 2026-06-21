@@ -1,13 +1,15 @@
 import { useId } from 'react'
 import type { ComponentPropsWithoutRef } from 'react'
 
-export function GridPattern(arg0: ComponentPropsWithoutRef<'svg'> & {
+type GridPatternProps = ComponentPropsWithoutRef<'svg'> & {
   width: number
   height: number
   x: string | number
   y: string | number
   squares?: Array<[x: number, y: number]>
-}) {  const {
+}
+
+export function GridPattern(arg0: GridPatternProps) {  const {
   width,
   height,
   x,

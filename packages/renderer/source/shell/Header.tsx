@@ -37,7 +37,9 @@ function LanguageIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   )
 }
 
-function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string; currentRoute?: RouteItem }) {  const { config, currentLocale, currentRoute } = arg0
+type LanguageSwitcherProps = { config: ClarifyConfig; currentLocale?: string; currentRoute?: RouteItem }
+
+function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, currentLocale, currentRoute } = arg0
 
   const t = useBuiltInText()
   const location = useLocation()
@@ -93,7 +95,9 @@ function LanguageSwitcher(arg0: { config: ClarifyConfig; currentLocale?: string;
   )
 }
 
-function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  const { href, children } = arg0
+type TopLevelNavItemProps = { href: string; children: React.ReactNode }
+
+function TopLevelNavItem(arg0: TopLevelNavItemProps) {  const { href, children } = arg0
 
   const external = isExternalHref(href)
 
@@ -124,7 +128,9 @@ function TopLevelNavItem(arg0: { href: string; children: React.ReactNode }) {  c
   )
 }
 
-function MobileNavbarMenu(arg0: { links?: ClarifyNavbarLink[]; config: ClarifyConfig; currentLocale?: string }) {
+type MobileNavbarMenuProps = { links?: ClarifyNavbarLink[]; config: ClarifyConfig; currentLocale?: string }
+
+function MobileNavbarMenu(arg0: MobileNavbarMenuProps) {
   const { links, config, currentLocale } = arg0
   const t = useBuiltInText()
   if (!links?.length) return null
@@ -182,7 +188,9 @@ function isActiveTab(tab: NavigationTab, pathname: string): boolean {
   return isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname)
 }
 
-function ProductTabs(arg0: { tabs?: NavigationTab[] }) {  const { tabs } = arg0
+type ProductTabsProps = { tabs?: NavigationTab[] }
+
+function ProductTabs(arg0: ProductTabsProps) {  const { tabs } = arg0
 
   const t = useBuiltInText()
   const pathname = normalizeRoutePath(useLocation().pathname)

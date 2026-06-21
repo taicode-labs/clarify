@@ -54,7 +54,9 @@ function applyTheme(resolvedTheme: ResolvedTheme) {
   document.documentElement.style.colorScheme = resolvedTheme
 }
 
-export function ThemeProvider(arg0: { children: ReactNode }) {  const { children } = arg0
+type ThemeProviderProps = { children: ReactNode }
+
+export function ThemeProvider(arg0: ThemeProviderProps) {  const { children } = arg0
 
   const [theme, setThemeState] = useState<Theme>(() => getStoredTheme())
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(() => getSystemTheme())

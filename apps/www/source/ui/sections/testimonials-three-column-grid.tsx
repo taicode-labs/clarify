@@ -3,12 +3,16 @@ import type { ComponentProps, ReactNode } from 'react'
 
 import { Section } from '../elements/section'
 
-export function Testimonial(arg0: {
+type TestimonialProps = {
   quote: ReactNode
   img: ReactNode
   name: ReactNode
   byline: ReactNode
-} & ComponentProps<'figure'>) {  const {
+} & ComponentProps<'figure'>
+
+type TestimonialThreeColumnGridProps = ComponentProps<typeof Section>
+
+export function Testimonial(arg0: TestimonialProps) {  const {
   quote,
   img,
   name,
@@ -41,7 +45,7 @@ export function Testimonial(arg0: {
   )
 }
 
-export function TestimonialThreeColumnGrid(arg0: ComponentProps<typeof Section>) {  const { children, ...props } = arg0
+export function TestimonialThreeColumnGrid(arg0: TestimonialThreeColumnGridProps) {  const { children, ...props } = arg0
 
   return (
     <Section {...props}>

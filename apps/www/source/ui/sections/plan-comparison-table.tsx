@@ -6,15 +6,23 @@ import { CheckmarkIcon } from '../icons/checkmark-icon'
 import { MinusIcon } from '../icons/minus-icon'
 import { TabGroup, TabList, TabPanels } from '../primitives/interactive'
 
-function FeatureGroup<Plan extends string>(arg0: {
-  group: {
-    title: ReactNode
-    features: { name: ReactNode; value: ReactNode | Record<Plan, ReactNode> }[]
-  }
+type PlanFeature<Plan extends string> = { name: ReactNode; value: ReactNode | Record<Plan, ReactNode> }
+type FeatureGroupData<Plan extends string> = { title: ReactNode; features: PlanFeature<Plan>[] }
+type FeatureGroupProps<Plan extends string> = {
+  group: FeatureGroupData<Plan>
   plans: Plan[]
   includedLabel: string
   notIncludedLabel: string
-}) {  const {
+}
+type PlanComparisonTableProps<Plan extends string> = {
+  plans: Plan[]
+  features: FeatureGroupData<Plan>[]
+  compareLabel?: ReactNode
+  includedLabel?: string
+  notIncludedLabel?: string
+} & ComponentProps<'section'>
+
+function FeatureGroup<Plan extends string>(arg0: FeatureGroupProps<Plan>) {  const {
   group,
   plans,
   includedLabel,
@@ -68,16 +76,7 @@ function isPlanValue<Plan extends string>(value: ReactNode | Record<Plan, ReactN
   return typeof value === 'object' && value !== null && plan in value
 }
 
-export function PlanComparisonTable<const Plan extends string>(arg0: {
-  plans: Plan[]
-  features: {
-    title: ReactNode
-    features: { name: ReactNode; value: ReactNode | Record<Plan, ReactNode> }[]
-  }[]
-  compareLabel?: ReactNode
-  includedLabel?: string
-  notIncludedLabel?: string
-} & ComponentProps<'section'>) {  const {
+export function PlanComparisonTable<const Plan extends string>(arg0: PlanComparisonTableProps<Plan>) {  const {
   plans,
   features,
   compareLabel = 'Compare features',

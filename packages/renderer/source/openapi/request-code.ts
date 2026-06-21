@@ -5,12 +5,14 @@ import { getContentExample, isRecord, stringifyExample } from './helpers'
 import type { OpenApiMediaType, OpenApiParameter, OpenApiServer, RequestAuthInput, RequestCodeExample } from './types'
 import type { OpenAPISpec } from './utils'
 
+type RequestContent = { mediaType: string; value: OpenApiMediaType }
+
 export type RequestCodeInput = {
   spec: OpenAPISpec
   path: string
   method: string
   parameters: OpenApiParameter[]
-  requestContent?: { mediaType: string; value: OpenApiMediaType }
+  requestContent?: RequestContent
   server?: OpenApiServer
   serverVariables?: Record<string, string>
   auth?: RequestAuthInput
@@ -20,6 +22,8 @@ type RequestBody = {
   serialized?: string
   params?: NonNullable<HarRequest['postData']>['params']
 }
+
+type BodySizeParam = { name: string; value?: unknown }
 
 type SnippetTarget<T extends TargetId = TargetId> = {
   target: T
@@ -78,7 +82,7 @@ function getFieldValue(name: string, value: unknown, schema: unknown): unknown {
   return undefined
 }
 
-function getFormParams(value: unknown, requestContent: { mediaType: string; value: OpenApiMediaType }): RequestBody['params'] {
+function getFormParams(value: unknown, requestContent: RequestContent): RequestBody['params'] {
   const properties = getSchemaProperties(requestContent.value.schema)
   const fieldNames = Array.from(new Set([...Object.keys(properties), ...(isRecord(value) ? Object.keys(value) : [])]))
 
@@ -99,10 +103,10 @@ function getFormParams(value: unknown, requestContent: { mediaType: string; valu
 
 function getBodySize(requestBody?: RequestBody): number {
   if (requestBody?.serialized) return requestBody.serialized.length
-  return requestBody?.params?.reduce((size: number, param: { name: string; value?: unknown }) => size + param.name.length + String(param.value ?? '').length, 0) ?? 0
+  return requestBody?.params?.reduce((size: number, param: BodySizeParam) => size + param.name.length + String(param.value ?? '').length, 0) ?? 0
 }
 
-function getRequestBody(requestContent?: { mediaType: string; value: OpenApiMediaType }): RequestBody | undefined {
+function getRequestBody(requestContent?: RequestContent): RequestBody | undefined {
   const value = getContentExample(requestContent?.value)
   if (!requestContent || typeof value === 'undefined') return undefined
 
@@ -132,7 +136,7 @@ function getAuthHeaders(auth?: RequestAuthInput): Record<string, string> {
   return authorization ? { Authorization: authorization } : {}
 }
 
-function getRequestHeaders(requestContent?: { mediaType: string; value: OpenApiMediaType }, auth?: RequestAuthInput): Record<string, string> {
+function getRequestHeaders(requestContent?: RequestContent, auth?: RequestAuthInput): Record<string, string> {
   return {
     ...getAuthHeaders(auth),
     Accept: 'application/json',

@@ -6,7 +6,15 @@ import type { ComponentProps, ReactNode } from 'react'
 import { Dialog, DialogPanel } from '../primitives/interactive'
 import Link from '../primitives/router-link'
 
-export function NavbarLink(arg0: { href: string } & Omit<ComponentProps<'a'>, 'href'>) {  const {
+type NavbarLinkProps = { href: string } & Omit<ComponentProps<'a'>, 'href'>
+type NavbarLogoProps = { href: string } & Omit<ComponentProps<'a'>, 'href'>
+type NavbarWithLinksActionsAndCenteredLogoProps = {
+  links: ReactNode
+  logo: ReactNode
+  actions: ReactNode
+} & ComponentProps<'header'>
+
+export function NavbarLink(arg0: NavbarLinkProps) {  const {
   children,
   href,
   className,
@@ -32,16 +40,12 @@ export function NavbarLink(arg0: { href: string } & Omit<ComponentProps<'a'>, 'h
   )
 }
 
-export function NavbarLogo(arg0: { href: string } & Omit<ComponentProps<'a'>, 'href'>) {  const { className, href, ...props } = arg0
+export function NavbarLogo(arg0: NavbarLogoProps) {  const { className, href, ...props } = arg0
 
   return <Link href={href} {...props} className={clsx('inline-flex items-stretch', className)} />
 }
 
-export function NavbarWithLinksActionsAndCenteredLogo(arg0: {
-  links: ReactNode
-  logo: ReactNode
-  actions: ReactNode
-} & ComponentProps<'header'>) {  const {
+export function NavbarWithLinksActionsAndCenteredLogo(arg0: NavbarWithLinksActionsAndCenteredLogoProps) {  const {
   links,
   logo,
   actions,

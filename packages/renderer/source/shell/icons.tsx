@@ -2,7 +2,9 @@ import clsx from 'clsx'
 
 import { lucideIconRegistry, resolveLucideIconName } from '../utils/lucide'
 
-export function NavigationIcon(arg0: { name?: string; className?: string }) {
+export type NavigationIconProps = { name?: string; className?: string }
+
+export function NavigationIcon(arg0: NavigationIconProps) {
   const { name, className } = arg0
 
   if (!name) return null

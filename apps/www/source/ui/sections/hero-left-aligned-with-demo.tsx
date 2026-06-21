@@ -5,14 +5,16 @@ import { Container } from '../elements/container'
 import { Heading } from '../elements/heading'
 import { Text } from '../elements/text'
 
-export function HeroLeftAlignedWithDemo(arg0: {
+type HeroLeftAlignedWithDemoProps = {
   eyebrow?: ReactNode
   headline: ReactNode
   subheadline: ReactNode
   cta?: ReactNode
   demo?: ReactNode
   footer?: ReactNode
-} & ComponentProps<'section'>) {  const {
+} & ComponentProps<'section'>
+
+export function HeroLeftAlignedWithDemo(arg0: HeroLeftAlignedWithDemoProps) {  const {
   eyebrow,
   headline,
   subheadline,

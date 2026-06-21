@@ -11,6 +11,13 @@ export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 
 export type VirtualModules = Map<string, string>
 
+type BuildVirtualModulesArgs = {
+  projectConfig: ResolvedProjectConfig
+  generateOptions: ResolvedBuildOptions
+  routes: ContentRoute[]
+  navigation?: NavigationTree
+}
+
 export function resolveVirtualId(id: string): string {
   return '\0' + id
 }
@@ -66,12 +73,7 @@ import { openApis } from '${VIRTUAL_OPENAPI_REGISTRY}';
 render({ config, routes, navigation, openApis });`
 }
 
-export function buildVirtualModules(args: {
-  projectConfig: ResolvedProjectConfig
-  generateOptions: ResolvedBuildOptions
-  routes: ContentRoute[]
-  navigation?: NavigationTree
-}): VirtualModules {
+export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))

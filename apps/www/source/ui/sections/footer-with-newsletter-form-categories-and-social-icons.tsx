@@ -5,7 +5,26 @@ import { Container } from '../elements/container'
 import { ArrowNarrowRightIcon } from '../icons/arrow-narrow-right-icon'
 import Link from '../primitives/router-link'
 
-export function FooterCategory(arg0: { title: ReactNode } & ComponentProps<'div'>) {
+type FooterCategoryProps = { title: ReactNode } & ComponentProps<'div'>
+type FooterLinkProps = { href: string } & Omit<ComponentProps<'a'>, 'href'>
+type SocialLinkProps = {
+  href: string
+  name: string
+} & Omit<ComponentProps<'a'>, 'href'>
+type NewsletterFormProps = {
+  headline: ReactNode
+  subheadline: ReactNode
+  emailLabel?: string
+  subscribeLabel?: string
+} & ComponentProps<'form'>
+type FooterWithNewsletterFormCategoriesAndSocialIconsProps = {
+  cta: ReactNode
+  links: ReactNode
+  fineprint: ReactNode
+  socialLinks?: ReactNode
+} & ComponentProps<'footer'>
+
+export function FooterCategory(arg0: FooterCategoryProps) {
   const { title, children, ...props } = arg0
 
   return (
@@ -18,7 +37,7 @@ export function FooterCategory(arg0: { title: ReactNode } & ComponentProps<'div'
   )
 }
 
-export function FooterLink(arg0: { href: string } & Omit<ComponentProps<'a'>, 'href'>) {
+export function FooterLink(arg0: FooterLinkProps) {
   const { href, className, ...props } = arg0
 
   return (
@@ -28,10 +47,7 @@ export function FooterLink(arg0: { href: string } & Omit<ComponentProps<'a'>, 'h
   )
 }
 
-export function SocialLink(arg0: {
-  href: string
-  name: string
-} & Omit<ComponentProps<'a'>, 'href'>) {
+export function SocialLink(arg0: SocialLinkProps) {
   const { href, name, className, ...props } = arg0
 
   return (
@@ -45,12 +61,7 @@ export function SocialLink(arg0: {
   )
 }
 
-export function NewsletterForm(arg0: {
-  headline: ReactNode
-  subheadline: ReactNode
-  emailLabel?: string
-  subscribeLabel?: string
-} & ComponentProps<'form'>) {
+export function NewsletterForm(arg0: NewsletterFormProps) {
   const { headline, subheadline, emailLabel = 'Email', subscribeLabel = 'Subscribe', className, ...props } = arg0
 
   return (
@@ -76,12 +87,7 @@ export function NewsletterForm(arg0: {
   )
 }
 
-export function FooterWithNewsletterFormCategoriesAndSocialIcons(arg0: {
-  cta: ReactNode
-  links: ReactNode
-  fineprint: ReactNode
-  socialLinks?: ReactNode
-} & ComponentProps<'footer'>) {
+export function FooterWithNewsletterFormCategoriesAndSocialIcons(arg0: FooterWithNewsletterFormCategoriesAndSocialIconsProps) {
   const { cta, links, fineprint, socialLinks, className, ...props } = arg0
 
   return (

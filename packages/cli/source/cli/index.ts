@@ -7,6 +7,11 @@ import { runInit } from './commands/init.js'
 import { resolveCliOptions, type CliOptions, type ResolvedCliOptions } from './options.js'
 import { readPackageVersion } from './package.js'
 
+type InitCommandOptions = CliOptions & {
+  force?: boolean
+  template?: string
+}
+
 function withSharedOptions(command: ReturnType<ReturnType<typeof cac>['command']>) {
   return command
     .option('--root <dir>', 'Project root directory')
@@ -41,7 +46,7 @@ async function main(): Promise<void> {
   withSharedOptions(cli.command('init', 'Create a Clarify project scaffold'))
     .option('--force', 'Overwrite files created by init')
     .option('--template <name>', 'Template to use: minimal, standard, or complete')
-    .action((options: CliOptions & { force?: boolean; template?: string }) => {
+    .action((options: InitCommandOptions) => {
       runInit(resolveOptions(options), options.force === true, options.template)
     })
 

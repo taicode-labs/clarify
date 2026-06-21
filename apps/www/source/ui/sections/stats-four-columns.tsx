@@ -3,7 +3,10 @@ import type { ComponentProps, ReactNode } from 'react'
 
 import { Section } from '../elements/section'
 
-export function Stat(arg0: { stat: ReactNode; text: ReactNode } & ComponentProps<'div'>) {  const {
+type StatProps = { stat: ReactNode; text: ReactNode } & ComponentProps<'div'>
+type StatsFourColumnsProps = ComponentProps<typeof Section>
+
+export function Stat(arg0: StatProps) {  const {
   stat,
   text,
   className,
@@ -18,7 +21,7 @@ export function Stat(arg0: { stat: ReactNode; text: ReactNode } & ComponentProps
   )
 }
 
-export function StatsFourColumns(arg0: ComponentProps<typeof Section>) {  const { children, ...props } = arg0
+export function StatsFourColumns(arg0: StatsFourColumnsProps) {  const { children, ...props } = arg0
 
   return (
     <Section {...props}>

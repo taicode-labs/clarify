@@ -89,6 +89,9 @@ export default tseslint.config(
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
 
+      // 单个文件最大长度
+      'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
+
       // 代码风格
       'no-console': 'off',
       'eqeqeq': ['error', 'always', { null: 'ignore' }],
