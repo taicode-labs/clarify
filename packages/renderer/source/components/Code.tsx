@@ -260,13 +260,22 @@ const usePreferredLanguageStore = create<{
 function useTabGroupProps(availableLanguages: string[]) {
   const { preferredLanguages, addPreferredLanguage } = usePreferredLanguageStore()
   const [selectedIndex, setSelectedIndex] = useState(0)
-  const activeLanguage = [...availableLanguages].sort(
-    (a, z) => preferredLanguages.indexOf(z) - preferredLanguages.indexOf(a),
-  )[0]
-  const languageIndex = availableLanguages.indexOf(activeLanguage)
-  const newSelectedIndex = languageIndex === -1 ? selectedIndex : languageIndex
 
-  if (newSelectedIndex !== selectedIndex) setSelectedIndex(newSelectedIndex)
+  // Only sync the selection from the globally preferred language when the
+  // languages are unambiguous (each appears at most once). When languages
+  // collide (e.g. two `bash` panels), index resolution by language name would
+  // always return the first match and break tab switching, so we rely on the
+  // local selection instead.
+  const languagesAreUnique = new Set(availableLanguages).size === availableLanguages.length
+  if (languagesAreUnique) {
+    const activeLanguage = [...availableLanguages].sort(
+      (a, z) => preferredLanguages.indexOf(z) - preferredLanguages.indexOf(a),
+    )[0]
+    const languageIndex = availableLanguages.indexOf(activeLanguage)
+    const newSelectedIndex = languageIndex === -1 ? selectedIndex : languageIndex
+
+    if (newSelectedIndex !== selectedIndex) setSelectedIndex(newSelectedIndex)
+  }
 
   const { positionRef, preventLayoutShift } = usePreventLayoutShift()
 
@@ -275,6 +284,7 @@ function useTabGroupProps(availableLanguages: string[]) {
     ref: positionRef,
     selectedIndex,
     onChange: (nextSelectedIndex: number) => {
+      setSelectedIndex(nextSelectedIndex)
       preventLayoutShift(() => addPreferredLanguage(availableLanguages[nextSelectedIndex]))
     },
   }
