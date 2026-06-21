@@ -134,6 +134,7 @@ export function SectionProvider(arg0: SectionProviderProps) {  const {
           offsetRem: registeredSection?.offsetRem ?? section.offsetRem,
         }
       }),
+      visibleSections: [],
     }))
   }, [sectionStore, sections])
 

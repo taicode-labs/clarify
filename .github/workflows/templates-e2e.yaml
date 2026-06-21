@@ -33,15 +33,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Build local clarify CLI
+        run: pnpm --filter @clarify-labs/cli build
+
+      - name: Link local clarify globally
+        run: pnpm --dir packages/cli link --global .
+
+      - name: Verify global clarify
+        run: clarify --help
+
       - name: Create temp project
         run: |
           rm -rf .github/.template-test
           mkdir -p .github/.template-test
-          npm init
 
-      - name: Run local clarify init for template
+      - name: Run global clarify init for template
         working-directory: .github/.template-test
-        run: node ../../packages/cli/bin/clarify.js init --template ${{ matrix.template }}
+        run: clarify init --template ${{ matrix.template }}
 
       - name: Install template project dependencies
         working-directory: .github/.template-test
@@ -49,7 +57,7 @@ jobs:
 
       - name: Build generated template project
         working-directory: .github/.template-test
-        run: node ../../packages/cli/bin/clarify.js build
+        run: clarify build
 
       - name: Validate generated files
         working-directory: .github/.template-test

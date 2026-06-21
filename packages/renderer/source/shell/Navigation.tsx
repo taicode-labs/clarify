@@ -161,10 +161,9 @@ function VisibleSectionHighlight(arg0: VisibleSectionHighlightProps) {  const { 
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { delay: 0.2 } }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, top, height, transition: { duration: 0.2, ease: 'easeOut' } }}
+      exit={{ opacity: 0, height: 0, transition: { duration: 0.15, ease: 'easeIn' } }}
       className="clarify-navigation-section-highlight absolute inset-x-0 top-0 will-change-transform"
       style={{ borderRadius: 'var(--clarify-theme-tokens-radius-sm)', height, top }}
     />
@@ -182,11 +181,10 @@ function ActivePageMarker(arg0: ActivePageMarkerProps) {  const { group, pathnam
 
   return (
     <motion.div
-      layout
       className="absolute left-2 h-6 w-px bg-(--clarify-theme-tokens-colors-primary)"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1, transition: { delay: 0.2 } }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0, top }}
+      animate={{ opacity: 1, top, transition: { duration: 0.2, ease: 'easeOut' } }}
+      exit={{ opacity: 0, transition: { duration: 0.15, ease: 'easeIn' } }}
       style={{ top }}
     />
   )
@@ -205,15 +203,15 @@ function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className
 
   return (
     <li className={clsx('clarify-navigation-group relative mt-6', className)}>
-      <motion.h2 layout="position" className="clarify-navigation-group-title flex items-center gap-2">
+      <h2 className="clarify-navigation-group-title flex items-center gap-2">
         <NavigationIcon name={group.icon} className="clarify-navigation-group-title-icon h-3.5 w-3.5" />
         <span>{group.title}</span>
-      </motion.h2>
+      </h2>
       <div className="relative mt-3 pl-2">
         <AnimatePresence initial={!isInsideMobileNavigation}>
           {isActiveGroup ? <VisibleSectionHighlight group={group} pathname={pathname} /> : null}
         </AnimatePresence>
-        <motion.div layout className="absolute inset-y-0 left-2 w-px bg-(--clarify-theme-tokens-colors-border) dark:bg-white/5" />
+        <div className="absolute inset-y-0 left-2 w-px bg-(--clarify-theme-tokens-colors-border) dark:bg-white/5" />
         <AnimatePresence initial={false}>
           {isActiveGroup ? <ActivePageMarker group={group} pathname={pathname} /> : null}
         </AnimatePresence>
@@ -221,11 +219,11 @@ function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className
           {group.links.map((link) => {
             const active = isSameRoutePath(link.href, pathname)
             return (
-              <motion.li key={link.href} layout="position" className="relative">
+              <li key={link.href} className="relative">
                 <NavLink href={link.href} icon={link.icon} active={active}>
                   {link.title}
                 </NavLink>
-                <AnimatePresence mode="popLayout" initial={false}>
+                <AnimatePresence initial={false}>
                   {active && sections.length > 0 ? (
                     <motion.ul
                       role="list"
@@ -243,7 +241,7 @@ function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className
                     </motion.ul>
                   ) : null}
                 </AnimatePresence>
-              </motion.li>
+              </li>
             )
           })}
         </ul>

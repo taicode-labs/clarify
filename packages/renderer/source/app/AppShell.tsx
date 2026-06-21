@@ -215,15 +215,14 @@ export function AppShell(arg0: AppShellProps) {
             currentRoute={currentRoute}
           />
           <div className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-[18rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)]">
-            <motion.aside
-              layoutScroll
+            <aside
               className={clsx(
                 'clarify-sidebar hidden lg:sticky lg:z-30 lg:block lg:h-[calc(100vh-3.5rem)] lg:self-start lg:overflow-y-auto lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 lg:pb-8 xl:px-6 lg:dark:bg-zinc-950',
                 hasTabs ? 'lg:top-28 lg:h-[calc(100vh-7rem)] lg:pt-6' : 'lg:top-14 lg:pt-6',
               )}
             >
               <Navigation navigation={currentNavigation.items} />
-            </motion.aside>
+            </aside>
             <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
               <ContentActions hasTabs={hasTabs} route={currentRoute} routePrefix={config.routePrefix} />
               <main className="clarify-main min-w-0 flex-auto">
