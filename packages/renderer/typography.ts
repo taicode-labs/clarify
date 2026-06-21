@@ -181,7 +181,8 @@ export default {
 
           a: {
             color: 'var(--tw-prose-links)',
-            textDecoration: 'underline transparent',
+            textDecoration: 'underline',
+            textDecorationColor: 'var(--tw-prose-links-underline)',
             fontWeight: '500',
             transitionProperty: 'color, text-decoration-color',
             transitionDuration: theme('transitionDuration.DEFAULT'),
