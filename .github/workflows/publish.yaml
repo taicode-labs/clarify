@@ -64,10 +64,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check renderer package exists
+        id: check-renderer
+        run: |
+          if npm view @clarify-labs/renderer@${{ github.event.release.tag_name }} version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build renderer
+        if: steps.check-renderer.outputs.exists == 'false'
         run: pnpm --filter @clarify-labs/renderer build
 
       - name: Publish renderer
+        if: steps.check-renderer.outputs.exists == 'false'
         working-directory: packages/renderer
         run: npm publish --access public
 
@@ -93,10 +104,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check templates package exists
+        id: check-templates
+        run: |
+          if npm view @clarify-labs/templates@${{ github.event.release.tag_name }} version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build templates
+        if: steps.check-templates.outputs.exists == 'false'
         run: pnpm --filter @clarify-labs/templates build
 
       - name: Publish templates
+        if: steps.check-templates.outputs.exists == 'false'
         working-directory: packages/templates
         run: npm publish --access public
 
@@ -122,14 +144,26 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check CLI package exists
+        id: check-cli
+        run: |
+          if npm view @clarify-labs/cli@${{ github.event.release.tag_name }} version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build CLI and dependencies
+        if: steps.check-cli.outputs.exists == 'false'
         run: pnpm --filter @clarify-labs/cli... build
 
       - name: Prepare CLI package manifest
+        if: steps.check-cli.outputs.exists == 'false'
         working-directory: packages/cli
         run: |
           node -e "const fs=require('node:fs'); const path='package.json'; const pkg=JSON.parse(fs.readFileSync(path,'utf8')); pkg.dependencies['@clarify-labs/renderer']=pkg.version; pkg.dependencies['@clarify-labs/templates']=pkg.version; fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');"
 
       - name: Publish CLI
+        if: steps.check-cli.outputs.exists == 'false'
         working-directory: packages/cli
         run: npm publish --access public
