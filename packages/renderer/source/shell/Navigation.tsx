@@ -126,7 +126,7 @@ function NavLink(arg0: NavLinkProps) {  const {
       <span className="flex min-w-0 flex-1 items-center gap-2">
         {icon ? <NavigationIcon name={icon} className="h-3.5 w-3.5" /> : null}
         {badge ? <SectionBadge>{badge}</SectionBadge> : null}
-        <span className="min-w-0 truncate">{children}</span>
+        <span className="min-w-0 truncate whitespace-nowrap">{children}</span>
       </span>
       {tags?.length ? (
         <span className="flex shrink-0 gap-1">

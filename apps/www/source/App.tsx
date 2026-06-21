@@ -2,7 +2,7 @@ import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { site } from './content'
+import { navLinks, site } from './content'
 import { type AppLocale, isAppLocale, localeLabels, locales } from './i18n'
 import { AboutPage, HomePage, NotFoundPage, PricingPage, PrivacyPolicyPage } from './pages'
 import { ButtonLink, PlainButtonLink } from './ui/elements/button'
@@ -94,12 +94,6 @@ function renderRoute(path: string) {
 
 function Navbar() {
   const { i18n, t } = useTranslation()
-  const navLinks = [
-    { href: '/#features', label: t('nav.features') },
-    { href: '/pricing/', label: t('nav.pricing') },
-    { href: '/about/', label: t('nav.about') },
-    { href: site.docsUrl, label: t('nav.docs') },
-  ]
 
   return (
     <NavbarWithLinksActionsAndCenteredLogo

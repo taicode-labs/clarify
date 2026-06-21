@@ -63,6 +63,8 @@ function useVisibleSections(sectionStore: StoreApi<SectionState>) {
   useEffect(() => {
     function checkVisibleSections() {
       const { innerHeight, scrollY } = window
+      const viewportTop = scrollY
+      const viewportBottom = scrollY + innerHeight
       const newVisibleSections: string[] = []
 
       for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex += 1) {
@@ -75,21 +77,16 @@ function useVisibleSections(sectionStore: StoreApi<SectionState>) {
         const offset = remToPx(offsetRem)
         const top = headingRef.current.getBoundingClientRect().top + scrollY
 
-        if (sectionIndex === 0 && top - offset > scrollY) {
+        if (sectionIndex === 0 && top - offset > viewportTop) {
           newVisibleSections.push('_top')
         }
 
         const nextSection = sections[sectionIndex + 1]
         const bottom =
           (nextSection?.headingRef?.current?.getBoundingClientRect().top ?? Infinity) +
-          scrollY -
-          remToPx(nextSection?.offsetRem ?? 0)
+          scrollY
 
-        if (
-          (top > scrollY && top < scrollY + innerHeight) ||
-          (bottom > scrollY && bottom < scrollY + innerHeight) ||
-          (top <= scrollY && bottom >= scrollY + innerHeight)
-        ) {
+        if (bottom > viewportTop && top < viewportBottom) {
           newVisibleSections.push(id)
         }
       }
