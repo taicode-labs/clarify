@@ -13,13 +13,14 @@ type ContentActionsProps = {
   routePrefix?: string
 }
 
-type CopyState = 'idle' | 'content' | 'link'
+type CopyState = 'idle' | 'content' | 'link' | 'llms'
 type CopyAction = {
   key: Exclude<CopyState, 'idle'>
   label: string
   description: string
   icon: typeof Copy
   run: () => Promise<void>
+  copiedLabel?: string
 }
 
 function resolveContentArtifactUrl(contentArtifactUrl: string, routePrefix: string = '/'): string {
@@ -56,8 +57,14 @@ export function ContentActions(arg0: ContentActionsProps) {
     if (await copyTextToClipboard(text)) markCopied('content')
   }
 
+  const llmsArtifactUrl = resolveContentArtifactUrl('/llms.txt', routePrefix)
+
   async function handleCopyLink() {
     if (await copyTextToClipboard(getAbsoluteUrl(contentArtifactUrl))) markCopied('link')
+  }
+
+  async function handleCopyLlms() {
+    if (await copyTextToClipboard(getAbsoluteUrl(llmsArtifactUrl))) markCopied('llms')
   }
 
   const actions: CopyAction[] = [
@@ -67,6 +74,7 @@ export function ContentActions(arg0: ContentActionsProps) {
       description: t('contentActions.copyContentDescription', replacements),
       icon: Copy,
       run: handleCopyContent,
+      copiedLabel: t('contentActions.copiedContent'),
     },
     {
       key: 'link',
@@ -74,8 +82,18 @@ export function ContentActions(arg0: ContentActionsProps) {
       description: t('contentActions.copyLinkDescription', replacements),
       icon: Link2,
       run: handleCopyLink,
+      copiedLabel: t('contentActions.copiedLink'),
     },
   ]
+
+  const llmsAction: CopyAction = {
+    key: 'llms',
+    label: t('contentActions.copyLlms'),
+    description: t('contentActions.copyLlmsDescription'),
+    icon: FileText,
+    run: handleCopyLlms,
+    copiedLabel: t('contentActions.copiedLlms'),
+  }
   const primaryAction = actions[0]
   const PrimaryIcon = copied === primaryAction.key ? Check : primaryAction.icon
 
@@ -157,7 +175,7 @@ export function ContentActions(arg0: ContentActionsProps) {
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col px-1">
-                    <span className="clarify-ui-menu-title">{isCopied ? t('contentActions.copiedLink') : action.label}</span>
+                    <span className="clarify-ui-menu-title">{isCopied ? action.copiedLabel ?? action.label : action.label}</span>
                     <span className="clarify-ui-menu-description truncate">{action.description}</span>
                   </span>
                   <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${isCopied ? 'opacity-100' : 'opacity-0'}`} />
@@ -165,6 +183,22 @@ export function ContentActions(arg0: ContentActionsProps) {
               </MenuItem>
             )
           })}
+          <MenuItem key={llmsAction.key}>
+            <button
+              type="button"
+              onClick={llmsAction.run}
+              className="clarify-content-actions-item clarify-ui-menu-item group flex w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) px-1.5 py-1.5 text-left transition"
+            >
+              <span className="clarify-ui-menu-icon flex shrink-0 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) p-1.5 dark:border-white/10">
+                <FileText className="h-4 w-4" />
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col px-1">
+                <span className="clarify-ui-menu-title">{copied === llmsAction.key ? llmsAction.copiedLabel ?? llmsAction.label : llmsAction.label}</span>
+                <span className="clarify-ui-menu-description truncate">{llmsAction.description}</span>
+              </span>
+              <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${copied === llmsAction.key ? 'opacity-100' : 'opacity-0'}`} />
+            </button>
+          </MenuItem>
         </MenuItems>
       </Menu>
     </div>

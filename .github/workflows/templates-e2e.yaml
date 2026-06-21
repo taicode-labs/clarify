@@ -34,10 +34,13 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Build local clarify CLI
-        run: npm run build --filter=@clarify-labs/cli
+        run: pnpm --filter @clarify-labs/cli build
 
       - name: Link local clarify globally
-        run: pnpm --dir packages/cli link --global .
+        run: pnpm --dir packages/cli link --global
+
+      - name: Add pnpm global binaries to PATH
+        run: echo "PATH=$(pnpm bin -g):$PATH" >> $GITHUB_ENV
 
       - name: Verify global clarify
         run: clarify --help
