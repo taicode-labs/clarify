@@ -27,13 +27,13 @@ export function Collapse(arg0: CollapseProps) {
       open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}
       className={clsx(
-        'clarify-collapse my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-sm dark:border-white/10 dark:bg-zinc-900/50',
+        'clarify-collapse my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) dark:border-white/10 dark:bg-zinc-950',
         className,
       )}
       {...props}
     >
       <summary
-        className="flex cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-(--clarify-ui-hover-background) dark:hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--clarify-theme-tokens-colors-background) dark:focus-visible:ring-offset-zinc-950"
+        className="flex cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-(--clarify-ui-hover-background) dark:text-white dark:hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--clarify-theme-tokens-colors-background) dark:focus-visible:ring-offset-zinc-950"
         aria-expanded={open}
         style={{ listStyle: 'none' }}
       >
@@ -49,7 +49,7 @@ export function Collapse(arg0: CollapseProps) {
       <div
         ref={contentRef}
         className={clsx(
-          'overflow-hidden border-t border-(--clarify-theme-tokens-border) bg-(--clarify-theme-tokens-colors-surface) px-4 py-4 text-sm/6 text-(--clarify-theme-tokens-colors-foreground) transition-[max-height,opacity,transform] duration-200 ease-out dark:bg-zinc-950/60',
+          'overflow-hidden border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) p-2 transition-[max-height,opacity,transform] duration-200 ease-out dark:border-white/10 dark:bg-zinc-950/95',
           open ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1',
         )}
         style={{ maxHeight, willChange: 'max-height, opacity, transform' }}
