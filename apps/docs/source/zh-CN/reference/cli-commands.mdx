@@ -6,11 +6,27 @@
 
 ## 安装
 
+推荐全局安装 CLI：
+
+```bash
+npm install -g @clarify-labs/cli
+```
+
+安装后可直接运行：
+
+```bash
+clarify init
+clarify dev
+clarify build
+```
+
+如果你希望将 CLI 放在项目依赖中，也可以使用：
+
 ```bash
 pnpm add -D @clarify-labs/cli
 ```
 
-也可以直接使用项目脚本：
+或者在 `package.json` 中添加脚本：
 
 ```json
 {
