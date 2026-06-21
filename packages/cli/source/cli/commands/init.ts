@@ -4,10 +4,10 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { copyTemplateDirectory, getTemplateDirectory, resolveTemplate } from '@clarify-labs/templates'
-import { spawnSync } from '../spawn.js'
 
 import type { ResolvedCliOptions } from '../options.js'
 import { cliPackageVersionWithCaret } from '../package.js'
+import { spawnSync } from '../spawn.js'
 
 const require = createRequire(import.meta.url)
 
