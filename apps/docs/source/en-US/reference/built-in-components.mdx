@@ -13,6 +13,7 @@ The following components are available directly in MDX:
 - `CardGroup` / `Card`
 - `Button`
 - `CodeGroup`
+- `Collapse`
 - `OpenApiOperation`
 - `OpenApiDocument`
 
@@ -33,6 +34,18 @@ Embed a single operation from an OpenAPI spec:
 | `specPath` | Route of the OpenAPI reference, such as `/api`. |
 | `path` | Exact OpenAPI path key, such as `/examples/path-parameters/{pageId}`. |
 | `method` | HTTP method, usually lowercase. |
+
+### `Collapse`
+
+Hide and reveal extra content inside a documentation page. Use `title` or `summary` to set the visible header.
+
+```mdx
+<Collapse title="Show more details">
+  ## Hidden section
+
+  This content is collapsed by default and is revealed when the user expands the section.
+</Collapse>
+```
 
 ### `OpenApiDocument`
 

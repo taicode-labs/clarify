@@ -37,7 +37,7 @@ jobs:
         run: |
           rm -rf .github/.template-test
           mkdir -p .github/.template-test
-          cd .github/.template-test
+          npm init
 
       - name: Run local clarify init for template
         working-directory: .github/.template-test
