@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { ChevronDown } from 'lucide-react'
-import { type ComponentPropsWithoutRef, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { type ComponentPropsWithoutRef, type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
 
 export type CollapseProps = {
   children?: ReactNode
@@ -8,7 +8,7 @@ export type CollapseProps = {
   summary?: ReactNode
   defaultOpen?: boolean
   className?: string
-} & Omit<ComponentPropsWithoutRef<'details'>, 'children' | 'className' | 'open'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'children' | 'className'>
 
 export function Collapse(arg0: CollapseProps) {
   const { children, title, summary, defaultOpen = false, className, ...props } = arg0
@@ -16,6 +16,7 @@ export function Collapse(arg0: CollapseProps) {
   const contentRef = useRef<HTMLDivElement | null>(null)
   const [maxHeight, setMaxHeight] = useState('0px')
   const summaryLabel = title ?? summary ?? 'Details'
+  const contentId = useId()
 
   useLayoutEffect(() => {
     if (!contentRef.current) return
@@ -23,19 +24,19 @@ export function Collapse(arg0: CollapseProps) {
   }, [open, children])
 
   return (
-    <details
-      open={open}
-      onToggle={(event) => setOpen(event.currentTarget.open)}
+    <div
       className={clsx(
-        'clarify-collapse my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) dark:border-white/10 dark:bg-zinc-950',
+        'clarify-collapse my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-sm dark:border-white/10 dark:bg-zinc-950',
         className,
       )}
       {...props}
     >
-      <summary
-        className="flex cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-(--clarify-ui-hover-background) dark:text-white dark:hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--clarify-theme-tokens-colors-background) dark:focus-visible:ring-offset-zinc-950"
+      <button
+        type="button"
+        className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-(--clarify-ui-hover-background) dark:text-white dark:hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--clarify-theme-tokens-colors-background) dark:focus-visible:ring-offset-zinc-950"
         aria-expanded={open}
-        style={{ listStyle: 'none' }}
+        aria-controls={contentId}
+        onClick={() => setOpen((value) => !value)}
       >
         <span>{summaryLabel}</span>
         <ChevronDown
@@ -45,17 +46,22 @@ export function Collapse(arg0: CollapseProps) {
           )}
           aria-hidden="true"
         />
-      </summary>
+      </button>
       <div
-        ref={contentRef}
-        className={clsx(
-          'overflow-hidden border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) p-2 transition-[max-height,opacity,transform] duration-200 ease-out dark:border-white/10 dark:bg-zinc-950/95',
-          open ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1',
-        )}
+        id={contentId}
+        className="overflow-hidden border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) transition-[max-height,opacity,transform] duration-200 ease-out dark:border-white/10 dark:bg-zinc-950/95"
         style={{ maxHeight, willChange: 'max-height, opacity, transform' }}
       >
-        {children}
+        <div
+          ref={contentRef}
+          className={clsx(
+            'px-4 py-4 text-sm/6 text-(--clarify-theme-tokens-colors-foreground) transition-opacity duration-200 ease-out',
+            open ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1',
+          )}
+        >
+          {children}
+        </div>
       </div>
-    </details>
+    </div>
   )
 }
