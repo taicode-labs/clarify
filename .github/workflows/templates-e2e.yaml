@@ -54,6 +54,10 @@ jobs:
         working-directory: .github/.template-test
         run: clarify init --template ${{ matrix.template }}
 
+      - name: Add local @clarify-labs/cli dependency to template project
+        working-directory: .github/.template-test
+        run: pnpm add -D ../../packages/cli
+
       - name: Install template project dependencies
         working-directory: .github/.template-test
         run: pnpm install --no-frozen-lockfile
