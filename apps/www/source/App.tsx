@@ -1,10 +1,11 @@
 import { Moon, Sun } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { type ReactElement, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { navLinks, site } from './content'
 import { type AppLocale, isAppLocale, localeLabels, locales } from './i18n'
 import { AboutPage, HomePage, NotFoundPage, PricingPage, PrivacyPolicyPage } from './pages'
+import { resolveAppRoute, type AppRoute } from './ssg-routes'
 import { ButtonLink, PlainButtonLink } from './ui/elements/button'
 import { Main } from './ui/elements/main'
 import { GitHubIcon } from './ui/icons/social/github-icon'
@@ -32,7 +33,7 @@ const themeStorageKey = 'clarify:theme'
 type AppProps = { path?: string }
 
 export default function App(props: AppProps) {
-  const normalizedPath = normalizePath(props.path ?? '/')
+  const normalizedPath = resolveAppRoute(props.path)
 
   return (
     <div className="www-app clarify-app min-h-screen">
@@ -64,32 +65,16 @@ function AppEffects() {
   return null
 }
 
-function normalizePath(path: string) {
-  if (path === '/404.html') {
-    return '/404.html'
-  }
-
-  return path.endsWith('/') ? path : `${path}/`
+const routeComponents: Record<AppRoute, () => ReactElement> = {
+  '/': HomePage,
+  '/pricing/': PricingPage,
+  '/about/': AboutPage,
+  '/privacy-policy/': PrivacyPolicyPage,
+  '/404.html': NotFoundPage,
 }
 
-function renderRoute(path: string) {
-  if (path === '/pricing/') {
-    return <PricingPage />
-  }
-
-  if (path === '/about/') {
-    return <AboutPage />
-  }
-
-  if (path === '/privacy-policy/') {
-    return <PrivacyPolicyPage />
-  }
-
-  if (path === '/404.html') {
-    return <NotFoundPage />
-  }
-
-  return <HomePage />
+function renderRoute(path: AppRoute) {
+  return routeComponents[path]()
 }
 
 function Navbar() {

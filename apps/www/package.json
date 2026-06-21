@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5174",
-    "build": "tsc -p tsconfig.json --noEmit && vite build && vite build --ssr source/entry-server.tsx --outDir output-server && node scripts/prerender.mjs",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint source/",
     "lint:fix": "eslint source/ --fix",
@@ -14,9 +14,9 @@
   },
   "dependencies": {
     "@clarify-labs/renderer": "workspace:^",
-    "lucide-react": "^1.20.0",
     "clsx": "^2.1.1",
     "i18next": "^25.7.3",
+    "lucide-react": "^1.20.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^16.4.0",
