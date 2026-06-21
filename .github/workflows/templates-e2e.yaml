@@ -55,4 +55,4 @@ jobs:
         working-directory: .github/.template-test
         run: |
           test -f package.json
-          test -d src || test -d source || true
+          test -d source || true
