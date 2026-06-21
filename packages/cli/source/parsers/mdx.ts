@@ -3,7 +3,7 @@ import { toString } from 'mdast-util-to-string'
 import shiki, { type Highlighter } from 'shiki'
 import { visit } from 'unist-util-visit'
 
-import { markdownRemarkPlugins } from '@clarify-labs/renderer/markdown'
+import { markdownRemarkPlugins } from '@clarify-labs/renderer'
 
 import { escapeHtml } from '../core/utils.js'
 

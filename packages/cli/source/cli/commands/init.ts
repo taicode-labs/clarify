@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { copyTemplateDirectory, getTemplateDirectory, resolveTemplate } from '@clarify-labs/templates'
 
 import type { ResolvedCliOptions } from '../options.js'
+import { cliPackageVersionWithCaret } from '../package.js'
 
 const require = createRequire(import.meta.url)
 
@@ -40,7 +41,7 @@ function updatePackageJson(root: string, force: boolean): boolean {
   const devDependencies = typeof packageJson.devDependencies === 'object' && packageJson.devDependencies !== null
     ? packageJson.devDependencies as Record<string, string>
     : {}
-  if (!devDependencies['@clarify-labs/cli']) devDependencies['@clarify-labs/cli'] = '^0.5.0'
+  if (!devDependencies['@clarify-labs/cli']) devDependencies['@clarify-labs/cli'] = cliPackageVersionWithCaret
   packageJson.devDependencies = devDependencies
 
   writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, 'utf-8')

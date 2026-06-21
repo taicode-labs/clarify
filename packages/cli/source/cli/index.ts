@@ -5,7 +5,7 @@ import { runBuild } from './commands/build.js'
 import { runDev } from './commands/dev.js'
 import { runInit } from './commands/init.js'
 import { resolveCliOptions, type CliOptions, type ResolvedCliOptions } from './options.js'
-import { readPackageVersion } from './package.js'
+import { cliPackageVersion } from './package.js'
 
 type InitCommandOptions = CliOptions & {
   force?: boolean
@@ -27,7 +27,7 @@ async function main(): Promise<void> {
   const cli = cac('clarify')
 
   cli
-    .version(readPackageVersion())
+    .version(cliPackageVersion)
     .help()
 
   withSharedOptions(cli.command('dev', 'Start the local documentation server'))

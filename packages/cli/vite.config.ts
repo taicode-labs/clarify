@@ -1,11 +1,11 @@
-import { readFileSync } from 'node:fs'
 import { builtinModules } from 'node:module'
 import { resolve } from 'node:path'
 
 import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
+import { cliPackageJson } from './source/cli/package.js'
 
-const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')) as {
+const pkg = cliPackageJson as {
   dependencies?: Record<string, string>
   peerDependencies?: Record<string, string>
 }
