@@ -2,13 +2,12 @@ import clsx from 'clsx'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
-import { useBuiltInText } from '../i18n'
-import { Markdown } from '../mdx/Markdown'
-import { Properties, Property } from '../mdx/primitives'
-
-import { getJsonLikeContent, getResponseEntries, isRecord, isReference, resolveReferenceName, resolveSchema, schemaHasType, schemaToType } from './helpers'
-import type { OpenApiParameter } from './types'
-import type { OpenAPIOperation, OpenAPISpec } from './utils'
+import { useBuiltInText } from '../../core/i18n'
+import { Markdown } from '../../mdx/Markdown'
+import { Properties, Property } from '../../mdx/primitives'
+import { getJsonLikeContent, getResponseEntries, isRecord, isReference, resolveReferenceName, resolveSchema, schemaHasType, schemaToType } from '../lib/helpers'
+import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
+import type { OpenApiParameter } from '../types'
 
 type SchemaTreeNode = {
   key: string

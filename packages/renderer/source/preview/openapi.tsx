@@ -1,10 +1,10 @@
 import { useState } from 'react'
 
-import { authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServers, RequestExamplesPanel, ResponseExamplesPanel } from './openapi/example-panels'
-import { getMediaTypeEntries, getRequestBody } from './openapi/helpers'
-import { EndpointIdentity } from './openapi/openapi-page'
-import type { OpenApiParameter, RequestAuthInput } from './openapi/types'
-import type { OpenAPIOperation, OpenAPISpec } from './openapi/utils'
+import { authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServers, RequestExamplesPanel, ResponseExamplesPanel } from '../openapi/components/ExamplePanels'
+import { EndpointIdentity } from '../openapi/components/OpenApiPage'
+import { getMediaTypeEntries, getRequestBody } from '../openapi/lib/helpers'
+import type { OpenAPIOperation, OpenAPISpec } from '../openapi/lib/utils'
+import type { OpenApiParameter, RequestAuthInput } from '../openapi/types'
 
 export type PreviewParameter = {
   name: string

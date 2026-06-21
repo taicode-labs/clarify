@@ -1,6 +1,6 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 
-import type { OpenApiRecord } from './types'
+import type { OpenApiRecord } from '../types'
 
 export type OpenAPISpec = OpenAPIV3.Document | OpenAPIV3_1.Document
 export type OpenAPIOperation = OpenAPIV3.OperationObject | OpenAPIV3_1.OperationObject

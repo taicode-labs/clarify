@@ -3,8 +3,8 @@ import { hydrateRoot, createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import { AppShell } from '../app/AppShell'
-import { ThemeProvider } from '../components/ThemeProvider'
 import { ClarifyConfigContext, OpenApisContext } from '../context'
+import { ThemeProvider } from '../theme/ThemeProvider'
 import type { RenderOptions } from '../types'
 
 /**

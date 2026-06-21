@@ -2,11 +2,11 @@ import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headless
 import { CheckIcon, ChevronsUpDownIcon, ClipboardIcon, CodeIcon, PackageIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
-import { useBuiltInText } from '../i18n'
-import { copyTextToClipboard } from '../utils/clipboard'
-
-import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getPathItem, getResponseEntries, isRecord, stringifyExample } from './helpers'
-import { buildRequestCodeExamples } from './request-code'
+import { useBuiltInText } from '../../core/i18n'
+import { copyTextToClipboard } from '../../utils/clipboard'
+import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getPathItem, getResponseEntries, isRecord, stringifyExample } from '../lib/helpers'
+import { buildRequestCodeExamples } from '../lib/request-code'
+import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 import type {
   ExampleEntry,
   MediaTypeEntry,
@@ -16,8 +16,7 @@ import type {
   OpenApiServer,
   RequestAuthInput,
   RequestCodeExample,
-} from './types'
-import type { OpenAPIOperation, OpenAPISpec } from './utils'
+} from '../types'
 
 type SelectOption = {
   value: string

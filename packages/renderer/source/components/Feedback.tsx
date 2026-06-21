@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { forwardRef, useState } from 'react'
 import type { ComponentPropsWithoutRef, ElementRef, FormEvent } from 'react'
 
-import { useBuiltInText } from '../i18n'
+import { useBuiltInText } from '../core/i18n'
 
 function CheckIcon(props: ComponentPropsWithoutRef<'svg'>) {
   return (

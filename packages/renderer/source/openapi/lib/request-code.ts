@@ -1,8 +1,9 @@
 import { snippetz } from '@scalar/snippetz'
 import type { ClientId, HarRequest, TargetId } from '@scalar/snippetz'
 
+import type { OpenApiMediaType, OpenApiParameter, OpenApiServer, RequestAuthInput, RequestCodeExample } from '../types'
+
 import { getContentExample, isRecord, stringifyExample } from './helpers'
-import type { OpenApiMediaType, OpenApiParameter, OpenApiServer, RequestAuthInput, RequestCodeExample } from './types'
 import type { OpenAPISpec } from './utils'
 
 type RequestContent = { mediaType: string; value: OpenApiMediaType }

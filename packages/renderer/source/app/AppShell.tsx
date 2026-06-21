@@ -4,13 +4,15 @@ import { Suspense, lazy, useEffect, useMemo } from 'react'
 import type { CSSProperties, ComponentType } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 
-import { PageFooter, PageNavigation } from '../components'
-import { SectionProvider, type Section } from '../components/SectionProvider'
 import { ClarifyLocaleContext } from '../context'
 import { ContentActions, Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
+
+import { PageFooter } from './PageFooter'
+import { PageNavigation } from './PageNavigation'
+import { SectionProvider, type Section } from './SectionProvider'
 
 export type AppShellProps = {
   config: ClarifyConfig

@@ -1,4 +1,4 @@
-export type { OpenAPIOperation, OpenAPISpec } from './utils'
+export type { OpenAPIOperation, OpenAPISpec } from './lib/utils'
 
 export type OpenApiRecord = Record<string, unknown>
 

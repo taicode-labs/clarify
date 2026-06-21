@@ -3,8 +3,8 @@ import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
 
 import { AppShell } from '../app/AppShell'
-import { ThemeProvider } from '../components/ThemeProvider'
 import { ClarifyConfigContext, OpenApisContext } from '../context'
+import { ThemeProvider } from '../theme/ThemeProvider'
 import type { ServerRenderOptions } from '../types'
 import { prefixHref } from '../utils/href'
 

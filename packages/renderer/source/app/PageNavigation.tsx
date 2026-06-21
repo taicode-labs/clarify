@@ -2,8 +2,8 @@ import clsx from 'clsx'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { useBuiltInText } from '../i18n'
-import type { NavigationNode, RouteItem } from '../types'
+import { useBuiltInText } from '../core/i18n'
+import type { NavigationNode, RouteItem } from '../core/types'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 function flattenNavigation(nodes: NavigationNode[]): NavigationNode[] {

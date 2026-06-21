@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 
-import { SectionProvider } from './components/SectionProvider'
-import type { Section } from './components/SectionProvider'
+import { SectionProvider } from './app/SectionProvider'
+import type { Section } from './app/SectionProvider'
 import { ClarifyConfigContext, ClarifyLocaleContext, OpenApisContext } from './context'
-import { OpenApiExamplesPreview } from './preview-openapi'
-import type { PreviewEndpoint } from './preview-openapi'
+import { OpenApiExamplesPreview } from './preview/openapi'
+import type { PreviewEndpoint } from './preview/openapi'
 import { Navigation } from './shell'
 import type { ClarifyConfig, NavigationNode } from './types'
 

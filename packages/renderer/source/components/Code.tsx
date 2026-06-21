@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { create } from 'zustand'
 
-import { useBuiltInText } from '../i18n'
+import { useBuiltInText } from '../core/i18n'
 import { copyTextToClipboard } from '../utils/clipboard'
 
 const languageNames: Record<string, string> = {

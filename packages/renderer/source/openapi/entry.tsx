@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react'
 
-import { Prose } from '../components'
-import { useBuiltInText } from '../i18n'
+import { Prose } from '../components/Prose'
+import { useBuiltInText } from '../core/i18n'
 import { Markdown } from '../mdx/Markdown'
 
-import { OpenApiOperation } from './openapi-page'
-import { useOpenApiSpec } from './spec-path'
-import { getOpenApiOperation, listOpenApiOperations } from './utils'
-import type { OpenAPISpec } from './utils'
+import { OpenApiOperation } from './components/OpenApiPage'
+import { useOpenApiSpec } from './lib/spec-path'
+import { getOpenApiOperation, listOpenApiOperations } from './lib/utils'
+import type { OpenAPISpec } from './lib/utils'
 
 type OpenApiPathsProps = { spec: OpenAPISpec }
 

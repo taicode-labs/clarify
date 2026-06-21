@@ -5,9 +5,8 @@ import { MoreHorizontal } from 'lucide-react'
 import { forwardRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
-import { ThemeToggle } from '../components'
-import { SiteLogo } from '../components/SiteLogo'
 import { useBuiltInText } from '../i18n'
+import { ThemeToggle } from '../theme/ThemeToggle'
 import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, ClarifyNavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
 import { isExternalHref, localizeHref } from '../utils/href'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
@@ -15,6 +14,7 @@ import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 import { NavigationIcon } from './icons'
 import { MobileNavigation, useIsInsideMobileNavigation, useMobileNavigationStore } from './mobile'
 import { MobileSearch, Search } from './Search'
+import { SiteLogo } from './SiteLogo'
 
 function resolveLocalizedText(text: ClarifyLocalizedText, locale?: string, fallbackLocale?: string): string {
   if (typeof text === 'string') return text

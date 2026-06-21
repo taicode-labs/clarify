@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { AlertTriangle, CheckCircle2, Info, Lightbulb, XCircle } from 'lucide-react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 
-import { useBuiltInText } from '../i18n'
+import { useBuiltInText } from '../core/i18n'
 
 export type CalloutType = 'info' | 'note' | 'tip' | 'warning' | 'danger' | 'success'
 

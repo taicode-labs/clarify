@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom'
 
-import { useClarifyConfig, useOpenApis } from '../context'
+import { useClarifyConfig, useOpenApis } from '../../core/context'
 
 import type { OpenAPISpec } from './utils'
 

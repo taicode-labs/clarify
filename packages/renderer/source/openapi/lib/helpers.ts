@@ -1,4 +1,5 @@
-import type { ExampleEntry, MediaTypeEntry, OpenApiMediaType, OpenApiParameter, OpenApiPathItem, OpenApiRecord, OpenApiResponse } from './types'
+import type { ExampleEntry, MediaTypeEntry, OpenApiMediaType, OpenApiParameter, OpenApiPathItem, OpenApiRecord, OpenApiResponse } from '../types'
+
 import type { OpenAPIOperation, OpenAPISpec } from './utils'
 
 export function isRecord(value: unknown): value is OpenApiRecord {

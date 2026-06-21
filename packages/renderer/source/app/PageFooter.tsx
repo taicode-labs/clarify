@@ -1,8 +1,8 @@
 import clsx from 'clsx'
 import { Link, useLocation } from 'react-router-dom'
 
-import { useClarifyConfig } from '../context'
-import type { ClarifyConfig, ClarifyLocalizedText, ClarifyNavbarLink } from '../types'
+import { useClarifyConfig } from '../core/context'
+import type { ClarifyConfig, ClarifyLocalizedText, ClarifyNavbarLink } from '../core/types'
 import { isExternalHref, localizeHref } from '../utils/href'
 
 import { BuiltWithClarify } from './BuiltWithClarify'

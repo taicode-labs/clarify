@@ -4,16 +4,18 @@ import { slug } from 'github-slugger'
 import { CheckIcon, ChevronDownIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
-import { Heading } from '../components'
-import { useBuiltInText } from '../i18n'
-import { Col, Row } from '../mdx/primitives'
+import { Heading } from '../../components/Heading'
+import { useBuiltInText } from '../../core/i18n'
+import { Markdown } from '../../mdx/Markdown'
+import { Col, Row } from '../../mdx/primitives'
+import { getMediaTypeEntries, getOperationParameters, getRequestBody } from '../lib/helpers'
+import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
+import type { OpenApiParameter, MediaTypeEntry, OpenApiServer, OpenApiServerVariable, RequestAuthInput } from '../types'
 
-import { authLabel, authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServerLabel, getServers, RequestExamplesPanel, ResponseExamplesPanel } from './example-panels'
-import type { AuthOption } from './example-panels'
-import { getMediaTypeEntries, getOperationParameters, getRequestBody } from './helpers'
-import { SchemaProperties, ParameterList, ResponseList } from './schema-properties'
-import type { OpenApiParameter, MediaTypeEntry, OpenApiServer, OpenApiServerVariable, RequestAuthInput } from './types'
-import type { OpenAPIOperation, OpenAPISpec } from './utils'
+import { authLabel, authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServerLabel, getServers, RequestExamplesPanel, ResponseExamplesPanel } from './ExamplePanels'
+import type { AuthOption } from './ExamplePanels'
+import { SchemaProperties, ParameterList, ResponseList } from './SchemaProperties'
+
 
 export type OpenApiOperationProps = {
   spec: OpenAPISpec

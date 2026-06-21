@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 
-import type { ClarifyLogoConfig } from '../types'
+import type { ClarifyLogoConfig } from '../core/types'
 
 export type SiteLogoProps = {
   logo?: ClarifyLogoConfig

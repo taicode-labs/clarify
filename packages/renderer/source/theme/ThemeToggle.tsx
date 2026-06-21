@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 
-import { useBuiltInText } from '../i18n'
+import { useBuiltInText } from '../core/i18n'
 
 import { useTheme } from './ThemeProvider'
 
