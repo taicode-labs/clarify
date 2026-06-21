@@ -20,25 +20,25 @@ OpenAPI `description` strings render Markdown in both full references and embedd
 ## Embed one operation
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/v1/projects" method="get" />
+<OpenApiOperation specPath="/api" path="/v1/projects" method="get" />
 ```
 
-<OpenApiEndpoint specPath="/api" path="/v1/projects" method="get" />
+<OpenApiOperation specPath="/api" path="/v1/projects" method="get" />
 
 ## Embed a request body operation
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/v1/projects" method="post" />
+<OpenApiOperation specPath="/api" path="/v1/projects" method="post" />
 ```
 
-<OpenApiEndpoint specPath="/api" path="/v1/projects" method="post" />
+<OpenApiOperation specPath="/api" path="/v1/projects" method="post" />
 
 ## Embed the full API page
 
-Use `OpenApiPage` if you want prose before a complete reference.
+Use `OpenApiDocument` if you want prose before a complete reference.
 
 ```mdx
-<OpenApiPage specPath="/api" />
+<OpenApiDocument specPath="/api" />
 ```
 
 <Callout title="Spec path convention">

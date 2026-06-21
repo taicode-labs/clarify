@@ -12,6 +12,7 @@ import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { PageFooter } from './PageFooter'
 import { PageNavigation } from './PageNavigation'
+import { PageSkeleton } from './PageSkeleton'
 import { SectionProvider, type Section } from './SectionProvider'
 
 export type AppShellProps = {
@@ -226,7 +227,7 @@ export function AppShell(arg0: AppShellProps) {
             <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
               <ContentActions hasTabs={hasTabs} route={currentRoute} routePrefix={config.routePrefix} />
               <main className="clarify-main min-w-0 flex-auto">
-                <Suspense fallback={null}>
+                <Suspense fallback={<PageSkeleton />}>
                   <Routes>
                     {renderRoutes.map((route) => (
                       <Route key={route.path} path={route.path} element={<route.component />} />

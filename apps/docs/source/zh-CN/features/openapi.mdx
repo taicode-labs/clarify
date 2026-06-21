@@ -11,8 +11,8 @@ Clarify 把 OpenAPI 规范当作一等内容源。规范负责接口事实，MDX
 | 目标 | 推荐能力 |
 |------|----------|
 | 发布完整接口列表 | `.openapi.json` / `.openapi.yaml` 自动生成 API Reference |
-| 在教程中展示一个接口 | `OpenApiEndpoint` |
-| 给完整 Reference 添加前后说明 | `OpenApiPage` |
+| 在教程中展示一个接口 | `OpenApiOperation` |
+| 给完整 Reference 添加前后说明 | `OpenApiDocument` |
 | 让 AI / LLM 读取原始规范 | 构建输出中的 `.openapi.*` 原始文件和 `llms.txt` |
 | 多语言站点维护 API 文档 | 把规范放入语言目录，例如 `source/zh-CN/api.openapi.json` |
 
@@ -79,10 +79,10 @@ source/
 
 使用访问令牌调用受保护接口。令牌过期后，重新创建会话。
 
-<OpenApiEndpoint specPath="/api" path="/sessions" method="post" />
+<OpenApiOperation specPath="/api" path="/sessions" method="post" />
 ```
 
-`OpenApiEndpoint` 参数：
+`OpenApiOperation` 参数：
 
 | 参数 | 说明 |
 |------|------|
@@ -93,7 +93,7 @@ source/
 如果要在 MDX 中插入完整 Reference，可以使用：
 
 ```mdx
-<OpenApiPage specPath="/api" />
+<OpenApiDocument specPath="/api" />
 ```
 
 ---

@@ -8,9 +8,9 @@ Clarify can render `.openapi.json` / `.openapi.yaml` files as full API Reference
 
 | Scenario | Recommended component |
 |----------|-----------------------|
-| Explain which endpoint is called in a tutorial step | `OpenApiEndpoint` |
-| Show full parameters and responses for one core endpoint | `OpenApiEndpoint` |
-| Add context before rendering a full API Reference in MDX | `OpenApiPage` |
+| Explain which endpoint is called in a tutorial step | `OpenApiOperation` |
+| Show full parameters and responses for one core endpoint | `OpenApiOperation` |
+| Add context before rendering a full API Reference in MDX | `OpenApiDocument` |
 | Let readers see workflow prose and machine-readable specs together | MDX prose + OpenAPI embed + raw spec link |
 
 ---
@@ -41,10 +41,10 @@ In localized sites, put the English spec in `source/en-US/api.openapi.json` and 
 
 ## Embed one operation
 
-Use `OpenApiEndpoint`:
+Use `OpenApiOperation`:
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
 ```
 
 Props:
@@ -57,7 +57,7 @@ Props:
 
 Rendered result:
 
-<OpenApiEndpoint specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
 
 ---
 
@@ -66,25 +66,25 @@ Rendered result:
 The same component works for operations with multiple request bodies, examples, response statuses, or callbacks. `POST /examples/complex-request-body` covers JSON / YAML request bodies, multiple examples, JSON / text responses, and error responses:
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/examples/complex-request-body" method="post" />
+<OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
 ```
 
 Rendered result:
 
-<OpenApiEndpoint specPath="/api" path="/examples/complex-request-body" method="post" />
+<OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
 
 ---
 
 ## Embed a full reference
 
-Use `OpenApiPage` when you want to write business context first and then render the full API Reference inside MDX:
+Use `OpenApiDocument` when you want to write business context first and then render the full API Reference inside MDX:
 
 ```mdx
 # API Reference
 
 Below is the complete endpoint list for this service.
 
-<OpenApiPage specPath="/api" />
+<OpenApiDocument specPath="/api" />
 ```
 
 This is useful for:
@@ -123,5 +123,5 @@ Production builds parse and dereference the OpenAPI spec. Invalid specs fail the
 
 - Keep the real interface structure in OpenAPI; do not hand-write parameter tables in MDX.
 - Use MDX for workflows, authentication prerequisites, common errors, and best practices.
-- Place `OpenApiEndpoint` next to the workflow step where the endpoint is used.
+- Place `OpenApiOperation` next to the workflow step where the endpoint is used.
 - Reuse the same spec for the full reference, embedded operations, raw spec output, and `llms.txt`.

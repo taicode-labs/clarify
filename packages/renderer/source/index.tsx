@@ -10,15 +10,14 @@ import { useMDXComponents } from './mdx/components'
 import { DocShell } from './mdx/DocShell'
 import { Markdown } from './mdx/Markdown'
 import { markdownRemarkPlugins } from './mdx/remark'
-import { OpenApiPage, ApiEndpoint, OpenApiEndpoint } from './openapi'
-import { ApiEndpointCard } from './openapi/components/ApiEndpointCard'
+import { OpenApiDocument, OpenApiOperation } from './openapi'
 import { render } from './runtime/render'
 import { ThemeProvider, useTheme } from './theme/ThemeProvider'
 import { ThemeToggle } from './theme/ThemeToggle'
 import type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions } from './types'
 import { remToPx } from './utils/remToPx'
 
-export type { ApiEndpointProps, OpenApiEndpointProps, OpenApiPageProps, OpenAPIOperation, OpenAPISpec } from './openapi'
+export type { OpenApiOperationProps, OpenApiDocumentProps, OpenAPIOperation, OpenAPISpec } from './openapi'
 export type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions, Section }
 
 // App and runtime exports
@@ -31,4 +30,4 @@ export { Button, Callout, Card, CardGroup, Code, CodeGroup, Pre, Prose, Heading,
 export { DocShell, Markdown, useMDXComponents, markdownRemarkPlugins }
 
 // OpenAPI components
-export { OpenApiPage, ApiEndpoint, OpenApiEndpoint, ApiEndpointCard }
+export { OpenApiDocument, OpenApiOperation }

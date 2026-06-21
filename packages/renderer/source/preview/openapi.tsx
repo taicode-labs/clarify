@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import { authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServers, RequestExamplesPanel, ResponseExamplesPanel } from '../openapi/components/ExamplePanels'
-import { EndpointIdentity } from '../openapi/components/OpenApiPage'
+import { EndpointIdentity } from '../openapi/components/OpenApiOperation'
 import { getMediaTypeEntries, getRequestBody } from '../openapi/lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../openapi/lib/utils'
 import type { OpenApiParameter, RequestAuthInput } from '../openapi/types'

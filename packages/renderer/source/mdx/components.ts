@@ -1,5 +1,4 @@
-import { OpenApiPage, ApiEndpoint, OpenApiEndpoint } from '../openapi'
-import { ApiEndpointCard } from '../openapi/components/ApiEndpointCard'
+import { OpenApiDocument, OpenApiOperation } from '../openapi'
 
 import { Markdown } from './Markdown'
 import * as mdxPrimitives from './primitives'
@@ -10,10 +9,8 @@ const builtInMDXComponents = {
 }
 
 const builtInOpenAPIComponents = {
-  OpenApiPage,
-  ApiEndpoint,
-  OpenApiEndpoint,
-  ApiEndpointCard,
+  OpenApiDocument,
+  OpenApiOperation,
 }
 
 export function useMDXComponents(components: Record<string, unknown> = {}) {

@@ -8,10 +8,10 @@ export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISp
 
 export function generateOpenAPIModule(spec: OpenAPISpec): string {
   return `import { createElement } from 'react';
-import { OpenApiPage } from '@clarify-labs/renderer';
+import { OpenApiDocument } from '@clarify-labs/renderer';
 const spec = ${JSON.stringify(spec)};
 export default function OpenApiRoutePage() {
-  return createElement(OpenApiPage, { spec });
+  return createElement(OpenApiDocument, { spec });
 }`
 }
 

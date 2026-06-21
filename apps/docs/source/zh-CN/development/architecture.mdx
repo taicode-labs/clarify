@@ -45,7 +45,7 @@ Clarify 采用 Monorepo 结构组织，包含应用和包两个层级。
   - `AppShell`：文档站点的顶级应用壳，负责路由、导航、搜索、主题切换和内容操作
   - `Navigation` / `Header`：桌面端侧边栏、移动端导航和顶部栏
   - `Code` / `CodeGroup` / `Prose`：MDX 内容的基础排版与代码块组件
-  - `OpenApiPage` / `ApiEndpointCard`：用于渲染 OpenAPI 页面和接口卡片
+  - `OpenApiDocument` / `OpenApiOperation`：用于渲染 OpenAPI 页面和嵌入单个接口
 - **分发**：使用 Vite library build 输出 ESM / CJS / DTS，以便 CLI 和用户项目消费
 - **约束**：除 React / React Router 等 peer dependency 外，避免绑定具体应用；不要求用户维护渲染器入口
 

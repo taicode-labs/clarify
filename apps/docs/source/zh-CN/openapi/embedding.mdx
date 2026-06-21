@@ -8,9 +8,9 @@ Clarify 不只会把 `.openapi.json` / `.openapi.yaml` 渲染成完整 API Refer
 
 | 场景 | 推荐方式 |
 |------|----------|
-| 在教程中解释某一步调用哪个接口 | `OpenApiEndpoint` |
-| 在专题页中展示某个核心接口的完整参数和响应 | `OpenApiEndpoint` |
-| 在 MDX 页面里补充说明后再展示完整 API Reference | `OpenApiPage` |
+| 在教程中解释某一步调用哪个接口 | `OpenApiOperation` |
+| 在专题页中展示某个核心接口的完整参数和响应 | `OpenApiOperation` |
+| 在 MDX 页面里补充说明后再展示完整 API Reference | `OpenApiDocument` |
 | 让读者同时看到业务说明和机器可读规范 | MDX 说明 + OpenAPI 嵌入 + 原始规范链接 |
 
 ---
@@ -41,10 +41,10 @@ source/
 
 ## 嵌入单个接口
 
-使用 `OpenApiEndpoint`：
+使用 `OpenApiOperation`：
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
 ```
 
 参数说明：
@@ -57,7 +57,7 @@ source/
 
 渲染效果：
 
-<OpenApiEndpoint specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
 
 ---
 
@@ -66,25 +66,25 @@ source/
 当接口包含多种请求体、多个 examples、多状态码响应或回调时，也可以直接嵌入同一个组件。下面的 `POST /examples/complex-request-body` 覆盖 JSON / YAML 请求体、多示例、JSON / text 响应和错误响应：
 
 ```mdx
-<OpenApiEndpoint specPath="/api" path="/examples/complex-request-body" method="post" />
+<OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
 ```
 
 渲染效果：
 
-<OpenApiEndpoint specPath="/api" path="/examples/complex-request-body" method="post" />
+<OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
 
 ---
 
 ## 嵌入完整 Reference
 
-如果你希望在 MDX 页面中先写业务背景，再展示完整 API Reference，可以使用 `OpenApiPage`：
+如果你希望在 MDX 页面中先写业务背景，再展示完整 API Reference，可以使用 `OpenApiDocument`：
 
 ```mdx
 # API Reference
 
 下面是当前服务的完整接口列表。
 
-<OpenApiPage specPath="/api" />
+<OpenApiDocument specPath="/api" />
 ```
 
 这适合用于：
@@ -123,5 +123,5 @@ source/
 
 - 用 OpenAPI 规范维护真实接口结构，不要在 MDX 里手写参数表。
 - 用 MDX 解释业务流程、认证前置条件、常见错误和最佳实践。
-- 在关键步骤旁嵌入 `OpenApiEndpoint`，减少读者在指南和 Reference 之间来回跳转。
+- 在关键步骤旁嵌入 `OpenApiOperation`，减少读者在指南和 Reference 之间来回跳转。
 - 同一份规范同时用于完整 Reference、嵌入接口、原始规范输出和 `llms.txt`。

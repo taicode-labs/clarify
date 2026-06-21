@@ -81,7 +81,7 @@ describe('createOpenAPIPlugin', () => {
 
     const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(routes))
     expect(modules?.get('virtual:clarify-openapi-registry')).toContain('Plugin API')
-    expect(modules?.get('virtual:clarify-page/api')).toContain('OpenApiPage')
+    expect(modules?.get('virtual:clarify-page/api')).toContain('OpenApiDocument')
   })
 
   it('keeps invalid OpenAPI routes renderable with diagnostics', async () => {

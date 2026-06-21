@@ -4,7 +4,7 @@ import { Prose } from '../components/Prose'
 import { useBuiltInText } from '../core/i18n'
 import { Markdown } from '../mdx/Markdown'
 
-import { OpenApiOperation } from './components/OpenApiPage'
+import { OpenApiOperation as OpenApiOperationComponent } from './components/OpenApiOperation'
 import { useOpenApiSpec } from './lib/spec-path'
 import { getOpenApiOperation, listOpenApiOperations } from './lib/utils'
 import type { OpenAPISpec } from './lib/utils'
@@ -18,18 +18,18 @@ type WarningBoxProps = {
   tone?: 'amber' | 'red'
 }
 
-export type OpenApiPageProps = {
+export type OpenApiDocumentProps = {
   spec?: OpenAPISpec
   specPath?: string
 }
 
-export type ApiEndpointProps = {
+type OpenApiOperationWithSpecProps = {
   spec: OpenAPISpec
   path: string
   method: string
 }
 
-export type OpenApiEndpointProps = {
+export type OpenApiOperationProps = {
   specPath: string
   path: string
   method: string
@@ -63,7 +63,7 @@ function OpenApiPaths(arg0: OpenApiPathsProps): ReactNode {
   return (
     <div className="clarify-api-endpoints divide-y divide-zinc-200/70 dark:divide-white/10">
       {entries.map(({ path, method, operation }) => (
-        <OpenApiOperation key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} />
+        <OpenApiOperationComponent key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} />
       ))}
     </div>
   )
@@ -79,7 +79,7 @@ function WarningBox(arg0: WarningBoxProps): ReactNode {
   return <div className={`clarify-warning ${classes}`}>{children}</div>
 }
 
-export function OpenApiPage(arg0: OpenApiPageProps): ReactNode {
+export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
   const { spec, specPath } = arg0
   const t = useBuiltInText()
   const resolved = useOpenApiSpec(spec, specPath)
@@ -98,7 +98,7 @@ export function OpenApiPage(arg0: OpenApiPageProps): ReactNode {
   )
 }
 
-export function ApiEndpoint(arg0: ApiEndpointProps): ReactNode {
+function OpenApiOperationWithSpec(arg0: OpenApiOperationWithSpecProps): ReactNode {
   const { spec, path, method } = arg0
   const t = useBuiltInText()
   const op = getOpenApiOperation(spec, path, method)
@@ -108,10 +108,10 @@ export function ApiEndpoint(arg0: ApiEndpointProps): ReactNode {
   }
 
   const normalizedMethod = method.toUpperCase()
-  return <OpenApiOperation key={`${normalizedMethod}-${path}`} spec={spec} path={path} method={normalizedMethod} operation={op} />
+  return <OpenApiOperationComponent key={`${normalizedMethod}-${path}`} spec={spec} path={path} method={normalizedMethod} operation={op} />
 }
 
-export function OpenApiEndpoint(arg0: OpenApiEndpointProps): ReactNode {
+export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const { specPath, path, method } = arg0
   const t = useBuiltInText()
   const spec = useOpenApiSpec(undefined, specPath)
@@ -120,5 +120,5 @@ export function OpenApiEndpoint(arg0: OpenApiEndpointProps): ReactNode {
     return <WarningBox>{t('openapi.specNotFound', { specPath })}</WarningBox>
   }
 
-  return <ApiEndpoint spec={spec} path={path} method={method} />
+  return <OpenApiOperationWithSpec spec={spec} path={path} method={method} />
 }

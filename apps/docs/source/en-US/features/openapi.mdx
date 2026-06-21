@@ -11,8 +11,8 @@ Clarify treats OpenAPI specs as first-class content sources. The spec contains i
 | Goal | Recommended capability |
 |------|------------------------|
 | Publish a full endpoint list | Generate API Reference pages from `.openapi.json` / `.openapi.yaml` automatically. |
-| Show one endpoint inside a guide | Use `OpenApiEndpoint`. |
-| Add context around a full reference page | Use `OpenApiPage`. |
+| Show one endpoint inside a guide | Use `OpenApiOperation`. |
+| Add context around a full reference page | Use `OpenApiDocument`. |
 | Let AI / LLM tools read the raw spec | Publish raw `.openapi.*` files and `llms.txt` in the build output. |
 | Maintain API docs in localized sites | Put specs under locale folders, for example `source/en-US/api.openapi.json`. |
 
@@ -79,10 +79,10 @@ Product-level API docs should not be reference-only. Write guides around real ta
 
 Use an access token for protected endpoints. When the token expires, create a new session.
 
-<OpenApiEndpoint specPath="/api" path="/sessions" method="post" />
+<OpenApiOperation specPath="/api" path="/sessions" method="post" />
 ```
 
-`OpenApiEndpoint` props:
+`OpenApiOperation` props:
 
 | Prop | Description |
 |------|-------------|
@@ -93,7 +93,7 @@ Use an access token for protected endpoints. When the token expires, create a ne
 To insert the full reference in MDX, use:
 
 ```mdx
-<OpenApiPage specPath="/api" />
+<OpenApiDocument specPath="/api" />
 ```
 
 ---

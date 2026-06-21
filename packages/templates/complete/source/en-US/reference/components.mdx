@@ -56,12 +56,10 @@ export const feature: Feature = {
 }
 ```
 
-## API endpoint cards
+## OpenAPI endpoints
 
-<ApiEndpointCard method="GET" path="/v1/projects" href="/api#operation/listProjects">
-  List projects visible to the current API token.
-</ApiEndpointCard>
+Use `OpenApiOperation` to embed a single operation from the site’s OpenAPI spec:
 
-<ApiEndpointCard method="POST" path="/v1/projects" href="/api#operation/createProject">
-  Create a project from a JSON request body.
-</ApiEndpointCard>
+<OpenApiOperation specPath="/api" path="/v1/projects" method="get" />
+
+<OpenApiOperation specPath="/api" path="/v1/projects" method="post" />
