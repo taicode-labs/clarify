@@ -31,10 +31,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install local CLI globally
-        run: pnpm install -g ./packages/cli
+        run: pnpm install --no-frozen-lockfile
 
       - name: Create temp project
         run: |
@@ -42,17 +39,17 @@ jobs:
           mkdir -p .github/.template-test
           cd .github/.template-test
 
-      - name: Run clarify init for template
+      - name: Run local clarify init for template
         working-directory: .github/.template-test
-        run: clarify init --template ${{ matrix.template }}
+        run: node ../../packages/cli/bin/clarify.js init --template ${{ matrix.template }}
 
       - name: Install template project dependencies
         working-directory: .github/.template-test
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build generated template project
         working-directory: .github/.template-test
-        run: clarify build
+        run: node ../../packages/cli/bin/clarify.js build
 
       - name: Validate generated files
         working-directory: .github/.template-test
