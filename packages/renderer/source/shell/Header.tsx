@@ -207,7 +207,7 @@ function ProductTabs(arg0: ProductTabsProps) {  const { tabs } = arg0
               to={tab.path}
               aria-current={active ? 'page' : undefined}
               className={clsx(
-                'clarify-product-tab clarify-ui-tab relative inline-flex shrink-0 items-center gap-2 px-0 transition',
+                'clarify-product-tab clarify-ui-tab relative inline-flex h-full shrink-0 items-center gap-2 px-0 transition',
                 active && 'clarify-ui-tab-active',
               )}
             >
@@ -217,7 +217,7 @@ function ProductTabs(arg0: ProductTabsProps) {  const { tabs } = arg0
                 <motion.span
                   layoutId="clarify-product-tab-indicator"
                   className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-(--clarify-theme-tokens-colors-foreground) dark:bg-white"
-                  transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+                  transition={{ type: 'tween', duration: 0.16, ease: 'easeOut' }}
                 />
               ) : null}
             </Link>
