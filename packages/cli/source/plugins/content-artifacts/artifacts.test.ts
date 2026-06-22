@@ -90,6 +90,7 @@ describe('content artifact helpers', () => {
       description: 'Helpful docs',
       routePrefix: '/docs',
       theme: resolveThemeConfig(),
+      themeEditor: false,
     }
     const routes = [
       route({ path: '/guide', title: 'Guide', contentArtifactUrl: '/guide.md' }),
@@ -106,6 +107,7 @@ describe('content artifact helpers', () => {
       description: '中文说明',
       routePrefix: '/',
       theme: resolveThemeConfig(),
+      themeEditor: false,
     }
     const routes = [route({ path: '/guide', title: '快速开始', contentArtifactUrl: '/guide.md' })]
 

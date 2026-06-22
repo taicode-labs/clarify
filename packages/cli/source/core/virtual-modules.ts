@@ -16,6 +16,7 @@ type BuildVirtualModulesArgs = {
   generateOptions: ResolvedBuildOptions
   routes: ContentRoute[]
   navigation?: NavigationTree
+  themeEditor?: boolean
 }
 
 export function resolveVirtualId(id: string): string {
@@ -64,24 +65,25 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
-export function createClientEntryModule(): string {
+export function createClientEntryModule(options: { themeEditor?: boolean } = {}): string {
   return `
 import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
 import { openApis } from '${VIRTUAL_OPENAPI_REGISTRY}';
-render({ config, routes, navigation, openApis });`
+render({ config, routes, navigation, openApis, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
 }
 
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
+  const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
   modules.set(VIRTUAL_OPENAPI_REGISTRY, 'export const openApis = {};')
-  modules.set(VIRTUAL_CLIENT_ENTRY, createClientEntryModule())
-  modules.set(RESOLVED_CLIENT_ENTRY, createClientEntryModule())
+  modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
+  modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
 
   for (const route of args.routes) {
     if (route.kind === 'openapi') continue

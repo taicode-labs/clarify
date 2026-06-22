@@ -5,6 +5,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 
 import { ClarifyLocaleContext } from '../context'
 import { ContentActions, Header, Navigation } from '../shell'
+import { ThemeEditor } from '../theme/ThemeEditor'
 import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
@@ -18,6 +19,7 @@ export type AppShellProps = {
   config: ClarifyConfig
   routes: RouteItem[]
   navigation: NavigationTree
+  themeEditor?: boolean
 }
 
 type ThemeCssVariables = CSSProperties & Record<`--clarify-theme-${string}`, string>
@@ -154,7 +156,7 @@ function applyRootThemeVariables(themeVariables: ThemeCssVariables): () => void 
 }
 
 export function AppShell(arg0: AppShellProps) {
-  const { config, routes, navigation } = arg0
+  const { config, routes, navigation, themeEditor = false } = arg0
   const location = useLocation()
   const pathname = normalizeRoutePath(location.pathname)
   const currentRoute = routeForPath(routes, pathname)
@@ -237,6 +239,7 @@ export function AppShell(arg0: AppShellProps) {
             </div>
           </div>
           <PageFooter />
+          {themeEditor ? <ThemeEditor initialTheme={config.theme} /> : null}
         </div>
       </SectionProvider>
     </ClarifyLocaleContext.Provider>

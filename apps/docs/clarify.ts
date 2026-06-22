@@ -24,6 +24,7 @@ export default defineConfig({
   theme: {
     preset: 'default',
   },
+  themeEditor: true,
   navbar: {
     links: [
       {

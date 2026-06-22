@@ -176,6 +176,9 @@ export type ClarifyProjectConfig = {
   /** Theme preset and token overrides. */
   theme?: ClarifyThemeConfig
 
+  /** Expose the live theme editor in the built site. Dev mode enables it automatically. */
+  themeEditor?: boolean
+
   /** Base path for the docs site. Default: '/' */
   routePrefix?: string
 
@@ -208,6 +211,7 @@ export type ResolvedProjectConfig = {
   routePrefix: string
   favicon?: ClarifyFaviconConfig
   theme: ResolvedClarifyThemeConfig
+  themeEditor: boolean
   navbar?: { links?: ClarifyNavbarLink[] }
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig

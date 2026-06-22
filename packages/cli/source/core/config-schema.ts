@@ -150,6 +150,7 @@ export const clarifyProjectConfigSchema = z.object({
   logo: clarifyLogoConfigSchema.optional(),
   favicon: clarifyFaviconConfigSchema.optional(),
   theme: clarifyThemeConfigSchema.optional(),
+  themeEditor: z.boolean().optional(),
   routePrefix: z.string().optional(),
   navbar: z.object({
     links: z.array(clarifyNavbarLinkSchema).optional(),

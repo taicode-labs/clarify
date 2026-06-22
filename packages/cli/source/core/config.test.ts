@@ -84,6 +84,7 @@ describe('resolveProjectConfig', () => {
           maxWidth: '82rem',
         },
       },
+      themeEditor: false,
       navbar: undefined,
       banner: undefined,
       footer: undefined,
@@ -97,6 +98,7 @@ describe('resolveProjectConfig', () => {
       title: 'Project Docs',
       description: 'Desc',
       theme: { tokens: { colors: { primary: '#333' } } },
+      themeEditor: true,
       favicon: '/favicon.svg',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
       banner: { content: 'v2 is out', dismissible: true },
@@ -117,6 +119,7 @@ describe('resolveProjectConfig', () => {
     expect(result.description).toBe('Desc')
     expect(result.theme.tokens.colors.primary).toBe('#333')
     expect(result.theme.layout).toEqual({ maxWidth: '82rem' })
+    expect(result.themeEditor).toBe(true)
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })

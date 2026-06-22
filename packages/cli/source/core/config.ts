@@ -53,6 +53,7 @@ export function resolveProjectConfig(config: ClarifyProjectConfig = {}): Resolve
     favicon: config.favicon,
     routePrefix: config.routePrefix ?? '/',
     theme: resolveThemeConfig(config.theme),
+    themeEditor: config.themeEditor ?? false,
     navbar: config.navbar,
     banner: config.banner,
     footer: config.footer,

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { resolveThemeConfig } from '../core/theme.js'
-import { generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
+import { createClientEntryModule, generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
 import type { ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 describe('generateConfigModule', () => {
@@ -11,6 +11,7 @@ describe('generateConfigModule', () => {
       description: 'Desc',
       routePrefix: '/',
       theme: resolveThemeConfig({ tokens: { colors: { primary: '#fff' } } }),
+      themeEditor: false,
     }
     const generateOptions: ResolvedBuildOptions = {
       rootDirectory: 'source',
@@ -63,6 +64,7 @@ describe('generateRoutesModule', () => {
       description: '',
       routePrefix: '/',
       theme: resolveThemeConfig(),
+      themeEditor: false,
       tabs: [
         { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
       ],
@@ -82,5 +84,23 @@ describe('generateRoutesModule', () => {
     const code = generateRoutesModule(routes)
     expect(code).toContain('"title": "Guide"')
     expect(code).not.toContain('"tabs"')
+  })
+})
+
+describe('createClientEntryModule', () => {
+  it('passes the theme editor flag to the renderer', () => {
+    const code = createClientEntryModule({ themeEditor: true })
+
+    expect(code).toContain('render({ config, routes, navigation, openApis, themeEditor: true });')
+    expect(code).not.toContain('ThemeEditor')
+    expect(code).not.toContain('react-dom/client')
+  })
+
+  it('disables the theme editor by default', () => {
+    const code = createClientEntryModule()
+
+    expect(code).toContain('render({ config, routes, navigation, openApis, themeEditor: false });')
+    expect(code).not.toContain('ThemeEditor')
+    expect(code).not.toContain('react-dom/client')
   })
 })

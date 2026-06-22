@@ -144,6 +144,8 @@ export type ClarifyConfig = {
   logo?: ClarifyLogoConfig;
   favicon?: ClarifyFaviconConfig;
   theme: ClarifyThemeConfig;
+  /** Expose the live theme editor in the built site. Dev mode enables it automatically. */
+  themeEditor?: boolean;
   description: string;
   rootDirectory: string;
   routePrefix: string;
@@ -180,6 +182,8 @@ export type RenderOptions = {
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
+  /** Whether to render the live theme editor inside the app tree. */
+  themeEditor?: boolean;
   /** 挂载节点，默认 document.getElementById('root') */
   container?: Element | null;
 };
@@ -197,6 +201,8 @@ export type ServerRenderOptions = {
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
+  /** Whether to render the live theme editor inside the app tree. */
+  themeEditor?: boolean;
   /** 当前请求的 URL */
   url: string;
 };

@@ -75,7 +75,7 @@ import { config } from 'virtual:clarify-config';
 import { openApis } from 'virtual:clarify-openapi-registry';
 
 export function render(url) {
-  return renderToHTML({ config, routes, navigation, openApis, url });
+  return renderToHTML({ config, routes, navigation, openApis, url, themeEditor: config.themeEditor });
 }`
 
 export function createTempEntryFile(content: string): string {

@@ -14,7 +14,7 @@ import { prefixHref } from '../utils/href'
  * 返回 `div#root` 内部的 HTML，由 Clarify CLI 组装为完整的 HTML 文档。
  */
 export function renderToHTML(options: ServerRenderOptions): string {
-  const { config, routes, navigation, openApis = {}, url } = options
+  const { config, routes, navigation, openApis = {}, url, themeEditor = false } = options
   const location = prefixHref(url, config.routePrefix)
 
   return renderToString(
@@ -23,7 +23,7 @@ export function renderToHTML(options: ServerRenderOptions): string {
         <ClarifyConfigContext.Provider value={config}>
           <OpenApisContext.Provider value={openApis}>
             <ThemeProvider>
-              <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+              <AppShell config={config} routes={routes} navigation={navigation ?? []} themeEditor={themeEditor} />
             </ThemeProvider>
           </OpenApisContext.Provider>
         </ClarifyConfigContext.Provider>
