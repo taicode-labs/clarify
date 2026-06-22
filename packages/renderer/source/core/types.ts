@@ -34,6 +34,7 @@ export type RouteItem = {
   openapiTagFilter?: string[];
   sections?: RouteSection[];
   contentArtifactUrl?: string;
+  sourceUrl?: string;
 };
 
 export type ClarifyLogoConfig = string | { light?: string; dark?: string };
@@ -69,6 +70,12 @@ export type ClarifyFooterConfig = {
   links?: ClarifyNavbarLink[];
   socials?: Record<string, string>;
   copyright?: ClarifyLocalizedText;
+};
+
+export type ClarifySourceConfig = {
+  repository: string;
+  branch?: string;
+  directory?: string;
 };
 
 export type ClarifyThemePreset = 'default' | 'base';
@@ -153,6 +160,8 @@ export type ClarifyConfig = {
   favicon?: ClarifyFaviconConfig;
   theme: ClarifyThemeConfig;
   description: string;
+  siteUrl?: string;
+  source?: ClarifySourceConfig;
   rootDirectory: string;
   routePrefix: string;
   outputDirectory: string;

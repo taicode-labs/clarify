@@ -1,3 +1,5 @@
+import { join } from 'node:path'
+
 import type { ViteDevServer } from 'vite'
 
 import type { ClarifyPlugin } from '../../types.js'
@@ -22,8 +24,9 @@ export function createContentArtifactsPlugin(): ClarifyPlugin {
       'build:done': (ctx) => {
         const outputDirectory = ctx.generateOptions.outputDirectory
         if (!outputDirectory) return
-        writeContentArtifactFiles(ctx.routes, outputDirectory)
-        writeLlmsTxt(ctx.routes, ctx.projectConfig, outputDirectory)
+        const outputRoot = join(ctx.generateOptions.projectRoot, outputDirectory)
+        writeContentArtifactFiles(ctx.routes, outputRoot)
+        writeLlmsTxt(ctx.routes, ctx.projectConfig, outputRoot)
       },
     },
   }

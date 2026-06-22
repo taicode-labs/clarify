@@ -72,6 +72,12 @@ export const clarifyFooterConfigSchema = z.object({
   copyright: clarifyLocalizedTextSchema.optional(),
 })
 
+export const clarifySourceConfigSchema = z.object({
+  repository: z.string(),
+  branch: z.string().optional(),
+  directory: z.string().optional(),
+})
+
 export const clarifyPagesItemSchema = z.union([
   z.string(),
   z.object({
@@ -155,6 +161,8 @@ export const clarifyThemeConfigSchema = z.object({
 export const clarifyProjectConfigSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
+  siteUrl: z.string().optional(),
+  source: clarifySourceConfigSchema.optional(),
   logo: clarifyLogoConfigSchema.optional(),
   favicon: clarifyFaviconConfigSchema.optional(),
   theme: clarifyThemeConfigSchema.optional(),

@@ -55,6 +55,15 @@ export type ClarifyFooterConfig = {
   copyright?: ClarifyLocalizedText
 }
 
+export type ClarifySourceConfig = {
+  /** Repository web URL, for example https://github.com/owner/repo. */
+  repository: string
+  /** Source branch used for edit links. Default: main. */
+  branch?: string
+  /** Directory prefix inside the repository that maps to rootDirectory. */
+  directory?: string
+}
+
 export type ClarifyThemePreset = 'default' | 'base'
 
 export type ClarifyThemeModeColorValue = {
@@ -177,6 +186,12 @@ export type ClarifyProjectConfig = {
   /** Site description. Used in SEO meta tags. */
   description?: string
 
+  /** Canonical public site URL. Enables sitemap.xml and robots.txt generation. */
+  siteUrl?: string
+
+  /** Source repository configuration for Edit this page links. */
+  source?: ClarifySourceConfig
+
   /** Path to site logo image (relative to rootDirectory or absolute). Supports light/dark mode. */
   logo?: ClarifyLogoConfig
 
@@ -215,6 +230,8 @@ export type ResolvedProjectConfig = {
   title: string
   logo?: ClarifyLogoConfig
   description: string
+  siteUrl?: string
+  source?: ClarifySourceConfig
   routePrefix: string
   favicon?: ClarifyFaviconConfig
   theme: ResolvedClarifyThemeConfig
@@ -264,6 +281,7 @@ export type ContentRoute = {
   diagnostic?: ContentDiagnostic
   sections?: ContentSection[]
   contentArtifactUrl?: string
+  sourceUrl?: string
 }
 
 export type ClarifyNavigationTab = {

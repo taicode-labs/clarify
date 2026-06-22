@@ -17,6 +17,7 @@ const projectConfig: ResolvedProjectConfig = {
 }
 
 const generateOptions: ResolvedBuildOptions = {
+  projectRoot: '/site',
   rootDirectory: 'source',
   outputDirectory: 'output',
   ssg: { failOnError: true },

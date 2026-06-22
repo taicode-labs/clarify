@@ -31,6 +31,12 @@ import { defineConfig } from '@clarify-labs/cli'
 export default defineConfig({
   title: 'Clarify 文档',
   description: 'Clarify 官方文档 — 开源文档发布工具',
+  siteUrl: 'https://docs.example.com',
+  source: {
+    repository: 'https://github.com/acme/docs',
+    branch: 'main',
+    directory: 'docs/source',
+  },
   logo: {
     light: '/logo-light.svg',
     dark: '/logo-dark.svg',
@@ -94,6 +100,8 @@ export default defineConfig({
 |------|------|--------|------|
 | `title` | `string` | `"Clarify Docs"` | 站点标题，用于侧边栏品牌和 HTML 标题 |
 | `description` | `string` | `""` | 站点描述，用于 SEO 和 `llms.txt` |
+| `siteUrl` | `string` | — | 公开站点 URL；配置后 `clarify build` 会生成 `sitemap.xml` 和 `robots.txt` |
+| `source` | `{ repository: string; branch?: string; directory?: string }` | — | 源码仓库信息，用于生成“编辑此页面”链接 |
 | `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo 路径 |
 | `favicon` | `string \| { light?: string; dark?: string }` | — | favicon 路径或亮暗主题变体 |
 | `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig; editor?: boolean }` | `{ preset: 'default', editor: false }` | 主题预设、局部覆盖和实时主题编辑器配置；`theme.editor` 可在构建后的站点中暴露编辑器，dev 模式会自动启用 |
@@ -105,6 +113,23 @@ export default defineConfig({
 | `tabs` | `ClarifyTabsConfig` | 按文件树自动生成 | 站点业务分类和各分类下的侧边栏结构 |
 | `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | 静态生成错误策略 |
 | `plugins` | `ClarifyPlugin[]` | `[]` | 构建期插件列表，仅 `clarify.ts/js` 可用 |
+
+---
+
+## `siteUrl` 和 `source`
+
+```ts
+export default defineConfig({
+  siteUrl: 'https://docs.example.com',
+  source: {
+    repository: 'https://github.com/acme/docs',
+    branch: 'main',
+    directory: 'docs/source',
+  },
+})
+```
+
+`siteUrl` 用于在 `clarify build` 时生成 `sitemap.xml` 和 `robots.txt`。`source` 会让页面操作菜单展示“编辑此页面”链接，指向对应源文件。
 
 ---
 

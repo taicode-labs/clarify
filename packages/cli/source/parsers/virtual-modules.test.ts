@@ -13,6 +13,7 @@ describe('generateConfigModule', () => {
       theme: resolveThemeConfig({ tokens: { colors: { primary: '#fff' } } }),
     }
     const generateOptions: ResolvedBuildOptions = {
+      projectRoot: '/site',
       rootDirectory: 'source',
       outputDirectory: 'dist',
       ssg: { failOnError: true },
@@ -33,12 +34,12 @@ describe('generateRoutesModule', () => {
 
   it('generates lazy imports and routes array', () => {
     const routes: ContentRoute[] = [
-      { path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index', kind: 'mdx' },
+      { path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index', kind: 'mdx', sourceUrl: 'https://github.com/acme/docs/edit/main/index.mdx' },
       { path: '/about', title: 'About', filePath: '/a/about.mdx', virtualModuleId: 'virtual:clarify-page/about', kind: 'mdx' },
     ]
     const code = generateRoutesModule(routes)
     expect(code).not.toContain('import Page')
-    expect(code).toContain('{ path: "/", title: "Home", component: () => import("virtual:clarify-page/index"), lazy: true, kind: "mdx" }')
+    expect(code).toContain('{ path: "/", title: "Home", component: () => import("virtual:clarify-page/index"), lazy: true, kind: "mdx", sourceUrl: "https://github.com/acme/docs/edit/main/index.mdx" }')
     expect(code).toContain('{ path: "/about", title: "About", component: () => import("virtual:clarify-page/about"), lazy: true, kind: "mdx" }')
     expect(code).toContain('"title": "About"')
   })

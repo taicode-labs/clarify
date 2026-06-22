@@ -3,6 +3,12 @@ import { defineConfig } from '@clarify-labs/cli'
 export default defineConfig({
   title: 'Clarify',
   description: '开源文档发布工具，为 MDX 和 OpenAPI 而生。',
+  siteUrl: 'https://docs.clarify.pub',
+  source: {
+    repository: 'https://github.com/taicode-labs/clarify',
+    branch: 'main',
+    directory: 'apps/docs/source',
+  },
   logo: '/clarify.svg',
   favicon: '/clarify.svg',
   i18n: {

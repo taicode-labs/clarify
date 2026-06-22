@@ -55,9 +55,10 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
     const description = r.description ? `, description: ${JSON.stringify(r.description)}` : ''
     const keywords = r.keywords && r.keywords.length > 0 ? `, keywords: ${JSON.stringify(r.keywords)}` : ''
     const openapiTagFilter = r.openapiTagFilter && r.openapiTagFilter.length > 0 ? `, openapiTagFilter: ${JSON.stringify(r.openapiTagFilter)}` : ''
+    const sourceUrl = r.sourceUrl ? `, sourceUrl: ${JSON.stringify(r.sourceUrl)}` : ''
     const component = mode === 'server' ? `Page${i}` : `() => import(${moduleSpecifier(r.virtualModuleId)})`
     const lazy = mode === 'client' ? ', lazy: true' : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${alternates}${description}${keywords}${openapiTagFilter}${sections}${contentArtifactUrl} }`
+    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${alternates}${description}${keywords}${openapiTagFilter}${sections}${contentArtifactUrl}${sourceUrl} }`
   }).join(',\n')
 
   const navigation = resolvedNavigation ?? (projectConfig?.tabs

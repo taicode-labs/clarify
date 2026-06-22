@@ -23,6 +23,8 @@ export type BuiltInTextKey =
   | 'contentActions.copyLlms'
   | 'contentActions.copyLlmsDescription'
   | 'contentActions.copiedLlms'
+  | 'contentActions.editPage'
+  | 'contentActions.editPageDescription'
   | 'contentActions.copyOptions'
   | 'contentActions.copiedContent'
   | 'contentActions.copiedLink'
@@ -113,6 +115,8 @@ const builtInText = {
     'contentActions.copyLlms': 'Copy llms.txt',
     'contentActions.copyLlmsDescription': 'Copy the llms.txt link for this site',
     'contentActions.copiedLlms': 'Copied llms.txt',
+    'contentActions.editPage': 'Edit this page',
+    'contentActions.editPageDescription': 'Open the source file for this page',
     'contentActions.copyOptions': 'Choose copy option',
     'contentActions.copiedContent': 'Copied page',
     'contentActions.copiedLink': 'Copied link',
@@ -202,6 +206,8 @@ const builtInText = {
     'contentActions.copyLlms': '复制 llms.txt',
     'contentActions.copyLlmsDescription': '复制此站点的 llms.txt 链接',
     'contentActions.copiedLlms': '已复制 llms.txt',
+    'contentActions.editPage': '编辑此页面',
+    'contentActions.editPageDescription': '打开当前页面的源文件',
     'contentActions.copyOptions': '选择复制选项',
     'contentActions.copiedContent': '已复制页面',
     'contentActions.copiedLink': '已复制链接',

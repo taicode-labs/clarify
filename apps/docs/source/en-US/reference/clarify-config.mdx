@@ -18,6 +18,12 @@ import { defineConfig } from '@clarify-labs/cli'
 export default defineConfig({
   title: 'Clarify Docs',
   description: 'Open-source documentation publishing for MDX and OpenAPI',
+  siteUrl: 'https://docs.example.com',
+  source: {
+    repository: 'https://github.com/acme/docs',
+    branch: 'main',
+    directory: 'docs/source',
+  },
   logo: '/logo.svg',
   favicon: '/favicon.ico',
   theme: {
@@ -63,6 +69,8 @@ export default defineConfig({
 |-------|-------------|
 | `title` | Site title used by the shell and generated metadata. |
 | `description` | Site description used for SEO and `llms.txt`. |
+| `siteUrl` | Public canonical site URL. Enables `sitemap.xml` and `robots.txt` during `clarify build`. |
+| `source` | Repository metadata used to render “Edit this page” links. |
 | `logo` | Logo path or light/dark logo variants. |
 | `favicon` | Favicon path or light/dark variants. |
 | `theme` | Theme preset, token overrides, and `theme.editor` for exposing the live theme editor in built sites. Dev mode enables the editor automatically. |
@@ -73,6 +81,23 @@ export default defineConfig({
 | `tabs` | High-level navigation sections and sidebar structure. |
 | `ssg` | Static generation behavior. |
 | `plugins` | Build-time plugins, available in JS/TS config files. |
+
+---
+
+## `siteUrl` and `source`
+
+```ts
+export default defineConfig({
+  siteUrl: 'https://docs.example.com',
+  source: {
+    repository: 'https://github.com/acme/docs',
+    branch: 'main',
+    directory: 'docs/source',
+  },
+})
+```
+
+`siteUrl` is used by `clarify build` to generate `sitemap.xml` and `robots.txt`. `source` enables the page action menu to show an “Edit this page” link for each route.
 
 ---
 

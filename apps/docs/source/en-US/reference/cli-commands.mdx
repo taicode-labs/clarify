@@ -17,6 +17,7 @@ Then use:
 ```bash
 clarify init
 clarify dev
+clarify check
 clarify build
 ```
 
@@ -44,7 +45,28 @@ Build a production static site.
 pnpm exec clarify build --output output
 ```
 
-The build validates content and OpenAPI specs, renders pages, writes static assets, copies public files, and emits `llms.txt`.
+The build validates content and OpenAPI specs, renders pages, writes static assets, copies public files, and emits `llms.txt`. When `siteUrl` is configured, it also writes `sitemap.xml` and `robots.txt`.
+
+---
+
+## `clarify check`
+
+Validate the documentation project without producing a build.
+
+```bash
+pnpm exec clarify check
+```
+
+The check command reports missing content directories, duplicate routes, invalid OpenAPI specs, broken local Markdown links, and i18n fallback pages.
+
+Common options:
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--root <dir>` | Project root directory | Current working directory |
+| `--content <dir>` | Content directory relative to root | `source` |
+| `--strict` | Treat warnings as failures | `false` |
+| `--format <format>` | `text` or `json` | `text` |
 
 ---
 
