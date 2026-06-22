@@ -10,9 +10,10 @@ import { rehypePlugins, remarkPlugins } from '../parsers/mdx.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../types.js'
 
 import { resolveProjectConfig } from './config.js'
+import { createBuiltinPlugins } from './builtin.js'
 import { runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from './options.js'
-import { createBuiltinPlugins, resolveClarifySite } from './site.js'
+import { resolveClarifySite } from './site.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
@@ -24,7 +25,6 @@ import {
   RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
   VIRTUAL_CONFIG,
-  VIRTUAL_OPENAPI_REGISTRY,
   VIRTUAL_ROUTES,
   VIRTUAL_SERVER_ROUTES,
   buildVirtualModules,
@@ -171,8 +171,9 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       if (id === VIRTUAL_CONFIG || id === resolveVirtualId(VIRTUAL_CONFIG)) return resolveVirtualId(VIRTUAL_CONFIG)
       if (id === VIRTUAL_ROUTES || id === resolveVirtualId(VIRTUAL_ROUTES)) return resolveVirtualId(VIRTUAL_ROUTES)
       if (id === VIRTUAL_SERVER_ROUTES || id === resolveVirtualId(VIRTUAL_SERVER_ROUTES)) return resolveVirtualId(VIRTUAL_SERVER_ROUTES)
-      if (id === VIRTUAL_OPENAPI_REGISTRY || id === resolveVirtualId(VIRTUAL_OPENAPI_REGISTRY)) return resolveVirtualId(VIRTUAL_OPENAPI_REGISTRY)
-      const route = routes.find(r => r.virtualModuleId === id || r.virtualModuleId === stripVirtualPrefix(id))
+      const moduleId = stripVirtualPrefix(id)
+      if (virtualModules.has(moduleId)) return resolveVirtualId(moduleId)
+      const route = routes.find(r => r.virtualModuleId === id || r.virtualModuleId === moduleId)
       if (route) return resolveVirtualId(route.virtualModuleId)
       return null
     },
@@ -240,7 +241,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
               if (id === VIRTUAL_CONFIG) return id
               if (id === VIRTUAL_ROUTES) return id
               if (id === VIRTUAL_SERVER_ROUTES) return id
-              if (id === VIRTUAL_OPENAPI_REGISTRY) return id
+              if (virtualModules.has(stripVirtualPrefix(id))) return stripVirtualPrefix(id)
               const route = routes.find(r => r.virtualModuleId === id)
               if (route) return id
               return null

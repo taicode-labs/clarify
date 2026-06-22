@@ -1,12 +1,9 @@
 import { join, relative } from 'node:path'
 
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef } from '../parsers/routes.js'
-import { createContentArtifactsPlugin } from '../plugins/content-artifacts/index.js'
-import { createHtmlShellPlugin } from '../plugins/html-shell/index.js'
-import { createOpenAPIPlugin } from '../plugins/openapi/index.js'
-import { createSeoPlugin } from '../plugins/seo/index.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree, ResolvedClarifyI18nConfig } from '../types.js'
 
+import { createBuiltinPlugins } from './builtin.js'
 import { resolveProjectConfig } from './config.js'
 import { runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions, type ResolvedBuildOptions } from './options.js'
@@ -25,12 +22,6 @@ export type ResolvedClarifySite = {
 
 export type ResolveClarifySiteOptions = {
   includeHtmlShellPlugin?: boolean
-}
-
-export function createBuiltinPlugins(options: ResolveClarifySiteOptions = {}): ClarifyPlugin[] {
-  const plugins = [createOpenAPIPlugin(), createContentArtifactsPlugin(), createSeoPlugin()]
-  if (options.includeHtmlShellPlugin ?? true) plugins.push(createHtmlShellPlugin())
-  return plugins
 }
 
 function withAlternates(route: ContentRoute, routeList: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute {
@@ -100,7 +91,7 @@ export async function resolveClarifySite(options: ClarifyBuildOptions = {}, reso
   const projectConfig = resolveProjectConfig(options)
   const generateOptions = resolveBuildOptions(options)
   const contentRoot = join(root, generateOptions.rootDirectory)
-  const plugins = [...createBuiltinPlugins(resolveOptions), ...(options.plugins ?? [])]
+  const plugins = [...createBuiltinPlugins({ htmlShell: resolveOptions.includeHtmlShellPlugin }), ...(options.plugins ?? [])]
   const ctx: ClarifyHookContext = { projectConfig, generateOptions, routes: [], navigation: [] }
 
   let routes = await discoverRoutes(root, contentRoot, plugins, ctx)

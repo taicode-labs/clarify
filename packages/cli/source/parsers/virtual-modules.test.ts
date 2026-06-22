@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { resolveThemeConfig } from '../core/theme.js'
-import { createClientEntryModule, generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
+import { createClientEntryModule, createRuntimeModule, generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
 import type { ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 describe('generateConfigModule', () => {
@@ -86,10 +86,17 @@ describe('generateRoutesModule', () => {
   })
 })
 
+describe('createRuntimeModule', () => {
+  it('provides empty runtime extension data by default', () => {
+    expect(createRuntimeModule()).toBe('export const openApis = {};')
+  })
+})
+
 describe('createClientEntryModule', () => {
   it('passes the theme editor flag to the renderer', () => {
     const code = createClientEntryModule({ themeEditor: true })
 
+    expect(code).toContain("import { openApis } from 'virtual:clarify-runtime';")
     expect(code).toContain('render({ config, routes, navigation, openApis, themeEditor: true });')
     expect(code).not.toContain('ThemeEditor')
     expect(code).not.toContain('react-dom/client')

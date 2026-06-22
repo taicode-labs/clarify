@@ -272,7 +272,7 @@ export type ContentRoute = {
   keywords?: string[]
   filePath: string
   virtualModuleId: string
-  kind: 'mdx' | 'openapi'
+  kind: string
   /** OpenAPI operation tag filter applied to this route. Undefined means all operations. */
   openapiTagFilter?: string[]
   frontmatter?: Record<string, unknown>
