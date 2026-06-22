@@ -176,9 +176,18 @@ function buildHarRequest(input: RequestCodeInput): HarRequest {
   }
 }
 
+function buildSnippetErrorMessage(error: unknown): string {
+  const detail = error instanceof Error && error.message ? `\n\nDetails: ${error.message}` : ''
+  return `Request example unavailable.\n\nThe selected OpenAPI example could not be converted into a code snippet. Please check that the example value matches its media type, for example valid JSON for application/json.${detail}`
+}
+
 function buildSnippet(input: RequestCodeInput, target: SnippetTarget): string {
-  const result = snippetGenerator.print(target.target, target.client, buildHarRequest(input))
-  return decodeUrlPlaceholders(result || '')
+  try {
+    const result = snippetGenerator.print(target.target, target.client, buildHarRequest(input))
+    return decodeUrlPlaceholders(result || '')
+  } catch (error) {
+    return buildSnippetErrorMessage(error)
+  }
 }
 
 type RequestSnippetOption = SnippetTarget & {
