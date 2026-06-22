@@ -140,6 +140,7 @@
     --clarify-heading-anchor-width-wide: 2.5rem;
     --clarify-theme-editor-width: min(calc(100vw - 2rem), 24rem);
     --clarify-theme-editor-body-max-height: min(42rem, calc(100vh - 7rem));
+    --clarify-error-page-min-height: 24rem;
     --clarify-skeleton-title-width: 24rem;
     --clarify-skeleton-heading-width: 28rem;
     --clarify-skeleton-heading-short-width: 22rem;

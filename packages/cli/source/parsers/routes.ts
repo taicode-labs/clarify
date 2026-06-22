@@ -220,7 +220,7 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
   const root: ClarifyNavigationNode[] = []
 
   for (const route of routes) {
-    if (route.path === '/') continue // 首页不放入侧边栏
+    if (route.path === '/' || (route.basePath ?? route.path) === '/404') continue // 首页和 404 不放入侧边栏
 
     const parts = route.path.replace(/^\//, '').split('/')
     let current = root

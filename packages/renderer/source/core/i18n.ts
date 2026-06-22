@@ -42,6 +42,10 @@ export type BuiltInTextKey =
   | 'navbar.home'
   | 'navbar.openLinks'
   | 'navbar.sections'
+  | 'notFound.description'
+  | 'notFound.home'
+  | 'notFound.label'
+  | 'notFound.title'
   | 'openapi.apiDocumentation'
   | 'openapi.bodyProperties'
   | 'openapi.collapse'
@@ -75,6 +79,11 @@ export type BuiltInTextKey =
   | 'search.noResults'
   | 'search.placeholder'
   | 'search.shortcutCtrl'
+  | 'renderError.description'
+  | 'renderError.details'
+  | 'renderError.path'
+  | 'renderError.reload'
+  | 'renderError.title'
   | 'theme.switchToDark'
   | 'theme.switchToLight'
   | 'language.switch'
@@ -118,6 +127,10 @@ const builtInText = {
     'navbar.home': 'Home',
     'navbar.openLinks': 'Open navigation links',
     'navbar.sections': 'Documentation sections',
+    'notFound.description': 'The page may have moved, been renamed, or never existed. Check the address or return to the homepage.',
+    'notFound.home': 'Back to homepage',
+    'notFound.label': '404',
+    'notFound.title': 'Page not found',
     'openapi.apiDocumentation': 'API Documentation',
     'openapi.bodyProperties': 'Body properties',
     'openapi.collapse': 'Collapse',
@@ -151,6 +164,11 @@ const builtInText = {
     'search.noResults': 'Nothing found for {query}.',
     'search.placeholder': 'Find something...',
     'search.shortcutCtrl': 'Ctrl ',
+    'renderError.description': 'Clarify could not render this page. Try reloading the page; if the problem persists, check the page source or console output.',
+    'renderError.details': 'Error details',
+    'renderError.path': 'Path',
+    'renderError.reload': 'Reload page',
+    'renderError.title': 'This page failed to render',
     'theme.switchToDark': 'Switch to dark theme',
     'theme.switchToLight': 'Switch to light theme',
     'language.switch': 'Switch language',
@@ -193,6 +211,10 @@ const builtInText = {
     'navbar.home': '首页',
     'navbar.openLinks': '打开导航链接',
     'navbar.sections': '文档栏目',
+    'notFound.description': '页面可能已移动、重命名或不存在。请检查地址，或返回首页继续浏览。',
+    'notFound.home': '返回首页',
+    'notFound.label': '404',
+    'notFound.title': '页面未找到',
     'openapi.apiDocumentation': 'API 文档',
     'openapi.bodyProperties': '请求体属性',
     'openapi.collapse': '收起',
@@ -226,6 +248,11 @@ const builtInText = {
     'search.noResults': '没有找到与 {query} 相关的结果。',
     'search.placeholder': '搜索内容...',
     'search.shortcutCtrl': 'Ctrl ',
+    'renderError.description': 'Clarify 无法渲染当前页面。请尝试刷新；如果问题仍然存在，请检查页面源码或控制台输出。',
+    'renderError.details': '错误详情',
+    'renderError.path': '路径',
+    'renderError.reload': '刷新页面',
+    'renderError.title': '页面渲染失败',
     'theme.switchToDark': '切换到深色主题',
     'theme.switchToLight': '切换到浅色主题',
     'language.switch': '切换语言',
