@@ -11,7 +11,6 @@ describe('generateConfigModule', () => {
       description: 'Desc',
       routePrefix: '/',
       theme: resolveThemeConfig({ tokens: { colors: { primary: '#fff' } } }),
-      themeEditor: false,
     }
     const generateOptions: ResolvedBuildOptions = {
       rootDirectory: 'source',
@@ -64,7 +63,6 @@ describe('generateRoutesModule', () => {
       description: '',
       routePrefix: '/',
       theme: resolveThemeConfig(),
-      themeEditor: false,
       tabs: [
         { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
       ],

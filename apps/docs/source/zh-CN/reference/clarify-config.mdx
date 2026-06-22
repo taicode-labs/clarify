@@ -93,8 +93,7 @@ export default defineConfig({
 | `description` | `string` | `""` | 站点描述，用于 SEO 和 `llms.txt` |
 | `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo 路径 |
 | `favicon` | `string \| { light?: string; dark?: string }` | — | favicon 路径或亮暗主题变体 |
-| `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig }` | `{ preset: 'default' }` | 主题预设和基于预设的局部覆盖 |
-| `themeEditor` | `boolean` | `false` | 是否在构建后的站点中暴露实时主题编辑器；dev 模式会自动启用 |
+| `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig; editor?: boolean }` | `{ preset: 'default', editor: false }` | 主题预设、局部覆盖和实时主题编辑器配置；`theme.editor` 可在构建后的站点中暴露编辑器，dev 模式会自动启用 |
 | `routePrefix` | `string` | `"/"` | 部署子路径，例如 `/docs/` |
 | `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | 顶部导航链接 |
 | `banner` | `ClarifyBannerConfig` | — | 顶部公告配置，供主题或后续 UI 使用 |

@@ -142,6 +142,7 @@ export const clarifyThemeConfigSchema = z.object({
   preset: clarifyThemePresetSchema.optional(),
   tokens: clarifyThemeTokensConfigSchema.optional(),
   layout: clarifyThemeLayoutConfigSchema.optional(),
+  editor: z.boolean().optional(),
 })
 
 export const clarifyProjectConfigSchema = z.object({
@@ -150,7 +151,6 @@ export const clarifyProjectConfigSchema = z.object({
   logo: clarifyLogoConfigSchema.optional(),
   favicon: clarifyFaviconConfigSchema.optional(),
   theme: clarifyThemeConfigSchema.optional(),
-  themeEditor: z.boolean().optional(),
   routePrefix: z.string().optional(),
   navbar: z.object({
     links: z.array(clarifyNavbarLinkSchema).optional(),

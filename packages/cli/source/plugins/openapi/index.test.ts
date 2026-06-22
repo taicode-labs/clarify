@@ -14,7 +14,6 @@ const projectConfig: ResolvedProjectConfig = {
   description: 'Test docs',
   routePrefix: '/',
   theme: resolveThemeConfig({ tokens: { colors: { primary: '#000000' } } }),
-  themeEditor: false,
 }
 
 const generateOptions: ResolvedBuildOptions = {

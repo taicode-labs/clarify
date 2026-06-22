@@ -100,6 +100,8 @@ export type ClarifyThemeConfig = {
   tokens?: ClarifyThemeTokensConfig
   /** Documentation layout overrides applied on top of the selected preset. */
   layout?: ClarifyThemeLayoutConfig
+  /** Expose the live theme editor in the built site. Dev mode enables it automatically. */
+  editor?: boolean
 }
 
 export type ResolvedClarifyThemeTokensConfig = {
@@ -113,6 +115,7 @@ export type ResolvedClarifyThemeConfig = {
   preset: ClarifyThemePreset
   tokens: ResolvedClarifyThemeTokensConfig
   layout: ResolvedClarifyThemeLayoutConfig
+  editor: boolean
 }
 
 export type ClarifyPagesItem =
@@ -173,11 +176,8 @@ export type ClarifyProjectConfig = {
   /** Favicon path or light/dark variants. */
   favicon?: ClarifyFaviconConfig
 
-  /** Theme preset and token overrides. */
+  /** Theme preset, token overrides, and editor options. */
   theme?: ClarifyThemeConfig
-
-  /** Expose the live theme editor in the built site. Dev mode enables it automatically. */
-  themeEditor?: boolean
 
   /** Base path for the docs site. Default: '/' */
   routePrefix?: string
@@ -211,7 +211,6 @@ export type ResolvedProjectConfig = {
   routePrefix: string
   favicon?: ClarifyFaviconConfig
   theme: ResolvedClarifyThemeConfig
-  themeEditor: boolean
   navbar?: { links?: ClarifyNavbarLink[] }
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig

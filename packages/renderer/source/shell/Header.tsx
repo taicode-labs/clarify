@@ -1,7 +1,7 @@
 import { CloseButton, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import clsx from 'clsx'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { MoreHorizontal } from 'lucide-react'
+import { Globe2, MoreHorizontal } from 'lucide-react'
 import { forwardRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -28,15 +28,6 @@ function localizedRoutePath(config: ClarifyConfig, locale: string, route?: Route
   return localizeHref(route?.basePath ?? route?.path ?? '/', config, locale)
 }
 
-function LanguageIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
-      <path d="M10 17.5a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Z" />
-      <path d="M2.5 10h15M10 2.5c2 2.05 3 4.55 3 7.5s-1 5.45-3 7.5c-2-2.05-3-4.55-3-7.5s1-5.45 3-7.5Z" />
-    </svg>
-  )
-}
-
 type LanguageSwitcherProps = { config: ClarifyConfig; currentLocale?: string; currentRoute?: RouteItem }
 
 function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, currentLocale, currentRoute } = arg0
@@ -57,7 +48,7 @@ function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, curren
         aria-label={t('language.switch')}
       >
         <span className="absolute size-12 pointer-fine:hidden" />
-        <LanguageIcon className="h-5 w-5 stroke-current" />
+        <Globe2 className="h-5 w-5 stroke-current" />
         <span className="hidden sm:inline">{selectedLocaleConfig?.label ?? selectedLocale}</span>
       </MenuButton>
       <MenuItems

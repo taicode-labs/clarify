@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { Info } from 'lucide-react'
 import { createElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -37,23 +38,13 @@ export function h3(props: Omit<ComponentPropsWithoutRef<typeof Heading>, 'level'
   return createElement(Heading, { level: 3, ...props })
 }
 
-function InfoIcon(props: ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" {...props}>
-      <circle cx="8" cy="8" r="8" strokeWidth="0" />
-      <path fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6.75 7.75h1.5v3.5" />
-      <circle cx="8" cy="4" r=".5" fill="none" />
-    </svg>
-  )
-}
-
 type NoteProps = { children: ReactNode }
 
 export function Note(arg0: NoteProps) {  const { children } = arg0
 
   return (
     <div className="clarify-note my-6 flex gap-2.5 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4 text-sm/6 text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-100 dark:[--tw-prose-links-hover:var(--clarify-ui-accent-text)] dark:[--tw-prose-links:var(--color-white)]">
-      <InfoIcon className="mt-1 h-4 w-4 flex-none fill-(--clarify-ui-accent-text) stroke-(--clarify-theme-tokens-colors-surface) dark:fill-(--clarify-ui-accent-background) dark:stroke-(--clarify-ui-accent-text)" />
+      <Info className="mt-1 h-4 w-4 flex-none stroke-(--clarify-ui-accent-text)" />
       <div className="*:first:mt-0 *:last:mb-0">{children}</div>
     </div>
   )

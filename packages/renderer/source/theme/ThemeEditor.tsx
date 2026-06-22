@@ -1,6 +1,7 @@
 import clsx from 'clsx'
+import { ChevronDown, Settings, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import type { ChangeEvent, ComponentPropsWithoutRef } from 'react'
+import type { ChangeEvent } from 'react'
 
 import type {
   ClarifyThemeColorTokensConfig,
@@ -72,6 +73,7 @@ export const clarifyThemeEditorPresets = {
     layout: {
       maxWidth: '82rem',
     },
+    editor: false,
   },
   base: {
     preset: 'base',
@@ -96,6 +98,7 @@ export const clarifyThemeEditorPresets = {
     layout: {
       maxWidth: '80rem',
     },
+    editor: false,
   },
 } satisfies Record<ClarifyThemePreset, ClarifyThemeConfig>
 
@@ -107,6 +110,7 @@ function cloneTheme(theme: ClarifyThemeConfig): ClarifyThemeConfig {
       radius: { ...theme.tokens.radius },
     },
     layout: { ...theme.layout },
+    editor: theme.editor,
   }
 }
 
@@ -180,23 +184,6 @@ export function applyClarifyThemeVariables(theme: ClarifyThemeConfig, target?: T
 
 function isHexColor(value: string): boolean {
   return /^#[0-9a-f]{6}$/i.test(value)
-}
-
-function SettingsIcon(props: ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M10 3.75v1.1M10 15.15v1.1M15.15 10h1.1M3.75 10h1.1M13.64 6.36l.78-.78M5.58 14.42l.78-.78M13.64 13.64l.78.78M5.58 5.58l.78.78" />
-      <path d="M12.5 10a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
-    </svg>
-  )
-}
-
-function CloseIcon(props: ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="m6 6 8 8M14 6l-8 8" />
-    </svg>
-  )
 }
 
 type TextFieldProps = {
@@ -337,7 +324,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
               aria-label="Close theme editor"
               onClick={() => setIsOpen(false)}
             >
-              <CloseIcon className="size-4 stroke-current stroke-2" />
+              <X className="size-4 stroke-current stroke-2" />
             </button>
           </header>
 
@@ -345,15 +332,18 @@ export function ThemeEditor(props: ThemeEditorProps) {
             <div className="grid gap-5">
               <label htmlFor="clarify-theme-editor-preset" className="grid gap-1.5 text-xs/5 font-medium text-(--clarify-ui-text)">
                 Preset
-                <select
-                  id="clarify-theme-editor-preset"
-                  value={theme.preset}
-                  className="h-9 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 text-sm text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border) dark:border-white/10 dark:bg-zinc-950 dark:text-white"
-                  onChange={(event) => updatePreset(event.target.value as ClarifyThemePreset)}
-                >
-                  <option value="default">default</option>
-                  <option value="base">base</option>
-                </select>
+                <span className="relative block">
+                  <select
+                    id="clarify-theme-editor-preset"
+                    value={theme.preset}
+                    className="h-9 w-full appearance-none rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 pr-9 text-sm text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border) dark:border-white/10 dark:bg-zinc-950 dark:text-white"
+                    onChange={(event) => updatePreset(event.target.value as ClarifyThemePreset)}
+                  >
+                    <option value="default">default</option>
+                    <option value="base">base</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 stroke-current stroke-2 text-(--clarify-ui-text-faint)" />
+                </span>
               </label>
 
               <fieldset className="grid gap-3">
@@ -428,7 +418,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
         aria-expanded={isOpen}
         onClick={() => setIsOpen((value) => !value)}
       >
-        <SettingsIcon className="size-5 stroke-current stroke-2" />
+        <Settings className="size-5 stroke-current stroke-2" />
       </button>
     </div>
   )

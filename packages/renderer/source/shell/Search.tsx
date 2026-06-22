@@ -1,5 +1,6 @@
 import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react'
 import clsx from 'clsx'
+import { Search as SearchIcon, SearchX } from 'lucide-react'
 import { Fragment, Suspense, forwardRef, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -12,30 +13,6 @@ type SearchItem = {
   sectionTitle?: string
   url: string
   keywords: string
-}
-
-function SearchIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12.01 12a4.25 4.25 0 1 0-6.02-6 4.25 4.25 0 0 0 6.02 6Zm0 0 3.24 3.25"
-      />
-    </svg>
-  )
-}
-
-function NoResultsIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12.01 12a4.237 4.237 0 0 0 1.24-3c0-.62-.132-1.207-.37-1.738M12.01 12A4.237 4.237 0 0 1 9 13.25c-.635 0-1.237-.14-1.777-.388M12.01 12l3.24 3.25m-3.715-9.661a4.25 4.25 0 0 0-5.975 5.908M4.5 15.5l11-11"
-      />
-    </svg>
-  )
 }
 
 function routeGroupTitles(navigation: NavigationNode[]) {
@@ -283,7 +260,7 @@ function SearchDialog(arg0: SearchDialogProps) {  const {
           <div className="border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5">
             {query && results.length === 0 ? (
               <div className="p-6 text-center">
-                <NoResultsIcon className="mx-auto h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-zinc-600" />
+                <SearchX className="mx-auto h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-zinc-600" />
                 <p className="mt-2 text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">
                   {t('search.noResults', { query })}
                 </p>

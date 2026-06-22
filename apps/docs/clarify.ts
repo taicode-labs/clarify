@@ -23,8 +23,8 @@ export default defineConfig({
   },
   theme: {
     preset: 'default',
+    editor: true,
   },
-  themeEditor: true,
   navbar: {
     links: [
       {

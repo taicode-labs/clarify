@@ -1,6 +1,7 @@
 import { Dialog, DialogBackdrop, DialogPanel, Menu, MenuButton, MenuItem, MenuItems, TransitionChild } from '@headlessui/react'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
+import { Check, ChevronDown, Menu as MenuGlyph, X } from 'lucide-react'
 import { createContext, Suspense, useContext } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { create } from 'zustand'
@@ -12,22 +13,6 @@ import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 import { Header } from './Header'
 import { NavigationIcon } from './icons'
 import { Navigation } from './Navigation'
-
-function MenuIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 10 9" fill="none" strokeLinecap="round" aria-hidden="true" {...props}>
-      <path d="M.5 1h9M.5 8h9M.5 4.5h9" />
-    </svg>
-  )
-}
-
-function XIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 10 9" fill="none" strokeLinecap="round" aria-hidden="true" {...props}>
-      <path d="m1.5 1 7 7M8.5 1l-7 7" />
-    </svg>
-  )
-}
 
 const IsInsideMobileNavigationContext = createContext(false)
 
@@ -56,9 +41,7 @@ function MobileTabsSelect(arg0: MobileTabsSelectProps) {
           <NavigationIcon name={activeTab.icon} className="h-4 w-4 shrink-0 text-(--clarify-theme-tokens-colors-primary)" />
           <span className="truncate">{activeTab.title}</span>
         </span>
-        <svg width="8" height="24" viewBox="0 -9 3 24" aria-hidden="true" className="shrink-0 overflow-visible text-(--clarify-theme-tokens-colors-muted) transition-transform group-aria-expanded:rotate-180">
-          <path d="M0 0L3 3L0 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
+        <ChevronDown className="h-4 w-4 shrink-0 text-(--clarify-theme-tokens-colors-muted) transition-transform group-aria-expanded:rotate-180" />
       </MenuButton>
       <MenuItems className="clarify-mobile-tabs-select-list clarify-ui-menu mt-2 flex flex-col gap-1 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg shadow-zinc-900/5 focus:outline-none dark:border-white/10 dark:bg-zinc-900 dark:shadow-none">
         {tabs.map((tab) => {
@@ -79,11 +62,7 @@ function MobileTabsSelect(arg0: MobileTabsSelectProps) {
                   <NavigationIcon name={tab.icon} className="mt-0.5 h-4 w-4 shrink-0" />
                   <span className="min-w-0 whitespace-normal wrap-anywhere font-medium leading-5">{tab.title}</span>
                 </span>
-                {active ? (
-                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0">
-                    <path d="m5 10 3 3 7-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                ) : null}
+                {active ? <Check className="mt-0.5 h-4 w-4 shrink-0" /> : null}
               </Link>
             </MenuItem>
           )
@@ -186,7 +165,7 @@ export function MobileNavigation(arg0: MobileNavigationProps) {  const {
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const { isOpen, toggle, close } = useMobileNavigationStore()
   const t = useBuiltInText()
-  const ToggleIcon = isOpen ? XIcon : MenuIcon
+  const ToggleIcon = isOpen ? X : MenuGlyph
 
   return (
     <IsInsideMobileNavigationContext.Provider value={true}>
@@ -197,7 +176,7 @@ export function MobileNavigation(arg0: MobileNavigationProps) {  const {
         onClick={toggle}
       >
         <span className="absolute size-12 pointer-fine:hidden" />
-        <ToggleIcon className="w-2.5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-white" />
+        <ToggleIcon className="h-4 w-4 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-white" />
       </button>
       {!isInsideMobileNavigation ? (
         <Suspense fallback={null}>

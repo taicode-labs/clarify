@@ -104,6 +104,7 @@ export type ClarifyThemeConfig = {
   preset: ClarifyThemePreset;
   tokens: ClarifyThemeTokensConfig;
   layout: ClarifyThemeLayoutConfig;
+  editor: boolean;
 };
 
 export type ClarifyPagesItem =
@@ -144,8 +145,6 @@ export type ClarifyConfig = {
   logo?: ClarifyLogoConfig;
   favicon?: ClarifyFaviconConfig;
   theme: ClarifyThemeConfig;
-  /** Expose the live theme editor in the built site. Dev mode enables it automatically. */
-  themeEditor?: boolean;
   description: string;
   rootDirectory: string;
   routePrefix: string;

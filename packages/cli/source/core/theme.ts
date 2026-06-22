@@ -24,6 +24,7 @@ export const clarifyThemePresets = {
     layout: {
       maxWidth: '82rem',
     },
+    editor: false,
   },
   base: {
     preset: 'base',
@@ -48,6 +49,7 @@ export const clarifyThemePresets = {
     layout: {
       maxWidth: '80rem',
     },
+    editor: false,
   },
 } as const satisfies Record<ClarifyThemePreset, ResolvedClarifyThemeConfig>
 
@@ -71,5 +73,6 @@ export function resolveThemeConfig(theme: ClarifyThemeConfig = {}): ResolvedClar
       ...presetTheme.layout,
       ...theme.layout,
     },
+    editor: theme.editor ?? presetTheme.editor,
   }
 }

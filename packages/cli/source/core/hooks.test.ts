@@ -11,7 +11,6 @@ const mockCtx: ClarifyHookContext = {
     description: '',
     routePrefix: '/',
     theme: resolveThemeConfig(),
-    themeEditor: false,
   },
   generateOptions: {
     rootDirectory: 'source',

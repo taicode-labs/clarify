@@ -10,7 +10,6 @@ const projectConfig: ResolvedProjectConfig = {
   description: '',
   routePrefix: '/',
   theme: resolveThemeConfig(),
-  themeEditor: false,
 }
 
 function createRoute(kind: ContentRoute['kind'], contentArtifactUrl: string): ContentRoute {

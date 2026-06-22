@@ -39,7 +39,6 @@ describe('injectSSRIntoTemplate', () => {
     description: 'A test site',
     routePrefix: '/',
     theme: resolveThemeConfig(),
-    themeEditor: false,
   }
 
   const baseTemplate = `<!doctype html>

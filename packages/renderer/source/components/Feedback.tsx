@@ -1,24 +1,10 @@
 import { Transition } from '@headlessui/react'
 import clsx from 'clsx'
+import { CircleCheck } from 'lucide-react'
 import { forwardRef, useState } from 'react'
 import type { ComponentPropsWithoutRef, ElementRef, FormEvent } from 'react'
 
 import { useBuiltInText } from '../core/i18n'
-
-function CheckIcon(props: ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" {...props}>
-      <circle cx="10" cy="10" r="10" strokeWidth="0" />
-      <path
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-        d="m6.75 10.813 2.438 2.437c1.218-4.469 4.062-6.5 4.062-6.5"
-      />
-    </svg>
-  )
-}
 
 function FeedbackButton(props: Omit<ComponentPropsWithoutRef<'button'>, 'type' | 'className'>) {
   return (
@@ -56,7 +42,7 @@ const FeedbackThanks = forwardRef<ElementRef<'div'>, ComponentPropsWithoutRef<'d
   return (
     <div {...props} ref={ref} className={clsx(className, 'clarify-feedback-thanks absolute inset-0 flex justify-center md:justify-start')}>
       <div className="flex items-center gap-3 rounded-full bg-(--clarify-ui-accent-background) py-1 pr-3 pl-1.5 text-sm text-(--clarify-ui-accent-text) ring-1 ring-(--clarify-ui-accent-border) ring-inset">
-        <CheckIcon className="h-5 w-5 flex-none fill-(--clarify-ui-accent-text) stroke-white dark:fill-(--clarify-ui-accent-background) dark:stroke-(--clarify-ui-accent-text)" />
+        <CircleCheck className="h-5 w-5 flex-none stroke-(--clarify-ui-accent-text)" />
         {t('feedback.thanks')}
       </div>
     </div>
