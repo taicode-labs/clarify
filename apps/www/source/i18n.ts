@@ -121,7 +121,7 @@ i18n.use(initReactI18next).init({
           items: [
             ['Clarify helped us turn scattered Markdown and OpenAPI files into a documentation site that finally feels intentional.', 'Maya Chen', 'Developer Experience Lead'],
             ['The static output model made deployment boring in the best way. We pushed it to our CDN and stopped worrying about runtime infrastructure.', 'Ethan Brooks', 'Platform Engineer'],
-            ['Taicode Labs kept the migration pragmatic: preserve what worked, clean up the navigation, and ship the first version quickly.', 'Nora Kim', 'Product Lead'],
+            ['Taicode Labs kept the migration pragmatic: preserve what worked, clean up the navigation, and ship the first version quickly.', 'JiaYi Xia', 'Development Lead'],
             ['The renderer components gave our docs the polish of a product surface without forcing the engineering team into a full redesign.', 'Leo Martin', 'Engineering Manager'],
             ['OpenAPI pages no longer feel bolted on. They sit next to guides, examples, and release notes in one coherent experience.', 'Ava Patel', 'API Program Manager'],
             ['We started free, then brought in Delivery Partner support when deadlines got tight. That path made adoption much easier.', 'Sam Rivera', 'Founder'],
