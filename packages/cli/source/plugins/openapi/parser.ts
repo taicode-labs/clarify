@@ -53,17 +53,22 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
   return routes
 }
 
+function operationMatchesTags(operationTags: string[] | undefined, filterTags: string[] | undefined): boolean {
+  if (!filterTags?.length) return true
+  return operationTags?.some(tag => filterTags.includes(tag)) ?? false
+}
+
 /** Extract endpoint operations from an OpenAPI spec as page sections. */
-export function extractOpenAPISections(spec: OpenAPISpec): ContentSection[] {
+export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[]): ContentSection[] {
   const sections: ContentSection[] = []
   const paths = spec.paths ?? {}
   for (const [path, pathItem] of Object.entries(paths)) {
     if (!pathItem) continue
     for (const method of OPENAPI_HTTP_METHODS) {
       const op = pathItem[method]
-      if (!op) continue
+      if (!op || !operationMatchesTags(op.tags, filterTags)) continue
       const title = op.summary ?? `${method.toUpperCase()} ${path}`
-      sections.push({ id: slug(`${method} ${path}`), title, level: 2, badge: method.toUpperCase() })
+      sections.push({ id: slug(`${method} ${path}`), title, level: 2, badge: method.toUpperCase(), tags: op.tags })
     }
   }
   return sections

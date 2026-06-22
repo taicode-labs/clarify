@@ -27,3 +27,8 @@ declare module 'virtual:clarify-config' {
 declare module '*.css' {
   export default string;
 }
+
+declare module '*.svg?url' {
+  const url: string;
+  export default url;
+}

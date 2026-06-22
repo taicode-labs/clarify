@@ -46,6 +46,21 @@ If you maintain the sidebar explicitly, add an `openapi` entry to `tabs`:
 }
 ```
 
+You can also publish multiple pages from the same OpenAPI file by filtering operations with `filter.tags`. Each filtered page includes operations whose OpenAPI `operation.tags` contain at least one matching tag:
+
+```ts
+{
+  openapi: 'api.openapi.json',
+  title: 'Projects API',
+  icon: 'FolderKanban',
+  filter: {
+    tags: ['Projects'],
+  },
+}
+```
+
+For example, `api.openapi.json` with `filter.tags: ['Projects']` is routed as `/api/projects`.
+
 ---
 
 ## Spec formats and routes

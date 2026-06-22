@@ -31,6 +31,7 @@ export type RouteItem = {
   component: RouteComponent;
   lazy?: boolean;
   kind?: 'mdx' | 'openapi';
+  openapiTagFilter?: string[];
   sections?: RouteSection[];
   contentArtifactUrl?: string;
 };
@@ -103,6 +104,7 @@ export type ClarifyThemeConfig = {
   preset: ClarifyThemePreset;
   tokens: ClarifyThemeTokensConfig;
   layout: ClarifyThemeLayoutConfig;
+  editor: boolean;
 };
 
 export type ClarifyPagesItem =
@@ -117,6 +119,9 @@ export type ClarifyPagesItem =
       openapi: string;
       icon?: string;
       title?: ClarifyLocalizedText;
+      filter?: {
+        tags?: string[];
+      };
     };
 
 export type ClarifyPagesGroup = {
@@ -176,6 +181,8 @@ export type RenderOptions = {
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
+  /** Whether to render the live theme editor inside the app tree. */
+  themeEditor?: boolean;
   /** 挂载节点，默认 document.getElementById('root') */
   container?: Element | null;
 };
@@ -193,6 +200,8 @@ export type ServerRenderOptions = {
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
+  /** Whether to render the live theme editor inside the app tree. */
+  themeEditor?: boolean;
   /** 当前请求的 URL */
   url: string;
 };

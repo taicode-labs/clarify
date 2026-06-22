@@ -11,9 +11,10 @@ Clarify 让文档留在代码仓库里：你维护 `source/`、OpenAPI 规范和
 | 亮点 | 用户价值 |
 |------|----------|
 | **文档即代码** | MDX、OpenAPI、导航和主题配置都能进入 Git，天然适合 Review、版本化和协作。 |
-| **MDX + OpenAPI 一体化** | 产品指南、教程、组件示例和 API Reference 放在同一个文档站点里。 |
+| **MDX + OpenAPI 一体化** | 产品指南、教程、组件示例和 API Reference 放在同一个文档站点里，接口面板可展示 server、认证、参数、示例和多语言请求代码。 |
+| **内置导航与搜索** | 文件路由、Tabs、分组侧边栏、H2/H3 章节和本地搜索一起工作，用户可以快速找到页面和具体章节。 |
 | **纯静态发布** | 每个路由生成独立 HTML，同时保留客户端导航体验，可部署到任意静态托管平台。 |
-| **AI-ready 输出** | 构建 `.md`、`.openapi.*` 和 `llms.txt`，页面上也提供复制原始内容和原始链接的操作。 |
+| **AI-ready 输出** | 构建 `.md`、`.openapi.*` 和 `llms.txt`，页面上也提供复制原始内容、原始链接和 `llms.txt` 链接的操作。 |
 | **可配置、可扩展** | TypeScript 配置覆盖导航、Tabs、国际化、主题 token、部署子路径、页脚和插件。 |
 
 ---
@@ -27,6 +28,7 @@ Clarify 让文档留在代码仓库里：你维护 `source/`、OpenAPI 规范和
 | 编写 MDX、组织目录和使用内置组件 | [写作文档](/guides/writing-content) |
 | 配置导航、主题、国际化和路由 | [配置站点](/guides/navigation) |
 | 生成 API Reference 并嵌入接口 | [API 文档](/features/openapi) |
+| 查看组件、主题和 OpenAPI 渲染效果 | [示例与演示](/showcase) |
 | 静态构建、部署和输出 `llms.txt` | [发布上线](/guides/deployment) |
 | 接入内容治理、搜索索引或额外产物 | [插件机制](/features/plugins) |
 
@@ -34,12 +36,12 @@ Clarify 让文档留在代码仓库里：你维护 `source/`、OpenAPI 规范和
 
 ## 快速预览
 
-一个典型的 Clarify 文档站点只需要安装 CLI、添加配置并编写内容：
+推荐把 Clarify 作为项目开发依赖安装，这样 CLI 版本会跟随仓库一起被锁定和 Review：
 
 ```bash
-npm install -g @clarify-labs/cli
-clarify init
-clarify dev
+pnpm init
+pnpm add -D @clarify-labs/cli
+pnpm exec clarify dev
 ```
 
 **clarify.ts**
@@ -54,7 +56,7 @@ export default defineConfig({
 })
 ```
 
-然后在 `source/` 目录下编写 `.md` / `.mdx` 文件，或放置 `.openapi.json` / `.openapi.yaml` 规范。Clarify 会自动生成路由、页面、静态 HTML、原始内容文件和 `llms.txt`。
+然后在 `source/` 目录下编写 `.md` / `.mdx` 文件，或放置 `.openapi.json` / `.openapi.yaml` 规范。Clarify 会自动生成路由、页面、静态 HTML、原始内容文件和 `llms.txt`。如果只是临时体验，也可以使用全局安装方式，详见 [CLI 命令参考](/reference/cli-commands)。
 
 ---
 

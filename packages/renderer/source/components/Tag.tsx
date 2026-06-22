@@ -24,8 +24,8 @@ const tagColorStyles = {
     medium: 'bg-rose-50 text-red-500 ring-rose-200 dark:bg-rose-400/10 dark:text-rose-400 dark:ring-rose-500/20',
   },
   zinc: {
-    small: 'text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500',
-    medium: 'bg-(--clarify-theme-tokens-colors-code-background) text-(--clarify-theme-tokens-colors-muted) ring-(--clarify-theme-tokens-colors-border) dark:bg-zinc-400/10 dark:text-zinc-400 dark:ring-zinc-500/20',
+    small: 'text-(--clarify-theme-tokens-colors-muted)',
+    medium: 'bg-(--clarify-theme-tokens-colors-code-background) text-(--clarify-theme-tokens-colors-muted) ring-(--clarify-theme-tokens-colors-border)',
   },
 }
 

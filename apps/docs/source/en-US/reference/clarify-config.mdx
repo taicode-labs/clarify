@@ -62,7 +62,7 @@ export default defineConfig({
 | `description` | Site description used for SEO and `llms.txt`. |
 | `logo` | Logo path or light/dark logo variants. |
 | `favicon` | Favicon path or light/dark variants. |
-| `theme` | Theme preset and token overrides. |
+| `theme` | Theme preset, token overrides, and `theme.editor` for exposing the live theme editor in built sites. Dev mode enables the editor automatically. |
 | `routePrefix` | Deployment subpath, such as `/docs/`. |
 | `navbar` | Top navigation links. |
 | `footer` | Footer links, socials, and copyright. |
@@ -91,3 +91,23 @@ Example:
   }
 }
 ```
+
+---
+
+## OpenAPI page filters
+
+OpenAPI entries in `tabs[].pages` can publish either the full spec or a filtered subset of operations.
+
+```ts
+{
+  openapi: 'api.openapi.json',
+  title: 'Projects API',
+  filter: {
+    tags: ['Projects'],
+  },
+}
+```
+
+`filter.tags` matches OpenAPI `operation.tags`. If any operation tag matches one of the configured tags, the operation appears on that page. Without `filter`, the page renders every operation in the spec.
+
+Filtered pages get a tag-based route suffix. For example, `api.openapi.json` with `filter.tags: ['Projects']` is served at `/api/projects`.

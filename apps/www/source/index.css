@@ -21,14 +21,14 @@
 
 @layer base {
   :root {
-    --clarify-theme-tokens-colors-primary: #00d492;
-    --clarify-theme-tokens-colors-accent: #00f6c9;
+    --clarify-theme-tokens-colors-primary: #047857;
+    --clarify-theme-tokens-colors-accent: #0d9488;
     --clarify-theme-tokens-colors-background: #ffffff;
     --clarify-theme-tokens-colors-foreground: #111827;
     --clarify-theme-tokens-colors-surface: #ffffff;
     --clarify-theme-tokens-colors-muted: #64748b;
     --clarify-theme-tokens-colors-border: rgb(15 23 42 / 0.12);
-    --clarify-theme-tokens-colors-code-background: #f7fefb;
+    --clarify-theme-tokens-colors-code-background: #f6fbf8;
     --clarify-theme-tokens-radius-sm: 6px;
     --clarify-theme-tokens-radius-md: 10px;
     --clarify-theme-tokens-radius-lg: 14px;

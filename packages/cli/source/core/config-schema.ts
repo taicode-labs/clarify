@@ -84,6 +84,9 @@ export const clarifyPagesItemSchema = z.union([
     openapi: z.string(),
     icon: z.string().optional(),
     title: clarifyLocalizedTextSchema.optional(),
+    filter: z.object({
+      tags: z.array(z.string()).optional(),
+    }).optional(),
   }),
 ])
 
@@ -139,6 +142,7 @@ export const clarifyThemeConfigSchema = z.object({
   preset: clarifyThemePresetSchema.optional(),
   tokens: clarifyThemeTokensConfigSchema.optional(),
   layout: clarifyThemeLayoutConfigSchema.optional(),
+  editor: z.boolean().optional(),
 })
 
 export const clarifyProjectConfigSchema = z.object({

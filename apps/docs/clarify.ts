@@ -23,6 +23,7 @@ export default defineConfig({
   },
   theme: {
     preset: 'default',
+    editor: true,
   },
   navbar: {
     links: [
@@ -166,6 +167,14 @@ export default defineConfig({
                 'en-US': 'Plugin System',
               },
               icon: 'Puzzle',
+            },
+            {
+              page: 'showcase',
+              title: {
+                'zh-CN': '示例与演示',
+                'en-US': 'Showcase',
+              },
+              icon: 'MonitorPlay',
             },
             {
               page: 'roadmap',

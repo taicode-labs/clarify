@@ -100,6 +100,8 @@ export type ClarifyThemeConfig = {
   tokens?: ClarifyThemeTokensConfig
   /** Documentation layout overrides applied on top of the selected preset. */
   layout?: ClarifyThemeLayoutConfig
+  /** Expose the live theme editor in the built site. Dev mode enables it automatically. */
+  editor?: boolean
 }
 
 export type ResolvedClarifyThemeTokensConfig = {
@@ -113,6 +115,7 @@ export type ResolvedClarifyThemeConfig = {
   preset: ClarifyThemePreset
   tokens: ResolvedClarifyThemeTokensConfig
   layout: ResolvedClarifyThemeLayoutConfig
+  editor: boolean
 }
 
 export type ClarifyPagesItem =
@@ -133,6 +136,11 @@ export type ClarifyPagesItem =
     icon?: string
     /** Override the page title. Defaults to spec.info.title. */
     title?: ClarifyLocalizedText
+    /** Filter which OpenAPI operations are included in this page. */
+    filter?: {
+      /** Only include operations matching one of these OpenAPI operation tags. */
+      tags?: string[]
+    }
   }
 
 export type ClarifyPagesGroup = {
@@ -168,7 +176,7 @@ export type ClarifyProjectConfig = {
   /** Favicon path or light/dark variants. */
   favicon?: ClarifyFaviconConfig
 
-  /** Theme preset and token overrides. */
+  /** Theme preset, token overrides, and editor options. */
   theme?: ClarifyThemeConfig
 
   /** Base path for the docs site. Default: '/' */
@@ -241,6 +249,8 @@ export type ContentRoute = {
   filePath: string
   virtualModuleId: string
   kind: 'mdx' | 'openapi'
+  /** OpenAPI operation tag filter applied to this route. Undefined means all operations. */
+  openapiTagFilter?: string[]
   frontmatter?: Record<string, unknown>
   /** Normalized source content captured during route discovery. */
   content?: string

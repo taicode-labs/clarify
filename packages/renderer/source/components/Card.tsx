@@ -63,9 +63,9 @@ export function Card(arg0: CardProps) {
       <div className="flex items-start gap-4">
         <CardIcon name={icon} />
         <div className="min-w-0 flex-1">
-          <h3 className="m-0 text-base font-semibold text-(--clarify-theme-tokens-colors-foreground) dark:text-white">{title}</h3>
+          <h3 className="m-0 text-base font-semibold text-(--clarify-theme-tokens-colors-foreground)">{title}</h3>
           {children ? (
-            <div className="mt-2 text-sm/6 text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400 *:m-0">
+            <div className="mt-2 text-sm/6 text-(--clarify-ui-text-soft) *:m-0">
               {children}
             </div>
           ) : null}
@@ -76,7 +76,7 @@ export function Card(arg0: CardProps) {
   )
 
   const classes = clsx(
-    'group relative block rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-(--clarify-ui-accent-glow) transition hover:border-(--clarify-ui-accent-border) hover:shadow-md dark:bg-zinc-900/50',
+    'group relative block rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-(--clarify-ui-accent-glow) transition hover:shadow-xs',
     className,
   )
 

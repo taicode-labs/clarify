@@ -13,8 +13,13 @@ Clarify 把 OpenAPI 规范当作一等内容源。规范负责接口事实，MDX
 | 发布完整接口列表 | `.openapi.json` / `.openapi.yaml` 自动生成 API Reference |
 | 在教程中展示一个接口 | `OpenApiOperation` |
 | 给完整 Reference 添加前后说明 | `OpenApiDocument` |
+| 按业务域拆分 API 页面 | `filter.tags` 从同一份规范生成多个分组页面 |
+| 让开发者快速试调用 | 自动展示 server、server variables、认证输入、请求体和响应示例 |
+| 复制可运行请求代码 | 根据规范生成多语言、多客户端代码示例 |
 | 让 AI / LLM 读取原始规范 | 构建输出中的 `.openapi.*` 原始文件和 `llms.txt` |
 | 多语言站点维护 API 文档 | 把规范放入语言目录，例如 `source/zh-CN/api.openapi.json` |
+
+OpenAPI 页面不只是静态字段表。Clarify 会把规范转成面向开发者的交互式接口文档：用户可以选择服务器、填写 server variables、选择认证方式、切换请求和响应示例，并复制不同语言的请求代码。
 
 ---
 
@@ -46,6 +51,21 @@ Clarify 会生成：
 }
 ```
 
+你也可以通过 `filter.tags` 从同一个 OpenAPI 文件发布多个页面。过滤页面只会展示 OpenAPI `operation.tags` 中至少命中一个指定 tag 的接口：
+
+```ts
+{
+  openapi: 'api.openapi.json',
+  title: 'Projects API',
+  icon: 'FolderKanban',
+  filter: {
+    tags: ['Projects'],
+  },
+}
+```
+
+例如 `api.openapi.json` 配置 `filter.tags: ['Projects']` 后，页面路由为 `/api/projects`。tag 会被转成小写 kebab-case；多个 tag 会按配置顺序拼接，例如 `['Admin Users', 'Billing']` 会生成 `/api/admin-users-billing`。
+
 ---
 
 ## 规范格式与路由
@@ -58,13 +78,17 @@ Clarify 会生成：
 | YAML | `billing.openapi.yaml` | `/billing` |
 | YAML 简写 | `admin.openapi.yml` | `/admin` |
 
-启用 i18n 时，OpenAPI 文件也遵循语言目录规则：
+启用 i18n 时，OpenAPI 文件也遵循语言目录规则。默认语言不带 locale 前缀，非默认语言会带上 locale 前缀：
 
 ```txt
 source/
-└── zh-CN/
-    └── api.openapi.json  → /api
+├── zh-CN/
+│   └── api.openapi.json  → /api
+└── en-US/
+    └── api.openapi.json  → /en-US/api
 ```
+
+因此在中文页面中嵌入接口时通常使用 `specPath="/api"`；在英文页面中嵌入同一规范时通常使用 `specPath="/en-US/api"`。
 
 构建时 Clarify 会使用 `@apidevtools/swagger-parser` 解析并 dereference 规范。规范无效时，生产构建会失败，避免发布过期或错误的接口文档。
 
@@ -95,6 +119,24 @@ source/
 ```mdx
 <OpenApiDocument specPath="/api" />
 ```
+
+---
+
+## 交互式接口面板
+
+`OpenApiOperation` 和完整 API Reference 会根据规范自动生成接口面板。规范越完整，页面上的交互越有用：
+
+| 能力 | 来源 | 用户看到什么 |
+|------|------|--------------|
+| Server 选择 | `servers` | 可以在不同环境或域名之间切换 |
+| Server variables | `servers[].variables` | 可以填写或选择变量值，例如 region、version |
+| 认证输入 | `components.securitySchemes` + `security` | 根据 API Key、Bearer、Basic、OAuth 等方案生成占位输入 |
+| 参数说明 | `parameters` | 路径、查询、Header 参数分组展示 |
+| 请求体示例 | `requestBody.content.*.example/examples/schema` | 可以切换 media type 和示例 |
+| 响应示例 | `responses` | 展示不同状态码和响应体 |
+| 复制请求代码 | OpenAPI 规范 + 当前选择 | 一键复制当前接口的请求示例 |
+
+Clarify 会为常见语言和客户端生成请求代码，包括 cURL、Wget、HTTPie、JavaScript/TypeScript Fetch、Axios、ofetch、Python Requests、HTTPX、aiohttp、Go、Java、C#、PHP、Ruby、Rust、Swift、Kotlin 和 PowerShell 等。
 
 ---
 
@@ -135,14 +177,14 @@ source/
 API Reference 的质量主要取决于 OpenAPI 规范本身。建议至少补齐：
 
 - `info.title`、`info.version`、`info.description`
-- `servers`
-- `tags`
+- `servers`，如有变量则补齐 `servers[].variables`
+- `tags`，用于导航分组和 `filter.tags` 拆分页面
 - 每个 operation 的 `summary` 和 `description`
 - 参数的 `description`、`schema`、`example` 或 `examples`
-- 请求体和响应的 media type
+- 请求体和响应的 media type、`example`、`examples` 或可推导示例的 schema
 - 主要响应码和错误响应
 - 复用的 `components.schemas`
-- 认证方式 `components.securitySchemes`
+- 认证方式 `components.securitySchemes` 和 operation/security requirement
 
 ---
 

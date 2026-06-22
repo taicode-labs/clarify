@@ -46,14 +46,14 @@ function PageNavigationLink(arg0: PageNavigationLinkProps) {
     <Link
       to={normalizeRoutePath(route.path)}
       className={clsx(
-        'group flex min-w-0 items-center gap-3 rounded-lg border border-(--clarify-theme-tokens-colors-border) px-4 py-3 no-underline transition hover:border-(--clarify-theme-tokens-colors-primary) hover:bg-(--clarify-theme-tokens-colors-surface) dark:border-white/10 dark:hover:border-(--clarify-theme-tokens-colors-primary) dark:hover:bg-white/2.5',
+        'group flex min-w-0 items-center gap-3 rounded-lg border border-(--clarify-theme-tokens-colors-border) px-4 py-3 no-underline transition hover:border-(--clarify-theme-tokens-colors-primary) hover:bg-(--clarify-ui-hover-background)',
         isNext && '@3xl:justify-end @3xl:text-right',
       )}
     >
       {!isNext ? <ChevronLeft className="h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-muted) transition group-hover:text-(--clarify-theme-tokens-colors-primary)" /> : null}
       <span className="min-w-0 flex-1">
         <span className="clarify-page-navigation-label block font-medium uppercase tracking-wide text-(--clarify-theme-tokens-colors-muted)">{isNext ? t('navigation.next') : t('navigation.previous')}</span>
-        <span className="clarify-page-navigation-title mt-0.5 block truncate font-semibold text-(--clarify-theme-tokens-colors-foreground) dark:text-white">{route.title}</span>
+        <span className="clarify-page-navigation-title mt-0.5 block truncate font-semibold text-(--clarify-theme-tokens-colors-foreground)">{route.title}</span>
       </span>
       {isNext ? <ChevronRight className="h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-muted) transition group-hover:text-(--clarify-theme-tokens-colors-primary)" /> : null}
     </Link>

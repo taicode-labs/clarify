@@ -145,6 +145,7 @@ const previewConfig = {
     layout: {
       maxWidth: '88rem',
     },
+    editor: false,
   },
   i18n: {
     defaultLocale: 'en',

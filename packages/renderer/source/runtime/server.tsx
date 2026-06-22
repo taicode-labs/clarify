@@ -5,6 +5,7 @@ import { StaticRouter } from 'react-router-dom'
 import { AppShell } from '../app/AppShell'
 import { ClarifyConfigContext, OpenApisContext } from '../context'
 import { ThemeProvider } from '../theme/ThemeProvider'
+import { ThemeRoot } from '../theme/ThemeRoot'
 import type { ServerRenderOptions } from '../types'
 import { prefixHref } from '../utils/href'
 
@@ -14,7 +15,7 @@ import { prefixHref } from '../utils/href'
  * 返回 `div#root` 内部的 HTML，由 Clarify CLI 组装为完整的 HTML 文档。
  */
 export function renderToHTML(options: ServerRenderOptions): string {
-  const { config, routes, navigation, openApis = {}, url } = options
+  const { config, routes, navigation, openApis = {}, url, themeEditor = false } = options
   const location = prefixHref(url, config.routePrefix)
 
   return renderToString(
@@ -23,7 +24,9 @@ export function renderToHTML(options: ServerRenderOptions): string {
         <ClarifyConfigContext.Provider value={config}>
           <OpenApisContext.Provider value={openApis}>
             <ThemeProvider>
-              <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+              <ThemeRoot theme={config.theme} themeEditor={themeEditor}>
+                <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+              </ThemeRoot>
             </ThemeProvider>
           </OpenApisContext.Provider>
         </ClarifyConfigContext.Provider>

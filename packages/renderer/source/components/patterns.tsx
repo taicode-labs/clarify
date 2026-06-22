@@ -49,8 +49,8 @@ export function GridPattern(arg0: GridPatternProps) {  const {
 export function HeroPattern() {
   return (
     <div className="absolute inset-0 -z-10 mx-0 max-w-none overflow-hidden">
-      <div className="absolute top-0 left-1/2 -ml-152 h-100 w-325 dark:mask-[linear-gradient(white,transparent)]">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--clarify-theme-tokens-colors-primary),var(--clarify-theme-tokens-colors-accent))] opacity-35 mask-[radial-gradient(farthest-side_at_top,white,transparent)] dark:opacity-55">
+      <div className="clarify-hero-pattern-mask absolute top-0 left-1/2 -ml-152 h-100 w-325">
+        <div className="clarify-hero-pattern-gradient absolute inset-0 opacity-35 dark:opacity-55">
           <GridPattern
             width={72}
             height={56}
@@ -62,13 +62,13 @@ export function HeroPattern() {
               [7, 3],
               [10, 6],
             ]}
-            className="absolute inset-x-0 inset-y-[-50%] h-[200%] w-full -skew-y-18 fill-black/40 stroke-black/50 mix-blend-overlay dark:fill-white/2.5 dark:stroke-white/5"
+            className="clarify-hero-pattern-grid absolute inset-x-0 w-full -skew-y-18 fill-black/40 stroke-black/50 mix-blend-overlay dark:fill-white/2.5 dark:stroke-white/5"
           />
         </div>
         <svg
           viewBox="0 0 1113 440"
           aria-hidden="true"
-          className="absolute top-0 left-1/2 -ml-76 w-278.25 fill-white blur-[26px] dark:hidden"
+          className="absolute top-0 left-1/2 -ml-76 w-278.25 fill-white blur-xl dark:hidden"
         >
           <path d="M.016 439.5s-9.5-300 434-300S882.516 20 882.516 20V0h230.004v439.5H.016Z" />
         </svg>

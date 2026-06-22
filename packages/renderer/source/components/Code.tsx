@@ -1,5 +1,6 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import clsx from 'clsx'
+import { Clipboard } from 'lucide-react'
 import {
   Children,
   createContext,
@@ -49,22 +50,6 @@ function getNodeText(node: ReactNode): string {
   return ''
 }
 
-function ClipboardIcon(props: ComponentPropsWithoutRef<'svg'>) {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" {...props}>
-      <path
-        strokeWidth="0"
-        d="M5.5 13.5v-5a2 2 0 0 1 2-2l.447-.894A2 2 0 0 1 9.737 4.5h.527a2 2 0 0 1 1.789 1.106l.447.894a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2Z"
-      />
-      <path
-        fill="none"
-        strokeLinejoin="round"
-        d="M12.5 6.5a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2m5 0-.447-.894a2 2 0 0 0-1.79-1.106h-.527a2 2 0 0 0-1.789 1.106L7.5 6.5m5 0-1 1h-3l-1-1"
-      />
-    </svg>
-  )
-}
-
 type CopyButtonProps = { code: string }
 
 function CopyButton(arg0: CopyButtonProps) {  const { code } = arg0
@@ -86,9 +71,7 @@ function CopyButton(arg0: CopyButtonProps) {  const { code } = arg0
       type="button"
       className={clsx(
         'clarify-code-copy group/button absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 text-2xs font-medium opacity-0 backdrop-blur-sm transition group-hover:opacity-100 focus:opacity-100',
-        copied
-          ? 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_24%,transparent)] ring-inset'
-          : 'bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5',
+        copied ? 'clarify-code-copy-copied' : 'bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5',
       )}
       onClick={() => {
         void copyTextToClipboard(code).then((ok) => {
@@ -103,7 +86,7 @@ function CopyButton(arg0: CopyButtonProps) {  const { code } = arg0
           copied && '-translate-y-1.5 opacity-0',
         )}
       >
-        <ClipboardIcon className="h-5 w-5 fill-zinc-500/20 stroke-zinc-500 transition-colors group-hover/button:stroke-zinc-400" />
+        <Clipboard className="h-5 w-5 stroke-zinc-500 transition-colors group-hover/button:stroke-zinc-400" />
         {t('actions.copy')}
       </span>
       <span
@@ -177,7 +160,7 @@ function CodeGroupHeader(arg0: CodeGroupHeaderProps) {  const { title, children,
   if (!title && !hasTabs) return null
 
   return (
-    <div className="clarify-code-group-header flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
+    <div className="clarify-code-group-header flex min-h-(--clarify-code-header-min-height) flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
       {title ? <h3 className="mr-auto pt-3 text-xs font-semibold text-white">{title}</h3> : null}
       {hasTabs ? (
         <TabList className="clarify-code-tabs -mb-px flex gap-4 text-xs font-medium">

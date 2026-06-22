@@ -76,7 +76,7 @@ describe('createOpenAPIPlugin', () => {
 
     expect(discovered?.[0].title).toBe('Plugin API')
     expect(discovered?.[0].sections).toEqual([
-      { id: 'get-users', title: 'List users', badge: 'GET', level: 2 },
+      { id: 'get-users', title: 'List users', badge: 'GET', level: 2, tags: ['Users'] },
     ])
 
     const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(routes))
@@ -109,5 +109,43 @@ describe('createOpenAPIPlugin', () => {
     const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(routes))
     expect(modules?.get('virtual:clarify-page/broken')).toContain('OpenApiErrorRoutePage')
     expect(modules?.get('virtual:clarify-page/broken')).toContain('Why it happened')
+  })
+
+  it('creates tag-filtered OpenAPI routes from navigation config', async () => {
+    const specPath = join(tempDir, 'api.openapi.json')
+    writeFileSync(specPath, JSON.stringify({
+      openapi: '3.0.0',
+      info: { title: 'Tagged API', version: '1.0.0' },
+      paths: {
+        '/projects': { get: { summary: 'List projects', tags: ['Projects'], responses: { 200: { description: 'OK' } } } },
+        '/users': { get: { summary: 'List users', tags: ['Users'], responses: { 200: { description: 'OK' } } } },
+      },
+    }), 'utf-8')
+
+    const plugin = createOpenAPIPlugin()
+    const discoveredInput = await plugin.hooks?.['routes:discover']?.({
+      contentRoot: tempDir,
+      routes: [],
+    }, createContext([]))
+    const routes = discoveredInput?.routes ?? []
+    const ctx = createContext(routes)
+    ctx.projectConfig.tabs = [
+      { tab: 'API', pages: [{ group: 'Reference', pages: [{ openapi: 'api.openapi.json', filter: { tags: ['Projects'] } }] }] },
+    ]
+
+    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
+    const taggedRoute = discovered?.find(route => route.path === '/api/projects')
+
+    expect(taggedRoute).toMatchObject({
+      basePath: '/api/projects',
+      virtualModuleId: 'virtual:clarify-page/api/projects',
+      openapiTagFilter: ['Projects'],
+    })
+    expect(taggedRoute?.sections).toEqual([
+      { id: 'get-projects', title: 'List projects', badge: 'GET', level: 2, tags: ['Projects'] },
+    ])
+
+    const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(discovered ?? []))
+    expect(modules?.get('virtual:clarify-page/api/projects')).toContain('const tagFilter = ["Projects"]')
   })
 })

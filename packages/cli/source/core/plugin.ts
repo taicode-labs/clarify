@@ -153,6 +153,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       generateOptions,
       routes,
       navigation: resolvedNavigation,
+      themeEditor: viteConfig.command === 'serve' || projectConfig.theme.editor,
     })
     virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
   }

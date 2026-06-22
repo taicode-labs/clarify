@@ -9,7 +9,7 @@ import { useOpenApiSpec } from './lib/spec-path'
 import { getOpenApiOperation, listOpenApiOperations } from './lib/utils'
 import type { OpenAPISpec } from './lib/utils'
 
-type OpenApiPathsProps = { spec: OpenAPISpec }
+type OpenApiPathsProps = { spec: OpenAPISpec; tagFilter?: string[] }
 
 type OpenApiHeaderProps = { spec: OpenAPISpec }
 
@@ -21,6 +21,7 @@ type WarningBoxProps = {
 export type OpenApiDocumentProps = {
   spec?: OpenAPISpec
   specPath?: string
+  tagFilter?: string[]
 }
 
 type OpenApiOperationWithSpecProps = {
@@ -51,14 +52,21 @@ function OpenApiHeader(arg0: OpenApiHeaderProps): ReactNode {
   )
 }
 
-function OpenApiPaths(arg0: OpenApiPathsProps): ReactNode {
-  const { spec } = arg0
+function operationMatchesTags(operationTags: string[] | undefined, filterTags: string[] | undefined): boolean {
+  if (!filterTags?.length) return true
+  return operationTags?.some(tag => filterTags.includes(tag)) ?? false
+}
 
-  const entries = listOpenApiOperations(spec).map(({ path, method, operation }) => ({
-    path,
-    method: method.toUpperCase(),
-    operation,
-  }))
+function OpenApiPaths(arg0: OpenApiPathsProps): ReactNode {
+  const { spec, tagFilter } = arg0
+
+  const entries = listOpenApiOperations(spec)
+    .filter(({ operation }) => operationMatchesTags(operation.tags, tagFilter))
+    .map(({ path, method, operation }) => ({
+      path,
+      method: method.toUpperCase(),
+      operation,
+    }))
 
   return (
     <div className="clarify-api-endpoints divide-y divide-zinc-200/70 dark:divide-white/10">
@@ -80,7 +88,7 @@ function WarningBox(arg0: WarningBoxProps): ReactNode {
 }
 
 export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
-  const { spec, specPath } = arg0
+  const { spec, specPath, tagFilter } = arg0
   const t = useBuiltInText()
   const resolved = useOpenApiSpec(spec, specPath)
 
@@ -92,7 +100,7 @@ export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
     <article className="clarify-openapi-page flex h-full flex-col pt-16 pb-10">
       <Prose className="flex-auto">
         <OpenApiHeader spec={resolved} />
-        <OpenApiPaths spec={resolved} />
+        <OpenApiPaths spec={resolved} tagFilter={tagFilter} />
       </Prose>
     </article>
   )

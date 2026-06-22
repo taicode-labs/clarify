@@ -93,7 +93,7 @@ export default defineConfig({
 | `description` | `string` | `""` | 站点描述，用于 SEO 和 `llms.txt` |
 | `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo 路径 |
 | `favicon` | `string \| { light?: string; dark?: string }` | — | favicon 路径或亮暗主题变体 |
-| `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig }` | `{ preset: 'default' }` | 主题预设和基于预设的局部覆盖 |
+| `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig; editor?: boolean }` | `{ preset: 'default', editor: false }` | 主题预设、局部覆盖和实时主题编辑器配置；`theme.editor` 可在构建后的站点中暴露编辑器，dev 模式会自动启用 |
 | `routePrefix` | `string` | `"/"` | 部署子路径，例如 `/docs/` |
 | `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | 顶部导航链接 |
 | `banner` | `ClarifyBannerConfig` | — | 顶部公告配置，供主题或后续 UI 使用 |
@@ -157,10 +157,10 @@ theme: {
 
 `preset` 用来选择内置主题基底。当前只提供两个预设：
 
-| 预设 | 主色 | 辅助色 | 适用场景 |
-|------|------|--------|----------|
-| `default` | `#00D492` | `#00F6C9` | 基于 Clarify SVG Logo 色值的品牌主题 |
-| `base` | `#18181b` | `#52525b` | 无颜色偏好的黑、白、灰标准主题 |
+| 预设 | 主色 | 辅助色 | 默认最大内容宽度 | 适用场景 |
+|------|------|--------|------------------|----------|
+| `default` | `#047857` | `#0D9488` | `82rem` | 带有绿色品牌感的默认文档主题 |
+| `base` | `#18181b` | `#52525b` | `80rem` | 无颜色偏好的黑、白、灰标准主题 |
 
 剩余字段会在预设基础上覆盖。例如下面配置会先应用 `base`，再把主色覆盖为品牌色：
 
@@ -177,7 +177,7 @@ export default defineConfig({
 })
 ```
 
-当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
+主题 token 是“局部覆盖”而不是重写整套主题；没有配置的字段会继续继承所选 preset 的默认值。当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
 
 ---
 
@@ -230,7 +230,14 @@ export default defineConfig({
 ## `footer`
 
 ```ts
+type ClarifyFooterLink = {
+  label: ClarifyLocalizedText
+  href: string
+  external?: boolean
+}
+
 type ClarifyFooterConfig = {
+  links?: ClarifyFooterLink[]
   socials?: Record<string, string>
   copyright?: ClarifyLocalizedText
 }
@@ -239,6 +246,11 @@ type ClarifyFooterConfig = {
 ```ts
 export default defineConfig({
   footer: {
+    links: [
+      { label: '快速开始', href: '/getting-started' },
+      { label: '配置参考', href: '/reference/clarify-config' },
+      { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
+    ],
     socials: {
       github: 'https://github.com/taicode-labs/clarify',
     },
@@ -246,6 +258,8 @@ export default defineConfig({
   },
 })
 ```
+
+`links` 适合放置快速开始、配置参考、参与贡献等高频页脚入口；`socials` 适合放置 GitHub、X、Discord 等外部社区链接。
 
 ---
 
@@ -262,6 +276,18 @@ type ClarifyI18nConfig = {
   }>
 }
 ```
+
+`defaultLocale` 对应不带语言前缀的默认路由；非默认语言会带上 locale 前缀。例如默认语言为 `zh-CN` 时，中文首页是 `/`，英文首页是 `/en-US`。
+
+`missing` 控制某个语言缺少页面时的处理策略：
+
+| 策略 | 行为 | 适合场景 |
+|------|------|----------|
+| `fallback` | 使用默认语言内容补齐缺失页面 | 先发布主语言，再逐步补翻译 |
+| `hide` | 不生成缺失语言页面 | 未翻译内容不希望出现在目标语言导航中 |
+| `404` | 缺失页面保持不可访问 | 严格多语言发布，不允许 fallback 内容混入 |
+
+`dir` 会写入生成 HTML 的 `dir` 属性，适合阿拉伯语、希伯来语等 RTL 语言。
 
 更多说明见 [配置站点](/guides/navigation)。
 
@@ -358,7 +384,32 @@ export default defineConfig({
 | `"getting-started"` | 简写，引用 MDX 页面 |
 | `{ page }` | 引用 MDX 页面，不写 `.mdx` 后缀 |
 | `{ page, title, icon, redirect }` | 引用页面并覆盖标题、图标或目标路径 |
-| `{ openapi, title, icon }` | 引用 OpenAPI 规范文件 |
+| `{ openapi, title, icon, filter }` | 引用 OpenAPI 规范文件；`filter.tags` 可按 operation tags 过滤接口 |
+
+`redirect` 只改变导航项点击后的目标路径，不会创建新的内容页面。它适合把一个导航入口指向更具体的章节、迁移后的路径，或在分组首页不存在时避免用户进入空页面：
+
+```ts
+{
+  page: 'guides',
+  title: '指南',
+  icon: 'BookOpen',
+  redirect: '/guides/writing-content',
+}
+```
+
+OpenAPI 页面默认展示规范中的全部接口。配置 `filter.tags` 后，页面只展示 `operation.tags` 中至少命中一个指定 tag 的接口，并基于 tag 生成独立路由：
+
+```ts
+{
+  openapi: 'api.openapi.json',
+  title: 'Projects API',
+  filter: {
+    tags: ['Projects'],
+  },
+}
+```
+
+上面的页面路由为 `/api/projects`。tag 会被转成小写 kebab-case；多个 tag 会按配置顺序拼接，例如 `['Admin Users', 'Billing']` 会生成 `/api/admin-users-billing`。启用 i18n 时，默认语言仍是 `/api/projects`，非默认语言会加上 locale 前缀，例如 `/en-US/api/projects`。
 
 ---
 

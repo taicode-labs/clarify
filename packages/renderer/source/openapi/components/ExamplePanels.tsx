@@ -64,7 +64,7 @@ function SelectControl(arg0: SelectControlProps): ReactNode {
         </ListboxButton>
         <ListboxOptions
           anchor="bottom end"
-          className="clarify-api-select-options z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-[min(32rem,calc(100vw-2rem))] overflow-auto rounded-xl bg-zinc-900 p-1 text-xs shadow-lg shadow-black/20 ring-1 ring-white/10 [--anchor-gap:--spacing(1)] focus:outline-none"
+          className="clarify-api-select-options z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-xl bg-zinc-900 p-1 text-xs shadow-lg shadow-black/20 ring-1 ring-white/10 [--anchor-gap:--spacing(1)] focus:outline-none"
         >
           {normalizedOptions.map((option) => (
             <ListboxOption
@@ -325,7 +325,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
   return (
     <div className="clarify-api-example my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
       <div className="not-prose">
-        <div className="clarify-api-example-header flex min-h-[calc(--spacing(12)+1px)] items-center gap-3 border-b border-zinc-700 bg-zinc-800 px-4 py-2 dark:border-zinc-800 dark:bg-transparent">
+        <div className="clarify-api-example-header flex min-h-(--clarify-code-header-min-height) items-center gap-3 border-b border-zinc-700 bg-zinc-800 px-4 py-2 dark:border-zinc-800 dark:bg-transparent">
           <h3 className="mr-auto min-w-16 truncate py-1 text-xs font-semibold text-white">{title}</h3>
           <div className="ml-auto flex min-w-0 items-center gap-2 whitespace-nowrap">
             {mediaTypes && mediaTypes.length > 1 && selectedMediaType && onSelectMediaType ? (
@@ -381,7 +381,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
             selectedClientKey={selectedClientKey}
             onSelectClient={onSelectClient}
           />
-          <pre className={`overflow-x-auto p-4 text-xs text-white ${languageOptions && languageOptions.length > 1 ? 'pt-14' : ''}`}>
+          <pre className={`max-h-128 overflow-auto overscroll-contain p-4 text-xs text-white ${languageOptions && languageOptions.length > 1 ? 'pt-14' : ''}`}>
             <code className={`language-${language}`}>{code}</code>
           </pre>
         </div>
