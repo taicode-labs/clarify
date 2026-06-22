@@ -77,10 +77,9 @@ const randomRadiusSets = [
   { sm: '8px', md: '12px', lg: '18px', xl: '24px' },
   { sm: '10px', md: '14px', lg: '20px', xl: '28px' },
   { sm: '12px', md: '16px', lg: '24px', xl: '32px' },
-  { sm: '999px', md: '999px', lg: '999px', xl: '999px' },
 ] as const satisfies ReadonlyArray<ClarifyThemeRadiusTokensConfig>
 
-const randomLayoutWidths = ['72rem', '76rem', '78rem', '80rem', '82rem', '86rem', '90rem', '96rem'] as const
+const randomLayoutWidths = ['72rem', '76rem', '78rem', '80rem', '82rem', '86rem', '90rem', '96rem', '104rem', '112rem', '120rem', '128rem', '144rem'] as const
 
 function randomItem<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)]
@@ -88,6 +87,10 @@ function randomItem<T>(items: readonly T[]): T {
 
 function randomRgbMix(color: string, alpha: number): string {
   return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`
+}
+
+function modeColor(light: string, dark: string): { light: string; dark: string } {
+  return { light, dark }
 }
 
 export function createRandomTheme(): ClarifyThemeConfig {
@@ -99,14 +102,14 @@ export function createRandomTheme(): ClarifyThemeConfig {
     preset: 'default',
     tokens: {
       colors: {
-        primary: palette.primary,
-        accent: palette.accent,
-        background: palette.background,
-        foreground: palette.foreground,
-        surface: palette.surface,
-        muted: palette.muted,
-        border: randomRgbMix(palette.foreground, palette.borderMix),
-        codeBackground: randomRgbMix(palette.primary, palette.codeMix),
+        primary: modeColor(palette.primary, palette.accent),
+        accent: modeColor(palette.accent, palette.primary),
+        background: modeColor(palette.background, '#09090b'),
+        foreground: modeColor(palette.foreground, '#f8fafc'),
+        surface: modeColor(palette.surface, '#18181b'),
+        muted: modeColor(palette.muted, '#a1a1aa'),
+        border: modeColor(randomRgbMix(palette.foreground, palette.borderMix), 'rgb(255 255 255 / 0.1)'),
+        codeBackground: modeColor(randomRgbMix(palette.primary, palette.codeMix), '#18181b'),
       },
       radius: { ...radius },
     },

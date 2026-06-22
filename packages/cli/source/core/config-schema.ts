@@ -72,6 +72,12 @@ export const clarifyFooterConfigSchema = z.object({
   copyright: clarifyLocalizedTextSchema.optional(),
 })
 
+export const clarifySourceConfigSchema = z.object({
+  repository: z.string(),
+  branch: z.string().optional(),
+  directory: z.string().optional(),
+})
+
 export const clarifyPagesItemSchema = z.union([
   z.string(),
   z.object({
@@ -111,15 +117,22 @@ export const clarifyTabsConfigSchema = z.array(clarifyTabItemSchema)
 
 export const clarifyThemePresetSchema = z.enum(['default', 'base'])
 
+export const clarifyThemeModeColorValueSchema = z.object({
+  light: z.string().optional(),
+  dark: z.string().optional(),
+})
+
+export const clarifyThemeColorValueSchema = z.union([z.string(), clarifyThemeModeColorValueSchema])
+
 export const clarifyThemeColorTokensConfigSchema = z.object({
-  primary: z.string().optional(),
-  accent: z.string().optional(),
-  background: z.string().optional(),
-  foreground: z.string().optional(),
-  surface: z.string().optional(),
-  muted: z.string().optional(),
-  border: z.string().optional(),
-  codeBackground: z.string().optional(),
+  primary: clarifyThemeColorValueSchema.optional(),
+  accent: clarifyThemeColorValueSchema.optional(),
+  background: clarifyThemeColorValueSchema.optional(),
+  foreground: clarifyThemeColorValueSchema.optional(),
+  surface: clarifyThemeColorValueSchema.optional(),
+  muted: clarifyThemeColorValueSchema.optional(),
+  border: clarifyThemeColorValueSchema.optional(),
+  codeBackground: clarifyThemeColorValueSchema.optional(),
 })
 
 export const clarifyThemeRadiusTokensConfigSchema = z.object({
@@ -148,6 +161,8 @@ export const clarifyThemeConfigSchema = z.object({
 export const clarifyProjectConfigSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
+  siteUrl: z.string().optional(),
+  source: clarifySourceConfigSchema.optional(),
   logo: clarifyLogoConfigSchema.optional(),
   favicon: clarifyFaviconConfigSchema.optional(),
   theme: clarifyThemeConfigSchema.optional(),

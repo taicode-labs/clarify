@@ -13,6 +13,7 @@ const ctx: ClarifyHookContext = {
     theme: resolveThemeConfig(),
   },
   generateOptions: {
+    projectRoot: '/site',
     rootDirectory: 'source',
     outputDirectory: 'output',
     ssg: { failOnError: true },

@@ -67,6 +67,8 @@ It is responsible for:
 | HTML locale | Set `<html lang>` and optional `dir`. |
 | Theme | Convert resolved theme tokens into CSS variables. |
 | Routing | Render page components through React Router. |
+| 404 fallback | Render a matching `/404` content page for unknown client paths, or a built-in not-found page when no custom page exists. |
+| Render failures | Catch page render errors and show a localized recovery panel instead of leaving an empty shell. |
 
 ---
 
@@ -112,6 +114,20 @@ OpenAPI specs are parsed by the CLI and passed through `virtual:clarify-openapi-
 - error route display when parsing fails.
 
 OpenAPI parsing, dereferencing, and diagnostics should stay in the CLI package.
+
+---
+
+## Loading, 404, and render-error states
+
+`PageSkeleton` is used as the Suspense fallback while lazy page modules are loading. It mirrors common documentation structure — title, summary, cards, prose, code block, and reference grid — so route transitions feel stable instead of showing a generic blank placeholder.
+
+For unmatched client routes, `AppShell` renders a catch-all route:
+
+- if the route list contains `/404` for the active locale, Clarify reuses that MDX page as the not-found experience;
+- otherwise, Clarify renders a built-in localized 404 panel;
+- content actions and previous/next pagination stay hidden because there is no active content route.
+
+Page components are also wrapped in `PageErrorBoundary`. If a page throws during client rendering, Clarify shows a localized error panel with the current path, a reload action, and expandable details for debugging. Build-time SSR errors still follow the SSG `failOnError` policy.
 
 ---
 

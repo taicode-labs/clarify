@@ -1,14 +1,16 @@
 import clsx from 'clsx'
 import { Suspense, lazy, useEffect, useMemo } from 'react'
 import type { ComponentType } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Link, Routes, Route, useLocation } from 'react-router-dom'
 
 import { ClarifyLocaleContext } from '../context'
+import { useBuiltInText } from '../core/i18n'
 import { ContentActions, Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
+import { PageErrorBoundary } from './ErrorBoundary'
 import { PageFooter } from './PageFooter'
 import { PageNavigation } from './PageNavigation'
 import { PageSkeleton } from './PageSkeleton'
@@ -22,6 +24,14 @@ export type AppShellProps = {
 
 function routeForPath(routes: RouteItem[], pathname: string): RouteItem | undefined {
   return routes.find((route) => isSameRoutePath(route.path, pathname))
+}
+
+function notFoundRouteForPath(routes: RouteItem[], pathname: string, currentLocale?: string): RouteItem | undefined {
+  const localePrefix = currentLocale ? `/${currentLocale}` : undefined
+  if (localePrefix && pathname.startsWith(`${localePrefix}/`)) {
+    return routeForPath(routes, `${localePrefix}/404`)
+  }
+  return routeForPath(routes, '/404') ?? routes.find(route => isSameRoutePath(route.basePath, '/404'))
 }
 
 function sectionsForRoute(route?: RouteItem): Section[] {
@@ -116,6 +126,33 @@ function applyDocumentMetadata(config: ClarifyConfig, route?: RouteItem) {
   setNamedMeta('keywords', route?.keywords?.join(', '))
 }
 
+function BuiltInNotFoundPage() {
+  const text = useBuiltInText()
+
+  return (
+    <section className="mx-auto flex min-h-(--clarify-error-page-min-height) max-w-2xl flex-col justify-center py-16 text-(--clarify-theme-tokens-colors-foreground)" aria-labelledby="clarify-not-found-title">
+      <p className="text-sm/6 font-semibold text-(--clarify-theme-tokens-colors-primary)">{text('notFound.label')}</p>
+      <h1 id="clarify-not-found-title" className="mt-3 text-3xl/9 font-semibold tracking-tight text-(--clarify-theme-tokens-colors-foreground)">{text('notFound.title')}</h1>
+      <p className="mt-4 text-sm/6 text-(--clarify-theme-tokens-colors-muted)">{text('notFound.description')}</p>
+      <div className="mt-8">
+        <Link className="inline-flex items-center rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-theme-tokens-colors-primary) px-3 py-2 text-sm/5 font-semibold text-white shadow-xs transition hover:opacity-90" to="/">
+          {text('notFound.home')}
+        </Link>
+      </div>
+    </section>
+  )
+}
+
+type NotFoundRouteElementProps = {
+  component?: ComponentType;
+}
+
+function NotFoundRouteElement(props: NotFoundRouteElementProps) {
+  const { component: RouteComponent } = props
+  if (!RouteComponent) return <BuiltInNotFoundPage />
+  return <RouteComponent />
+}
+
 export function AppShell(arg0: AppShellProps) {
   const { config, routes, navigation } = arg0
   const location = useLocation()
@@ -123,13 +160,18 @@ export function AppShell(arg0: AppShellProps) {
   const currentRoute = routeForPath(routes, pathname)
   const currentLocale = localeForPath(config, pathname, currentRoute)
   const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
+  const notFoundRoute = currentRoute ? undefined : notFoundRouteForPath(routes, pathname, currentLocale)
+  const text = useBuiltInText(currentLocale)
   const currentNavigation = navigationForLocale(navigation, currentLocale, pathname)
-  const sections = useMemo(() => sectionsForRoute(currentRoute), [currentRoute])
+  const sections = sectionsForRoute(currentRoute)
   const hasTabs = Boolean(currentNavigation.tabs?.length)
   const renderRoutes = useMemo(
     () => routes.map(route => ({ ...route, component: resolveRouteComponent(route) })),
     [routes],
   )
+  const NotFoundRouteComponent = notFoundRoute
+    ? renderRoutes.find(route => isSameRoutePath(route.path, notFoundRoute.path))?.component
+    : undefined
 
   useEffect(() => {
     if (location.hash) {
@@ -154,8 +196,8 @@ export function AppShell(arg0: AppShellProps) {
   }, [currentLocale, currentLocaleConfig?.dir])
 
   useEffect(() => {
-    applyDocumentMetadata(config, currentRoute)
-  }, [config, currentRoute])
+    applyDocumentMetadata(config, currentRoute ?? notFoundRoute)
+  }, [config, currentRoute, notFoundRoute])
 
   return (
     <ClarifyLocaleContext.Provider value={currentLocale}>
@@ -180,13 +222,31 @@ export function AppShell(arg0: AppShellProps) {
           <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
             <ContentActions hasTabs={hasTabs} route={currentRoute} routePrefix={config.routePrefix} />
             <main className="clarify-main min-w-0 flex-auto">
-              <Suspense fallback={<PageSkeleton />}>
-                <Routes>
-                  {renderRoutes.map((route) => (
-                    <Route key={route.path} path={route.path} element={<route.component />} />
-                  ))}
-                </Routes>
-              </Suspense>
+              <PageErrorBoundary
+                key={pathname}
+                title={text('renderError.title')}
+                description={text('renderError.description')}
+                reloadLabel={text('renderError.reload')}
+                detailsLabel={text('renderError.details')}
+                pathLabel={text('renderError.path')}
+                typeLabel={text('renderError.type')}
+                messageLabel={text('renderError.message')}
+                stackLabel={text('renderError.stack')}
+                componentStackLabel={text('renderError.componentStack')}
+                timestampLabel={text('renderError.timestamp')}
+                copyLabel={text('actions.copy')}
+                copiedLabel={text('actions.copied')}
+                path={pathname}
+              >
+                <Suspense fallback={<PageSkeleton />}>
+                  <Routes>
+                    {renderRoutes.map((route) => (
+                      <Route key={route.path} path={route.path} element={<route.component />} />
+                    ))}
+                    <Route path="*" element={<NotFoundRouteElement component={NotFoundRouteComponent} />} />
+                  </Routes>
+                </Suspense>
+              </PageErrorBoundary>
             </main>
             <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
           </div>

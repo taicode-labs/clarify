@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useSectionStore } from '../app/SectionProvider'
-import { Tag } from '../components'
 import { useBuiltInText } from '../i18n'
 import type { NavigationNode } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
@@ -92,7 +91,6 @@ function NavLink(arg0: NavLinkProps) {  const {
   children,
   badge,
   icon,
-  tags,
   active = false,
   isAnchorLink = false,
 } = arg0
@@ -128,15 +126,6 @@ function NavLink(arg0: NavLinkProps) {  const {
         {badge ? <SectionBadge>{badge}</SectionBadge> : null}
         <span className="min-w-0 truncate whitespace-nowrap">{children}</span>
       </span>
-      {tags?.length ? (
-        <span className="flex shrink-0 gap-1">
-          {tags.map((tag) => (
-            <Tag key={tag} variant="small" color="zinc">
-              {tag}
-            </Tag>
-          ))}
-        </span>
-      ) : null}
     </CloseButton>
   )
 }

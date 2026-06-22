@@ -1,8 +1,26 @@
 # Deployment
 
-This page explains Clarify's publishing capabilities: static generation, common hosting targets, route prefixes, raw content output, and `llms.txt`.
+This page explains Clarify's publishing capabilities: build-time SSR, static generation, common hosting targets, route prefixes, raw content output, and `llms.txt`.
 
-Clarify builds pure static files that can be hosted by any platform capable of serving HTML, CSS, and JavaScript.
+Clarify supports SSR rendering, but it uses **build-time SSR**: `clarify build` renders every route into HTML during the build. The production artifact is still a pure static site, so no Node.js server runtime is required after deployment.
+
+---
+
+## How SSR works
+
+Clarify's production rendering model is SSG (Static Site Generation) plus hydration:
+
+1. The build environment runs `pnpm exec clarify build`.
+2. The CLI uses a Vite SSR bundle to render every documentation route in Node.js.
+3. Each route is written as its own `index.html`, alongside JS/CSS assets, raw Markdown/OpenAPI artifacts, and `llms.txt`.
+4. Visitors receive pre-rendered HTML first. After JavaScript loads, the page hydrates into a React app for client-side navigation.
+
+This means:
+
+- ✅ first-load HTML, SEO-friendly output, and direct deep links are supported;
+- ✅ deployment only needs static file hosting;
+- ✅ Vercel, Netlify, GitHub Pages, object storage, CDNs, and Nginx all work;
+- ❌ production request-time SSR servers are not required or provided.
 
 ---
 
@@ -33,7 +51,7 @@ output/
 └── api.openapi.json
 ```
 
-Every route has its own HTML file for fast first loads, direct linking, and search-friendly output. After JavaScript loads, users get client-side navigation.
+Every route has its own HTML file for fast first loads, direct linking, and search-friendly output. After JavaScript loads, users get client-side navigation. Deploy only the `output/` directory; do not deploy temporary SSR build files.
 
 ---
 
@@ -154,8 +172,10 @@ If `routePrefix` is configured, links in `llms.txt` automatically include the sa
 
 ## Pre-publish checklist
 
+- The build environment satisfies Node.js `>=20.0.0` and pnpm `>=9.0.0`.
 - `pnpm exec clarify build` completes successfully.
 - `output/` contains the expected HTML, assets, raw Markdown/OpenAPI files, and `llms.txt`.
 - `routePrefix` is configured when deploying under a subpath.
 - Raw OpenAPI output does not include internal-only information.
 - The hosting platform points to `output` or your custom output directory.
+- Production can be deployed as a static site; no Node.js SSR service needs to be started.

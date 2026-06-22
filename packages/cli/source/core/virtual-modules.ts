@@ -1,11 +1,10 @@
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../parsers/routes.js'
-import { openApiRegistryModuleId } from '../plugins/openapi/virtual-modules.js'
 import type { ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
 export const VIRTUAL_SERVER_ROUTES = 'virtual:clarify-routes/server'
-export const VIRTUAL_OPENAPI_REGISTRY = openApiRegistryModuleId
+export const VIRTUAL_RUNTIME = 'virtual:clarify-runtime'
 export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-entry-client'
 export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 
@@ -16,6 +15,10 @@ type BuildVirtualModulesArgs = {
   generateOptions: ResolvedBuildOptions
   routes: ContentRoute[]
   navigation?: NavigationTree
+  themeEditor?: boolean
+}
+
+type CreateClientEntryModuleOptions = {
   themeEditor?: boolean
 }
 
@@ -50,10 +53,10 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
     const alternates = r.alternates ? `, alternates: ${JSON.stringify(r.alternates)}` : ''
     const description = r.description ? `, description: ${JSON.stringify(r.description)}` : ''
     const keywords = r.keywords && r.keywords.length > 0 ? `, keywords: ${JSON.stringify(r.keywords)}` : ''
-    const openapiTagFilter = r.openapiTagFilter && r.openapiTagFilter.length > 0 ? `, openapiTagFilter: ${JSON.stringify(r.openapiTagFilter)}` : ''
+    const sourceUrl = r.sourceUrl ? `, sourceUrl: ${JSON.stringify(r.sourceUrl)}` : ''
     const component = mode === 'server' ? `Page${i}` : `() => import(${moduleSpecifier(r.virtualModuleId)})`
     const lazy = mode === 'client' ? ', lazy: true' : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${alternates}${description}${keywords}${openapiTagFilter}${sections}${contentArtifactUrl} }`
+    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${alternates}${description}${keywords}${sections}${contentArtifactUrl}${sourceUrl} }`
   }).join(',\n')
 
   const navigation = resolvedNavigation ?? (projectConfig?.tabs
@@ -65,13 +68,17 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
-export function createClientEntryModule(options: { themeEditor?: boolean } = {}): string {
+export function createRuntimeModule(): string {
+  return 'export const openApis = {};'
+}
+
+export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {
   return `
 import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
-import { openApis } from '${VIRTUAL_OPENAPI_REGISTRY}';
+import { openApis } from '${VIRTUAL_RUNTIME}';
 render({ config, routes, navigation, openApis, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
 }
 
@@ -81,12 +88,11 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
-  modules.set(VIRTUAL_OPENAPI_REGISTRY, 'export const openApis = {};')
+  modules.set(VIRTUAL_RUNTIME, createRuntimeModule())
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
 
   for (const route of args.routes) {
-    if (route.kind === 'openapi') continue
     modules.set(route.virtualModuleId, `export { default } from ${moduleSpecifier(route.filePath)};`)
   }
 

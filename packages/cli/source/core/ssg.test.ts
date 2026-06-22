@@ -4,9 +4,9 @@ import { join } from 'node:path'
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import type { ResolvedProjectConfig } from '../types.js'
+import type { ContentRoute, ResolvedProjectConfig } from '../types.js'
 
-import { readIndexHtml, injectSSRIntoTemplate } from './ssg.js'
+import { readIndexHtml, injectSSRIntoTemplate, isNotFoundRoute, routeOutputFiles } from './ssg.js'
 import { resolveThemeConfig } from './theme.js'
 
 describe('readIndexHtml', () => {
@@ -162,5 +162,35 @@ describe('injectSSRIntoTemplate', () => {
     const config = { ...baseConfig, description: 'A&B' }
     const html = injectSSRIntoTemplate(baseTemplate, '', config)
     expect(html).toContain('content="A&amp;B"')
+  })
+})
+
+describe('routeOutputFiles', () => {
+  const outputDirectory = '/site/output'
+  const baseRoute: ContentRoute = {
+    path: '/guide',
+    title: 'Guide',
+    filePath: '/content/guide.mdx',
+    kind: 'mdx',
+    virtualModuleId: 'virtual:guide',
+  }
+
+  it('returns the nested index file for regular routes', () => {
+    expect(routeOutputFiles(outputDirectory, baseRoute)).toEqual(['/site/output/guide/index.html'])
+  })
+
+  it('writes root 404.html for the default 404 route', () => {
+    const route = { ...baseRoute, path: '/404', basePath: '/404' }
+    expect(isNotFoundRoute(route)).toBe(true)
+    expect(routeOutputFiles(outputDirectory, route)).toEqual([
+      '/site/output/404/index.html',
+      '/site/output/404.html',
+    ])
+  })
+
+  it('does not overwrite root 404.html from localized non-default 404 routes', () => {
+    const route = { ...baseRoute, path: '/zh-CN/404', basePath: '/404', locale: 'zh-CN' }
+    expect(isNotFoundRoute(route)).toBe(true)
+    expect(routeOutputFiles(outputDirectory, route)).toEqual(['/site/output/zh-CN/404/index.html'])
   })
 })

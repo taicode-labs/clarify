@@ -97,12 +97,16 @@ function Navbar() {
           <ClarifyLogo />
         </NavbarLogo>
       }
-      actions={
+      controls={
         <>
           <ThemeToggle />
           <LanguageToggle currentLocale={toAppLocale(i18n.language)} />
-          <PlainButtonLink href={site.githubUrl}>{t('common.github')}</PlainButtonLink>
-          <ButtonLink href={site.docsUrl}>{t('common.getStarted')}</ButtonLink>
+        </>
+      }
+      actions={
+        <>
+          <PlainButtonLink href={site.githubUrl} className="max-lg:w-full">{t('common.github')}</PlainButtonLink>
+          <ButtonLink href={site.docsUrl} className="max-lg:w-full">{t('common.getStarted')}</ButtonLink>
         </>
       }
     />
@@ -145,7 +149,7 @@ function ThemeToggle() {
       aria-label={label}
       title={label}
       onClick={() => setTheme(nextTheme)}
-      className="relative inline-flex size-8 shrink-0 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-strong) transition hover:bg-(--clarify-ui-hover-background)"
+      className="relative inline-flex size-9 shrink-0 items-center justify-center rounded-full text-(--clarify-ui-text-strong) transition hover:bg-(--clarify-ui-hover-background)"
     >
       <span className="absolute size-12 pointer-fine:hidden" />
       <Sun className="size-5 stroke-(--clarify-ui-text-strong) dark:hidden" aria-hidden="true" />
@@ -169,7 +173,7 @@ function LanguageToggle(props: LanguageToggleProps) {
         localStorage.setItem('clarify-locale', nextLocale)
         void i18n.changeLanguage(nextLocale)
       }}
-      className="inline-flex shrink-0 items-center justify-center rounded-full px-3 py-1 text-sm/7 font-medium text-(--clarify-ui-text-strong) hover:bg-(--clarify-ui-hover-background)"
+      className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sm/7 font-medium text-(--clarify-ui-text-strong) transition hover:bg-(--clarify-ui-hover-background)"
     >
       {currentLocale === 'en' ? '简' : 'EN'}
     </button>

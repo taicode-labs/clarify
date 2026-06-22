@@ -17,6 +17,7 @@ const projectConfig: ResolvedProjectConfig = {
 }
 
 const generateOptions: ResolvedBuildOptions = {
+  projectRoot: '/site',
   rootDirectory: 'source',
   outputDirectory: 'output',
   ssg: { failOnError: true },
@@ -80,7 +81,7 @@ describe('createOpenAPIPlugin', () => {
     ])
 
     const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(routes))
-    expect(modules?.get('virtual:clarify-openapi-registry')).toContain('Plugin API')
+    expect(modules?.get('virtual:clarify-runtime')).toContain('Plugin API')
     expect(modules?.get('virtual:clarify-page/api')).toContain('OpenApiDocument')
   })
 

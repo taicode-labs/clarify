@@ -69,10 +69,22 @@ export function injectSSRIntoTemplate(template: string, appHtml: string, project
   return html
 }
 
+export function isNotFoundRoute(route: ContentRoute): boolean {
+  return (route.basePath ?? route.path) === '/404'
+}
+
+export function routeOutputFiles(outputDirectory: string, route: ContentRoute): string[] {
+  const files = [join(outputDirectory, route.path, 'index.html')]
+  if (isNotFoundRoute(route) && (!route.locale || route.path === '/404')) {
+    files.push(join(outputDirectory, '404.html'))
+  }
+  return files
+}
+
 export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify-labs/renderer/server';
 import { routes, navigation } from 'virtual:clarify-routes/server';
 import { config } from 'virtual:clarify-config';
-import { openApis } from 'virtual:clarify-openapi-registry';
+import { openApis } from 'virtual:clarify-runtime';
 
 export function render(url) {
   return renderToHTML({ config, routes, navigation, openApis, url, themeEditor: config.theme.editor });
@@ -125,9 +137,10 @@ export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: Res
       const appHtml = render(route.path)
       const finalHtml = injectSSRIntoTemplate(template, appHtml, projectConfig, route)
 
-      const outFile = join(outputDirectory, route.path, 'index.html')
-      mkdirSync(dirname(outFile), { recursive: true })
-      writeFileSync(outFile, finalHtml, 'utf-8')
+      for (const outFile of routeOutputFiles(outputDirectory, route)) {
+        mkdirSync(dirname(outFile), { recursive: true })
+        writeFileSync(outFile, finalHtml, 'utf-8')
+      }
     } catch (err) {
       console.error(`[clarify] Failed to render route "${route.path}":`, err)
       if (failOnError) {

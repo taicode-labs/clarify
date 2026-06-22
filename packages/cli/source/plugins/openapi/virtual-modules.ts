@@ -1,6 +1,7 @@
+import { VIRTUAL_RUNTIME } from '../../core/virtual-modules.js'
 import type { ContentDiagnostic, OpenAPISpec } from '../../types.js'
 
-export const openApiRegistryModuleId = 'virtual:clarify-openapi-registry'
+export const openApiRegistryModuleId = VIRTUAL_RUNTIME
 
 export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISpec>): string {
   return `export const openApis = ${JSON.stringify(openApis)};`

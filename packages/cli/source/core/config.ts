@@ -49,6 +49,8 @@ export function resolveProjectConfig(config: ClarifyProjectConfig = {}): Resolve
   return {
     title: config.title ?? 'Clarify Docs',
     description: config.description ?? '',
+    siteUrl: config.siteUrl,
+    source: config.source,
     logo: config.logo,
     favicon: config.favicon,
     routePrefix: config.routePrefix ?? '/',

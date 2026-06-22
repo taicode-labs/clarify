@@ -25,8 +25,8 @@ const spec: OpenAPISpec = {
 }
 
 describe('openapi virtual modules', () => {
-  it('keeps the public registry virtual module id stable', () => {
-    expect(openApiRegistryModuleId).toBe('virtual:clarify-openapi-registry')
+  it('uses the shared Clarify runtime virtual module id', () => {
+    expect(openApiRegistryModuleId).toBe('virtual:clarify-runtime')
   })
 
   it('generates the OpenAPI registry module', () => {

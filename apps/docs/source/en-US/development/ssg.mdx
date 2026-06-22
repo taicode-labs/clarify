@@ -77,7 +77,10 @@ Examples:
 /                 → output/index.html
 /getting-started  → output/getting-started/index.html
 /en-US/guides     → output/en-US/guides/index.html
+/404              → output/404/index.html and output/404.html
 ```
+
+`404.mdx` is treated as a normal content route for previewing at `/404`, and the SSG pipeline also writes a root-level `404.html` for static hosts that look for that filename. File-tree navigation hides `404` automatically; add explicit links only when you want to expose it yourself.
 
 ---
 

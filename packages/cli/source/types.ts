@@ -55,25 +55,41 @@ export type ClarifyFooterConfig = {
   copyright?: ClarifyLocalizedText
 }
 
+export type ClarifySourceConfig = {
+  /** Repository web URL, for example https://github.com/owner/repo. */
+  repository: string
+  /** Source branch used for edit links. Default: main. */
+  branch?: string
+  /** Directory prefix inside the repository that maps to rootDirectory. */
+  directory?: string
+}
+
 export type ClarifyThemePreset = 'default' | 'base'
+
+export type ClarifyThemeModeColorValue = {
+  light?: string
+  dark?: string
+}
+
+export type ClarifyThemeColorValue = string | ClarifyThemeModeColorValue
 
 export type ClarifyThemeColorTokensConfig = {
   /** Brand primary color for active states, links, and emphasis. */
-  primary?: string
+  primary?: ClarifyThemeColorValue
   /** Secondary accent color for subtle emphasis. */
-  accent?: string
+  accent?: ClarifyThemeColorValue
   /** Page background color. */
-  background?: string
+  background?: ClarifyThemeColorValue
   /** Primary text color. */
-  foreground?: string
+  foreground?: ClarifyThemeColorValue
   /** Card and elevated surface background color. */
-  surface?: string
+  surface?: ClarifyThemeColorValue
   /** Muted text and secondary UI color. */
-  muted?: string
+  muted?: ClarifyThemeColorValue
   /** Border and divider color. */
-  border?: string
+  border?: ClarifyThemeColorValue
   /** Inline code and code block background color. */
-  codeBackground?: string
+  codeBackground?: ClarifyThemeColorValue
 }
 
 export type ClarifyThemeRadiusTokensConfig = {
@@ -170,6 +186,12 @@ export type ClarifyProjectConfig = {
   /** Site description. Used in SEO meta tags. */
   description?: string
 
+  /** Canonical public site URL. Enables sitemap.xml and robots.txt generation. */
+  siteUrl?: string
+
+  /** Source repository configuration for Edit this page links. */
+  source?: ClarifySourceConfig
+
   /** Path to site logo image (relative to rootDirectory or absolute). Supports light/dark mode. */
   logo?: ClarifyLogoConfig
 
@@ -208,6 +230,8 @@ export type ResolvedProjectConfig = {
   title: string
   logo?: ClarifyLogoConfig
   description: string
+  siteUrl?: string
+  source?: ClarifySourceConfig
   routePrefix: string
   favicon?: ClarifyFaviconConfig
   theme: ResolvedClarifyThemeConfig
@@ -248,7 +272,7 @@ export type ContentRoute = {
   keywords?: string[]
   filePath: string
   virtualModuleId: string
-  kind: 'mdx' | 'openapi'
+  kind: string
   /** OpenAPI operation tag filter applied to this route. Undefined means all operations. */
   openapiTagFilter?: string[]
   frontmatter?: Record<string, unknown>
@@ -257,6 +281,7 @@ export type ContentRoute = {
   diagnostic?: ContentDiagnostic
   sections?: ContentSection[]
   contentArtifactUrl?: string
+  sourceUrl?: string
 }
 
 export type ClarifyNavigationTab = {

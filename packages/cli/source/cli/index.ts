@@ -2,6 +2,7 @@
 import { cac } from 'cac'
 
 import { runBuild } from './commands/build.js'
+import { runCheck, type CheckCommandOptions } from './commands/check.js'
 import { runDev } from './commands/dev.js'
 import { runInit } from './commands/init.js'
 import { resolveCliOptions, type CliOptions, type ResolvedCliOptions } from './options.js'
@@ -42,6 +43,13 @@ async function main(): Promise<void> {
   withSharedOptions(cli.command('build', 'Build the static documentation site'))
     .action(async (options: CliOptions) => {
       await runBuild(resolveOptions(options))
+    })
+
+  withSharedOptions(cli.command('check', 'Validate the documentation project'))
+    .option('--strict', 'Treat warnings as failures')
+    .option('--format <format>', 'Output format: text or json')
+    .action(async (options: CheckCommandOptions) => {
+      await runCheck(options)
     })
 
   withSharedOptions(cli.command('init', 'Create a Clarify project scaffold'))

@@ -31,6 +31,12 @@ import { defineConfig } from '@clarify-labs/cli'
 export default defineConfig({
   title: 'Clarify 文档',
   description: 'Clarify 官方文档 — 开源文档发布工具',
+  siteUrl: 'https://docs.example.com',
+  source: {
+    repository: 'https://github.com/acme/docs',
+    branch: 'main',
+    directory: 'docs/source',
+  },
   logo: {
     light: '/logo-light.svg',
     dark: '/logo-dark.svg',
@@ -39,9 +45,12 @@ export default defineConfig({
   routePrefix: '/docs/',
   theme: {
     preset: 'default',
+    editor: true,
     tokens: {
       colors: {
-        primary: '#00D492',
+        primary: { light: '#00D492', dark: '#34D399' },
+        accent: '#0D9488',
+        muted: { light: '#64748b', dark: '#a1a1aa' },
       },
     },
   },
@@ -91,6 +100,8 @@ export default defineConfig({
 |------|------|--------|------|
 | `title` | `string` | `"Clarify Docs"` | 站点标题，用于侧边栏品牌和 HTML 标题 |
 | `description` | `string` | `""` | 站点描述，用于 SEO 和 `llms.txt` |
+| `siteUrl` | `string` | — | 公开站点 URL；配置后 `clarify build` 会生成 `sitemap.xml` 和 `robots.txt` |
+| `source` | `{ repository: string; branch?: string; directory?: string }` | — | 源码仓库信息，用于生成“编辑此页面”链接 |
 | `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo 路径 |
 | `favicon` | `string \| { light?: string; dark?: string }` | — | favicon 路径或亮暗主题变体 |
 | `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig; editor?: boolean }` | `{ preset: 'default', editor: false }` | 主题预设、局部覆盖和实时主题编辑器配置；`theme.editor` 可在构建后的站点中暴露编辑器，dev 模式会自动启用 |
@@ -102,6 +113,23 @@ export default defineConfig({
 | `tabs` | `ClarifyTabsConfig` | 按文件树自动生成 | 站点业务分类和各分类下的侧边栏结构 |
 | `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | 静态生成错误策略 |
 | `plugins` | `ClarifyPlugin[]` | `[]` | 构建期插件列表，仅 `clarify.ts/js` 可用 |
+
+---
+
+## `siteUrl` 和 `source`
+
+```ts
+export default defineConfig({
+  siteUrl: 'https://docs.example.com',
+  source: {
+    repository: 'https://github.com/acme/docs',
+    branch: 'main',
+    directory: 'docs/source',
+  },
+})
+```
+
+`siteUrl` 用于在 `clarify build` 时生成 `sitemap.xml` 和 `robots.txt`。`source` 会让页面操作菜单展示“编辑此页面”链接，指向对应源文件。
 
 ---
 
@@ -152,6 +180,7 @@ theme: {
   preset?: 'default' | 'base'
   tokens?: ClarifyThemeTokensConfig
   layout?: ClarifyThemeLayoutConfig
+  editor?: boolean
 }
 ```
 
@@ -168,16 +197,41 @@ theme: {
 export default defineConfig({
   theme: {
     preset: 'base',
+    editor: true,
     tokens: {
       colors: {
-        primary: '#00D492',
+        primary: { light: '#00D492', dark: '#34D399' },
+        accent: '#0D9488',
+        background: { light: '#ffffff', dark: '#09090b' },
+        foreground: { light: '#18181b', dark: '#fafafa' },
+        surface: { light: '#f8fafc', dark: '#18181b' },
+        muted: { light: '#64748b', dark: '#a1a1aa' },
+        border: { light: '#e2e8f0', dark: '#27272a' },
+        codeBackground: { light: '#0f172a', dark: '#020617' },
       },
     },
   },
 })
 ```
 
-主题 token 是“局部覆盖”而不是重写整套主题；没有配置的字段会继续继承所选 preset 的默认值。当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
+主题 token 是“局部覆盖”而不是重写整套主题；没有配置的字段会继续继承所选 preset 的默认值。颜色 token 可以直接写字符串，也可以按亮暗模式分别提供 `{ light?: string; dark?: string }`，例如 `muted: { light: '#64748b', dark: '#a1a1aa' }`；如果某个模式缺失，Clarify 会回退到可用值或 preset 默认值。`theme.editor` 可在构建后的站点中暴露实时主题编辑器；dev 模式会自动启用。当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
+
+---
+
+## 自定义 404 页面
+
+创建 `source/404.mdx` 即可自定义未找到页面：
+
+```mdx
+# 页面未找到
+
+你访问的页面不存在或已经移动。
+
+- [快速开始](/getting-started)
+- [配置参考](/reference/clarify-config)
+```
+
+Clarify 会在 `/404` 预览这个页面，并在客户端未知路径时复用它作为 404 展示。静态生成时还会额外写出 `output/404.html`，自动文件树导航会默认隐藏 `404`。
 
 ---
 

@@ -30,10 +30,10 @@ export type RouteItem = {
   keywords?: string[];
   component: RouteComponent;
   lazy?: boolean;
-  kind?: 'mdx' | 'openapi';
-  openapiTagFilter?: string[];
+  kind?: string;
   sections?: RouteSection[];
   contentArtifactUrl?: string;
+  sourceUrl?: string;
 };
 
 export type ClarifyLogoConfig = string | { light?: string; dark?: string };
@@ -71,17 +71,30 @@ export type ClarifyFooterConfig = {
   copyright?: ClarifyLocalizedText;
 };
 
+export type ClarifySourceConfig = {
+  repository: string;
+  branch?: string;
+  directory?: string;
+};
+
 export type ClarifyThemePreset = 'default' | 'base';
 
+export type ClarifyThemeModeColorValue = {
+  light?: string;
+  dark?: string;
+};
+
+export type ClarifyThemeColorValue = string | ClarifyThemeModeColorValue;
+
 export type ClarifyThemeColorTokensConfig = {
-  primary: string;
-  accent: string;
-  background: string;
-  foreground: string;
-  surface: string;
-  muted: string;
-  border: string;
-  codeBackground: string;
+  primary: ClarifyThemeColorValue;
+  accent: ClarifyThemeColorValue;
+  background: ClarifyThemeColorValue;
+  foreground: ClarifyThemeColorValue;
+  surface: ClarifyThemeColorValue;
+  muted: ClarifyThemeColorValue;
+  border: ClarifyThemeColorValue;
+  codeBackground: ClarifyThemeColorValue;
 };
 
 export type ClarifyThemeRadiusTokensConfig = {
@@ -146,6 +159,8 @@ export type ClarifyConfig = {
   favicon?: ClarifyFaviconConfig;
   theme: ClarifyThemeConfig;
   description: string;
+  siteUrl?: string;
+  source?: ClarifySourceConfig;
   rootDirectory: string;
   routePrefix: string;
   outputDirectory: string;

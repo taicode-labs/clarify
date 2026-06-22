@@ -12,7 +12,7 @@ const projectConfig: ResolvedProjectConfig = {
   theme: resolveThemeConfig(),
 }
 
-function createRoute(kind: ContentRoute['kind'], contentArtifactUrl: string): ContentRoute {
+function createRoute(kind: 'mdx' | 'openapi', contentArtifactUrl: string): ContentRoute {
   return {
     path: '/api',
     title: 'API',

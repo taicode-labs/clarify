@@ -18,6 +18,7 @@ export type ClarifyBuildOptions = ClarifyProjectConfig & {
 }
 
 export type ResolvedBuildOptions = {
+  projectRoot: string
   rootDirectory: string
   outputDirectory?: string
   ssg: {
@@ -27,6 +28,7 @@ export type ResolvedBuildOptions = {
 
 export function resolveBuildOptions(options: ClarifyBuildOptions = {}): ResolvedBuildOptions {
   return {
+    projectRoot: options.projectRoot ?? process.cwd(),
     rootDirectory: options.rootDirectory ?? 'source',
     outputDirectory: options.outputDirectory,
     ssg: {

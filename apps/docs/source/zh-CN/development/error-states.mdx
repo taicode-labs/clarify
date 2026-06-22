@@ -1,0 +1,93 @@
+import { useState } from 'react'
+
+export function RenderErrorTrigger() {
+  const [shouldThrow, setShouldThrow] = useState(false)
+
+  if (shouldThrow) {
+    throw new Error('Intentional Clarify documentation render error preview')
+  }
+
+  return (
+    <div className="not-prose my-6 rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-sm shadow-zinc-900/5">
+      <p className="text-sm/6 text-(--clarify-ui-text)">
+        点击下方按钮，从这个 MDX 页面抛出一个客户端渲染错误。
+      </p>
+      <div className="mt-4">
+        <button
+          type="button"
+          className="rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-theme-tokens-colors-primary) px-3 py-2 text-sm/5 font-semibold text-white shadow-xs transition hover:opacity-90"
+          onClick={() => setShouldThrow(true)}
+        >
+          触发渲染错误
+        </button>
+      </div>
+    </div>
+  )
+}
+
+# 错误状态
+
+Clarify 为未知路由和客户端渲染失败提供友好的错误状态。本页专门用于触发这些状态，方便维护者在开发时检查展示效果。
+
+---
+
+## 本页覆盖内容
+
+<CardGroup cols={2}>
+  <Card title="未找到路由" icon="file-question" href="/not-exist-route">
+    打开一个不存在的路径，确认 Clarify 会渲染配置好的 404 页面。
+  </Card>
+  <Card title="渲染失败" icon="bug" href="#client-render-error-preview">
+    触发客户端组件错误，确认恢复面板在当前主题下可读。
+  </Card>
+</CardGroup>
+
+---
+
+## 404 路由行为
+
+Clarify 会把 `source/404.mdx` 作为普通内容路由，同时也会把它用作客户端未知路径的兜底页面。
+
+- 默认 `/404` 路由会同时输出到 `output/404/index.html` 和 `output/404.html`。
+- `/en-US/404` 或 `/zh-CN/404` 这类语言页面可以分别定制未找到页面文案。
+- 客户端未知路径会优先复用当前语言的 404 页面。
+- 未知路径没有 active content route，因此页面内容操作和上一页/下一页导航会隐藏。
+
+<div className="not-prose my-6">
+  <Button href="/not-exist-route" variant="outline" arrow="right">
+    打开不存在的路由
+  </Button>
+</div>
+
+---
+
+## 客户端渲染错误预览
+
+下面的组件只会在点击按钮后抛错，因此可以验证 `PageErrorBoundary`，同时不影响静态构建。
+
+<RenderErrorTrigger />
+
+<Callout type="warning" title="仅用于开发检查">
+  使用本页检查文案、间距、暗色模式、主题覆盖和可展开错误详情。不应把它放进面向普通用户的新手路径。
+</Callout>
+
+---
+
+## 预期恢复面板
+
+触发错误后，Clarify 应展示本地化恢复面板，其中包含：
+
+| 元素 | 预期行为 |
+|------|----------|
+| 标题和描述 | 说明当前页面渲染失败。 |
+| 当前路径 | 展示导致失败的路由。 |
+| 刷新操作 | 允许读者通过刷新页面重试。 |
+| 详情折叠区 | 默认收起堆栈信息，需要时再展开。 |
+
+```tsx
+<PageErrorBoundary path={pathname}>
+  <Suspense fallback={<PageSkeleton />}>
+    <Routes>{/* page routes */}</Routes>
+  </Suspense>
+</PageErrorBoundary>
+```

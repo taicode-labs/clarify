@@ -18,13 +18,22 @@ import { defineConfig } from '@clarify-labs/cli'
 export default defineConfig({
   title: 'Clarify Docs',
   description: 'Open-source documentation publishing for MDX and OpenAPI',
+  siteUrl: 'https://docs.example.com',
+  source: {
+    repository: 'https://github.com/acme/docs',
+    branch: 'main',
+    directory: 'docs/source',
+  },
   logo: '/logo.svg',
   favicon: '/favicon.ico',
   theme: {
     preset: 'default',
+    editor: true,
     tokens: {
       colors: {
-        primary: '#00D492',
+        primary: { light: '#00D492', dark: '#34D399' },
+        accent: '#0D9488',
+        muted: { light: '#64748b', dark: '#a1a1aa' },
       },
     },
   },
@@ -60,6 +69,8 @@ export default defineConfig({
 |-------|-------------|
 | `title` | Site title used by the shell and generated metadata. |
 | `description` | Site description used for SEO and `llms.txt`. |
+| `siteUrl` | Public canonical site URL. Enables `sitemap.xml` and `robots.txt` during `clarify build`. |
+| `source` | Repository metadata used to render “Edit this page” links. |
 | `logo` | Logo path or light/dark logo variants. |
 | `favicon` | Favicon path or light/dark variants. |
 | `theme` | Theme preset, token overrides, and `theme.editor` for exposing the live theme editor in built sites. Dev mode enables the editor automatically. |
@@ -70,6 +81,73 @@ export default defineConfig({
 | `tabs` | High-level navigation sections and sidebar structure. |
 | `ssg` | Static generation behavior. |
 | `plugins` | Build-time plugins, available in JS/TS config files. |
+
+---
+
+## `siteUrl` and `source`
+
+```ts
+export default defineConfig({
+  siteUrl: 'https://docs.example.com',
+  source: {
+    repository: 'https://github.com/acme/docs',
+    branch: 'main',
+    directory: 'docs/source',
+  },
+})
+```
+
+`siteUrl` is used by `clarify build` to generate `sitemap.xml` and `robots.txt`. `source` enables the page action menu to show an “Edit this page” link for each route.
+
+---
+
+## `theme`
+
+```ts
+theme: {
+  preset?: 'default' | 'base'
+  tokens?: ClarifyThemeTokensConfig
+  layout?: ClarifyThemeLayoutConfig
+  editor?: boolean
+}
+```
+
+Theme tokens are partial overrides of the selected preset. Color tokens can be plain strings or mode-aware values:
+
+```ts
+export default defineConfig({
+  theme: {
+    preset: 'base',
+    editor: true,
+    tokens: {
+      colors: {
+        primary: { light: '#00D492', dark: '#34D399' },
+        accent: '#0D9488',
+        muted: { light: '#64748b', dark: '#a1a1aa' },
+      },
+    },
+  },
+})
+```
+
+`theme.editor` exposes the live theme editor in built sites. Dev mode enables the editor automatically.
+
+---
+
+## Custom 404 page
+
+Create `source/404.mdx` to customize the not-found page:
+
+```mdx
+# Page not found
+
+The page you are looking for does not exist or has moved.
+
+- [Get started](/getting-started)
+- [Configuration reference](/reference/clarify-config)
+```
+
+Clarify serves it at `/404`, uses it for unmatched client routes, and writes `output/404.html` during static generation. File-tree navigation hides `404` automatically.
 
 ---
 

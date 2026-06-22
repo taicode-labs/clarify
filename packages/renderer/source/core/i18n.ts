@@ -23,6 +23,8 @@ export type BuiltInTextKey =
   | 'contentActions.copyLlms'
   | 'contentActions.copyLlmsDescription'
   | 'contentActions.copiedLlms'
+  | 'contentActions.editPage'
+  | 'contentActions.editPageDescription'
   | 'contentActions.copyOptions'
   | 'contentActions.copiedContent'
   | 'contentActions.copiedLink'
@@ -42,6 +44,10 @@ export type BuiltInTextKey =
   | 'navbar.home'
   | 'navbar.openLinks'
   | 'navbar.sections'
+  | 'notFound.description'
+  | 'notFound.home'
+  | 'notFound.label'
+  | 'notFound.title'
   | 'openapi.apiDocumentation'
   | 'openapi.bodyProperties'
   | 'openapi.collapse'
@@ -75,6 +81,16 @@ export type BuiltInTextKey =
   | 'search.noResults'
   | 'search.placeholder'
   | 'search.shortcutCtrl'
+  | 'renderError.componentStack'
+  | 'renderError.description'
+  | 'renderError.details'
+  | 'renderError.message'
+  | 'renderError.path'
+  | 'renderError.reload'
+  | 'renderError.stack'
+  | 'renderError.timestamp'
+  | 'renderError.title'
+  | 'renderError.type'
   | 'theme.switchToDark'
   | 'theme.switchToLight'
   | 'language.switch'
@@ -99,6 +115,8 @@ const builtInText = {
     'contentActions.copyLlms': 'Copy llms.txt',
     'contentActions.copyLlmsDescription': 'Copy the llms.txt link for this site',
     'contentActions.copiedLlms': 'Copied llms.txt',
+    'contentActions.editPage': 'Edit this page',
+    'contentActions.editPageDescription': 'Open the source file for this page',
     'contentActions.copyOptions': 'Choose copy option',
     'contentActions.copiedContent': 'Copied page',
     'contentActions.copiedLink': 'Copied link',
@@ -118,6 +136,10 @@ const builtInText = {
     'navbar.home': 'Home',
     'navbar.openLinks': 'Open navigation links',
     'navbar.sections': 'Documentation sections',
+    'notFound.description': 'The page may have moved, been renamed, or never existed. Check the address or return to the homepage.',
+    'notFound.home': 'Back to homepage',
+    'notFound.label': '404',
+    'notFound.title': 'Page not found',
     'openapi.apiDocumentation': 'API Documentation',
     'openapi.bodyProperties': 'Body properties',
     'openapi.collapse': 'Collapse',
@@ -151,6 +173,16 @@ const builtInText = {
     'search.noResults': 'Nothing found for {query}.',
     'search.placeholder': 'Find something...',
     'search.shortcutCtrl': 'Ctrl ',
+    'renderError.componentStack': 'React component stack',
+    'renderError.description': 'Clarify stopped rendering this route to keep the rest of the shell responsive. Review the diagnostics below, fix the page source, then reload the route.',
+    'renderError.details': 'Runtime diagnostics',
+    'renderError.message': 'Message',
+    'renderError.path': 'Route',
+    'renderError.reload': 'Reload route',
+    'renderError.stack': 'JavaScript stack trace',
+    'renderError.timestamp': 'Captured at',
+    'renderError.title': 'Route render failed',
+    'renderError.type': 'Error type',
     'theme.switchToDark': 'Switch to dark theme',
     'theme.switchToLight': 'Switch to light theme',
     'language.switch': 'Switch language',
@@ -174,6 +206,8 @@ const builtInText = {
     'contentActions.copyLlms': '复制 llms.txt',
     'contentActions.copyLlmsDescription': '复制此站点的 llms.txt 链接',
     'contentActions.copiedLlms': '已复制 llms.txt',
+    'contentActions.editPage': '编辑此页面',
+    'contentActions.editPageDescription': '打开当前页面的源文件',
     'contentActions.copyOptions': '选择复制选项',
     'contentActions.copiedContent': '已复制页面',
     'contentActions.copiedLink': '已复制链接',
@@ -193,6 +227,10 @@ const builtInText = {
     'navbar.home': '首页',
     'navbar.openLinks': '打开导航链接',
     'navbar.sections': '文档栏目',
+    'notFound.description': '页面可能已移动、重命名或不存在。请检查地址，或返回首页继续浏览。',
+    'notFound.home': '返回首页',
+    'notFound.label': '404',
+    'notFound.title': '页面未找到',
     'openapi.apiDocumentation': 'API 文档',
     'openapi.bodyProperties': '请求体属性',
     'openapi.collapse': '收起',
@@ -226,6 +264,16 @@ const builtInText = {
     'search.noResults': '没有找到与 {query} 相关的结果。',
     'search.placeholder': '搜索内容...',
     'search.shortcutCtrl': 'Ctrl ',
+    'renderError.componentStack': 'React 组件栈',
+    'renderError.description': 'Clarify 已停止渲染此路由，以保证文档 Shell 仍可响应。请查看下方诊断信息，修复页面源码后重新加载路由。',
+    'renderError.details': '运行时诊断',
+    'renderError.message': '错误消息',
+    'renderError.path': '路由',
+    'renderError.reload': '重新加载路由',
+    'renderError.stack': 'JavaScript 堆栈',
+    'renderError.timestamp': '捕获时间',
+    'renderError.title': '路由渲染失败',
+    'renderError.type': '错误类型',
     'theme.switchToDark': '切换到深色主题',
     'theme.switchToLight': '切换到浅色主题',
     'language.switch': '切换语言',

@@ -17,6 +17,7 @@ pnpm add -D @clarify-labs/cli
 ```bash
 pnpm exec clarify init
 pnpm exec clarify dev
+pnpm exec clarify check
 pnpm exec clarify build
 ```
 
@@ -131,6 +132,29 @@ pnpm exec clarify build
 ```bash
 pnpm exec clarify build --output dist
 ```
+
+配置了 `siteUrl` 后，构建会额外输出 `sitemap.xml` 和 `robots.txt`。
+
+---
+
+## `clarify check`
+
+在不产出构建文件的情况下检查文档项目。
+
+```bash
+pnpm exec clarify check
+```
+
+`check` 会报告缺失的内容目录、重复路由、无效 OpenAPI 描述文件、损坏的本地 Markdown 链接，以及 i18n fallback 页面。
+
+常用选项：
+
+| 选项 | 说明 | 默认值 |
+|------|------|--------|
+| `--root <dir>` | 项目根目录 | 当前目录 |
+| `--content <dir>` | 内容目录 | `source` |
+| `--strict` | 将 warning 也视为失败 | `false` |
+| `--format <format>` | `text` 或 `json` | `text` |
 
 ---
 

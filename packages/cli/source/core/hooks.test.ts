@@ -13,6 +13,7 @@ const mockCtx: ClarifyHookContext = {
     theme: resolveThemeConfig(),
   },
   generateOptions: {
+    projectRoot: '/site',
     rootDirectory: 'source',
     outputDirectory: 'dist',
     ssg: { failOnError: true },

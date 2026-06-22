@@ -9,6 +9,8 @@ describe('clarifyProjectConfigSchema', () => {
   it('validates project config', () => {
     expect(clarifyProjectConfigSchema.parse({
       title: 'Docs',
+      siteUrl: 'https://docs.example.com',
+      source: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' },
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
       i18n: {
         defaultLocale: 'zh-CN',
@@ -19,6 +21,8 @@ describe('clarifyProjectConfigSchema', () => {
       ],
     })).toEqual({
       title: 'Docs',
+      siteUrl: 'https://docs.example.com',
+      source: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' },
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
       i18n: {
         defaultLocale: 'zh-CN',
@@ -57,6 +61,8 @@ describe('resolveProjectConfig', () => {
     expect(result).toEqual({
       title: 'Clarify Docs',
       description: '',
+      siteUrl: undefined,
+      source: undefined,
       logo: undefined,
       favicon: undefined,
       routePrefix: '/',
@@ -97,6 +103,8 @@ describe('resolveProjectConfig', () => {
     const config = {
       title: 'Project Docs',
       description: 'Desc',
+      siteUrl: 'https://docs.example.com',
+      source: { repository: 'https://github.com/acme/docs' },
       theme: { tokens: { colors: { primary: '#333' } }, editor: true },
       favicon: '/favicon.svg',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
@@ -116,6 +124,8 @@ describe('resolveProjectConfig', () => {
     const result = resolveProjectConfig(config)
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
+    expect(result.siteUrl).toBe('https://docs.example.com')
+    expect(result.source).toEqual({ repository: 'https://github.com/acme/docs' })
     expect(result.theme.tokens.colors.primary).toBe('#333')
     expect(result.theme.layout).toEqual({ maxWidth: '82rem' })
     expect(result.theme.editor).toBe(true)
@@ -156,6 +166,32 @@ describe('resolveProjectConfig', () => {
     expect(customizedBaseTheme.layout).toEqual({ maxWidth: '80rem' })
   })
 
+  it('accepts theme color tokens with light and dark values', () => {
+    expect(clarifyProjectConfigSchema.parse({
+      theme: {
+        tokens: {
+          colors: {
+            muted: { light: '#64748b', dark: '#a1a1aa' },
+          },
+        },
+      },
+    }).theme?.tokens?.colors?.muted).toEqual({ light: '#64748b', dark: '#a1a1aa' })
+
+    const result = resolveProjectConfig({
+      theme: {
+        tokens: {
+          colors: {
+            primary: { light: '#2563eb', dark: '#60a5fa' },
+            muted: { light: '#64748b', dark: '#a1a1aa' },
+          },
+        },
+      },
+    })
+
+    expect(result.theme.tokens.colors.primary).toEqual({ light: '#2563eb', dark: '#60a5fa' })
+    expect(result.theme.tokens.colors.muted).toEqual({ light: '#64748b', dark: '#a1a1aa' })
+  })
+
   it('defines every built-in theme token and layout value', () => {
     const requiredColorTokens = ['primary', 'accent', 'background', 'foreground', 'surface', 'muted', 'border', 'codeBackground'] as const
     const requiredRadiusTokens = ['sm', 'md', 'lg', 'xl'] as const
@@ -179,6 +215,7 @@ describe('resolveBuildOptions', () => {
   it('uses defaults when no options provided', () => {
     const result = resolveBuildOptions()
     expect(result).toEqual({
+      projectRoot: process.cwd(),
       rootDirectory: 'source',
       outputDirectory: undefined,
       ssg: { failOnError: true },
@@ -188,6 +225,7 @@ describe('resolveBuildOptions', () => {
   it('applies provided options', () => {
     const result = resolveBuildOptions({ rootDirectory: 'docs', outputDirectory: 'build' })
     expect(result).toEqual({
+      projectRoot: process.cwd(),
       rootDirectory: 'docs',
       outputDirectory: 'build',
       ssg: { failOnError: true },
@@ -197,6 +235,7 @@ describe('resolveBuildOptions', () => {
   it('applies provided ssg options', () => {
     const result = resolveBuildOptions({ ssg: { failOnError: false } })
     expect(result).toEqual({
+      projectRoot: process.cwd(),
       rootDirectory: 'source',
       outputDirectory: undefined,
       ssg: { failOnError: false },
