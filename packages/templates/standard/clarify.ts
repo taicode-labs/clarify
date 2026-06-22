@@ -13,8 +13,8 @@ export default defineConfig({
     preset: 'default',
     tokens: {
       colors: {
-        primary: '#00D492',
-        accent: '#00F6C9',
+        primary: '#047857',
+        accent: '#0D9488',
       },
     },
   },

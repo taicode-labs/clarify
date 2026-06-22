@@ -64,14 +64,14 @@ describe('resolveProjectConfig', () => {
         preset: 'default',
         tokens: {
           colors: {
-            primary: '#00D492',
-            accent: '#00F6C9',
+            primary: '#047857',
+            accent: '#0D9488',
             background: '#ffffff',
             foreground: '#111827',
             surface: '#ffffff',
             muted: '#64748b',
             border: 'rgb(15 23 42 / 0.12)',
-            codeBackground: '#f7fefb',
+            codeBackground: '#f6fbf8',
           },
           radius: {
             sm: '6px',

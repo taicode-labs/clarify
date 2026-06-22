@@ -381,7 +381,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
             selectedClientKey={selectedClientKey}
             onSelectClient={onSelectClient}
           />
-          <pre className={`overflow-x-auto p-4 text-xs text-white ${languageOptions && languageOptions.length > 1 ? 'pt-14' : ''}`}>
+          <pre className={`max-h-128 overflow-auto overscroll-contain p-4 text-xs text-white ${languageOptions && languageOptions.length > 1 ? 'pt-14' : ''}`}>
             <code className={`language-${language}`}>{code}</code>
           </pre>
         </div>

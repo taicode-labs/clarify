@@ -76,7 +76,7 @@ export function Card(arg0: CardProps) {
   )
 
   const classes = clsx(
-    'group relative block rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-(--clarify-ui-accent-glow) transition hover:border-(--clarify-ui-accent-border) hover:shadow-md dark:bg-zinc-900/50',
+    'group relative block rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-(--clarify-ui-accent-glow) transition hover:shadow-xs dark:bg-zinc-900/50',
     className,
   )
 
