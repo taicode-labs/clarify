@@ -46,6 +46,8 @@ export function createClarifyRuntimeAliases(): AliasOptions {
     { find: /^react-dom\/server$/, replacement: resolveCliDependency('react-dom/server') },
     { find: /^react-dom$/, replacement: resolveCliDependency('react-dom') },
     { find: /^react-router-dom$/, replacement: resolveCliDependency('react-router-dom') },
+    { find: /^react-router\/dom$/, replacement: resolveCliDependency('react-router/dom') },
+    { find: /^react-router$/, replacement: resolveCliDependency('react-router') },
     { find: /^react$/, replacement: resolveCliDependency('react') },
   ]
 }

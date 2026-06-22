@@ -92,7 +92,7 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
     resolve: {
       alias: createClarifyRuntimeAliases(),
       // Ensure all framework imports collapse to one module instance.
-      dedupe: ['react', 'react-dom', 'react-router-dom'],
+      dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
     },
     plugins,
     build: {
