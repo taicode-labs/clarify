@@ -10,7 +10,7 @@ function FeedbackButton(props: Omit<ComponentPropsWithoutRef<'button'>, 'type' |
   return (
     <button
       type="submit"
-      className="clarify-feedback-button px-3 text-sm font-medium text-zinc-600 transition hover:bg-zinc-900/2.5 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
+      className="clarify-feedback-button px-3 text-sm font-medium text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground)"
       {...props}
     />
   )
@@ -26,10 +26,10 @@ const FeedbackForm = forwardRef<ElementRef<'form'>, ComponentPropsWithoutRef<'fo
       onSubmit={onSubmit}
       className={clsx(className, 'clarify-feedback-form absolute inset-0 flex items-center justify-center gap-6 md:justify-start')}
     >
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">{t('feedback.prompt')}</p>
-      <div className="clarify-feedback-actions group grid h-8 grid-cols-[1fr_1px_1fr] overflow-hidden rounded-full border border-zinc-900/10 dark:border-white/10">
+      <p className="text-sm text-(--clarify-ui-text-soft)">{t('feedback.prompt')}</p>
+      <div className="clarify-feedback-actions group grid h-8 grid-cols-(--clarify-feedback-actions-grid) overflow-hidden rounded-full border border-(--clarify-theme-tokens-colors-border)">
         <FeedbackButton data-response="yes">{t('feedback.yes')}</FeedbackButton>
-        <div className="bg-zinc-900/10 dark:bg-white/10" />
+        <div className="bg-(--clarify-theme-tokens-colors-border)" />
         <FeedbackButton data-response="no">{t('feedback.no')}</FeedbackButton>
       </div>
     </form>

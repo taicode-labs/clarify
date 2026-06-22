@@ -71,9 +71,7 @@ function CopyButton(arg0: CopyButtonProps) {  const { code } = arg0
       type="button"
       className={clsx(
         'clarify-code-copy group/button absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 text-2xs font-medium opacity-0 backdrop-blur-sm transition group-hover:opacity-100 focus:opacity-100',
-        copied
-          ? 'bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_12%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-primary)_24%,transparent)] ring-inset'
-          : 'bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5',
+        copied ? 'clarify-code-copy-copied' : 'bg-white/5 hover:bg-white/7.5 dark:bg-white/2.5 dark:hover:bg-white/5',
       )}
       onClick={() => {
         void copyTextToClipboard(code).then((ok) => {
@@ -162,7 +160,7 @@ function CodeGroupHeader(arg0: CodeGroupHeaderProps) {  const { title, children,
   if (!title && !hasTabs) return null
 
   return (
-    <div className="clarify-code-group-header flex min-h-[calc(--spacing(12)+1px)] flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
+    <div className="clarify-code-group-header flex min-h-(--clarify-code-header-min-height) flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
       {title ? <h3 className="mr-auto pt-3 text-xs font-semibold text-white">{title}</h3> : null}
       {hasTabs ? (
         <TabList className="clarify-code-tabs -mb-px flex gap-4 text-xs font-medium">

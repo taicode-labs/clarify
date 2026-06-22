@@ -235,7 +235,7 @@ function SearchDialog(arg0: SearchDialogProps) {  const {
         className="clarify-search-backdrop clarify-ui-backdrop fixed inset-0 backdrop-blur-xs data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
       />
 
-      <div className="fixed inset-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-20 md:py-32 lg:px-8 lg:py-[15vh]">
+      <div className="fixed inset-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-20 md:py-32 lg:px-8 lg:py-(--clarify-search-dialog-padding-block-lg)">
         <DialogPanel
           transition
           className="clarify-search-panel mx-auto transform-gpu overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) shadow-xl ring-1 ring-(--clarify-theme-tokens-colors-border) data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
@@ -318,7 +318,7 @@ export function Search(arg0: SearchProps) {  const { routes, navigation } = arg0
   const { buttonProps, dialogProps } = useSearchProps()
 
   return (
-    <div className="clarify-search hidden w-80 max-w-[36vw] lg:block">
+    <div className="clarify-search hidden w-80 max-w-(--clarify-search-max-width) lg:block">
       <button
         type="button"
         className="clarify-search-button hidden h-9 w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) pr-3 pl-2.5 font-medium ring-1 ring-(--clarify-theme-tokens-colors-border) transition hover:bg-(--clarify-theme-tokens-colors-background) lg:flex dark:bg-white/5 dark:ring-white/10 dark:ring-inset dark:hover:bg-white/10"

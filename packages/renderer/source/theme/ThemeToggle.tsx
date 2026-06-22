@@ -12,7 +12,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="clarify-theme-toggle relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)] dark:hover:bg-white/5"
+      className="clarify-theme-toggle relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition hover:bg-(--clarify-ui-hover-background)"
       aria-label={otherTheme === 'dark' ? t('theme.switchToDark') : t('theme.switchToLight')}
       onClick={() => setTheme(otherTheme)}
     >

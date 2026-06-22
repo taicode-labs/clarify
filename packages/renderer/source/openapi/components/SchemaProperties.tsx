@@ -191,23 +191,23 @@ function SchemaNode(arg0: SchemaNodeProps): ReactNode {  const { node, depth = 0
   const fallbackDescription = node.required ? t('openapi.required') : t('openapi.optional')
   const rowClassName = clsx(
     'flex min-w-0 items-start rounded py-0.5 text-left',
-    depth > 0 ? '-mx-2 w-[calc(100%+1rem)] px-2' : 'w-full px-1',
+    depth > 0 ? '-mx-2 w-(--clarify-schema-row-nested-width) px-2' : 'w-full px-1',
   )
 
   const content = (
     <>
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
-          <span className="text-sm/5 font-semibold text-zinc-950 dark:text-white">{node.name}</span>
-          {type ? <span className="text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{type}</span> : null}
+          <span className="text-sm/5 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{node.name}</span>
+          {type ? <span className="text-xs text-(--clarify-theme-tokens-colors-muted)">{type}</span> : null}
         </div>
-        <div className="mt-0.5 text-sm/5 text-zinc-600 *:first:mt-0 *:last:mb-0 dark:text-zinc-400">
+        <div className="mt-0.5 text-sm/5 text-(--clarify-ui-text-soft) *:first:mt-0 *:last:mb-0">
           {node.description ? <Markdown>{node.description}</Markdown> : fallbackDescription}
-          {node.details ? <p className="text-xs text-zinc-500 dark:text-zinc-500">{node.details}</p> : null}
+          {node.details ? <p className="text-xs text-(--clarify-ui-text-faint)">{node.details}</p> : null}
         </div>
       </div>
       {hasChildren ? (
-        <span className="ml-2 flex h-5 w-5 flex-none items-center justify-center text-zinc-500 dark:text-zinc-400" aria-hidden="true">
+        <span className="ml-2 flex h-5 w-5 flex-none items-center justify-center text-(--clarify-ui-text-faint)" aria-hidden="true">
           {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </span>
       ) : null}
@@ -244,8 +244,8 @@ function SchemaTree(arg0: SchemaTreeProps): ReactNode {  const { nodes, depth = 
     <ul
       role="list"
       className={clsx(
-        'm-0 list-none divide-y divide-zinc-900/5 p-0 dark:divide-white/5',
-        depth > 0 && 'mt-2 rounded-lg bg-zinc-950/2.5 px-2 py-1 dark:bg-white/4',
+        'm-0 list-none divide-y divide-(--clarify-theme-tokens-colors-border) p-0',
+        depth > 0 && 'mt-2 rounded-lg bg-(--clarify-ui-subtle-background) px-2 py-1',
       )}
     >
       {nodes.map((node) => <SchemaNode key={node.key} node={node} depth={depth} />)}

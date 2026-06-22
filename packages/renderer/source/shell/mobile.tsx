@@ -117,7 +117,7 @@ function MobileNavigationDialog(arg0: MobileNavigationDialogProps) {  const {
         <TransitionChild>
           <motion.div
             layoutScroll
-            className="clarify-mobile-navigation-panel fixed top-14 bottom-0 left-0 w-full overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-4 pt-6 pb-4 shadow-lg ring-1 shadow-zinc-900/10 ring-(--clarify-theme-tokens-colors-border) duration-500 ease-in-out data-closed:-translate-x-full min-[416px]:max-w-sm sm:px-6 sm:pb-10 dark:bg-zinc-950 dark:ring-zinc-800"
+            className="clarify-mobile-navigation-panel fixed top-14 bottom-0 left-0 w-full max-w-sm overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-4 pt-6 pb-4 shadow-lg ring-1 shadow-zinc-900/10 ring-(--clarify-theme-tokens-colors-border) duration-500 ease-in-out data-closed:-translate-x-full sm:px-6 sm:pb-10 dark:bg-zinc-950 dark:ring-zinc-800"
           >
             <MobileTabsSelect tabs={tabs} />
             <Navigation navigation={navigation} />

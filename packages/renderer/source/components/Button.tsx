@@ -4,13 +4,13 @@ import type { ComponentPropsWithoutRef } from 'react'
 
 const buttonVariantStyles = {
   primary:
-    'rounded-full bg-(--clarify-theme-tokens-colors-foreground) px-3 py-1 text-white hover:opacity-80 dark:bg-(--clarify-theme-tokens-colors-primary)/10 dark:text-(--clarify-theme-tokens-colors-primary) dark:ring-1 dark:ring-inset dark:ring-(--clarify-theme-tokens-colors-primary)/20 dark:hover:opacity-80',
+    'rounded-full bg-(--clarify-theme-tokens-colors-foreground) px-3 py-1 text-(--clarify-theme-tokens-colors-background) hover:opacity-80 dark:bg-(--clarify-theme-tokens-colors-primary)/10 dark:text-(--clarify-theme-tokens-colors-primary) dark:ring-1 dark:ring-inset dark:ring-(--clarify-theme-tokens-colors-primary)/20 dark:hover:opacity-80',
   secondary:
-    'rounded-full bg-(--clarify-theme-tokens-colors-code-background) px-3 py-1 text-(--clarify-theme-tokens-colors-foreground) hover:opacity-80 dark:bg-zinc-800/40 dark:text-zinc-400 dark:ring-1 dark:ring-inset dark:ring-zinc-800 dark:hover:bg-zinc-800 dark:hover:text-zinc-300',
+    'rounded-full bg-(--clarify-theme-tokens-colors-code-background) px-3 py-1 text-(--clarify-ui-text-soft) ring-1 ring-inset ring-(--clarify-theme-tokens-colors-border) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground)',
   filled:
-    'rounded-full bg-(--clarify-theme-tokens-colors-foreground) px-3 py-1 text-white hover:opacity-80 dark:bg-(--clarify-theme-tokens-colors-primary) dark:hover:opacity-80',
+    'rounded-full bg-(--clarify-theme-tokens-colors-foreground) px-3 py-1 text-(--clarify-theme-tokens-colors-background) hover:opacity-80 dark:bg-(--clarify-theme-tokens-colors-primary) dark:hover:opacity-80',
   outline:
-    'rounded-full px-3 py-1 text-(--clarify-theme-tokens-colors-muted) ring-1 ring-inset ring-(--clarify-theme-tokens-colors-border) hover:bg-[color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_2.5%,transparent)] hover:text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-400 dark:ring-white/10 dark:hover:bg-white/5 dark:hover:text-white',
+    'rounded-full px-3 py-1 text-(--clarify-ui-text-soft) ring-1 ring-inset ring-(--clarify-theme-tokens-colors-border) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground)',
   text: 'text-(--clarify-theme-tokens-colors-primary) hover:opacity-80 dark:text-(--clarify-theme-tokens-colors-primary) dark:hover:opacity-80',
 }
 

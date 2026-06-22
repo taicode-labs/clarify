@@ -122,19 +122,19 @@ function InlineListbox(arg0: InlineListboxProps): ReactNode {
         <ListboxButton
           aria-label={label}
           className={clsx(
-            'inline-flex min-w-0 items-center gap-1 rounded-md border border-zinc-200 bg-white font-semibold text-zinc-900 shadow-xs outline-hidden transition hover:border-zinc-300 hover:bg-zinc-50 data-open:border-zinc-300 data-open:bg-zinc-50 dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-white/15 dark:hover:bg-zinc-900 dark:data-open:border-white/15 dark:data-open:bg-zinc-900',
+            'inline-flex min-w-0 items-center gap-1 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) data-open:border-(--clarify-ui-text-faint) data-open:bg-(--clarify-ui-hover-background)',
             compact ? 'max-w-32 px-1.5 py-0.5 text-xs' : 'w-full px-2.5 py-1.5 text-xs',
           )}
         >
           <span className="truncate">{selected?.label ?? value}</span>
-          <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400" aria-hidden="true" />
+          <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-(--clarify-ui-text-faint)" aria-hidden="true" />
         </ListboxButton>
-        <ListboxOptions anchor="bottom start" className="z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-[min(32rem,calc(100vw-2rem))] overflow-auto rounded-xl bg-white p-1 text-xs shadow-lg shadow-black/10 ring-1 ring-zinc-950/10 [--anchor-gap:--spacing(1)] focus:outline-none dark:bg-zinc-950 dark:ring-white/10">
+        <ListboxOptions anchor="bottom start" className="z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-xl bg-(--clarify-theme-tokens-colors-surface) p-1 text-xs shadow-lg shadow-black/10 ring-1 ring-(--clarify-theme-tokens-colors-border) [--anchor-gap:--spacing(1)] focus:outline-none">
           {options.map((option) => (
-            <ListboxOption key={option.value} value={option.value} className="group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs text-zinc-700 select-none data-focus:bg-zinc-100 data-selected:text-emerald-700 dark:text-zinc-200 dark:data-focus:bg-white/10 dark:data-selected:text-emerald-300">
+            <ListboxOption key={option.value} value={option.value} className="group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs text-(--clarify-ui-text) select-none data-focus:bg-(--clarify-ui-hover-background) data-selected:text-(--clarify-theme-tokens-colors-primary)">
               <span className="min-w-0">
                 <span className="block truncate">{option.label}</span>
-                {option.description ? <span className="mt-0.5 block truncate text-2xs text-zinc-500 dark:text-zinc-400">{option.description}</span> : null}
+                {option.description ? <span className="mt-0.5 block truncate text-2xs text-(--clarify-ui-text-faint)">{option.description}</span> : null}
               </span>
               <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />
             </ListboxOption>
@@ -168,8 +168,8 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
       aria-label="Server"
       onClick={onToggle}
       className={clsx(
-        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100/50 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-white sm:w-auto sm:min-w-16 sm:max-w-[min(36%,16rem)] sm:px-1.5',
-        open ? 'bg-zinc-200 text-zinc-950 dark:bg-white/12 dark:text-white' : null,
+        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5',
+        open ? 'bg-(--clarify-ui-active-background) text-(--clarify-theme-tokens-colors-foreground)' : null,
       )}
     >
       <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
@@ -211,7 +211,7 @@ function ServerVariableControl(arg0: ServerVariableControlProps): ReactNode {
       placeholder={variable?.default ?? name}
       onChange={(event) => onChange(event.target.value)}
       className={clsx(
-        'pointer-events-auto rounded-md border border-zinc-200 bg-white text-xs font-semibold text-zinc-900 shadow-xs outline-hidden transition placeholder:text-zinc-500 hover:border-zinc-300 hover:bg-zinc-50 focus:border-zinc-400 focus:bg-white dark:border-white/10 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:hover:border-white/15 dark:hover:bg-zinc-900 dark:focus:border-white/20 dark:focus:bg-zinc-950',
+        'pointer-events-auto rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-hidden transition placeholder:text-(--clarify-ui-text-faint) hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) focus:border-(--clarify-theme-tokens-colors-primary) focus:bg-(--clarify-theme-tokens-colors-surface)',
         compact ? 'mx-0.5 w-24 px-1.5 py-0.5' : 'w-full px-2.5 py-1.5',
       )}
     />
@@ -233,11 +233,11 @@ function ServerPanel(arg0: ServerPanelProps): ReactNode {
   const variableEntries = Object.entries(selectedServer.variables ?? {})
 
   return (
-    <div className="border-t border-zinc-200 bg-zinc-100/70 p-3 dark:border-white/10 dark:bg-zinc-900/60">
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+    <div className="border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) p-3">
+      <div className="grid gap-3 sm:grid-cols-(--clarify-openapi-control-grid)">
         {servers.length > 1 ? (
           <label className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-2xs font-semibold text-zinc-700 dark:text-zinc-300">Server</span>
+            <span className="text-2xs font-semibold text-(--clarify-ui-text-soft)">Server</span>
             <InlineListbox
               label="Server"
               value={selectedKey}
@@ -252,7 +252,7 @@ function ServerPanel(arg0: ServerPanelProps): ReactNode {
         ) : null}
         {variableEntries.map(([name, variable]) => (
           <label key={name} className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-2xs font-semibold text-zinc-700 dark:text-zinc-300">{name}</span>
+            <span className="text-2xs font-semibold text-(--clarify-ui-text-soft)">{name}</span>
             <ServerVariableControl
               name={name}
               variable={variable}
@@ -281,10 +281,10 @@ function AuthPanel(arg0: AuthPanelProps): ReactNode {
   if (authOptions.length === 0) return null
 
   return (
-    <div className="border-t border-zinc-200 bg-zinc-100/70 p-3 dark:border-white/10 dark:bg-zinc-900/60">
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+    <div className="border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) p-3">
+      <div className="grid gap-3 sm:grid-cols-(--clarify-openapi-control-grid)">
         <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-2xs font-semibold text-zinc-700 dark:text-zinc-300">Auth</span>
+          <span className="text-2xs font-semibold text-(--clarify-ui-text-soft)">Auth</span>
           <InlineListbox
             label="Auth"
             value={selectedAuthName}
@@ -298,15 +298,15 @@ function AuthPanel(arg0: AuthPanelProps): ReactNode {
         </label>
         {selectedAuth ? (
           <label className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-2xs font-semibold text-zinc-700 dark:text-zinc-300">Credential</span>
-            <div className="flex min-w-0 items-center rounded-md border border-zinc-200 bg-white px-2.5 py-1.5 shadow-xs dark:border-white/10 dark:bg-zinc-950">
-              <span className="mr-2 shrink-0 text-2xs font-semibold text-zinc-600 dark:text-zinc-400">
+            <span className="text-2xs font-semibold text-(--clarify-ui-text-soft)">Credential</span>
+            <div className="flex min-w-0 items-center rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 shadow-xs">
+              <span className="mr-2 shrink-0 text-2xs font-semibold text-(--clarify-ui-text-soft)">
                 {selectedAuth.scheme.type === 'apiKey' ? selectedAuth.scheme.in ?? 'apiKey' : selectedAuth.scheme.scheme ?? selectedAuth.scheme.type ?? 'token'}
               </span>
               <input
                 value={authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth)}
                 onChange={(event) => onChangeAuthValue(selectedAuth.name, event.target.value)}
-                className="min-w-0 flex-1 border-0 bg-transparent px-0 py-0 text-xs font-semibold text-zinc-900 outline-hidden placeholder:text-zinc-500 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                className="min-w-0 flex-1 border-0 bg-transparent px-0 py-0 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) outline-hidden placeholder:text-(--clarify-ui-text-faint)"
               />
             </div>
           </label>
@@ -362,7 +362,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
   const segments = path.split('/').filter(Boolean)
 
   return (
-    <div className="not-prose flex w-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xs dark:border-white/10 dark:bg-zinc-950">
+    <div className="not-prose flex w-full flex-col overflow-hidden rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs">
       <div className="flex min-w-0 items-center gap-1.5 overflow-hidden px-2.5 py-2">
         <EndpointMethodBadge method={method} />
         <ServerUrlValue
@@ -374,16 +374,16 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
         <div className="flex min-w-0 flex-1 items-center overflow-x-auto text-sm font-bold leading-6 whitespace-nowrap">
           {segments.length > 0 ? (
             <>
-              <span className="text-zinc-400">/</span>
+              <span className="text-(--clarify-ui-text-faint)">/</span>
               {segments.map((segment, index) => (
                 <span key={`${segment}-${index}`} className="flex items-center">
-                  {index > 0 ? <span className="text-zinc-400">/</span> : null}
-                  <span className="font-bold text-zinc-800 dark:text-white">{segment}</span>
+                  {index > 0 ? <span className="text-(--clarify-ui-text-faint)">/</span> : null}
+                  <span className="font-bold text-(--clarify-theme-tokens-colors-foreground)">{segment}</span>
                 </span>
               ))}
             </>
           ) : (
-            <span className="font-bold text-zinc-800 dark:text-white">/</span>
+            <span className="font-bold text-(--clarify-theme-tokens-colors-foreground)">/</span>
           )}
         </div>
         {authOptions.length > 0 ? (
@@ -393,8 +393,8 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
             aria-label="Auth"
             onClick={onToggleAuth}
             className={clsx(
-              'ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-600 transition hover:bg-zinc-100 hover:text-emerald-700 dark:text-zinc-300 dark:hover:bg-white/10 dark:hover:text-emerald-200',
-              authOpen ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-100' : 'bg-zinc-50 dark:bg-white/5',
+              'ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-emerald-700 dark:hover:text-emerald-200',
+              authOpen ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-100' : 'bg-(--clarify-ui-subtle-background)',
             )}
           >
             {authOpen ? <UnlockKeyholeIcon className="h-4 w-4" aria-hidden="true" /> : <LockKeyholeIcon className="h-4 w-4" aria-hidden="true" />}

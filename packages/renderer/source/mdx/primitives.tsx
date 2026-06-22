@@ -43,7 +43,7 @@ type NoteProps = { children: ReactNode }
 export function Note(arg0: NoteProps) {  const { children } = arg0
 
   return (
-    <div className="clarify-note my-6 flex gap-2.5 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4 text-sm/6 text-(--clarify-theme-tokens-colors-foreground) dark:text-zinc-100 dark:[--tw-prose-links-hover:var(--clarify-ui-accent-text)] dark:[--tw-prose-links:var(--color-white)]">
+    <div className="clarify-note my-6 flex gap-2.5 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4 text-sm/6 text-(--clarify-theme-tokens-colors-foreground) [--tw-prose-links-hover:var(--clarify-ui-accent-text)] [--tw-prose-links:var(--clarify-theme-tokens-colors-foreground)]">
       <Info className="mt-1 h-4 w-4 flex-none stroke-(--clarify-ui-accent-text)" />
       <div className="*:first:mt-0 *:last:mb-0">{children}</div>
     </div>
@@ -72,7 +72,7 @@ export function Properties(arg0: PropertiesProps) {  const { children } = arg0
     <div className="clarify-properties my-6">
       <ul
         role="list"
-        className="m-0 list-none divide-y divide-zinc-900/5 p-0 dark:divide-white/5"
+        className="m-0 list-none divide-y divide-(--clarify-theme-tokens-colors-border) p-0"
       >
         {children}
       </ul>
@@ -89,12 +89,12 @@ export function Property(arg0: PropertyProps) {  const { name, children, type } 
       <dl className="m-0 flex flex-wrap items-center gap-x-3 gap-y-2">
         <dt className="sr-only">Name</dt>
         <dd>
-          <span className="text-sm/5 font-semibold text-zinc-950 dark:text-white">{name}</span>
+          <span className="text-sm/5 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{name}</span>
         </dd>
         {type ? (
           <>
             <dt className="sr-only">Type</dt>
-            <dd className="text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-500">{type}</dd>
+            <dd className="text-xs text-(--clarify-theme-tokens-colors-muted)">{type}</dd>
           </>
         ) : null}
         <dt className="sr-only">Description</dt>

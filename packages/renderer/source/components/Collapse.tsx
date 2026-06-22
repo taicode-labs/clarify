@@ -26,14 +26,14 @@ export function Collapse(arg0: CollapseProps) {
   return (
     <div
       className={clsx(
-        'clarify-collapse my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-sm dark:border-white/10 dark:bg-zinc-950',
+        'clarify-collapse my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-sm',
         className,
       )}
       {...props}
     >
       <button
         type="button"
-        className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-(--clarify-ui-hover-background) dark:text-white dark:hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--clarify-theme-tokens-colors-background) dark:focus-visible:ring-offset-zinc-950"
+        className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--clarify-theme-tokens-colors-background)"
         aria-expanded={open}
         aria-controls={contentId}
         onClick={() => setOpen((value) => !value)}
@@ -49,7 +49,7 @@ export function Collapse(arg0: CollapseProps) {
       </button>
       <div
         id={contentId}
-        className="overflow-hidden border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) transition-[max-height,opacity,transform] duration-200 ease-out dark:border-white/10 dark:bg-zinc-950/95"
+        className="clarify-collapse-content overflow-hidden border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) duration-200 ease-out"
         style={{ maxHeight, willChange: 'max-height, opacity, transform' }}
       >
         <div
