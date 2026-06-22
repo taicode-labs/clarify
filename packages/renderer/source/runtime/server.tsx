@@ -5,6 +5,7 @@ import { StaticRouter } from 'react-router-dom'
 import { AppShell } from '../app/AppShell'
 import { ClarifyConfigContext, OpenApisContext } from '../context'
 import { ThemeProvider } from '../theme/ThemeProvider'
+import { ThemeRoot } from '../theme/ThemeRoot'
 import type { ServerRenderOptions } from '../types'
 import { prefixHref } from '../utils/href'
 
@@ -23,7 +24,9 @@ export function renderToHTML(options: ServerRenderOptions): string {
         <ClarifyConfigContext.Provider value={config}>
           <OpenApisContext.Provider value={openApis}>
             <ThemeProvider>
-              <AppShell config={config} routes={routes} navigation={navigation ?? []} themeEditor={themeEditor} />
+              <ThemeRoot theme={config.theme} themeEditor={themeEditor}>
+                <AppShell config={config} routes={routes} navigation={navigation ?? []} />
+              </ThemeRoot>
             </ThemeProvider>
           </OpenApisContext.Provider>
         </ClarifyConfigContext.Provider>

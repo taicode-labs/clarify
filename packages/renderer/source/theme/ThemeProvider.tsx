@@ -56,7 +56,8 @@ function applyTheme(resolvedTheme: ResolvedTheme) {
 
 type ThemeProviderProps = { children: ReactNode }
 
-export function ThemeProvider(arg0: ThemeProviderProps) {  const { children } = arg0
+export function ThemeProvider(props: ThemeProviderProps) {
+  const { children } = props
 
   const [theme, setThemeState] = useState<Theme>(() => getStoredTheme())
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(() => getSystemTheme())
