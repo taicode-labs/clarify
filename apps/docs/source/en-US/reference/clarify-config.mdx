@@ -22,9 +22,11 @@ export default defineConfig({
   favicon: '/favicon.ico',
   theme: {
     preset: 'default',
+    editor: true,
     tokens: {
       colors: {
-        primary: '#00D492',
+        primary: { light: '#00D492', dark: '#34D399' },
+        accent: '#0D9488',
         muted: { light: '#64748b', dark: '#a1a1aa' },
       },
     },
@@ -71,6 +73,56 @@ export default defineConfig({
 | `tabs` | High-level navigation sections and sidebar structure. |
 | `ssg` | Static generation behavior. |
 | `plugins` | Build-time plugins, available in JS/TS config files. |
+
+---
+
+## `theme`
+
+```ts
+theme: {
+  preset?: 'default' | 'base'
+  tokens?: ClarifyThemeTokensConfig
+  layout?: ClarifyThemeLayoutConfig
+  editor?: boolean
+}
+```
+
+Theme tokens are partial overrides of the selected preset. Color tokens can be plain strings or mode-aware values:
+
+```ts
+export default defineConfig({
+  theme: {
+    preset: 'base',
+    editor: true,
+    tokens: {
+      colors: {
+        primary: { light: '#00D492', dark: '#34D399' },
+        accent: '#0D9488',
+        muted: { light: '#64748b', dark: '#a1a1aa' },
+      },
+    },
+  },
+})
+```
+
+`theme.editor` exposes the live theme editor in built sites. Dev mode enables the editor automatically.
+
+---
+
+## Custom 404 page
+
+Create `source/404.mdx` to customize the not-found page:
+
+```mdx
+# Page not found
+
+The page you are looking for does not exist or has moved.
+
+- [Get started](/getting-started)
+- [Configuration reference](/reference/clarify-config)
+```
+
+Clarify serves it at `/404`, uses it for unmatched client routes, and writes `output/404.html` during static generation. File-tree navigation hides `404` automatically.
 
 ---
 

@@ -79,11 +79,16 @@ export type BuiltInTextKey =
   | 'search.noResults'
   | 'search.placeholder'
   | 'search.shortcutCtrl'
+  | 'renderError.componentStack'
   | 'renderError.description'
   | 'renderError.details'
+  | 'renderError.message'
   | 'renderError.path'
   | 'renderError.reload'
+  | 'renderError.stack'
+  | 'renderError.timestamp'
   | 'renderError.title'
+  | 'renderError.type'
   | 'theme.switchToDark'
   | 'theme.switchToLight'
   | 'language.switch'
@@ -164,11 +169,16 @@ const builtInText = {
     'search.noResults': 'Nothing found for {query}.',
     'search.placeholder': 'Find something...',
     'search.shortcutCtrl': 'Ctrl ',
-    'renderError.description': 'Clarify could not render this page. Try reloading the page; if the problem persists, check the page source or console output.',
-    'renderError.details': 'Error details',
-    'renderError.path': 'Path',
-    'renderError.reload': 'Reload page',
-    'renderError.title': 'This page failed to render',
+    'renderError.componentStack': 'React component stack',
+    'renderError.description': 'Clarify stopped rendering this route to keep the rest of the shell responsive. Review the diagnostics below, fix the page source, then reload the route.',
+    'renderError.details': 'Runtime diagnostics',
+    'renderError.message': 'Message',
+    'renderError.path': 'Route',
+    'renderError.reload': 'Reload route',
+    'renderError.stack': 'JavaScript stack trace',
+    'renderError.timestamp': 'Captured at',
+    'renderError.title': 'Route render failed',
+    'renderError.type': 'Error type',
     'theme.switchToDark': 'Switch to dark theme',
     'theme.switchToLight': 'Switch to light theme',
     'language.switch': 'Switch language',
@@ -248,11 +258,16 @@ const builtInText = {
     'search.noResults': '没有找到与 {query} 相关的结果。',
     'search.placeholder': '搜索内容...',
     'search.shortcutCtrl': 'Ctrl ',
-    'renderError.description': 'Clarify 无法渲染当前页面。请尝试刷新；如果问题仍然存在，请检查页面源码或控制台输出。',
-    'renderError.details': '错误详情',
-    'renderError.path': '路径',
-    'renderError.reload': '刷新页面',
-    'renderError.title': '页面渲染失败',
+    'renderError.componentStack': 'React 组件栈',
+    'renderError.description': 'Clarify 已停止渲染此路由，以保证文档 Shell 仍可响应。请查看下方诊断信息，修复页面源码后重新加载路由。',
+    'renderError.details': '运行时诊断',
+    'renderError.message': '错误消息',
+    'renderError.path': '路由',
+    'renderError.reload': '重新加载路由',
+    'renderError.stack': 'JavaScript 堆栈',
+    'renderError.timestamp': '捕获时间',
+    'renderError.title': '路由渲染失败',
+    'renderError.type': '错误类型',
     'theme.switchToDark': '切换到深色主题',
     'theme.switchToLight': '切换到浅色主题',
     'language.switch': '切换语言',

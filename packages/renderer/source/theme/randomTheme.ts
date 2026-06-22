@@ -77,10 +77,9 @@ const randomRadiusSets = [
   { sm: '8px', md: '12px', lg: '18px', xl: '24px' },
   { sm: '10px', md: '14px', lg: '20px', xl: '28px' },
   { sm: '12px', md: '16px', lg: '24px', xl: '32px' },
-  { sm: '999px', md: '999px', lg: '999px', xl: '999px' },
 ] as const satisfies ReadonlyArray<ClarifyThemeRadiusTokensConfig>
 
-const randomLayoutWidths = ['72rem', '76rem', '78rem', '80rem', '82rem', '86rem', '90rem', '96rem'] as const
+const randomLayoutWidths = ['72rem', '76rem', '78rem', '80rem', '82rem', '86rem', '90rem', '96rem', '104rem', '112rem', '120rem', '128rem', '144rem'] as const
 
 function randomItem<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)]

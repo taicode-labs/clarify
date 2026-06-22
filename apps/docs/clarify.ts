@@ -335,6 +335,14 @@ export default defineConfig({
               icon: 'MonitorCog',
             },
             {
+              page: 'development/error-states',
+              title: {
+                'zh-CN': '错误状态',
+                'en-US': 'Error States',
+              },
+              icon: 'Bug',
+            },
+            {
               page: 'development/ssg',
               title: {
                 'zh-CN': '静态生成流程',
