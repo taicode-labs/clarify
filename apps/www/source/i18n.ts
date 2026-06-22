@@ -335,7 +335,7 @@ i18n.use(initReactI18next).init({
           items: [
             ['Clarify 帮我们把零散的 Markdown 和 OpenAPI 文件变成了真正有设计感的文档站点。', 'Maya Chen', '开发者体验负责人'],
             ['静态输出模型让部署变得稳定省心。推到 CDN 后，我们不再担心运行时基础设施。', 'Ethan Brooks', '平台工程师'],
-            ['Taicode Labs 的迁移方式很务实：保留有效内容、清理导航，并快速发布第一版。', 'Nora Kim', '产品负责人'],
+            ['Taicode Labs 的迁移方式很务实：保留有效内容、清理导航，并快速发布第一版。', 'JiaYi Xia', '开发负责人'],
             ['Renderer 组件让我们的文档拥有产品级质感，同时无需工程团队进行完整重设计。', 'Leo Martin', '工程经理'],
             ['OpenAPI 页面不再像外挂模块。它们与指南、示例和发布说明共同构成一致体验。', 'Ava Patel', 'API 项目经理'],
             ['我们从免费版本开始，在期限紧张时引入 Delivery Partner 支持，这让落地更容易。', 'Sam Rivera', '创始人'],
