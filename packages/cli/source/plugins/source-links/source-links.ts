@@ -1,6 +1,6 @@
 import { relative } from 'node:path'
 
-import type { ClarifySourceConfig, ContentRoute } from '../types.js'
+import type { ClarifySourceConfig, ContentRoute } from '../../types.js'
 
 function trimSlashes(value: string): string {
   return value.replace(/^\/+|\/+$/g, '')

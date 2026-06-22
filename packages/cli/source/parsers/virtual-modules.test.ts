@@ -44,6 +44,14 @@ describe('generateRoutesModule', () => {
     expect(code).toContain('"title": "About"')
   })
 
+  it('omits plugin-specific route fields from the runtime route manifest', () => {
+    const routes: ContentRoute[] = [
+      { path: '/api', title: 'API', filePath: '/a/api.openapi.json', virtualModuleId: 'virtual:clarify-page/api', kind: 'openapi', openapiTagFilter: ['Projects'] },
+    ]
+    const code = generateRoutesModule(routes)
+    expect(code).not.toContain('openapiTagFilter')
+  })
+
   it('escapes route module specifiers', () => {
     const routes: ContentRoute[] = [
       { path: '/quote', title: 'Quote', filePath: '/a/quote.mdx', virtualModuleId: 'virtual:clarify-page/doc\'s/quote', kind: 'mdx' },

@@ -30,8 +30,7 @@ export type RouteItem = {
   keywords?: string[];
   component: RouteComponent;
   lazy?: boolean;
-  kind?: 'mdx' | 'openapi';
-  openapiTagFilter?: string[];
+  kind?: string;
   sections?: RouteSection[];
   contentArtifactUrl?: string;
   sourceUrl?: string;

@@ -7,7 +7,6 @@ import { createBuiltinPlugins } from './builtin.js'
 import { resolveProjectConfig } from './config.js'
 import { runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions, type ResolvedBuildOptions } from './options.js'
-import { attachSourceUrls } from './source-links.js'
 
 export type ResolvedClarifySite = {
   root: string
@@ -95,7 +94,6 @@ export async function resolveClarifySite(options: ClarifyBuildOptions = {}, reso
   const ctx: ClarifyHookContext = { projectConfig, generateOptions, routes: [], navigation: [] }
 
   let routes = await discoverRoutes(root, contentRoot, plugins, ctx)
-  attachSourceUrls(routes, contentRoot, projectConfig.source)
   routes = await runHooks(plugins, 'routes:discovered', routes, ctx)
 
   const defaultNavigation = projectConfig.tabs

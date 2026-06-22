@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ContentRoute } from '../types.js'
+import type { ContentRoute } from '../../types.js'
 
 import { attachSourceUrls, createSourceUrl } from './source-links.js'
 
