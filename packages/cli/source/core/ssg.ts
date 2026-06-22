@@ -11,15 +11,6 @@ import type { ResolvedProjectConfig, ContentRoute } from '../types.js'
 import { createClarifyRuntimeAliases } from './runtime-deps.js'
 import { escapeHtml } from './utils.js'
 
-// Keep framework/runtime deps external in SSG SSR builds to avoid bundling
-// duplicate React runtimes that can trigger invalid hook calls.
-export const SSR_BUNDLE_EXTERNALS: Array<string | RegExp> = [
-  /^react(?:\/.*)?$/,
-  /^react-dom(?:\/.*)?$/,
-  /^react-router-dom(?:\/.*)?$/,
-  /^@clarify-labs\/renderer(?:\/.*)?$/,
-]
-
 export function readIndexHtml(outputDirectory: string): string | undefined {
   const indexPath = join(outputDirectory, 'index.html')
   if (!existsSync(indexPath)) return undefined
@@ -100,6 +91,8 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
     configFile: false,
     resolve: {
       alias: createClarifyRuntimeAliases(),
+      // Ensure all framework imports collapse to one module instance.
+      dedupe: ['react', 'react-dom', 'react-router-dom'],
     },
     plugins,
     build: {
@@ -108,7 +101,6 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
       emptyOutDir: true,
       rolldownOptions: {
         input: ssrEntry,
-        external: SSR_BUNDLE_EXTERNALS,
         checks: {
           pluginTimings: false,
         },

@@ -6,21 +6,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import type { ResolvedProjectConfig } from '../types.js'
 
-import { readIndexHtml, injectSSRIntoTemplate, SSR_BUNDLE_EXTERNALS } from './ssg.js'
+import { readIndexHtml, injectSSRIntoTemplate } from './ssg.js'
 import { resolveThemeConfig } from './theme.js'
-
-describe('SSR_BUNDLE_EXTERNALS', () => {
-  it('keeps react runtime dependencies external to prevent duplicate React instances', () => {
-    const externals = SSR_BUNDLE_EXTERNALS
-      .filter((pattern): pattern is RegExp => pattern instanceof RegExp)
-      .map(pattern => pattern.source)
-
-    expect(externals).toContain('^react(?:\\/.*)?$')
-    expect(externals).toContain('^react-dom(?:\\/.*)?$')
-    expect(externals).toContain('^react-router-dom(?:\\/.*)?$')
-    expect(externals).toContain('^@clarify-labs\\/renderer(?:\\/.*)?$')
-  })
-})
 
 describe('readIndexHtml', () => {
   let tempDir: string
