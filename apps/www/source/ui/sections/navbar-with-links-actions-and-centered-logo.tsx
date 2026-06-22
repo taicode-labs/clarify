@@ -11,6 +11,7 @@ type NavbarLogoProps = { href: string } & Omit<ComponentProps<'a'>, 'href'>
 type NavbarWithLinksActionsAndCenteredLogoProps = {
   links: ReactNode
   logo: ReactNode
+  controls: ReactNode
   actions: ReactNode
 } & ComponentProps<'header'>
 
@@ -51,6 +52,7 @@ export function NavbarWithLinksActionsAndCenteredLogo(arg0: NavbarWithLinksActio
   const {
     links,
     logo,
+    controls,
     actions,
     className,
     ...props
@@ -72,8 +74,9 @@ export function NavbarWithLinksActionsAndCenteredLogo(arg0: NavbarWithLinksActio
           <div className="mx-auto flex h-full max-w-7xl items-center gap-4 px-6 lg:px-10">
             <div className="flex flex-1 gap-8 max-lg:hidden">{links}</div>
             <div className="flex items-center">{logo}</div>
-            <div className="flex flex-1 items-center justify-end gap-4">
-              <div className="flex shrink-0 items-center gap-5 max-sm:hidden">{actions}</div>
+            <div className="flex flex-1 items-center justify-end gap-2 lg:gap-5">
+              <div className="flex shrink-0 items-center gap-1 lg:gap-2">{controls}</div>
+              <div className="flex shrink-0 items-center gap-5 max-lg:hidden">{actions}</div>
 
               <button
                 type="button"
@@ -111,7 +114,7 @@ export function NavbarWithLinksActionsAndCenteredLogo(arg0: NavbarWithLinksActio
               </div>
 
               <div className="mt-auto border-t border-(--clarify-theme-tokens-colors-border) px-3 pt-5" onClick={() => setIsMobileMenuOpen(false)}>
-                <div className="grid grid-cols-2 gap-3">{actions}</div>
+                <div className="grid grid-cols-2 gap-3 *:min-h-12 *:text-base/7">{actions}</div>
               </div>
             </div>
           </DialogPanel>
