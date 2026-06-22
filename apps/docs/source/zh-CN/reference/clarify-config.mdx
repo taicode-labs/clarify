@@ -358,7 +358,19 @@ export default defineConfig({
 | `"getting-started"` | 简写，引用 MDX 页面 |
 | `{ page }` | 引用 MDX 页面，不写 `.mdx` 后缀 |
 | `{ page, title, icon, redirect }` | 引用页面并覆盖标题、图标或目标路径 |
-| `{ openapi, title, icon }` | 引用 OpenAPI 规范文件 |
+| `{ openapi, title, icon, filter }` | 引用 OpenAPI 规范文件；`filter.tags` 可按 operation tags 过滤接口 |
+
+OpenAPI 页面默认展示规范中的全部接口。配置 `filter.tags` 后，页面只展示 `operation.tags` 中至少命中一个指定 tag 的接口，并基于 tag 生成独立路由：
+
+```ts
+{
+  openapi: 'api.openapi.json',
+  title: 'Projects API',
+  filter: {
+    tags: ['Projects'],
+  },
+}
+```
 
 ---
 

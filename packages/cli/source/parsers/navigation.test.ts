@@ -128,4 +128,27 @@ describe('buildNavigationFromConfig', () => {
     expect(tree[0].children?.[0].title).toBe('Nonexistent')
     expect(tree[0].children?.[0].path).toBe('/nonexistent')
   })
+
+  it('builds OpenAPI navigation paths from tag filters', () => {
+    const routes: ContentRoute[] = [
+      {
+        path: '/api/projects',
+        basePath: '/api/projects',
+        title: 'API',
+        filePath: 'api.openapi.json',
+        virtualModuleId: 'virtual:clarify-page/api/projects',
+        kind: 'openapi',
+        sections: [{ id: 'get-projects', title: 'List projects', level: 2, badge: 'GET', tags: ['Projects'] }],
+      },
+    ]
+    const config: ClarifyPagesGroup[] = [
+      { group: 'API', pages: [{ openapi: 'api.openapi.json', title: 'Projects API', filter: { tags: ['Projects'] } }] },
+    ]
+    const tree = buildNavigationFromConfig(routes, config)
+    expect(tree[0].children?.[0]).toMatchObject({
+      path: '/api/projects',
+      title: 'Projects API',
+      sections: [{ id: 'get-projects', title: 'List projects', badge: 'GET', tags: ['Projects'] }],
+    })
+  })
 })

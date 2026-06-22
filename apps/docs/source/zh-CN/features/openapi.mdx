@@ -46,6 +46,21 @@ Clarify 会生成：
 }
 ```
 
+你也可以通过 `filter.tags` 从同一个 OpenAPI 文件发布多个页面。过滤页面只会展示 OpenAPI `operation.tags` 中至少命中一个指定 tag 的接口：
+
+```ts
+{
+  openapi: 'api.openapi.json',
+  title: 'Projects API',
+  icon: 'FolderKanban',
+  filter: {
+    tags: ['Projects'],
+  },
+}
+```
+
+例如 `api.openapi.json` 配置 `filter.tags: ['Projects']` 后，页面路由为 `/api/projects`。
+
 ---
 
 ## 规范格式与路由

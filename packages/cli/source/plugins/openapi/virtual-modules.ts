@@ -6,12 +6,13 @@ export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISp
   return `export const openApis = ${JSON.stringify(openApis)};`
 }
 
-export function generateOpenAPIModule(spec: OpenAPISpec): string {
+export function generateOpenAPIModule(spec: OpenAPISpec, tagFilter?: string[]): string {
   return `import { createElement } from 'react';
 import { OpenApiDocument } from '@clarify-labs/renderer';
 const spec = ${JSON.stringify(spec)};
+const tagFilter = ${JSON.stringify(tagFilter)};
 export default function OpenApiRoutePage() {
-  return createElement(OpenApiDocument, { spec });
+  return createElement(OpenApiDocument, { spec, tagFilter });
 }`
 }
 

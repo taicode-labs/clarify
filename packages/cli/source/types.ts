@@ -133,6 +133,11 @@ export type ClarifyPagesItem =
     icon?: string
     /** Override the page title. Defaults to spec.info.title. */
     title?: ClarifyLocalizedText
+    /** Filter which OpenAPI operations are included in this page. */
+    filter?: {
+      /** Only include operations matching one of these OpenAPI operation tags. */
+      tags?: string[]
+    }
   }
 
 export type ClarifyPagesGroup = {
@@ -241,6 +246,8 @@ export type ContentRoute = {
   filePath: string
   virtualModuleId: string
   kind: 'mdx' | 'openapi'
+  /** OpenAPI operation tag filter applied to this route. Undefined means all operations. */
+  openapiTagFilter?: string[]
   frontmatter?: Record<string, unknown>
   /** Normalized source content captured during route discovery. */
   content?: string

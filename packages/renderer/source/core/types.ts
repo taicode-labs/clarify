@@ -31,6 +31,7 @@ export type RouteItem = {
   component: RouteComponent;
   lazy?: boolean;
   kind?: 'mdx' | 'openapi';
+  openapiTagFilter?: string[];
   sections?: RouteSection[];
   contentArtifactUrl?: string;
 };
@@ -117,6 +118,9 @@ export type ClarifyPagesItem =
       openapi: string;
       icon?: string;
       title?: ClarifyLocalizedText;
+      filter?: {
+        tags?: string[];
+      };
     };
 
 export type ClarifyPagesGroup = {

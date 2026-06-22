@@ -84,6 +84,9 @@ export const clarifyPagesItemSchema = z.union([
     openapi: z.string(),
     icon: z.string().optional(),
     title: clarifyLocalizedTextSchema.optional(),
+    filter: z.object({
+      tags: z.array(z.string()).optional(),
+    }).optional(),
   }),
 ])
 

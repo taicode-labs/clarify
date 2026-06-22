@@ -36,10 +36,11 @@ describe('openapi virtual modules', () => {
   })
 
   it('generates an OpenAPI route component module', () => {
-    const code = generateOpenAPIModule(spec)
+    const code = generateOpenAPIModule(spec, ['Users'])
     expect(code).toContain("import { OpenApiDocument } from '@clarify-labs/renderer';")
     expect(code).toContain('function OpenApiRoutePage')
     expect(code).toContain('Example API')
+    expect(code).toContain('const tagFilter = ["Users"]')
   })
 
   it('generates an OpenAPI diagnostic route component module', () => {
