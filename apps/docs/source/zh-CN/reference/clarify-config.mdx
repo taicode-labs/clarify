@@ -42,6 +42,7 @@ export default defineConfig({
     tokens: {
       colors: {
         primary: '#00D492',
+        muted: { light: '#64748b', dark: '#a1a1aa' },
       },
     },
   },
@@ -177,7 +178,7 @@ export default defineConfig({
 })
 ```
 
-主题 token 是“局部覆盖”而不是重写整套主题；没有配置的字段会继续继承所选 preset 的默认值。当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
+主题 token 是“局部覆盖”而不是重写整套主题；没有配置的字段会继续继承所选 preset 的默认值。颜色 token 可以直接写字符串，也可以按亮暗模式分别提供 `{ light?: string; dark?: string }`，例如 `muted: { light: '#64748b', dark: '#a1a1aa' }`。当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
 
 ---
 

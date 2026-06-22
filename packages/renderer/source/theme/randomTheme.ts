@@ -90,6 +90,10 @@ function randomRgbMix(color: string, alpha: number): string {
   return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`
 }
 
+function modeColor(light: string, dark: string): { light: string; dark: string } {
+  return { light, dark }
+}
+
 export function createRandomTheme(): ClarifyThemeConfig {
   const palette = randomItem(randomThemePalettes)
   const radius = randomItem(randomRadiusSets)
@@ -99,14 +103,14 @@ export function createRandomTheme(): ClarifyThemeConfig {
     preset: 'default',
     tokens: {
       colors: {
-        primary: palette.primary,
-        accent: palette.accent,
-        background: palette.background,
-        foreground: palette.foreground,
-        surface: palette.surface,
-        muted: palette.muted,
-        border: randomRgbMix(palette.foreground, palette.borderMix),
-        codeBackground: randomRgbMix(palette.primary, palette.codeMix),
+        primary: modeColor(palette.primary, palette.accent),
+        accent: modeColor(palette.accent, palette.primary),
+        background: modeColor(palette.background, '#09090b'),
+        foreground: modeColor(palette.foreground, '#f8fafc'),
+        surface: modeColor(palette.surface, '#18181b'),
+        muted: modeColor(palette.muted, '#a1a1aa'),
+        border: modeColor(randomRgbMix(palette.foreground, palette.borderMix), 'rgb(255 255 255 / 0.1)'),
+        codeBackground: modeColor(randomRgbMix(palette.primary, palette.codeMix), '#18181b'),
       },
       radius: { ...radius },
     },

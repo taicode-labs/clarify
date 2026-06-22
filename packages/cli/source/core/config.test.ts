@@ -156,6 +156,32 @@ describe('resolveProjectConfig', () => {
     expect(customizedBaseTheme.layout).toEqual({ maxWidth: '80rem' })
   })
 
+  it('accepts theme color tokens with light and dark values', () => {
+    expect(clarifyProjectConfigSchema.parse({
+      theme: {
+        tokens: {
+          colors: {
+            muted: { light: '#64748b', dark: '#a1a1aa' },
+          },
+        },
+      },
+    }).theme?.tokens?.colors?.muted).toEqual({ light: '#64748b', dark: '#a1a1aa' })
+
+    const result = resolveProjectConfig({
+      theme: {
+        tokens: {
+          colors: {
+            primary: { light: '#2563eb', dark: '#60a5fa' },
+            muted: { light: '#64748b', dark: '#a1a1aa' },
+          },
+        },
+      },
+    })
+
+    expect(result.theme.tokens.colors.primary).toEqual({ light: '#2563eb', dark: '#60a5fa' })
+    expect(result.theme.tokens.colors.muted).toEqual({ light: '#64748b', dark: '#a1a1aa' })
+  })
+
   it('defines every built-in theme token and layout value', () => {
     const requiredColorTokens = ['primary', 'accent', 'background', 'foreground', 'surface', 'muted', 'border', 'codeBackground'] as const
     const requiredRadiusTokens = ['sm', 'md', 'lg', 'xl'] as const

@@ -13,7 +13,7 @@ import type {
 
 import { createRandomTheme } from './randomTheme'
 import { useTheme } from './ThemeProvider'
-import { applyThemeCssVariables, clarifyThemePresets, cloneTheme, resolveThemeVariableTargets, themeToCssVariables } from './variables'
+import { applyThemeCssVariables, clarifyThemePresets, cloneTheme, resolveThemeColorValue, resolveThemeVariableTargets, themeToCssVariables } from './variables'
 import type { ThemeVariableTarget } from './variables'
 
 const colorTokenFields = [
@@ -58,6 +58,15 @@ export function applyClarifyThemeVariables(theme: ClarifyThemeConfig, target?: T
 
 function isHexColor(value: string): boolean {
   return /^#[0-9a-f]{6}$/i.test(value)
+}
+
+function updateThemeModeColorValue(value: ClarifyThemeColorTokensConfig[keyof ClarifyThemeColorTokensConfig], resolvedTheme: 'light' | 'dark', nextValue: string): ClarifyThemeColorTokensConfig[keyof ClarifyThemeColorTokensConfig] {
+  if (typeof value === 'string') return nextValue
+
+  return {
+    ...value,
+    [resolvedTheme]: nextValue,
+  }
 }
 
 type TextFieldProps = {
@@ -141,7 +150,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
         ...theme.tokens,
         colors: {
           ...theme.tokens.colors,
-          [key]: value,
+          [key]: updateThemeModeColorValue(theme.tokens.colors[key], resolvedTheme, value),
         },
       },
     })
@@ -229,7 +238,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
                       key={field.key}
                       id={`clarify-theme-editor-color-${field.key}`}
                       label={field.label}
-                      value={theme.tokens.colors[field.key]}
+                      value={resolveThemeColorValue(theme.tokens.colors[field.key], resolvedTheme)}
                       withColorInput
                       onChange={(value) => updateColorToken(field.key, value)}
                     />

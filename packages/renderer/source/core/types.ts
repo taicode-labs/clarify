@@ -73,15 +73,22 @@ export type ClarifyFooterConfig = {
 
 export type ClarifyThemePreset = 'default' | 'base';
 
+export type ClarifyThemeModeColorValue = {
+  light?: string;
+  dark?: string;
+};
+
+export type ClarifyThemeColorValue = string | ClarifyThemeModeColorValue;
+
 export type ClarifyThemeColorTokensConfig = {
-  primary: string;
-  accent: string;
-  background: string;
-  foreground: string;
-  surface: string;
-  muted: string;
-  border: string;
-  codeBackground: string;
+  primary: ClarifyThemeColorValue;
+  accent: ClarifyThemeColorValue;
+  background: ClarifyThemeColorValue;
+  foreground: ClarifyThemeColorValue;
+  surface: ClarifyThemeColorValue;
+  muted: ClarifyThemeColorValue;
+  border: ClarifyThemeColorValue;
+  codeBackground: ClarifyThemeColorValue;
 };
 
 export type ClarifyThemeRadiusTokensConfig = {

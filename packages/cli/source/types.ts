@@ -57,23 +57,30 @@ export type ClarifyFooterConfig = {
 
 export type ClarifyThemePreset = 'default' | 'base'
 
+export type ClarifyThemeModeColorValue = {
+  light?: string
+  dark?: string
+}
+
+export type ClarifyThemeColorValue = string | ClarifyThemeModeColorValue
+
 export type ClarifyThemeColorTokensConfig = {
   /** Brand primary color for active states, links, and emphasis. */
-  primary?: string
+  primary?: ClarifyThemeColorValue
   /** Secondary accent color for subtle emphasis. */
-  accent?: string
+  accent?: ClarifyThemeColorValue
   /** Page background color. */
-  background?: string
+  background?: ClarifyThemeColorValue
   /** Primary text color. */
-  foreground?: string
+  foreground?: ClarifyThemeColorValue
   /** Card and elevated surface background color. */
-  surface?: string
+  surface?: ClarifyThemeColorValue
   /** Muted text and secondary UI color. */
-  muted?: string
+  muted?: ClarifyThemeColorValue
   /** Border and divider color. */
-  border?: string
+  border?: ClarifyThemeColorValue
   /** Inline code and code block background color. */
-  codeBackground?: string
+  codeBackground?: ClarifyThemeColorValue
 }
 
 export type ClarifyThemeRadiusTokensConfig = {

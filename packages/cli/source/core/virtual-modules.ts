@@ -19,6 +19,10 @@ type BuildVirtualModulesArgs = {
   themeEditor?: boolean
 }
 
+type CreateClientEntryModuleOptions = {
+  themeEditor?: boolean
+}
+
 export function resolveVirtualId(id: string): string {
   return '\0' + id
 }
@@ -65,7 +69,7 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
-export function createClientEntryModule(options: { themeEditor?: boolean } = {}): string {
+export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {
   return `
 import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';

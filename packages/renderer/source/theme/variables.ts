@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 
-import type { ClarifyThemeConfig, ClarifyThemePreset } from '../types'
+import type { ClarifyThemeColorTokensConfig, ClarifyThemeColorValue, ClarifyThemeConfig, ClarifyThemePreset } from '../types'
 
 export type ThemeCssVariables = CSSProperties & Record<`--clarify-theme-${string}`, string>
 
@@ -59,15 +59,51 @@ export const clarifyThemePresets = {
   },
 } satisfies Record<ClarifyThemePreset, ClarifyThemeConfig>
 
+function cloneThemeColorValue(value: ClarifyThemeColorValue): ClarifyThemeColorValue {
+  return typeof value === 'string' ? value : { ...value }
+}
+
 export function cloneTheme(theme: ClarifyThemeConfig): ClarifyThemeConfig {
   return {
     preset: theme.preset,
     tokens: {
-      colors: { ...theme.tokens.colors },
+      colors: {
+        primary: cloneThemeColorValue(theme.tokens.colors.primary),
+        accent: cloneThemeColorValue(theme.tokens.colors.accent),
+        background: cloneThemeColorValue(theme.tokens.colors.background),
+        foreground: cloneThemeColorValue(theme.tokens.colors.foreground),
+        surface: cloneThemeColorValue(theme.tokens.colors.surface),
+        muted: cloneThemeColorValue(theme.tokens.colors.muted),
+        border: cloneThemeColorValue(theme.tokens.colors.border),
+        codeBackground: cloneThemeColorValue(theme.tokens.colors.codeBackground),
+      },
       radius: { ...theme.tokens.radius },
     },
     layout: { ...theme.layout },
     editor: theme.editor,
+  }
+}
+
+function isModeColorValue(value: ClarifyThemeColorValue): value is Exclude<ClarifyThemeColorValue, string> {
+  return typeof value === 'object' && value !== null
+}
+
+export function resolveThemeColorValue(value: ClarifyThemeColorValue, resolvedTheme: 'light' | 'dark' = 'light'): string {
+  if (!isModeColorValue(value)) return value
+
+  return value[resolvedTheme] ?? value.light ?? value.dark ?? ''
+}
+
+export function resolveThemeColors(colors: ClarifyThemeColorTokensConfig, resolvedTheme: 'light' | 'dark' = 'light'): Record<keyof ClarifyThemeColorTokensConfig, string> {
+  return {
+    primary: resolveThemeColorValue(colors.primary, resolvedTheme),
+    accent: resolveThemeColorValue(colors.accent, resolvedTheme),
+    background: resolveThemeColorValue(colors.background, resolvedTheme),
+    foreground: resolveThemeColorValue(colors.foreground, resolvedTheme),
+    surface: resolveThemeColorValue(colors.surface, resolvedTheme),
+    muted: resolveThemeColorValue(colors.muted, resolvedTheme),
+    border: resolveThemeColorValue(colors.border, resolvedTheme),
+    codeBackground: resolveThemeColorValue(colors.codeBackground, resolvedTheme),
   }
 }
 
@@ -99,7 +135,8 @@ function effectiveTheme(theme: ClarifyThemeConfig, resolvedTheme?: 'light' | 'da
 
 export function themeToCssVariables(theme: ClarifyThemeConfig, resolvedTheme?: 'light' | 'dark'): ThemeCssVariables {
   const resolved = effectiveTheme(theme, resolvedTheme)
-  const { colors, radius } = resolved.tokens
+  const colors = resolveThemeColors(resolved.tokens.colors, resolvedTheme)
+  const { radius } = resolved.tokens
 
   return {
     '--clarify-theme-tokens-colors-primary': colors.primary,
