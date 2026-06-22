@@ -185,7 +185,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
     <div className={clsx('clarify-theme-editor fixed right-4 bottom-4 z-50 text-(--clarify-theme-tokens-colors-foreground)', className)}>
       {isOpen ? (
         <section
-          className="mb-3 w-(--clarify-theme-editor-width) overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/95 shadow-2xl shadow-zinc-900/15 backdrop-blur"
+          className="mb-3 w-(--clarify-theme-editor-width) overflow-hidden rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/95 shadow-2xl shadow-zinc-900/15 backdrop-blur"
           aria-label="Clarify theme editor"
         >
           <header className="flex items-start justify-between gap-4 border-b border-(--clarify-theme-tokens-colors-border) px-4 py-3">
