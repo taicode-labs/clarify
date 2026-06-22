@@ -42,12 +42,6 @@ export function createClarifyRuntimeAliases(): AliasOptions {
     { find: /^@clarify-labs\/renderer$/, replacement: resolvePackageExport('@clarify-labs/renderer', '') },
     { find: /^react\/jsx-runtime$/, replacement: resolveCliDependency('react/jsx-runtime') },
     { find: /^react\/jsx-dev-runtime$/, replacement: resolveCliDependency('react/jsx-dev-runtime') },
-    { find: /^react-dom\/client$/, replacement: resolveCliDependency('react-dom/client') },
-    { find: /^react-dom\/server$/, replacement: resolveCliDependency('react-dom/server') },
-    { find: /^react-dom$/, replacement: resolveCliDependency('react-dom') },
-    { find: /^react-router-dom$/, replacement: resolveCliDependency('react-router-dom') },
-    { find: /^react-router\/dom$/, replacement: resolveCliDependency('react-router/dom') },
-    { find: /^react-router$/, replacement: resolveCliDependency('react-router') },
     { find: /^react$/, replacement: resolveCliDependency('react') },
   ]
 }
