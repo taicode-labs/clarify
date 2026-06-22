@@ -1,8 +1,26 @@
 # 发布上线
 
-这篇文档合并说明 Clarify 的发布能力：静态生成、部署到常见平台、配置子路径、输出原始内容和 `llms.txt`。
+这篇文档合并说明 Clarify 的发布能力：构建期 SSR、静态生成、部署到常见平台、配置子路径、输出原始内容和 `llms.txt`。
 
-Clarify 构建产物是纯静态文件，可以部署到任何静态托管服务。
+Clarify 支持 SSR 渲染，但它采用的是**构建期 SSR**：`clarify build` 会在构建过程中把每个路由渲染成 HTML 文件。上线后的产物仍然是纯静态文件，不需要 Node.js 服务端运行时，可以部署到任何静态托管服务。
+
+---
+
+## SSR 支持方式
+
+Clarify 的生产渲染流程是 SSG（Static Site Generation）+ Hydration：
+
+1. 构建环境运行 `pnpm exec clarify build`。
+2. CLI 使用 Vite SSR bundle 在 Node.js 中渲染每个文档路由。
+3. 每个路由写出独立的 `index.html`，并生成 JS/CSS 资源、原始 Markdown/OpenAPI 制品和 `llms.txt`。
+4. 用户访问页面时先拿到已经渲染好的 HTML；浏览器加载 JavaScript 后再注水为 React 应用，后续站内跳转获得客户端导航体验。
+
+这意味着：
+
+- ✅ 支持首屏 HTML、SEO 友好和直接访问深层链接；
+- ✅ 部署时只需要托管静态文件；
+- ✅ Vercel、Netlify、GitHub Pages、对象存储、CDN、Nginx 都可以使用；
+- ❌ 不需要也不提供生产环境的请求时 SSR 服务器。
 
 ---
 
@@ -33,7 +51,7 @@ output/
 └── api.openapi.json
 ```
 
-每个路由都有独立 HTML，适合 SEO 和直接访问；浏览器加载 JavaScript 后会获得客户端导航体验。
+每个路由都有独立 HTML，适合 SEO 和直接访问；浏览器加载 JavaScript 后会获得客户端导航体验。部署时只需要发布 `output/` 目录，不要发布构建过程中的临时 SSR bundle。
 
 ---
 
@@ -154,8 +172,10 @@ Clarify 会在开发和构建阶段暴露原始内容，方便搜索、知识库
 
 ## 发布前检查
 
+- 构建环境满足 Node.js `>=20.0.0` 和 pnpm `>=9.0.0`。
 - `pnpm exec clarify build` 可以成功完成。
 - `output/` 中包含预期 HTML、资源、原始 Markdown/OpenAPI 和 `llms.txt`。
 - 如果部署在子路径，已配置 `routePrefix`。
 - OpenAPI 原始内容不包含不应公开的内部信息。
 - 部署平台的输出目录指向 `output` 或你的自定义输出目录。
+- 生产环境按静态站点部署即可，不需要启动 Node.js SSR 服务。
