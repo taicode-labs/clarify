@@ -44,8 +44,8 @@ Clarify 按照 `source/` 下的文件结构生成页面路径：
 |------|------|
 | `source/index.mdx` | `/` |
 | `source/getting-started.mdx` | `/getting-started` |
-| `source/guide/index.mdx` | `/guide` |
-| `source/guide/auth.mdx` | `/guide/auth` |
+| `source/guides/index.mdx` | `/guides` |
+| `source/guides/auth.mdx` | `/guides/auth` |
 | `source/api.openapi.json` | `/api` |
 
 规则：
@@ -115,20 +115,48 @@ description: 页面描述，用于 SEO 和社交分享
 |------|------|------|
 | `title` | `string` | 页面标题；为空时会尝试使用第一个 `h1` |
 | `description` | `string` | 页面描述，用于 SEO meta |
+| `keywords` / `keyword` / `tags` | `string \| string[]` | 页面关键词，会写入 HTML `keywords` meta |
 
 > 当前版本不提供 `navOrder`、`hidden` 等高级 frontmatter 字段。要控制侧边栏，请在 `clarify.ts` 中显式配置 `tabs`。
 
 ---
 
+## 标题、目录与搜索
+
+Clarify 会从内容中提取 H2/H3 作为页面章节。章节会用于页面内导航和站内搜索，因此标题不是纯排版元素，也是信息架构的一部分。
+
+```mdx
+# API 文档
+
+## 认证
+
+### 创建访问令牌
+
+## 分页
+```
+
+建议：
+
+- H1 表达页面主题；如果 frontmatter 没有 `title`，Clarify 会尝试用 H1 作为页面标题。
+- H2 表达用户任务或主要问题，例如“创建访问令牌”“部署到 GitHub Pages”。
+- H3 表达任务中的子步骤或细分场景。
+- 避免大量使用“介绍”“更多”“其他”这类弱标题。
+
+内置搜索会检索页面标题、导航分组、路径和 H2/H3 章节标题，并返回最相关的少量结果。它适合帮助用户快速跳到页面或章节；如果你需要全文搜索索引，可以通过插件在构建阶段生成额外产物。
+
+---
+
 ## 代码块与 GFM
 
-代码块会自动高亮：
+代码块会自动高亮。建议始终标注语言名，这样可以获得更准确的语法高亮和复制体验：
 
 ```typescript
 function greet(name: string): string {
   return `Hello, ${name}!`
 }
 ```
+
+如果语言名无法识别，Clarify 会回退为普通代码块渲染，不会阻塞页面构建。
 
 内置 GitHub Flavored Markdown 支持：
 
@@ -151,10 +179,14 @@ function greet(name: string): string {
 
 Clarify 在 MDX 中默认注册了一组公开组件，无需手动导入即可直接使用：
 
-- `Callout`
+- `Callout`、`Note`
 - `CardGroup` / `Card`
 - `Button`
 - `CodeGroup`
+- `Collapse`
+- `Row` / `Col`
+- `Properties` / `Property`
+- `Markdown`
 - `OpenApiOperation`
 - `OpenApiDocument`
 
@@ -190,5 +222,7 @@ import { Alert } from '../components/Alert'
 - **一篇文档解决一个用户任务**，不要为每个内部能力单独开文档。
 - **先讲为什么，再讲怎么做**，让读者知道当前步骤的价值。
 - **把字段列表放进参考页**，任务页只保留最常用配置。
+- **用清晰的 H2/H3 承载搜索入口**，让用户能从搜索结果直接跳到具体章节。
 - **多用表格和短代码示例**，减少长段落。
 - **让 OpenAPI 承担接口事实来源**，教程只解释业务流程。
+- **把内容写成 AI 也能消费的结构**：标题清晰、步骤明确、示例完整，构建后的 `.md` 和 `llms.txt` 会保留这些结构。

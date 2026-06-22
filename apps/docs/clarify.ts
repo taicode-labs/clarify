@@ -168,6 +168,14 @@ export default defineConfig({
               icon: 'Puzzle',
             },
             {
+              page: 'showcase',
+              title: {
+                'zh-CN': '示例与演示',
+                'en-US': 'Showcase',
+              },
+              icon: 'MonitorPlay',
+            },
+            {
               page: 'roadmap',
               title: {
                 'zh-CN': '产品路线图',

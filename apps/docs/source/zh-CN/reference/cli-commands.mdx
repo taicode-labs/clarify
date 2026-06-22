@@ -6,24 +6,18 @@
 
 ## 安装
 
-推荐全局安装 CLI：
-
-```bash
-npm install -g @clarify-labs/cli
-```
-
-安装后可直接运行：
-
-```bash
-clarify init
-clarify dev
-clarify build
-```
-
-如果你希望将 CLI 放在项目依赖中，也可以使用：
+推荐把 CLI 安装为项目开发依赖，这样 CLI 版本会跟随仓库一起被锁定和 Review：
 
 ```bash
 pnpm add -D @clarify-labs/cli
+```
+
+然后通过 `pnpm exec` 运行：
+
+```bash
+pnpm exec clarify init
+pnpm exec clarify dev
+pnpm exec clarify build
 ```
 
 或者在 `package.json` 中添加脚本：
@@ -36,6 +30,8 @@ pnpm add -D @clarify-labs/cli
   }
 }
 ```
+
+如果只是临时体验，也可以全局安装后直接运行 `clarify dev` / `clarify build`，但团队项目建议优先使用项目本地依赖。
 
 ---
 
@@ -77,6 +73,14 @@ clarify dev
 | `--template <name>` | `minimal`、`standard` 或 `complete` 模板 | `standard` |
 | `--force` | 覆盖已存在的初始化文件 | `false` |
 | `--install` | 初始化后安装依赖 | `false` |
+
+模板适用场景：
+
+| 模板 | 适合场景 |
+|------|----------|
+| `minimal` | 只想快速验证 Clarify 或接入已有内容目录 |
+| `standard` | 新建一个常规文档站，包含推荐的基础结构 |
+| `complete` | 学习完整能力，查看导航、组件、OpenAPI 和发布配置示例 |
 
 ---
 
