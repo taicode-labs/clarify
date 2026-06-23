@@ -142,7 +142,9 @@ Suggestions:
 - H3 expresses sub-steps within a task or finer-grained scenarios.
 - Avoid heavy use of weak headings like "Introduction", "More", or "Others".
 
-Built-in search indexes page titles, navigation groups, paths, and H2/H3 section titles, returning a small number of the most relevant results. It is well suited to helping users jump quickly to a page or section; if you need a full-text search index, you can generate an extra artifact during the build via a plugin.
+Built-in search is now powered by Pagefind: production builds emit a `/pagefind/` index that can be deployed as static files, and the dev server also generates and serves a temporary index. Search results prefer full-text matches with highlighted excerpts; when the index is not available yet, Clarify falls back to quick jumps based on page titles, navigation groups, paths, and H2/H3 section titles.
+
+Multilingual sites load the index for the current language. Public Clarify locale codes use BCP 47, such as `zh-CN` and `en-US`, while the search index adapts internally to Pagefind's language-key behavior.
 
 ---
 

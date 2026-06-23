@@ -30,7 +30,8 @@ Clarify is built for teams that want modern documentation without giving up sour
 |-----------|--------------|
 | **Docs live with code** | Version MDX pages, OpenAPI specs, navigation, and theme config in the same repository. |
 | **MDX + OpenAPI in one site** | Combine tutorials, product guides, and generated API reference pages without a separate docs product. |
-| **Static, self-hostable output** | Build standalone HTML, assets, copied public files, raw Markdown/OpenAPI artifacts, and `llms.txt`. |
+| **Built-in full-text search** | Generate static Pagefind indexes in dev and production, with multilingual isolation and highlighted excerpts. |
+| **Static, self-hostable output** | Build standalone HTML, assets, copied public files, raw Markdown/OpenAPI artifacts, search indexes, and `llms.txt`. |
 | **AI-readable by default** | Expose raw page content, raw specs, and discovery metadata so agents and internal tools can read your docs. |
 | **Typed, extensible publishing** | Configure navigation, i18n, theme tokens, footer, route prefixes, and build plugins in TypeScript. |
 
@@ -46,10 +47,11 @@ The project is designed for product docs, API references, engineering handbooks,
 - **OpenAPI documentation** — Render OpenAPI 3.0/3.1 specs as navigable API reference pages and embed individual operations inside MDX guides.
 - **Static site generation** — Build deployable static output with one HTML file per route, client-side navigation, copied public assets, and route-prefix support.
 - **Built-in internationalization** — Organize localized content by locale folders, configure locale fallback behavior, and localize navigation/footer labels in `clarify.ts`.
+- **Built-in full-text search** — Generate and serve Pagefind indexes in both `clarify dev` and `clarify build`, with current-language results and highlighted excerpts.
 - **Typed configuration** — Define tabs, sidebars, navbar links, footer links, theme tokens, route prefixes, favicon/logo variants, and metadata with TypeScript.
 - **Themeable React renderer** — Customize a Tailwind CSS 4 + React 19 documentation shell with presets, color tokens, radius tokens, and layout width settings.
 - **AI-ready output** — Generate raw `.md` / `.openapi.*` artifacts, page copy actions, stable raw-content links, and `llms.txt` for AI agents and developer tools.
-- **Plugin-ready pipeline** — Extend route resolution, virtual modules, and build completion hooks for governance, search indexes, translation workflows, or custom artifacts.
+- **Plugin-ready pipeline** — Extend route resolution, virtual modules, and build completion hooks for governance, translation workflows, or custom artifacts.
 - **Local-first workflow** — Use `clarify dev` and `clarify build` in the repository where the docs live.
 
 ## Why Clarify instead of Mintlify?

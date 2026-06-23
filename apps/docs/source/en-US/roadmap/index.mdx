@@ -15,8 +15,8 @@ This roadmap starts with the **stable capabilities that are already delivered**,
 | Multilingual sites | Released | Locale directories, default locale behavior, route prefixes, missing-translation fallback, and localized navigation labels. |
 | Theming and branding | Released | Light/dark themes, system preference, theme tokens, layout width, radius settings, and the visual theme editor. |
 | AI-ready output | Released | Raw Markdown/OpenAPI artifacts, page copy actions, raw content links, and `llms.txt`. |
-| Extensible build pipeline | Released | Plugin hooks for route resolution, virtual modules, HTML transforms, and build completion. |
-| Search experience | Basic support | Local quick jump based on page titles, paths, navigation groups, and section headings; full-text indexing is still planned. |
+| Extensible build pipeline | Released | Plugin hooks for route resolution, virtual modules, HTML transforms, build completion, and built-in index generation. |
+| Search experience | Released | Built-in Pagefind full-text search with dev-time temporary indexes, production static indexes, multilingual isolation, highlighted excerpts, and section quick-jump fallback. |
 
 ---
 
@@ -31,6 +31,7 @@ This roadmap starts with the **stable capabilities that are already delivered**,
 - [x] Client hydration and in-site navigation
 - [x] Built-in components such as code blocks, code groups, Callout, Card, Button, and Collapse
 - [x] Page table of contents, section anchors, and a local search entry
+- [x] Pagefind full-text search, highlighted excerpts, and loading feedback
 - [x] Responsive layout across desktop, tablet, and mobile devices
 
 ### OpenAPI
@@ -56,8 +57,10 @@ This roadmap starts with the **stable capabilities that are already delivered**,
 
 - [x] Locale-based content directories
 - [x] Unprefixed default locale and prefixed non-default locales
+- [x] BCP 47 locale codes, such as `zh-CN` and `en-US`
 - [x] Missing-translation fallback strategy
 - [x] Internal links preserve the current locale context
+- [x] Search indexes load for the current language to avoid cross-language result mixing
 - [x] Light/dark themes and system preference support
 - [x] Theme presets, color tokens, radius tokens, and layout width
 - [x] Optional built-in theme editor
@@ -68,6 +71,7 @@ This roadmap starts with the **stable capabilities that are already delivered**,
 - [x] Public asset copying
 - [x] Raw Markdown and OpenAPI content artifacts
 - [x] Page copy actions, raw content links, and `llms.txt`
+- [x] Pagefind static search indexes and dev-time temporary index serving
 - [x] Sitemap, robots, and baseline SEO artifacts
 - [x] Plugin hooks: `routes:resolved`, `modules:before`, `html:transform`, and `build:done`
 - [x] `clarify dev`, `clarify build`, and `clarify init`
@@ -80,7 +84,7 @@ Near-term work focuses on making the existing capabilities more reliable, comple
 
 | Direction | Goal |
 |-----------|------|
-| Full-text search index | Generate a deployable full-text search index while keeping static hosting simple. |
+| Search experience polish | Improve Pagefind loading feedback, result excerpts, highlighting, keyboard behavior, and consistency after multilingual switching. |
 | SEO and social cards | Improve Open Graph, Twitter Card, canonical URL, page title, and page description behavior. |
 | OpenAPI experience | Improve complex schemas, error states, example selection, code samples, and large-spec loading behavior. |
 | Theme system polish | Promote more visual rules into stable tokens and improve theme editor export/documentation. |
@@ -95,7 +99,7 @@ These capabilities will be explored after the core experience becomes more stabl
 
 - [ ] **Versioned documentation**: publish, switch, and archive multiple documentation versions in parallel.
 - [ ] **Custom MDX component registration**: provide a stable way to expose project-specific components to MDX.
-- [ ] **Pagefind / Algolia integration**: provide stronger search options beyond the static index baseline.
+- [ ] **External search adapters**: add pluggable adapters for Algolia or internal enterprise search alongside built-in Pagefind.
 - [ ] **Content quality checks**: detect broken links, missing translations, duplicate headings, invalid OpenAPI references, and related issues.
 - [ ] **Preview and build reports**: summarize routes, artifacts, warnings, and performance information after each build.
 - [ ] **Expanded plugin API**: provide more stable extension points for search, translation, governance, and internal platform integrations.
