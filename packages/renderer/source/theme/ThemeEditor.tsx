@@ -194,10 +194,10 @@ export function ThemeEditor(props: ThemeEditorProps) {
     <div className={clsx('clarify-theme-editor fixed right-4 bottom-4 z-50 text-(--clarify-theme-tokens-colors-foreground)', className)}>
       {isOpen ? (
         <section
-          className="mb-3 w-(--clarify-theme-editor-width) overflow-hidden rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/95 shadow-2xl shadow-zinc-900/15 backdrop-blur"
+          className="mb-3 flex max-h-(--clarify-theme-editor-panel-max-height) w-(--clarify-theme-editor-width) flex-col overflow-hidden rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/95 shadow-2xl shadow-zinc-900/15 backdrop-blur"
           aria-label="Clarify theme editor"
         >
-          <header className="flex items-start justify-between gap-4 border-b border-(--clarify-theme-tokens-colors-border) px-4 py-3">
+          <header className="shrink-0 flex items-start justify-between gap-4 border-b border-(--clarify-theme-tokens-colors-border) px-4 py-3">
             <div>
               <h2 className="text-sm/6 font-semibold text-(--clarify-theme-tokens-colors-foreground)">Theme editor</h2>
               <p className="mt-0.5 text-xs/5 text-(--clarify-ui-text-soft)">Live CSS variable preview for Clarify theme tokens.</p>
@@ -212,7 +212,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
             </button>
           </header>
 
-          <div className="max-h-(--clarify-theme-editor-body-max-height) overflow-y-auto px-4 py-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
             <div className="grid gap-5">
               <label htmlFor="clarify-theme-editor-preset" className="grid gap-1.5 text-xs/5 font-medium text-(--clarify-ui-text)">
                 Preset
@@ -276,7 +276,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
             </div>
           </div>
 
-          <footer className="flex items-center justify-between gap-3 border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) px-4 py-3">
+          <footer className="shrink-0 flex items-center justify-between gap-3 border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) px-4 py-3">
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
