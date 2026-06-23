@@ -54,7 +54,38 @@ export default defineConfig({
       },
     ],
   },
-  footer: './source/Footer.tsx',
+  footer: {
+    copyright: {
+      'zh-CN': '© 2026 Clarify Labs. 开源文档发布工具。',
+      'en-US': '© 2026 Clarify Labs. Open-source documentation publishing.',
+    },
+    links: [
+      {
+        label: {
+          'zh-CN': '快速开始',
+          'en-US': 'Get Started',
+        },
+        href: '/getting-started',
+      },
+      {
+        label: {
+          'zh-CN': '配置参考',
+          'en-US': 'Config Reference',
+        },
+        href: '/reference/clarify-config',
+      },
+      {
+        label: {
+          'zh-CN': '参与贡献',
+          'en-US': 'Contributing',
+        },
+        href: '/development/contributing',
+      },
+    ],
+    socials: {
+      GitHub: 'https://github.com/taicode-labs/clarify',
+    },
+  },
   tabs: [
     {
       tab: {
