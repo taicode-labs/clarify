@@ -191,7 +191,7 @@ function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className
   const isActiveGroup = group.links.findIndex((link) => isSameRoutePath(link.href, pathname)) !== -1
 
   return (
-    <li className={clsx('clarify-navigation-group relative mt-6', className)}>
+    <li className={clsx('clarify-navigation-group relative mb-6', className)}>
       <h2 className="clarify-navigation-group-title flex items-center gap-2">
         <NavigationIcon name={group.icon} className="clarify-navigation-group-title-icon h-3.5 w-3.5" />
         <span>{group.title}</span>
