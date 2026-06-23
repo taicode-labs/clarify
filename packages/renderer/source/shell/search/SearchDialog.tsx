@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useBuiltInText } from '../../i18n'
 import type { NavigationNode, RouteItem } from '../../types'
+
 import { buildSearchItems } from './items'
 import { loadPagefind, logSearchDebug, normalizePagefindUrl, pagefindCacheKey } from './pagefind'
 import { SearchInput } from './SearchInput'

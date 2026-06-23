@@ -1,4 +1,5 @@
 import { prefixHref } from '../../utils/href'
+
 import type { Pagefind } from './types'
 
 type PagefindModule = {

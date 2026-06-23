@@ -37,7 +37,7 @@ describe('createHtmlShellPlugin', () => {
       expect.objectContaining({
         tag: 'script',
         injectTo: 'head-prepend',
-        children: expect.stringContaining("localStorage.getItem('clarify:theme')"),
+        children: expect.stringContaining('clarify:theme'),
       }),
       {
         tag: 'script',

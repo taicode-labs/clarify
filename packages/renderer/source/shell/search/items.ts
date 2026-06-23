@@ -1,4 +1,5 @@
 import type { NavigationNode, RouteItem } from '../../types'
+
 import type { SearchItem } from './types'
 
 function routeGroupTitles(navigation: NavigationNode[]) {

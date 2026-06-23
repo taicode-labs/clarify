@@ -1,8 +1,9 @@
 import clsx from 'clsx'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 
-import { LocalizedLink } from './LocalizedLink'
 import { lucideIconRegistry, resolveLucideIconName } from '../utils/lucide'
+
+import { LocalizedLink } from './LocalizedLink'
 
 type CardIconProps = { name?: string }
 

@@ -1,7 +1,7 @@
 import type { HtmlTagDescriptor } from 'vite'
 
-import type { ClarifyFaviconConfig, ClarifyPlugin, ClarifyThemeColorValue, ResolvedClarifyThemeConfig } from '../../types.js'
 import { clarifyThemePresets } from '../../core/theme.js'
+import type { ClarifyFaviconConfig, ClarifyPlugin, ClarifyThemeColorValue, ResolvedClarifyThemeConfig } from '../../types.js'
 
 const THEME_STORAGE_KEY = 'clarify:theme'
 const REL_ICON_RE = /<link\s+[^>]*rel=["'][^"']*\bicon\b[^"']*["'][^>]*>/i
