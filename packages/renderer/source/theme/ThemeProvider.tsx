@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 
+import { themeStorageKey } from './variables'
+
 export type Theme = 'light' | 'dark' | 'system'
 export type ResolvedTheme = 'light' | 'dark'
 
@@ -11,8 +13,6 @@ type ThemeContextValue = {
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
-
-const storageKey = 'clarify:theme'
 
 function getSystemTheme(): ResolvedTheme {
   if (typeof window === 'undefined') {
@@ -28,7 +28,7 @@ function getStoredTheme(): Theme {
   }
 
   try {
-    const storedTheme = window.localStorage.getItem(storageKey)
+    const storedTheme = window.localStorage.getItem(themeStorageKey)
     return storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system' ? storedTheme : 'system'
   } catch {
     return 'system'
@@ -39,7 +39,7 @@ function storeTheme(theme: Theme) {
   if (typeof window === 'undefined') return
 
   try {
-    window.localStorage.setItem(storageKey, theme)
+    window.localStorage.setItem(themeStorageKey, theme)
   } catch {
     // Ignore storage failures from private mode or restricted embeds.
   }

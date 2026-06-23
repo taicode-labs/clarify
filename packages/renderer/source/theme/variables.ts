@@ -6,6 +6,8 @@ export type ThemeCssVariables = CSSProperties & Record<`--clarify-theme-${string
 
 export type ThemeVariableTarget = HTMLElement | string
 
+export const themeStorageKey = 'clarify:theme'
+
 export const clarifyThemePresets = {
   default: {
     preset: 'default',
@@ -153,6 +155,13 @@ export function themeToCssVariables(theme: ClarifyThemeConfig, resolvedTheme?: '
     '--clarify-theme-tokens-radius-xl': radius.xl,
     '--clarify-theme-layout-max-width': resolved.layout.maxWidth,
   }
+}
+
+export function themeBootstrapScript(theme: ClarifyThemeConfig = clarifyThemePresets.default): string {
+  const darkVariables = themeToCssVariables(theme, 'dark')
+  const lightVariables = themeToCssVariables(theme, 'light')
+
+  return `(function(){try{var e=localStorage.getItem(${JSON.stringify(themeStorageKey)});var t=e==='dark'||e==='light'||e==='system'?e:'system';var r=t==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches:t==='dark';var v=r?${JSON.stringify(darkVariables)}:${JSON.stringify(lightVariables)};var s=document.documentElement.style;for(var k in v)s.setProperty(k,v[k]);document.documentElement.classList.toggle('dark',r);document.documentElement.style.colorScheme=r?'dark':'light'}catch(e){}})();`
 }
 
 function uniqueElements(elements: HTMLElement[]): HTMLElement[] {
