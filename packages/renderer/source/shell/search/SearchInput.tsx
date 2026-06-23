@@ -1,4 +1,5 @@
-import { Search as SearchIcon } from 'lucide-react'
+import clsx from 'clsx'
+import { LoaderCircle, Search as SearchIcon } from 'lucide-react'
 import { forwardRef } from 'react'
 
 import { useBuiltInText } from '../../i18n'
@@ -11,14 +12,22 @@ export const SearchInput = forwardRef<
     onClose: () => void
     onSubmit: () => void
     activeDescendantId?: string
+    loading?: boolean
   }
 >(function SearchInput(arg0, inputRef) {
-  const { query, setQuery, onClose, onSubmit, activeDescendantId } = arg0
+  const { query, setQuery, onClose, onSubmit, activeDescendantId, loading = false } = arg0
   const t = useBuiltInText()
+  const Icon = loading ? LoaderCircle : SearchIcon
 
   return (
     <div className="clarify-search-input group relative flex h-12">
-      <SearchIcon className="pointer-events-none absolute top-0 left-3 h-full w-5 stroke-(--clarify-theme-tokens-colors-muted)" />
+      <Icon
+        aria-hidden="true"
+        className={clsx(
+          'pointer-events-none absolute top-0 left-3 h-full w-5 stroke-(--clarify-theme-tokens-colors-muted)',
+          loading && 'animate-spin',
+        )}
+      />
       <input
         ref={inputRef}
         data-autofocus

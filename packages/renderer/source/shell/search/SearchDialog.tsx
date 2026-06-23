@@ -69,6 +69,7 @@ export function SearchDialog(arg0: SearchDialogProps) {
   const fullTextKey = `${pagefindKey}:${trimmedQuery}`
   const fullTextResults = fullTextState?.key === fullTextKey ? fullTextState.results : null
   const results: SearchDisplayItem[] = fullTextResults ?? quickResults
+  const searchInputLoading = pagefindAvailable === null || Boolean(trimmedQuery && pagefind && fullTextState?.key !== fullTextKey)
   const showNoResults = query && results.length === 0 && pagefindAvailable !== null
 
   useEffect(() => {
@@ -181,7 +182,14 @@ export function SearchDialog(arg0: SearchDialogProps) {
             }
           }}
         >
-          <SearchInput ref={inputRef} query={query} setQuery={updateQuery} onClose={closeDialog} onSubmit={() => selectResult()} />
+          <SearchInput
+            ref={inputRef}
+            query={query}
+            setQuery={updateQuery}
+            onClose={closeDialog}
+            onSubmit={() => selectResult()}
+            loading={searchInputLoading}
+          />
           <div className="border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5">
             {showNoResults ? (
               <div className="p-6 text-center">
