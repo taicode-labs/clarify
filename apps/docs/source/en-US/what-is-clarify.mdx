@@ -4,6 +4,21 @@ Clarify is an **open-source documentation publishing tool** for teams that want 
 
 It brings MDX, OpenAPI, typed TypeScript configuration, native internationalization, theme customization, responsive layouts, and AI-readable output into one local-first publishing workflow. Your docs stay in Git, your site can be self-hosted as static HTML, and your readers get a modern experience across desktop, tablet, and mobile.
 
+<CardGroup cols={2}>
+  <Card title="Explore OpenAPI" icon="file-json-2" href="/features/openapi">
+    See how Clarify publishes full API references and embeds operations inside MDX pages.
+  </Card>
+  <Card title="Configure the site" icon="sliders-horizontal" href="/guides/navigation">
+    Learn how navigation, locales, themes, and deployment paths are configured in TypeScript.
+  </Card>
+  <Card title="Customize themes" icon="palette" href="/showcase/theming-preview">
+    Preview theme tokens, dark/light mode, and brand-level visual customization.
+  </Card>
+  <Card title="Ship static docs" icon="upload-cloud" href="/guides/deployment">
+    Build self-hostable static output, raw content files, OpenAPI artifacts, and `llms.txt`.
+  </Card>
+</CardGroup>
+
 ---
 
 ## Why Clarify exists
@@ -27,6 +42,10 @@ You can publish full API reference pages, but you can also reference individual 
 
 This makes API documentation feel integrated with tutorials, onboarding flows, SDK guides, and product documentation instead of being isolated in a separate section.
 
+<Button href="/features/openapi" arrow="right">
+  Learn more about OpenAPI support
+</Button>
+
 ---
 
 ## Native multilingual documentation
@@ -35,6 +54,10 @@ Clarify has native internationalization support, so multilingual documentation c
 
 Teams can configure locales in `clarify.ts`, keep English and translated pages side by side, and let Clarify handle locale-aware routes, navigation labels, and fallback behavior.
 
+<Button href="/guides/navigation" variant="outline" arrow="right">
+  Configure locales and navigation
+</Button>
+
 ---
 
 ## Themes, dark mode, and brand control
@@ -42,6 +65,10 @@ Teams can configure locales in `clarify.ts`, keep English and translated pages s
 Clarify includes automatic dark and light theme support, flexible theme configuration, and theme tokens that can be controlled from the project configuration.
 
 This lets teams adapt the documentation site to their brand without rebuilding the renderer from scratch. Open-source projects can ship docs that feel polished, while product teams can align the site with their visual system.
+
+<Button href="/showcase/theming-preview" variant="outline" arrow="right">
+  Preview theme customization
+</Button>
 
 ---
 
@@ -58,6 +85,10 @@ Navigation, content width, code blocks, sidebars, API panels, and page actions a
 Modern documentation is read by people and by AI agents.
 
 Clarify generates raw Markdown content, OpenAPI artifacts, and `llms.txt` so documentation can be consumed by developer tools, assistants, search pipelines, and internal knowledge systems. Pages also expose actions for copying raw content and opening raw links, making the same source useful for both humans and machines.
+
+<Button href="/guides/deployment" variant="outline" arrow="right">
+  Build AI-ready static output
+</Button>
 
 ---
 

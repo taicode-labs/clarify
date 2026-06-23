@@ -26,18 +26,19 @@ export function Button(arg0: ButtonProps) {
   const { variant = 'primary', className, children, arrow, ...props } = arg0
 
   const classes = clsx(
-    'clarify-button inline-flex justify-center gap-0.5 overflow-hidden text-sm font-medium transition',
+    'clarify-button not-prose inline-flex w-fit max-w-full items-center justify-center gap-1 overflow-hidden align-middle text-sm leading-6 font-medium whitespace-nowrap no-underline transition',
     buttonVariantStyles[variant],
     className,
   )
 
   const arrowIcon = (
     <ArrowRight
+      aria-hidden="true"
       className={clsx(
-        'mt-0.5 h-5 w-5',
+        'h-4 w-4 shrink-0',
         variant === 'text' && 'relative top-px',
-        arrow === 'left' && '-ml-1 rotate-180',
-        arrow === 'right' && '-mr-1',
+        arrow === 'left' && '-ml-0.5 rotate-180',
+        arrow === 'right' && '-mr-0.5',
       )}
     />
   )
@@ -45,7 +46,7 @@ export function Button(arg0: ButtonProps) {
   const inner = (
     <>
       {arrow === 'left' ? arrowIcon : null}
-      {children}
+      <span className="truncate">{children}</span>
       {arrow === 'right' ? arrowIcon : null}
     </>
   )

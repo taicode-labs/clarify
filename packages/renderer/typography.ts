@@ -88,8 +88,8 @@ export default {
           hr: {
             borderColor: 'var(--tw-prose-hr)',
             borderTopWidth: 1,
-            marginTop: theme('spacing.16'),
-            marginBottom: theme('spacing.16'),
+            marginTop: theme('spacing.8'),
+            marginBottom: theme('spacing.8'),
             maxWidth: 'none',
             marginLeft: `calc(-1 * ${theme('spacing.4')})`,
             marginRight: `calc(-1 * ${theme('spacing.4')})`,
