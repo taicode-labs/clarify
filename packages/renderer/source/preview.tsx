@@ -1,4 +1,6 @@
+import { Menu, X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { useState } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 
 import { SectionProvider } from './app/SectionProvider'
@@ -189,10 +191,10 @@ function PreviewEnvironment(arg0: PreviewEnvironmentProps) {
   )
 }
 
-type ChromeProps = { title: string; status?: string; children: ReactNode }
+type ChromeProps = { title: string; status?: string; headerAction?: ReactNode; children: ReactNode }
 
 function Chrome(arg0: ChromeProps) {
-  const { title, status, children } = arg0
+  const { title, status, headerAction, children } = arg0
 
   return (
     <div className="clarify-app clarify-preview h-full overflow-hidden bg-(--clarify-theme-tokens-colors-background) text-(--clarify-ui-text) shadow-2xl ring-1 ring-(--clarify-theme-tokens-colors-border) dark:bg-zinc-950 dark:text-white dark:ring-white/10">
@@ -200,8 +202,9 @@ function Chrome(arg0: ChromeProps) {
         <span className="size-2 rounded-full bg-rose-400" />
         <span className="size-2 rounded-full bg-amber-400" />
         <span className="size-2 rounded-full bg-emerald-400" />
-        <span className="ml-2 truncate font-medium text-(--clarify-ui-text-soft)">{title}</span>
-        {status ? <span className="ml-auto hidden rounded-full bg-emerald-400/15 px-2 py-0.5 font-medium text-emerald-700 sm:inline dark:text-emerald-300">{status}</span> : null}
+        <span className="ml-2 min-w-0 flex-1 truncate font-medium text-(--clarify-ui-text-soft)">{title}</span>
+        {status ? <span className="hidden rounded-full bg-emerald-400/15 px-2 py-0.5 font-medium text-emerald-700 sm:inline dark:text-emerald-300">{status}</span> : null}
+        {headerAction}
       </div>
       {children}
     </div>
@@ -261,13 +264,40 @@ function PreviewNavigation(arg0: PreviewNavigationProps) {
   return <Navigation navigation={createPreviewNavigation(arg0)} className="px-2" />
 }
 
+type MainPreviewMobileNavigationProps = PreviewNavigationProps & { isOpen: boolean; onClose: () => void }
+
+function MainPreviewMobileNavigation(arg0: MainPreviewMobileNavigationProps) {
+  const { isOpen, onClose, ...navigationProps } = arg0
+  const navigationId = 'clarify-main-preview-mobile-navigation'
+
+  return (
+    <div className="clarify-preview-mobile-navigation pointer-events-none absolute inset-0 z-20">
+      {isOpen ? (
+        <button
+          type="button"
+          className="absolute inset-0 bg-zinc-950/20 backdrop-blur-[1px] dark:bg-black/30"
+          aria-label="Close documentation menu"
+          onClick={onClose}
+        />
+      ) : null}
+      <aside
+        id={navigationId}
+        className="pointer-events-auto absolute top-0 bottom-0 left-0 w-64 max-w-[82%] overflow-y-auto border-r border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-1 py-4 text-sm/7 shadow-2xl shadow-zinc-900/20 transition-transform duration-200 ease-out data-closed:-translate-x-full dark:border-white/10 dark:bg-zinc-950 dark:shadow-black/40"
+        data-closed={!isOpen ? 'true' : undefined}
+      >
+        <PreviewNavigation {...navigationProps} />
+      </aside>
+    </div>
+  )
+}
+
 type PreviewMetricGridProps = { metrics: PreviewMetric[] }
 
 function PreviewMetricGrid(arg0: PreviewMetricGridProps) {
   const { metrics } = arg0
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
       {metrics.map((metric) => (
         <div key={metric.label} className="rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-2.5 shadow-sm dark:border-white/10 dark:bg-zinc-900/50">
           <div className="text-xs/5 text-(--clarify-ui-text-faint)">{metric.label}</div>
@@ -374,12 +404,31 @@ function MainContentPreview() {
 }
 
 export function MainPreview() {
+  const [isMobileNavigationOpen, setMobileNavigationOpen] = useState(false)
+  const navigationProps = { endpoint: embeddedEndpoint, guide: embeddedGuide, outputs: embeddedGuide.outputs ?? [] }
+
   return (
     <PreviewEnvironment initialEntry={mainPreviewPath} sections={mainPreviewSections}>
-      <Chrome title="source/en-US/openapi/embedding.mdx" status="Rendered from OpenAPI + MDX">
-        <div className="clarify-preview-shell grid">
-          <aside className="border-r border-(--clarify-theme-tokens-colors-border) px-1 py-4 text-sm/7 dark:border-white/10 dark:bg-white/5">
-            <PreviewNavigation endpoint={embeddedEndpoint} guide={embeddedGuide} outputs={embeddedGuide.outputs ?? []} />
+      <Chrome
+        title="source/en-US/openapi/embedding.mdx"
+        status="Rendered from OpenAPI + MDX"
+        headerAction={
+          <button
+            type="button"
+            className="clarify-preview-mobile-menu-button -my-1 flex size-7 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-strong) transition hover:bg-(--clarify-ui-hover-background)"
+            aria-controls="clarify-main-preview-mobile-navigation"
+            aria-expanded={isMobileNavigationOpen}
+            aria-label={isMobileNavigationOpen ? 'Close documentation menu' : 'Open documentation menu'}
+            onClick={() => setMobileNavigationOpen((value) => !value)}
+          >
+            {isMobileNavigationOpen ? <X className="h-4 w-4 shrink-0" /> : <Menu className="h-4 w-4 shrink-0" />}
+          </button>
+        }
+      >
+        <div className="clarify-preview-shell relative grid overflow-hidden">
+          <MainPreviewMobileNavigation {...navigationProps} isOpen={isMobileNavigationOpen} onClose={() => setMobileNavigationOpen(false)} />
+          <aside className="clarify-preview-sidebar border-r border-(--clarify-theme-tokens-colors-border) px-1 py-4 text-sm/7 dark:border-white/10 dark:bg-white/5">
+            <PreviewNavigation {...navigationProps} />
           </aside>
           <MainContentPreview />
         </div>
@@ -392,16 +441,16 @@ export function MdxPreview() {
   return (
     <PreviewEnvironment>
       <Chrome title="source/started/index.mdx" status="Rendered by renderer">
-        <div className="clarify-preview-body overflow-hidden bg-(--clarify-theme-tokens-colors-background) p-5 dark:bg-zinc-950">
+        <div className="clarify-preview-body overflow-x-hidden overflow-y-auto bg-(--clarify-theme-tokens-colors-background) p-4 sm:p-5 dark:bg-zinc-950">
           <article className="max-w-3xl text-sm/7 text-(--clarify-ui-text-soft)">
             <div className="inline-flex rounded-full bg-(--clarify-ui-accent-background) px-3 py-1 text-xs/5 font-semibold text-(--clarify-ui-accent-text)">MDX page</div>
-            <h2 className="mt-3 text-2xl/8 font-semibold tracking-tight text-(--clarify-ui-text-strong)">Get Started</h2>
+            <h2 className="mt-3 text-xl/7 font-semibold tracking-tight text-(--clarify-ui-text-strong) sm:text-2xl/8">Get Started</h2>
             <p className="mt-3">Write pages in source/. Clarify turns MDX, config, and OpenAPI files into routes.</p>
-            <div className="mt-5 rounded-2xl border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4 text-sm/6 text-(--clarify-ui-text-strong)">
+            <div className="mt-4 rounded-2xl border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4 text-sm/6 text-(--clarify-ui-text-strong) sm:mt-5">
               <div className="font-semibold text-(--clarify-ui-text-strong)">Static output ready</div>
               <p className="mt-1">output/ is plain static files.</p>
             </div>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div className="mt-4 grid gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-4">
               <div className="rounded-2xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-sm dark:border-white/10 dark:bg-zinc-900/50">
                 <h3 className="text-base/6 font-semibold text-(--clarify-ui-text-strong)">MDX pages</h3>
                 <p className="mt-2 text-sm/6">Guides live beside code.</p>
@@ -429,9 +478,9 @@ export function OpenApiPreview() {
   return (
     <PreviewEnvironment>
       <Chrome title="source/api.openapi.json" status="Endpoint + examples">
-        <div className="clarify-preview-openapi-window overflow-hidden bg-(--clarify-theme-tokens-colors-background) px-4 py-4 dark:bg-zinc-950">
-          <div className="clarify-preview-openapi-mask h-full overflow-hidden">
-            <div className="clarify-preview-api-content clarify-preview-api-content-openapi origin-top pb-10">
+        <div className="clarify-preview-openapi-window overflow-x-hidden overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-3 py-3 sm:px-4 sm:py-4 dark:bg-zinc-950">
+          <div className="clarify-preview-openapi-mask min-h-full">
+            <div className="clarify-preview-api-content clarify-preview-api-content-openapi origin-top pb-6 sm:pb-10">
               <OpenApiExamplesPreview endpoint={staticOutputEndpoint} />
             </div>
           </div>

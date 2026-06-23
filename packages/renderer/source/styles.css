@@ -410,15 +410,39 @@
     min-height: 26rem;
   }
 
+  .clarify-preview-sidebar {
+    display: none;
+  }
+
+  .clarify-preview-mobile-navigation,
+  .clarify-preview-mobile-menu-button {
+    display: block;
+  }
+
   @media (min-width: 64rem) {
     .clarify-preview-shell {
       grid-template-columns: 14rem minmax(0, 1fr);
     }
+
+    .clarify-preview-sidebar {
+      display: block;
+    }
+
+    .clarify-preview-mobile-navigation,
+    .clarify-preview-mobile-menu-button {
+      display: none;
+    }
   }
 
   .clarify-preview-content-window {
-    max-height: 26rem;
+    max-height: 22rem;
     mask-image: linear-gradient(to bottom, black 90%, transparent);
+  }
+
+  @media (min-width: 40rem) {
+    .clarify-preview-content-window {
+      max-height: 26rem;
+    }
   }
 
   .clarify-preview-body {
@@ -447,12 +471,14 @@
     line-height: var(--clarify-ui-description-line-height);
   }
 
-  .clarify-preview-api-content-embedded {
-    min-width: 42rem;
-  }
+  @media (min-width: 40rem) {
+    .clarify-preview-api-content-embedded {
+      min-width: 42rem;
+    }
 
-  .clarify-preview-api-content-openapi {
-    min-width: 48rem;
+    .clarify-preview-api-content-openapi {
+      min-width: 48rem;
+    }
   }
 
   .clarify-preview-api-content .not-prose {
@@ -466,11 +492,17 @@
   }
 
   .clarify-preview-openapi-window {
-    height: 34rem;
+    height: 28rem;
   }
 
   .clarify-preview-openapi-mask {
     mask-image: linear-gradient(to bottom, black 88%, transparent);
+  }
+
+  @media (min-width: 40rem) {
+    .clarify-preview-openapi-window {
+      height: 34rem;
+    }
   }
 
   .clarify-search-result[aria-selected='true'],
