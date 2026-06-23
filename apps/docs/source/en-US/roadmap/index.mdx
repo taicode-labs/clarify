@@ -1,71 +1,125 @@
-# Roadmap
+# Product Roadmap
 
-Clarify uses phased iterative development, with each phase focusing on a set of core capabilities.
+Clarify's roadmap is guided by one long-term goal: provide an open-source, local-first, self-hostable documentation publishing tool that brings MDX content, OpenAPI references, multilingual sites, theming, and AI-ready output into one engineering workflow.
+
+This roadmap starts with the **stable capabilities that are already delivered**, then outlines the areas currently being prioritized and the directions planned for future exploration. Planned items do not imply a committed release date; priorities may change based on user feedback, maintenance cost, and ecosystem needs.
 
 ---
 
-## Phase 1 — Minimum viable product (current)
+## Current status
 
-> ✅ Completed
+| Area | Status | Notes |
+|------|--------|-------|
+| MDX documentation publishing | Released | MDX compilation, built-in components, code highlighting, static page output, and client-side navigation. |
+| OpenAPI documentation | Released | Full API references, tag filtering, single-endpoint embedding, request/response examples, and request-code panels. |
+| Multilingual sites | Released | Locale directories, default locale behavior, route prefixes, missing-translation fallback, and localized navigation labels. |
+| Theming and branding | Released | Light/dark themes, system preference, theme tokens, layout width, radius settings, and the visual theme editor. |
+| AI-ready output | Released | Raw Markdown/OpenAPI artifacts, page copy actions, raw content links, and `llms.txt`. |
+| Extensible build pipeline | Released | Plugin hooks for route resolution, virtual modules, HTML transforms, and build completion. |
+| Search experience | Basic support | Local quick jump based on page titles, paths, navigation groups, and section headings; full-text indexing is still planned. |
 
-### Goal
+---
 
-Build a usable documentation publishing tool that supports MDX rendering and static site generation.
+## Released capabilities
 
-### Implemented features
+### Content and rendering
 
 - [x] MDX compilation and rendering
-- [x] File-system-based conventional routing
-- [x] Build-time static generation (SSG)
-- [x] Client hydration
-- [x] Built-in renderer style pipeline
-- [x] Configuration file system (`clarify.ts` / `clarify.js` / `clarify.json`)
-- [x] Basic theme configuration (`theme.preset` and `theme.tokens.colors.primary`)
-- [x] Top navigation configuration and custom sidebar navigation
-- [x] OpenAPI integration — automatically generate API documentation pages or embed single endpoints
-- [x] Internationalization (i18n) — multilingual directories, route prefixes, and missing-language strategies
-- [x] Built-in search entry — client-side quick jump based on routes and page sections
-- [x] Light / dark theme switching — supports system preference and manual switching
-- [x] Plugin hooks — supports extensions in route, virtual module, HTML transform, and build-done phases
-- [x] AI-ready content artifacts and `llms.txt` output, supporting references to raw Markdown/OpenAPI content
+- [x] Frontmatter metadata
+- [x] File-system routing and directory conventions
+- [x] Static site generation (SSG)
+- [x] Client hydration and in-site navigation
+- [x] Built-in components such as code blocks, code groups, Callout, Card, Button, and Collapse
+- [x] Page table of contents, section anchors, and a local search entry
+- [x] Responsive layout across desktop, tablet, and mobile devices
+
+### OpenAPI
+
+- [x] Parse `.openapi.json`, `.openapi.yaml`, and `.openapi.yml`
+- [x] Generate complete OpenAPI reference pages
+- [x] Generate focused API pages with tag filters
+- [x] Embed any individual endpoint inside MDX
+- [x] Display parameters, request bodies, responses, schemas, examples, authentication, and server information
+- [x] Generate copyable request code in multiple languages
+- [x] Validate OpenAPI references and operation targets at build time
+
+### Site configuration and information architecture
+
+- [x] TypeScript configuration file (`clarify.ts`)
+- [x] Tabs, grouped sidebars, top navigation, footer links, and social links
+- [x] External links, redirects, icons, and localized titles
+- [x] `routePrefix` support for subpath deployments
+- [x] Source repository configuration and “Edit this page” links
+- [x] Favicon, logo, and site metadata configuration
+
+### Internationalization and theming
+
+- [x] Locale-based content directories
+- [x] Unprefixed default locale and prefixed non-default locales
+- [x] Missing-translation fallback strategy
+- [x] Internal links preserve the current locale context
+- [x] Light/dark themes and system preference support
+- [x] Theme presets, color tokens, radius tokens, and layout width
+- [x] Optional built-in theme editor
+
+### Publishing, AI, and extension points
+
+- [x] Pure static build output
+- [x] Public asset copying
+- [x] Raw Markdown and OpenAPI content artifacts
+- [x] Page copy actions, raw content links, and `llms.txt`
+- [x] Sitemap, robots, and baseline SEO artifacts
+- [x] Plugin hooks: `routes:resolved`, `modules:before`, `html:transform`, and `build:done`
+- [x] `clarify dev`, `clarify build`, and `clarify init`
 
 ---
 
-## Phase 2 — Enhanced experience (in development)
+## Near-term priorities
 
-### Goal
+Near-term work focuses on making the existing capabilities more reliable, complete, and ready for real production documentation sites.
 
-Add advanced features on top of current capabilities to improve the usability and extensibility of documentation sites.
-
-### Planned features
-
-- [ ] **Full-text search index** — client-side or static index search based on complete content
-- [ ] **Social sharing** — Open Graph and Twitter Card support
-- [ ] **Edit links** — “Edit this page on GitHub” feature
-- [ ] **Custom MDX component registration** — stably register project-specific React components into the MDX scope
+| Direction | Goal |
+|-----------|------|
+| Full-text search index | Generate a deployable full-text search index while keeping static hosting simple. |
+| SEO and social cards | Improve Open Graph, Twitter Card, canonical URL, page title, and page description behavior. |
+| OpenAPI experience | Improve complex schemas, error states, example selection, code samples, and large-spec loading behavior. |
+| Theme system polish | Promote more visual rules into stable tokens and improve theme editor export/documentation. |
+| Docs and templates | Improve the complete template, migration guide, deployment guide, built-in component reference, and best practices. |
+| Test coverage | Strengthen regression coverage for the CLI, routing, OpenAPI, i18n, theming, and renderer components. |
 
 ---
 
-## Phase 3 — Ecosystem expansion (planned)
+## Mid-term plans
 
-### Goal
+These capabilities will be explored after the core experience becomes more stable.
 
-Expand Clarify into a more complete documentation ecosystem.
+- [ ] **Versioned documentation**: publish, switch, and archive multiple documentation versions in parallel.
+- [ ] **Custom MDX component registration**: provide a stable way to expose project-specific components to MDX.
+- [ ] **Pagefind / Algolia integration**: provide stronger search options beyond the static index baseline.
+- [ ] **Content quality checks**: detect broken links, missing translations, duplicate headings, invalid OpenAPI references, and related issues.
+- [ ] **Preview and build reports**: summarize routes, artifacts, warnings, and performance information after each build.
+- [ ] **Expanded plugin API**: provide more stable extension points for search, translation, governance, and internal platform integrations.
 
-### Ideas
+---
 
-- [ ] **Search backend** — enhanced search based on Algolia / Pagefind
-- [ ] **Versioning** — display multiple documentation versions in parallel
-- [ ] **Comment system** — page comments based on Giscus / Utterances
-- [ ] **Plugin marketplace** — discovery and installation mechanism for third-party plugins
-- [ ] **CLI tools** — scaffolding, content validation, preview, and other commands
-- [ ] **VS Code extension** — content preview and autocomplete
+## Long-term direction
+
+Clarify's long-term direction is not to become a closed platform. It should become open-source documentation infrastructure that teams can extend, embed into internal workflows, and self-host for the long term.
+
+- **Documentation engineering workspace**: better tooling for content preview, translation status, broken-link checks, OpenAPI diffs, and release review.
+- **Ecosystem plugins**: reusable plugins for search, comments, analytics, authentication, documentation versions, and AI indexes.
+- **Editor integrations**: explore VS Code preview, autocomplete, config validation, and OpenAPI reference navigation.
+- **Private-network deployments**: improve private hosting, subpath deployments, offline assets, and security-policy compatibility.
+- **AI documentation protocols**: continue improving `llms.txt`, raw content references, structured page metadata, and agent readability.
 
 ---
 
 ## How to participate
 
-If you have feature suggestions or want to contribute, you are welcome to:
+Clarify prioritizes feedback that improves real documentation-site workflows. If you want to push a capability forward:
 
-- Submit feature requests in [GitHub Issues](https://github.com/taicode-labs/clarify/issues)
-- Read the [Development guide](/development) to learn how to contribute code
+- Submit a feature request or use case in [GitHub Issues](https://github.com/taicode-labs/clarify/issues)
+- Read the [Development guide](/development) for local development, code conventions, and contribution workflow
+- In pull requests, explain the problem background, design trade-offs, and validation steps
+
+The roadmap is not a fixed checklist. Priorities will continue to evolve with community feedback, maintenance cost, and the project's positioning.
