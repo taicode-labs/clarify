@@ -136,8 +136,8 @@
     --clarify-popover-max-width: min(32rem, calc(100vw - 2rem));
     --clarify-code-header-min-height: calc(3rem + 1px);
     --clarify-feedback-actions-grid: 1fr 1px 1fr;
-    --clarify-heading-anchor-width: calc(2.625rem + 0.5px + 50% - min(50%, calc(var(--container-lg) + 2rem)));
-    --clarify-heading-anchor-width-wide: 2.5rem;
+    --clarify-heading-anchor-width: 1.75rem;
+    --clarify-heading-anchor-width-wide: 1.75rem;
     --clarify-theme-editor-width: min(calc(100vw - 2rem), 24rem);
     --clarify-theme-editor-body-max-height: min(42rem, calc(100vh - 7rem));
     --clarify-error-page-min-height: 34rem;
