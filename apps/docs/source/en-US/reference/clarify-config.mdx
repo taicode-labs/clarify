@@ -108,7 +108,7 @@ export default defineConfig({
 | `routePrefix` | `string` | `"/"` | Deployment subpath, such as `/docs/`. Affects internal links, asset paths, and generated routes. |
 | `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | Top navigation. Use it for a small number of global entries such as Docs, API, GitHub, or Dashboard. |
 | `banner` | `ClarifyBannerConfig` | — | Top announcement bar for releases, migrations, maintenance windows, or short notices. |
-| `footer` | `ClarifyFooterConfig` | — | Footer links, social/community links, copyright text, or a custom footer component. Clarify branding remains required. |
+| `footer` | `ClarifyFooterConfig` | — | Footer links, social/community links, copyright text, or a custom footer component path. Clarify branding remains required. |
 | `i18n` | `ClarifyI18nConfig` | — | Internationalization configuration: locales, default locale, text direction, and missing-translation behavior. |
 | `tabs` | `ClarifyTabsConfig` | Generated automatically from the file tree | First-level site categories and each category’s sidebar structure. Omit it to generate navigation from the content directory. |
 | `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | Static generation policy. Controls whether a page prerendering error fails the entire build. |
@@ -494,10 +494,9 @@ type ClarifyFooterLinksConfig = {
 type ClarifyFooterConfig =
   | ClarifyFooterLinksConfig
   | string
-  | React.ComponentType
 ```
 
-`footer` is the bottom page area for low-frequency but important links. Choose exactly one form: built-in link/social/copyright configuration, a custom component module path, or an imported React component. Clarify branding is always rendered in the bottom-right corner below the custom or built-in footer content.
+`footer` is the bottom page area for low-frequency but important links. Choose exactly one form: built-in link/social/copyright configuration or a custom component module path. Clarify branding is always rendered in the bottom-right corner below the custom or built-in footer content.
 
 Field reference for the built-in object form:
 
@@ -512,14 +511,6 @@ Field reference for the built-in object form:
 ```ts title="Custom footer component path"
 export default defineConfig({
   footer: './source/Footer.tsx',
-})
-```
-
-```ts title="Imported footer component"
-import Footer from './source/Footer'
-
-export default defineConfig({
-  footer: Footer,
 })
 ```
 

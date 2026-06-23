@@ -71,7 +71,7 @@ export function PageFooter(props: PageFooterProps = {}) {
   const locale = localeForPath(config, location.pathname)
   const footer = config.footer
   const builtInFooter = footer && typeof footer === 'object' ? footer : undefined
-  const CustomFooter = props.component ?? (typeof footer === 'function' ? footer : undefined)
+  const CustomFooter = props.component
   const links = builtInFooter?.links ?? []
   const socials = Object.entries(builtInFooter?.socials ?? {})
   const copyright = builtInFooter?.copyright

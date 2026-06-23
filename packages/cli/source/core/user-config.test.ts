@@ -12,13 +12,14 @@ describe('defineConfig', () => {
     expect(defineConfig(config)).toBe(config)
   })
 
-  it('rejects mixed footer component and built-in config', () => {
+  it('rejects imported footer components', () => {
+    function Footer() {
+      return null
+    }
+
     expect(() => defineConfig({
-      footer: {
-        component: './source/Footer.tsx',
-        copyright: '© 2026',
-      } as never,
-    })).toThrow('[clarify] config field "footer" is invalid')
+      footer: Footer,
+    } as never)).toThrow('[clarify] config field "footer" is invalid')
   })
 })
 

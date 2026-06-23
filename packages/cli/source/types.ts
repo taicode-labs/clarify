@@ -1,4 +1,3 @@
-import type { ComponentType } from 'react'
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
@@ -50,8 +49,6 @@ export type ClarifyBannerConfig = {
   dismissible?: boolean
 }
 
-export type ClarifyFooterComponent = ComponentType
-
 export type ClarifyFooterComponentPath = string
 
 export type ClarifyFooterLinksConfig = {
@@ -60,7 +57,7 @@ export type ClarifyFooterLinksConfig = {
   copyright?: ClarifyLocalizedText
 }
 
-export type ClarifyFooterConfig = ClarifyFooterLinksConfig | ClarifyFooterComponentPath | ClarifyFooterComponent
+export type ClarifyFooterConfig = ClarifyFooterLinksConfig | ClarifyFooterComponentPath
 
 export type ClarifySourceConfig = {
   /** Repository web URL, for example https://github.com/owner/repo. */

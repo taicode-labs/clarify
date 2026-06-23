@@ -75,7 +75,6 @@ export const clarifyFooterLinksConfigSchema = z.object({
 export const clarifyFooterConfigSchema = z.union([
   clarifyFooterLinksConfigSchema,
   z.string(),
-  z.custom<NonNullable<ClarifyProjectConfig['footer']>>(value => typeof value === 'function'),
 ])
 
 export const clarifySourceConfigSchema = z.object({

@@ -38,10 +38,9 @@ describe('openapi virtual modules', () => {
   it('preserves other runtime module exports', () => {
     const code = generateOpenAPIRegistryModule(
       { 'virtual:clarify-page/api': spec },
-      'import FooterComponent from "./Footer.tsx";\nexport const openApis = {};\nexport const footerComponent = FooterComponent;',
+      'export const openApis = {};\nexport const footerComponent = undefined;',
     )
-    expect(code).toContain('import FooterComponent')
-    expect(code).toContain('export const footerComponent = FooterComponent;')
+    expect(code).toContain('export const footerComponent = undefined;')
     expect(code).toContain('Example API')
   })
 

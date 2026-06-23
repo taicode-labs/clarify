@@ -5,7 +5,6 @@ export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
 export const VIRTUAL_SERVER_ROUTES = 'virtual:clarify-routes/server'
 export const VIRTUAL_RUNTIME = 'virtual:clarify-runtime'
-export const VIRTUAL_CONFIG_SOURCE = 'virtual:clarify-config-source'
 export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-entry-client'
 export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 
@@ -17,7 +16,7 @@ type RuntimeImports = {
 
 type RuntimeModuleOptions = {
   imports?: RuntimeImports
-  footerComponentSource?: 'path' | 'config'
+  footerComponentSource?: 'path'
 }
 
 type BuildVirtualModulesArgs = {
@@ -26,7 +25,6 @@ type BuildVirtualModulesArgs = {
   routes: ContentRoute[]
   navigation?: NavigationTree
   themeEditor?: boolean
-  configFilePath?: string
 }
 
 type CreateClientEntryModuleOptions = {
@@ -41,16 +39,8 @@ export function stripVirtualPrefix(id: string): string {
   return id.startsWith('\0') ? id.slice(1) : id
 }
 
-function serializableProjectConfig(projectConfig: ResolvedProjectConfig): ResolvedProjectConfig {
-  if (typeof projectConfig.footer !== 'function') return projectConfig
-  return {
-    ...projectConfig,
-    footer: undefined,
-  }
-}
-
 export function generateConfigModule(projectConfig: ResolvedProjectConfig, buildOptions: ResolvedBuildOptions): string {
-  return `export const config = ${JSON.stringify({ ...serializableProjectConfig(projectConfig), ...buildOptions })};`
+  return `export const config = ${JSON.stringify({ ...projectConfig, ...buildOptions })};`
 }
 
 function moduleSpecifier(value: string): string {
@@ -91,15 +81,10 @@ export function createRuntimeModule(options: RuntimeModuleOptions = {}): string 
   const footerComponentImport = options.footerComponentSource === 'path' && options.imports?.footerComponent
     ? `import FooterComponent from ${moduleSpecifier(options.imports.footerComponent)};`
     : ''
-  const configImport = options.footerComponentSource === 'config'
-    ? `import { userConfig as ClarifyUserConfig } from '${VIRTUAL_CONFIG_SOURCE}';`
-    : ''
   const footerComponent = options.footerComponentSource === 'path'
     ? 'FooterComponent'
-    : options.footerComponentSource === 'config'
-      ? `typeof ClarifyUserConfig.footer === 'function' ? ClarifyUserConfig.footer : undefined`
-      : 'undefined'
-  return `${footerComponentImport}${configImport}
+    : 'undefined'
+  return `${footerComponentImport}
 export const openApis = {};
 export const footerComponent = ${footerComponent};`
 }
@@ -117,18 +102,12 @@ render({ config, routes, navigation, openApis, footerComponent, themeEditor: ${J
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
   const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
-  const footerComponentSource = typeof args.projectConfig.footer === 'string'
+  const footerComponent = args.projectConfig.footer
+  const footerComponentSource = typeof footerComponent === 'string'
     ? 'path'
-    : typeof args.projectConfig.footer === 'function' && args.configFilePath
-      ? 'config'
-      : undefined
-  const footerComponentImport = footerComponentSource === 'path' ? args.projectConfig.footer as string : undefined
+    : undefined
+  const footerComponentImport = typeof footerComponent === 'string' ? footerComponent : undefined
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
-  if (args.configFilePath) {
-    modules.set(VIRTUAL_CONFIG_SOURCE, `export { default as userConfig } from ${moduleSpecifier(args.configFilePath)};`)
-  } else {
-    modules.set(VIRTUAL_CONFIG_SOURCE, 'export const userConfig = {};')
-  }
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
   modules.set(VIRTUAL_RUNTIME, createRuntimeModule({ footerComponentSource, imports: { footerComponent: footerComponentImport } }))
