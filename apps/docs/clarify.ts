@@ -102,6 +102,14 @@ export default defineConfig({
           icon: 'Compass',
           pages: [
             {
+              page: 'what-is-clarify',
+              title: {
+                'zh-CN': '什么是 Clarify',
+                'en-US': 'What is Clarify',
+              },
+              icon: 'Sparkles',
+            },
+            {
               page: 'getting-started',
               title: {
                 'zh-CN': '快速开始',
