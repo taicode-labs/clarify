@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import type { ComponentType } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useClarifyConfig } from '../core/context'
@@ -60,27 +61,37 @@ function SocialLink(arg0: SocialLinkProps) {
   )
 }
 
-export function PageFooter() {
+export type PageFooterProps = {
+  component?: ComponentType
+}
+
+export function PageFooter(props: PageFooterProps = {}) {
   const config = useClarifyConfig()
   const location = useLocation()
   const locale = localeForPath(config, location.pathname)
   const footer = config.footer
-  const links = footer?.links ?? []
-  const socials = Object.entries(footer?.socials ?? {})
-  const copyright = footer?.copyright
-    ? resolveLocalizedText(footer.copyright, locale, config.i18n?.defaultLocale)
+  const builtInFooter = footer && typeof footer === 'object' ? footer : undefined
+  const CustomFooter = props.component ?? (typeof footer === 'function' ? footer : undefined)
+  const links = builtInFooter?.links ?? []
+  const socials = Object.entries(builtInFooter?.socials ?? {})
+  const copyright = builtInFooter?.copyright
+    ? resolveLocalizedText(builtInFooter.copyright, locale, config.i18n?.defaultLocale)
     : undefined
-  const hasCustomFooter = Boolean(copyright || links.length > 0 || socials.length > 0)
+  const hasBuiltInFooter = Boolean(copyright || links.length > 0 || socials.length > 0)
 
   return (
-    <footer
-      className={clsx(
-        'clarify-page-footer mx-auto flex w-full max-w-(--clarify-theme-layout-max-width) flex-col items-end gap-4 border-t border-(--clarify-theme-tokens-colors-border) px-4 py-8 sm:px-6 lg:mt-24 lg:px-5',
-        hasCustomFooter && 'sm:flex-row sm:items-center sm:justify-between',
-      )}
-    >
-      {hasCustomFooter ? (
-        <div className="clarify-footer-content flex flex-col gap-3 text-right sm:text-left">
+    <footer className="clarify-page-footer mx-auto flex w-full max-w-(--clarify-theme-layout-max-width) flex-col gap-4 border-t border-(--clarify-theme-tokens-colors-border) px-4 py-8 sm:px-6 lg:mt-24 lg:px-5">
+      {CustomFooter ? (
+        <div className="clarify-footer-custom w-full">
+          <CustomFooter />
+        </div>
+      ) : hasBuiltInFooter ? (
+        <div
+          className={clsx(
+            'clarify-footer-content flex flex-col items-end gap-3 text-right',
+            hasBuiltInFooter && 'sm:items-start sm:text-left',
+          )}
+        >
           {copyright ? (
             <p className="clarify-footer-copyright m-0">{copyright}</p>
           ) : null}
@@ -96,7 +107,7 @@ export function PageFooter() {
           ) : null}
         </div>
       ) : null}
-      <div className="clarify-footer-brand flex justify-end">
+      <div className="clarify-footer-brand flex justify-end self-end">
         <BuiltWithClarify />
       </div>
     </footer>

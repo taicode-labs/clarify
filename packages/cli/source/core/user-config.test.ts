@@ -11,6 +11,15 @@ describe('defineConfig', () => {
     const config = { title: 'Docs', ssg: { failOnError: false } }
     expect(defineConfig(config)).toBe(config)
   })
+
+  it('rejects mixed footer component and built-in config', () => {
+    expect(() => defineConfig({
+      footer: {
+        component: './source/Footer.tsx',
+        copyright: '© 2026',
+      } as never,
+    })).toThrow('[clarify] config field "footer" is invalid')
+  })
 })
 
 describe('findClarifyConfigFile', () => {

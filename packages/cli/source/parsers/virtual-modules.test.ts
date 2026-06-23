@@ -22,6 +22,28 @@ describe('generateConfigModule', () => {
     const expected = { ...projectConfig, ...generateOptions }
     expect(code).toBe(`export const config = ${JSON.stringify(expected)};`)
   })
+
+  it('does not serialize imported footer components', () => {
+    function Footer() {
+      return null
+    }
+    const projectConfig: ResolvedProjectConfig = {
+      title: 'Test',
+      description: 'Desc',
+      routePrefix: '/',
+      theme: resolveThemeConfig(),
+      footer: Footer,
+    }
+    const generateOptions: ResolvedBuildOptions = {
+      projectRoot: '/site',
+      rootDirectory: 'source',
+      outputDirectory: 'dist',
+      ssg: { failOnError: true },
+    }
+    const code = generateConfigModule(projectConfig, generateOptions)
+    expect(code).not.toContain('Footer')
+    expect(code).not.toContain('footer')
+  })
 })
 
 describe('generateRoutesModule', () => {
@@ -96,7 +118,15 @@ describe('generateRoutesModule', () => {
 
 describe('createRuntimeModule', () => {
   it('provides empty runtime extension data by default', () => {
-    expect(createRuntimeModule()).toBe('export const openApis = {};')
+    expect(createRuntimeModule()).toBe('\nexport const openApis = {};\nexport const footerComponent = undefined;')
+  })
+
+  it('imports a configured footer component path', () => {
+    expect(createRuntimeModule({ footerComponentSource: 'path', imports: { footerComponent: './source/Footer.tsx' } })).toBe('import FooterComponent from "./source/Footer.tsx";\nexport const openApis = {};\nexport const footerComponent = FooterComponent;')
+  })
+
+  it('reads an imported footer component from the config source', () => {
+    expect(createRuntimeModule({ footerComponentSource: 'config' })).toBe('import { userConfig as ClarifyUserConfig } from \'virtual:clarify-config-source\';\nexport const openApis = {};\nexport const footerComponent = typeof ClarifyUserConfig.footer === \'function\' ? ClarifyUserConfig.footer : undefined;')
   })
 })
 
@@ -104,8 +134,8 @@ describe('createClientEntryModule', () => {
   it('passes the theme editor flag to the renderer', () => {
     const code = createClientEntryModule({ themeEditor: true })
 
-    expect(code).toContain("import { openApis } from 'virtual:clarify-runtime';")
-    expect(code).toContain('render({ config, routes, navigation, openApis, themeEditor: true });')
+    expect(code).toContain("import { openApis, footerComponent } from 'virtual:clarify-runtime';")
+    expect(code).toContain('render({ config, routes, navigation, openApis, footerComponent, themeEditor: true });')
     expect(code).not.toContain('ThemeEditor')
     expect(code).not.toContain('react-dom/client')
   })
@@ -113,7 +143,7 @@ describe('createClientEntryModule', () => {
   it('disables the theme editor by default', () => {
     const code = createClientEntryModule()
 
-    expect(code).toContain('render({ config, routes, navigation, openApis, themeEditor: false });')
+    expect(code).toContain('render({ config, routes, navigation, openApis, footerComponent, themeEditor: false });')
     expect(code).not.toContain('ThemeEditor')
     expect(code).not.toContain('react-dom/client')
   })

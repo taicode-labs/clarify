@@ -20,6 +20,7 @@ export type AppShellProps = {
   config: ClarifyConfig
   routes: RouteItem[]
   navigation: NavigationTree
+  footerComponent?: ComponentType
 }
 
 function routeForPath(routes: RouteItem[], pathname: string): RouteItem | undefined {
@@ -154,7 +155,7 @@ function NotFoundRouteElement(props: NotFoundRouteElementProps) {
 }
 
 export function AppShell(arg0: AppShellProps) {
-  const { config, routes, navigation } = arg0
+  const { config, routes, navigation, footerComponent } = arg0
   const location = useLocation()
   const pathname = normalizeRoutePath(location.pathname)
   const currentRoute = routeForPath(routes, pathname)
@@ -252,7 +253,7 @@ export function AppShell(arg0: AppShellProps) {
             <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
           </div>
         </div>
-        <PageFooter />
+        <PageFooter component={footerComponent} />
       </SectionProvider>
     </ClarifyLocaleContext.Provider>
   )

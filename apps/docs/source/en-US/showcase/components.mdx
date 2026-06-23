@@ -158,6 +158,24 @@ Clarify provides a set of components that can be used directly in MDX without ma
   </Button>
 </div>
 
+### WebFrame
+
+`WebFrame` embeds web content such as product previews, live demos, or generated pages. It shows a simulated browser window by default.
+
+```mdx
+<WebFrame src="/showcase/theming-preview" title="Theme preview" height={320} />
+
+<WebFrame src="/showcase/components" title="Components preview" showWindow={false} height={280} />
+
+<WebFrame src="https://clarify.pub" title="OpenStreetMap embed" height={280} />
+```
+
+<WebFrame src="/showcase/theming-preview" title="Theme preview" height={320} />
+
+<WebFrame src="/showcase/components" title="Components preview" showWindow={false} height={280} />
+
+<WebFrame src="https://clarify.pub" title="OpenStreetMap embed" height={280} />
+
 ---
 
 ## Custom MDX components

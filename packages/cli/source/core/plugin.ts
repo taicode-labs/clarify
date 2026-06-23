@@ -25,6 +25,7 @@ import {
   RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
   VIRTUAL_CONFIG,
+  VIRTUAL_CONFIG_SOURCE,
   VIRTUAL_ROUTES,
   VIRTUAL_SERVER_ROUTES,
   buildVirtualModules,
@@ -86,6 +87,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       routes,
       navigation: resolvedNavigation,
       themeEditor: viteConfig.command === 'serve' || projectConfig.theme.editor,
+      configFilePath,
     })
     virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
   }
@@ -169,6 +171,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     resolveId(id) {
       if (id === VIRTUAL_CLIENT_ENTRY || id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
       if (id === VIRTUAL_CONFIG || id === resolveVirtualId(VIRTUAL_CONFIG)) return resolveVirtualId(VIRTUAL_CONFIG)
+      if (id === VIRTUAL_CONFIG_SOURCE || id === resolveVirtualId(VIRTUAL_CONFIG_SOURCE)) return resolveVirtualId(VIRTUAL_CONFIG_SOURCE)
       if (id === VIRTUAL_ROUTES || id === resolveVirtualId(VIRTUAL_ROUTES)) return resolveVirtualId(VIRTUAL_ROUTES)
       if (id === VIRTUAL_SERVER_ROUTES || id === resolveVirtualId(VIRTUAL_SERVER_ROUTES)) return resolveVirtualId(VIRTUAL_SERVER_ROUTES)
       const moduleId = stripVirtualPrefix(id)
@@ -239,6 +242,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
               if (id === VIRTUAL_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
               if (id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
               if (id === VIRTUAL_CONFIG) return id
+              if (id === VIRTUAL_CONFIG_SOURCE) return id
               if (id === VIRTUAL_ROUTES) return id
               if (id === VIRTUAL_SERVER_ROUTES) return id
               if (virtualModules.has(stripVirtualPrefix(id))) return stripVirtualPrefix(id)

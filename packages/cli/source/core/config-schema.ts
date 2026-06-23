@@ -66,11 +66,17 @@ export const clarifyBannerConfigSchema = z.object({
   dismissible: z.boolean().optional(),
 })
 
-export const clarifyFooterConfigSchema = z.object({
+export const clarifyFooterLinksConfigSchema = z.object({
   links: z.array(clarifyNavbarLinkSchema).optional(),
   socials: z.record(z.string(), z.string()).optional(),
   copyright: clarifyLocalizedTextSchema.optional(),
-})
+}).strict()
+
+export const clarifyFooterConfigSchema = z.union([
+  clarifyFooterLinksConfigSchema,
+  z.string(),
+  z.custom<NonNullable<ClarifyProjectConfig['footer']>>(value => typeof value === 'function'),
+])
 
 export const clarifySourceConfigSchema = z.object({
   repository: z.string(),

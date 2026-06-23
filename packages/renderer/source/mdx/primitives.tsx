@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { Info } from 'lucide-react'
 import { createElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 
-import { Button, Callout, Card, CardGroup, Heading, LocalizedLink, Prose } from '../components'
+import { Button, Callout, Card, CardGroup, Heading, LocalizedLink, Prose, WebFrame } from '../components'
 import { Code, CodeGroup, Pre } from '../components/Code'
 
 type WrapperProps = { children: ReactNode }
@@ -23,7 +23,7 @@ export function a(arg0: ComponentPropsWithoutRef<'a'>) {  const { href = '', ...
 
 export const code = Code
 export const pre = Pre
-export { Button, Callout, Card, CardGroup, CodeGroup }
+export { Button, Callout, Card, CardGroup, CodeGroup, WebFrame }
 
 export function h2(props: Omit<ComponentPropsWithoutRef<typeof Heading>, 'level'>) {
   return createElement(Heading, { level: 2, ...props })

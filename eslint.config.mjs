@@ -15,7 +15,6 @@ import importPlugin from 'eslint-plugin-import-x';
  */
 
 const browserFiles = [
-  'apps/docs/source/**/*.{ts,tsx}',
   'apps/www/source/**/*.{ts,tsx}',
   'packages/renderer/source/**/*.{ts,tsx}',
   'source/**/*.{ts,tsx}',
@@ -48,6 +47,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/.turbo/**',
       '**/*.d.ts',
+      'apps/docs/**',
     ],
   },
 

@@ -12,6 +12,7 @@ The following components can be used directly in MDX pages:
 - Entries and actions: `CardGroup` / `Card`, `Button`
 - Code and collapsible content: `CodeGroup`, `Collapse`
 - Layout and property descriptions: `Row` / `Col`, `Properties` / `Property`
+- Content embedding: `WebFrame`
 - Markdown rendering: `Markdown`
 - OpenAPI: `OpenApiOperation`, `OpenApiDocument`
 
@@ -34,6 +35,9 @@ The following components can be used directly in MDX pages:
   </Card>
   <Card title="Collapse" icon="list-collapse" href="#collapse">
     Used to collapse optional details, long lists, and advanced notes.
+  </Card>
+  <Card title="WebFrame" icon="monitor" href="#webframe">
+    Used to embed product pages, demos, previews, and other web content.
   </Card>
   <Card title="OpenAPI" icon="file-json-2" href="#openapi-components">
     Used to display a complete API Reference or a single endpoint.
@@ -240,6 +244,65 @@ Rendered result:
 
 ---
 
+## WebFrame
+
+`WebFrame` is used to embed web content in documentation pages, such as product screens, hosted demos, generated previews, or other internal pages. It renders a simulated browser window by default, and you can disable that chrome with `showWindow={false}`.
+
+### Basic usage
+
+```mdx
+<WebFrame src="/showcase/theming-preview" title="Theme preview" />
+```
+
+Rendered result:
+
+<WebFrame src="/showcase/theming-preview" title="Theme preview" height={360} />
+
+### Without simulated window
+
+```mdx
+<WebFrame src="/showcase/components" title="Components preview" showWindow={false} height={320} />
+```
+
+### Absolute URL
+
+Use a full URL with protocol when embedding an external page.
+
+```mdx
+<WebFrame src="https://clarify.pub" title="Clarify website" height={320} />
+```
+
+Rendered result:
+
+<WebFrame src="https://clarify.pub" title="Clarify website" height={320} />
+
+### Inline content
+
+If you do not pass `src`, `WebFrame` renders its children inside the frame. This is useful for small product UI mockups or static previews.
+
+```mdx
+<WebFrame title="Inline preview" height={180}>
+  <div style={{ padding: 24 }}>
+    <strong>Preview content</strong>
+    <p>This content is rendered directly inside the frame.</p>
+  </div>
+</WebFrame>
+```
+
+### Props
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `src` | `string` | - | URL to embed in an iframe |
+| `title` | `string` | `'Embedded content'` | Accessible iframe title and simulated window label |
+| `showWindow` | `boolean` | `true` | Whether to render the simulated browser window chrome |
+| `height` | `CSSProperties['height']` | `420` | Embedded content height |
+| `className` | `string` | - | Additional CSS class names for the outer container |
+| `iframeClassName` | `string` | - | Additional CSS class names for the iframe or inline content container |
+| `children` | `ReactNode` | - | Inline content rendered when `src` is not provided |
+
+---
+
 ## CodeGroup
 
 `CodeGroup` is used to organize parallel code examples, such as examples for different package managers or languages.
@@ -386,6 +449,7 @@ The OpenAPI panel displays servers, authentication, parameters, request bodies, 
 - Use `Button` when guiding users to continue reading or perform an action.
 - Use `CodeGroup` for examples covering multiple languages, environments, or package managers.
 - Use `Collapse` for optional details, long lists, and advanced content.
+- Use `WebFrame` for embedded demos, previews, and product screens; disable `showWindow` when the embedded content already has its own chrome.
 - Prefer `Properties` / `Property` for configuration options, component props, and field descriptions.
 - Explain processes in guides, and leave endpoint facts to `OpenApiOperation` or `OpenApiDocument`.
 

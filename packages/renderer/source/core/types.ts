@@ -2,6 +2,10 @@ import type { ComponentType } from 'react'
 
 import type { OpenAPISpec } from '../openapi/lib/utils'
 
+export type ClarifyFooterComponent = ComponentType
+
+export type ClarifyFooterComponentPath = string
+
 export type RouteComponent = ComponentType | (() => Promise<{ default: ComponentType }>)
 
 export type RouteSection = {
@@ -65,11 +69,13 @@ export type ClarifyBannerConfig = {
   dismissible?: boolean;
 };
 
-export type ClarifyFooterConfig = {
+export type ClarifyFooterLinksConfig = {
   links?: ClarifyNavbarLink[];
   socials?: Record<string, string>;
   copyright?: ClarifyLocalizedText;
 };
+
+export type ClarifyFooterConfig = ClarifyFooterLinksConfig | ClarifyFooterComponentPath | ClarifyFooterComponent;
 
 export type ClarifySourceConfig = {
   repository: string;
@@ -196,6 +202,8 @@ export type RenderOptions = {
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
+  /** Custom footer component rendered above the required Clarify branding. */
+  footerComponent?: ClarifyFooterComponent;
   /** Whether to render the live theme editor inside the app tree. */
   themeEditor?: boolean;
   /** 挂载节点，默认 document.getElementById('root') */
@@ -215,6 +223,8 @@ export type ServerRenderOptions = {
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
+  /** Custom footer component rendered above the required Clarify branding. */
+  footerComponent?: ClarifyFooterComponent;
   /** Whether to render the live theme editor inside the app tree. */
   themeEditor?: boolean;
   /** 当前请求的 URL */

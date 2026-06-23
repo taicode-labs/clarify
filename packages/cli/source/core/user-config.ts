@@ -12,6 +12,7 @@ import type { ClarifyBuildOptions } from './options.js'
 export type ClarifyConfig = ClarifyProjectConfig & Pick<ClarifyBuildOptions, 'plugins' | 'ssg'>
 
 export function defineConfig(config: ClarifyConfig): ClarifyConfig {
+  validateProjectConfig(config)
   return config
 }
 

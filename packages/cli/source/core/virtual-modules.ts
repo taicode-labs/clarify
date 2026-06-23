@@ -5,10 +5,20 @@ export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
 export const VIRTUAL_SERVER_ROUTES = 'virtual:clarify-routes/server'
 export const VIRTUAL_RUNTIME = 'virtual:clarify-runtime'
+export const VIRTUAL_CONFIG_SOURCE = 'virtual:clarify-config-source'
 export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-entry-client'
 export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 
 export type VirtualModules = Map<string, string>
+
+type RuntimeImports = {
+  footerComponent?: string
+}
+
+type RuntimeModuleOptions = {
+  imports?: RuntimeImports
+  footerComponentSource?: 'path' | 'config'
+}
 
 type BuildVirtualModulesArgs = {
   projectConfig: ResolvedProjectConfig
@@ -16,6 +26,7 @@ type BuildVirtualModulesArgs = {
   routes: ContentRoute[]
   navigation?: NavigationTree
   themeEditor?: boolean
+  configFilePath?: string
 }
 
 type CreateClientEntryModuleOptions = {
@@ -30,8 +41,16 @@ export function stripVirtualPrefix(id: string): string {
   return id.startsWith('\0') ? id.slice(1) : id
 }
 
+function serializableProjectConfig(projectConfig: ResolvedProjectConfig): ResolvedProjectConfig {
+  if (typeof projectConfig.footer !== 'function') return projectConfig
+  return {
+    ...projectConfig,
+    footer: undefined,
+  }
+}
+
 export function generateConfigModule(projectConfig: ResolvedProjectConfig, buildOptions: ResolvedBuildOptions): string {
-  return `export const config = ${JSON.stringify({ ...projectConfig, ...buildOptions })};`
+  return `export const config = ${JSON.stringify({ ...serializableProjectConfig(projectConfig), ...buildOptions })};`
 }
 
 function moduleSpecifier(value: string): string {
@@ -68,8 +87,21 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
-export function createRuntimeModule(): string {
-  return 'export const openApis = {};'
+export function createRuntimeModule(options: RuntimeModuleOptions = {}): string {
+  const footerComponentImport = options.footerComponentSource === 'path' && options.imports?.footerComponent
+    ? `import FooterComponent from ${moduleSpecifier(options.imports.footerComponent)};`
+    : ''
+  const configImport = options.footerComponentSource === 'config'
+    ? `import { userConfig as ClarifyUserConfig } from '${VIRTUAL_CONFIG_SOURCE}';`
+    : ''
+  const footerComponent = options.footerComponentSource === 'path'
+    ? 'FooterComponent'
+    : options.footerComponentSource === 'config'
+      ? `typeof ClarifyUserConfig.footer === 'function' ? ClarifyUserConfig.footer : undefined`
+      : 'undefined'
+  return `${footerComponentImport}${configImport}
+export const openApis = {};
+export const footerComponent = ${footerComponent};`
 }
 
 export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {
@@ -78,17 +110,28 @@ import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
-import { openApis } from '${VIRTUAL_RUNTIME}';
-render({ config, routes, navigation, openApis, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
+import { openApis, footerComponent } from '${VIRTUAL_RUNTIME}';
+render({ config, routes, navigation, openApis, footerComponent, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
 }
 
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
   const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
+  const footerComponentSource = typeof args.projectConfig.footer === 'string'
+    ? 'path'
+    : typeof args.projectConfig.footer === 'function' && args.configFilePath
+      ? 'config'
+      : undefined
+  const footerComponentImport = footerComponentSource === 'path' ? args.projectConfig.footer as string : undefined
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
+  if (args.configFilePath) {
+    modules.set(VIRTUAL_CONFIG_SOURCE, `export { default as userConfig } from ${moduleSpecifier(args.configFilePath)};`)
+  } else {
+    modules.set(VIRTUAL_CONFIG_SOURCE, 'export const userConfig = {};')
+  }
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
-  modules.set(VIRTUAL_RUNTIME, createRuntimeModule())
+  modules.set(VIRTUAL_RUNTIME, createRuntimeModule({ footerComponentSource, imports: { footerComponent: footerComponentImport } }))
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
 

@@ -9,6 +9,7 @@
     "build": "clarify build --output output"
   },
   "devDependencies": {
-    "@clarify-labs/cli": "workspace:*"
+    "@clarify-labs/cli": "workspace:*",
+    "@types/react": "^19.1.8"
   }
 }

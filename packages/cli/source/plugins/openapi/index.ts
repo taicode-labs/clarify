@@ -115,7 +115,10 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         return nextRoutes
       },
       'modules:before': (modules, ctx) => {
-        modules.set(openApiRegistryModuleId, generateOpenAPIRegistryModule(Object.fromEntries(Object.entries(specs).map(([moduleId, entry]) => [moduleId, entry.spec]))))
+        modules.set(openApiRegistryModuleId, generateOpenAPIRegistryModule(
+          Object.fromEntries(Object.entries(specs).map(([moduleId, entry]) => [moduleId, entry.spec])),
+          modules.get(openApiRegistryModuleId),
+        ))
 
         for (const [moduleId, entry] of Object.entries(specs)) {
           modules.set(moduleId, generateOpenAPIModule(entry.spec, entry.tagFilter))
