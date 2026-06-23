@@ -102,15 +102,6 @@ pnpm typecheck
 pnpm lint
 ```
 
-## Packages
-
-| Package | Version | Description |
-|---------|---------|-------------|
-| `@clarify-labs/docs` | 0.6.4 | Documentation playground app |
-| `@clarify-labs/www` | 0.6.4 | Marketing website app |
-| `@clarify-labs/renderer` | 0.6.4 | Shared React rendering primitives |
-| `@clarify-labs/cli` | 0.6.4 | User-facing Clarify CLI and docs engine |
-
 ## License
 
 AGPL-3.0-only © 2026 Taicode Labs

@@ -102,15 +102,6 @@ pnpm typecheck
 pnpm lint
 ```
 
-## 包
-
-| 包 | 版本 | 说明 |
-|---------|---------|-------------|
-| `@clarify-labs/docs` | 0.6.4 | 文档 playground 应用 |
-| `@clarify-labs/www` | 0.6.4 | 营销网站应用 |
-| `@clarify-labs/renderer` | 0.6.4 | 共享 React 渲染基础组件 |
-| `@clarify-labs/cli` | 0.6.4 | 面向用户的 Clarify CLI 与文档引擎 |
-
 ## 许可
 
 AGPL-3.0-only © 2026 Taicode Labs
