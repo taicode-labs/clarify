@@ -98,38 +98,94 @@ export default defineConfig({
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `title` | `string` | `"Clarify Docs"` | 站点标题，用于侧边栏品牌和 HTML 标题 |
-| `description` | `string` | `""` | 站点描述，用于 SEO 和 `llms.txt` |
-| `siteUrl` | `string` | — | 公开站点 URL；配置后 `clarify build` 会生成 `sitemap.xml` 和 `robots.txt` |
-| `source` | `{ repository: string; branch?: string; directory?: string }` | — | 源码仓库信息，用于生成“编辑此页面”链接 |
-| `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo 路径 |
-| `favicon` | `string \| { light?: string; dark?: string }` | — | favicon 路径或亮暗主题变体 |
-| `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig; editor?: boolean }` | `{ preset: 'default', editor: false }` | 主题预设、局部覆盖和实时主题编辑器配置；`theme.editor` 可在构建后的站点中暴露编辑器，dev 模式会自动启用 |
-| `routePrefix` | `string` | `"/"` | 部署子路径，例如 `/docs/` |
-| `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | 顶部导航链接 |
-| `banner` | `ClarifyBannerConfig` | — | 顶部公告配置，供主题或后续 UI 使用 |
-| `footer` | `ClarifyFooterConfig` | — | 页脚配置，供主题或后续 UI 使用 |
-| `i18n` | `ClarifyI18nConfig` | — | 多语言配置 |
-| `tabs` | `ClarifyTabsConfig` | 按文件树自动生成 | 站点业务分类和各分类下的侧边栏结构 |
-| `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | 静态生成错误策略 |
-| `plugins` | `ClarifyPlugin[]` | `[]` | 构建期插件列表，仅 `clarify.ts/js` 可用 |
+| `title` | `string` | `"Clarify Docs"` | 站点标题。会出现在侧边栏品牌区、浏览器标题、SEO 标题兜底和站点元数据中。建议使用产品或文档中心名称，而不是页面标题。 |
+| `description` | `string` | `""` | 站点级描述。用于 SEO 描述、`llms.txt` 摘要和分享卡片兜底。建议写成一句 80–160 字符的产品说明。 |
+| `siteUrl` | `string` | — | 公开访问的完整站点 URL。配置后，`clarify build` 会生成绝对 URL 形式的 `sitemap.xml` 和 `robots.txt`。 |
+| `source` | `{ repository: string; branch?: string; directory?: string }` | — | 源码仓库信息。用于生成“编辑此页面”链接，帮助读者从页面跳转到 Git 仓库中的源 MDX 或 OpenAPI 文件。 |
+| `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo。可以使用单一路径，也可以按亮色/暗色主题分别提供资源。路径通常放在 `public/` 或内容目录可访问的位置。 |
+| `favicon` | `string \| { light?: string; dark?: string }` | — | 浏览器标签页图标。支持单一路径或亮暗主题变体。建议使用 `.ico`、`.svg` 或尺寸完整的 `.png`。 |
+| `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig; editor?: boolean }` | `{ preset: 'default', editor: false }` | 主题配置。通过 `preset` 选择基底，通过 `tokens` 和 `layout` 做局部覆盖，通过 `editor` 控制构建后站点是否暴露实时主题编辑器。 |
+| `routePrefix` | `string` | `"/"` | 部署子路径。用于 GitHub Pages、反向代理子目录或企业门户子路径部署，例如 `/docs/`。会影响内部链接、资源路径和路由生成。 |
+| `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | 顶部导航。适合放置“文档”“API”“GitHub”“控制台”等少量全局入口。复杂信息架构应放入 `tabs` 和侧边栏。 |
+| `banner` | `ClarifyBannerConfig` | — | 顶部公告条。适合展示版本发布、迁移提示、维护窗口、活动通知等短消息。 |
+| `footer` | `ClarifyFooterConfig` | — | 页脚。适合放置常用链接、社区入口、版权声明和外部社交账号。 |
+| `i18n` | `ClarifyI18nConfig` | — | 多语言配置。声明可用语言、默认语言、文本方向，以及缺失翻译的处理策略。 |
+| `tabs` | `ClarifyTabsConfig` | 按文件树自动生成 | 站点一级业务分类和每个分类下的侧边栏结构。省略时按内容目录自动生成导航。 |
+| `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | 静态生成策略。控制预渲染单个页面失败时是否中断整个构建。 |
+| `plugins` | `ClarifyPlugin[]` | `[]` | 构建期插件列表。只能在 `clarify.ts` 或 `clarify.js` 中使用，不能写入 `clarify.json`。 |
+
+---
+
+## `title` 和 `description`
+
+`title` 是站点名称，不是某个页面的标题。`description` 是站点级简介，会作为 SEO 和 AI 摘要产物的兜底描述。页面级标题和描述仍应写在具体 MDX 内容中。
+
+```ts
+export default defineConfig({
+  title: 'Acme Docs',
+  description: 'Documentation for Acme APIs, SDKs, and platform guides.',
+})
+```
+
+常见建议：
+
+- `title` 保持短小，通常 2–5 个词。
+- `description` 写清楚“给谁看、解决什么问题”。
+- 不要把版本号写死在 `title` 中；版本信息更适合放在 `banner` 或导航中。
 
 ---
 
 ## `siteUrl` 和 `source`
 
+`siteUrl` 表示生产环境最终访问地址，必须包含协议，例如 `https://docs.example.com`。如果文档部署在子路径，请把子路径写入 `siteUrl` 或配合 `routePrefix` 使用。
+
+`source` 用于“编辑此页面”链接：
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `repository` | 是 | 仓库网页地址，例如 `https://github.com/acme/docs` |
+| `branch` | 否 | 源文件所在分支，默认通常按 `main` 处理 |
+| `directory` | 否 | 内容目录在仓库中的路径前缀；当 `source/` 不在仓库根目录时需要配置 |
+
+<CodeGroup>
+
 ```ts
 export default defineConfig({
   siteUrl: 'https://docs.example.com',
+})
+```
+
+```ts
+export default defineConfig({
+  siteUrl: 'https://acme.github.io/docs',
+  routePrefix: '/docs/',
+})
+```
+
+```ts
+export default defineConfig({
   source: {
     repository: 'https://github.com/acme/docs',
     branch: 'main',
-    directory: 'docs/source',
+    directory: 'apps/docs/source',
   },
 })
 ```
 
-`siteUrl` 用于在 `clarify build` 时生成 `sitemap.xml` 和 `robots.txt`。`source` 会让页面操作菜单展示“编辑此页面”链接，指向对应源文件。
+```json
+{
+  "siteUrl": "https://docs.example.com",
+  "source": {
+    "repository": "https://github.com/acme/docs",
+    "branch": "main",
+    "directory": "source"
+  }
+}
+```
+
+</CodeGroup>
+
+配置 `siteUrl` 后，`clarify build` 会生成 `sitemap.xml` 和 `robots.txt`。没有配置时，站点仍可正常构建，只是不会输出依赖绝对 URL 的 SEO 文件。
 
 ---
 
@@ -161,15 +217,55 @@ type ClarifyLogoConfig = string | { light?: string; dark?: string }
 type ClarifyFaviconConfig = string | { light?: string; dark?: string }
 ```
 
+`logo` 影响站点品牌展示，`favicon` 影响浏览器标签页、收藏夹和部分系统分享预览。二者都支持：
+
+- 字符串：亮色和暗色主题使用同一份资源。
+- 对象：分别为 `light` 和 `dark` 主题提供不同资源。
+
+<CodeGroup>
+
 ```ts
 export default defineConfig({
   logo: '/logo.svg',
+  favicon: '/favicon.ico',
+})
+```
+
+```ts
+export default defineConfig({
+  logo: {
+    light: '/brand/logo-light.svg',
+    dark: '/brand/logo-dark.svg',
+  },
   favicon: {
-    light: '/favicon-light.svg',
-    dark: '/favicon-dark.svg',
+    light: '/brand/favicon-light.svg',
+    dark: '/brand/favicon-dark.svg',
   },
 })
 ```
+
+</CodeGroup>
+
+如果只配置了其中一个主题变体，另一个主题会尽量回退到可用资源。为了避免暗色模式下 Logo 对比度不足，建议为透明 SVG 分别准备亮色和暗色版本。
+
+---
+
+## `routePrefix`
+
+`routePrefix` 用来描述站点部署时挂载的子路径。默认值是 `/`，表示站点部署在域名根路径。它不会改变内容文件的组织方式，但会影响构建产物中的链接和资源路径。
+
+```ts
+export default defineConfig({
+  siteUrl: 'https://acme.github.io/docs',
+  routePrefix: '/docs/',
+})
+```
+
+使用建议：
+
+- 部署到 `https://docs.example.com/` 时通常不需要配置。
+- 部署到 `https://example.com/docs/` 时配置为 `/docs/`。
+- 建议以前后都有 `/` 的形式书写，减少路径拼接歧义。
 
 ---
 
@@ -184,24 +280,66 @@ theme: {
 }
 ```
 
-`preset` 用来选择内置主题基底。当前只提供两个预设：
+`theme` 采用“预设 + 局部覆盖”的模型：先选择 `preset`，再通过 `tokens` 和 `layout` 覆盖少量关键变量。没有配置的字段会继续继承预设默认值。
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `preset` | `'default' \| 'base'` | `'default'` | 主题基底。决定默认颜色、圆角和布局宽度。 |
+| `tokens.colors` | `ClarifyThemeColorTokensConfig` | 继承 preset | 颜色 token。支持字符串或 `{ light, dark }` 亮暗主题对象。 |
+| `tokens.radius` | `{ sm?: string; md?: string; lg?: string; xl?: string }` | 继承 preset | 圆角 token。接受任意 CSS 长度，例如 `0.5rem`、`12px`。 |
+| `layout.maxWidth` | `string` | 继承 preset | 文档整体最大宽度，例如 `80rem`、`1280px`。 |
+| `editor` | `boolean` | `false` | 是否在构建后的站点暴露实时主题编辑器；开发模式会自动启用。 |
+
+当前提供两个预设：
 
 | 预设 | 主色 | 辅助色 | 默认最大内容宽度 | 适用场景 |
 |------|------|--------|------------------|----------|
 | `default` | `#047857` | `#0D9488` | `82rem` | 带有绿色品牌感的默认文档主题 |
 | `base` | `#18181b` | `#52525b` | `80rem` | 无颜色偏好的黑、白、灰标准主题 |
 
-剩余字段会在预设基础上覆盖。例如下面配置会先应用 `base`，再把主色覆盖为品牌色：
+颜色 token 说明：
+
+| Token | 用途 |
+|-------|------|
+| `primary` | 链接、激活态、强调按钮、当前导航状态 |
+| `accent` | 次级强调、辅助高亮 |
+| `background` | 页面背景 |
+| `foreground` | 正文主文本 |
+| `surface` | 卡片、代码容器外层、浮层等表面背景 |
+| `muted` | 次要文本、说明文字、弱化 UI |
+| `border` | 边框和分割线 |
+| `codeBackground` | 行内代码和代码块背景 |
+
+<CodeGroup title='主题常见配置'>
+
+```ts
+export default defineConfig({
+  theme: {
+    preset: 'default',
+  },
+})
+```
 
 ```ts
 export default defineConfig({
   theme: {
     preset: 'base',
-    editor: true,
+    tokens: {
+      colors: {
+        primary: '#2563eb',
+        accent: '#7c3aed',
+      },
+    },
+  },
+})
+```
+
+```ts
+export default defineConfig({
+  theme: {
     tokens: {
       colors: {
         primary: { light: '#00D492', dark: '#34D399' },
-        accent: '#0D9488',
         background: { light: '#ffffff', dark: '#09090b' },
         foreground: { light: '#18181b', dark: '#fafafa' },
         surface: { light: '#f8fafc', dark: '#18181b' },
@@ -209,12 +347,24 @@ export default defineConfig({
         border: { light: '#e2e8f0', dark: '#27272a' },
         codeBackground: { light: '#0f172a', dark: '#020617' },
       },
+      radius: {
+        sm: '0.375rem',
+        md: '0.75rem',
+        lg: '1rem',
+        xl: '1.5rem',
+      },
     },
+    layout: {
+      maxWidth: '88rem',
+    },
+    editor: true,
   },
 })
 ```
 
-主题 token 是“局部覆盖”而不是重写整套主题；没有配置的字段会继续继承所选 preset 的默认值。颜色 token 可以直接写字符串，也可以按亮暗模式分别提供 `{ light?: string; dark?: string }`，例如 `muted: { light: '#64748b', dark: '#a1a1aa' }`；如果某个模式缺失，Clarify 会回退到可用值或 preset 默认值。`theme.editor` 可在构建后的站点中暴露实时主题编辑器；dev 模式会自动启用。当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
+</CodeGroup>
+
+颜色 token 可以直接写字符串，也可以按亮暗模式分别提供 `{ light?: string; dark?: string }`。如果某个模式缺失，Clarify 会回退到可用值或 preset 默认值。当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
 
 ---
 
@@ -245,19 +395,53 @@ type ClarifyNavbarLink = {
 }
 ```
 
+`navbar.links` 是站点顶部的全局入口。每个链接包含：
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `label` | 是 | 链接显示文本，支持本地化文本。 |
+| `href` | 是 | 目标地址。内部链接建议使用以 `/` 开头的站内路径；外部链接使用完整 URL。 |
+| `external` | 否 | 是否按外部链接处理。配置为 `true` 时通常会以新标签页打开，并带外部链接语义。 |
+
+<CodeGroup>
+
 ```ts
 export default defineConfig({
   navbar: {
     links: [
       { label: '文档', href: '/getting-started' },
       { label: 'API', href: '/features/openapi' },
+    ],
+  },
+})
+```
+
+```ts
+export default defineConfig({
+  navbar: {
+    links: [
+      { label: { 'zh-CN': '指南', 'en-US': 'Guides' }, href: '/guides' },
+      { label: { 'zh-CN': '更新日志', 'en-US': 'Changelog' }, href: '/changelog' },
       { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
     ],
   },
 })
 ```
 
-建议顶部导航只保留核心入口，完整信息架构交给侧边栏承载。
+```json
+{
+  "navbar": {
+    "links": [
+      { "label": "Docs", "href": "/getting-started" },
+      { "label": "GitHub", "href": "https://github.com/acme/docs", "external": true }
+    ]
+  }
+}
+```
+
+</CodeGroup>
+
+建议顶部导航只保留核心入口，完整信息架构交给侧边栏承载。不要把每个文档章节都放入 `navbar`，否则移动端和窄屏体验会变差。
 
 ---
 
@@ -270,14 +454,25 @@ type ClarifyBannerConfig = {
 }
 ```
 
+`banner` 用于顶部公告，适合短消息而不是长段落。`content` 支持本地化文本；`dismissible` 控制用户是否可以关闭公告。
+
 ```ts
 export default defineConfig({
   banner: {
-    content: 'Clarify v0.1 已发布',
-    dismissible: true,
+    content: {
+      'zh-CN': '我们正在迁移到新的 API 文档结构',
+      'en-US': 'We are migrating to a new API documentation structure',
+    },
+    dismissible: false,
   },
 })
 ```
+
+使用建议：
+
+- 发布、维护、迁移等时效性信息适合放在 `banner`。
+- 长期存在的产品说明更适合放在首页或指南页。
+- 重要事故或维护窗口建议设置 `dismissible: false`。
 
 ---
 
@@ -297,6 +492,16 @@ type ClarifyFooterConfig = {
 }
 ```
 
+`footer` 是页面底部区域，通常承载低频但重要的链接。字段说明：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `links` | `ClarifyFooterLink[]` | 页脚链接列表，结构与 `navbar.links` 相同。 |
+| `socials` | `Record<string, string>` | 社交或社区链接。键名可使用 `github`、`x`、`discord` 等语义名称。 |
+| `copyright` | `ClarifyLocalizedText` | 版权或组织声明，支持多语言。 |
+
+<CodeGroup>
+
 ```ts
 export default defineConfig({
   footer: {
@@ -313,7 +518,44 @@ export default defineConfig({
 })
 ```
 
-`links` 适合放置快速开始、配置参考、参与贡献等高频页脚入口；`socials` 适合放置 GitHub、X、Discord 等外部社区链接。
+```ts
+export default defineConfig({
+  footer: {
+    links: [
+      { label: { 'zh-CN': '隐私政策', 'en-US': 'Privacy Policy' }, href: '/privacy' },
+      { label: { 'zh-CN': '服务状态', 'en-US': 'Status' }, href: 'https://status.example.com', external: true },
+    ],
+    socials: {
+      github: 'https://github.com/acme',
+      discord: 'https://discord.gg/example',
+      x: 'https://x.com/acme',
+    },
+    copyright: {
+      'zh-CN': '© 2026 Acme Inc. 保留所有权利。',
+      'en-US': '© 2026 Acme Inc. All rights reserved.',
+    },
+  },
+})
+```
+
+```json
+{
+  "footer": {
+    "links": [
+      { "label": "Privacy", "href": "/privacy" },
+      { "label": "Status", "href": "https://status.example.com", "external": true }
+    ],
+    "socials": {
+      "github": "https://github.com/acme"
+    },
+    "copyright": "© 2026 Acme Inc."
+  }
+}
+```
+
+</CodeGroup>
+
+`links` 适合放置快速开始、配置参考、参与贡献、隐私政策等入口；`socials` 适合放置 GitHub、X、Discord 等外部社区链接。
 
 ---
 
@@ -331,6 +573,17 @@ type ClarifyI18nConfig = {
 }
 ```
 
+`i18n` 开启原生多语言。启用后，内容通常放在 `source/{locale}/` 下，例如 `source/zh-CN/index.mdx` 和 `source/en-US/index.mdx`。
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `locales` | 是 | 支持的语言列表。每个 `code` 必须唯一。 |
+| `defaultLocale` | 否 | 默认语言。必须是 `locales` 中的某个 `code`；省略时通常使用第一个 locale。 |
+| `missing` | 否 | 缺失翻译策略，默认按构建解析结果处理。 |
+| `locales[].code` | 是 | 语言代码，也是内容目录名和非默认语言路由前缀。 |
+| `locales[].label` | 是 | 语言选择器显示名称。 |
+| `locales[].dir` | 否 | 文本方向，`ltr` 或 `rtl`。 |
+
 `defaultLocale` 对应不带语言前缀的默认路由；非默认语言会带上 locale 前缀。例如默认语言为 `zh-CN` 时，中文首页是 `/`，英文首页是 `/en-US`。
 
 `missing` 控制某个语言缺少页面时的处理策略：
@@ -341,9 +594,50 @@ type ClarifyI18nConfig = {
 | `hide` | 不生成缺失语言页面 | 未翻译内容不希望出现在目标语言导航中 |
 | `404` | 缺失页面保持不可访问 | 严格多语言发布，不允许 fallback 内容混入 |
 
-`dir` 会写入生成 HTML 的 `dir` 属性，适合阿拉伯语、希伯来语等 RTL 语言。
+<CodeGroup>
 
-更多说明见 [配置站点](/guides/navigation)。
+```ts
+export default defineConfig({
+  i18n: {
+    defaultLocale: 'zh-CN',
+    missing: 'fallback',
+    locales: [
+      { code: 'zh-CN', label: '简体中文' },
+      { code: 'en-US', label: 'English' },
+    ],
+  },
+})
+```
+
+```ts
+export default defineConfig({
+  i18n: {
+    defaultLocale: 'en-US',
+    missing: 'hide',
+    locales: [
+      { code: 'en-US', label: 'English', dir: 'ltr' },
+      { code: 'ar', label: 'العربية', dir: 'rtl' },
+    ],
+  },
+})
+```
+
+```json
+{
+  "i18n": {
+    "defaultLocale": "en-US",
+    "missing": "404",
+    "locales": [
+      { "code": "en-US", "label": "English", "dir": "ltr" },
+      { "code": "ja-JP", "label": "日本語", "dir": "ltr" }
+    ]
+  }
+}
+```
+
+</CodeGroup>
+
+`dir` 会写入生成 HTML 的 `dir` 属性，适合阿拉伯语、希伯来语等 RTL 语言。更多说明见 [配置站点](/guides/navigation)。
 
 ---
 
@@ -365,7 +659,7 @@ type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree'
 
 如果省略 `tabs`，Clarify 会根据内容目录的文件结构自动生成一个普通侧边栏，包含 `.mdx` 和 `.openapi.json/.yaml/.yml` 文件。
 
-### 单个 tab 使用文件树
+<CodeGroup title='tabs 常见配置'>
 
 ```ts
 export default defineConfig({
@@ -378,8 +672,6 @@ export default defineConfig({
   ],
 })
 ```
-
-### 多个 tab 手动配置侧边栏
 
 ```ts
 export default defineConfig({
@@ -415,32 +707,104 @@ export default defineConfig({
 })
 ```
 
+```json
+{
+  "tabs": [
+    {
+      "tab": "Docs",
+      "icon": "BookOpen",
+      "pages": "FileTree"
+    }
+  ]
+}
+```
+
+</CodeGroup>
+
 ### `ClarifyTabItem`
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `tab` | `ClarifyLocalizedText` | 是 | tab 显示名称 |
-| `icon` | `string` | 否 | Lucide 图标名 |
-| `pages` | `ClarifyPagesConfig` | 否 | 当前 tab 下的侧边栏结构；省略时按文件树生成 |
+| `tab` | `ClarifyLocalizedText` | 是 | tab 显示名称。单语言站点可直接写字符串，多语言站点可写本地化文本。 |
+| `icon` | `string` | 否 | Lucide 图标名，显示在 tab 名称旁边。 |
+| `pages` | `ClarifyPagesConfig` | 否 | 当前 tab 下的侧边栏结构；省略时按文件树生成。 |
+
+最小 tab 配置：
+
+```ts
+{
+  tab: '文档',
+  pages: 'FileTree',
+}
+```
+
+带本地化名称和图标的 tab：
+
+```ts
+{
+  tab: { 'zh-CN': '指南', 'en-US': 'Guides' },
+  icon: 'Rocket',
+  pages: 'FileTree',
+}
+```
 
 ### `ClarifyPagesGroup`
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `group` | `ClarifyLocalizedText` | 是 | 分组标题 |
-| `icon` | `string` | 否 | Lucide 图标名 |
-| `pages` | `ClarifyPagesItem[]` | 是 | 分组下的页面 |
+| `group` | `ClarifyLocalizedText` | 是 | 侧边栏分组标题。 |
+| `icon` | `string` | 否 | Lucide 图标名，显示在分组标题旁边。 |
+| `pages` | `ClarifyPagesItem[]` | 是 | 分组下的页面列表，按配置顺序展示。 |
+
+当一个 tab 下有多个信息区块时，可以使用分组：
+
+```ts
+{
+  group: '快速开始',
+  icon: 'Rocket',
+  pages: ['index', 'getting-started', 'guides/writing-content'],
+}
+```
+
+多语言站点可以为分组标题和页面标题使用本地化文本：
+
+```ts
+{
+  group: { 'zh-CN': '核心路径', 'en-US': 'Core Path' },
+  pages: [
+    { page: 'getting-started', title: { 'zh-CN': '快速开始', 'en-US': 'Quick start' } },
+  ],
+}
+```
 
 ### `ClarifyPagesItem`
 
 | 形态 | 说明 |
 |------|------|
-| `"getting-started"` | 简写，引用 MDX 页面 |
-| `{ page }` | 引用 MDX 页面，不写 `.mdx` 后缀 |
-| `{ page, title, icon, redirect }` | 引用页面并覆盖标题、图标或目标路径 |
-| `{ openapi, title, icon, filter }` | 引用 OpenAPI 规范文件；`filter.tags` 可按 operation tags 过滤接口 |
+| `"getting-started"` | 简写，引用 MDX 页面；当文件自身标题足够清晰时使用。 |
+| `{ page }` | 引用 MDX 页面，不写 `.mdx` 后缀；适合需要对象写法时使用。 |
+| `{ page, title, icon, redirect }` | 引用页面，并可覆盖标题、图标或点击目标路径。 |
+| `{ openapi, title, icon, filter }` | 引用 OpenAPI 规范文件；`filter.tags` 可按 operation tags 过滤接口。 |
 
-`redirect` 只改变导航项点击后的目标路径，不会创建新的内容页面。它适合把一个导航入口指向更具体的章节、迁移后的路径，或在分组首页不存在时避免用户进入空页面：
+<CodeGroup title='pages 常见写法'>
+
+```ts
+'getting-started'
+```
+
+```ts
+{
+  page: 'guides/writing-content',
+}
+```
+
+```ts
+{
+  page: 'guides/writing-content',
+  title: '写作文档',
+  icon: 'PenLine',
+}
+```
 
 ```ts
 {
@@ -451,19 +815,22 @@ export default defineConfig({
 }
 ```
 
-OpenAPI 页面默认展示规范中的全部接口。配置 `filter.tags` 后，页面只展示 `operation.tags` 中至少命中一个指定 tag 的接口，并基于 tag 生成独立路由：
-
 ```ts
 {
   openapi: 'api.openapi.json',
   title: 'Projects API',
+  icon: 'BookOpenCheck',
   filter: {
     tags: ['Projects'],
   },
 }
 ```
 
-上面的页面路由为 `/api/projects`。tag 会被转成小写 kebab-case；多个 tag 会按配置顺序拼接，例如 `['Admin Users', 'Billing']` 会生成 `/api/admin-users-billing`。启用 i18n 时，默认语言仍是 `/api/projects`，非默认语言会加上 locale 前缀，例如 `/en-US/api/projects`。
+</CodeGroup>
+
+`redirect` 只改变导航项点击后的目标路径，不会创建新的内容页面。它适合把一个导航入口指向更具体的章节、迁移后的路径，或在分组首页不存在时避免用户进入空页面。
+
+OpenAPI 页面默认展示规范中的全部接口。配置 `filter.tags` 后，页面只展示 `operation.tags` 中至少命中一个指定 tag 的接口，并基于 tag 生成独立路由。OpenAPI tag 页面路由会被转成小写 kebab-case。例如 `['Projects']` 会生成 `/api/projects`；`['Admin Users', 'Billing']` 会生成 `/api/admin-users-billing`。启用 i18n 时，默认语言仍是 `/api/projects`，非默认语言会加上 locale 前缀，例如 `/en-US/api/projects`。
 
 ---
 
@@ -477,7 +844,17 @@ ssg: {
 
 | 字段 | 默认值 | 说明 |
 |------|--------|------|
-| `failOnError` | `true` | SSG 失败时是否中断构建 |
+| `failOnError` | `true` | SSG 失败时是否中断构建。为 `true` 时，任何页面预渲染失败都会让 `clarify build` 失败；为 `false` 时，构建会尽量继续并输出可生成页面。 |
+
+```ts
+export default defineConfig({
+  ssg: {
+    failOnError: true,
+  },
+})
+```
+
+推荐在 CI 和正式发布中保持 `failOnError: true`，这样可以尽早发现坏链接、渲染异常或数据缺失。只有在迁移阶段或临时容忍部分页面失败时，才建议设为 `false`。
 
 ---
 
@@ -487,22 +864,53 @@ ssg: {
 plugins: ClarifyPlugin[]
 ```
 
-插件只能在 `clarify.ts` 或 `clarify.js` 中配置。更多说明见 [插件机制](/features/plugins) 和 [插件 API 参考](/reference/plugin-api)。
+`plugins` 是构建期扩展点，可用于调整路由发现、转换 HTML、注入标签或集成外部系统。插件是函数或对象，因此只能在 `clarify.ts` 或 `clarify.js` 中配置，不能写入 `clarify.json`。
+
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+import { myClarifyPlugin } from './plugins/my-clarify-plugin'
+
+export default defineConfig({
+  plugins: [myClarifyPlugin()],
+})
+```
+
+更多说明见 [插件机制](/features/plugins) 和 [插件 API 参考](/reference/plugin-api)。
 
 ---
 
 ## CLI 覆盖项
 
-CLI 会把以下运行参数传入构建系统：
+CLI 参数属于运行时配置，不建议写入 `clarify.ts`。它们用于同一份项目配置在本地、预览环境和 CI 中以不同方式运行。
 
-| CLI 选项 | 内部字段 | 默认值 | 命令 |
-|----------|----------|--------|------|
-| `--root <dir>` | `projectRoot` | 当前目录 | `dev` / `build` / `init` |
-| `--content <dir>` | `rootDirectory` | `source` | `dev` / `build` / `init` |
-| `--output <dir>` | `outputDirectory` | `output` | `dev` / `build` / `init` |
-| `--host [host]` | Vite dev server host | — | `dev` |
-| `--port <port>` | Vite dev server port | — | `dev` |
-| `--open [path]` | Vite dev server open | — | `dev` |
+| CLI 选项 | 内部字段 | 默认值 | 命令 | 说明 |
+|----------|----------|--------|------|------|
+| `--root <dir>` | `projectRoot` | 当前目录 | `dev` / `build` / `init` | 项目根目录，通常是包含 `clarify.ts` 和 `source/` 的目录。 |
+| `--content <dir>` | `rootDirectory` | `source` | `dev` / `build` / `init` | 内容目录，存放 MDX、OpenAPI 和多语言子目录。 |
+| `--output <dir>` | `outputDirectory` | `output` | `dev` / `build` / `init` | 构建产物目录。CI 中常覆盖为部署平台要求的目录。 |
+| `--host [host]` | Vite dev server host | — | `dev` | 开发服务器监听地址。局域网调试时可设置为 `0.0.0.0`。 |
+| `--port <port>` | Vite dev server port | — | `dev` | 开发服务器端口。 |
+| `--open [path]` | Vite dev server open | — | `dev` | 启动开发服务器后自动打开浏览器，可指定打开路径。 |
+
+<CodeGroup>
+
+```bash
+clarify dev
+```
+
+```bash
+clarify dev --content docs --port 5173 --open /getting-started
+```
+
+```bash
+clarify build --content source --output dist
+```
+
+```bash
+clarify build --root apps/docs --output output
+```
+
+</CodeGroup>
 
 优先级为：
 
