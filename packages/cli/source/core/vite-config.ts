@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { existsSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 import { createLogger } from 'vite'
 import type { ConfigEnv, InlineConfig, Plugin, LogLevel, Logger, LogOptions, LogErrorOptions, LogType } from 'vite'
@@ -8,6 +8,7 @@ import { logBuildErrorSync } from './log.js'
 import type { ClarifyBuildOptions } from './options.js'
 import { clarifyPlugin } from './plugin.js'
 import { createClarifyRuntimeAliases } from './runtime-deps.js'
+import { createClarifyTempDir } from './temp-dir.js'
 import { loadClarifyConfig } from './user-config.js'
 
 export type ClarifyViteConfigOptions = {
@@ -25,8 +26,7 @@ function ensureHtmlEntry(root: string): string {
   const projectHtmlPath = resolve(root, 'index.html')
   if (existsSync(projectHtmlPath)) return projectHtmlPath
 
-  const generatedHtmlPath = resolve(root, '.clarify/index.html')
-  mkdirSync(dirname(generatedHtmlPath), { recursive: true })
+  const generatedHtmlPath = resolve(createClarifyTempDir('html'), 'index.html')
   writeFileSync(generatedHtmlPath, DEFAULT_HTML, 'utf-8')
   return generatedHtmlPath
 }

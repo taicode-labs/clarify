@@ -44,6 +44,14 @@ describe('openapi virtual modules', () => {
     expect(code).toContain('Example API')
   })
 
+  it('does not append duplicate openApis exports when the placeholder is missing', () => {
+    const code = generateOpenAPIRegistryModule(
+      { 'virtual:clarify-page/api': spec },
+      'export const footerComponent = undefined;',
+    )
+    expect(code).toBe('export const footerComponent = undefined;')
+  })
+
   it('generates an OpenAPI route component module', () => {
     const code = generateOpenAPIModule(spec, ['Users'])
     expect(code).toContain("import { OpenApiDocument } from '@clarify-labs/renderer';")

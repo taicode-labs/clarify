@@ -4,10 +4,11 @@ import type { ContentDiagnostic, OpenAPISpec } from '../../types.js'
 export const openApiRegistryModuleId = VIRTUAL_RUNTIME
 
 export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISpec>, runtimeModule = ''): string {
-  const replaced = runtimeModule.replace(/export const openApis = \{\};?/, `export const openApis = ${JSON.stringify(openApis)};`)
-  return replaced === runtimeModule
-    ? `${runtimeModule}\nexport const openApis = ${JSON.stringify(openApis)};`
-    : replaced
+  const openApisExport = `export const openApis = ${JSON.stringify(openApis)};`
+  const openApisPlaceholder = /export const openApis = \{\};?/
+  if (!runtimeModule) return openApisExport
+  if (openApisPlaceholder.test(runtimeModule)) return runtimeModule.replace(openApisPlaceholder, openApisExport)
+  return runtimeModule
 }
 
 export function generateOpenAPIModule(spec: OpenAPISpec, tagFilter?: string[]): string {
