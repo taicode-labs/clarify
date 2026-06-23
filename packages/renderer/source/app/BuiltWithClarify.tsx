@@ -13,7 +13,7 @@ export function BuiltWithClarify() {
       className="clarify-built-with inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-medium no-underline transition"
     >
       <span>{t('builtWith.prefix')}</span>
-      <img src={clarifyMarkUrl} alt="" className="clarify-built-with-logo h-3.5 w-5 flex-none" />
+      <img src={clarifyMarkUrl} alt="" className="clarify-built-with-logo h-3.5 w-auto flex-none object-contain" />
       <span className="clarify-built-with-brand font-semibold">Clarify</span>
     </a>
   )

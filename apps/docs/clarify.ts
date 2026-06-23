@@ -10,7 +10,7 @@ export default defineConfig({
     directory: 'apps/docs/source',
   },
   logo: '/clarify.svg',
-  favicon: '/clarify.svg',
+  favicon: '/clarify-icon.png',
   i18n: {
     defaultLocale: 'zh-CN',
     missing: 'fallback',

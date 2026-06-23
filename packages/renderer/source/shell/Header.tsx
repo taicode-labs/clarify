@@ -266,7 +266,7 @@ export const Header = forwardRef<
             <MobileNavigation config={config} navigation={navigation} tabs={tabs} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
           </div>
           <CloseButton as={Link} to={localizeHref('/', config, currentLocale)} aria-label={t('navbar.home')} className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
-            <SiteLogo logo={config.logo} className="h-6 w-6 shrink-0" />
+            <SiteLogo logo={config.logo} className="h-6 w-auto shrink-0 object-contain" />
             <span className="clarify-brand-title truncate font-semibold">{config.title}</span>
           </CloseButton>
         </div>
