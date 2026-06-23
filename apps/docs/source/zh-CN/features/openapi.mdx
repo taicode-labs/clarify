@@ -51,12 +51,13 @@ Clarify 会生成：
 }
 ```
 
-你也可以通过 `filter.tags` 从同一个 OpenAPI 文件发布多个页面。过滤页面只会展示 OpenAPI `operation.tags` 中至少命中一个指定 tag 的接口：
+你也可以通过 `filter.tags` 从同一个 OpenAPI 文件发布多个示例页面。过滤页面只会展示 OpenAPI `operation.tags` 中至少命中一个指定 tag 的接口：
 
 ```ts
 {
   openapi: 'api.openapi.json',
-  title: 'Projects API',
+  path: 'api/projects',
+  title: '示例：Projects API',
   icon: 'FolderKanban',
   filter: {
     tags: ['Projects'],
@@ -64,7 +65,7 @@ Clarify 会生成：
 }
 ```
 
-例如 `api.openapi.json` 配置 `filter.tags: ['Projects']` 后，页面路由为 `/api/projects`。tag 会被转成小写 kebab-case；多个 tag 会按配置顺序拼接，例如 `['Admin Users', 'Billing']` 会生成 `/api/admin-users-billing`。
+例如 `api.openapi.json` 配置 `filter.tags: ['Projects']` 后，页面默认生成路由 `/api/projects`。tag 会被转成小写 kebab-case；多个 tag 会按配置顺序拼接，例如 `['Admin Users', 'Billing']` 会生成 `/api/admin-users-billing`。如果希望明确控制最终路由，可以设置 `path`；router 会把 `path` 作为发布 URL 使用。
 
 ---
 

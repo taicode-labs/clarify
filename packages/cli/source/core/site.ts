@@ -1,6 +1,6 @@
 import { join, relative } from 'node:path'
 
-import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef } from '../parsers/routes.js'
+import { applyConfiguredPageRoutePaths, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef } from '../parsers/routes.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree, ResolvedClarifyI18nConfig } from '../types.js'
 
 import { createBuiltinPlugins } from './builtin.js'
@@ -95,6 +95,7 @@ export async function resolveClarifySite(options: ClarifyBuildOptions = {}, reso
 
   let routes = await discoverRoutes(root, contentRoot, plugins, ctx)
   routes = await runHooks(plugins, 'routes:discovered', routes, ctx)
+  routes = applyConfiguredPageRoutePaths(routes, projectConfig.tabs, projectConfig.i18n)
 
   const defaultNavigation = projectConfig.tabs
     ? projectConfig.i18n

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 
 import type { ClarifyPagesGroup, ContentRoute } from '../types.js'
 
-import { buildLocalizedNavigation, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromConfig, buildNavigationFromTabsConfig } from './routes.js'
+import { applyConfiguredPageRoutePaths, buildLocalizedNavigation, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromConfig, buildNavigationFromTabsConfig } from './routes.js'
 import { mdxRoute, testI18n } from './routes.test-utils.js'
 
 describe('buildNavigation', () => {
@@ -95,6 +95,54 @@ describe('buildNavigationFromTabsConfig', () => {
     expect(navigation?.['en-US'].tabs[0].title).toBe('Docs')
     expect(navigation?.['en-US'].tabs[0].path).toBe('/en-US/guide')
   })
+
+  it('builds localized tabbed navigation with explicit page paths', () => {
+    const routes: ContentRoute[] = [
+      mdxRoute({ path: '/docs/start', basePath: '/docs/start', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/en-US/docs/start', basePath: '/docs/start', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
+    ]
+
+    const navigation = buildLocalizedNavigationFromTabsConfig(routes, [
+      { tab: { 'zh-CN': '文档', 'en-US': 'Docs' }, pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: [{ page: 'guide', path: 'docs/start' }] }] },
+    ], testI18n)
+
+    expect(navigation?.['zh-CN'].tabs[0].path).toBe('/docs/start')
+    expect(navigation?.['zh-CN'].tabs[0].children[0].children?.[0].path).toBe('/docs/start')
+    expect(navigation?.['en-US'].tabs[0].path).toBe('/en-US/docs/start')
+    expect(navigation?.['en-US'].tabs[0].children[0].children?.[0].path).toBe('/en-US/docs/start')
+  })
+})
+
+describe('applyConfiguredPageRoutePaths', () => {
+  it('adds explicit page path route aliases', () => {
+    const routes: ContentRoute[] = [
+      mdxRoute({ path: '/guide', basePath: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'virtual:clarify-page/guide' }),
+    ]
+
+    const nextRoutes = applyConfiguredPageRoutePaths(routes, [
+      { tab: 'Docs', pages: [{ group: 'Guide', pages: [{ page: 'guide', path: 'docs/start' }] }] },
+    ])
+
+    expect(nextRoutes.find(route => route.path === '/docs/start')).toMatchObject({
+      basePath: '/docs/start',
+      filePath: 'guide.mdx',
+      virtualModuleId: 'virtual:clarify-page/guide',
+    })
+  })
+
+  it('adds localized explicit page path route aliases', () => {
+    const routes: ContentRoute[] = [
+      mdxRoute({ path: '/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
+    ]
+
+    const nextRoutes = applyConfiguredPageRoutePaths(routes, [
+      { tab: 'Docs', pages: [{ group: 'Guide', pages: [{ page: 'guide', path: 'docs/start' }] }] },
+    ], testI18n)
+
+    expect(nextRoutes.find(route => route.locale === 'zh-CN' && route.basePath === '/docs/start')?.path).toBe('/docs/start')
+    expect(nextRoutes.find(route => route.locale === 'en-US' && route.basePath === '/docs/start')?.path).toBe('/en-US/docs/start')
+  })
 })
 
 describe('buildNavigationFromConfig', () => {
@@ -127,6 +175,53 @@ describe('buildNavigationFromConfig', () => {
     expect(tree[0].title).toBe('Missing')
     expect(tree[0].children?.[0].title).toBe('Nonexistent')
     expect(tree[0].children?.[0].path).toBe('/nonexistent')
+  })
+
+  it('uses explicit page paths in navigation', () => {
+    const routes: ContentRoute[] = [
+      mdxRoute({
+        path: '/docs/start',
+        basePath: '/docs/start',
+        title: 'Getting Started',
+        filePath: 'guide.mdx',
+        virtualModuleId: 'virtual:clarify-page/guide',
+        sections: [{ id: 'intro', title: 'Intro', level: 2 }],
+      }),
+    ]
+    const config: ClarifyPagesGroup[] = [
+      { group: 'Guide', pages: [{ page: 'guide', path: 'docs/start' }] },
+    ]
+
+    const tree = buildNavigationFromConfig(routes, config)
+    expect(tree[0].children?.[0]).toMatchObject({
+      path: '/docs/start',
+      title: 'Getting Started',
+      sections: [{ id: 'intro', title: 'Intro' }],
+    })
+  })
+
+  it('uses explicit OpenAPI paths in navigation', () => {
+    const routes: ContentRoute[] = [
+      {
+        path: '/reference/projects',
+        basePath: '/reference/projects',
+        title: 'Tagged API',
+        filePath: 'api.openapi.json',
+        virtualModuleId: 'virtual:clarify-page/reference/projects',
+        kind: 'openapi',
+        sections: [{ id: 'get-projects', title: 'List projects', level: 2, badge: 'GET', tags: ['Projects'] }],
+      },
+    ]
+    const config: ClarifyPagesGroup[] = [
+      { group: 'API', pages: [{ openapi: 'api.openapi.json', path: 'reference/projects', filter: { tags: ['Projects'] } }] },
+    ]
+
+    const tree = buildNavigationFromConfig(routes, config)
+    expect(tree[0].children?.[0]).toMatchObject({
+      path: '/reference/projects',
+      title: 'Tagged API',
+      sections: [{ id: 'get-projects', title: 'List projects', badge: 'GET', tags: ['Projects'] }],
+    })
   })
 
   it('builds OpenAPI navigation paths from tag filters', () => {

@@ -50,7 +50,7 @@ function navigationSections(sections: ContentSection[]) {
   return sections.map(s => ({ id: s.id, title: s.title, badge: s.badge, tags: s.tags }))
 }
 
-function normalizePath(path: string): string {
+export function normalizePath(path: string): string {
   const clean = '/' + path.replace(/^\/+|\/+$/g, '')
   return clean === '/' ? '/' : clean.replace(/\/+/g, '/')
 }
@@ -72,14 +72,15 @@ export function basePathFromRef(ref: string): string {
   return normalizePath(withoutExtension === 'index' ? '/' : withoutExtension.replace(/\/index$/, ''))
 }
 
-export function openAPIPagePathFromRef(ref: string, tagFilter?: string[]): string {
+export function openAPIPagePathFromRef(ref: string, tagFilter?: string[], explicitPath?: string): string {
+  if (explicitPath) return normalizePath(explicitPath)
   const basePath = basePathFromRef(ref)
   if (!tagFilter?.length) return basePath
   return normalizePath(`${basePath}/${openAPITagsPathSegment(tagFilter)}`)
 }
 
-export function routePathFromRef(ref: string): string {
-  return basePathFromRef(ref)
+export function routePathFromRef(ref: string, explicitPath?: string): string {
+  return explicitPath ? normalizePath(explicitPath) : basePathFromRef(ref)
 }
 
 export function virtualModuleIdFromRef(ref: string): string {
@@ -247,10 +248,10 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
 
 function resolvePageItem(
   item: ClarifyPagesItem
-): { pageRef?: string; openapiRef?: string; openapiTagFilter?: string[]; redirect?: string; title?: ClarifyLocalizedText; icon?: string } {
+): { pageRef?: string; openapiRef?: string; openapiTagFilter?: string[]; path?: string; redirect?: string; title?: ClarifyLocalizedText; icon?: string } {
   if (typeof item === 'string') return { pageRef: item }
-  if ('openapi' in item) return { openapiRef: item.openapi, openapiTagFilter: item.filter?.tags, title: item.title, icon: item.icon }
-  return { pageRef: item.page, redirect: item.redirect, title: item.title, icon: item.icon }
+  if ('openapi' in item) return { openapiRef: item.openapi, openapiTagFilter: item.filter?.tags, path: item.path, title: item.title, icon: item.icon }
+  return { pageRef: item.page, path: item.path, redirect: item.redirect, title: item.title, icon: item.icon }
 }
 
 function firstNavigationPath(nodes: ClarifyNavigationNode[]): string {
@@ -260,6 +261,54 @@ function firstNavigationPath(nodes: ClarifyNavigationNode[]): string {
     if (childPath) return childPath
   }
   return '/'
+}
+
+function collectExplicitPagePathItems(tabs?: ClarifyTabsConfig): Array<{ pageRef: string; path: string }> {
+  const items: Array<{ pageRef: string; path: string }> = []
+
+  for (const tab of tabs ?? []) {
+    if (!tab.pages || tab.pages === 'FileTree') continue
+    for (const group of tab.pages) {
+      for (const item of group.pages) {
+        if (typeof item !== 'string' && 'page' in item && item.path) {
+          items.push({ pageRef: item.page, path: item.path })
+        }
+      }
+    }
+  }
+
+  return items
+}
+
+export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: ClarifyTabsConfig, i18n?: ResolvedClarifyI18nConfig): ContentRoute[] {
+  const pageItems = collectExplicitPagePathItems(tabs)
+  if (!pageItems.length) return routes
+
+  const additions: ContentRoute[] = []
+  const existingKeys = new Set(routes.map(route => `${route.locale ?? ''}:${route.basePath ?? route.path}`))
+
+  for (const item of pageItems) {
+    const sourceBasePath = routePathFromRef(item.pageRef)
+    const targetBasePath = routePathFromRef(item.pageRef, item.path)
+    if (sourceBasePath === targetBasePath) continue
+
+    for (const route of routes) {
+      if (route.kind !== 'mdx' || (route.basePath ?? route.path) !== sourceBasePath) continue
+
+      const key = `${route.locale ?? ''}:${targetBasePath}`
+      if (existingKeys.has(key)) continue
+      existingKeys.add(key)
+
+      additions.push({
+        ...route,
+        path: route.locale && i18n ? localizedRoutePath(targetBasePath, route.locale, i18n) : targetBasePath,
+        basePath: targetBasePath,
+      })
+    }
+  }
+
+  const nextRoutes = [...routes, ...additions]
+  return i18n ? nextRoutes.map(route => withAlternates(route, nextRoutes, i18n)) : nextRoutes
 }
 
 function buildNavigationFromPagesConfig(routes: ContentRoute[], config?: ClarifyPagesConfig): ClarifyNavigationNode[] {
@@ -287,10 +336,10 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
 
   return config.map(group => {
     const children = group.pages.map(item => {
-      const { pageRef, openapiRef, openapiTagFilter, redirect, title, icon } = resolvePageItem(item)
+      const { pageRef, openapiRef, openapiTagFilter, path: explicitPath, redirect, title, icon } = resolvePageItem(item)
 
       if (openapiRef) {
-        const path = openAPIPagePathFromRef(openapiRef, openapiTagFilter)
+        const path = openAPIPagePathFromRef(openapiRef, openapiTagFilter, explicitPath)
         const route = routeMap.get(path)
         return {
           path,
@@ -301,10 +350,10 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
       }
 
       const ref = pageRef ?? ''
-      const path = ref === 'index' ? '/' : '/' + ref
+      const path = routePathFromRef(ref, explicitPath)
       const route = routeMap.get(path)
       return {
-        path: redirect ? redirect : path,
+        path: redirect ? normalizePath(redirect) : path,
         title: resolveLocalizedText(title, '', '') ?? route?.title ?? kebabToTitle(path.split('/').pop() ?? ref),
         icon,
         sections: route?.sections ? navigationSections(route.sections) : undefined,
@@ -349,12 +398,12 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
   const routeMap = new Map(routes.map(route => [route.basePath ?? route.path, route]))
   return config.map(group => {
     const children = group.pages.map(item => {
-      const { pageRef, openapiRef, openapiTagFilter, redirect, title, icon } = resolvePageItem(item)
+      const { pageRef, openapiRef, openapiTagFilter, path: explicitPath, redirect, title, icon } = resolvePageItem(item)
       const ref = openapiRef ?? pageRef ?? ''
-      const basePath = openapiRef ? openAPIPagePathFromRef(openapiRef, openapiTagFilter) : basePathFromRef(ref)
+      const basePath = openapiRef ? openAPIPagePathFromRef(openapiRef, openapiTagFilter, explicitPath) : routePathFromRef(ref, explicitPath)
       const route = routeMap.get(basePath)
       const path = route?.path ?? localizedRoutePath(basePath, locale, i18n)
-      const redirectPath = redirect ? localizedRoutePath(basePathFromRef(redirect), locale, i18n) : undefined
+      const redirectPath = redirect ? localizedRoutePath(routePathFromRef(redirect), locale, i18n) : undefined
 
       return {
         path: redirectPath ?? path,

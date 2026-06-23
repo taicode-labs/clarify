@@ -225,6 +225,30 @@ export default defineConfig({
               icon: 'FileJson2',
             },
             {
+              openapi: 'api.openapi.json',
+              path: 'openapi/pages',
+              title: {
+                'zh-CN': '示例：Pages API',
+                'en-US': 'Example: Pages API',
+              },
+              icon: 'BookOpenCheck',
+              filter: {
+                tags: ['Pages'],
+              },
+            },
+            {
+              openapi: 'api.openapi.json',
+              path: 'openapi/assets',
+              title: {
+                'zh-CN': '示例：Assets API',
+                'en-US': 'Example: Assets API',
+              },
+              icon: 'ImageUp',
+              filter: {
+                tags: ['Assets'],
+              },
+            },
+            {
               page: 'openapi/embedding',
               title: {
                 'zh-CN': '局部嵌入使用说明',

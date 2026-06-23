@@ -51,12 +51,13 @@ If you maintain the sidebar explicitly, add this to `tabs`:
 }
 ```
 
-You can also publish multiple pages from the same OpenAPI file via `filter.tags`. A filtered page only shows endpoints that match at least one of the specified tags in the OpenAPI `operation.tags`:
+You can also publish multiple example pages from the same OpenAPI file via `filter.tags`. A filtered page only shows endpoints that match at least one of the specified tags in the OpenAPI `operation.tags`:
 
 ```ts
 {
   openapi: 'api.openapi.json',
-  title: 'Projects API',
+  path: 'api/projects',
+  title: 'Example: Projects API',
   icon: 'FolderKanban',
   filter: {
     tags: ['Projects'],
@@ -64,7 +65,7 @@ You can also publish multiple pages from the same OpenAPI file via `filter.tags`
 }
 ```
 
-For example, after configuring `filter.tags: ['Projects']` for `api.openapi.json`, the page route becomes `/api/projects`. Tags are converted to lowercase kebab-case; multiple tags are joined in configuration order, e.g. `['Admin Users', 'Billing']` generates `/api/admin-users-billing`.
+For example, after configuring `filter.tags: ['Projects']` for `api.openapi.json`, the generated page route defaults to `/api/projects`. Tags are converted to lowercase kebab-case; multiple tags are joined in configuration order, e.g. `['Admin Users', 'Billing']` generates `/api/admin-users-billing`. Set `path` when you want to choose the final route explicitly; the router uses `path` as the published URL.
 
 ---
 

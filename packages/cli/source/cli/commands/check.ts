@@ -2,10 +2,10 @@ import { existsSync } from 'node:fs'
 import { lstat, stat } from 'node:fs/promises'
 import { dirname, extname, isAbsolute, join, normalize, relative, resolve } from 'node:path'
 
-import type { CliOptions } from '../options.js'
-import { loadClarifyConfig } from '../../core/user-config.js'
 import { resolveClarifySite } from '../../core/site.js'
+import { loadClarifyConfig } from '../../core/user-config.js'
 import type { ContentRoute } from '../../types.js'
+import type { CliOptions } from '../options.js'
 
 export type CheckCommandOptions = CliOptions & {
   strict?: boolean

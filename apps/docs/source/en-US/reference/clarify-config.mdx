@@ -783,8 +783,8 @@ Use localized text when the group title appears in multiple languages:
 |-------|-------------|
 | `"getting-started"` | Shorthand, references an MDX page. Use it when the file title is enough. |
 | `{ page }` | References an MDX page without the `.mdx` suffix. Use it when you need object syntax. |
-| `{ page, title, icon, redirect }` | References a page and optionally overrides the title, icon, or target path. |
-| `{ openapi, title, icon, filter }` | References an OpenAPI spec file; `filter.tags` filters endpoints by operation tags. |
+| `{ page, path, title, icon, redirect }` | References a page and optionally overrides the route path, title, icon, or click target. |
+| `{ openapi, path, title, icon, filter }` | References an OpenAPI spec file; `path` can override the generated route and `filter.tags` filters endpoints by operation tags. |
 
 <CodeGroup title='Common page item cases'>
 
@@ -806,6 +806,15 @@ Use localized text when the group title appears in multiple languages:
 }
 ```
 
+```ts title="Explicit page path"
+{
+  page: 'guides/writing-content',
+  path: 'docs/writing',
+  title: 'Writing docs',
+  icon: 'PenLine',
+}
+```
+
 ```ts title="Redirect item"
 {
   page: 'guides',
@@ -815,10 +824,11 @@ Use localized text when the group title appears in multiple languages:
 }
 ```
 
-```ts title="OpenAPI filter"
+```ts title="OpenAPI filter example"
 {
   openapi: 'api.openapi.json',
-  title: 'Projects API',
+  path: 'api/projects',
+  title: 'Example: Projects API',
   icon: 'BookOpenCheck',
   filter: {
     tags: ['Projects'],
@@ -828,9 +838,11 @@ Use localized text when the group title appears in multiple languages:
 
 </CodeGroup>
 
+`path` sets the actual route consumed by the router. It is optional: when omitted, Clarify generates the route from the page or OpenAPI filename. For example, `page: 'guides/writing-content'` becomes `/guides/writing-content`, and `openapi: 'api.openapi.json'` becomes `/api`. Use `path` when you want a stable URL that differs from the source file path.
+
 `redirect` only changes the target path when a navigation item is clicked; it does not create a new content page. It is useful for pointing a navigation entry to a more specific section, a migrated path, or avoiding an empty page when a group homepage does not exist.
 
-OpenAPI pages display all endpoints in the specification by default. After configuring `filter.tags`, the page only displays endpoints whose `operation.tags` contain at least one specified tag, and generates an independent route based on the tag. OpenAPI tag page routes are converted to lowercase kebab-case. For example, `['Projects']` generates `/api/projects`; `['Admin Users', 'Billing']` generates `/api/admin-users-billing`. When i18n is enabled, the default language remains `/api/projects`, while non-default languages add the locale prefix, such as `/en-US/api/projects`.
+OpenAPI pages display all endpoints in the specification by default. After configuring `filter.tags`, the page only displays endpoints whose `operation.tags` contain at least one specified tag, and generates an independent route based on the tag. OpenAPI tag page routes are converted to lowercase kebab-case. For example, `['Projects']` generates `/api/projects`; `['Admin Users', 'Billing']` generates `/api/admin-users-billing`. When `path` is set, it overrides that generated route, so the example above is published at `/api/projects` because `path: 'api/projects'` is explicit. When i18n is enabled, the default language keeps the configured route, while non-default languages add the locale prefix, such as `/en-US/api/projects`.
 
 ---
 

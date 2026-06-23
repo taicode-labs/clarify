@@ -138,6 +138,8 @@ export type ClarifyPagesItem =
   | string
   | {
     page: string
+    /** Explicit route path. Defaults to the path generated from page. */
+    path?: string
     /** Override the page title. Defaults to localized route title. */
     title?: ClarifyLocalizedText
     /** Icon name from lucide-react, e.g. "BookOpen". */
@@ -148,6 +150,8 @@ export type ClarifyPagesItem =
   }
   | {
     openapi: string
+    /** Explicit route path. Defaults to the path generated from openapi and filter. */
+    path?: string
     /** Icon name from lucide-react, e.g. "Webhook". */
     icon?: string
     /** Override the page title. Defaults to spec.info.title. */

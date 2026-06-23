@@ -1,4 +1,4 @@
-import { localizedRoutePath, openAPIPagePathFromRef, openAPITagsPathSegment } from '../../parsers/routes.js'
+import { localizedRoutePath, openAPIPagePathFromRef } from '../../parsers/routes.js'
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
 
 import { extractOpenAPISections, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
@@ -16,7 +16,7 @@ function collectOpenAPIPageItems(config: ResolvedProjectConfig): Array<Extract<C
     if (!pages || pages === 'FileTree') return
     for (const group of pages) {
       for (const item of group.pages) {
-        if (typeof item !== 'string' && 'openapi' in item && item.filter?.tags?.length) items.push(item)
+        if (typeof item !== 'string' && 'openapi' in item && (item.path || item.filter?.tags?.length)) items.push(item)
       }
     }
   }
@@ -38,7 +38,11 @@ function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n: Resol
   return { ...route, alternates }
 }
 
-function createTaggedOpenAPIRoutes(routes: ContentRoute[], config: ResolvedProjectConfig): ContentRoute[] {
+function virtualModuleIdFromPath(path: string): string {
+  return `virtual:clarify-page/${path.replace(/^\/+/, '') || 'index'}`
+}
+
+function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedProjectConfig): ContentRoute[] {
   const pageItems = collectOpenAPIPageItems(config)
   if (!pageItems.length) return routes
 
@@ -47,24 +51,24 @@ function createTaggedOpenAPIRoutes(routes: ContentRoute[], config: ResolvedProje
 
   for (const item of pageItems) {
     const tagFilter = item.filter?.tags?.filter(Boolean)
-    if (!tagFilter?.length) continue
-
     const sourceBasePath = openAPIPagePathFromRef(item.openapi)
-    const filteredBasePath = openAPIPagePathFromRef(item.openapi, tagFilter)
+    const targetBasePath = openAPIPagePathFromRef(item.openapi, tagFilter, item.path)
+    if (sourceBasePath === targetBasePath && !tagFilter?.length) continue
+
     for (const route of routes) {
       if (route.kind !== 'openapi' || (route.basePath ?? route.path) !== sourceBasePath) continue
 
-      const key = `${route.locale ?? ''}:${filteredBasePath}`
+      const key = `${route.locale ?? ''}:${targetBasePath}`
       if (existingKeys.has(key)) continue
       existingKeys.add(key)
 
       additions.push({
         ...route,
-        path: route.locale && config.i18n ? localizedRoutePath(filteredBasePath, route.locale, config.i18n) : filteredBasePath,
-        basePath: filteredBasePath,
+        path: route.locale && config.i18n ? localizedRoutePath(targetBasePath, route.locale, config.i18n) : targetBasePath,
+        basePath: targetBasePath,
         title: route.title,
-        virtualModuleId: `${route.virtualModuleId}/${openAPITagsPathSegment(tagFilter)}`,
-        openapiTagFilter: tagFilter,
+        virtualModuleId: virtualModuleIdFromPath(targetBasePath),
+        openapiTagFilter: tagFilter?.length ? tagFilter : undefined,
       })
     }
   }
@@ -86,7 +90,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
       'routes:discovered': async (routes, ctx) => {
         for (const key of Object.keys(specs)) delete specs[key]
 
-        const nextRoutes = createTaggedOpenAPIRoutes(routes, ctx.projectConfig)
+        const nextRoutes = createConfiguredOpenAPIRoutes(routes, ctx.projectConfig)
         const specByFilePath = new Map<string, OpenAPISpec>()
 
         for (const route of nextRoutes.filter(route => route.kind === 'openapi')) {

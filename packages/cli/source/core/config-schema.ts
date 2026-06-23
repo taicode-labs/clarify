@@ -82,12 +82,14 @@ export const clarifyPagesItemSchema = z.union([
   z.string(),
   z.object({
     page: z.string(),
+    path: z.string().optional(),
     title: clarifyLocalizedTextSchema.optional(),
     icon: z.string().optional(),
     redirect: z.string().optional(),
   }),
   z.object({
     openapi: z.string(),
+    path: z.string().optional(),
     icon: z.string().optional(),
     title: clarifyLocalizedTextSchema.optional(),
     filter: z.object({
