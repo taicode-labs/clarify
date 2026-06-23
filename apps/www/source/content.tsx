@@ -5,7 +5,7 @@ import { ChevronIcon } from './ui/icons/chevron-icon'
 export const site = {
   docsUrl: 'https://docs.clarify.pub',
   githubUrl: 'https://github.com/taicode-labs/clarify',
-  contactUrl: 'mailto:hello@taicode.com',
+  contactUrl: 'mailto:sales@clarify.pub',
 }
 
 export const navLinks = [
