@@ -2,6 +2,8 @@ import clsx from 'clsx'
 import { ArrowRight } from 'lucide-react'
 import type { ComponentPropsWithoutRef } from 'react'
 
+import { LocalizedLink } from './LocalizedLink'
+
 const buttonVariantStyles = {
   primary:
     'rounded-full bg-(--clarify-theme-tokens-colors-foreground) px-3 py-1 text-(--clarify-theme-tokens-colors-background) hover:opacity-80 dark:bg-(--clarify-theme-tokens-colors-primary)/10 dark:text-(--clarify-theme-tokens-colors-primary) dark:ring-1 dark:ring-inset dark:ring-(--clarify-theme-tokens-colors-primary)/20 dark:hover:opacity-80',
@@ -60,8 +62,8 @@ export function Button(arg0: ButtonProps) {
   }
 
   return (
-    <a className={classes} {...props}>
+    <LocalizedLink className={classes} {...props}>
       {inner}
-    </a>
+    </LocalizedLink>
   )
 }

@@ -1,9 +1,8 @@
 import clsx from 'clsx'
 import { Info } from 'lucide-react'
 import { createElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 
-import { Button, Callout, Card, CardGroup, Heading, Prose } from '../components'
+import { Button, Callout, Card, CardGroup, Heading, LocalizedLink, Prose } from '../components'
 import { Code, CodeGroup, Pre } from '../components/Code'
 
 type WrapperProps = { children: ReactNode }
@@ -19,11 +18,7 @@ export function wrapper(arg0: WrapperProps) {  const { children } = arg0
 
 export function a(arg0: ComponentPropsWithoutRef<'a'>) {  const { href = '', ...props } = arg0
 
-  if (href.startsWith('/') && !href.startsWith('//')) {
-    return <Link to={href} {...props} />
-  }
-
-  return <a href={href} {...props} />
+  return <LocalizedLink href={href} {...props} />
 }
 
 export const code = Code

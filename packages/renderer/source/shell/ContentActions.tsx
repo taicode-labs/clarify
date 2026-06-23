@@ -102,8 +102,8 @@ export function ContentActions(arg0: ContentActionsProps) {
   const PrimaryIcon = primaryAction && copied === primaryAction.key ? Check : primaryAction?.icon ?? PencilLine
 
   return (
-    <div className={`clarify-content-actions sticky z-20 flex justify-end py-4 ${hasTabs ? 'top-16 lg:top-30' : 'top-16'}`}>
-      <Menu as="div" className="clarify-content-actions-menu relative inline-flex text-sm font-medium">
+    <div className={`clarify-content-actions pointer-events-none sticky z-20 flex justify-end py-4 ${hasTabs ? 'top-16 lg:top-30' : 'top-16'}`}>
+      <Menu as="div" className="clarify-content-actions-menu pointer-events-auto relative inline-flex text-sm font-medium">
         <div className="clarify-content-actions-group inline-flex overflow-hidden rounded-full border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/90 shadow-sm shadow-zinc-900/5 backdrop-blur">
           {primaryAction ? (
             <button

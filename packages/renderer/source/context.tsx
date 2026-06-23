@@ -1,1 +1,1 @@
-export { ClarifyConfigContext, ClarifyLocaleContext, OpenApisContext, useClarifyConfig, useOpenApis } from './core/context'
+export { ClarifyConfigContext, ClarifyLocaleContext, OpenApisContext, useClarifyConfig, useClarifyLocale, useOpenApis } from './core/context'

@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 
+import { LocalizedLink } from './LocalizedLink'
 import { lucideIconRegistry, resolveLucideIconName } from '../utils/lucide'
 
 type CardIconProps = { name?: string }
@@ -84,17 +84,9 @@ export function Card(arg0: CardProps) {
     return <div className={classes}>{content}</div>
   }
 
-  if (href.startsWith('/') && !href.startsWith('//')) {
-    return (
-      <Link to={href} className={classes} {...props}>
-        {content}
-      </Link>
-    )
-  }
-
   return (
-    <a href={href} className={classes} {...props}>
+    <LocalizedLink href={href} className={classes} {...props}>
       {content}
-    </a>
+    </LocalizedLink>
   )
 }
