@@ -1,72 +1,406 @@
-# Built-in Components
+# Built-in public components
 
-Clarify registers a set of documentation components automatically in MDX.
-You do not need to import them manually in `.mdx` content.
-
----
-
-## Built-in MDX components
-
-The following components are available directly in MDX:
-
-- `Callout`
-- `CardGroup` / `Card`
-- `Button`
-- `CodeGroup`
-- `Collapse`
-- `OpenApiOperation`
-- `OpenApiDocument`
+Clarify registers a set of public components in MDX by default. You do not need to `import` them manually; you can use them directly in `.mdx` files to organize homepage entries, hints, action buttons, and code examples.
 
 ---
 
-## OpenAPI components
+## Automatically available MDX components
 
-### `OpenApiOperation`
+The following components can be used directly in MDX pages:
 
-Embed a single operation from an OpenAPI spec:
+- Content hints: `Callout`, `Note`
+- Entries and actions: `CardGroup` / `Card`, `Button`
+- Code and collapsible content: `CodeGroup`, `Collapse`
+- Layout and property descriptions: `Row` / `Col`, `Properties` / `Property`
+- Markdown rendering: `Markdown`
+- OpenAPI: `OpenApiOperation`, `OpenApiDocument`
+
+---
+
+## Component overview
+
+<CardGroup cols={3}>
+  <Card title="Callout / Note" icon="info" href="#callout">
+    Used to display tips, warnings, success states, and supplementary notes.
+  </Card>
+  <Card title="CardGroup / Card" icon="layout-grid" href="#cardgroup--card">
+    Used to create entry cards, feature matrices, and documentation indexes.
+  </Card>
+  <Card title="Button" icon="mouse-pointer-click" href="#button">
+    Used to provide clear action entries or external links.
+  </Card>
+  <Card title="CodeGroup" icon="braces" href="#codegroup">
+    Used to present code examples for multiple languages, package managers, or environments.
+  </Card>
+  <Card title="Collapse" icon="list-collapse" href="#collapse">
+    Used to collapse optional details, long lists, and advanced notes.
+  </Card>
+  <Card title="OpenAPI" icon="file-json-2" href="#openapi-components">
+    Used to display a complete API Reference or a single endpoint.
+  </Card>
+</CardGroup>
+
+---
+
+## Callout
+
+`Callout` is suitable for notes, reminders, or risk warnings that are strongly related to the main text.
+
+### Basic usage
 
 ```mdx
-<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+<Callout type="info">
+  The model list is updated continuously. Before production integration, use the models currently available in the console or model marketplace as the source of truth.
+</Callout>
 ```
 
-| Prop | Description |
-|------|-------------|
-| `specPath` | Route of the OpenAPI reference, such as `/api`. |
-| `path` | Exact OpenAPI path key, such as `/examples/path-parameters/{pageId}`. |
-| `method` | HTTP method, usually lowercase. |
+### Types
 
-### `Collapse`
+`type` supports `info`, `note`, `tip`, `warning`, `danger`, and `success`.
 
-Hide and reveal extra content inside a documentation page. Use `title` or `summary` to set the visible header.
+<Callout type="note" title="Note">
+  Best for adding contextual explanations without interrupting the main flow with details.
+</Callout>
+
+<Callout type="tip" title="Tip">
+  Best for recommended practices, efficiency tips, or better paths.
+</Callout>
+
+<Callout type="warning" title="Warning">
+  Best for caveats that may cause build failures, insufficient permissions, or behavior changes.
+</Callout>
+
+<Callout type="danger" title="Danger">
+  Best for high-risk operations, such as deleting data, resetting environments, or exposing secrets.
+</Callout>
+
+<Callout type="success" title="Success">
+  Best for showing that an operation is complete, configuration has taken effect, or verification has passed.
+</Callout>
+
+### Props
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `type` | `'info' \| 'note' \| 'tip' \| 'warning' \| 'danger' \| 'success'` | `'info'` | Controls the color and icon |
+| `title` | `ReactNode` | Generated automatically from `type` | Title; pass an empty value to hide it |
+| `icon` | `boolean` | `true` | Whether to show the icon |
+| `className` | `string` | - | Additional CSS class names |
+
+---
+
+## Note
+
+`Note` is a lighter inline hint component, suitable for supplementary information that does not change the task flow. Compared with `Callout`, it does not require a type and has no title bar.
 
 ```mdx
-<Collapse title="Show more details">
-  ## Hidden section
+<Note>
+  Titles, H2/H3 headings, and navigation names affect site search results. Use terms users can understand.
+</Note>
+```
 
-  This content is collapsed by default and is revealed when the user expands the section.
+<Note>
+  Titles, H2/H3 headings, and navigation names affect site search results. Use terms users can understand.
+</Note>
+
+### Props
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `children` | `ReactNode` | Required | Hint content |
+
+---
+
+## CardGroup / Card
+
+`CardGroup` and `Card` are suitable for documentation entries, feature lists, solution matrices, or section navigation.
+
+### Basic usage
+
+```mdx
+<CardGroup cols={2}>
+  <Card title="About Clarify" icon="badge-info" href="/getting-started">
+    Learn Clarify's product positioning, core value, and recommended usage path.
+  </Card>
+  <Card title="Quick start" icon="rocket" href="/getting-started">
+    Prepare the environment, install the CLI, and create your first documentation site.
+  </Card>
+</CardGroup>
+```
+
+Rendered result:
+
+<CardGroup cols={2}>
+  <Card title="About Clarify" icon="badge-info" href="/getting-started">
+    Learn Clarify's product positioning, core value, and recommended usage path.
+  </Card>
+  <Card title="Quick start" icon="rocket" href="/getting-started">
+    Prepare the environment, install the CLI, and create your first documentation site.
+  </Card>
+  <Card title="Writing docs" icon="file-code-2" href="/guides/writing-content">
+    Use Markdown, JSX, and built-in components to write richer content.
+  </Card>
+  <Card title="API documentation" icon="braces" href="/features/openapi">
+    Generate endpoint documentation and single-endpoint displays from OpenAPI description files.
+  </Card>
+</CardGroup>
+
+### Icon naming
+
+The `icon` prop of `Card` uses `lucide-react` icon names and supports automatic conversion from kebab-case. For example:
+
+| Syntax | Corresponding icon |
+|--------|--------------------|
+| `badge-info` | `BadgeInfo` |
+| `rocket` | `Rocket` |
+| `file-code-2` | `FileCode2` |
+| `shield-check` | `ShieldCheck` |
+
+### Props
+
+#### CardGroup
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `cols` | `1 \| 2 \| 3 \| 4` | `2` | Number of desktop columns |
+| `className` | `string` | - | Additional CSS class names |
+
+#### Card
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `title` | `string` | Required | Card title |
+| `icon` | `string` | - | lucide icon name; kebab-case is supported |
+| `href` | `string` | - | Card link; internal paths use client-side routing |
+| `className` | `string` | - | Additional CSS class names |
+
+---
+
+## Collapse
+
+`Collapse` is suitable for collapsing optional supplementary notes, implementation details, or long lists to keep the main documentation flow concise.
+
+```mdx
+<Collapse title="View details">
+  This content is collapsed by default and is displayed only after the user clicks the title.
+</Collapse>
+
+<Collapse summary="Open by default" defaultOpen>
+  This content is initially visible, and users can still collapse it manually.
 </Collapse>
 ```
 
-### `OpenApiDocument`
+<Collapse title="View details">
+  This content is collapsed by default and is displayed only after the user clicks the title.
+</Collapse>
 
-Embed a complete OpenAPI Reference page in MDX:
+### Props
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `title` | `ReactNode` | - | Collapse panel title; takes precedence over `summary` |
+| `summary` | `ReactNode` | `'Details'` | Fallback title |
+| `defaultOpen` | `boolean` | `false` | Whether to expand by default |
+| `className` | `string` | - | Additional CSS class names |
+
+---
+
+## Button
+
+`Button` is suitable for providing a clear next action in documentation.
 
 ```mdx
+<Button href="/getting-started" arrow="right">
+  Start installation
+</Button>
+
+<Button href="https://github.com/taicode-labs/clarify" variant="outline">
+  View GitHub
+</Button>
+```
+
+Rendered result:
+
+<div className="not-prose my-6 flex flex-wrap gap-3">
+  <Button href="/getting-started" arrow="right">
+    Start installation
+  </Button>
+  <Button href="https://github.com/taicode-labs/clarify" variant="outline">
+    View GitHub
+  </Button>
+</div>
+
+### Props
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `variant` | `'primary' \| 'secondary' \| 'filled' \| 'outline' \| 'text'` | `'primary'` | Button style |
+| `arrow` | `'left' \| 'right'` | - | Whether to show a directional arrow |
+| `href` | `string` | - | Renders as a link when present; otherwise renders as a button |
+
+---
+
+## CodeGroup
+
+`CodeGroup` is used to organize parallel code examples, such as examples for different package managers or languages.
+
+````mdx
+<CodeGroup>
+
+```bash
+pnpm add @clarify-labs/cli
+```
+
+```bash
+npm install @clarify-labs/cli
+```
+
+</CodeGroup>
+````
+
+Rendered result:
+
+<CodeGroup>
+
+```bash
+pnpm add @clarify-labs/cli
+```
+
+```bash
+npm install @clarify-labs/cli
+```
+
+</CodeGroup>
+
+---
+
+## Row / Col
+
+`Row` and `Col` are used to create two-column layouts on large screens. They are common in documentation structures like “explanation on the left, example on the right” or “steps on the left, endpoint on the right.”
+
+````mdx
+<Row>
+  <Col>
+    ## Writing advice
+
+    First explain why the user should perform this step.
+  </Col>
+  <Col sticky>
+    ```bash
+    pnpm exec clarify dev
+    ```
+  </Col>
+</Row>
+````
+
+### Props
+
+#### Row
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `children` | `ReactNode` | Required | Two-column content |
+
+#### Col
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `children` | `ReactNode` | Required | Content of the current column |
+| `sticky` | `boolean` | `false` | Whether to stick to the top on large screens |
+
+---
+
+## Properties / Property
+
+`Properties` and `Property` are suitable for describing configuration options, component props, or API fields. They are better than regular tables for multi-line descriptions.
+
+```mdx
+<Properties>
+  <Property name="routePrefix" type="string">
+    Deployment subpath, such as `/docs/`.
+  </Property>
+  <Property name="tabs" type="ClarifyTabsConfig">
+    Configure top-level business categories and sidebar structures.
+  </Property>
+</Properties>
+```
+
+### Props
+
+#### Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `children` | `ReactNode` | Required | One or more `Property` components |
+
+#### Property
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `name` | `string` | Required | Property name |
+| `type` | `string` | - | Type description |
+| `children` | `ReactNode` | Required | Property description |
+
+---
+
+## Markdown
+
+`Markdown` is used to render Markdown content from strings. It is mainly useful for reusing Clarify's Markdown rendering capability in custom MDX components or data-driven content.
+
+```mdx
+<Markdown>{"**Important:** Run the build check before publishing."}</Markdown>
+```
+
+### Props
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `children` | `string` | - | Markdown string to render |
+| `className` | `string` | - | CSS class names for the outer container |
+
+---
+
+## OpenAPI Components
+
+`OpenApiOperation` is used to embed a single endpoint in a guide, and `OpenApiDocument` is used to embed a complete API Reference.
+
+```mdx
+<OpenApiOperation specPath="/api" path="/sessions" method="post" />
+
 <OpenApiDocument specPath="/api" />
 ```
+
+| Component | Key props | Description |
+|-----------|-----------|-------------|
+| `OpenApiOperation` | `specPath`, `path`, `method` | Displays a single endpoint, suitable for task-oriented guides |
+| `OpenApiDocument` | `specPath` | Displays a complete OpenAPI Reference |
+
+The OpenAPI panel displays servers, authentication, parameters, request bodies, response examples, and multi-language request code based on the specification. For more details, see [API documentation](/features/openapi).
+
+---
+
+## Usage suggestions
+
+- Prefer `CardGroup` / `Card` for homepages, section indexes, and feature matrices.
+- Use `Callout` for limitations, risks, and supplementary notes strongly related to the main text; use `Note` for lightweight supplementary notes.
+- Use `Button` when guiding users to continue reading or perform an action.
+- Use `CodeGroup` for examples covering multiple languages, environments, or package managers.
+- Use `Collapse` for optional details, long lists, and advanced content.
+- Prefer `Properties` / `Property` for configuration options, component props, and field descriptions.
+- Explain processes in guides, and leave endpoint facts to `OpenApiOperation` or `OpenApiDocument`.
 
 ---
 
 ## Custom MDX components
 
-Applications can provide additional MDX components through the renderer integration. These custom components must be imported explicitly in the MDX file:
+If you need project-specific components, import them explicitly at the top of the MDX file:
 
 ```mdx
 import { Alert } from '../components/Alert'
 
 <Alert type="warning">
-  This is a project-specific component.
+  This is an example of a custom React component.
 </Alert>
 ```
 
-Keep the renderer's public components stable and document their props for authors.
+Clarify's built-in components are registered automatically in MDX; custom components need to be imported manually.

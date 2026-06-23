@@ -1,33 +1,33 @@
-# Embedding OpenAPI in MDX
+# OpenAPI embedding guide
 
-Clarify can render `.openapi.json` / `.openapi.yaml` files as full API Reference pages, and it can also embed a single operation or a complete reference inside MDX. This keeps interface facts and workflow explanations on the same page.
+Clarify can render `.openapi.json` / `.openapi.yaml` files as complete API References, and it also lets you embed a single endpoint or a complete Reference inside MDX guides. This lets you place “endpoint facts” and “business workflow explanations” on the same page.
 
 ---
 
-## When to use it
+## Use cases
 
-| Scenario | Recommended component |
-|----------|-----------------------|
-| Explain which endpoint is called in a tutorial step | `OpenApiOperation` |
-| Show full parameters and responses for one core endpoint | `OpenApiOperation` |
-| Add context before rendering a full API Reference in MDX | `OpenApiDocument` |
-| Let readers see workflow prose and machine-readable specs together | MDX prose + OpenAPI embed + raw spec link |
+| Use case | Recommended approach |
+|----------|----------------------|
+| Explain which endpoint to call for a step in a tutorial | `OpenApiOperation` |
+| Show complete parameters and responses for a core endpoint on a topic page | `OpenApiOperation` |
+| Add explanatory content in an MDX page before showing a complete API Reference | `OpenApiDocument` |
+| Let readers see business explanations and machine-readable specs together | MDX explanation + OpenAPI embedding + raw spec link |
 
 ---
 
 ## Prepare an OpenAPI file
 
-Place the spec under the current locale directory:
+Place the spec under the current locale directory, for example:
 
 ```txt
 source/
-└── en-US/
+└── zh-CN/
     ├── api.openapi.json
     └── openapi/
         └── embedding.mdx
 ```
 
-The filename determines the reference route:
+The file name determines the Reference route:
 
 | File | Reference route | Raw spec output |
 |------|-----------------|-----------------|
@@ -35,11 +35,11 @@ The filename determines the reference route:
 | `billing.openapi.yaml` | `/billing` | `/billing.openapi.yaml` |
 | `admin.openapi.yml` | `/admin` | `/admin.openapi.yml` |
 
-In localized sites, put the English spec in `source/en-US/api.openapi.json` and the Chinese spec in `source/zh-CN/api.openapi.json`. Clarify reads the file for the active locale first, then follows the configured i18n fallback behavior when content is missing.
+In multilingual sites, English specs can be placed at `source/en-US/api.openapi.json`, and Chinese specs at `source/zh-CN/api.openapi.json`. Clarify reads the corresponding file for the current language and then applies the i18n fallback strategy when it is missing.
 
 ---
 
-## Embed one operation
+## Embed a single endpoint
 
 Use `OpenApiOperation`:
 
@@ -47,13 +47,13 @@ Use `OpenApiOperation`:
 <OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
 ```
 
-Props:
+Parameters:
 
-| Prop | Required | Description |
-|------|----------|-------------|
-| `specPath` | Yes | OpenAPI Reference route without the `.openapi.json` suffix, for example `/api`. |
-| `path` | Yes | Exact key from OpenAPI `paths`, for example `/examples/path-parameters/{pageId}`. |
-| `method` | Yes | HTTP method, usually lowercase, such as `get`, `post`, or `patch`. |
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `specPath` | Yes | Route of the OpenAPI Reference, without the `.openapi.json` suffix, such as `/api` |
+| `path` | Yes | Path in OpenAPI `paths`; it must exactly match the spec, such as `/examples/path-parameters/{pageId}` |
+| `method` | Yes | HTTP method; lowercase is recommended, such as `get`, `post`, `patch` |
 
 Rendered result:
 
@@ -61,9 +61,9 @@ Rendered result:
 
 ---
 
-## Embed a complex request operation
+## Embed a complex request endpoint
 
-The same component works for operations with multiple request bodies, examples, response statuses, or callbacks. `POST /examples/complex-request-body` covers JSON / YAML request bodies, multiple examples, JSON / text responses, and error responses:
+When an endpoint contains multiple request bodies, multiple examples, multi-status responses, or callbacks, you can embed it with the same component. The following `POST /examples/complex-request-body` covers JSON / YAML request bodies, multiple examples, JSON / text responses, and error responses:
 
 ```mdx
 <OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
@@ -75,53 +75,53 @@ Rendered result:
 
 ---
 
-## Embed a full reference
+## Embed a complete Reference
 
-Use `OpenApiDocument` when you want to write business context first and then render the full API Reference inside MDX:
+If you want to write business context first and then display a complete API Reference in an MDX page, use `OpenApiDocument`:
 
 ```mdx
 # API Reference
 
-Below is the complete endpoint list for this service.
+Below is the complete endpoint list for the current service.
 
 <OpenApiDocument specPath="/api" />
 ```
 
 This is useful for:
 
-- Adding authentication, rate limit, or error format notes before the reference.
-- Combining product explanations with the full interface list.
-- Temporarily placing a complete reference inside a topical document.
+- Adding authentication, rate-limit, and error format notes before the Reference.
+- Combining “explanation + complete endpoints” on a product page.
+- Temporarily placing the complete Reference in a topic document.
 
 ---
 
-## Troubleshooting
+## Common troubleshooting
 
 ### `OpenAPI spec not found`
 
-Check that:
+Check:
 
-- The OpenAPI file is under `source` or the current locale directory.
-- The filename uses `.openapi.json`, `.openapi.yaml`, or `.openapi.yml`.
-- `specPath` is a route such as `/api`, not a filename such as `api.openapi.json`.
+- Whether the OpenAPI file is located under `source` or the current locale directory.
+- Whether the file name is `.openapi.json` / `.openapi.yaml` / `.openapi.yml`.
+- Whether `specPath` is a route such as `/api`, not a file name like `api.openapi.json`.
 
 ### `Endpoint not found`
 
-Check that:
+Check:
 
-- `path` exactly matches an OpenAPI `paths` key.
-- Path parameters use OpenAPI syntax such as `{pageId}`, not `:pageId`.
-- `method` exists and matches the component convention.
+- Whether `path` exactly matches the OpenAPI `paths` key.
+- Whether path parameters use OpenAPI syntax such as `{pageId}`, not `:pageId`.
+- Whether `method` exists and its casing matches the component convention.
 
-### The page fails to build
+### Page build failed
 
-Production builds parse and dereference the OpenAPI spec. Invalid specs fail the build. First verify JSON / YAML syntax, then check that every `$ref` can be resolved.
+Production builds parse and dereference OpenAPI specifications. If the spec is invalid, the build fails. First confirm that the JSON / YAML syntax is correct, then check whether `$ref` can be resolved.
 
 ---
 
-## Recommended writing pattern
+## Recommended practices
 
-- Keep the real interface structure in OpenAPI; do not hand-write parameter tables in MDX.
-- Use MDX for workflows, authentication prerequisites, common errors, and best practices.
-- Place `OpenApiOperation` next to the workflow step where the endpoint is used.
-- Reuse the same spec for the full reference, embedded operations, raw spec output, and `llms.txt`.
+- Use OpenAPI specs to maintain the real endpoint structure; do not hand-write parameter tables in MDX.
+- Use MDX to explain business workflows, authentication prerequisites, common errors, and best practices.
+- Embed `OpenApiOperation` next to key steps to reduce back-and-forth between guides and the Reference.
+- Use the same spec for the complete Reference, embedded endpoints, raw spec output, and `llms.txt`.

@@ -1,93 +1,63 @@
-# CLI Reference
+# CLI Commands Reference
 
-The Clarify CLI provides commands for local development, production builds, and project setup.
+`@clarify-labs/cli` provides the `clarify` command, which wraps the dev server, static build, and project initialization. Users do not need to create a Vite configuration file.
 
 ---
 
 ## Installation
 
-Install the CLI globally and run commands directly:
+We recommend installing the CLI as a project dev dependency, so the CLI version is locked and reviewed alongside the repository:
 
 ```bash
-npm install -g @clarify-labs/cli
+pnpm add -D @clarify-labs/cli
 ```
 
-Then use:
+Then run it via `pnpm exec`:
 
 ```bash
-clarify init
-clarify dev
-clarify check
-clarify build
-```
-
-If you prefer a project-scoped install, you can still add the CLI as a dev dependency.
-
----
-
-## `clarify dev`
-
-Start the local development server.
-
-```bash
+pnpm exec clarify init
 pnpm exec clarify dev
-```
-
-Common options include selecting the project root, content directory, output directory, and development port.
-
----
-
-## `clarify build`
-
-Build a production static site.
-
-```bash
-pnpm exec clarify build --output output
-```
-
-The build validates content and OpenAPI specs, renders pages, writes static assets, copies public files, and emits `llms.txt`. When `siteUrl` is configured, it also writes `sitemap.xml` and `robots.txt`.
-
----
-
-## `clarify check`
-
-Validate the documentation project without producing a build.
-
-```bash
 pnpm exec clarify check
+pnpm exec clarify build
 ```
 
-The check command reports missing content directories, duplicate routes, invalid OpenAPI specs, broken local Markdown links, and i18n fallback pages.
+Or add scripts to `package.json`:
 
-Common options:
+```json
+{
+  "scripts": {
+    "dev": "clarify dev",
+    "build": "clarify build"
+  }
+}
+```
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--root <dir>` | Project root directory | Current working directory |
-| `--content <dir>` | Content directory relative to root | `source` |
-| `--strict` | Treat warnings as failures | `false` |
-| `--format <format>` | `text` or `json` | `text` |
+For a quick trial, you can also install it globally and run `clarify dev` / `clarify build` directly, but for team projects we recommend preferring a project-local dependency.
 
 ---
 
 ## `clarify init`
 
-Create the initial project files for a Clarify documentation site.
+Creates a Clarify project skeleton and automatically updates the `dev` and `build` scripts in `package.json`.
 
 ```bash
 pnpm exec clarify init
 ```
 
-This command scaffolds a new project and updates `package.json` with `dev` and `build` scripts.
-It also adds `@clarify-labs/cli` as a dev dependency so your project is ready to run.
+By default, `clarify init` generates or updates the following:
 
-If you want Clarify to install dependencies automatically after scaffolding, use:
+- `clarify.ts`
+- `source/index.mdx`
+- The `dev` / `build` scripts in `package.json`
+- The `@clarify-labs/cli` dev dependency
+
+If you want to install dependencies immediately after initialization, use:
 
 ```bash
 pnpm exec clarify init --install
 ```
 
-If you skip `--install`, the command prints the next steps, for example:
+When `--install` is not used, the command prints the next steps, for example:
 
 ```bash
 cd <project-root>
@@ -98,9 +68,147 @@ clarify dev
 Common options:
 
 | Option | Description | Default |
-|--------|-------------|---------|
-| `--root <dir>` | Project root directory | Current working directory |
-| `--content <dir>` | Content directory relative to root | `source` |
-| `--template <name>` | `minimal`, `standard`, or `complete` template | `standard` |
-| `--force` | Overwrite existing init files | `false` |
-| `--install` | Install dependencies after init | `false` |
+|------|------|--------|
+| `--root <dir>` | The project root directory | Current directory |
+| `--content <dir>` | The content directory | `source` |
+| `--template <name>` | The `minimal`, `standard`, or `complete` template | `standard` |
+| `--force` | Overwrite existing initialization files | `false` |
+| `--install` | Install dependencies after initialization | `false` |
+
+Template use cases:
+
+| Template | Best for |
+|------|----------|
+| `minimal` | Quickly verifying Clarify or connecting an existing content directory |
+| `standard` | Creating a regular documentation site with the recommended base structure |
+| `complete` | Learning the full capabilities by examining navigation, components, OpenAPI, and publishing configuration examples |
+
+---
+
+## `clarify dev`
+
+Starts the local documentation dev server.
+
+```bash
+pnpm exec clarify dev
+```
+
+Common options:
+
+| Option | Description | Default |
+|------|------|--------|
+| `--root <dir>` | The project root directory | Current directory |
+| `--content <dir>` | The content directory | `source` |
+| `--host [host]` | The listen address | Vite default |
+| `--port <port>` | The port number | Vite default |
+| `--open [path]` | Open the browser after startup | `false` |
+
+Example:
+
+```bash
+pnpm exec clarify dev --port 5173 --open
+```
+
+---
+
+## `clarify build`
+
+Builds a deployable static site.
+
+```bash
+pnpm exec clarify build
+```
+
+Common options:
+
+| Option | Description | Default |
+|------|------|--------|
+| `--root <dir>` | The project root directory | Current directory |
+| `--content <dir>` | The content directory | `source` |
+| `--output <dir>` | The output directory | `output` |
+
+Example:
+
+```bash
+pnpm exec clarify build --output dist
+```
+
+When `siteUrl` is configured, the build also outputs `sitemap.xml` and `robots.txt`.
+
+---
+
+## `clarify check`
+
+Checks the documentation project without producing build files.
+
+```bash
+pnpm exec clarify check
+```
+
+`check` reports a missing content directory, duplicate routes, invalid OpenAPI spec files, broken local Markdown links, and i18n fallback pages.
+
+Common options:
+
+| Option | Description | Default |
+|------|------|--------|
+| `--root <dir>` | The project root directory | Current directory |
+| `--content <dir>` | The content directory | `source` |
+| `--strict` | Treat warnings as failures too | `false` |
+| `--format <format>` | `text` or `json` | `text` |
+
+---
+
+## Configuration file
+
+We recommend using `clarify.ts` as the single project configuration entry. It can configure both the site display fields and the build-time extension capabilities:
+
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  title: 'Clarify Docs',
+  description: 'Documentation powered by Clarify',
+  theme: { preset: 'default' },
+  tabs: [
+    {
+      tab: 'Docs',
+      icon: 'BookOpen',
+      pages: 'FileTree',
+    },
+  ],
+  plugins: [
+    // searchPlugin(),
+    // translatePlugin(),
+  ],
+  ssg: {
+    failOnError: true,
+  },
+})
+```
+
+Clarify looks for the configuration file in the following priority order:
+
+```
+clarify.ts > clarify.js > clarify.json
+```
+
+`clarify.json` is good for simple projects that do not need plugin functions; use `clarify.ts` when you need plugins or stronger type hints.
+
+---
+
+## Configuration priority
+
+CLI options control runtime paths and the output directory, while the configuration file controls site display and build-time extensions. The priority is:
+
+```
+CLI options > clarify.ts/js/json > defaults
+```
+
+---
+
+## Help and version
+
+```bash
+clarify --help
+clarify --version
+```

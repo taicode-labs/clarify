@@ -1,0 +1,56 @@
+# Theme customization preview
+
+Clarify supports selecting a theme preset through the configuration file and overriding theme tokens on top of the preset. This page only demonstrates the currently stable theme configuration capabilities.
+
+---
+
+## Theme presets
+
+```ts
+export default defineConfig({
+  theme: {
+    preset: 'default',
+  },
+})
+```
+
+`default` uses Clarify's own theme color system. Its primary color references `#00D492` from the SVG Logo, with `#00F6C9` as the accent color. `base` has no color preference and uses black, white, and gray to form a standard theme.
+
+---
+
+## Override the brand primary color
+
+```ts
+export default defineConfig({
+  theme: {
+    preset: 'base',
+    tokens: {
+      colors: {
+        primary: '#00D492',
+      },
+    },
+  },
+})
+```
+
+`tokens.colors.primary` overrides the primary color on top of the preset.
+
+---
+
+## Other theme color references
+
+| Color name | Value | Suitable use case |
+|------------|-------|-------------------|
+| Emerald | `#10b981` | Natural, fresh |
+| Violet | `#8b5cf6` | Modern, technical |
+| Rose | `#f43f5e` | Energetic, eye-catching |
+| Amber | `#f59e0b` | Warm, friendly |
+| Lime | `#84cc16` | Young, vibrant |
+
+---
+
+## Theme boundaries
+
+The current version does not provide a stable project-level custom CSS entry, nor does it support overriding Clarify renderer styles through the user project's `tailwind.config.js`.
+
+For deeper brand customization, wait for future explicit theme or component extension APIs.

@@ -2,44 +2,46 @@
 
 An open-source documentation publishing tool built for MDX, OpenAPI, and AI-readable knowledge bases.
 
-Clarify keeps documentation in your repository: you maintain `source/`, OpenAPI specs, and `clarify.ts`; Clarify handles local development, route generation, React rendering, static builds, and AI-friendly content artifacts.
+Clarify keeps your documentation in the code repository: you maintain `source/`, the OpenAPI specs, and `clarify.ts`, while it handles local development, route generation, React rendering, static builds, and AI-friendly content artifacts.
 
 ---
 
 ## Core highlights at a glance
 
 | Highlight | User value |
-|-----------|------------|
-| **Docs as code** | Version MDX, OpenAPI, navigation, and theme configuration in Git for reviewable collaboration. |
-| **MDX + OpenAPI together** | Publish product guides, tutorials, component examples, and API Reference pages in one site. |
-| **Static publishing** | Generate standalone HTML for every route while keeping client-side navigation after hydration. |
-| **AI-ready output** | Build `.md`, `.openapi.*`, and `llms.txt`; pages also expose copy actions for raw content and raw links. |
-| **Configurable and extensible** | TypeScript config covers navigation, tabs, i18n, theme tokens, route prefixes, footer links, and plugins. |
+|------|----------|
+| **Docs as code** | MDX, OpenAPI, navigation, and theme configuration all live in Git, making them naturally suited for review, versioning, and collaboration. |
+| **MDX + OpenAPI together** | Product guides, tutorials, component examples, and the API reference live in the same documentation site, and the endpoint panel can display servers, authentication, parameters, examples, and request code in multiple languages. |
+| **Built-in navigation and search** | File routing, tabs, grouped sidebars, H2/H3 sections, and local search work together so users can quickly find both pages and specific sections. |
+| **Pure static publishing** | Every route generates standalone HTML while preserving the client-side navigation experience, deployable to any static hosting platform. |
+| **AI-ready output** | Builds `.md`, `.openapi.*`, and `llms.txt`, and pages also offer actions to copy the raw content, open the raw link, and access the `llms.txt` link. |
+| **Configurable and extensible** | TypeScript configuration covers navigation, tabs, internationalization, theme tokens, the deployment subpath, the footer, and plugins. |
 
 ---
 
 ## Where to start
 
-| Goal | Recommended reading |
-|------|---------------------|
-| Try Clarify for the first time | [Get Started](/getting-started) |
-| Understand the core capabilities and use cases | [Feature Overview](/features) |
-| Write MDX, organize files, and use built-in components | [Writing Docs](/guides/writing-content) |
-| Configure navigation, theme, i18n, and routes | [Configure Site](/guides/navigation) |
-| Generate API Reference pages and embed endpoints | [API Documentation](/features/openapi) |
-| Build static output, deploy it, and publish `llms.txt` | [Deployment](/guides/deployment) |
-| Add governance, search indexes, or custom artifacts | [Plugin System](/features/plugins) |
+| What you want to do | Recommended reading |
+|------------|----------|
+| Use Clarify for the first time | [Getting Started](/getting-started) |
+| Understand the overall capabilities and use cases | [Features](/features) |
+| Write MDX, organize directories, and use built-in components | [Writing Content](/guides/writing-content) |
+| Configure navigation, theme, internationalization, and routing | [Configuring the Site](/guides/navigation) |
+| Generate the API reference and embed endpoints | [API Documentation](/features/openapi) |
+| See how components, themes, and OpenAPI render | [Showcase & Demos](/showcase) |
+| Build statically, deploy, and output `llms.txt` | [Publishing](/guides/deployment) |
+| Add content governance, search indexing, or extra artifacts | [Plugins](/features/plugins) |
 
 ---
 
 ## Quick preview
 
-A typical Clarify docs site only needs the CLI, a config file, and content:
+We recommend installing Clarify as a project dev dependency, so the CLI version is locked and reviewed alongside the repository:
 
 ```bash
-npm install -g @clarify-labs/cli
-clarify init
-clarify dev
+pnpm init
+pnpm add -D @clarify-labs/cli
+pnpm exec clarify dev
 ```
 
 **clarify.ts**
@@ -54,23 +56,23 @@ export default defineConfig({
 })
 ```
 
-Then write `.md` / `.mdx` files in `source/` or add `.openapi.json` / `.openapi.yaml` specs. Clarify generates routes, pages, static HTML, raw content files, and `llms.txt`.
+Then write `.md` / `.mdx` files in the `source/` directory, or place `.openapi.json` / `.openapi.yaml` specs there. Clarify automatically generates routes, pages, static HTML, raw content files, and `llms.txt`. For a quick trial, you can also use a global install — see the [CLI Commands Reference](/reference/cli-commands).
 
 ---
 
-## Who is it for?
+## Who it is for
 
-- **Open-source maintainers** — keep docs and code in the same repository for community contributions and version tracking.
-- **Technical writers / DevRel teams** — write primarily in Markdown while using React components, API Reference pages, and structured navigation.
-- **API platform teams** — publish OpenAPI specs, task-oriented guides, and AI-readable interface source files together.
-- **Internal knowledge-base teams** — ship a self-hosted static docs portal that can plug into governance and search-index workflows.
+- **Open-source maintainers** — who need docs and code in the same repository for easier community contributions and version tracking.
+- **Technical writers / DevRel** — who work primarily in Markdown but also need React components, an API reference, and a unified information architecture.
+- **API platform teams** — who want to publish OpenAPI specs, task-oriented guides, and AI-readable endpoint sources together.
+- **Internal knowledge base teams** — who need a self-hostable static documentation portal that can integrate content governance and search indexing.
 
 ---
 
-## Stack
+## Tech stack
 
 - React 19
 - Tailwind CSS 4 (internal styling pipeline)
-- Vite 8 (internal CLI build tool)
+- Vite 8 (the CLI's internal build tool)
 - MDX 3
-- TypeScript 5 in strict mode
+- TypeScript 5 (strict mode)

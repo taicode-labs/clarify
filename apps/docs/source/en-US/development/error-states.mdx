@@ -10,7 +10,7 @@ export function RenderErrorTrigger() {
   return (
     <div className="not-prose my-6 rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-sm shadow-zinc-900/5">
       <p className="text-sm/6 text-(--clarify-ui-text)">
-        Click the button below to throw a client-side render error from this MDX page.
+        Click the button below to throw a client-side rendering error from this MDX page.
       </p>
       <div className="mt-4">
         <button
@@ -25,20 +25,20 @@ export function RenderErrorTrigger() {
   )
 }
 
-# Error States
+# Error states
 
-Clarify provides friendly error states for missing routes and client-side render failures. This page intentionally exercises those states so maintainers can verify the experience during development.
+Clarify provides friendly error states for unknown routes and client-side rendering failures. This page is dedicated to triggering those states so maintainers can check the display during development.
 
 ---
 
 ## What this page covers
 
 <CardGroup cols={2}>
-  <Card title="Not-found routes" icon="file-question" href="/definitely-missing-route">
-    Open a route that does not exist and verify that Clarify renders the configured 404 page.
+  <Card title="Route not found" icon="file-question" href="/not-exist-route">
+    Open a non-existent path and confirm that Clarify renders the configured 404 page.
   </Card>
-  <Card title="Render failures" icon="bug" href="#client-render-error-preview">
-    Trigger a client-side component error and verify that the recovery panel is readable.
+  <Card title="Render failure" icon="bug" href="#client-render-error-preview">
+    Trigger a client component error and confirm that the recovery panel is readable in the current theme.
   </Card>
 </CardGroup>
 
@@ -46,16 +46,16 @@ Clarify provides friendly error states for missing routes and client-side render
 
 ## 404 route behavior
 
-Clarify treats `source/404.mdx` as a normal content route and also uses it as the catch-all page for unknown client paths.
+Clarify treats `source/404.mdx` as a normal content route and also uses it as the fallback page for unknown client-side paths.
 
-- The default `/404` route is emitted to both `output/404/index.html` and `output/404.html`.
-- Locale-specific pages such as `/en-US/404` or `/zh-CN/404` can customize the not-found copy per locale.
-- Unknown client routes reuse the active locale's 404 page when available.
-- Page-specific content actions and previous/next links are hidden on unknown routes.
+- The default `/404` route is output to both `output/404/index.html` and `output/404.html`.
+- Language pages such as `/en-US/404` or `/zh-CN/404` can customize the not-found copy separately.
+- Unknown client-side paths prefer the 404 page for the current language.
+- Unknown paths do not have an active content route, so page content actions and previous/next navigation are hidden.
 
 <div className="not-prose my-6">
-  <Button href="/definitely-missing-route" variant="outline" arrow="right">
-    Open a missing route
+  <Button href="/not-exist-route" variant="outline" arrow="right">
+    Open non-existent route
   </Button>
 </div>
 
@@ -63,26 +63,26 @@ Clarify treats `source/404.mdx` as a normal content route and also uses it as th
 
 ## Client render error preview
 
-The following component throws only after clicking the button. It is useful for validating `PageErrorBoundary` without breaking the static build.
+The component below throws only after the button is clicked, so it can validate `PageErrorBoundary` without affecting static builds.
 
 <RenderErrorTrigger />
 
-<Callout type="warning" title="Development-only check">
-  Use this page to inspect copy, spacing, dark mode, theme overrides, and the expandable error details. Do not link this page from user-facing onboarding flows.
+<Callout type="warning" title="Development checks only">
+  Use this page to check copy, spacing, dark mode, theme overrides, and expandable error details. It should not be placed in onboarding paths for regular users.
 </Callout>
 
 ---
 
 ## Expected recovery panel
 
-When the error is triggered, Clarify should show a localized panel with:
+After the error is triggered, Clarify should display a localized recovery panel containing:
 
 | Element | Expected behavior |
 |---------|-------------------|
 | Title and description | Explain that the current page failed to render. |
-| Current path | Show the route that produced the failure. |
-| Reload action | Allow the reader to retry by reloading the page. |
-| Details disclosure | Keep stack traces collapsed until explicitly opened. |
+| Current path | Display the route that caused the failure. |
+| Refresh action | Allow readers to retry by refreshing the page. |
+| Details collapse | Keep stack information collapsed by default and expand it only when needed. |
 
 ```tsx
 <PageErrorBoundary path={pathname}>

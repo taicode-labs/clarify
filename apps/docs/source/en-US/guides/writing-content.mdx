@@ -1,76 +1,215 @@
-# Writing Docs
+# Writing Content
 
-Clarify uses the `source/` directory as the content root. Write Markdown or MDX files there, and Clarify turns them into routes automatically.
+This page brings together the core capabilities related to "writing content" in Clarify: MDX, frontmatter, file routing, OpenAPI file routing, code blocks, and built-in components.
+
+The goal is to let authors know: where files should go, how pages are generated, how to write metadata, and when to use components.
 
 ---
 
-## File routes
+## Recommended directory structure
 
-| File | Route |
-|------|-------|
-| `source/index.mdx` | `/` |
-| `source/getting-started.mdx` | `/getting-started` |
-| `source/guides/index.mdx` | `/guides` |
-| `source/guides/writing-content.mdx` | `/guides/writing-content` |
+Organize docs by reader tasks rather than by internal modules:
 
-For localized sites, place files under locale folders:
+```txt
+source/
+├── index.mdx
+├── getting-started.mdx
+├── guides/
+│   ├── writing.mdx
+│   └── deploy.mdx
+├── reference/
+│   └── config.mdx
+└── api.openapi.json
+```
+
+When internationalization is enabled, place the same structure inside locale directories:
 
 ```txt
 source/
 ├── zh-CN/
-│   └── index.mdx
+│   ├── index.mdx
+│   └── getting-started.mdx
 └── en-US/
-    └── index.mdx
+    ├── index.mdx
+    └── getting-started.mdx
 ```
+
+---
+
+## Files are routes
+
+Clarify generates page paths from the file structure under `source/`:
+
+| File | Route |
+|------|------|
+| `source/index.mdx` | `/` |
+| `source/getting-started.mdx` | `/getting-started` |
+| `source/guides/index.mdx` | `/guides` |
+| `source/guides/auth.mdx` | `/guides/auth` |
+| `source/api.openapi.json` | `/api` |
+
+Rules:
+
+- `index.mdx` maps to the root path of its directory.
+- File names should use lowercase and hyphens, e.g. `api-authentication.mdx`.
+- `.mdx` content files are supported, as well as `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` spec files.
+- If the site is deployed under a subpath, configure the prefix with `routePrefix` — see [Configuring the Site](/guides/navigation).
 
 ---
 
 ## MDX basics
 
-Use regular Markdown for prose and MDX for components:
+Clarify uses MDX, so you can write plain Markdown and also embed JSX.
 
 ```mdx
-# Guide title
+# Heading
 
-Use Markdown for the main content.
+**bold**, *italic*, `inline code`.
 
-<MyComponent name="Clarify" />
+- List item 1
+- List item 2
+
+> Blockquote
 ```
 
-Clarify also supports code blocks, tables, frontmatter, and renderer-provided documentation components.
+Embedding JSX:
+
+```mdx
+# Welcome
+
+<div className="rounded-lg border p-4">
+  This is a React snippet.
+</div>
+```
+
+Importing custom components:
+
+```mdx
+import { Alert } from '../components/Alert'
+
+# Page Title
+
+<Alert type="warning">
+  This is a warning message.
+</Alert>
+```
 
 ---
 
-## Built-in MDX components
+## Frontmatter
 
-Clarify provides default MDX components that are available automatically in `.mdx` pages.
-You do not need to import them before use.
+You can add YAML frontmatter at the top of each page for the page title and description:
 
-- `Callout`
+```mdx
+---
+title: Page Title
+description: The page description, used for SEO and social sharing
+---
+
+# Body content
+```
+
+Current stable fields:
+
+| Field | Type | Description |
+|------|------|------|
+| `title` | `string` | The page title; when empty it tries to use the first `h1` |
+| `description` | `string` | The page description, used for SEO meta |
+| `keywords` / `keyword` / `tags` | `string \| string[]` | Page keywords, written into the HTML `keywords` meta |
+
+> The current version does not provide advanced frontmatter fields such as `navOrder` or `hidden`. To control the sidebar, configure `tabs` explicitly in `clarify.ts`.
+
+---
+
+## Headings, the table of contents, and search
+
+Clarify extracts H2/H3 from the content as page sections. Sections are used for in-page navigation and in-site search, so headings are not just typographic elements — they are part of the information architecture.
+
+```mdx
+# API Documentation
+
+## Authentication
+
+### Create an access token
+
+## Pagination
+```
+
+Suggestions:
+
+- H1 expresses the page topic; if the frontmatter has no `title`, Clarify tries to use the H1 as the page title.
+- H2 expresses a user task or a major question, e.g. "Create an access token" or "Deploy to GitHub Pages".
+- H3 expresses sub-steps within a task or finer-grained scenarios.
+- Avoid heavy use of weak headings like "Introduction", "More", or "Others".
+
+Built-in search indexes page titles, navigation groups, paths, and H2/H3 section titles, returning a small number of the most relevant results. It is well suited to helping users jump quickly to a page or section; if you need a full-text search index, you can generate an extra artifact during the build via a plugin.
+
+---
+
+## Code blocks and GFM
+
+Code blocks are highlighted automatically. Always label the language name to get more accurate syntax highlighting and a better copy experience:
+
+```typescript
+function greet(name: string): string {
+  return `Hello, ${name}!`
+}
+```
+
+If the language name cannot be recognized, Clarify falls back to rendering a plain code block without blocking the page build.
+
+Built-in GitHub Flavored Markdown support:
+
+| Syntax | Supported |
+|------|----------|
+| Tables | Yes |
+| Task lists | Yes |
+| Strikethrough | Yes |
+| Autolinks | Yes |
+
+```mdx
+- [x] Tables supported
+- [x] Task lists supported
+- [ ] More writing experiences supported
+```
+
+---
+
+## Built-in components
+
+Clarify registers a set of public components in MDX by default, ready to use without manual imports:
+
+- `Callout`, `Note`
 - `CardGroup` / `Card`
 - `Button`
 - `CodeGroup`
+- `Collapse`
+- `Row` / `Col`
+- `Properties` / `Property`
+- `Markdown`
 - `OpenApiOperation`
 - `OpenApiDocument`
 
 Example:
 
 ```mdx
-<Callout type="tip">
-  Use built-in components for structured content and callouts.
+<Callout type="tip" title="Suggestion">
+  Put user tasks before navigation, and field references after.
 </Callout>
 
 <CardGroup cols={2}>
-  <Card title="Quick start" icon="rocket" href="/getting-started">
-    Install the CLI and create a Clarify docs site.
+  <Card title="Getting Started" icon="rocket" href="/getting-started">
+    Install the CLI and create your first documentation site.
   </Card>
-  <Card title="API docs" icon="braces" href="/features/openapi">
-    Embed OpenAPI content directly in MDX.
+  <Card title="API Documentation" icon="braces" href="/features/openapi">
+    Generate a reference from OpenAPI and embed endpoints.
   </Card>
 </CardGroup>
 ```
 
-For project-specific components, import them explicitly at the top of the MDX file:
+See [Built-in Public Components](/reference/built-in-components) for full properties.
+
+If you need project-specific components, you can import local React components via MDX `import`:
 
 ```mdx
 import { Alert } from '../components/Alert'
@@ -78,18 +217,12 @@ import { Alert } from '../components/Alert'
 
 ---
 
-## Recommended structure
+## Writing suggestions
 
-```txt
-source/
-├── index.mdx
-├── getting-started.mdx
-├── guides/
-│   ├── index.mdx
-│   └── writing-content.mdx
-├── reference/
-│   └── clarify-config.mdx
-└── api.openapi.json
-```
-
-Keep task-oriented guides in `guides/`, stable API or configuration details in `reference/`, and OpenAPI specs beside the documentation they support.
+- **One document solves one user task** — don't create a separate document for each internal capability.
+- **Explain why first, then how**, so readers understand the value of the current step.
+- **Put field lists in the reference pages**, keeping only the most common configuration on task pages.
+- **Use clear H2/H3 to carry search entries**, so users can jump from search results straight to a specific section.
+- **Use tables and short code examples** to reduce long paragraphs.
+- **Let OpenAPI be the source of endpoint facts**, with tutorials only explaining the business flow.
+- **Write content in a structure AI can also consume**: clear headings, explicit steps, and complete examples — the built `.md` and `llms.txt` preserve this structure.

@@ -1,32 +1,110 @@
-# CLI and Engine
+# CLI and engine design
 
-`packages/cli` is both the public command-line package and the internal documentation engine. It hides build-tool details behind `clarify dev`, `clarify build`, and `clarify init`.
+The Clarify CLI lives in `packages/cli`. It wraps the internal build engine as `clarify dev`, `clarify build`, and `clarify init`. Users only need to care about Clarify commands and do not need to create or maintain Vite configuration files.
 
 ---
 
-## Responsibilities
+## Responsibility layers
 
-| Area | Responsibility |
-|------|----------------|
-| Config | Find and load `clarify.ts`, `clarify.js`, or `clarify.json`; validate project config; apply defaults. |
-| Content | Scan `rootDirectory` (default: `source`) for `.md`, `.mdx`, and `.openapi.json/.yaml/.yml`. |
-| Routing | Convert files into `ContentRoute[]`, attach locale metadata, sections, alternates, and content artifact URLs. |
-| Navigation | Build file-tree navigation or configured `tabs` navigation. |
-| Plugins | Run built-in and user-provided hooks at deterministic points. |
-| Vite | Provide internal Vite plugins for MDX, virtual modules, Tailwind, React, dev server, and production build. |
-| SSG | Build client assets, build a temporary SSR bundle, render routes to HTML, and write extra artifacts. |
+| Layer | Responsibility | Audience |
+|-------|----------------|----------|
+| CLI commands | Argument parsing, development server, static build, project initialization | Clarify users |
+| Internal engine | MDX/OpenAPI ingestion, routes, virtual modules, SSG | Clarify maintainers |
+| Renderer | Page layout, navigation, code blocks, OpenAPI UI | Runtime components |
+
+The CLI still reuses Vite's development server and build pipeline internally, but this is an implementation detail. The public API centers on `@clarify-labs/cli` and the `clarify` command.
+
+---
+
+## Content ingestion pipeline
+
+The engine reads two types of source material:
+
+| Source type | File pattern | Parser/tool | Output |
+|-------------|--------------|-------------|--------|
+| MDX/Markdown pages | `**/*.{md,mdx}` | `@mdx-js/rollup` + frontmatter parser | React component + metadata |
+| OpenAPI specs | `*.openapi.yaml` / `*.openapi.json` | `swagger-parser` / `openapi-types` | Type-safe API reference data |
+
+Pipeline overview:
+
+```
+source → Frontmatter → MDX/OpenAPI compilation → route manifest → Renderer → static HTML
+```
+
+1. **Frontmatter extraction**: Reads page metadata such as `title`, `description`, `keywords` / `keyword` / `tags`.
+2. **OpenAPI asset loading**: Parses OpenAPI 3.0/3.1 specifications and injects them into the runtime registry.
+3. **MDX compilation**: Compiles `.md` / `.mdx` into React components and injects Clarify's MDX component map.
+4. **Route registration**: Maps file paths to URL paths, while generating sidebar navigation and H2/H3 headings.
+5. **Content artifacts**: Attaches `contentArtifactUrl` to Markdown/OpenAPI routes for raw copy/link and `llms.txt`.
+6. **Static generation**: Outputs an independent `index.html` for each route during the build phase.
+
+---
+
+## How CLI commands work
+
+### `clarify dev`
+
+1. Resolves the project root and content directory from CLI arguments.
+2. Automatically creates a temporary HTML entry (if the project does not have `index.html`).
+3. Starts the internal development server.
+4. Watches content file changes and triggers route manifest rebuilds and page refreshes.
+
+### `clarify build`
+
+1. Uses the same content discovery logic to generate routes and virtual modules.
+2. Bundles client assets.
+3. Calls the server rendering entry to generate HTML for all routes.
+4. Writes raw Markdown/OpenAPI files and `llms.txt`.
+
+### `clarify init`
+
+Generates a minimal project skeleton:
+
+```
+clarify.ts or clarify.json
+source/index.mdx
+package.json scripts
+```
+
+`clarify.ts` is the recommended format because it can use `defineConfig` for type hints and can host plugins.
+
+---
+
+## Routing system
+
+Clarify uses convention-based routes derived from the file system:
+
+```
+source/
+├── index.mdx           → /
+├── getting-started.mdx → /getting-started
+├── guides/
+│   ├── index.mdx       → /guides
+│   └── theming.mdx     → /guides/theming
+└── api.openapi.yaml    → /api
+```
+
+Multilingual sites use locale directories. The default language has no prefix, and non-default languages use a locale prefix:
+
+```
+source/
+├── zh-CN/index.md      → /
+└── en-US/index.md      → /en-US
+```
+
+When `i18n.missing` is `fallback`, missing translations reuse the default-language page and mark the route with `isFallback`. Each localized route also carries `basePath` and `alternates` for language switching.
 
 ---
 
 ## Configuration loading
 
-The config lookup order is:
+Configuration lookup order:
 
 1. `clarify.ts`
 2. `clarify.js`
 3. `clarify.json`
 
-`clarify.ts` is preferred for typed configuration and plugins:
+`clarify.ts` is recommended for type-safe configuration:
 
 ```ts
 import { defineConfig } from '@clarify-labs/cli'
@@ -35,110 +113,31 @@ export default defineConfig({
   title: 'My Docs',
   description: 'Product documentation',
   routePrefix: '/',
-  i18n: {
-    defaultLocale: 'en-US',
-    locales: [{ code: 'en-US', label: 'English' }],
-  },
 })
 ```
 
-JSON configs are validated and can express project settings, but not executable plugins.
-
----
-
-## Commands
-
-| Command | Purpose | Internal flow |
-|---------|---------|---------------|
-| `clarify dev` | Start local development. | Load config, create an HTML shell if needed, install Clarify Vite plugins, watch config/content changes, rebuild routes, invalidate virtual modules, and full-reload the browser. |
-| `clarify build` | Generate a static production site. | Load config, run Vite client build, build SSR bundle in `closeBundle`, render every route, then write raw content artifacts and `llms.txt`. |
-| `clarify init` | Scaffold a starter project. | Create initial config, package scripts, and `source/index.mdx`. |
-
----
-
-## Content pipeline
-
-```txt
-source files
-  → route discovery
-  → frontmatter / OpenAPI parsing
-  → route enrichment
-  → navigation resolution
-  → content artifact URLs
-  → virtual modules
-```
-
-### MDX and Markdown
-
-For `.md` and `.mdx` files, the CLI:
-
-- parses frontmatter with `gray-matter`;
-- extracts `title`, `description`, and `keywords` / `keyword` / `tags` metadata;
-- extracts H2/H3 headings as page sections;
-- compiles the content through `@mdx-js/rollup` with Clarify MDX components.
-
-### OpenAPI
-
-For `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` files, the built-in OpenAPI plugin:
-
-- discovers OpenAPI files as routes;
-- reads and parses OpenAPI 3.0/3.1 specs;
-- uses `info.title` and `info.description` as route metadata;
-- extracts endpoint sections for sidebar and on-page navigation;
-- generates virtual modules consumed by the renderer's OpenAPI page.
-
-Invalid OpenAPI specs become diagnostic routes during route resolution so the build can surface useful errors instead of silently omitting API docs.
-
----
-
-## Route model
-
-A route is represented as `ContentRoute`:
-
-```ts
-type ContentRoute = {
-  path: string
-  basePath?: string
-  locale?: string
-  isFallback?: boolean
-  alternates?: Record<string, string>
-  title: string
-  description?: string
-  keywords?: string[]
-  filePath: string
-  virtualModuleId: string
-  kind: 'mdx' | 'openapi'
-  frontmatter?: Record<string, unknown>
-  content?: string
-  sections?: ContentSection[]
-  contentArtifactUrl?: string
-}
-```
-
-`contentArtifactUrl` points to the raw Markdown or OpenAPI artifact that is served in development and written during production builds. The renderer uses it for copy/download-style content actions.
+JSON configuration is validated and defaults are applied, but executable plugins cannot be expressed in JSON.
 
 ---
 
 ## Virtual modules
 
-The CLI sends build-time data to the renderer through virtual modules:
+The internal engine passes build-time data to runtime through virtual modules:
 
-| Module | Contains |
-|--------|----------|
-| `virtual:clarify-config` | Resolved project config plus build options. |
-| `virtual:clarify-routes` | Client route list, lazy page imports, and navigation tree. |
-| `virtual:clarify-routes/server` | Server route list with eager page imports for SSR. |
-| `virtual:clarify-openapi-registry` | Parsed OpenAPI specs keyed by virtual module ID. |
-| `virtual:clarify-entry-client` | Generated client entry importing renderer CSS and calling `render()`. |
-| `virtual:clarify-page/*` | Per-page modules that re-export MDX files or OpenAPI page modules. |
+- `virtual:clarify-config` — resolved site configuration and build options
+- `virtual:clarify-routes` — client route manifest, lazy page imports, and navigation tree
+- `virtual:clarify-routes/server` — server route manifest for SSR, with eager page imports
+- `virtual:clarify-openapi-registry` — collection of parsed OpenAPI specs
+- `virtual:clarify-entry-client` — client entry injected by the CLI
+- `virtual:clarify-page/*` — virtual module for each MDX/OpenAPI page
 
-Because virtual modules are regenerated on config/content changes, the dev server can update routing without asking users to maintain application entry files.
+These modules are assembled internally by the CLI. Regular users do not need to import them directly.
 
 ---
 
 ## Hook lifecycle
 
-The Clarify Vite plugin runs built-in plugins first and user plugins after them:
+Built-in plugins run first, and user plugins run afterward. The current lifecycle is:
 
 ```txt
 routes:discover
@@ -152,9 +151,13 @@ routes:discover
   → build:done
 ```
 
-Guidelines for new hooks and plugins:
+When adding plugin capabilities, prefer modifying structured data (routes, navigation, modules) instead of rewriting generated artifacts directly. When a hook throws, the error includes the plugin name and hook name for easier diagnosis.
 
-- Prefer modifying structured data (`routes`, `navigation`, `modules`) instead of string-rewriting generated output.
-- Make hook order explicit and deterministic.
-- Include enough context in `ClarifyHookContext` so plugins do not read internal globals.
-- Fail loudly with plugin name and hook name when a plugin throws.
+---
+
+## Design principles
+
+- **Hide build-tool details**: Users interact with the `clarify` command, not Vite configuration.
+- **Content-first**: The default convention is `source`; adding a file adds a page.
+- **Static-first**: Build artifacts are pure static files and can be deployed to any static hosting platform.
+- **Extensible**: Internal hooks and the plugin system reserve extension points for future capabilities such as search and AI translation.

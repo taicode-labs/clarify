@@ -1,34 +1,34 @@
-# Plugin System
+# Plugins
 
-Clarify plugins extend the build pipeline for team-specific workflows such as content governance, navigation enhancement, virtual module injection, search-index generation, translation automation, or post-build artifact handling.
+Clarify's plugin mechanism lets you hook your team's own capabilities into the build phase — for example content transformation, navigation enhancement, virtual module injection, search index generation, translation pipelines, or post-build artifact processing.
 
-If you only write docs, you do not need plugins. If you integrate Clarify into a product documentation platform or internal engineering system, plugins are the recommended extension point.
+If you are only writing docs, you do not need to understand plugins; if you want to integrate Clarify into a product-level documentation platform or an internal engineering system, plugins are the recommended extension point.
 
 ---
 
 ## When to use plugins
 
-Good plugin use cases:
+Scenarios well suited to plugins:
 
-| Scenario | What a plugin can do |
-|----------|----------------------|
-| Content governance | Inject disclaimers, validate heading structure, or enforce metadata rules. |
-| Navigation enhancement | Reorder routes, hide internal pages, or add groups based on team rules. |
-| Search integration | Generate Pagefind, Algolia, or custom search indexes during the build. |
-| Internationalization workflows | Sync translation artifacts or fail builds on missing translations. |
-| Site integration | Emit sitemap, RSS, analytics config, or internal platform manifests. |
+| Scenario | What you can do |
+|------|------------|
+| Content governance | Uniformly inject disclaimers, validate heading structure, fill in metadata |
+| Navigation enhancement | Reorder routes by team rules, filter internal pages, supplement navigation groups |
+| Search integration | Generate a Pagefind, Algolia, or custom search index during the build |
+| Internationalization workflow | Sync translation artifacts before and after the build, or check for missing translations |
+| Site integration | Output a sitemap, RSS, analytics config, or an internal platform manifest |
 
-Avoid plugins for:
+Things plugins are not suited for:
 
-- Single-page formatting: use MDX.
-- Normal site title, navigation, theme, or locale settings: use `clarify.ts`.
-- Runtime interactive UI: use React/MDX components.
+- Layout of a single article's content: prefer MDX.
+- Common site title, navigation, and theme color: prefer `clarify.ts` configuration.
+- Runtime interactive components: prefer integrating them as React/MDX components.
 
 ---
 
-## Basic shape
+## Basic structure
 
-A plugin is an object with `name` and `hooks`:
+A plugin is an object with a `name` and `hooks`:
 
 ```ts
 import { defineConfig, type ClarifyPlugin } from '@clarify-labs/cli'
@@ -49,29 +49,29 @@ export default defineConfig({
 })
 ```
 
-Use `clarify.ts` when you need plugins. `clarify.json` cannot represent functions.
+> Use `clarify.ts` when you need plugins. `clarify.json` cannot express functions, so it is not suitable for configuring plugins.
 
 ---
 
 ## Lifecycle
 
-Clarify currently calls these hooks:
+Clarify's current build flow calls the following hooks:
 
-| Hook | Timing | Typical use |
-|------|--------|-------------|
-| `routes:resolved` | After routes and navigation are generated | Adjust routes, navigation, groups, or visible pages. |
-| `modules:before` | After virtual modules are created and before Vite consumes them | Inject or modify runtime virtual modules. |
-| `build:done` | After build and SSG complete | Generate extra artifacts or report build results. |
+| Hook | When it fires | Typical use |
+|------|----------|----------|
+| `routes:resolved` | After routes and navigation are generated | Adjust routes, navigation, groups, and visible pages |
+| `modules:before` | After virtual modules are generated, before handing them to Vite | Inject or modify runtime virtual modules |
+| `build:done` | After the build and SSG complete | Generate extra artifacts, report build results |
 
-Plugins run in the order they appear in `plugins`. The result returned by one plugin becomes the input for the next plugin.
+Plugins run in the order of the `plugins` array. The result returned by one plugin becomes the input to the next.
 
-The public types also reserve `pages:resolved` and `page:transform`, but the current CLI build flow does not call them yet. Plugin authors should prefer the hooks listed above.
+> The types also reserve `pages:resolved` and `page:transform`, but the current CLI build flow does not yet trigger them. Plugin authors should prefer the hooks in the table above.
 
 ---
 
 ## Hook context
 
-Each hook receives a shared context object:
+Each hook receives a unified context object:
 
 ```ts
 type ClarifyHookContext = {
@@ -80,14 +80,14 @@ type ClarifyHookContext = {
 }
 ```
 
-- `projectConfig`: the resolved site config after defaults are applied, such as `title`, `routePrefix`, and `i18n`.
-- `generateOptions`: runtime build options, such as content directory, output directory, and SSG error behavior.
+- `projectConfig`: the site config after defaults have been applied, e.g. `title`, `routePrefix`, `i18n`.
+- `generateOptions`: the build run parameters, e.g. the content directory, output directory, and SSG error strategy.
 
 ---
 
-## Example: hide draft routes
+## Example: filter draft pages
 
-Filter pages during `routes:resolved` before they are published:
+You can filter out pages you do not want to publish during the `routes:resolved` stage:
 
 ```ts
 import { defineConfig, type ClarifyPlugin } from '@clarify-labs/cli'
@@ -113,13 +113,13 @@ export default defineConfig({
 })
 ```
 
-If you modify both `routes` and `navigation`, keep them consistent so the sidebar does not point to removed pages.
+If you modify both `routes` and `navigation`, you must keep them consistent to avoid the sidebar pointing to nonexistent pages.
 
 ---
 
-## Example: generate a post-build artifact
+## Example: generate artifacts after the build
 
-`build:done` is useful for sitemap, search indexes, or internal platform manifests:
+`build:done` is well suited to generating extra files, such as a sitemap, search index, or internal platform manifest:
 
 ```ts
 import { writeFileSync } from 'node:fs'
@@ -148,15 +148,15 @@ export default defineConfig({
 
 ## Error handling
 
-If a plugin hook throws, Clarify stops the current flow and reports the plugin and hook name:
+If a plugin hook throws, Clarify aborts the current flow and reports an error message that includes the plugin name and hook name:
 
 ```txt
 [clarify] plugin "my-plugin" hook "routes:resolved" failed: Error: ...
 ```
 
-Plugin author recommendations:
+Suggestions for plugin authors:
 
-- Use a stable, readable `name`.
-- Keep each hook focused on work needed at that phase.
-- Return complete results when modifying routes, navigation, or virtual modules.
-- Add timeouts and fallback behavior around external service calls.
+- Give the plugin a stable, readable `name`.
+- Inside a hook, only do the work necessary for that stage.
+- When modifying routes, navigation, or virtual modules, return the complete result.
+- Set timeouts and fallback strategies for external service calls.

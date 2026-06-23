@@ -1,14 +1,14 @@
-# Get Started
+# Getting Started
 
-This guide shows the shortest path through Clarify: install the CLI, create content, start a local site, and build static output.
+This page explains how Clarify works through the shortest possible path: install the CLI, create content, start the local site, and build static artifacts.
 
-Clarify = MDX content + `clarify.ts` config + OpenAPI specs + static site generation. You mainly maintain `source/` and the config file; Clarify handles the development server, routing, rendering, and builds.
+Clarify = MDX content + `clarify.ts` configuration + OpenAPI specs + static site generation. You mainly maintain `source/` and the configuration file, while Clarify handles the dev server, routing, rendering, and builds.
 
 ---
 
-## 1. Prepare the environment
+## 1. Prepare your environment
 
-Required:
+You need:
 
 - Node.js ≥ 20
 - pnpm ≥ 9
@@ -35,9 +35,9 @@ Add scripts to `package.json`:
 
 ---
 
-## 2. Add site config
+## 2. Add site configuration
 
-`clarify.ts` is recommended because it provides type hints and leaves room for plugins.
+We recommend using `clarify.ts`, which gives you type hints and makes it easier to add plugins later.
 
 ```ts
 import { defineConfig } from '@clarify-labs/cli'
@@ -54,7 +54,7 @@ export default defineConfig({
 })
 ```
 
-Small projects can also use `clarify.json`:
+Simple projects can also use `clarify.json`:
 
 ```json
 {
@@ -63,13 +63,13 @@ Small projects can also use `clarify.json`:
 }
 ```
 
-See [Configuration Reference](/reference/clarify-config) for the complete field list.
+See the [Configuration Reference](/reference/clarify-config) for all fields.
 
 ---
 
-## 3. Write the first pages
+## 3. Write your first pages
 
-Clarify reads `source/` by default. Adding an `.mdx` file adds a page.
+Clarify reads the `source/` directory by default. Adding an `.mdx` file adds a page.
 
 ```txt
 my-docs/
@@ -85,22 +85,22 @@ my-docs/
 ```mdx
 ---
 title: Home
-description: My product documentation home page
+description: The home page for my product docs
 ---
 
 # Welcome
 
-This is the docs home page.
+This is the documentation home page.
 ```
 
 `source/getting-started.mdx`:
 
 ```mdx
 ---
-title: Get Started
+title: Getting Started
 ---
 
-# Get Started
+# Getting Started
 
 This is the first guide.
 ```
@@ -108,31 +108,31 @@ This is the first guide.
 Routes are generated automatically:
 
 | File | Route |
-|------|-------|
+|------|------|
 | `source/index.mdx` | `/` |
 | `source/getting-started.mdx` | `/getting-started` |
-| `source/guide/index.mdx` | `/guide` |
-| `source/guide/auth.mdx` | `/guide/auth` |
+| `source/guides/index.mdx` | `/guides` |
+| `source/guides/auth.mdx` | `/guides/auth` |
 
 ---
 
-## 4. Start the development server
+## 4. Start the dev server
 
 ```bash
 pnpm dev
 ```
 
-Open the local URL printed in the terminal. The development server regenerates pages when MDX, config, or OpenAPI files change.
+Open the local address printed in the terminal. After you edit MDX, configuration, or OpenAPI files, the dev server regenerates the pages.
 
 ---
 
-## 5. Build for production
+## 5. Build the production version
 
 ```bash
 pnpm build
 ```
 
-By default, output is written to `output/`:
+By default the output goes to `output/`:
 
 ```txt
 output/
@@ -143,7 +143,7 @@ output/
 └── llms.txt
 ```
 
-These are static files and can be deployed to Vercel, Netlify, GitHub Pages, S3, Nginx, or any static hosting platform.
+These are all static files, deployable to Vercel, Netlify, GitHub Pages, S3, Nginx, or any static hosting service.
 
 ---
 
@@ -151,8 +151,8 @@ These are static files and can be deployed to Vercel, Netlify, GitHub Pages, S3,
 
 | Goal | Read |
 |------|------|
-| Write well-structured docs | [Writing Docs](/guides/writing-content) |
-| Configure navigation, theme, and i18n | [Configure Site](/guides/navigation) |
-| Generate API Reference pages or embed endpoints | [API Documentation](/features/openapi) |
-| Ship to production and expose raw content for AI tools | [Deployment](/guides/deployment) |
+| Write clearly structured docs | [Writing Content](/guides/writing-content) |
+| Configure navigation, theme, and multiple languages | [Configuring the Site](/guides/navigation) |
+| Generate the API reference or embed endpoints | [API Documentation](/features/openapi) |
+| Publish online and let AI read the raw content | [Publishing](/guides/deployment) |
 | Migrate from Mintlify | [Migrate from Mintlify](/guides/migrate-from-mintlify) |

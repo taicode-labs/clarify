@@ -1,44 +1,90 @@
-# Migrate from Mintlify
+# Migrate from Mintlify to Clarify
 
-This guide outlines how to move an existing Mintlify-style docs site to Clarify.
-
----
-
-## Migration checklist
-
-1. Create a Clarify project and install `@clarify-labs/cli`.
-2. Move documentation files into `source/`.
-3. Convert Mintlify navigation into `tabs` in `clarify.ts`.
-4. Move static assets into `public/`.
-5. Add OpenAPI specs as `.openapi.json`, `.openapi.yaml`, or `.openapi.yml` files.
-6. Run a production build and fix invalid links or MDX errors.
+Clarify's design draws on Mintlify's best practices and offers a compatible configuration format to make migration as smooth as possible.
 
 ---
 
-## Navigation mapping
+## Configuration compatibility
 
-Mintlify navigation groups usually map to Clarify tab groups:
+Mintlify's `docs.json` and Clarify's `clarify.json` fields are largely compatible:
 
-```ts
-export default defineConfig({
-  tabs: [
-    {
-      tab: 'Docs',
-      pages: [
-        {
-          group: 'Guides',
-          pages: [
-            { page: 'getting-started', title: 'Get Started' },
-          ],
-        },
-      ],
-    },
-  ],
-})
+| Mintlify | Clarify | Notes |
+|----------|---------|------|
+| `name` | `title` | Synonymous |
+| `description` | `description` | Direct mapping |
+| `logo` | `logo` | Direct mapping |
+| `colors.primary` | `theme.tokens.colors.primary` | Path adjusted, can be used together with `theme.preset` |
+
+Clarify accepts unknown Mintlify fields and silently ignores them (with a warning), providing a smooth migration path.
+
+---
+
+## Migration steps
+
+### 1. Rename the configuration file
+
+```bash
+mv docs.json clarify.json
+```
+
+### 2. Adjust fields
+
+```json
+// Before (docs.json)
+{
+  "name": "My Docs",
+  "colors": {
+    "primary": "#00D492"
+  }
+}
+
+// After (clarify.json)
+{
+  "title": "My Docs",
+  "theme": {
+    "preset": "default",
+    "tokens": {
+      "colors": {
+        "primary": "#00D492"
+      }
+    }
+  }
+}
+```
+
+### 3. Migrate content files
+
+Mintlify uses `.mdx` or `.md` files, and Clarify supports MDX as well:
+
+- Copy content files into the `source/` directory
+- Make sure the file structure matches the routing expectations
+- Check and update the frontmatter format
+
+### 4. Install dependencies and build
+
+```bash
+pnpm add -D @clarify-labs/cli
+pnpm exec clarify build
 ```
 
 ---
 
-## OpenAPI specs
+## Differences
 
-Place OpenAPI specs directly in `source/` or a locale directory. Clarify will generate a route based on the file name and copy the raw spec into the build output.
+| Feature | Mintlify | Clarify |
+|------|----------|---------|
+| Hosting | Hosted service | Self-hosted, built as static files |
+| Route configuration | `navigation` field | Explicit `tabs` config + file routing |
+| Component library | Built-in Mintlify components | MDX + Clarify built-in components + custom React components |
+| OpenAPI | Hosted platform capability | OpenAPI files as a first-class content source, can generate a reference and embed endpoints |
+| i18n | Supported | Built-in locale directories, language switching, and a missing-translation strategy |
+| AI reading | Platform capability | Static output of Markdown, OpenAPI, and `llms.txt` |
+
+---
+
+## Need help?
+
+If you run into issues during migration, get support through these channels:
+
+- [GitHub Issues](https://github.com/taicode-labs/clarify/issues)
+- [GitHub Discussions](https://github.com/taicode-labs/clarify/discussions)

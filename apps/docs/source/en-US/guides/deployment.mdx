@@ -1,30 +1,30 @@
-# Deployment
+# Publishing
 
-This page explains Clarify's publishing capabilities: build-time SSR, static generation, common hosting targets, route prefixes, raw content output, and `llms.txt`.
+This page brings together Clarify's publishing capabilities: build-time SSR, static generation, deployment to common platforms, subpath configuration, and outputting raw content and `llms.txt`.
 
-Clarify supports SSR rendering, but it uses **build-time SSR**: `clarify build` renders every route into HTML during the build. The production artifact is still a pure static site, so no Node.js server runtime is required after deployment.
+Clarify supports SSR rendering, but it uses **build-time SSR**: `clarify build` renders each route into an HTML file during the build. The published artifacts are still pure static files that need no Node.js server runtime and can be deployed to any static hosting service.
 
 ---
 
-## How SSR works
+## How SSR is supported
 
-Clarify's production rendering model is SSG (Static Site Generation) plus hydration:
+Clarify's production rendering flow is SSG (Static Site Generation) + hydration:
 
 1. The build environment runs `pnpm exec clarify build`.
-2. The CLI uses a Vite SSR bundle to render every documentation route in Node.js.
-3. Each route is written as its own `index.html`, alongside JS/CSS assets, raw Markdown/OpenAPI artifacts, and `llms.txt`.
-4. Visitors receive pre-rendered HTML first. After JavaScript loads, the page hydrates into a React app for client-side navigation.
+2. The CLI uses a Vite SSR bundle to render each documentation route in Node.js.
+3. Each route writes a standalone `index.html` and generates JS/CSS assets, raw Markdown/OpenAPI artifacts, and `llms.txt`.
+4. When a user visits a page, they first get the already-rendered HTML; after the browser loads the JavaScript it hydrates into a React app, and subsequent in-site navigation gets a client-side navigation experience.
 
 This means:
 
-- ✅ first-load HTML, SEO-friendly output, and direct deep links are supported;
-- ✅ deployment only needs static file hosting;
+- ✅ Supports first-screen HTML, SEO friendliness, and direct access to deep links;
+- ✅ Deployment only needs to host static files;
 - ✅ Vercel, Netlify, GitHub Pages, object storage, CDNs, and Nginx all work;
-- ❌ production request-time SSR servers are not required or provided.
+- ❌ A request-time SSR server in production is neither needed nor provided.
 
 ---
 
-## Build output
+## Build artifacts
 
 Run:
 
@@ -32,13 +32,13 @@ Run:
 pnpm exec clarify build
 ```
 
-The default output directory is `output/`. You can override it:
+By default it outputs to `output/`, but you can also specify a directory:
 
 ```bash
 pnpm exec clarify build --output dist
 ```
 
-A typical build looks like this:
+The build result looks like:
 
 ```txt
 output/
@@ -51,15 +51,15 @@ output/
 └── api.openapi.json
 ```
 
-Every route has its own HTML file for fast first loads, direct linking, and search-friendly output. After JavaScript loads, users get client-side navigation. Deploy only the `output/` directory; do not deploy temporary SSR build files.
+Every route has standalone HTML, suitable for SEO and direct access; after the browser loads the JavaScript it gets a client-side navigation experience. When deploying, only publish the `output/` directory — do not publish the temporary SSR bundle from the build process.
 
 ---
 
-## Hosting targets
+## Deployment platforms
 
 ### Vercel
 
-1. Push the repository to GitHub, GitLab, or Bitbucket.
+1. Push your code to GitHub/GitLab/Bitbucket.
 2. Import the project in Vercel.
 3. Build command: `pnpm exec clarify build`.
 4. Output directory: `output`.
@@ -72,7 +72,7 @@ Every route has its own HTML file for fast first loads, direct linking, and sear
 
 ### GitHub Pages
 
-If the repository is named `my-repo` and the site URL is `https://username.github.io/my-repo/`, configure:
+If the repository is named `my-repo` and the site address is `https://username.github.io/my-repo/`, configure:
 
 ```ts
 export default defineConfig({
@@ -80,7 +80,7 @@ export default defineConfig({
 })
 ```
 
-Example GitHub Actions workflow:
+Example GitHub Actions:
 
 ```yaml
 name: Deploy to GitHub Pages
@@ -105,7 +105,7 @@ jobs:
 
 ### CDN / Nginx
 
-Upload `output/` to your web root:
+Just upload `output/` to the web root:
 
 ```bash
 rsync -avz output/ user@server:/var/www/html/
@@ -129,53 +129,53 @@ server {
 
 ## Raw content output
 
-Clarify exposes raw content during development and production builds. This is useful for search, knowledge bases, and AI tools.
+Clarify exposes raw content during both development and build, making it easy for search, knowledge bases, and AI tools to read.
 
 | Page route | Raw content URL |
-|------------|-----------------|
+|----------|--------------|
 | `/` | `/index.md` |
 | `/getting-started` | `/getting-started.md` |
 | `/features/openapi` | `/features/openapi.md` |
 | `/api` | `/api.openapi.json` |
 
-The page content actions use these URLs to copy raw page content, copy raw content links, or let AI tools reference stable Markdown/OpenAPI addresses.
+The content actions in the top-right corner of each page use these URLs to copy the raw content link, download the page's source content, or let AI tools reference a stable Markdown/OpenAPI address.
 
 ---
 
 ## `llms.txt`
 
-The build output includes `llms.txt`, listing the site title, description, MDX pages, and OpenAPI entry points:
+The build artifacts include `llms.txt`, listing the site title, description, MDX pages, and OpenAPI documentation entries:
 
 ```txt
 # Clarify
 
-> Open-source documentation publishing for MDX and OpenAPI.
+> An open-source documentation publishing tool built for MDX and OpenAPI.
 
 ## Docs
-- [Get Started](/getting-started.md)
+- [Getting Started](/getting-started.md)
 - [API Documentation](/features/openapi.md)
 
 ## OpenAPI
 - [API Reference](/api.openapi.json)
 ```
 
-It is useful for:
+It is well suited to be:
 
-- AI coding assistants;
-- internal knowledge-base indexing;
-- documentation quality tools;
-- search or Q&A systems as a discovery manifest.
+- Read by AI coding assistants;
+- Indexed by internal knowledge bases;
+- Consumed by documentation quality-check tools;
+- Used as an entry manifest by search or Q&A systems.
 
-If `routePrefix` is configured, links in `llms.txt` automatically include the same prefix.
+If `routePrefix` is configured, the links in `llms.txt` automatically include the same prefix.
 
 ---
 
 ## Pre-publish checklist
 
-- The build environment satisfies Node.js `>=20.0.0` and pnpm `>=9.0.0`.
+- The build environment meets Node.js `>=20.0.0` and pnpm `>=9.0.0`.
 - `pnpm exec clarify build` completes successfully.
-- `output/` contains the expected HTML, assets, raw Markdown/OpenAPI files, and `llms.txt`.
-- `routePrefix` is configured when deploying under a subpath.
-- Raw OpenAPI output does not include internal-only information.
-- The hosting platform points to `output` or your custom output directory.
-- Production can be deployed as a static site; no Node.js SSR service needs to be started.
+- `output/` contains the expected HTML, assets, raw Markdown/OpenAPI, and `llms.txt`.
+- If deploying under a subpath, `routePrefix` is configured.
+- The raw OpenAPI content does not contain internal information that should not be public.
+- The deployment platform's output directory points to `output` or your custom output directory.
+- The production environment is deployed as a static site — no Node.js SSR server is needed.

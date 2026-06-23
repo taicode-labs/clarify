@@ -1,0 +1,70 @@
+# API documentation example
+
+This page demonstrates how Clarify can use the same OpenAPI specification for a complete Reference and MDX endpoint embedding.
+
+The example spec is located at `source/zh-CN/api.openapi.json`, and the generated complete page is [API Reference](/api).
+
+---
+
+## Example spec coverage
+
+The current example is an OpenAPI 3.1 fixture that covers common rendering scenarios:
+
+- `info`, `servers`, `externalDocs`, `tags`
+- Global `security` and `components.securitySchemes`
+- path / query / header parameters
+- JSON, YAML, multipart, merge-patch, and other request bodies
+- Multi-status responses, headers, examples, links
+- `allOf`, `oneOf`, enum, const, format, pattern, additionalProperties, discriminator
+- callbacks, webhooks, OpenAPI 3.1 `jsonSchemaDialect`
+
+---
+
+## Endpoint index preview
+
+```txt
+GET     /examples/basic-request                 Basic request structure
+POST    /examples/basic-request                 Request body variants
+GET     /examples/path-parameters/{pageId}      Path parameter example
+GET     /examples/query-parameters              Query parameter example
+POST    /examples/complex-request-body          Complex request body example
+GET     /examples/basic-response                Basic response structure
+```
+
+---
+
+## Example 1: basic request structure
+
+When explaining a basic request structure in a guide, you can embed `GET /examples/basic-request` directly:
+
+```mdx
+<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+```
+
+Rendered result:
+
+<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+
+---
+
+## Example 2: complex request body and multiple responses
+
+`POST /examples/complex-request-body` covers a more complex endpoint structure: the request body has both JSON and YAML media types, each media type has multiple examples, and responses include `202` and `400`; the success response provides both JSON and plain text media types.
+
+```mdx
+<OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
+```
+
+Rendered result:
+
+<OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
+
+---
+
+## Raw spec
+
+After build, the raw OpenAPI file is output to a stable URL:
+
+- [api.openapi.json](/api.openapi.json)
+
+This link also appears in `llms.txt`, making it easy for AI tools to read the machine-parseable endpoint specification.

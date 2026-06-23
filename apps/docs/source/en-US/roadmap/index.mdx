@@ -1,25 +1,71 @@
-# Product Roadmap
+# Roadmap
 
-Clarify is evolving toward a focused documentation publishing workflow for MDX and OpenAPI.
-
----
-
-## Current priorities
-
-| Area | Direction |
-|------|-----------|
-| Authoring | Improve MDX authoring ergonomics and built-in docs components. |
-| OpenAPI | Make API Reference pages more complete and easier to embed in guides. |
-| Static output | Keep builds fast, deterministic, and friendly to SEO and AI tools. |
-| i18n | Make localized docs predictable with explicit fallback behavior. |
-| Extensibility | Stabilize plugin APIs for teams that need custom pipelines. |
+Clarify uses phased iterative development, with each phase focusing on a set of core capabilities.
 
 ---
 
-## Principles
+## Phase 1 — Minimum viable product (current)
 
-- Keep docs content close to source code.
-- Prefer static output that can be hosted anywhere.
-- Treat OpenAPI specs as first-class content.
-- Keep configuration explicit and readable.
-- Deliver content artifacts for AI workflows, including Markdown/OpenAPI exports and `llms.txt`.
+> ✅ Completed
+
+### Goal
+
+Build a usable documentation publishing tool that supports MDX rendering and static site generation.
+
+### Implemented features
+
+- [x] MDX compilation and rendering
+- [x] File-system-based conventional routing
+- [x] Build-time static generation (SSG)
+- [x] Client hydration
+- [x] Built-in renderer style pipeline
+- [x] Configuration file system (`clarify.ts` / `clarify.js` / `clarify.json`)
+- [x] Basic theme configuration (`theme.preset` and `theme.tokens.colors.primary`)
+- [x] Top navigation configuration and custom sidebar navigation
+- [x] OpenAPI integration — automatically generate API documentation pages or embed single endpoints
+- [x] Internationalization (i18n) — multilingual directories, route prefixes, and missing-language strategies
+- [x] Built-in search entry — client-side quick jump based on routes and page sections
+- [x] Light / dark theme switching — supports system preference and manual switching
+- [x] Plugin hooks — supports extensions in route, virtual module, HTML transform, and build-done phases
+- [x] AI-ready content artifacts and `llms.txt` output, supporting references to raw Markdown/OpenAPI content
+
+---
+
+## Phase 2 — Enhanced experience (in development)
+
+### Goal
+
+Add advanced features on top of current capabilities to improve the usability and extensibility of documentation sites.
+
+### Planned features
+
+- [ ] **Full-text search index** — client-side or static index search based on complete content
+- [ ] **Social sharing** — Open Graph and Twitter Card support
+- [ ] **Edit links** — “Edit this page on GitHub” feature
+- [ ] **Custom MDX component registration** — stably register project-specific React components into the MDX scope
+
+---
+
+## Phase 3 — Ecosystem expansion (planned)
+
+### Goal
+
+Expand Clarify into a more complete documentation ecosystem.
+
+### Ideas
+
+- [ ] **Search backend** — enhanced search based on Algolia / Pagefind
+- [ ] **Versioning** — display multiple documentation versions in parallel
+- [ ] **Comment system** — page comments based on Giscus / Utterances
+- [ ] **Plugin marketplace** — discovery and installation mechanism for third-party plugins
+- [ ] **CLI tools** — scaffolding, content validation, preview, and other commands
+- [ ] **VS Code extension** — content preview and autocomplete
+
+---
+
+## How to participate
+
+If you have feature suggestions or want to contribute, you are welcome to:
+
+- Submit feature requests in [GitHub Issues](https://github.com/taicode-labs/clarify/issues)
+- Read the [Development guide](/development) to learn how to contribute code

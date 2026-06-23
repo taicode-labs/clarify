@@ -1,31 +1,48 @@
-# Configuration Reference
+# Clarify configuration reference
 
-Clarify project config lives in `clarify.ts`, `clarify.js`, or `clarify.json`. Loading priority is:
+We recommend using `clarify.ts` as the project configuration file. `clarify.js` and `clarify.json` are also supported, with the following loading priority:
 
 ```txt
 clarify.ts > clarify.js > clarify.json
 ```
 
-Use `clarify.ts` when you want type hints or plugins. Use `clarify.json` for simple static configuration.
+`clarify.json` is suitable for simple projects that do not need plugin functions. Use `clarify.ts` when you need plugins or stronger type hints.
 
 ---
 
-## Example
+## Configuration layers
+
+Clarify clearly separates **project configuration** from **runtime parameters**:
+
+| Layer | Audience | Entry | Responsibility |
+|-------|----------|-------|----------------|
+| Project configuration | Content authors, technical writers, extension developers | `clarify.ts/js/json` | Site presentation, i18n, navigation, plugins |
+| CLI arguments | Developers, build environments | `clarify dev/build` | Project root, content directory, output directory, port |
+
+> Content creators mainly maintain `clarify.ts` and `source`; developers control runtime behavior through CLI arguments.
+
+---
+
+## Complete configuration type
 
 ```ts
 import { defineConfig } from '@clarify-labs/cli'
 
 export default defineConfig({
   title: 'Clarify Docs',
-  description: 'Open-source documentation publishing for MDX and OpenAPI',
+  description: 'Official Clarify documentation — an open-source documentation publishing tool',
   siteUrl: 'https://docs.example.com',
   source: {
     repository: 'https://github.com/acme/docs',
     branch: 'main',
     directory: 'docs/source',
   },
-  logo: '/logo.svg',
+  logo: {
+    light: '/logo-light.svg',
+    dark: '/logo-dark.svg',
+  },
   favicon: '/favicon.ico',
+  routePrefix: '/docs/',
   theme: {
     preset: 'default',
     editor: true,
@@ -43,6 +60,16 @@ export default defineConfig({
       { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
     ],
   },
+  banner: {
+    content: { 'zh-CN': 'Clarify 正在快速迭代中', 'en-US': 'Clarify is evolving fast' },
+    dismissible: true,
+  },
+  footer: {
+    socials: {
+      github: 'https://github.com/taicode-labs/clarify',
+    },
+    copyright: '© 2026 Clarify Team',
+  },
   i18n: {
     defaultLocale: 'zh-CN',
     missing: 'fallback',
@@ -58,6 +85,10 @@ export default defineConfig({
       pages: 'FileTree',
     },
   ],
+  ssg: {
+    failOnError: true,
+  },
+  plugins: [],
 })
 ```
 
@@ -65,22 +96,23 @@ export default defineConfig({
 
 ## Top-level fields
 
-| Field | Description |
-|-------|-------------|
-| `title` | Site title used by the shell and generated metadata. |
-| `description` | Site description used for SEO and `llms.txt`. |
-| `siteUrl` | Public canonical site URL. Enables `sitemap.xml` and `robots.txt` during `clarify build`. |
-| `source` | Repository metadata used to render “Edit this page” links. |
-| `logo` | Logo path or light/dark logo variants. |
-| `favicon` | Favicon path or light/dark variants. |
-| `theme` | Theme preset, token overrides, and `theme.editor` for exposing the live theme editor in built sites. Dev mode enables the editor automatically. |
-| `routePrefix` | Deployment subpath, such as `/docs/`. |
-| `navbar` | Top navigation links. |
-| `footer` | Footer links, socials, and copyright. |
-| `i18n` | Locale configuration and missing-content behavior. |
-| `tabs` | High-level navigation sections and sidebar structure. |
-| `ssg` | Static generation behavior. |
-| `plugins` | Build-time plugins, available in JS/TS config files. |
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `title` | `string` | `"Clarify Docs"` | Site title, used for sidebar branding and the HTML title |
+| `description` | `string` | `""` | Site description, used for SEO and `llms.txt` |
+| `siteUrl` | `string` | — | Public site URL; when configured, `clarify build` generates `sitemap.xml` and `robots.txt` |
+| `source` | `{ repository: string; branch?: string; directory?: string }` | — | Source repository information, used to generate “Edit this page” links |
+| `logo` | `string \| { light?: string; dark?: string }` | — | Brand logo path |
+| `favicon` | `string \| { light?: string; dark?: string }` | — | favicon path or light/dark theme variants |
+| `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig; editor?: boolean }` | `{ preset: 'default', editor: false }` | Theme preset, local overrides, and live theme editor configuration; `theme.editor` can expose the editor in built sites, and dev mode enables it automatically |
+| `routePrefix` | `string` | `"/"` | Deployment subpath, such as `/docs/` |
+| `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | Top navigation links |
+| `banner` | `ClarifyBannerConfig` | — | Top announcement configuration, for themes or future UI use |
+| `footer` | `ClarifyFooterConfig` | — | Footer configuration, for themes or future UI use |
+| `i18n` | `ClarifyI18nConfig` | — | Internationalization configuration |
+| `tabs` | `ClarifyTabsConfig` | Generated automatically from the file tree | Site business categories and sidebar structure under each category |
+| `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | Static generation error strategy |
+| `plugins` | `ClarifyPlugin[]` | `[]` | Build-time plugin list, only available in `clarify.ts/js` |
 
 ---
 
@@ -97,63 +129,13 @@ export default defineConfig({
 })
 ```
 
-`siteUrl` is used by `clarify build` to generate `sitemap.xml` and `robots.txt`. `source` enables the page action menu to show an “Edit this page” link for each route.
-
----
-
-## `theme`
-
-```ts
-theme: {
-  preset?: 'default' | 'base'
-  tokens?: ClarifyThemeTokensConfig
-  layout?: ClarifyThemeLayoutConfig
-  editor?: boolean
-}
-```
-
-Theme tokens are partial overrides of the selected preset. Color tokens can be plain strings or mode-aware values:
-
-```ts
-export default defineConfig({
-  theme: {
-    preset: 'base',
-    editor: true,
-    tokens: {
-      colors: {
-        primary: { light: '#00D492', dark: '#34D399' },
-        accent: '#0D9488',
-        muted: { light: '#64748b', dark: '#a1a1aa' },
-      },
-    },
-  },
-})
-```
-
-`theme.editor` exposes the live theme editor in built sites. Dev mode enables the editor automatically.
-
----
-
-## Custom 404 page
-
-Create `source/404.mdx` to customize the not-found page:
-
-```mdx
-# Page not found
-
-The page you are looking for does not exist or has moved.
-
-- [Get started](/getting-started)
-- [Configuration reference](/reference/clarify-config)
-```
-
-Clarify serves it at `/404`, uses it for unmatched client routes, and writes `output/404.html` during static generation. File-tree navigation hides `404` automatically.
+`siteUrl` is used to generate `sitemap.xml` and `robots.txt` during `clarify build`. `source` makes the page action menu show an “Edit this page” link that points to the corresponding source file.
 
 ---
 
 ## Localized text
 
-Many config fields accept localized text:
+Multiple configuration fields accept localized text:
 
 ```ts
 type ClarifyLocalizedText = string | Record<string, string>
@@ -172,9 +154,304 @@ Example:
 
 ---
 
-## OpenAPI page filters
+## `logo` and `favicon`
 
-OpenAPI entries in `tabs[].pages` can publish either the full spec or a filtered subset of operations.
+```ts
+type ClarifyLogoConfig = string | { light?: string; dark?: string }
+type ClarifyFaviconConfig = string | { light?: string; dark?: string }
+```
+
+```ts
+export default defineConfig({
+  logo: '/logo.svg',
+  favicon: {
+    light: '/favicon-light.svg',
+    dark: '/favicon-dark.svg',
+  },
+})
+```
+
+---
+
+## `theme`
+
+```ts
+theme: {
+  preset?: 'default' | 'base'
+  tokens?: ClarifyThemeTokensConfig
+  layout?: ClarifyThemeLayoutConfig
+  editor?: boolean
+}
+```
+
+`preset` selects the built-in theme base. Currently, only two presets are provided:
+
+| Preset | Primary color | Accent color | Default max content width | Suitable use case |
+|--------|---------------|--------------|---------------------------|-------------------|
+| `default` | `#047857` | `#0D9488` | `82rem` | Default documentation theme with a green brand feel |
+| `base` | `#18181b` | `#52525b` | `80rem` | Standard black, white, and gray theme without color preference |
+
+The remaining fields override the preset. For example, the following configuration first applies `base`, then overrides the primary color with your brand color:
+
+```ts
+export default defineConfig({
+  theme: {
+    preset: 'base',
+    editor: true,
+    tokens: {
+      colors: {
+        primary: { light: '#00D492', dark: '#34D399' },
+        accent: '#0D9488',
+        background: { light: '#ffffff', dark: '#09090b' },
+        foreground: { light: '#18181b', dark: '#fafafa' },
+        surface: { light: '#f8fafc', dark: '#18181b' },
+        muted: { light: '#64748b', dark: '#a1a1aa' },
+        border: { light: '#e2e8f0', dark: '#27272a' },
+        codeBackground: { light: '#0f172a', dark: '#020617' },
+      },
+    },
+  },
+})
+```
+
+Theme tokens are “local overrides,” not a rewrite of the entire theme. Fields that are not configured continue to inherit the defaults from the selected preset. Color tokens can be strings directly, or separate values for light and dark modes as `{ light?: string; dark?: string }`, such as `muted: { light: '#64748b', dark: '#a1a1aa' }`. If one mode is missing, Clarify falls back to an available value or the preset default. `theme.editor` can expose the live theme editor in built sites; dev mode enables it automatically. The current version does not read custom CSS or `tailwind.config.js` from the user project to override renderer styles.
+
+---
+
+## Custom 404 page
+
+Create `source/404.mdx` to customize the not-found page:
+
+```mdx
+# Page not found
+
+The page you visited does not exist or has moved.
+
+- [Quick start](/getting-started)
+- [Configuration reference](/reference/clarify-config)
+```
+
+Clarify previews this page at `/404`, and reuses it as the 404 display for unknown client-side routes. During static generation, it also writes `output/404.html`; automatic file-tree navigation hides `404` by default.
+
+---
+
+## `navbar`
+
+```ts
+type ClarifyNavbarLink = {
+  label: ClarifyLocalizedText
+  href: string
+  external?: boolean
+}
+```
+
+```ts
+export default defineConfig({
+  navbar: {
+    links: [
+      { label: 'Docs', href: '/getting-started' },
+      { label: 'API', href: '/features/openapi' },
+      { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
+    ],
+  },
+})
+```
+
+Keep only core entries in the top navigation, and let the sidebar carry the complete information architecture.
+
+---
+
+## `banner`
+
+```ts
+type ClarifyBannerConfig = {
+  content: ClarifyLocalizedText
+  dismissible?: boolean
+}
+```
+
+```ts
+export default defineConfig({
+  banner: {
+    content: 'Clarify v0.1 has been released',
+    dismissible: true,
+  },
+})
+```
+
+---
+
+## `footer`
+
+```ts
+type ClarifyFooterLink = {
+  label: ClarifyLocalizedText
+  href: string
+  external?: boolean
+}
+
+type ClarifyFooterConfig = {
+  links?: ClarifyFooterLink[]
+  socials?: Record<string, string>
+  copyright?: ClarifyLocalizedText
+}
+```
+
+```ts
+export default defineConfig({
+  footer: {
+    links: [
+      { label: 'Quick start', href: '/getting-started' },
+      { label: 'Configuration reference', href: '/reference/clarify-config' },
+      { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
+    ],
+    socials: {
+      github: 'https://github.com/taicode-labs/clarify',
+    },
+    copyright: '© 2026 Clarify Team',
+  },
+})
+```
+
+`links` are suitable for high-frequency footer entries such as quick start, configuration reference, and contributing; `socials` are suitable for external community links such as GitHub, X, and Discord.
+
+---
+
+## `i18n`
+
+```ts
+type ClarifyI18nConfig = {
+  defaultLocale?: string
+  missing?: 'fallback' | '404' | 'hide'
+  locales: Array<{
+    code: string
+    label: string
+    dir?: 'ltr' | 'rtl'
+  }>
+}
+```
+
+`defaultLocale` corresponds to default routes without a language prefix; non-default languages include a locale prefix. For example, when the default language is `zh-CN`, the Chinese homepage is `/`, and the English homepage is `/en-US`.
+
+`missing` controls how missing pages are handled for a language:
+
+| Strategy | Behavior | Suitable use case |
+|----------|----------|-------------------|
+| `fallback` | Use the default language content to fill missing pages | Publish the primary language first, then gradually add translations |
+| `hide` | Do not generate pages for missing languages | Untranslated content should not appear in target-language navigation |
+| `404` | Keep missing pages inaccessible | Strict multilingual publishing where fallback content must not be mixed in |
+
+`dir` is written to the generated HTML `dir` attribute, suitable for RTL languages such as Arabic and Hebrew.
+
+For more details, see [Configure the site](/guides/navigation).
+
+---
+
+## `tabs` navigation and sidebar
+
+Clarify uses top-level `tabs` as first-level business categories for the site. Each tab can configure its own sidebar `pages`; root-level `pages` is no longer supported.
+
+```ts
+type ClarifyTabsConfig = ClarifyTabItem[]
+
+type ClarifyTabItem = {
+  tab: ClarifyLocalizedText
+  icon?: string
+  pages?: ClarifyPagesConfig
+}
+
+type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree'
+```
+
+If `tabs` is omitted, Clarify automatically generates a normal sidebar from the file structure in the content directory, including `.mdx` and `.openapi.json/.yaml/.yml` files.
+
+### Use a file tree in a single tab
+
+```ts
+export default defineConfig({
+  tabs: [
+    {
+      tab: 'Docs',
+      icon: 'BookOpen',
+      pages: 'FileTree',
+    },
+  ],
+})
+```
+
+### Manually configure sidebars for multiple tabs
+
+```ts
+export default defineConfig({
+  tabs: [
+    {
+      tab: { 'zh-CN': '指南', 'en-US': 'Guides' },
+      icon: 'Rocket',
+      pages: [
+        {
+          group: { 'zh-CN': '核心路径', 'en-US': 'Core Path' },
+          icon: 'Rocket',
+          pages: [
+            { page: 'getting-started', title: 'Quick start', icon: 'Rocket' },
+            { page: 'guides/writing-content', title: 'Writing docs', icon: 'PenLine' },
+            { page: 'guides/navigation', title: 'Configure the site', icon: 'SlidersHorizontal' },
+          ],
+        },
+      ],
+    },
+    {
+      tab: 'API',
+      icon: 'BookOpenCheck',
+      pages: [
+        {
+          group: 'API documentation',
+          pages: [
+            { openapi: 'api.openapi.json', title: 'API Reference', icon: 'BookOpenCheck' },
+          ],
+        },
+      ],
+    },
+  ],
+})
+```
+
+### `ClarifyTabItem`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `tab` | `ClarifyLocalizedText` | Yes | Tab display name |
+| `icon` | `string` | No | Lucide icon name |
+| `pages` | `ClarifyPagesConfig` | No | Sidebar structure under the current tab; generated from the file tree when omitted |
+
+### `ClarifyPagesGroup`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `group` | `ClarifyLocalizedText` | Yes | Group title |
+| `icon` | `string` | No | Lucide icon name |
+| `pages` | `ClarifyPagesItem[]` | Yes | Pages under the group |
+
+### `ClarifyPagesItem`
+
+| Shape | Description |
+|-------|-------------|
+| `"getting-started"` | Shorthand, references an MDX page |
+| `{ page }` | References an MDX page without the `.mdx` suffix |
+| `{ page, title, icon, redirect }` | References a page and overrides the title, icon, or target path |
+| `{ openapi, title, icon, filter }` | References an OpenAPI spec file; `filter.tags` filters endpoints by operation tags |
+
+`redirect` only changes the target path when a navigation item is clicked; it does not create a new content page. It is useful for pointing a navigation entry to a more specific section, a migrated path, or avoiding an empty page when a group homepage does not exist:
+
+```ts
+{
+  page: 'guides',
+  title: 'Guides',
+  icon: 'BookOpen',
+  redirect: '/guides/writing-content',
+}
+```
+
+OpenAPI pages display all endpoints in the specification by default. After configuring `filter.tags`, the page only displays endpoints whose `operation.tags` contain at least one specified tag, and generates an independent route based on the tag:
 
 ```ts
 {
@@ -186,6 +463,51 @@ OpenAPI entries in `tabs[].pages` can publish either the full spec or a filtered
 }
 ```
 
-`filter.tags` matches OpenAPI `operation.tags`. If any operation tag matches one of the configured tags, the operation appears on that page. Without `filter`, the page renders every operation in the spec.
+The route above is `/api/projects`. Tags are converted to lowercase kebab-case; multiple tags are joined in configuration order. For example, `['Admin Users', 'Billing']` generates `/api/admin-users-billing`. When i18n is enabled, the default language remains `/api/projects`, while non-default languages add the locale prefix, such as `/en-US/api/projects`.
 
-Filtered pages get a tag-based route suffix. For example, `api.openapi.json` with `filter.tags: ['Projects']` is served at `/api/projects`.
+---
+
+## `ssg`
+
+```ts
+ssg: {
+  failOnError?: boolean
+}
+```
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `failOnError` | `true` | Whether to abort the build when SSG fails |
+
+---
+
+## `plugins`
+
+```ts
+plugins: ClarifyPlugin[]
+```
+
+Plugins can only be configured in `clarify.ts` or `clarify.js`. For more details, see [Plugin system](/features/plugins) and [Plugin API reference](/reference/plugin-api).
+
+---
+
+## CLI overrides
+
+The CLI passes the following runtime parameters into the build system:
+
+| CLI option | Internal field | Default | Command |
+|------------|----------------|---------|---------|
+| `--root <dir>` | `projectRoot` | Current directory | `dev` / `build` / `init` |
+| `--content <dir>` | `rootDirectory` | `source` | `dev` / `build` / `init` |
+| `--output <dir>` | `outputDirectory` | `output` | `dev` / `build` / `init` |
+| `--host [host]` | Vite dev server host | — | `dev` |
+| `--port <port>` | Vite dev server port | — | `dev` |
+| `--open [path]` | Vite dev server open | — | `dev` |
+
+Priority:
+
+```txt
+CLI arguments > clarify.ts/js/json > defaults
+```
+
+This allows CI to override the output directory or content directory without modifying project configuration.

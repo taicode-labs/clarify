@@ -1,78 +1,118 @@
-# Architecture
+# Overall architecture
 
-Clarify is a pnpm workspace that separates product apps from reusable packages. The repository is intentionally small: the CLI owns the documentation engine, and the renderer owns the React runtime.
+Clarify uses a Monorepo structure with two levels: apps and packages.
 
 ---
 
-## Workspace structure
+## Monorepo structure
 
-```txt
-apps/
-  docs/       Documentation playground and integration site
-  www/        Marketing and landing page
-packages/
-  cli/        CLI, config loading, route discovery, plugins, Vite integration, SSG
-  renderer/   React shell, MDX primitives, OpenAPI UI, client/server render entries
+```
+├── apps/
+│   ├── docs/           # Documentation playground & development site (port 5173)
+│   └── www/            # Marketing website & landing pages (port 5174)
+├── packages/
+│   ├── renderer/       # Shared React components & UI primitives
+│   └── cli/            # Clarify CLI and documentation build engine
 ```
 
 ---
 
-## Package responsibilities
+## Workspace responsibilities
 
-| Package | Responsibility | Notes |
-|---------|----------------|-------|
-| `apps/docs` | Real Clarify project used as the documentation playground. | Uses `clarify.ts`, localized `source/` content, tabs, MDX pages, and OpenAPI examples. |
-| `apps/www` | Independent marketing site. | Does not depend on `packages/*`; this keeps marketing deployment separate from the docs engine. |
-| `packages/cli` | Public CLI and internal documentation engine. | Exposes `clarify dev`, `clarify build`, `clarify init`, and `defineConfig`. |
-| `packages/renderer` | Shared React renderer. | Exposes `@clarify-labs/renderer`, `@clarify-labs/renderer/client`, `@clarify-labs/renderer/server`, and `style.css`. |
+### `apps/docs` — documentation playground
 
-Package builds currently use Vite library builds (`vite build`) and type declarations. User projects should not need to know this; the public interface remains the Clarify CLI.
+- **Purpose**: Serves as the primary development environment and a live example of the Clarify engine.
+- **Key features**:
+  - Consumes `@clarify-labs/renderer` for UI components.
+  - Uses `@clarify-labs/cli` for MDX/OpenAPI compilation, routing, development server, and static builds.
+  - Provides a realistic test environment for CLI and renderer changes.
+- **Dependencies**: `@clarify-labs/renderer` (workspace), `@clarify-labs/cli` (workspace)
+- **Build output**: Static site deployed as the official documentation.
 
----
+### `apps/www` — marketing site
 
-## System boundary
+- **Purpose**: Public landing pages and marketing content for the Clarify project.
+- **Key features**:
+  - Independent React + Tailwind CSS application.
+  - Presents features, quick-start guides, and community links.
+- **Dependencies**: Does not depend on `packages/*` (kept independent to simplify deployment).
+- **Build output**: Static site deployed to the project's public domain.
 
-Clarify has three boundaries that should stay clear:
+### `packages/renderer` — shared React components
 
-| Boundary | Input | Output |
-|----------|-------|--------|
-| User project → CLI | `clarify.ts/js/json`, `source/`, `public/`, CLI flags | Resolved config, route model, virtual modules, build output |
-| CLI → Renderer | `config`, `routes`, `navigation`, `openApis` virtual modules | React application shell and pages |
-| Build → Deployment | `output/` | Static HTML, assets, copied public files, raw content artifacts, `llms.txt` |
+- **Purpose**: Provides the React runtime, app shell, and content components used by the documentation engine.
+- **Key components**:
+  - `AppShell`: The top-level app shell for documentation sites, responsible for routing, navigation, search, theme switching, and content actions.
+  - `Navigation` / `Header`: Desktop sidebar, mobile navigation, and top bar.
+  - `Code` / `CodeGroup` / `Prose`: Base typography and code block components for MDX content.
+  - `OpenApiDocument` / `OpenApiOperation`: Used to render OpenAPI pages and embed single endpoints.
+- **Distribution**: Uses Vite library build to output ESM / CJS / DTS for CLI and user projects.
+- **Constraints**: Avoid binding to specific apps except for peer dependencies such as React / React Router; users should not need to maintain renderer entry points.
 
-Do not move file-system concerns into the renderer. Do not move visual component logic into the CLI unless it is represented as data.
+### `packages/cli` — Clarify CLI
+
+- **Purpose**: Converts MDX + OpenAPI into a runnable documentation site and provides user-facing command-line entry points.
+- **Key responsibilities**:
+  - **Command wrapper**: Provides `clarify dev`, `clarify build`, and `clarify init`.
+  - **MDX compilation**: Integrates `@mdx-js/rollup` to compile `.md` / `.mdx` files into React components.
+  - **OpenAPI ingestion**: Reads `*.openapi.yaml/json` and uses `@clarify-labs/renderer` components to generate type-safe API reference pages.
+  - **Route generation**: Automatically generates route manifests from the file system (for example, `docs/getting-started.mdx` → `/getting-started`).
+  - **Development server**: Provides hot updates for content and API spec changes.
+  - **Build integration**: Emits a statically prerendered site suitable for deployment.
+- **Configuration**: Supports `clarify.ts`, `clarify.js`, and `clarify.json`; `clarify.ts` is recommended for type-safe configuration and plugins.
+- **Distribution**: Published as `@clarify-labs/cli` and exposes the `clarify` bin.
 
 ---
 
 ## Data flow
 
-```txt
-clarify.ts / clarify.js / clarify.json
-  → loadClarifyConfig()
-  → validateProjectConfig()
-  → resolveProjectConfig() + resolveBuildOptions()
-  → findContentRoutes() + OpenAPI discovery
-  → ContentRoute[]
-  → NavigationTree
-  → buildVirtualModules()
-  → renderer client/server entries
-  → output/
+```mermaid
+graph TD
+    A[clarify.ts/js/json] --> B[ResolvedProjectConfig]
+    B --> C[Content discovery]
+    C --> D[ContentRoute array]
+    D --> E[NavigationTree]
+    E --> F[Virtual modules]
+    F --> G[Renderer client/server entries]
+    G --> H[output static site]
+    C --> I[Raw content artifacts]
+    I --> H
 ```
 
-The most important internal data types are:
-
-| Type | Owner | Purpose |
-|------|-------|---------|
-| `ResolvedProjectConfig` | CLI | Site title, description, route prefix, theme, navbar, footer, i18n, and tabs with defaults applied. |
-| `ResolvedBuildOptions` | CLI | Content root, output directory, and SSG behavior. |
-| `ContentRoute` | CLI → Renderer | One renderable route. Includes path, locale, title, description, kind, file path, virtual module ID, sections, alternates, and optional `contentArtifactUrl`. |
-| `NavigationTree` | CLI → Renderer | Sidebar and tab navigation, optionally localized. |
+1. **Authors** write MDX/Markdown documents and OpenAPI specifications in `source/`.
+2. **`@clarify-labs/cli`** loads configuration, scans the content directory, parses MDX/OpenAPI, and generates `ContentRoute[]`.
+3. **The CLI** generates `NavigationTree` from routes and `tabs` configuration, then passes the data to the renderer through virtual modules.
+4. **`packages/renderer`** consumes `config`, `routes`, `navigation`, and `openApis` to render client and server entries.
+5. **The SSG pipeline** outputs static HTML, JS/CSS assets, raw Markdown/OpenAPI artifacts, and `llms.txt`.
 
 ---
 
-## Route and content model
+## System boundaries
 
-Clarify derives routes from files under `rootDirectory` (default: `source`):
+| Boundary | Input | Output |
+|----------|-------|--------|
+| User project → CLI | `clarify.ts/js/json`, `source/`, `public/`, CLI arguments | Resolved configuration, route model, virtual modules, build artifacts |
+| CLI → Renderer | `config`, `routes`, `navigation`, `openApis` | React app shell and pages |
+| Build → Deploy | `output/` | Static HTML, assets, copied public files, raw content artifacts, `llms.txt` |
+
+Do not put file system scanning or configuration loading into the Renderer; do not put component visual logic into the CLI unless it is expressed as a stable data model.
+
+---
+
+## Core data models
+
+| Type | Owner | Purpose |
+|------|-------|---------|
+| `ResolvedProjectConfig` | CLI | Defaults for site title, description, path prefix, theme, navigation, footer, i18n, and tabs. |
+| `ResolvedBuildOptions` | CLI | Content root directory, output directory, and SSG behavior. |
+| `ContentRoute` | CLI → Renderer | A single renderable route, including path, locale, title, description, file path, virtual module, headings, and `contentArtifactUrl`. |
+| `NavigationTree` | CLI → Renderer | Sidebar and tab navigation, localizable. |
+
+---
+
+## Routing and navigation model
+
+Clarify derives routes from `rootDirectory` (default: `source`):
 
 ```txt
 source/index.mdx              → /
@@ -81,54 +121,73 @@ source/guides/index.mdx       → /guides
 source/api.openapi.json       → /api
 ```
 
-For localized projects, content lives under locale folders:
+Multilingual projects use locale directories. The default language has no language prefix, while non-default languages have a language prefix. When `i18n.missing` is `fallback`, missing translations reuse default-language content and are marked as fallback routes.
 
-```txt
-source/zh-CN/index.mdx        → /
-source/en-US/index.mdx        → /en-US
-source/en-US/guides.mdx       → /en-US/guides
-```
+Navigation has two sources:
 
-The default locale is shown without a locale prefix. Non-default locales are prefixed with the locale code. When `i18n.missing` is `fallback`, missing localized pages reuse the default locale route content and are marked as fallback routes.
+1. When `tabs` is not configured, the sidebar is generated from the file tree.
+2. When `tabs` is configured, each tab has its own `pages`, which can use `FileTree` or explicit groups.
 
----
-
-## Navigation model
-
-Navigation is generated in one of two ways:
-
-1. **File tree navigation**: when no explicit tab/page config exists, the sidebar follows discovered routes.
-2. **Configured tabs**: `tabs` defines top-level product areas. Each tab can use `pages: 'FileTree'` or explicit groups and pages.
-
-The renderer does not infer navigation from files. It receives a fully built `NavigationTree` and only decides which subset to display for the current locale and active tab.
+The Renderer does not infer navigation from the file system; it only consumes the `NavigationTree` generated by the CLI.
 
 ---
 
 ## Plugin model
 
-Clarify plugins are build-time extensions. They run inside the CLI pipeline and can transform routes, virtual modules, HTML, dev server middleware, and build completion behavior.
-
-Current implemented hook families include:
+Clarify's built-in capabilities such as OpenAPI, content artifacts, and the HTML shell are all connected through plugin hooks. The currently implemented hooks include:
 
 | Hook | Purpose |
 |------|---------|
-| `routes:discover` | Add or modify discovered routes before OpenAPI and navigation resolution. |
-| `routes:discovered` | Enrich discovered routes, such as parsing OpenAPI specs. |
+| `routes:discover` | Add or modify routes during route discovery. |
+| `routes:discovered` | Add metadata after route discovery, such as parsing OpenAPI. |
 | `routes:resolved` | Modify final routes and navigation. |
 | `modules:before` | Add or modify virtual modules before Vite consumes them. |
-| `html:transform` | Transform the HTML shell and injected tags. |
+| `html:transform` | Transform the HTML shell and inject tags. |
 | `dev:configureServer` | Add development server middleware. |
-| `build:done` | Write extra artifacts after SSG. |
+| `build:done` | Write additional artifacts after SSG. |
 
-The built-in OpenAPI, content artifact, and HTML shell features are implemented as Clarify plugins. This keeps future features like search indexes, analytics snippets, or AI translation in the same extension model.
+This model should continue to carry future extensions such as search indexes, analytics scripts, and AI translation, avoiding one-off special branches in the build pipeline.
 
 ---
 
-## Development constraints
+## Dependency rules
 
-- Use `pnpm` and workspace dependencies.
-- Keep source files under `source/`.
-- Keep packages application-independent.
-- Keep the renderer tree-shakeable and free of CLI-only file-system dependencies.
-- Prefer typed configuration and typed route metadata over ad-hoc runtime globals.
-- Validate both type checking and production build when changing cross-package behavior.
+| Direction | Allowed | Description |
+|-----------|---------|-------------|
+| Apps → Packages | ✅ | Apps depend on packages through `workspace:*` |
+| Packages → Apps | ❌ | Packages must remain app-agnostic |
+| Cross-package dependencies | ✅ | Use `workspace:*` in `package.json`, and use Vite `resolve.alias` during development |
+| External dependencies | ✅ | Prefer well-maintained, lightweight libraries. Limited to the React ecosystem |
+
+---
+
+## Tech stack
+
+| Layer | Technology | Version | Reason |
+|-------|------------|---------|--------|
+| Framework | React | 19.x | Latest stable version, concurrent features, server-component ready |
+| Styling | Tailwind CSS | 4.x | Utility-first, minimal CSS output, design-system friendly |
+| CLI internal build tool | Vite | 8.x | Fast HMR and optimized production builds, encapsulated as an internal CLI implementation detail |
+| Language | TypeScript | 5.x | Strict mode, excellent DX, type-safe MDX/OpenAPI ingestion |
+| Package builder | Vite library build | 8.x | Current package build scripts use `vite build` to output ESM / CJS / DTS |
+| Package manager | pnpm | 9.x | Workspace-native, deterministic, disk-efficient |
+| Monorepo | pnpm workspaces | - | Simple, fast, no extra tools required |
+
+---
+
+## Build order and development workflow
+
+### Development (no prebuild required)
+
+The documentation site is started through `@clarify-labs/cli`; regular users do not need to maintain build-tool configuration. You can run:
+
+```bash
+pnpm dev:docs   # Start the documentation playground
+pnpm dev:www    # Start the marketing site
+```
+
+### Production build
+
+```bash
+pnpm build      # Build all packages and apps
+```

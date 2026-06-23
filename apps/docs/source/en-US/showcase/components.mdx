@@ -1,0 +1,172 @@
+# Built-in components demo
+
+This page demonstrates how Clarify renders supported Markdown and MDX elements.
+
+---
+
+## Typography
+
+### Headings
+
+# Heading 1
+## Heading 2
+### Heading 3
+#### Heading 4
+
+### Paragraphs and inline styles
+
+This is a normal paragraph. **Bold**, *italic*, `inline code`, and [links](/) all work normally.
+
+### Lists
+
+Unordered list:
+
+- Item one
+- Item two
+  - Nested item
+  - Nested item
+- Item three
+
+Ordered list:
+
+1. Step one
+2. Step two
+3. Step three
+
+---
+
+## Code
+
+### Inline code
+
+Use `npm install` to install dependencies.
+
+### Code blocks
+
+```typescript
+// TypeScript example
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+function greet(user: User): string {
+  return `Hello, ${user.name}!`;
+}
+```
+
+```json
+{
+  "name": "clarify",
+  "version": "1.0.0",
+  "description": "Open-source documentation publishing tool"
+}
+```
+
+---
+
+## Tables
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| MDX support | Markdown + React components | ✅ |
+| Static generation | Build-time prerendering | ✅ |
+| OpenAPI | API documentation embedding | 🚧 |
+| Search | Full-text search | 🚧 |
+
+---
+
+## Blockquotes
+
+> This is a blockquote. Clarify lets you write documentation with familiar Markdown + React components.
+
+---
+
+## Horizontal rules
+
+The sections above and below are separated by `---`.
+
+---
+
+## Built-in public components
+
+Clarify provides a set of components that can be used directly in MDX without manual imports. For the complete API, see [Built-in public components](/reference/built-in-components).
+
+### Callout
+
+`Callout` is used to emphasize explanations, risk warnings, recommended practices, or operation results. Common types include `info`, `note`, `tip`, `warning`, `danger`, and `success`.
+
+```mdx
+<Callout type="info">
+  The model list is updated continuously. Before production integration, use the models currently available in the console or model marketplace as the source of truth.
+</Callout>
+```
+
+<Callout type="info">
+  The model list is updated continuously. Before production integration, use the models currently available in the console or model marketplace as the source of truth.
+</Callout>
+
+<Callout type="warning" title="Note">
+  Before publishing to production, confirm that secrets, domains, permissions, and caching policies have all been validated.
+</Callout>
+
+<Callout type="success" title="Completed">
+  After the build passes, Clarify generates directly deployable static HTML for every route.
+</Callout>
+
+### CardGroup / Card
+
+`CardGroup` and `Card` are used to create section entries, feature matrices, or homepage navigation. The `icon` prop of `Card` uses lucide icon names and supports kebab-case syntax such as `badge-info`.
+
+```mdx
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="rocket" href="/getting-started">
+    Install the CLI and create your first Clarify documentation site.
+  </Card>
+  <Card title="Writing docs" icon="file-code-2" href="/guides/writing-content">
+    Organize content with Markdown, JSX, and built-in components.
+  </Card>
+</CardGroup>
+```
+
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="rocket" href="/getting-started">
+    Install the CLI and create your first Clarify documentation site.
+  </Card>
+  <Card title="Writing docs" icon="file-code-2" href="/guides/writing-content">
+    Organize content with Markdown, JSX, and built-in components.
+  </Card>
+  <Card title="API documentation" icon="braces" href="/features/openapi">
+    Integrate OpenAPI description files and generate endpoint documentation.
+  </Card>
+  <Card title="Configuration reference" icon="settings-2" href="/reference/clarify-config">
+    View site configuration, navigation, theme, and internationalization options.
+  </Card>
+</CardGroup>
+
+### Button
+
+`Button` is used to provide a clear next action.
+
+<div className="not-prose my-6 flex flex-wrap gap-3">
+  <Button href="/getting-started" arrow="right">
+    Start installation
+  </Button>
+  <Button href="https://github.com/taicode-labs/clarify" variant="outline">
+    View GitHub
+  </Button>
+</div>
+
+---
+
+## Custom MDX components
+
+You can also use JSX directly in Markdown or import your own React components:
+
+<div className="bg-blue-50 border border-blue-200 p-4 rounded-lg dark:border-blue-400/30 dark:bg-blue-400/10">
+  <h4 className="text-blue-800 font-semibold mb-2 dark:text-blue-200">Tip</h4>
+  <p className="text-blue-700 dark:text-blue-100">
+    This is a custom React component rendered directly in MDX!
+  </p>
+</div>

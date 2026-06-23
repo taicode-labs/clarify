@@ -1,77 +1,176 @@
-# SSG Pipeline
+# Static generation pipeline in detail
 
-Clarify builds documentation into static files that can be hosted anywhere. There is no production server requirement: SSR runs only during `clarify build`.
+> **Scope**: Supports MDX / Markdown and OpenAPI content, outputs an independent HTML file for each route, and hydrates into a React Router app in the browser. Vite is an internal CLI build tool and is not exposed as a user configuration entry.
 
 ---
 
 ## Goals
 
-| Goal | Implementation |
-|------|----------------|
-| Static deployment | Write one `index.html` for every route under `output/`. |
-| Fast first load | Server-render route HTML during build. |
-| Client navigation | Hydrate the static HTML into a React Router app. |
-| Content portability | Write raw Markdown/OpenAPI artifacts and `llms.txt`. |
-| Host agnostic output | Produce plain HTML, CSS, JS, copied public files, and content artifacts. |
+| # | Requirement | Implementation |
+|---|-------------|----------------|
+| 1 | Static deployment: each page has an independent HTML file | Build-time SSR writes `output/<route>/index.html` for each route |
+| 2 | Smooth client experience after first paint | Inject `<script>` to hydrate static markup into a React Router SPA |
+| 3 | Support MDX / Markdown and OpenAPI rendering | The CLI internal engine scans `*.md`, `*.mdx`, and `*.openapi.*` under `rootDirectory`, then compiles with `@mdx-js/rollup` |
+| 4 | Use Vite as the internal build pipeline | Use only public APIs; regular users do not need to maintain Vite configuration |
+| 5 | Build-time SSR | Generate a temporary SSR entry, output it to the `.ssr/` subdirectory in the build directory, then import that bundle to render routes |
+| 6 | Built-in renderer style pipeline | The CLI internally assembles renderer styles and Tailwind CSS support |
 
 ---
 
-## Build overview
+## Architecture overview
 
-```txt
-clarify build
-  → Vite client build
-    → output/index.html
-    → output/assets/*
-  → clarify closeBundle
-    → create temporary SSR entry
-    → Vite SSR build
-    → output/.ssr/entry-server.js
-    → import render(url)
-    → render every ContentRoute
-    → write output/<route>/index.html
-  → build:done hooks
-    → write raw content artifacts
-    → write llms.txt
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Build phase (vite build)                                   │
+│                                                             │
+│  1. Vite bundles client entry (virtual:clarify-entry-client)│
+│       → output/assets/                                      │
+│                                                             │
+│  2. clarifyPlugin closeBundle():                            │
+│       a. Reuse resolved MDX/OpenAPI routes and virtual modules│
+│       b. Create temporary SSR entry file                     │
+│       c. Vite builds SSR bundle → output/.ssr/entry-server.js│
+│       d. Import render(url) from the SSR bundle              │
+│       e. For each route: renderToHTML(url) → write HTML      │
+│       f. Write raw content and llms.txt                      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Runtime (browser)                                           │
+│                                                             │
+│  1. Browser receives static HTML (SEO-friendly)              │
+│  2. `<script>` loads the client bundle                       │
+│  3. hydrateRoot mounts React Router on existing markup       │
+│  4. Subsequent navigation → client-side SPA navigation       │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-The final deployment artifact is `output/` or the directory passed through build options.
+---
+
+## Key design decisions
+
+### Two-phase build (client + SSR)
+
+Clarify does not require a server runtime. Production builds execute SSR only during the build phase and write the results as static HTML.
+
+To render React components into HTML strings at build time, the CLI generates a temporary SSR entry and then uses Vite to build an SSR bundle:
+
+- **Client bundle**: Normal Vite `build()` outputs JS/CSS assets to `output/` (or the directory specified by `--output`).
+- **SSR bundle**: The `closeBundle` phase generates `.ssr/entry-server.js`, then imports and executes it in Node.js.
+- **HTML writing**: Reads the `index.html` template produced by the client build and injects `renderToHTML(url)` into `#root`.
+
+This gives us:
+- ✅ Artifacts are still directly deployable static files.
+- ✅ No server runtime requirement.
+- ✅ SSR and client use the same route and virtual module data.
+
+### Virtual modules
+
+Clarify uses virtual modules for clearer separation:
+
+| Virtual module | Purpose |
+|----------------|---------|
+| `virtual:clarify-config` | Exposes merged project configuration and build options as runtime configuration |
+| `virtual:clarify-routes` | Route manifest, navigation tree, and page section data |
+| `virtual:clarify-openapi-registry` | Parsed OpenAPI specification registry |
+| `virtual:clarify-entry-client` | Client entry injected by the CLI |
+| `virtual:clarify-page/*` | Virtual module for each content page |
+
+These modules are resolved by `clarifyPlugin.resolveId()` and generated by `clarifyPlugin.load()`.
+
+### Route discovery
+
+Clarify uses **file-system-based routing** and supports optional frontmatter overrides:
+
+```
+rootDirectory/
+├── index.mdx           → /
+├── getting-started.mdx → /getting-started
+├── guides/
+│   ├── index.mdx       → /guides
+│   └── theming.mdx     → /guides/theming
+```
+
+- Routes are derived from file paths relative to `rootDirectory`.
+- `.md`, `.mdx`, and `.openapi.json/.yaml/.yml` files are supported.
+- The navigation structure can be customized through the `tabs` field in the configuration file; `pages` inside each tab defines the sidebar.
+
+### HTML template
+
+Each generated HTML file is based on the `index.html` template produced by the client build, with SSR content injected:
+
+```html
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{siteTitle}</title>
+    <!-- Vite injects built JS/CSS assets -->
+  </head>
+  <body>
+    <div id="root">
+      <!-- SSR: renderToString output -->
+    </div>
+  </body>
+</html>
+```
+
+Clarify adjusts `<html lang>` / `dir` according to the current route language and injects the site description when the description meta tag is missing. Script and style assets are managed by Vite's HTML build process.
 
 ---
 
-## Client build
+## Detailed build flow
 
-The client build uses the generated `virtual:clarify-entry-client` module. That entry imports renderer CSS, route data, config, OpenAPI registry, and calls the renderer client `render()` function.
+### Step 1: client bundle build
 
-Vite owns JS/CSS bundling, hashed assets, and HTML asset injection. Clarify owns the virtual modules that make the docs app possible.
+Vite runs a normal build:
+- Entry: `virtual:clarify-entry-client`
+- Output: `output/assets/index-{hash}.js`, `output/assets/index-{hash}.css`, etc. (or the directory specified by `--output`)
+- The client entry imports `virtual:clarify-routes`, `virtual:clarify-config`, and the OpenAPI registry, then hydrates the app.
 
----
+### Step 2: route manifest generation
 
-## SSR bundle
+During plugin config resolution and build start:
 
-After the client build finishes, the Clarify Vite plugin runs its `closeBundle` phase:
+1. Scan `rootDirectory` for `**/*.md`, `**/*.mdx`, and `**/*.openapi.*`.
+2. For MDX / Markdown files, extract the frontmatter title and generate page sections from headings.
+3. For OpenAPI files, parse the specification and generate page sections from the endpoint list.
+4. Build the route manifest:
 
-1. create a temporary `entry-server.ts` file;
-2. build it with Vite in SSR mode;
-3. output the SSR bundle to `output/.ssr/entry-server.js`;
-4. import that bundle in Node.js;
-5. call `render(url)` for each discovered route.
+   ```typescript
+   type ContentRoute = {
+     path: string
+     basePath?: string
+     locale?: string
+     title: string
+     filePath: string
+     virtualModuleId: string
+     kind: 'mdx' | 'openapi'
+     sections?: ContentSection[]
+     contentArtifactUrl?: string
+   }
+   ```
 
-The SSR entry imports `virtual:clarify-routes/server`, which uses eager page imports so every page component is available synchronously during static rendering.
+5. Register virtual modules so `virtual:clarify-routes` can provide the route manifest and navigation tree.
 
----
+### Step 3: SSR bundle build
 
-## HTML generation
+After the client bundle build completes, `clarifyPlugin.closeBundle()`:
 
-For every route, Clarify:
+1. Creates a temporary `entry-server.ts`.
+2. Builds it to `output/.ssr/entry-server.js` in Vite SSR mode.
+3. Imports the SSR bundle.
+4. Calls `render(url)` for each `ContentRoute`.
 
-1. reads the client build's `index.html` template;
-2. calls `renderToHTML()` through the SSR bundle;
-3. injects the rendered markup into `<div id="root">`;
-4. updates `<title>`, `description`, `keywords`, `<html lang>`, and optional `dir`;
-5. writes the result to `output/<route>/index.html`.
+SSR uses `virtual:clarify-routes/server`, where page components are eager imports so the build phase can render synchronously.
 
-Examples:
+### Step 4: HTML writing
+
+Each route generates an independent HTML file from the `index.html` template in the client build output:
 
 ```txt
 /                 → output/index.html
@@ -80,44 +179,46 @@ Examples:
 /404              → output/404/index.html and output/404.html
 ```
 
-`404.mdx` is treated as a normal content route for previewing at `/404`, and the SSG pipeline also writes a root-level `404.html` for static hosts that look for that filename. File-tree navigation hides `404` automatically; add explicit links only when you want to expose it yourself.
+`404.mdx` remains a normal content route previewable at `/404`; SSG also writes an additional root-level `404.html` to match static hosting platform conventions for 404 filenames. Automatic file-tree navigation hides `404`, and it appears only when explicitly linked.
+
+During writing, Clarify also updates:
+
+- `<title>`;
+- `description` meta;
+- `keywords` meta;
+- `<html lang>`;
+- optional `<html dir>`.
+
+### Step 5: content artifacts and `llms.txt`
+
+The built-in content artifacts plugin attaches `contentArtifactUrl` to routes during `routes:resolved`, serves the corresponding content in the development server, and writes files during `build:done`.
+
+These artifacts are used to:
+
+- Copy raw Markdown / OpenAPI content.
+- Copy raw content links.
+- Provide readable documentation entry points for AI/LLM tools.
+- Preserve original OpenAPI specifications.
+- Generate `llms.txt`.
 
 ---
 
-## Raw content artifacts
+## Error behavior
 
-The built-in content artifacts plugin attaches `contentArtifactUrl` during `routes:resolved`, serves those URLs in development, and writes files during `build:done`.
+`generateOptions.ssg.failOnError` defaults to `true`. If SSR fails for any route, the production build fails to avoid publishing incomplete documentation.
 
-Artifacts are used for:
-
-- copy raw page content actions;
-- copy raw content links;
-- AI-readable documentation ingestion;
-- preserving OpenAPI specs next to rendered API reference pages;
-- generating `llms.txt`.
-
-This is why content artifacts are route metadata, not renderer-only behavior. The renderer only displays actions; the CLI decides where artifacts live and how they are written.
+If best-effort output is needed in the future, it should be enabled through explicit configuration and documented with its trade-offs; the default behavior should continue to favor discovering problems at build time.
 
 ---
 
-## Failure behavior
+## Extension suggestions
 
-`generateOptions.ssg.failOnError` defaults to `true`. When SSR fails for a route, the build fails instead of publishing incomplete documentation. If a future integration needs best-effort output, it should make that behavior explicit in config and document the tradeoff.
+| Requirement | Recommended hook |
+|-------------|------------------|
+| Generate a search index | `build:done` |
+| Attach additional metadata to routes | `routes:resolved` |
+| Provide virtual data to the Renderer | `modules:before` |
+| Inject HTML tags or rewrite the shell | `html:transform` |
+| Provide development-time middleware | `dev:configureServer` |
 
-Production builds should fail when required content or OpenAPI specs are invalid. Broken docs should be caught before deployment.
-
----
-
-## Extension points
-
-SSG-related extensions should prefer hooks over direct output mutation:
-
-| Need | Preferred hook |
-|------|----------------|
-| Add search index data | `build:done` |
-| Attach extra route metadata | `routes:resolved` |
-| Provide virtual data to the renderer | `modules:before` |
-| Add HTML tags or transform shell HTML | `html:transform` |
-| Serve development-only artifacts | `dev:configureServer` |
-
-Keep generated output deterministic so deploy previews and local builds are reproducible.
+Keep output deterministic whenever possible so local builds and deployment previews are reproducible.

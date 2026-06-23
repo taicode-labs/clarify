@@ -1,59 +1,110 @@
 # Contributing
 
-Thanks for contributing to Clarify. Contributions should keep the CLI/renderer boundary clear and preserve the static-first design.
+Thank you for your interest in Clarify! The following guide explains how to contribute.
 
 ---
 
-## Development setup
+## Development environment
 
 ```bash
+# Clone the repository
 git clone https://github.com/taicode-labs/clarify.git
 cd clarify
+
+# Install dependencies
 pnpm install
-pnpm dev:docs
-pnpm dev:www
+
+# Start development servers
+pnpm dev:docs    # Documentation site
+pnpm dev:www     # Marketing site
 ```
 
-Use `pnpm` for all package operations. Do not use `npm` or `yarn` in this repository.
+---
+
+## Code conventions
+
+### TypeScript
+
+- All code must be TypeScript with `strict: true`.
+- Prefer explicit types and avoid `any`.
+- Keep packages tree-shakeable (avoid side-effect imports).
+
+### Directory conventions
+
+- Use `source/` as the source directory, not `src/`.
+- Packages currently use Vite library build to output ESM / CJS / DTS.
+- Apps use Vite + `@tailwindcss/vite` + `@vitejs/plugin-react`.
+- User-facing documentation should describe `clarify dev` / `clarify build`; do not require users to maintain internal Vite configuration.
 
 ---
 
-## Development conventions
+## Commit conventions
 
-- Use `source/` as the source directory name.
-- Write TypeScript with strict types.
-- Prefer explicit types over `any`.
-- Keep packages tree-shakeable and application-independent.
-- Prefer small, focused changes.
-- Package builds use Vite library builds; apps use Vite app builds.
-- User-facing docs should describe `clarify dev` and `clarify build`, not internal Vite setup.
-- Write commit messages in English.
+**All commit messages must be written in English.** Chinese or other languages are not allowed.
+
+### Commit format
+
+Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+| Type | Description |
+|------|-------------|
+| `feat:` | New feature |
+| `fix:` | Bug fix |
+| `docs:` | Documentation-only changes |
+| `refactor:` | Code change that neither fixes a bug nor adds a feature |
+| `chore:` | Build process, tooling, or dependency updates |
+
+### Commit examples
+
+```bash
+feat: add sidebar navigation component
+
+- Add NavTree component with recursive rendering
+- Support collapsible sections
+- Integrate with virtual:clarify-routes
+
+fix: resolve hydration mismatch on 404 pages
+
+docs: update deployment guide with Vercel examples
+```
+
+- Keep the subject line within 72 characters.
+- Add context in the body when needed.
 
 ---
 
-## Choosing where to make a change
+## PR process
 
-| Change type | Usually belongs in |
+1. **Fork the repository** and create a feature branch from `main`.
+2. **Write code** and make sure type checks pass.
+3. **Update documentation** if you changed user-visible behavior.
+4. **Open a PR** with a clear description of what changed and why.
+
+---
+
+## How to choose where to change
+
+| Change type | Usually changed in |
 |-------------|--------------------|
-| Config loading, route discovery, plugin hooks, SSG, raw artifacts | `packages/cli` |
+| Configuration loading, route discovery, plugin hooks, SSG, raw content artifacts | `packages/cli` |
 | Header, sidebar, MDX components, OpenAPI UI, content actions, theme behavior | `packages/renderer` |
 | Official documentation content | `apps/docs/source` |
 | Marketing copy and landing pages | `apps/www/source` |
 
-If a feature needs both CLI and renderer changes, define the data shape in the CLI first, expose it through virtual modules, then consume it in the renderer.
+Features that span CLI and Renderer should define the build-time data shape first, expose it through virtual modules, and then consume it in the Renderer.
 
 ---
 
 ## Validation commands
 
-Run the checks relevant to your change:
+Run commands according to the scope of your changes:
 
 ```bash
 pnpm typecheck
 pnpm build
 ```
 
-For focused work, use workspace filters:
+When focusing on a single package, you can use:
 
 ```bash
 pnpm --filter @clarify-labs/cli typecheck
@@ -61,26 +112,20 @@ pnpm --filter @clarify-labs/renderer typecheck
 pnpm --filter @clarify-labs/docs build
 ```
 
-Documentation-only changes should still be validated with the docs build when possible because MDX content is compiled.
+Documentation changes should also run the docs build whenever possible, because MDX content participates in compilation.
 
 ---
 
-## Commit and PR expectations
+## Dependency rules
 
-All commit messages must be written in English. Conventional Commits are preferred:
+- Use `pnpm`; do not use `npm` or `yarn`.
+- Use `workspace:*` for cross-package dependencies.
+- Prefer well-maintained, lightweight libraries.
+- Limit dependencies to the React ecosystem.
 
-| Type | Meaning |
-|------|---------|
-| `feat:` | New feature |
-| `fix:` | Bug fix |
-| `docs:` | Documentation-only change |
-| `refactor:` | Code change that neither fixes a bug nor adds a feature |
-| `chore:` | Tooling, dependency, or maintenance change |
+---
 
-Before opening a PR:
+## Need help?
 
-1. keep the change focused;
-2. update docs for user-visible behavior;
-3. mention affected packages;
-4. include validation results;
-5. explain design tradeoffs when changing CLI/renderer boundaries.
+- [GitHub Issues](https://github.com/taicode-labs/clarify/issues) — report bugs or request features.
+- [GitHub Discussions](https://github.com/taicode-labs/clarify/discussions) — ask questions and discuss ideas.

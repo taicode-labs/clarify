@@ -1,26 +1,31 @@
 # API Documentation
 
-This page explains Clarify's OpenAPI support: generating full API Reference pages, embedding individual operations in MDX guides, organizing product-level API docs, and exposing raw specs to AI tools.
+This page brings together Clarify's OpenAPI capabilities: generating a complete API reference, embedding a single endpoint in MDX guides, organizing product-level API docs, and outputting the raw spec for AI tools.
 
-Clarify treats OpenAPI specs as first-class content sources. The spec contains interface facts; MDX explains business workflows.
+Clarify treats OpenAPI specs as a first-class content source. The spec is responsible for endpoint facts, while MDX explains the business workflows.
 
 ---
 
-## What can you build with it?
+## What you can do with it
 
 | Goal | Recommended capability |
-|------|------------------------|
-| Publish a full endpoint list | Generate API Reference pages from `.openapi.json` / `.openapi.yaml` automatically. |
-| Show one endpoint inside a guide | Use `OpenApiOperation`. |
-| Add context around a full reference page | Use `OpenApiDocument`. |
-| Let AI / LLM tools read the raw spec | Publish raw `.openapi.*` files and `llms.txt` in the build output. |
-| Maintain API docs in localized sites | Put specs under locale folders, for example `source/en-US/api.openapi.json`. |
+|------|----------|
+| Publish a complete endpoint list | `.openapi.json` / `.openapi.yaml` auto-generates the API reference |
+| Show a single endpoint in a tutorial | `OpenApiOperation` |
+| Add context before and after a full reference | `OpenApiDocument` |
+| Split API pages by business domain | `filter.tags` generates multiple grouped pages from the same spec |
+| Help developers quickly try a call | Automatically displays servers, server variables, auth inputs, request bodies, and response examples |
+| Copy runnable request code | Generates multi-language, multi-client code examples from the spec |
+| Let AI / LLMs read the raw spec | The `.openapi.*` raw files in the build output and `llms.txt` |
+| Maintain API docs for multi-language sites | Place the spec in a language directory, e.g. `source/zh-CN/api.openapi.json` |
+
+OpenAPI pages are more than static field tables. Clarify turns the spec into interactive, developer-oriented endpoint documentation: users can select a server, fill in server variables, choose an auth method, switch between request and response examples, and copy request code in different languages.
 
 ---
 
 ## Minimal example
 
-Put an OpenAPI file in the content directory:
+Place an OpenAPI file in the content directory:
 
 ```txt
 source/
@@ -30,13 +35,13 @@ source/
 
 Clarify generates:
 
-| Output | Description |
-|--------|-------------|
-| `/api` | Full API Reference page. |
-| `/api.openapi.json` | Raw OpenAPI spec output. |
-| OpenAPI links in `llms.txt` | Easier discovery for AI tools. |
+| Artifact | Description |
+|------|------|
+| `/api` | The complete API reference page |
+| `/api.openapi.json` | The raw OpenAPI spec output |
+| The OpenAPI link in `llms.txt` | Makes it easy for AI tools to discover and read |
 
-If you maintain the sidebar explicitly, add an `openapi` entry to `tabs`:
+If you maintain the sidebar explicitly, add this to `tabs`:
 
 ```ts
 {
@@ -46,7 +51,7 @@ If you maintain the sidebar explicitly, add an `openapi` entry to `tabs`:
 }
 ```
 
-You can also publish multiple pages from the same OpenAPI file by filtering operations with `filter.tags`. Each filtered page includes operations whose OpenAPI `operation.tags` contain at least one matching tag:
+You can also publish multiple pages from the same OpenAPI file via `filter.tags`. A filtered page only shows endpoints that match at least one of the specified tags in the OpenAPI `operation.tags`:
 
 ```ts
 {
@@ -59,53 +64,57 @@ You can also publish multiple pages from the same OpenAPI file by filtering oper
 }
 ```
 
-For example, `api.openapi.json` with `filter.tags: ['Projects']` is routed as `/api/projects`.
+For example, after configuring `filter.tags: ['Projects']` for `api.openapi.json`, the page route becomes `/api/projects`. Tags are converted to lowercase kebab-case; multiple tags are joined in configuration order, e.g. `['Admin Users', 'Billing']` generates `/api/admin-users-billing`.
 
 ---
 
-## Spec formats and routes
+## Spec formats and routing
 
-Clarify supports OpenAPI 3.0 / 3.1 and these extensions:
+OpenAPI 3.0 / 3.1 is supported, with these file extensions:
 
 | Format | Example | Route |
-|--------|---------|-------|
+|------|------|------|
 | JSON | `api.openapi.json` | `/api` |
 | YAML | `billing.openapi.yaml` | `/billing` |
 | YAML shorthand | `admin.openapi.yml` | `/admin` |
 
-With i18n enabled, OpenAPI files follow locale directory rules:
+When i18n is enabled, OpenAPI files also follow the language-directory rule. The default language has no locale prefix, while non-default languages include the locale prefix:
 
 ```txt
 source/
+├── zh-CN/
+│   └── api.openapi.json  → /api
 └── en-US/
-    └── api.openapi.json  → /api
+    └── api.openapi.json  → /en-US/api
 ```
 
-During builds, Clarify parses and dereferences specs with `@apidevtools/swagger-parser`. Invalid specs fail production builds so outdated or broken API docs are not published.
+So when embedding an endpoint in a Chinese page you typically use `specPath="/api"`; when embedding the same spec in an English page you typically use `specPath="/en-US/api"`.
+
+At build time, Clarify uses `@apidevtools/swagger-parser` to parse and dereference the spec. When the spec is invalid, the production build fails, preventing the publication of stale or incorrect endpoint docs.
 
 ---
 
-## Embed operations in guides
+## Embedding endpoints in guides
 
-Product-level API docs should not be reference-only. Write guides around real tasks and embed the relevant operation near each step.
+Product-level API documentation should not be just a reference. We recommend writing guides around real tasks and embedding the corresponding operation next to the key steps.
 
 ```mdx
 # Authentication
 
-Use an access token for protected endpoints. When the token expires, create a new session.
+Use an access token to call protected endpoints. After the token expires, recreate the session.
 
 <OpenApiOperation specPath="/api" path="/sessions" method="post" />
 ```
 
-`OpenApiOperation` props:
+`OpenApiOperation` parameters:
 
-| Prop | Description |
-|------|-------------|
-| `specPath` | OpenAPI route without the `.openapi.json` suffix, for example `/api`. |
-| `path` | A path key from OpenAPI `paths`; it must match exactly. |
-| `method` | HTTP method, usually lowercase, such as `get`, `post`, or `patch`. |
+| Parameter | Description |
+|------|------|
+| `specPath` | The OpenAPI route, without the `.openapi.json` suffix, e.g. `/api` |
+| `path` | The path in the OpenAPI `paths`, which must match exactly |
+| `method` | The HTTP method, lowercase is recommended, e.g. `get`, `post`, `patch` |
 
-To insert the full reference in MDX, use:
+To insert a complete reference in MDX, use:
 
 ```mdx
 <OpenApiDocument specPath="/api" />
@@ -113,7 +122,25 @@ To insert the full reference in MDX, use:
 
 ---
 
-## Recommended API docs structure
+## The interactive endpoint panel
+
+`OpenApiOperation` and the full API reference automatically generate an endpoint panel from the spec. The more complete the spec, the more useful the on-page interactions:
+
+| Capability | Source | What the user sees |
+|------|------|--------------|
+| Server selection | `servers` | Switch between different environments or domains |
+| Server variables | `servers[].variables` | Fill in or choose variable values such as region or version |
+| Auth inputs | `components.securitySchemes` + `security` | Placeholder inputs generated based on API Key, Bearer, Basic, OAuth, and other schemes |
+| Parameter descriptions | `parameters` | Path, query, and header parameters shown in groups |
+| Request body examples | `requestBody.content.*.example/examples/schema` | Switch between media types and examples |
+| Response examples | `responses` | Show different status codes and response bodies |
+| Copy request code | OpenAPI spec + current selection | Copy the request example for the current endpoint in one click |
+
+Clarify generates request code for common languages and clients, including cURL, Wget, HTTPie, JavaScript/TypeScript Fetch, Axios, ofetch, Python Requests, HTTPX, aiohttp, Go, Java, C#, PHP, Ruby, Rust, Swift, Kotlin, and PowerShell.
+
+---
+
+## Recommended API documentation structure
 
 ```txt
 source/
@@ -125,56 +152,56 @@ source/
 └── index.mdx
 ```
 
-Responsibilities:
+Authoring responsibilities:
 
-| Role | Owns |
-|------|------|
-| Backend / API platform | OpenAPI spec, schemas, status codes, authentication. |
-| Technical writing | Guide structure, workflows, and error explanations. |
-| Frontend / SDK | Code samples, SDK behavior, and integration scenarios. |
-| Product / developer experience | Information architecture, naming, and reader task paths. |
+| Role | Responsible for |
+|------|----------|
+| Backend / API platform | The OpenAPI spec, schemas, response codes, and auth methods |
+| Technical writing | Guide structure, call flows, and error explanations |
+| Frontend / SDK | Example code, SDK behavior, and real integration scenarios |
+| Product / DevEx | Information architecture, naming, and reader task paths |
 
-Before publishing:
+Pre-publish checklist:
 
-- The OpenAPI file can be parsed successfully during build.
-- The sidebar has a clear API Reference entry.
-- Key business workflows have guides, not only endpoint lists.
-- Request and response examples do not leak test data.
+- The OpenAPI file parses successfully in the build.
+- There is a clear API reference entry in the sidebar.
+- Key business workflows have guides, not just an endpoint list.
+- Example requests and responses contain no leaked test data.
 - Error responses are clearly documented.
-- `llms.txt` lists raw OpenAPI spec links.
+- `llms.txt` lists the raw OpenAPI spec link.
 
 ---
 
-## Content quality tips
+## Content quality suggestions
 
-The quality of API Reference pages depends mostly on the OpenAPI spec itself. At minimum, fill in:
+The quality of an API reference depends largely on the OpenAPI spec itself. We recommend at least filling in:
 
-- `info.title`, `info.version`, and `info.description`
-- `servers`
-- `tags`
-- `summary` and `description` for every operation
-- Parameter `description`, `schema`, `example`, or `examples`
-- Request and response media types
-- Main response codes and error responses
+- `info.title`, `info.version`, `info.description`
+- `servers`, and `servers[].variables` if there are variables
+- `tags`, used for navigation grouping and `filter.tags` page splitting
+- `summary` and `description` for each operation
+- `description`, `schema`, `example`, or `examples` for parameters
+- The media type, `example`, `examples`, or schema (from which examples can be derived) for request bodies and responses
+- Major response codes and error responses
 - Reusable `components.schemas`
-- Authentication schemes in `components.securitySchemes`
+- The auth methods `components.securitySchemes` and operation/security requirements
 
 ---
 
 ## FAQ
 
-### Why does the API page not appear in the sidebar?
+### The API page does not appear in the sidebar?
 
-If you configure `tabs[].pages` explicitly, Clarify does not automatically insert every file into the sidebar. Add an `openapi` entry manually.
+If you explicitly configure `tabs[].pages`, Clarify does not automatically insert all files into the sidebar. You need to add the `openapi` entry manually.
 
 ### `OpenAPI spec not found`?
 
-Check that:
+Check:
 
-- The OpenAPI file is under `source`.
-- The filename uses `.openapi.json`, `.openapi.yaml`, or `.openapi.yml`.
-- `specPath` is the route, not the filename.
+- Whether the OpenAPI file is under `source`.
+- Whether the file name uses `.openapi.json` / `.openapi.yaml` / `.openapi.yml`.
+- Whether `specPath` is written as a route rather than a file name.
 
 ### `Endpoint not found`?
 
-Check that `path` exactly matches an OpenAPI `paths` key, path parameters use `{id}` syntax, and the `method` exists under that path.
+Check whether `path` matches the OpenAPI `paths` key exactly, whether path parameters use the `{id}` form, and whether `method` exists under that path.

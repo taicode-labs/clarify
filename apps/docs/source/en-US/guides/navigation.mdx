@@ -1,44 +1,54 @@
-# Configure Site
+# Configuring the Site
 
-Site behavior is configured in `clarify.ts`, `clarify.js`, or `clarify.json`. `clarify.ts` is recommended because it provides type hints.
+This page brings together the configuration related to the "site experience" in Clarify: top navigation, tabs, the sidebar, theming, multiple languages, the deployment subpath, and information architecture.
+
+For real projects, we recommend expressing reader task paths through configuration rather than directly exposing the repository's directory structure.
 
 ---
 
-## Basic config
+## Top navigation
+
+Put only a small number of high-frequency entries in the top navigation:
 
 ```ts
 import { defineConfig } from '@clarify-labs/cli'
 
 export default defineConfig({
-  title: 'My Docs',
-  description: 'Documentation built with Clarify',
   navbar: {
     links: [
-      { label: 'Docs', href: '/getting-started' },
-      { label: 'GitHub', href: 'https://github.com/example/project', external: true },
+      { label: 'Get Started', href: '/getting-started' },
+      { label: 'API Documentation', href: '/features/openapi' },
+      { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
     ],
   },
 })
 ```
 
+| Field | Description |
+|------|------|
+| `label` | The display text of the nav item; supports multi-language objects |
+| `href` | The link address; absolute paths are recommended for in-site links |
+| `external` | Whether to treat it as an external link |
+
 ---
 
-## Navigation tabs
+## Tabs and the sidebar
 
-Use `tabs` to define product-level sections and sidebar entries:
+Clarify uses the root-level `tabs` for a top layer of business categorization for the site. Each tab has its own sidebar.
 
 ```ts
 export default defineConfig({
   tabs: [
     {
-      tab: { 'zh-CN': '文档', 'en-US': 'Docs' },
+      tab: 'Docs',
       icon: 'BookOpen',
       pages: [
         {
-          group: { 'zh-CN': '核心路径', 'en-US': 'Core Path' },
+          group: 'Get Started',
+          icon: 'Rocket',
           pages: [
-            { page: 'getting-started', title: { 'zh-CN': '快速开始', 'en-US': 'Get Started' } },
-            { openapi: 'api.openapi.json', title: 'API Reference' },
+            { page: 'getting-started', icon: 'Map' },
+            { page: 'guides/writing-content', title: 'Writing Content', icon: 'PenLine' },
           ],
         },
       ],
@@ -47,11 +57,86 @@ export default defineConfig({
 })
 ```
 
-`page` points to an MDX route. `openapi` points to an OpenAPI spec file and creates a generated API Reference page.
+`tabs[].pages` supports two modes:
+
+| Mode | Use case |
+|------|----------|
+| `'FileTree'` | Small sites or early prototypes, generated directly from the `source` directory |
+| Group array | Formal documentation sites, organizing reading paths by user tasks |
+
+Page item types:
+
+| Field | Description |
+|------|------|
+| `page` | References an MDX page under `source`, without the `.mdx` suffix |
+| `openapi` | References an OpenAPI JSON/YAML file under `source` |
+| `title` | Overrides the page's display title in navigation |
+| `icon` | Uses a lucide icon name |
+
+Example OpenAPI entry:
+
+```ts
+{
+  openapi: 'api.openapi.json',
+  title: 'API Reference',
+  icon: 'FileJson2',
+}
+```
 
 ---
 
-## Localization
+## Recommended information architecture
+
+We recommend converging user docs into a small number of core entries:
+
+| Entry | Problem it solves |
+|------|------------|
+| Getting Started | How to install, create pages, run, and build |
+| Writing Content | How to write MDX, organize directories, use frontmatter and components |
+| Configuring the Site | How to configure navigation, theme, multiple languages, and paths |
+| API Documentation | How to turn OpenAPI into a reference and embed it in tutorials |
+| Publishing | How to build, deploy, and output `llms.txt` |
+| Reference | Look up fields, commands, and component properties |
+
+Do not make every internal capability its own navigation entry. Details can live in sections of the same task document, or in the reference pages.
+
+---
+
+## Theming
+
+Clarify currently provides a stable, focused theme configuration: choose a preset first, then override it with a small number of tokens.
+
+```ts
+export default defineConfig({
+  theme: {
+    preset: 'base',
+    tokens: {
+      colors: {
+        primary: '#00D492',
+      },
+    },
+  },
+})
+```
+
+Current presets:
+
+| Preset | Description |
+|------|------|
+| `default` | The Clarify brand theme |
+| `base` | A neutral theme of black, white, and gray |
+
+Notes:
+
+- You do not need to create a `tailwind.config.js`.
+- There is currently no stable project-level custom CSS entry.
+- Light, dark, and system-preference detection are built into the renderer.
+
+---
+
+## Internationalization
+
+After enabling `i18n`, content is organized by locale directories, and routing, navigation, the language switcher, and missing-translation fallback are handled automatically.
 
 ```ts
 export default defineConfig({
@@ -66,4 +151,62 @@ export default defineConfig({
 })
 ```
 
-With `missing: 'fallback'`, missing localized pages fall back to the default locale. Add English files under `source/en-US/` for pages that should be fully localized.
+Directory example:
+
+```txt
+source/
+├── zh-CN/
+│   ├── index.mdx
+│   └── getting-started.mdx
+└── en-US/
+    ├── index.mdx
+    └── getting-started.mdx
+```
+
+Routing rules:
+
+| File | Route |
+|------|------|
+| `source/zh-CN/index.mdx` | `/` |
+| `source/zh-CN/getting-started.mdx` | `/getting-started` |
+| `source/en-US/index.mdx` | `/en-US` |
+| `source/en-US/getting-started.mdx` | `/en-US/getting-started` |
+
+Missing-translation strategies:
+
+| Strategy | Behavior |
+|------|------|
+| `fallback` | Missing pages generate the corresponding locale route using the default-language content |
+| `404` | Missing pages do not generate a route for that language |
+| `hide` | Missing pages are not generated; they are also hidden from the automatic file-tree navigation |
+
+Visible text in the configuration supports localization objects, for example:
+
+```ts
+{
+  label: {
+    'zh-CN': '文档',
+    'en-US': 'Docs',
+  }
+}
+```
+
+---
+
+## Deployment subpath
+
+If the site is deployed under a subpath, such as a GitHub Pages project site, you need to configure `routePrefix`:
+
+```ts
+export default defineConfig({
+  routePrefix: '/my-repo/',
+})
+```
+
+Clarify handles page routes, static asset paths, client-side navigation, and raw content links consistently.
+
+---
+
+## Hiding pages
+
+The current version does not provide a `hidden` frontmatter. To hide a page, simply do not add it to the explicit `tabs` configuration. The file still exists and can be accessed directly via its URL.

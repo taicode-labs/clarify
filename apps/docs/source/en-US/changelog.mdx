@@ -1,13 +1,30 @@
 # Changelog
 
-This page records notable changes to Clarify.
+---
+
+## v0.2.0
+
+### Added
+
+- Added the `Callout` built-in public component for info, tip, warning, danger, and success notes
+- Added the `CardGroup` / `Card` built-in public components for homepage entries, section navigation, and feature matrices
+- Added built-in public component reference docs and a component demo page
+
+### Improved
+
+- `clarify init` now references `@clarify-labs/cli@^0.2.0` by default when generating projects
 
 ---
 
-## 0.1.x
+## v0.1.0
 
-- Introduced the Clarify documentation app.
-- Added MDX content rendering and file-based routing.
-- Added OpenAPI Reference generation from `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` files.
-- Added localized documentation structure with `zh-CN` and `en-US` support.
-- Added static build output with copied assets and `llms.txt`.
+### Added
+
+- MDX compilation and rendering support
+- Convention-based, file-system routing
+- Static generation at build time (SSG)
+- Client-side hydration into an SPA
+- Built-in renderer styling pipeline
+- Configuration file system (`clarify.ts` / `clarify.js` / `clarify.json`)
+- Basic theme configuration (`theme.preset` and `theme.tokens.colors.primary`)
+- Top navigation configuration
