@@ -10,7 +10,6 @@ import { ButtonLink, PlainButtonLink } from './ui/elements/button'
 import { Main } from './ui/elements/main'
 import { GitHubIcon } from './ui/icons/social/github-icon'
 import { XIcon } from './ui/icons/social/x-icon'
-import { YouTubeIcon } from './ui/icons/social/youtube-icon'
 import { ClarifyLogo } from './ui/Logo'
 import {
   FooterCategory,
@@ -267,14 +266,11 @@ function Footer() {
       fineprint={t('footer.fineprint')}
       socialLinks={
         <>
-          <SocialLink href="https://x.com/taicode" name="X">
+          <SocialLink href="https://x.com/yxulai" name="X">
             <XIcon />
           </SocialLink>
           <SocialLink href={site.githubUrl} name="GitHub">
             <GitHubIcon />
-          </SocialLink>
-          <SocialLink href="https://www.youtube.com" name="YouTube">
-            <YouTubeIcon />
           </SocialLink>
         </>
       }
