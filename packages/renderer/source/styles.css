@@ -506,7 +506,8 @@
   }
 
   .clarify-search-result[aria-selected='true'],
-  .clarify-search-result-active {
+  .clarify-search-result-active,
+  .clarify-search-result:hover {
     background: var(--clarify-ui-hover-background);
   }
 
@@ -518,7 +519,8 @@
     letter-spacing: var(--clarify-ui-tight-letter-spacing);
   }
 
-  .clarify-search-result[aria-selected='true'] .clarify-search-result-title {
+  .clarify-search-result[aria-selected='true'] .clarify-search-result-title,
+  .clarify-search-result:hover .clarify-search-result-title {
     color: var(--clarify-ui-accent-text);
   }
 

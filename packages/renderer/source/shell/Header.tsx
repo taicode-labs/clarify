@@ -243,6 +243,7 @@ export const Header = forwardRef<
     <motion.header
       {...props}
       ref={ref}
+      data-pagefind-ignore
       className={clsx(
         className,
         'clarify-header fixed inset-x-0 top-0 z-50 border-b border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background)/(--bg-opacity-light) backdrop-blur-xs transition dark:border-white/10 dark:bg-zinc-950/(--bg-opacity-dark) dark:backdrop-blur-sm',
@@ -271,7 +272,7 @@ export const Header = forwardRef<
           </CloseButton>
         </div>
         <div className="clarify-header-center absolute left-1/2 hidden -translate-x-1/2 lg:block">
-          <Search routes={routes} navigation={navigation} />
+          <Search routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
         </div>
         <div className="clarify-header-actions flex shrink-0 items-center gap-5">
           {config.navbar?.links?.length ? (
@@ -286,7 +287,7 @@ export const Header = forwardRef<
             </nav>
           ) : null}
           {config.navbar?.links?.length ? <div className="hidden md:block md:h-5 md:w-px md:bg-(--clarify-theme-tokens-colors-border) md:dark:bg-white/15" /> : null}
-          <MobileSearch routes={routes} navigation={navigation} />
+          <MobileSearch routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
           <LanguageSwitcher config={config} currentLocale={currentLocale} currentRoute={currentRoute} />
           <ThemeToggle />
           <MobileNavbarMenu links={config.navbar?.links} config={config} currentLocale={currentLocale} />

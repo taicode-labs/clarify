@@ -1,5 +1,4 @@
-import { existsSync, readFileSync, mkdirSync, writeFileSync, mkdtempSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -9,6 +8,7 @@ import type { Plugin } from 'vite'
 import type { ResolvedProjectConfig, ContentRoute } from '../types.js'
 
 import { createClarifyRuntimeAliases } from './runtime-deps.js'
+import { createClarifyTempDir } from './temp-dir.js'
 import { escapeHtml } from './utils.js'
 
 export function readIndexHtml(outputDirectory: string): string | undefined {
@@ -91,7 +91,7 @@ export function render(url) {
 }`
 
 export function createTempEntryFile(content: string): string {
-  const tempDir = mkdtempSync(join(tmpdir(), 'clarify-ssr-'))
+  const tempDir = createClarifyTempDir('ssr')
   const entryPath = join(tempDir, 'entry-server.ts')
   writeFileSync(entryPath, content, 'utf-8')
   return entryPath

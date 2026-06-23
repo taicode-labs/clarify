@@ -212,6 +212,7 @@ export function AppShell(arg0: AppShellProps) {
         />
         <div className="clarify-layout pb-12 mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)">
           <aside
+            data-pagefind-ignore
             className={clsx(
               'clarify-sidebar hidden lg:sticky lg:z-30 lg:block lg:h-(--clarify-sidebar-height) lg:self-start lg:overflow-y-auto lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 lg:pb-8 xl:px-6',
               hasTabs ? 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-6' : 'lg:top-14 lg:pt-6',
@@ -221,7 +222,7 @@ export function AppShell(arg0: AppShellProps) {
           </aside>
           <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
             <ContentActions hasTabs={hasTabs} route={currentRoute} routePrefix={config.routePrefix} />
-            <main className="clarify-main min-w-0 flex-auto">
+            <main className="clarify-main min-w-0 flex-auto" data-pagefind-body>
               <PageErrorBoundary
                 key={pathname}
                 title={text('renderError.title')}
