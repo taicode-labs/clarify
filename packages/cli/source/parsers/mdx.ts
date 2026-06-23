@@ -58,6 +58,10 @@ export function rehypeParseCodeBlocks() {
       const language = getLanguage(node.properties.className)
       parentNode.properties.language = language
       node.properties.language = language
+
+      for (const key of ['title', 'tag', 'label']) {
+        if (node.properties[key] !== undefined) parentNode.properties[key] = node.properties[key]
+      }
     })
   }
 }

@@ -13,7 +13,7 @@ type TestNode = {
   value?: string
 }
 
-function codeTree(language = 'ts', code = 'const answer = 42\n'): TestNode {
+function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties: Record<string, unknown> = {}): TestNode {
   return {
     type: 'root',
     children: [
@@ -25,7 +25,7 @@ function codeTree(language = 'ts', code = 'const answer = 42\n'): TestNode {
           {
             type: 'element',
             tagName: 'code',
-            properties: { className: [`language-${language}`] },
+            properties: { className: [`language-${language}`], ...codeProperties },
             children: [{ type: 'text', value: code }],
           },
         ],
@@ -70,6 +70,26 @@ describe('mdx rehype plugins', () => {
     const code = pre?.children?.[0]
     expect(pre?.properties?.language).toBe('tsx')
     expect(code?.properties?.language).toBe('tsx')
+  })
+
+  it('copies fenced code presentation metadata to the pre element', () => {
+    const tree = codeTree('ts', 'export default {}\n', {
+      title: 'Named tab',
+      label: 'clarify.ts',
+      tag: 'config',
+    })
+    const transformer = rehypeParseCodeBlocks()
+
+    transformer(tree)
+
+    const pre = tree.children?.[0]
+    const code = pre?.children?.[0]
+    expect(pre?.properties?.title).toBe('Named tab')
+    expect(pre?.properties?.label).toBe('clarify.ts')
+    expect(pre?.properties?.tag).toBe('config')
+    expect(code?.properties?.title).toBe('Named tab')
+    expect(code?.properties?.label).toBe('clarify.ts')
+    expect(code?.properties?.tag).toBe('config')
   })
 
   it('stores raw code and replaces code text with highlighted html', async () => {
@@ -170,8 +190,8 @@ describe('mdx rehype plugins', () => {
       rehypePlugins,
     }))
 
-    expect(compiled).toContain('title="Full pipeline"')
-    expect(compiled).toContain('label="clarify.ts"')
+    expect(compiled).toContain('<_components.pre language="ts" title="Full pipeline" label="clarify.ts"')
+    expect(compiled).toContain('<_components.code className="language-ts" title="Full pipeline" label="clarify.ts"')
     expect(compiled).toContain('language="ts"')
     expect(compiled).toContain('code="export default {}')
   })
