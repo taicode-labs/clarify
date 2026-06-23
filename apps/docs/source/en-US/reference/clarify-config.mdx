@@ -149,20 +149,20 @@ Recommendations:
 
 <CodeGroup>
 
-```ts
+```ts title="Production URL"
 export default defineConfig({
   siteUrl: 'https://docs.example.com',
 })
 ```
 
-```ts
+```ts title="Subpath deploy"
 export default defineConfig({
   siteUrl: 'https://acme.github.io/docs',
   routePrefix: '/docs/',
 })
 ```
 
-```ts
+```ts title="Edit links"
 export default defineConfig({
   source: {
     repository: 'https://github.com/acme/docs',
@@ -172,7 +172,7 @@ export default defineConfig({
 })
 ```
 
-```json
+```json title="JSON config"
 {
   "siteUrl": "https://docs.example.com",
   "source": {
@@ -224,14 +224,14 @@ type ClarifyFaviconConfig = string | { light?: string; dark?: string }
 
 <CodeGroup>
 
-```ts
+```ts title="Single asset"
 export default defineConfig({
   logo: '/logo.svg',
   favicon: '/favicon.ico',
 })
 ```
 
-```ts
+```ts title="Light and dark assets"
 export default defineConfig({
   logo: {
     light: '/brand/logo-light.svg',
@@ -312,7 +312,7 @@ Color token reference:
 
 <CodeGroup title='Common theme cases'>
 
-```ts
+```ts title="Default preset"
 export default defineConfig({
   theme: {
     preset: 'default',
@@ -320,7 +320,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="Brand colors"
 export default defineConfig({
   theme: {
     preset: 'base',
@@ -334,7 +334,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="Full theme override"
 export default defineConfig({
   theme: {
     tokens: {
@@ -405,7 +405,7 @@ type ClarifyNavbarLink = {
 
 <CodeGroup>
 
-```ts
+```ts title="Internal links"
 export default defineConfig({
   navbar: {
     links: [
@@ -416,7 +416,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="Localized links"
 export default defineConfig({
   navbar: {
     links: [
@@ -428,7 +428,7 @@ export default defineConfig({
 })
 ```
 
-```json
+```json title="JSON config"
 {
   "navbar": {
     "links": [
@@ -502,7 +502,7 @@ type ClarifyFooterConfig = {
 
 <CodeGroup>
 
-```ts
+```ts title="Basic footer"
 export default defineConfig({
   footer: {
     links: [
@@ -518,7 +518,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="Localized footer"
 export default defineConfig({
   footer: {
     links: [
@@ -538,7 +538,7 @@ export default defineConfig({
 })
 ```
 
-```json
+```json title="JSON config"
 {
   "footer": {
     "links": [
@@ -596,7 +596,7 @@ type ClarifyI18nConfig = {
 
 <CodeGroup>
 
-```ts
+```ts title="Fallback translations"
 export default defineConfig({
   i18n: {
     defaultLocale: 'zh-CN',
@@ -609,7 +609,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="Hide missing pages"
 export default defineConfig({
   i18n: {
     defaultLocale: 'en-US',
@@ -622,7 +622,7 @@ export default defineConfig({
 })
 ```
 
-```json
+```json title="Strict 404"
 {
   "i18n": {
     "defaultLocale": "en-US",
@@ -661,7 +661,7 @@ If `tabs` is omitted, Clarify automatically generates a normal sidebar from the 
 
 <CodeGroup title='Common tabs cases'>
 
-```ts
+```ts title="File tree tab"
 export default defineConfig({
   tabs: [
     {
@@ -673,7 +673,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="Manual sidebars"
 export default defineConfig({
   tabs: [
     {
@@ -707,7 +707,7 @@ export default defineConfig({
 })
 ```
 
-```json
+```json title="JSON config"
 {
   "tabs": [
     {
@@ -788,17 +788,17 @@ Use localized text when the group title appears in multiple languages:
 
 <CodeGroup title='Common page item cases'>
 
-```ts
+```ts title="Shorthand"
 'getting-started'
 ```
 
-```ts
+```ts title="Page object"
 {
   page: 'guides/writing-content',
 }
 ```
 
-```ts
+```ts title="Custom label"
 {
   page: 'guides/writing-content',
   title: 'Writing docs',
@@ -806,7 +806,7 @@ Use localized text when the group title appears in multiple languages:
 }
 ```
 
-```ts
+```ts title="Redirect item"
 {
   page: 'guides',
   title: 'Guides',
@@ -815,7 +815,7 @@ Use localized text when the group title appears in multiple languages:
 }
 ```
 
-```ts
+```ts title="OpenAPI filter"
 {
   openapi: 'api.openapi.json',
   title: 'Projects API',
@@ -894,19 +894,19 @@ CLI arguments are runtime configuration, so they usually should not live in `cla
 
 <CodeGroup>
 
-```bash
+```bash title="Default dev"
 clarify dev
 ```
 
-```bash
+```bash title="Custom dev"
 clarify dev --content docs --port 5173 --open /getting-started
 ```
 
-```bash
+```bash title="Custom output"
 clarify build --content source --output dist
 ```
 
-```bash
+```bash title="App root"
 clarify build --root apps/docs --output output
 ```
 

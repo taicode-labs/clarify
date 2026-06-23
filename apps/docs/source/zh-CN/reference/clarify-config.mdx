@@ -149,20 +149,20 @@ export default defineConfig({
 
 <CodeGroup>
 
-```ts
+```ts title="生产地址"
 export default defineConfig({
   siteUrl: 'https://docs.example.com',
 })
 ```
 
-```ts
+```ts title="子路径部署"
 export default defineConfig({
   siteUrl: 'https://acme.github.io/docs',
   routePrefix: '/docs/',
 })
 ```
 
-```ts
+```ts title="编辑链接"
 export default defineConfig({
   source: {
     repository: 'https://github.com/acme/docs',
@@ -172,7 +172,7 @@ export default defineConfig({
 })
 ```
 
-```json
+```json title="JSON 配置"
 {
   "siteUrl": "https://docs.example.com",
   "source": {
@@ -224,14 +224,14 @@ type ClarifyFaviconConfig = string | { light?: string; dark?: string }
 
 <CodeGroup>
 
-```ts
+```ts title="单一资源"
 export default defineConfig({
   logo: '/logo.svg',
   favicon: '/favicon.ico',
 })
 ```
 
-```ts
+```ts title="亮暗资源"
 export default defineConfig({
   logo: {
     light: '/brand/logo-light.svg',
@@ -312,7 +312,7 @@ theme: {
 
 <CodeGroup title='主题常见配置'>
 
-```ts
+```ts title="默认预设"
 export default defineConfig({
   theme: {
     preset: 'default',
@@ -320,7 +320,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="品牌色"
 export default defineConfig({
   theme: {
     preset: 'base',
@@ -334,7 +334,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="完整覆盖"
 export default defineConfig({
   theme: {
     tokens: {
@@ -405,7 +405,7 @@ type ClarifyNavbarLink = {
 
 <CodeGroup>
 
-```ts
+```ts title="站内链接"
 export default defineConfig({
   navbar: {
     links: [
@@ -416,7 +416,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="本地化链接"
 export default defineConfig({
   navbar: {
     links: [
@@ -428,7 +428,7 @@ export default defineConfig({
 })
 ```
 
-```json
+```json title="JSON 配置"
 {
   "navbar": {
     "links": [
@@ -502,7 +502,7 @@ type ClarifyFooterConfig = {
 
 <CodeGroup>
 
-```ts
+```ts title="基础页脚"
 export default defineConfig({
   footer: {
     links: [
@@ -518,7 +518,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="本地化页脚"
 export default defineConfig({
   footer: {
     links: [
@@ -538,7 +538,7 @@ export default defineConfig({
 })
 ```
 
-```json
+```json title="JSON 配置"
 {
   "footer": {
     "links": [
@@ -596,7 +596,7 @@ type ClarifyI18nConfig = {
 
 <CodeGroup>
 
-```ts
+```ts title="缺失时回退"
 export default defineConfig({
   i18n: {
     defaultLocale: 'zh-CN',
@@ -609,7 +609,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="隐藏缺失页面"
 export default defineConfig({
   i18n: {
     defaultLocale: 'en-US',
@@ -622,7 +622,7 @@ export default defineConfig({
 })
 ```
 
-```json
+```json title="严格 404"
 {
   "i18n": {
     "defaultLocale": "en-US",
@@ -661,7 +661,7 @@ type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree'
 
 <CodeGroup title='tabs 常见配置'>
 
-```ts
+```ts title="文件树 tab"
 export default defineConfig({
   tabs: [
     {
@@ -673,7 +673,7 @@ export default defineConfig({
 })
 ```
 
-```ts
+```ts title="手动侧边栏"
 export default defineConfig({
   tabs: [
     {
@@ -707,7 +707,7 @@ export default defineConfig({
 })
 ```
 
-```json
+```json title="JSON 配置"
 {
   "tabs": [
     {
@@ -788,17 +788,17 @@ export default defineConfig({
 
 <CodeGroup title='pages 常见写法'>
 
-```ts
+```ts title="简写"
 'getting-started'
 ```
 
-```ts
+```ts title="页面对象"
 {
   page: 'guides/writing-content',
 }
 ```
 
-```ts
+```ts title="自定义标题"
 {
   page: 'guides/writing-content',
   title: '写作文档',
@@ -806,7 +806,7 @@ export default defineConfig({
 }
 ```
 
-```ts
+```ts title="重定向项"
 {
   page: 'guides',
   title: '指南',
@@ -815,7 +815,7 @@ export default defineConfig({
 }
 ```
 
-```ts
+```ts title="OpenAPI 过滤"
 {
   openapi: 'api.openapi.json',
   title: 'Projects API',
@@ -894,19 +894,19 @@ CLI 参数属于运行时配置，不建议写入 `clarify.ts`。它们用于同
 
 <CodeGroup>
 
-```bash
+```bash title="默认开发"
 clarify dev
 ```
 
-```bash
+```bash title="自定义开发"
 clarify dev --content docs --port 5173 --open /getting-started
 ```
 
-```bash
+```bash title="自定义输出"
 clarify build --content source --output dist
 ```
 
-```bash
+```bash title="应用根目录"
 clarify build --root apps/docs --output output
 ```
 

@@ -1,7 +1,9 @@
-import { compile } from '@mdx-js/mdx'
+import { compile, type CompileOptions } from '@mdx-js/mdx'
 import { describe, expect, it } from 'vitest'
 
-import { rehypeParseCodeBlocks, rehypeShiki, rehypeSlugSections, remarkPlugins } from './mdx.js'
+import { rehypeParseCodeBlocks, rehypePlugins, rehypeShiki, rehypeSlugSections, remarkPlugins } from './mdx.js'
+
+const testRemarkPlugins = remarkPlugins as CompileOptions['remarkPlugins']
 
 type TestNode = {
   type: string
@@ -100,6 +102,80 @@ describe('mdx rehype plugins', () => {
     expect(highlighted).toBe('<span>first line</span>\n<span>second line</span>\n<span>third line</span>')
   })
 
+  it('passes double-quoted fenced code meta attributes to the code component', async () => {
+    const compiled = String(await compile('```ts title="Base preset" label="clarify.ts"\nexport default {}\n```', {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+    }))
+
+    expect(compiled).toContain('title="Base preset"')
+    expect(compiled).toContain('label="clarify.ts"')
+  })
+
+  it('passes single-quoted fenced code meta attributes to the code component', async () => {
+    const compiled = String(await compile("```ts title='Single quoted title' label='clarify.ts'\nexport default {}\n```", {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+    }))
+
+    expect(compiled).toContain('title="Single quoted title"')
+    expect(compiled).toContain('label="clarify.ts"')
+  })
+
+  it('passes bare fenced code meta attributes to the code component', async () => {
+    const compiled = String(await compile('```ts title=Default label=clarify.ts\nexport default {}\n```', {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+    }))
+
+    expect(compiled).toContain('title="Default"')
+    expect(compiled).toContain('label="clarify.ts"')
+  })
+
+  it('passes boolean-style fenced code meta attributes as string values', async () => {
+    const compiled = String(await compile('```ts title="No copy" copyable disabled\nexport default {}\n```', {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+    }))
+
+    expect(compiled).toContain('title="No copy"')
+    expect(compiled).toContain('copyable="true"')
+    expect(compiled).toContain('disabled="true"')
+  })
+
+  it('passes hyphenated fenced code meta attributes to the code component', async () => {
+    const compiled = String(await compile('```ts title="With filename" data-filename="clarify.ts"\nexport default {}\n```', {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+    }))
+
+    expect(compiled).toContain('title="With filename"')
+    expect(compiled).toContain('data-filename="clarify.ts"')
+  })
+
+  it('does not pass markdown code meta to inline code', async () => {
+    const compiled = String(await compile('Use `defineConfig` in prose.', {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+    }))
+
+    expect(compiled).not.toContain('title=')
+    expect(compiled).not.toContain('label=')
+  })
+
+  it('preserves fenced code meta attributes through the full MDX pipeline', async () => {
+    const compiled = String(await compile('```ts title="Full pipeline" label="clarify.ts"\nexport default {}\n```', {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(compiled).toContain('title="Full pipeline"')
+    expect(compiled).toContain('label="clarify.ts"')
+    expect(compiled).toContain('language="ts"')
+    expect(compiled).toContain('code="export default {}')
+  })
+
   it('enables GitHub Flavored Markdown syntax', async () => {
     const compiled = String(await compile([
       '- [x] Done',
@@ -111,7 +187,7 @@ describe('mdx rehype plugins', () => {
       '| A | B |',
       '| - | - |',
       '| 1 | 2 |',
-    ].join('\n'), { jsx: true, remarkPlugins }))
+    ].join('\n'), { jsx: true, remarkPlugins: testRemarkPlugins }))
 
     expect(compiled).toContain('className="contains-task-list"')
     expect(compiled).toContain('className="task-list-item"')

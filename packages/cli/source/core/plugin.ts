@@ -1,7 +1,7 @@
 import { rmSync } from 'node:fs'
 import { isAbsolute, join, relative, resolve } from 'node:path'
 
-import mdxPlugin from '@mdx-js/rollup'
+import mdxPlugin, { type Options as MdxPluginOptions } from '@mdx-js/rollup'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
@@ -9,8 +9,8 @@ import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 import { rehypePlugins, remarkPlugins } from '../parsers/mdx.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../types.js'
 
-import { resolveProjectConfig } from './config.js'
 import { createBuiltinPlugins } from './builtin.js'
+import { resolveProjectConfig } from './config.js'
 import { runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from './options.js'
 import { resolveClarifySite } from './site.js'
@@ -124,7 +124,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     include: ['**/*.{md,mdx}'],
     jsxImportSource: 'react',
     providerImportSource: '@clarify-labs/renderer',
-    remarkPlugins,
+    remarkPlugins: remarkPlugins as MdxPluginOptions['remarkPlugins'],
     rehypePlugins,
   })
 

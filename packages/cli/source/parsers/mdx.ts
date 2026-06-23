@@ -117,5 +117,5 @@ export function rehypeSlugSections() {
   }
 }
 
-export const remarkPlugins = markdownRemarkPlugins
+export const remarkPlugins: unknown[] = markdownRemarkPlugins
 export const rehypePlugins = [rehypeSlugSections, rehypeParseCodeBlocks, rehypeShiki]
