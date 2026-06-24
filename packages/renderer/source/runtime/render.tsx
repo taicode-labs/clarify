@@ -3,7 +3,7 @@ import { hydrateRoot, createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import { AppShell } from '../app/AppShell'
-import { ClarifyConfigContext, OpenApisContext } from '../context'
+import { ConfigContext, OpenApisContext } from '../context'
 import { ThemeProvider } from '../theme/ThemeProvider'
 import { ThemeRoot } from '../theme/ThemeRoot'
 import type { RenderOptions } from '../types'
@@ -38,7 +38,7 @@ export function render(options: RenderOptions) {
   const app = (
     <StrictMode>
       <BrowserRouter basename={config.routePrefix}>
-        <ClarifyConfigContext.Provider value={config}>
+        <ConfigContext.Provider value={config}>
           <OpenApisContext.Provider value={openApis}>
             <ThemeProvider>
               <ThemeRoot theme={config.theme} themeEditor={themeEditor}>
@@ -46,7 +46,7 @@ export function render(options: RenderOptions) {
               </ThemeRoot>
             </ThemeProvider>
           </OpenApisContext.Provider>
-        </ClarifyConfigContext.Provider>
+        </ConfigContext.Provider>
       </BrowserRouter>
     </StrictMode>
   )

@@ -8,7 +8,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useBuiltInText } from '../i18n'
 import { storeLocalePreference } from '../theme/cookies'
 import { ThemeToggle } from '../theme/ThemeToggle'
-import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, ClarifyNavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
+import type { Config, LocalizedText, LocaleConfig, NavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
 import { isExternalHref, localizeHref } from '../utils/href'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
@@ -17,19 +17,19 @@ import { MobileNavigation, useIsInsideMobileNavigation, useMobileNavigationStore
 import { MobileSearch, Search } from './Search'
 import { SiteLogo } from './SiteLogo'
 
-function resolveLocalizedText(text: ClarifyLocalizedText, locale?: string, fallbackLocale?: string): string {
+function resolveLocalizedText(text: LocalizedText, locale?: string, fallbackLocale?: string): string {
   if (typeof text === 'string') return text
   return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
 }
 
-function localizedRoutePath(config: ClarifyConfig, locale: string, route?: RouteItem): string | undefined {
+function localizedRoutePath(config: Config, locale: string, route?: RouteItem): string | undefined {
   const alternatePath = route?.alternates?.[locale]
   if (alternatePath) return alternatePath
   if (route?.alternates) return undefined
   return localizeHref(route?.basePath ?? route?.path ?? '/', config, locale)
 }
 
-type LanguageSwitcherProps = { config: ClarifyConfig; currentLocale?: string; currentRoute?: RouteItem }
+type LanguageSwitcherProps = { config: Config; currentLocale?: string; currentRoute?: RouteItem }
 
 function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, currentLocale, currentRoute } = arg0
 
@@ -56,7 +56,7 @@ function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, curren
         transition
         className="clarify-language-switcher-menu clarify-ui-menu absolute right-0 z-50 mt-2 w-(--clarify-ui-menu-width) rounded-(--clarify-theme-tokens-radius-xl) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg ring-1 shadow-zinc-900/5 ring-(--clarify-theme-tokens-colors-border) transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-zinc-900 dark:ring-white/10"
       >
-        {i18n.locales.flatMap((locale: ClarifyLocaleConfig) => {
+        {i18n.locales.flatMap((locale: LocaleConfig) => {
           const localizedPath = localizedRoutePath(config, locale.code, currentRoute)
           if (!localizedPath) return []
 
@@ -121,9 +121,9 @@ function TopLevelNavItem(arg0: TopLevelNavItemProps) {  const { href, children }
   )
 }
 
-type MobileNavbarMenuProps = { links?: ClarifyNavbarLink[]; config: ClarifyConfig; currentLocale?: string }
+type MobileNavbarMenuProps = { links?: NavbarLink[]; config: Config; currentLocale?: string }
 
-function resolveHomeHref(config: ClarifyConfig, currentLocale?: string): string {
+function resolveHomeHref(config: Config, currentLocale?: string): string {
   const homeUrl = config.homeUrl ?? '/'
   return isExternalHref(homeUrl) ? homeUrl : localizeHref(homeUrl, config, currentLocale)
 }
@@ -229,7 +229,7 @@ function ProductTabs(arg0: ProductTabsProps) {  const { tabs } = arg0
 export const Header = forwardRef<
   React.ComponentRef<'header'>,
   React.ComponentPropsWithoutRef<typeof motion.header> & {
-    config: ClarifyConfig
+    config: Config
     navigation: NavigationNode[]
     tabs?: NavigationTab[]
     routes: RouteItem[]

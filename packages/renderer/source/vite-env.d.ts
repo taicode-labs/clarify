@@ -11,12 +11,12 @@ declare module 'virtual:clarify-routes/server' {
 }
 
 declare module 'virtual:clarify-config' {
-  import type { ClarifyThemeConfig } from './types';
+  import type { ThemeConfig } from './types';
 
   export const config: {
     title: string;
     logo?: string;
-    theme: ClarifyThemeConfig;
+    theme: ThemeConfig;
     description: string;
     rootDirectory: string;
     routePrefix: string;

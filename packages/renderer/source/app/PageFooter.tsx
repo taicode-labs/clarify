@@ -2,25 +2,25 @@ import clsx from 'clsx'
 import type { ComponentType } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
-import { useClarifyConfig } from '../core/context'
-import type { ClarifyConfig, ClarifyLocalizedText, ClarifyNavbarLink } from '../core/types'
+import { useConfig } from '../core/context'
+import type { Config, LocalizedText, NavbarLink } from '../core/types'
 import { isExternalHref, localizeHref } from '../utils/href'
 
 import { BuiltWithClarify } from './BuiltWithClarify'
 
-function resolveLocalizedText(text: ClarifyLocalizedText, locale?: string, fallbackLocale?: string): string {
+function resolveLocalizedText(text: LocalizedText, locale?: string, fallbackLocale?: string): string {
   if (typeof text === 'string') return text
   return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
 }
 
-function localeForPath(config: ClarifyConfig, pathname: string): string | undefined {
+function localeForPath(config: Config, pathname: string): string | undefined {
   const i18n = config.i18n
   if (!i18n) return undefined
   const firstSegment = pathname.split('/').filter(Boolean)[0]
   return i18n.locales.find((locale) => locale.code === firstSegment)?.code ?? i18n.defaultLocale
 }
 
-type FooterLinkProps = { link: ClarifyNavbarLink; locale?: string; config: ClarifyConfig }
+type FooterLinkProps = { link: NavbarLink; locale?: string; config: Config }
 
 function FooterLink(arg0: FooterLinkProps) {
   const { link, locale, config } = arg0
@@ -66,7 +66,7 @@ export type PageFooterProps = {
 }
 
 export function PageFooter(props: PageFooterProps = {}) {
-  const config = useClarifyConfig()
+  const config = useConfig()
   const location = useLocation()
   const locale = localeForPath(config, location.pathname)
   const footer = config.footer

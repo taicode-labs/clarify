@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom'
 
-import { useClarifyConfig, useClarifyLocale, useOpenApis } from '../../core/context'
+import { useConfig, useLocale, useOpenApis } from '../../core/context'
 
 import type { OpenAPISpec } from './utils'
 
@@ -57,8 +57,8 @@ function localizeSpecModuleId(moduleId: string, specPath: string, locale: string
 export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenAPISpec | null {
   const specs = useOpenApis()
   const location = useLocation()
-  const config = useClarifyConfig()
-  const locale = useClarifyLocale()
+  const config = useConfig()
+  const locale = useLocale()
 
   if (spec) return spec
   if (!specPath) return null

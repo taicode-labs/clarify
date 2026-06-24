@@ -7,7 +7,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { create } from 'zustand'
 
 import { useBuiltInText } from '../i18n'
-import type { ClarifyConfig, NavigationNode, NavigationTab, RouteItem } from '../types'
+import type { Config, NavigationNode, NavigationTab, RouteItem } from '../types'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { Header } from './Header'
@@ -73,7 +73,7 @@ function MobileTabsSelect(arg0: MobileTabsSelectProps) {
 }
 
 type MobileNavigationDialogProps = {
-  config: ClarifyConfig
+  config: Config
   isOpen: boolean
   navigation: NavigationNode[]
   tabs?: NavigationTab[]
@@ -145,7 +145,7 @@ export const useMobileNavigationStore = create<{
 }))
 
 export type MobileNavigationProps = {
-  config: ClarifyConfig
+  config: Config
   navigation: NavigationNode[]
   tabs?: NavigationTab[]
   routes: RouteItem[]

@@ -1,12 +1,12 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useClarifyConfig, useClarifyLocale } from '../context'
+import { useConfig, useLocale } from '../context'
 import { isExternalHref, localizeHref } from '../utils/href'
 
 export function useLocalizedHref(href: string): string {
-  const config = useClarifyConfig()
-  const locale = useClarifyLocale()
+  const config = useConfig()
+  const locale = useLocale()
   return localizeHref(href, config, locale)
 }
 

@@ -3,11 +3,11 @@ import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import type { ComponentType } from 'react'
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
-import { ClarifyLocaleContext } from '../context'
+import { LocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
 import { Header, Navigation } from '../shell'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
-import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
+import type { RouteItem, Config, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
@@ -20,7 +20,7 @@ import { PageSkeleton } from './PageSkeleton'
 import { SectionProvider, type Section } from './SectionProvider'
 
 export type AppShellProps = {
-  config: ClarifyConfig
+  config: Config
   routes: RouteItem[]
   navigation: NavigationTree
   bannerComponent?: ComponentType
@@ -68,22 +68,22 @@ function scrollToHash(hash: string) {
   })
 }
 
-function explicitLocaleForPath(config: ClarifyConfig, pathname: string): string | undefined {
+function explicitLocaleForPath(config: Config, pathname: string): string | undefined {
   const i18n = config.i18n
   if (!i18n) return undefined
   const firstSegment = pathname.split('/').filter(Boolean)[0]
   return i18n.locales.find((locale) => locale.code === firstSegment)?.code
 }
 
-function fallbackLocale(config: ClarifyConfig): string | undefined {
+function fallbackLocale(config: Config): string | undefined {
   return config.i18n?.defaultLocale
 }
 
-function storedLocaleForConfig(config: ClarifyConfig): string | null {
+function storedLocaleForConfig(config: Config): string | null {
   return getStoredLocalePreference(config.i18n?.locales.map(locale => locale.code))
 }
 
-function isDefaultLocale(config: ClarifyConfig, locale: string | undefined): boolean {
+function isDefaultLocale(config: Config, locale: string | undefined): boolean {
   return Boolean(locale && config.i18n?.defaultLocale === locale)
 }
 
@@ -118,7 +118,7 @@ function navigationForLocale(navigation: NavigationTree, locale: string | undefi
   return Array.isArray(localizedNavigation) ? { items: localizedNavigation } : navigationFromTabs(localizedNavigation, pathname)
 }
 
-function pageTitle(config: ClarifyConfig, route?: RouteItem): string {
+function pageTitle(config: Config, route?: RouteItem): string {
   const routeTitle = route?.title?.trim()
   if (!routeTitle || routeTitle === config.title) return config.title
   return `${routeTitle} - ${config.title}`
@@ -137,7 +137,7 @@ function setNamedMeta(name: string, content: string | undefined) {
   if (!existing) document.head.appendChild(meta)
 }
 
-function applyDocumentMetadata(config: ClarifyConfig, route?: RouteItem) {
+function applyDocumentMetadata(config: Config, route?: RouteItem) {
   document.title = pageTitle(config, route)
   setNamedMeta('description', route?.description ?? config.description)
   setNamedMeta('keywords', route?.keywords?.join(', '))
@@ -234,7 +234,7 @@ export function AppShell(arg0: AppShellProps) {
   }, [config, currentRoute, notFoundRoute])
 
   return (
-    <ClarifyLocaleContext.Provider value={currentLocale}>
+    <LocaleContext.Provider value={currentLocale}>
       <SectionProvider sections={sections}>
         <Header
           config={config}
@@ -305,6 +305,6 @@ export function AppShell(arg0: AppShellProps) {
           </div>
         </div>
       </SectionProvider>
-    </ClarifyLocaleContext.Provider>
+    </LocaleContext.Provider>
   )
 }

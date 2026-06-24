@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
 
 import { AppShell } from '../app/AppShell'
-import { ClarifyConfigContext, OpenApisContext } from '../context'
+import { ConfigContext, OpenApisContext } from '../context'
 import { ThemeProvider } from '../theme/ThemeProvider'
 import { ThemeRoot } from '../theme/ThemeRoot'
 import type { ServerRenderOptions } from '../types'
@@ -21,7 +21,7 @@ export function renderToHTML(options: ServerRenderOptions): string {
   return renderToString(
     <StrictMode>
       <StaticRouter basename={config.routePrefix} location={location}>
-        <ClarifyConfigContext.Provider value={config}>
+        <ConfigContext.Provider value={config}>
           <OpenApisContext.Provider value={openApis}>
             <ThemeProvider>
               <ThemeRoot theme={config.theme} themeEditor={themeEditor}>
@@ -29,7 +29,7 @@ export function renderToHTML(options: ServerRenderOptions): string {
               </ThemeRoot>
             </ThemeProvider>
           </OpenApisContext.Provider>
-        </ClarifyConfigContext.Provider>
+        </ConfigContext.Provider>
       </StaticRouter>
     </StrictMode>
   )

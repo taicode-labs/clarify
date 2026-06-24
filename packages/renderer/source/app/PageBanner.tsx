@@ -3,16 +3,16 @@ import type { ComponentType } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useClarifyConfig } from '../core/context'
-import type { ClarifyConfig, ClarifyLocalizedText } from '../core/types'
+import { useConfig } from '../core/context'
+import type { Config, LocalizedText } from '../core/types'
 import { isExternalHref, localizeHref } from '../utils/href'
 
-function resolveLocalizedText(text: ClarifyLocalizedText, locale?: string, fallbackLocale?: string): string {
+function resolveLocalizedText(text: LocalizedText, locale?: string, fallbackLocale?: string): string {
   if (typeof text === 'string') return text
   return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
 }
 
-function bannerStorageKey(config: ClarifyConfig, content: string): string {
+function bannerStorageKey(config: Config, content: string): string {
   return `clarify:banner:dismissed:${config.title}:${content}`
 }
 
@@ -20,7 +20,7 @@ type PageBannerLinkProps = {
   href: string
   label: string
   external?: boolean
-  config: ClarifyConfig
+  config: Config
   locale?: string
 }
 
@@ -45,7 +45,7 @@ export type PageBannerProps = {
 
 export function PageBanner(props: PageBannerProps) {
   const { component: CustomBanner, currentLocale, onDismiss } = props
-  const config = useClarifyConfig()
+  const config = useConfig()
   const banner = config.banner
   const builtInBanner = banner && typeof banner === 'object' ? banner : undefined
   const content = builtInBanner ? resolveLocalizedText(builtInBanner.content, currentLocale, config.i18n?.defaultLocale) : ''

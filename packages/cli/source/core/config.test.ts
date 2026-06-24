@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { clarifyProjectConfigSchema } from './config-schema.js'
 import { resolveProjectConfig } from './config.js'
 import { resolveBuildOptions } from './options.js'
-import { clarifyThemePresets } from './theme.js'
+import { themePresets } from './theme.js'
 
 describe('clarifyProjectConfigSchema', () => {
   it('validates project config', () => {
@@ -200,7 +200,7 @@ describe('resolveProjectConfig', () => {
     const requiredRadiusTokens = ['sm', 'md', 'lg', 'xl'] as const
     const requiredLayoutValues = ['maxWidth'] as const
 
-    for (const theme of Object.values(clarifyThemePresets)) {
+    for (const theme of Object.values(themePresets)) {
       for (const token of requiredColorTokens) {
         expect(theme.tokens.colors[token]).toBeTruthy()
       }

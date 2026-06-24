@@ -6,26 +6,26 @@ import { PageBanner } from './app/PageBanner'
 import { PageFooter } from './app/PageFooter'
 import { SectionProvider, useSectionStore, type Section } from './app/SectionProvider'
 import { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Feedback, GridPattern, Heading, HeroPattern, Logo, Pre, Prose, Tag, WebFrame } from './components'
-import { ClarifyConfigContext, OpenApisContext, useClarifyConfig, useOpenApis } from './context'
+import { ConfigContext, OpenApisContext, useConfig, useOpenApis } from './context'
 import { useMDXComponents } from './mdx/components'
 import { DocShell } from './mdx/DocShell'
 import { Markdown } from './mdx/Markdown'
 import { markdownRemarkPlugins } from './mdx/remark'
 import { OpenApiDocument, OpenApiOperation } from './openapi'
 import { render } from './runtime/render'
-import { applyClarifyThemeVariables, clarifyThemeEditorPresets, ThemeEditor } from './theme/ThemeEditor'
+import { applyThemeVariables, themeEditorPresets, ThemeEditor } from './theme/ThemeEditor'
 import { ThemeProvider, useTheme } from './theme/ThemeProvider'
 import { ThemeToggle } from './theme/ThemeToggle'
-import { clarifyThemePresets, themeBootstrapScript } from './theme/variables'
-import type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions } from './types'
+import { themePresets, themeBootstrapScript } from './theme/variables'
+import type { Config, RouteItem, RenderOptions, ServerRenderOptions } from './types'
 import { remToPx } from './utils/remToPx'
 
 export type { OpenApiOperationProps, OpenApiDocumentProps, OpenAPIOperation, OpenAPISpec } from './openapi'
 export type { ThemeEditorProps } from './theme/ThemeEditor'
-export type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions, Section }
+export type { Config, RouteItem, RenderOptions, ServerRenderOptions, Section }
 
 // App and runtime exports
-export { AppShell, render, ClarifyConfigContext, OpenApisContext, useClarifyConfig, useOpenApis, BuiltWithClarify, PageBanner, PageFooter, ThemeProvider, ThemeToggle, ThemeEditor, useTheme, SectionProvider, useSectionStore, remToPx, applyClarifyThemeVariables, clarifyThemeEditorPresets, clarifyThemePresets, themeBootstrapScript }
+export { AppShell, render, ConfigContext, OpenApisContext, useConfig, useOpenApis, BuiltWithClarify, PageBanner, PageFooter, ThemeProvider, ThemeToggle, ThemeEditor, useTheme, SectionProvider, useSectionStore, remToPx, applyThemeVariables, themeEditorPresets, themePresets, themeBootstrapScript }
 
 // Built-in MDX and UI components
 export { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Pre, Prose, Heading, Logo, GridPattern, HeroPattern, Feedback, Tag, WebFrame }

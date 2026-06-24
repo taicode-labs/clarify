@@ -4,16 +4,16 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent } from 'react'
 
 import type {
-  ClarifyThemeColorTokensConfig,
-  ClarifyThemeConfig,
-  ClarifyThemeLayoutConfig,
-  ClarifyThemePreset,
-  ClarifyThemeRadiusTokensConfig,
+  ThemeColorTokensConfig,
+  ThemeConfig,
+  ThemeLayoutConfig,
+  ThemePreset,
+  ThemeRadiusTokensConfig,
 } from '../types'
 
 import { createRandomTheme } from './randomTheme'
 import { useTheme } from './ThemeProvider'
-import { applyThemeCssVariables, clarifyThemePresets, cloneTheme, resolveThemeColorValue, resolveThemeVariableTargets, themeToCssVariables } from './variables'
+import { applyThemeCssVariables, themePresets, cloneTheme, resolveThemeColorValue, resolveThemeVariableTargets, themeToCssVariables } from './variables'
 import type { ThemeVariableTarget } from './variables'
 
 const colorTokenFields = [
@@ -25,24 +25,24 @@ const colorTokenFields = [
   { key: 'muted', label: 'Muted' },
   { key: 'border', label: 'Border' },
   { key: 'codeBackground', label: 'Code background' },
-] as const satisfies ReadonlyArray<{ key: keyof ClarifyThemeColorTokensConfig; label: string }>
+] as const satisfies ReadonlyArray<{ key: keyof ThemeColorTokensConfig; label: string }>
 
 const radiusTokenFields = [
   { key: 'sm', label: 'Small' },
   { key: 'md', label: 'Medium' },
   { key: 'lg', label: 'Large' },
   { key: 'xl', label: 'Extra large' },
-] as const satisfies ReadonlyArray<{ key: keyof ClarifyThemeRadiusTokensConfig; label: string }>
+] as const satisfies ReadonlyArray<{ key: keyof ThemeRadiusTokensConfig; label: string }>
 
 const layoutFields = [
   { key: 'maxWidth', label: 'Max width' },
-] as const satisfies ReadonlyArray<{ key: keyof ClarifyThemeLayoutConfig; label: string }>
+] as const satisfies ReadonlyArray<{ key: keyof ThemeLayoutConfig; label: string }>
 
 export type ThemeEditorProps = {
   /** The resolved theme to use as the editor's initial value. */
-  initialTheme?: ClarifyThemeConfig;
+  initialTheme?: ThemeConfig;
   /** Called every time a token changes. */
-  onChange?: (theme: ClarifyThemeConfig) => void;
+  onChange?: (theme: ThemeConfig) => void;
   /** CSS variable target. Defaults to documentElement and every .clarify-app root. */
   target?: ThemeVariableTarget;
   /** Whether the panel is open by default. */
@@ -50,9 +50,9 @@ export type ThemeEditorProps = {
   className?: string;
 }
 
-export const clarifyThemeEditorPresets = clarifyThemePresets
+export const themeEditorPresets = themePresets
 
-export function applyClarifyThemeVariables(theme: ClarifyThemeConfig, target?: ThemeVariableTarget): () => void {
+export function applyThemeVariables(theme: ThemeConfig, target?: ThemeVariableTarget): () => void {
   return applyThemeCssVariables(themeToCssVariables(theme), resolveThemeVariableTargets(target))
 }
 
@@ -60,7 +60,7 @@ function isHexColor(value: string): boolean {
   return /^#[0-9a-f]{6}$/i.test(value)
 }
 
-function updateThemeModeColorValue(value: ClarifyThemeColorTokensConfig[keyof ClarifyThemeColorTokensConfig], resolvedTheme: 'light' | 'dark', nextValue: string): ClarifyThemeColorTokensConfig[keyof ClarifyThemeColorTokensConfig] {
+function updateThemeModeColorValue(value: ThemeColorTokensConfig[keyof ThemeColorTokensConfig], resolvedTheme: 'light' | 'dark', nextValue: string): ThemeColorTokensConfig[keyof ThemeColorTokensConfig] {
   if (typeof value === 'string') return nextValue
 
   return {
@@ -110,7 +110,7 @@ function TextField(props: TextFieldProps) {
   )
 }
 
-function themeToConfigSource(theme: ClarifyThemeConfig): string {
+function themeToConfigSource(theme: ThemeConfig): string {
   return JSON.stringify(
     {
       theme: {
@@ -128,22 +128,22 @@ export function ThemeEditor(props: ThemeEditorProps) {
   const { initialTheme, onChange, target, defaultOpen = false, className } = props
   const { resolvedTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(defaultOpen)
-  const [theme, setTheme] = useState<ClarifyThemeConfig>(() => cloneTheme(initialTheme ?? clarifyThemeEditorPresets.default))
+  const [theme, setTheme] = useState<ThemeConfig>(() => cloneTheme(initialTheme ?? themeEditorPresets.default))
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const configSource = useMemo(() => themeToConfigSource(theme), [theme])
 
   useEffect(() => applyThemeCssVariables(themeToCssVariables(theme, resolvedTheme), resolveThemeVariableTargets(target)), [resolvedTheme, target, theme])
 
-  function commit(nextTheme: ClarifyThemeConfig) {
+  function commit(nextTheme: ThemeConfig) {
     setTheme(nextTheme)
     onChange?.(nextTheme)
   }
 
-  function updatePreset(nextPreset: ClarifyThemePreset) {
-    commit(cloneTheme(clarifyThemeEditorPresets[nextPreset]))
+  function updatePreset(nextPreset: ThemePreset) {
+    commit(cloneTheme(themeEditorPresets[nextPreset]))
   }
 
-  function updateColorToken(key: keyof ClarifyThemeColorTokensConfig, value: string) {
+  function updateColorToken(key: keyof ThemeColorTokensConfig, value: string) {
     commit({
       ...theme,
       tokens: {
@@ -156,7 +156,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
     })
   }
 
-  function updateRadiusToken(key: keyof ClarifyThemeRadiusTokensConfig, value: string) {
+  function updateRadiusToken(key: keyof ThemeRadiusTokensConfig, value: string) {
     commit({
       ...theme,
       tokens: {
@@ -169,7 +169,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
     })
   }
 
-  function updateLayoutToken(key: keyof ClarifyThemeLayoutConfig, value: string) {
+  function updateLayoutToken(key: keyof ThemeLayoutConfig, value: string) {
     commit({
       ...theme,
       layout: {
@@ -221,7 +221,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
                     id="clarify-theme-editor-preset"
                     value={theme.preset}
                     className="h-9 w-full appearance-none rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 pr-9 text-sm text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
-                    onChange={(event) => updatePreset(event.target.value as ClarifyThemePreset)}
+                    onChange={(event) => updatePreset(event.target.value as ThemePreset)}
                   >
                     <option value="default">default</option>
                     <option value="base">base</option>

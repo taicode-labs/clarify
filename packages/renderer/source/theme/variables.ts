@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 
-import type { ClarifyThemeColorTokensConfig, ClarifyThemeColorValue, ClarifyThemeConfig, ClarifyThemePreset } from '../types'
+import type { ThemeColorTokensConfig, ThemeColorValue, ThemeConfig, ThemePreset } from '../types'
 
 import { themeCookieName } from './cookies'
 
@@ -11,7 +11,7 @@ export type ThemeVariableTarget = HTMLElement | string
 export const themeStorageKey = themeCookieName
 export { themeCookieName }
 
-export const clarifyThemePresets = {
+export const themePresets = {
   default: {
     preset: 'default',
     tokens: {
@@ -62,13 +62,13 @@ export const clarifyThemePresets = {
     },
     editor: false,
   },
-} satisfies Record<ClarifyThemePreset, ClarifyThemeConfig>
+} satisfies Record<ThemePreset, ThemeConfig>
 
-function cloneThemeColorValue(value: ClarifyThemeColorValue): ClarifyThemeColorValue {
+function cloneThemeColorValue(value: ThemeColorValue): ThemeColorValue {
   return typeof value === 'string' ? value : { ...value }
 }
 
-export function cloneTheme(theme: ClarifyThemeConfig): ClarifyThemeConfig {
+export function cloneTheme(theme: ThemeConfig): ThemeConfig {
   return {
     preset: theme.preset,
     tokens: {
@@ -89,17 +89,17 @@ export function cloneTheme(theme: ClarifyThemeConfig): ClarifyThemeConfig {
   }
 }
 
-function isModeColorValue(value: ClarifyThemeColorValue): value is Exclude<ClarifyThemeColorValue, string> {
+function isModeColorValue(value: ThemeColorValue): value is Exclude<ThemeColorValue, string> {
   return typeof value === 'object' && value !== null
 }
 
-export function resolveThemeColorValue(value: ClarifyThemeColorValue, resolvedTheme: 'light' | 'dark' = 'light'): string {
+export function resolveThemeColorValue(value: ThemeColorValue, resolvedTheme: 'light' | 'dark' = 'light'): string {
   if (!isModeColorValue(value)) return value
 
   return value[resolvedTheme] ?? value.light ?? value.dark ?? ''
 }
 
-export function resolveThemeColors(colors: ClarifyThemeColorTokensConfig, resolvedTheme: 'light' | 'dark' = 'light'): Record<keyof ClarifyThemeColorTokensConfig, string> {
+export function resolveThemeColors(colors: ThemeColorTokensConfig, resolvedTheme: 'light' | 'dark' = 'light'): Record<keyof ThemeColorTokensConfig, string> {
   return {
     primary: resolveThemeColorValue(colors.primary, resolvedTheme),
     accent: resolveThemeColorValue(colors.accent, resolvedTheme),
@@ -112,13 +112,13 @@ export function resolveThemeColors(colors: ClarifyThemeColorTokensConfig, resolv
   }
 }
 
-function matchesPresetTheme(theme: ClarifyThemeConfig): boolean {
-  const preset = clarifyThemePresets[theme.preset]
+function matchesPresetTheme(theme: ThemeConfig): boolean {
+  const preset = themePresets[theme.preset]
 
   return JSON.stringify({ tokens: theme.tokens, layout: theme.layout }) === JSON.stringify({ tokens: preset.tokens, layout: preset.layout })
 }
 
-function effectiveTheme(theme: ClarifyThemeConfig, resolvedTheme?: 'light' | 'dark'): ClarifyThemeConfig {
+function effectiveTheme(theme: ThemeConfig, resolvedTheme?: 'light' | 'dark'): ThemeConfig {
   if (resolvedTheme !== 'dark' || !matchesPresetTheme(theme)) return theme
 
   return {
@@ -138,7 +138,7 @@ function effectiveTheme(theme: ClarifyThemeConfig, resolvedTheme?: 'light' | 'da
   }
 }
 
-export function themeToCssVariables(theme: ClarifyThemeConfig, resolvedTheme?: 'light' | 'dark'): ThemeCssVariables {
+export function themeToCssVariables(theme: ThemeConfig, resolvedTheme?: 'light' | 'dark'): ThemeCssVariables {
   const resolved = effectiveTheme(theme, resolvedTheme)
   const colors = resolveThemeColors(resolved.tokens.colors, resolvedTheme)
   const { radius } = resolved.tokens
@@ -160,7 +160,7 @@ export function themeToCssVariables(theme: ClarifyThemeConfig, resolvedTheme?: '
   }
 }
 
-export function themeBootstrapScript(theme: ClarifyThemeConfig = clarifyThemePresets.default): string {
+export function themeBootstrapScript(theme: ThemeConfig = themePresets.default): string {
   const darkVariables = themeToCssVariables(theme, 'dark')
   const lightVariables = themeToCssVariables(theme, 'light')
 
