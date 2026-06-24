@@ -1,6 +1,7 @@
 import type { HtmlTagDescriptor } from 'vite'
 
 import { themeBootstrapScript } from '@clarify-labs/renderer'
+
 import type { ClarifyFaviconConfig, ClarifyPlugin } from '../../types.js'
 
 const REL_ICON_RE = /<link\s+[^>]*rel=["'][^"']*\bicon\b[^"']*["'][^>]*>/i

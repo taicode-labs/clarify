@@ -5,6 +5,7 @@ import type { ChangeEvent } from 'react'
 
 import type {
   ThemeColorTokensConfig,
+  ThemeColorValue,
   ThemeConfig,
   ThemeLayoutConfig,
   ThemePreset,
@@ -60,12 +61,14 @@ function isHexColor(value: string): boolean {
   return /^#[0-9a-f]{6}$/i.test(value)
 }
 
-function updateThemeModeColorValue(value: ThemeColorTokensConfig[keyof ThemeColorTokensConfig], resolvedTheme: 'light' | 'dark', nextValue: string): ThemeColorTokensConfig[keyof ThemeColorTokensConfig] {
-  if (typeof value === 'string') return nextValue
+function updateThemeModeColorValue(value: ThemeColorTokensConfig[keyof ThemeColorTokensConfig], mode: 'light' | 'dark', nextValue: string): ThemeColorTokensConfig[keyof ThemeColorTokensConfig] {
+  if (typeof value === 'string') {
+    return mode === 'light' ? { light: nextValue, dark: value } : { light: value, dark: nextValue }
+  }
 
   return {
     ...value,
-    [resolvedTheme]: nextValue,
+    [mode]: nextValue,
   }
 }
 
@@ -110,6 +113,69 @@ function TextField(props: TextFieldProps) {
   )
 }
 
+type ColorFieldProps = {
+  id: string;
+  label: string;
+  value: ThemeColorValue;
+  onChange: (mode: 'light' | 'dark', value: string) => void;
+}
+
+function ColorField(props: ColorFieldProps) {
+  const { id, label, value, onChange } = props
+  const lightValue = resolveThemeColorValue(value, 'light')
+  const darkValue = resolveThemeColorValue(value, 'dark')
+
+  return (
+    <div className="grid min-w-0 gap-1.5">
+      <span className="text-xs/5 font-medium text-(--clarify-ui-text)">{label}</span>
+      <div className="grid grid-cols-2 gap-2">
+        <ColorModeInput id={`${id}-light`} mode="light" value={lightValue} onChange={(v) => onChange('light', v)} />
+        <ColorModeInput id={`${id}-dark`} mode="dark" value={darkValue} onChange={(v) => onChange('dark', v)} />
+      </div>
+    </div>
+  )
+}
+
+type ColorModeInputProps = {
+  id: string;
+  mode: 'light' | 'dark';
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function ColorModeInput(props: ColorModeInputProps) {
+  const { id, mode, value, onChange } = props
+  const canUseColorInput = isHexColor(value)
+
+  function handleTextChange(event: ChangeEvent<HTMLInputElement>) {
+    onChange(event.target.value)
+  }
+
+  return (
+    <label htmlFor={id} className="grid min-w-0 gap-1 text-[11px]/4 font-medium text-(--clarify-ui-text-faint)">
+      <span className="flex min-w-0 items-center justify-between gap-2">
+        <span className="uppercase tracking-wide">{mode}</span>
+        {canUseColorInput ? (
+          <input
+            type="color"
+            value={value}
+            aria-label={`${id} color`}
+            className="h-4 w-6 shrink-0 cursor-pointer rounded border border-(--clarify-theme-tokens-colors-border) bg-transparent p-0"
+            onChange={handleTextChange}
+          />
+        ) : null}
+      </span>
+      <input
+        id={id}
+        value={value}
+        spellCheck={false}
+        className="h-8 w-full min-w-0 rounded-(--clarify-theme-tokens-radius-sm) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2 font-mono text-xs text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
+        onChange={handleTextChange}
+      />
+    </label>
+  )
+}
+
 function themeToConfigSource(theme: ThemeConfig): string {
   return JSON.stringify(
     {
@@ -143,14 +209,14 @@ export function ThemeEditor(props: ThemeEditorProps) {
     commit(cloneTheme(themeEditorPresets[nextPreset]))
   }
 
-  function updateColorToken(key: keyof ThemeColorTokensConfig, value: string) {
+  function updateColorToken(key: keyof ThemeColorTokensConfig, mode: 'light' | 'dark', value: string) {
     commit({
       ...theme,
       tokens: {
         ...theme.tokens,
         colors: {
           ...theme.tokens.colors,
-          [key]: updateThemeModeColorValue(theme.tokens.colors[key], resolvedTheme, value),
+          [key]: updateThemeModeColorValue(theme.tokens.colors[key], mode, value),
         },
       },
     })
@@ -234,13 +300,12 @@ export function ThemeEditor(props: ThemeEditorProps) {
                 <legend className="mb-2 text-xs/5 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">Colors</legend>
                 <div className="grid grid-cols-1 gap-3">
                   {colorTokenFields.map((field) => (
-                    <TextField
+                    <ColorField
                       key={field.key}
                       id={`clarify-theme-editor-color-${field.key}`}
                       label={field.label}
-                      value={resolveThemeColorValue(theme.tokens.colors[field.key], resolvedTheme)}
-                      withColorInput
-                      onChange={(value) => updateColorToken(field.key, value)}
+                      value={theme.tokens.colors[field.key]}
+                      onChange={(mode, value) => updateColorToken(field.key, mode, value)}
                     />
                   ))}
                 </div>

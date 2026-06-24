@@ -73,12 +73,12 @@ describe('resolveProjectConfig', () => {
           colors: {
             primary: '#047857',
             accent: '#0D9488',
-            background: '#ffffff',
-            foreground: '#111827',
-            surface: '#ffffff',
-            muted: '#64748b',
-            border: 'rgb(15 23 42 / 0.12)',
-            codeBackground: '#f6fbf8',
+            background: { light: '#ffffff', dark: '#09090b' },
+            foreground: { light: '#111827', dark: '#ffffff' },
+            surface: { light: '#ffffff', dark: '#18181b' },
+            muted: { light: '#64748b', dark: '#a1a1aa' },
+            border: { light: 'rgb(15 23 42 / 0.12)', dark: 'rgb(255 255 255 / 0.1)' },
+            codeBackground: { light: '#f6fbf8', dark: '#18181b' },
           },
           radius: {
             sm: '6px',

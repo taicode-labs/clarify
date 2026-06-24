@@ -18,12 +18,12 @@ export const themePresets = {
       colors: {
         primary: '#047857',
         accent: '#0D9488',
-        background: '#ffffff',
-        foreground: '#111827',
-        surface: '#ffffff',
-        muted: '#64748b',
-        border: 'rgb(15 23 42 / 0.12)',
-        codeBackground: '#f6fbf8',
+        background: { light: '#ffffff', dark: '#09090b' },
+        foreground: { light: '#111827', dark: '#ffffff' },
+        surface: { light: '#ffffff', dark: '#18181b' },
+        muted: { light: '#64748b', dark: '#a1a1aa' },
+        border: { light: 'rgb(15 23 42 / 0.12)', dark: 'rgb(255 255 255 / 0.1)' },
+        codeBackground: { light: '#f6fbf8', dark: '#18181b' },
       },
       radius: {
         sm: '6px',
@@ -43,12 +43,12 @@ export const themePresets = {
       colors: {
         primary: '#18181b',
         accent: '#52525b',
-        background: '#ffffff',
-        foreground: '#18181b',
-        surface: '#ffffff',
-        muted: '#71717a',
-        border: 'rgb(24 24 27 / 0.12)',
-        codeBackground: '#f4f4f5',
+        background: { light: '#ffffff', dark: '#09090b' },
+        foreground: { light: '#18181b', dark: '#ffffff' },
+        surface: { light: '#ffffff', dark: '#18181b' },
+        muted: { light: '#71717a', dark: '#a1a1aa' },
+        border: { light: 'rgb(24 24 27 / 0.12)', dark: 'rgb(255 255 255 / 0.1)' },
+        codeBackground: { light: '#f4f4f5', dark: '#18181b' },
       },
       radius: {
         sm: '6px',
@@ -112,36 +112,9 @@ export function resolveThemeColors(colors: ThemeColorTokensConfig, resolvedTheme
   }
 }
 
-function matchesPresetTheme(theme: ThemeConfig): boolean {
-  const preset = themePresets[theme.preset]
-
-  return JSON.stringify({ tokens: theme.tokens, layout: theme.layout }) === JSON.stringify({ tokens: preset.tokens, layout: preset.layout })
-}
-
-function effectiveTheme(theme: ThemeConfig, resolvedTheme?: 'light' | 'dark'): ThemeConfig {
-  if (resolvedTheme !== 'dark' || !matchesPresetTheme(theme)) return theme
-
-  return {
-    ...theme,
-    tokens: {
-      ...theme.tokens,
-      colors: {
-        ...theme.tokens.colors,
-        background: '#09090b',
-        foreground: '#ffffff',
-        surface: '#18181b',
-        muted: '#a1a1aa',
-        border: 'rgb(255 255 255 / 0.1)',
-        codeBackground: '#18181b',
-      },
-    },
-  }
-}
-
 export function themeToCssVariables(theme: ThemeConfig, resolvedTheme?: 'light' | 'dark'): ThemeCssVariables {
-  const resolved = effectiveTheme(theme, resolvedTheme)
-  const colors = resolveThemeColors(resolved.tokens.colors, resolvedTheme)
-  const { radius } = resolved.tokens
+  const colors = resolveThemeColors(theme.tokens.colors, resolvedTheme)
+  const { radius } = theme.tokens
 
   return {
     '--clarify-theme-tokens-colors-primary': colors.primary,
@@ -156,7 +129,7 @@ export function themeToCssVariables(theme: ThemeConfig, resolvedTheme?: 'light' 
     '--clarify-theme-tokens-radius-md': radius.md,
     '--clarify-theme-tokens-radius-lg': radius.lg,
     '--clarify-theme-tokens-radius-xl': radius.xl,
-    '--clarify-theme-layout-max-width': resolved.layout.maxWidth,
+    '--clarify-theme-layout-max-width': theme.layout.maxWidth,
   }
 }
 
