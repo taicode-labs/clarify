@@ -80,7 +80,7 @@ export function PageFooter(props: PageFooterProps = {}) {
   const hasBuiltInFooter = Boolean(copyright || links.length > 0 || socials.length > 0)
 
   return (
-    <footer className="clarify-page-footer mx-auto flex w-full max-w-(--clarify-theme-layout-max-width) flex-col gap-4 border-t border-(--clarify-theme-tokens-colors-border) px-4 py-8 sm:px-6 lg:mt-24 lg:px-5">
+    <footer className="clarify-page-footer mt-16 flex w-full flex-col gap-4 border-t border-(--clarify-theme-tokens-colors-border) py-8 lg:mt-24">
       {CustomFooter ? (
         <div className="clarify-footer-custom w-full">
           <CustomFooter />

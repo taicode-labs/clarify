@@ -5,12 +5,13 @@ import { Link, Routes, Route, useLocation } from 'react-router-dom'
 
 import { ClarifyLocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
-import { ContentActions, Header, Navigation } from '../shell'
+import { Header, Navigation } from '../shell'
 import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { PageErrorBoundary } from './ErrorBoundary'
+import { PageActionsProvider } from './PageActions'
 import { PageFooter } from './PageFooter'
 import { PageNavigation } from './PageNavigation'
 import { PageSkeleton } from './PageSkeleton'
@@ -211,49 +212,54 @@ export function AppShell(arg0: AppShellProps) {
           currentLocale={currentLocale}
           currentRoute={currentRoute}
         />
-        <div className="clarify-layout pb-12 mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)">
+        <div className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)">
           <aside
             data-pagefind-ignore
-            className={clsx(
-              'clarify-sidebar hidden lg:sticky lg:z-30 lg:block lg:h-(--clarify-sidebar-height) lg:self-start lg:overflow-y-auto lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 lg:pb-8 xl:px-6',
-              hasTabs ? 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-6' : 'lg:top-14 lg:pt-6',
-            )}
+            className="clarify-sidebar hidden lg:block lg:self-stretch lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 xl:px-6"
           >
-            <Navigation navigation={currentNavigation.items} />
+            <div
+              className={clsx(
+                'clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8',
+                hasTabs ? 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-6' : 'lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-6',
+              )}
+            >
+              <Navigation navigation={currentNavigation.items} />
+            </div>
           </aside>
-          <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
-            <ContentActions hasTabs={hasTabs} route={currentRoute} routePrefix={config.routePrefix} />
-            <main className="clarify-main min-w-0 flex-auto" data-pagefind-body>
-              <PageErrorBoundary
-                key={pathname}
-                title={text('renderError.title')}
-                description={text('renderError.description')}
-                reloadLabel={text('renderError.reload')}
-                detailsLabel={text('renderError.details')}
-                pathLabel={text('renderError.path')}
-                typeLabel={text('renderError.type')}
-                messageLabel={text('renderError.message')}
-                stackLabel={text('renderError.stack')}
-                componentStackLabel={text('renderError.componentStack')}
-                timestampLabel={text('renderError.timestamp')}
-                copyLabel={text('actions.copy')}
-                copiedLabel={text('actions.copied')}
-                path={pathname}
-              >
-                <Suspense fallback={<PageSkeleton />}>
-                  <Routes>
-                    {renderRoutes.map((route) => (
-                      <Route key={route.path} path={route.path} element={<route.component />} />
-                    ))}
-                    <Route path="*" element={<NotFoundRouteElement component={NotFoundRouteComponent} />} />
-                  </Routes>
-                </Suspense>
-              </PageErrorBoundary>
-            </main>
-            <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
+          <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
+            <PageActionsProvider route={currentRoute} routePrefix={config.routePrefix}>
+              <main className="clarify-main min-w-0 flex-auto" data-pagefind-body>
+                <PageErrorBoundary
+                  key={pathname}
+                  title={text('renderError.title')}
+                  description={text('renderError.description')}
+                  reloadLabel={text('renderError.reload')}
+                  detailsLabel={text('renderError.details')}
+                  pathLabel={text('renderError.path')}
+                  typeLabel={text('renderError.type')}
+                  messageLabel={text('renderError.message')}
+                  stackLabel={text('renderError.stack')}
+                  componentStackLabel={text('renderError.componentStack')}
+                  timestampLabel={text('renderError.timestamp')}
+                  copyLabel={text('actions.copy')}
+                  copiedLabel={text('actions.copied')}
+                  path={pathname}
+                >
+                  <Suspense fallback={<PageSkeleton />}>
+                    <Routes>
+                      {renderRoutes.map((route) => (
+                        <Route key={route.path} path={route.path} element={<route.component />} />
+                      ))}
+                      <Route path="*" element={<NotFoundRouteElement component={NotFoundRouteComponent} />} />
+                    </Routes>
+                  </Suspense>
+                </PageErrorBoundary>
+              </main>
+              <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
+              <PageFooter component={footerComponent} />
+            </PageActionsProvider>
           </div>
         </div>
-        <PageFooter component={footerComponent} />
       </SectionProvider>
     </ClarifyLocaleContext.Provider>
   )
