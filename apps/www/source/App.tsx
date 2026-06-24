@@ -227,13 +227,28 @@ function Footer() {
     <FooterWithNewsletterFormCategoriesAndSocialIcons
       id="footer"
       cta={
-        <NewsletterForm
-          headline={t('footer.newsletterHeadline')}
-          subheadline={<p>{t('footer.newsletterSubheadline')}</p>}
-          emailLabel={t('common.email')}
-          subscribeLabel={t('common.subscribe')}
-          action={site.contactUrl}
-        />
+        <div className="flex flex-col gap-8">
+          <NewsletterForm
+            headline={t('footer.newsletterHeadline')}
+            subheadline={<p>{t('footer.newsletterSubheadline')}</p>}
+            emailLabel={t('common.email')}
+            subscribeLabel={t('common.subscribe')}
+            action={site.contactUrl}
+          />
+          <a
+            href="https://www.producthunt.com/products/clarify-9?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-clarify-10"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block w-fit"
+          >
+            <img
+              alt="Clarify - Open-source docs publishing for MDX and OpenAPI | Product Hunt"
+              width={250}
+              height={54}
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1178797&theme=neutral&t=1782318977325"
+            />
+          </a>
+        </div>
       }
       links={
         <>
