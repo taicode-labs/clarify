@@ -16,7 +16,21 @@
   <script>
     ; (function () {
       try {
-        var storedTheme = localStorage.getItem('clarify:theme')
+        var cookieName = 'clarify-theme'
+        var cookies = document.cookie ? document.cookie.split('; ') : []
+        var storedTheme = null
+
+        for (var index = 0; index < cookies.length; index += 1) {
+          var cookie = cookies[index]
+          var separatorIndex = cookie.indexOf('=')
+          var name = separatorIndex === -1 ? cookie : cookie.slice(0, separatorIndex)
+
+          if (decodeURIComponent(name) === cookieName) {
+            storedTheme = separatorIndex === -1 ? '' : decodeURIComponent(cookie.slice(separatorIndex + 1))
+            break
+          }
+        }
+
         var theme = storedTheme === 'dark' || storedTheme === 'light' || storedTheme === 'system' ? storedTheme : 'system'
         var isDark = theme === 'system' ? window.matchMedia('(prefers-color-scheme: dark)').matches : theme === 'dark'
         document.documentElement.classList.toggle('dark', isDark)

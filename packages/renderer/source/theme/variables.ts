@@ -2,11 +2,14 @@ import type { CSSProperties } from 'react'
 
 import type { ClarifyThemeColorTokensConfig, ClarifyThemeColorValue, ClarifyThemeConfig, ClarifyThemePreset } from '../types'
 
+import { themeCookieName } from './cookies'
+
 export type ThemeCssVariables = CSSProperties & Record<`--clarify-theme-${string}`, string>
 
 export type ThemeVariableTarget = HTMLElement | string
 
-export const themeStorageKey = 'clarify:theme'
+export const themeStorageKey = themeCookieName
+export { themeCookieName }
 
 export const clarifyThemePresets = {
   default: {
@@ -161,7 +164,7 @@ export function themeBootstrapScript(theme: ClarifyThemeConfig = clarifyThemePre
   const darkVariables = themeToCssVariables(theme, 'dark')
   const lightVariables = themeToCssVariables(theme, 'light')
 
-  return `(function(){try{var e=localStorage.getItem(${JSON.stringify(themeStorageKey)});var t=e==='dark'||e==='light'||e==='system'?e:'system';var r=t==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches:t==='dark';var v=r?${JSON.stringify(darkVariables)}:${JSON.stringify(lightVariables)};var s=document.documentElement.style;for(var k in v)s.setProperty(k,v[k]);document.documentElement.classList.toggle('dark',r);document.documentElement.style.colorScheme=r?'dark':'light'}catch(e){}})();`
+  return `(function(){try{var c=${JSON.stringify(themeCookieName)};var m=document.cookie?document.cookie.split('; '):[];var e=null;for(var i=0;i<m.length;i++){var p=m[i].indexOf('=');var n=p===-1?m[i]:m[i].slice(0,p);if(decodeURIComponent(n)===c){e=p===-1?'':decodeURIComponent(m[i].slice(p+1));break}}var t=e==='dark'||e==='light'||e==='system'?e:'system';var r=t==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches:t==='dark';var v=r?${JSON.stringify(darkVariables)}:${JSON.stringify(lightVariables)};var s=document.documentElement.style;for(var k in v)s.setProperty(k,v[k]);document.documentElement.classList.toggle('dark',r);document.documentElement.style.colorScheme=r?'dark':'light'}catch(e){}})();`
 }
 
 function uniqueElements(elements: HTMLElement[]): HTMLElement[] {

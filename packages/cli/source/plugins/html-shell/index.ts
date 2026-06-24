@@ -3,7 +3,7 @@ import type { HtmlTagDescriptor } from 'vite'
 import { clarifyThemePresets } from '../../core/theme.js'
 import type { ClarifyFaviconConfig, ClarifyPlugin, ClarifyThemeColorValue, ResolvedClarifyThemeConfig } from '../../types.js'
 
-const THEME_STORAGE_KEY = 'clarify:theme'
+const THEME_COOKIE_NAME = 'clarify-theme'
 const REL_ICON_RE = /<link\s+[^>]*rel=["'][^"']*\bicon\b[^"']*["'][^>]*>/i
 
 function inferIconType(href: string): string | undefined {
@@ -103,7 +103,7 @@ function themeBootstrapScript(theme: ResolvedClarifyThemeConfig): string {
   const darkVariables = themeToCssVariables(theme, 'dark')
   const lightVariables = themeToCssVariables(theme, 'light')
 
-  return `(function(){try{var e=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});var t=e==='dark'||e==='light'||e==='system'?e:'system';var r=t==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches:t==='dark';var v=r?${JSON.stringify(darkVariables)}:${JSON.stringify(lightVariables)};var s=document.documentElement.style;for(var k in v)s.setProperty(k,v[k]);document.documentElement.classList.toggle('dark',r);document.documentElement.style.colorScheme=r?'dark':'light'}catch(e){}})();`
+  return `(function(){try{var c=${JSON.stringify(THEME_COOKIE_NAME)};var m=document.cookie?document.cookie.split('; '):[];var e=null;for(var i=0;i<m.length;i++){var p=m[i].indexOf('=');var n=p===-1?m[i]:m[i].slice(0,p);if(decodeURIComponent(n)===c){e=p===-1?'':decodeURIComponent(m[i].slice(p+1));break}}var t=e==='dark'||e==='light'||e==='system'?e:'system';var r=t==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches:t==='dark';var v=r?${JSON.stringify(darkVariables)}:${JSON.stringify(lightVariables)};var s=document.documentElement.style;for(var k in v)s.setProperty(k,v[k]);document.documentElement.classList.toggle('dark',r);document.documentElement.style.colorScheme=r?'dark':'light'}catch(e){}})();`
 }
 
 export function createHtmlShellPlugin(): ClarifyPlugin {

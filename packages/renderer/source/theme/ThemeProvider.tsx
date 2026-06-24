@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 
-import { themeStorageKey } from './variables'
+import { getStoredThemePreference, storeThemePreference } from './cookies'
+import type { ThemePreference } from './cookies'
 
-export type Theme = 'light' | 'dark' | 'system'
+export type Theme = ThemePreference
 export type ResolvedTheme = 'light' | 'dark'
 
 type ThemeContextValue = {
@@ -27,22 +28,11 @@ function getStoredTheme(): Theme {
     return 'system'
   }
 
-  try {
-    const storedTheme = window.localStorage.getItem(themeStorageKey)
-    return storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system' ? storedTheme : 'system'
-  } catch {
-    return 'system'
-  }
+  return getStoredThemePreference()
 }
 
 function storeTheme(theme: Theme) {
-  if (typeof window === 'undefined') return
-
-  try {
-    window.localStorage.setItem(themeStorageKey, theme)
-  } catch {
-    // Ignore storage failures from private mode or restricted embeds.
-  }
+  storeThemePreference(theme)
 }
 
 function applyTheme(resolvedTheme: ResolvedTheme) {
