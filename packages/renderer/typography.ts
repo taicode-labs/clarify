@@ -42,16 +42,16 @@ export default {
           '--tw-prose-invert-td-borders': 'color-mix(in srgb, var(--clarify-theme-tokens-colors-border) 78%, transparent)',
 
           color: 'var(--tw-prose-body)',
-          fontSize: theme('fontSize.base')[0],
-          lineHeight: theme('lineHeight.7'),
+          fontSize: '0.9375rem',
+          lineHeight: '1.625rem',
 
           p: {
             marginTop: theme('spacing.6'),
             marginBottom: theme('spacing.6'),
           },
           '[class~="lead"]': {
-            fontSize: theme('fontSize.lg')[0],
-            ...theme('fontSize.lg')[1],
+            fontSize: theme('fontSize.base')[0],
+            ...theme('fontSize.base')[1],
           },
 
           ol: {
@@ -124,15 +124,15 @@ export default {
           h2: {
             color: 'var(--tw-prose-headings)',
             fontWeight: '600',
-            fontSize: theme('fontSize.lg')[0],
-            ...theme('fontSize.lg')[1],
+            fontSize: '1.0625rem',
+            lineHeight: '1.625rem',
             marginTop: theme('spacing.16'),
             marginBottom: theme('spacing.2'),
           },
           h3: {
             color: 'var(--tw-prose-headings)',
-            fontSize: theme('fontSize.base')[0],
-            ...theme('fontSize.base')[1],
+            fontSize: theme('fontSize.sm')[0],
+            ...theme('fontSize.sm')[1],
             fontWeight: '600',
             marginTop: theme('spacing.10'),
             marginBottom: theme('spacing.2'),
@@ -216,8 +216,8 @@ export default {
           },
           '> h1:first-child + p': {
             color: 'var(--clarify-ui-text-soft)',
-            fontSize: theme('fontSize.lg')[0],
-            ...theme('fontSize.lg')[1],
+            fontSize: theme('fontSize.base')[0],
+            ...theme('fontSize.base')[1],
           },
           '> :first-child': {
             marginTop: '0 !important',

@@ -254,8 +254,8 @@
   .clarify-openapi-header .lead {
     max-width: 44rem;
     color: var(--clarify-ui-text-soft);
-    font-size: var(--text-lg);
-    line-height: var(--text-lg--line-height);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
   }
 
   .clarify-hero-pattern-mask:is(.dark *) {
