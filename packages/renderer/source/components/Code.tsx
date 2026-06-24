@@ -1,6 +1,6 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import clsx from 'clsx'
-import { Clipboard } from 'lucide-react'
+import { Check, Clipboard } from 'lucide-react'
 import {
   Children,
   createContext,
@@ -70,8 +70,8 @@ function CopyButton(arg0: CopyButtonProps) {  const { code } = arg0
     <button
       type="button"
       className={clsx(
-        'clarify-code-copy group/button absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 text-2xs font-medium opacity-100 backdrop-blur-sm transition sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100',
-        copied ? 'clarify-code-copy-copied' : 'bg-(--clarify-code-control-background) hover:bg-(--clarify-code-control-background-hover)',
+        'clarify-code-copy group/button absolute top-3.5 right-4 inline-flex items-center gap-1 overflow-hidden rounded-full border border-(--clarify-code-border) py-1 pr-3 pl-2 text-2xs font-medium whitespace-nowrap opacity-100 shadow-sm backdrop-blur-sm transition sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100',
+        copied ? 'clarify-code-copy-copied text-(--clarify-code-text)' : 'bg-(--clarify-code-control-background) text-(--clarify-code-text) hover:bg-(--clarify-code-control-background-hover)',
       )}
       onClick={() => {
         void copyTextToClipboard(code).then((ok) => {
@@ -79,25 +79,17 @@ function CopyButton(arg0: CopyButtonProps) {  const { code } = arg0
         })
       }}
     >
-      <span
-        aria-hidden={copied}
-        className={clsx(
-          'pointer-events-none flex items-center gap-0.5 text-(--clarify-code-muted) transition duration-300',
-          copied && '-translate-y-1.5 opacity-0',
-        )}
-      >
-        <Clipboard className="h-5 w-5 stroke-(--clarify-code-faint) transition-colors group-hover/button:stroke-(--clarify-code-muted)" />
-        {t('actions.copy')}
-      </span>
-      <span
-        aria-hidden={!copied}
-        className={clsx(
-          'pointer-events-none absolute inset-0 flex items-center justify-center text-(--clarify-theme-tokens-colors-primary) transition duration-300',
-          !copied && 'translate-y-1.5 opacity-0',
-        )}
-      >
-        {t('actions.copied')}
-      </span>
+      {copied ? (
+        <>
+          <Check className="h-3.5 w-3.5 stroke-(--clarify-theme-tokens-colors-primary)" />
+          {t('actions.copied')}
+        </>
+      ) : (
+        <>
+          <Clipboard className="h-3.5 w-3.5 stroke-(--clarify-code-muted) transition-colors group-hover/button:stroke-(--clarify-code-text)" />
+          {t('actions.copy')}
+        </>
+      )}
     </button>
   )
 }
