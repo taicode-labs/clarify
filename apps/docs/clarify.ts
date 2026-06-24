@@ -198,14 +198,6 @@ export default defineConfig({
               icon: 'Puzzle',
             },
             {
-              page: 'showcase',
-              title: {
-                'zh-CN': '示例与演示',
-                'en-US': 'Showcase',
-              },
-              icon: 'MonitorPlay',
-            },
-            {
               page: 'roadmap',
               title: {
                 'zh-CN': '产品路线图',
@@ -402,6 +394,14 @@ export default defineConfig({
                 'en-US': 'SSG Pipeline',
               },
               icon: 'Blocks',
+            },
+            {
+              page: 'development/plugin-api',
+              title: {
+                'zh-CN': '插件扩展接口',
+                'en-US': 'Plugin API',
+              },
+              icon: 'PanelsTopLeft',
             },
             {
               page: 'development/contributing',

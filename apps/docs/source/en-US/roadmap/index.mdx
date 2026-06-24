@@ -13,6 +13,7 @@ This roadmap starts with the **stable capabilities that are already delivered**,
 | MDX documentation publishing | Released | MDX compilation, built-in components, code highlighting, static page output, and client-side navigation. |
 | OpenAPI documentation | Released | Full API references, tag filtering, single-endpoint embedding, request/response examples, and request-code panels. |
 | Multilingual sites | Released | Locale directories, default locale behavior, route prefixes, missing-translation fallback, and localized navigation labels. |
+| Site configuration and navigation | Released | TypeScript config, tabs, grouped sidebars, top navigation, footer, redirects, `routePrefix`, and the global announcement banner. |
 | Theming and branding | Released | Light/dark themes, system preference, theme tokens, layout width, radius settings, and the visual theme editor. |
 | AI-ready output | Released | Raw Markdown/OpenAPI artifacts, page copy actions, raw content links, and `llms.txt`. |
 | Extensible build pipeline | Released | Plugin hooks for route resolution, virtual modules, HTML transforms, build completion, and built-in index generation. |
@@ -50,6 +51,7 @@ This roadmap starts with the **stable capabilities that are already delivered**,
 - [x] Tabs, grouped sidebars, top navigation, footer links, and social links
 - [x] External links, redirects, icons, and localized titles
 - [x] `routePrefix` support for subpath deployments
+- [x] Global announcement banner with localized copy, links, and dismissible state
 - [x] Source repository configuration and “Edit this page” links
 - [x] Favicon, logo, and site metadata configuration
 
@@ -100,10 +102,10 @@ These capabilities will be explored after the core experience becomes more stabl
 
 - [ ] **Versioned documentation**: publish, switch, and archive multiple documentation versions in parallel.
 - [ ] **GitHub-based comments and feedback**: link documentation pages to GitHub Issues or Discussions so readers can leave comments, report problems, request missing content, and let maintainers follow up inside their existing GitHub workflow.
-- [ ] **Global announcements configuration**: define multiple site-wide announcements in project config for release notes, maintenance windows, migration notices, campaign messages, and other global updates, with localized copy, links, display priority, and dismissible state.
 - [ ] **Global content variables**: define reusable project-wide constants for MDX content, such as product names, version labels, support links, contact emails, API base URLs, and legal notices, so fixed content can be updated in one place instead of being edited across many pages.
 - [ ] **Custom MDX component registration**: provide a stable way to expose project-specific components to MDX.
 - [ ] **Content quality checks**: detect broken links, missing translations, duplicate headings, invalid OpenAPI references, and related issues.
+- [ ] **Runtime UI slots (designed, under evaluation)**: let plugins render runtime UI at fixed page positions (such as comments, feedback, and bottom CTAs) and even replace built-in components. The [design draft](/development/plugin-api) is complete, but the mechanism involves SSR/hydration consistency, multi-plugin conflicts, virtual modules, and type generation, so it is fairly complex; whether and when to adopt it still needs further evaluation.
 - [ ] **Expanded plugin API**: provide more stable extension points for search, translation, governance, and internal platform integrations.
 
 ---
