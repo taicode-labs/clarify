@@ -2,13 +2,14 @@ import type { ComponentType } from 'react'
 
 import type { OpenAPISpec } from '../openapi/lib/utils'
 
-export type ClarifyFooterComponentPath = string
+export type FooterComponentPath = string
 
 export type RouteComponent = ComponentType | (() => Promise<{ default: ComponentType }>)
 
 export type RouteSection = {
   id: string;
   title: string;
+  level?: number;
   badge?: string;
   tags?: string[];
 };
@@ -38,141 +39,147 @@ export type RouteItem = {
   sourceUrl?: string;
 };
 
-export type ClarifyLogoConfig = string | { light?: string; dark?: string };
+export type LogoConfig = string | { light?: string; dark?: string };
 
-export type ClarifyFaviconConfig = string | { light?: string; dark?: string };
+export type FaviconConfig = string | { light?: string; dark?: string };
 
-export type ClarifyLocalizedText = string | Record<string, string>;
+export type LocalizedText = string | Record<string, string>;
 
-export type ClarifyLocaleConfig = {
+export type LocaleConfig = {
   code: string;
   label: string;
   dir?: 'ltr' | 'rtl';
 };
 
-export type ClarifyI18nConfig = {
+export type I18nConfig = {
   defaultLocale: string;
   missing: 'fallback' | '404' | 'hide';
-  locales: ClarifyLocaleConfig[];
+  locales: LocaleConfig[];
 };
 
-export type ClarifyNavbarLink = {
-  label: ClarifyLocalizedText;
+export type NavbarLink = {
+  label: LocalizedText;
   href: string;
   external?: boolean;
 };
 
-export type ClarifyBannerConfig = {
-  content: ClarifyLocalizedText;
+export type BannerComponentPath = string;
+
+export type BannerConfigOptions = {
+  content: LocalizedText;
   dismissible?: boolean;
+  link?: NavbarLink;
 };
 
-export type ClarifyFooterLinksConfig = {
-  links?: ClarifyNavbarLink[];
+export type BannerConfig = BannerConfigOptions | BannerComponentPath;
+
+export type FooterLinksConfig = {
+  links?: NavbarLink[];
   socials?: Record<string, string>;
-  copyright?: ClarifyLocalizedText;
+  copyright?: LocalizedText;
 };
 
-export type ClarifyFooterConfig = ClarifyFooterLinksConfig | ClarifyFooterComponentPath;
+export type FooterConfig = FooterLinksConfig | FooterComponentPath;
 
-export type ClarifySourceConfig = {
+export type SourceConfig = {
   repository: string;
   branch?: string;
   directory?: string;
 };
 
-export type ClarifyThemePreset = 'default' | 'base';
+export type ThemePreset = 'default' | 'base';
 
-export type ClarifyThemeModeColorValue = {
+export type ThemeModeColorValue = {
   light?: string;
   dark?: string;
 };
 
-export type ClarifyThemeColorValue = string | ClarifyThemeModeColorValue;
+export type ThemeColorValue = string | ThemeModeColorValue;
 
-export type ClarifyThemeColorTokensConfig = {
-  primary: ClarifyThemeColorValue;
-  accent: ClarifyThemeColorValue;
-  background: ClarifyThemeColorValue;
-  foreground: ClarifyThemeColorValue;
-  surface: ClarifyThemeColorValue;
-  muted: ClarifyThemeColorValue;
-  border: ClarifyThemeColorValue;
-  codeBackground: ClarifyThemeColorValue;
+export type ThemeColorTokensConfig = {
+  primary: ThemeColorValue;
+  accent: ThemeColorValue;
+  background: ThemeColorValue;
+  foreground: ThemeColorValue;
+  surface: ThemeColorValue;
+  muted: ThemeColorValue;
+  border: ThemeColorValue;
+  codeBackground: ThemeColorValue;
 };
 
-export type ClarifyThemeRadiusTokensConfig = {
+export type ThemeRadiusTokensConfig = {
   sm: string;
   md: string;
   lg: string;
   xl: string;
 };
 
-export type ClarifyThemeTokensConfig = {
-  colors: ClarifyThemeColorTokensConfig;
-  radius: ClarifyThemeRadiusTokensConfig;
+export type ThemeTokensConfig = {
+  colors: ThemeColorTokensConfig;
+  radius: ThemeRadiusTokensConfig;
 };
 
-export type ClarifyThemeLayoutConfig = {
+export type ThemeLayoutConfig = {
   maxWidth: string;
 };
 
-export type ClarifyThemeConfig = {
-  preset: ClarifyThemePreset;
-  tokens: ClarifyThemeTokensConfig;
-  layout: ClarifyThemeLayoutConfig;
+export type ThemeConfig = {
+  preset: ThemePreset;
+  tokens: ThemeTokensConfig;
+  layout: ThemeLayoutConfig;
   editor: boolean;
 };
 
-export type ClarifyPagesItem =
+export type PagesItem =
   | string
   | {
       page: string;
-      title?: ClarifyLocalizedText;
+      title?: LocalizedText;
       icon?: string;
       redirect?: string;
     }
   | {
       openapi: string;
       icon?: string;
-      title?: ClarifyLocalizedText;
+      title?: LocalizedText;
       filter?: {
         tags?: string[];
       };
     };
 
-export type ClarifyPagesGroup = {
-  group: ClarifyLocalizedText;
+export type PagesGroup = {
+  group: LocalizedText;
   icon?: string;
-  pages: ClarifyPagesItem[];
+  pages: PagesItem[];
 };
 
-export type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree';
+export type PagesConfig = PagesGroup[] | 'FileTree';
 
-export type ClarifyTabItem = {
-  tab: ClarifyLocalizedText;
+export type TabItem = {
+  tab: LocalizedText;
   icon?: string;
-  pages?: ClarifyPagesConfig;
+  pages?: PagesConfig;
 };
 
-export type ClarifyTabsConfig = ClarifyTabItem[];
+export type TabsConfig = TabItem[];
 
-export type ClarifyConfig = {
+export type Config = {
   title: string;
-  logo?: ClarifyLogoConfig;
-  favicon?: ClarifyFaviconConfig;
-  theme: ClarifyThemeConfig;
+  logo?: LogoConfig;
+  homeUrl?: string;
+  favicon?: FaviconConfig;
+  theme: ThemeConfig;
   description: string;
   siteUrl?: string;
-  source?: ClarifySourceConfig;
+  source?: SourceConfig;
   rootDirectory: string;
   routePrefix: string;
   outputDirectory: string;
-  navbar?: { links?: ClarifyNavbarLink[] };
-  banner?: ClarifyBannerConfig;
-  footer?: ClarifyFooterConfig;
-  i18n?: ClarifyI18nConfig;
-  tabs?: ClarifyTabsConfig;
+  navbar?: { links?: NavbarLink[] };
+  banner?: BannerConfig;
+  footer?: FooterConfig;
+  i18n?: I18nConfig;
+  tabs?: TabsConfig;
 };
 
 export type NavigationTab = {
@@ -193,13 +200,15 @@ export type NavigationTree = NavigationNode[] | LocalizedNavigation | TabbedNavi
 
 export type RenderOptions = {
   /** 从 virtual:clarify-config 导入的 config */
-  config: ClarifyConfig;
+  config: Config;
   /** 从 virtual:clarify-routes 导入的路由数组 */
   routes: RouteItem[];
   /** 从 virtual:clarify-routes 导入的导航树；启用 i18n 时为按 locale 分组的导航树 */
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
+  /** Custom banner component imported from a configured banner path. */
+  bannerComponent?: ComponentType;
   /** Custom footer component imported from a configured footer path. */
   footerComponent?: ComponentType;
   /** Whether to render the live theme editor inside the app tree. */
@@ -214,13 +223,15 @@ export type ServerRouteItem = Omit<RouteItem, 'component'> & {
 
 export type ServerRenderOptions = {
   /** 从 virtual:clarify-config 导入的 config */
-  config: ClarifyConfig;
+  config: Config;
   /** 从 virtual:clarify-routes 导入的服务端路由数组 */
   routes: ServerRouteItem[];
   /** 从 virtual:clarify-routes 导入的导航树；启用 i18n 时为按 locale 分组的导航树 */
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
+  /** Custom banner component imported from a configured banner path. */
+  bannerComponent?: ComponentType;
   /** Custom footer component imported from a configured footer path. */
   footerComponent?: ComponentType;
   /** Whether to render the live theme editor inside the app tree. */

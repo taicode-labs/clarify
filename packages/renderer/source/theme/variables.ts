@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 
-import type { ClarifyThemeColorTokensConfig, ClarifyThemeColorValue, ClarifyThemeConfig, ClarifyThemePreset } from '../types'
+import type { ThemeColorTokensConfig, ThemeColorValue, ThemeConfig, ThemePreset } from '../types'
 
 import { themeCookieName } from './cookies'
 
@@ -11,19 +11,19 @@ export type ThemeVariableTarget = HTMLElement | string
 export const themeStorageKey = themeCookieName
 export { themeCookieName }
 
-export const clarifyThemePresets = {
+export const themePresets = {
   default: {
     preset: 'default',
     tokens: {
       colors: {
         primary: '#047857',
         accent: '#0D9488',
-        background: '#ffffff',
-        foreground: '#111827',
-        surface: '#ffffff',
-        muted: '#64748b',
-        border: 'rgb(15 23 42 / 0.12)',
-        codeBackground: '#f6fbf8',
+        background: { light: '#ffffff', dark: '#09090b' },
+        foreground: { light: '#111827', dark: '#ffffff' },
+        surface: { light: '#ffffff', dark: '#18181b' },
+        muted: { light: '#64748b', dark: '#a1a1aa' },
+        border: { light: 'rgb(15 23 42 / 0.12)', dark: 'rgb(255 255 255 / 0.1)' },
+        codeBackground: { light: '#f6fbf8', dark: '#18181b' },
       },
       radius: {
         sm: '6px',
@@ -43,12 +43,12 @@ export const clarifyThemePresets = {
       colors: {
         primary: '#18181b',
         accent: '#52525b',
-        background: '#ffffff',
-        foreground: '#18181b',
-        surface: '#ffffff',
-        muted: '#71717a',
-        border: 'rgb(24 24 27 / 0.12)',
-        codeBackground: '#f4f4f5',
+        background: { light: '#ffffff', dark: '#09090b' },
+        foreground: { light: '#18181b', dark: '#ffffff' },
+        surface: { light: '#ffffff', dark: '#18181b' },
+        muted: { light: '#71717a', dark: '#a1a1aa' },
+        border: { light: 'rgb(24 24 27 / 0.12)', dark: 'rgb(255 255 255 / 0.1)' },
+        codeBackground: { light: '#f4f4f5', dark: '#18181b' },
       },
       radius: {
         sm: '6px',
@@ -62,13 +62,13 @@ export const clarifyThemePresets = {
     },
     editor: false,
   },
-} satisfies Record<ClarifyThemePreset, ClarifyThemeConfig>
+} satisfies Record<ThemePreset, ThemeConfig>
 
-function cloneThemeColorValue(value: ClarifyThemeColorValue): ClarifyThemeColorValue {
+function cloneThemeColorValue(value: ThemeColorValue): ThemeColorValue {
   return typeof value === 'string' ? value : { ...value }
 }
 
-export function cloneTheme(theme: ClarifyThemeConfig): ClarifyThemeConfig {
+export function cloneTheme(theme: ThemeConfig): ThemeConfig {
   return {
     preset: theme.preset,
     tokens: {
@@ -89,17 +89,17 @@ export function cloneTheme(theme: ClarifyThemeConfig): ClarifyThemeConfig {
   }
 }
 
-function isModeColorValue(value: ClarifyThemeColorValue): value is Exclude<ClarifyThemeColorValue, string> {
+function isModeColorValue(value: ThemeColorValue): value is Exclude<ThemeColorValue, string> {
   return typeof value === 'object' && value !== null
 }
 
-export function resolveThemeColorValue(value: ClarifyThemeColorValue, resolvedTheme: 'light' | 'dark' = 'light'): string {
+export function resolveThemeColorValue(value: ThemeColorValue, resolvedTheme: 'light' | 'dark' = 'light'): string {
   if (!isModeColorValue(value)) return value
 
   return value[resolvedTheme] ?? value.light ?? value.dark ?? ''
 }
 
-export function resolveThemeColors(colors: ClarifyThemeColorTokensConfig, resolvedTheme: 'light' | 'dark' = 'light'): Record<keyof ClarifyThemeColorTokensConfig, string> {
+export function resolveThemeColors(colors: ThemeColorTokensConfig, resolvedTheme: 'light' | 'dark' = 'light'): Record<keyof ThemeColorTokensConfig, string> {
   return {
     primary: resolveThemeColorValue(colors.primary, resolvedTheme),
     accent: resolveThemeColorValue(colors.accent, resolvedTheme),
@@ -112,36 +112,9 @@ export function resolveThemeColors(colors: ClarifyThemeColorTokensConfig, resolv
   }
 }
 
-function matchesPresetTheme(theme: ClarifyThemeConfig): boolean {
-  const preset = clarifyThemePresets[theme.preset]
-
-  return JSON.stringify({ tokens: theme.tokens, layout: theme.layout }) === JSON.stringify({ tokens: preset.tokens, layout: preset.layout })
-}
-
-function effectiveTheme(theme: ClarifyThemeConfig, resolvedTheme?: 'light' | 'dark'): ClarifyThemeConfig {
-  if (resolvedTheme !== 'dark' || !matchesPresetTheme(theme)) return theme
-
-  return {
-    ...theme,
-    tokens: {
-      ...theme.tokens,
-      colors: {
-        ...theme.tokens.colors,
-        background: '#09090b',
-        foreground: '#ffffff',
-        surface: '#18181b',
-        muted: '#a1a1aa',
-        border: 'rgb(255 255 255 / 0.1)',
-        codeBackground: '#18181b',
-      },
-    },
-  }
-}
-
-export function themeToCssVariables(theme: ClarifyThemeConfig, resolvedTheme?: 'light' | 'dark'): ThemeCssVariables {
-  const resolved = effectiveTheme(theme, resolvedTheme)
-  const colors = resolveThemeColors(resolved.tokens.colors, resolvedTheme)
-  const { radius } = resolved.tokens
+export function themeToCssVariables(theme: ThemeConfig, resolvedTheme?: 'light' | 'dark'): ThemeCssVariables {
+  const colors = resolveThemeColors(theme.tokens.colors, resolvedTheme)
+  const { radius } = theme.tokens
 
   return {
     '--clarify-theme-tokens-colors-primary': colors.primary,
@@ -156,11 +129,11 @@ export function themeToCssVariables(theme: ClarifyThemeConfig, resolvedTheme?: '
     '--clarify-theme-tokens-radius-md': radius.md,
     '--clarify-theme-tokens-radius-lg': radius.lg,
     '--clarify-theme-tokens-radius-xl': radius.xl,
-    '--clarify-theme-layout-max-width': resolved.layout.maxWidth,
+    '--clarify-theme-layout-max-width': theme.layout.maxWidth,
   }
 }
 
-export function themeBootstrapScript(theme: ClarifyThemeConfig = clarifyThemePresets.default): string {
+export function themeBootstrapScript(theme: ThemeConfig = themePresets.default): string {
   const darkVariables = themeToCssVariables(theme, 'dark')
   const lightVariables = themeToCssVariables(theme, 'light')
 

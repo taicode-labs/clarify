@@ -14,6 +14,7 @@ import { remToPx } from '../utils/remToPx'
 export interface Section {
   id: string
   title: string
+  level?: number
   offsetRem?: number
   badge?: string
   tags?: string[]

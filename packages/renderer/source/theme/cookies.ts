@@ -4,8 +4,9 @@ type CookieOptions = { domain?: string }
 type WritableCookieOptions = CookieOptions & { maxAge: number }
 
 export const themeCookieName = 'clarify-theme'
+export const localeCookieName = 'clarify-locale'
 
-const themeCookieMaxAge = 60 * 60 * 24 * 365
+const preferenceCookieMaxAge = 60 * 60 * 24 * 365
 const cookiePath = '/'
 
 export function isThemePreference(value: string | null | undefined): value is ThemePreference {
@@ -24,18 +25,37 @@ export function getStoredThemePreference(): ThemePreference {
 }
 
 export function storeThemePreference(theme: ThemePreference): void {
+  storeSharedPreferenceCookie(themeCookieName, theme)
+}
+
+export function readLocaleCookie(): string | null {
+  if (typeof document === 'undefined') return null
+  return readCookieValue(localeCookieName)
+}
+
+export function getStoredLocalePreference(locales?: readonly string[]): string | null {
+  const locale = readLocaleCookie()
+  if (!locale) return null
+  return locales && !locales.includes(locale) ? null : locale
+}
+
+export function storeLocalePreference(locale: string): void {
+  storeSharedPreferenceCookie(localeCookieName, locale)
+}
+
+function storeSharedPreferenceCookie(name: string, value: string): void {
   if (typeof document === 'undefined') return
 
   const domains = resolveSharedCookieDomains()
-  const domain = resolveWritableSharedCookieDomain(domains)
+  const domain = resolveWritableSharedCookieDomain(domains, name)
 
-  deleteCookie(themeCookieName)
+  deleteCookie(name)
 
   for (const candidateDomain of domains) {
-    deleteCookie(themeCookieName, { domain: candidateDomain })
+    deleteCookie(name, { domain: candidateDomain })
   }
 
-  writeCookie(themeCookieName, theme, { domain: domain ?? undefined, maxAge: themeCookieMaxAge })
+  writeCookie(name, value, { domain: domain ?? undefined, maxAge: preferenceCookieMaxAge })
 }
 
 export function resolveSharedCookieDomains(hostname = typeof window !== 'undefined' ? window.location.hostname : ''): string[] {
@@ -58,9 +78,9 @@ export function resolveSharedCookieDomains(hostname = typeof window !== 'undefin
   return domains
 }
 
-function resolveWritableSharedCookieDomain(domains: string[]): string | null {
+function resolveWritableSharedCookieDomain(domains: string[], probePrefix = themeCookieName): string | null {
   for (const domain of domains) {
-    const probeName = `${themeCookieName}-probe-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const probeName = `${probePrefix}-probe-${Date.now()}-${Math.random().toString(36).slice(2)}`
     const probeValue = '1'
 
     writeCookie(probeName, probeValue, { domain, maxAge: 60 })

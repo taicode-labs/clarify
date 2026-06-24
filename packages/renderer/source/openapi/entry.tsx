@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 
+import { PageTitleActions } from '../app/PageActions'
 import { Prose } from '../components/Prose'
 import { useBuiltInText } from '../core/i18n'
 import { Markdown } from '../mdx/Markdown'
@@ -41,13 +42,16 @@ function OpenApiHeader(arg0: OpenApiHeaderProps): ReactNode {
 
   const t = useBuiltInText()
   return (
-    <header className="mb-16">
-      <p className="mb-3 text-xs/6 font-medium tracking-widest text-emerald-500 uppercase dark:text-emerald-400">
+    <header className="clarify-openapi-header mb-16 border-b border-(--clarify-theme-tokens-colors-border) pb-8">
+      <p className="mb-3 text-xs/6 font-medium tracking-widest text-(--clarify-ui-accent-text) uppercase">
         {t('openapi.openApiReference')}
       </p>
-      <h1>{spec.info?.title ?? t('openapi.apiDocumentation')}</h1>
-      {spec.info?.description ? <Markdown className="lead *:first:mt-0 *:last:mb-0">{spec.info.description}</Markdown> : null}
-      {spec.info?.version ? <p className="text-sm text-zinc-500 dark:text-zinc-400">{t('openapi.version', { version: spec.info.version })}</p> : null}
+      <div className="clarify-page-title-row flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <h1 className="clarify-page-title min-w-0 flex-1">{spec.info?.title ?? t('openapi.apiDocumentation')}</h1>
+        <PageTitleActions />
+      </div>
+      {spec.info?.description ? <Markdown className="lead mt-4 *:first:mt-0 *:last:mb-0">{spec.info.description}</Markdown> : null}
+      {spec.info?.version ? <p className="mt-4 text-sm text-(--clarify-ui-text-faint)">{t('openapi.version', { version: spec.info.version })}</p> : null}
     </header>
   )
 }

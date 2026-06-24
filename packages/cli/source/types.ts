@@ -44,10 +44,15 @@ export type ClarifyNavbarLink = {
   external?: boolean
 }
 
-export type ClarifyBannerConfig = {
+export type ClarifyBannerComponentPath = string
+
+export type ClarifyBannerConfigOptions = {
   content: ClarifyLocalizedText
   dismissible?: boolean
+  link?: ClarifyNavbarLink
 }
+
+export type ClarifyBannerConfig = ClarifyBannerConfigOptions | ClarifyBannerComponentPath
 
 export type ClarifyFooterComponentPath = string
 
@@ -203,6 +208,9 @@ export type ClarifyProjectConfig = {
   /** Path to site logo image (relative to rootDirectory or absolute). Supports light/dark mode. */
   logo?: ClarifyLogoConfig
 
+  /** URL used when clicking the top navigation logo. Defaults to '/'. */
+  homeUrl?: string
+
   /** Favicon path or light/dark variants. */
   favicon?: ClarifyFaviconConfig
 
@@ -237,6 +245,7 @@ export type ClarifyProjectConfig = {
 export type ResolvedProjectConfig = {
   title: string
   logo?: ClarifyLogoConfig
+  homeUrl?: string
   description: string
   siteUrl?: string
   source?: ClarifySourceConfig

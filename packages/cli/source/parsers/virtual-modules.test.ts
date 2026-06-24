@@ -96,11 +96,15 @@ describe('generateRoutesModule', () => {
 
 describe('createRuntimeModule', () => {
   it('provides empty runtime extension data by default', () => {
-    expect(createRuntimeModule()).toBe('\nexport const openApis = {};\nexport const footerComponent = undefined;')
+    expect(createRuntimeModule()).toBe('export const openApis = {};\nexport const bannerComponent = undefined;\nexport const footerComponent = undefined;')
+  })
+
+  it('imports a configured banner component path', () => {
+    expect(createRuntimeModule({ bannerComponentSource: 'path', imports: { bannerComponent: './source/Banner.tsx' } })).toBe('import BannerComponent from "./source/Banner.tsx";\nexport const openApis = {};\nexport const bannerComponent = BannerComponent;\nexport const footerComponent = undefined;')
   })
 
   it('imports a configured footer component path', () => {
-    expect(createRuntimeModule({ footerComponentSource: 'path', imports: { footerComponent: './source/Footer.tsx' } })).toBe('import FooterComponent from "./source/Footer.tsx";\nexport const openApis = {};\nexport const footerComponent = FooterComponent;')
+    expect(createRuntimeModule({ footerComponentSource: 'path', imports: { footerComponent: './source/Footer.tsx' } })).toBe('import FooterComponent from "./source/Footer.tsx";\nexport const openApis = {};\nexport const bannerComponent = undefined;\nexport const footerComponent = FooterComponent;')
   })
 })
 
@@ -108,8 +112,8 @@ describe('createClientEntryModule', () => {
   it('passes the theme editor flag to the renderer', () => {
     const code = createClientEntryModule({ themeEditor: true })
 
-    expect(code).toContain("import { openApis, footerComponent } from 'virtual:clarify-runtime';")
-    expect(code).toContain('render({ config, routes, navigation, openApis, footerComponent, themeEditor: true });')
+    expect(code).toContain("import { openApis, bannerComponent, footerComponent } from 'virtual:clarify-runtime';")
+    expect(code).toContain('render({ config, routes, navigation, openApis, bannerComponent, footerComponent, themeEditor: true });')
     expect(code).not.toContain('ThemeEditor')
     expect(code).not.toContain('react-dom/client')
   })
@@ -117,7 +121,7 @@ describe('createClientEntryModule', () => {
   it('disables the theme editor by default', () => {
     const code = createClientEntryModule()
 
-    expect(code).toContain('render({ config, routes, navigation, openApis, footerComponent, themeEditor: false });')
+    expect(code).toContain('render({ config, routes, navigation, openApis, bannerComponent, footerComponent, themeEditor: false });')
     expect(code).not.toContain('ThemeEditor')
     expect(code).not.toContain('react-dom/client')
   })

@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { clarifyProjectConfigSchema } from './config-schema.js'
 import { resolveProjectConfig } from './config.js'
 import { resolveBuildOptions } from './options.js'
-import { clarifyThemePresets } from './theme.js'
+import { themePresets } from './theme.js'
 
 describe('clarifyProjectConfigSchema', () => {
   it('validates project config', () => {
@@ -64,6 +64,7 @@ describe('resolveProjectConfig', () => {
       siteUrl: undefined,
       source: undefined,
       logo: undefined,
+      homeUrl: undefined,
       favicon: undefined,
       routePrefix: '/',
       theme: {
@@ -72,12 +73,12 @@ describe('resolveProjectConfig', () => {
           colors: {
             primary: '#047857',
             accent: '#0D9488',
-            background: '#ffffff',
-            foreground: '#111827',
-            surface: '#ffffff',
-            muted: '#64748b',
-            border: 'rgb(15 23 42 / 0.12)',
-            codeBackground: '#f6fbf8',
+            background: { light: '#ffffff', dark: '#09090b' },
+            foreground: { light: '#111827', dark: '#ffffff' },
+            surface: { light: '#ffffff', dark: '#18181b' },
+            muted: { light: '#64748b', dark: '#a1a1aa' },
+            border: { light: 'rgb(15 23 42 / 0.12)', dark: 'rgb(255 255 255 / 0.1)' },
+            codeBackground: { light: '#f6fbf8', dark: '#18181b' },
           },
           radius: {
             sm: '6px',
@@ -106,6 +107,7 @@ describe('resolveProjectConfig', () => {
       siteUrl: 'https://docs.example.com',
       source: { repository: 'https://github.com/acme/docs' },
       theme: { tokens: { colors: { primary: '#333' } }, editor: true },
+      homeUrl: 'https://example.com',
       favicon: '/favicon.svg',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
       banner: { content: 'v2 is out', dismissible: true },
@@ -129,6 +131,7 @@ describe('resolveProjectConfig', () => {
     expect(result.theme.tokens.colors.primary).toBe('#333')
     expect(result.theme.layout).toEqual({ maxWidth: '82rem' })
     expect(result.theme.editor).toBe(true)
+    expect(result.homeUrl).toBe('https://example.com')
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
@@ -197,7 +200,7 @@ describe('resolveProjectConfig', () => {
     const requiredRadiusTokens = ['sm', 'md', 'lg', 'xl'] as const
     const requiredLayoutValues = ['maxWidth'] as const
 
-    for (const theme of Object.values(clarifyThemePresets)) {
+    for (const theme of Object.values(themePresets)) {
       for (const token of requiredColorTokens) {
         expect(theme.tokens.colors[token]).toBeTruthy()
       }

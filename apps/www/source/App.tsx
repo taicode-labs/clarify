@@ -3,6 +3,7 @@ import { type ReactElement, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { navLinks, site } from './content'
+import { cookieMaxAge, localeCookieName, readCookieValue, storeSharedCookie, themeCookieName } from './cookies'
 import { type AppLocale, isAppLocale, localeLabels, locales } from './i18n'
 import { AboutPage, HomePage, NotFoundPage, PricingPage, PrivacyPolicyPage } from './pages'
 import { resolveAppRoute, type AppRoute } from './ssg-routes'
@@ -26,12 +27,6 @@ import {
 
 type ThemePreference = 'light' | 'dark' | 'system'
 type ResolvedTheme = 'light' | 'dark'
-type CookieOptions = { domain?: string }
-type WritableCookieOptions = CookieOptions & { maxAge: number }
-
-const themeCookieName = 'clarify-theme'
-const themeCookieMaxAge = 60 * 60 * 24 * 365
-const cookiePath = '/'
 
 type AppProps = { path?: string }
 
@@ -52,7 +47,7 @@ function AppEffects() {
   const { i18n } = useTranslation()
 
   useEffect(() => {
-    const storedLocale = localStorage.getItem('clarify-locale')
+    const storedLocale = readCookieValue(localeCookieName)
     const browserLocale = navigator.language === 'zh-CN' || navigator.language.startsWith('zh') ? 'zh-CN' : 'en'
     const locale = storedLocale && isAppLocale(storedLocale) ? storedLocale : browserLocale
 
@@ -173,7 +168,7 @@ function LanguageToggle(props: LanguageToggleProps) {
       type="button"
       aria-label={t('common.language.switchTo', { language: localeLabels[nextLocale] })}
       onClick={() => {
-        localStorage.setItem('clarify-locale', nextLocale)
+        storeSharedCookie(localeCookieName, nextLocale)
         void i18n.changeLanguage(nextLocale)
       }}
       className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sm/7 font-medium text-(--clarify-ui-text-strong) transition hover:bg-(--clarify-ui-hover-background)"
@@ -200,18 +195,7 @@ function getStoredTheme(): ThemePreference {
 }
 
 function storeTheme(theme: ThemePreference) {
-  if (typeof document === 'undefined') return
-
-  const domains = resolveSharedCookieDomains()
-  const domain = resolveWritableSharedCookieDomain(domains)
-
-  deleteCookie(themeCookieName)
-
-  for (const candidateDomain of domains) {
-    deleteCookie(themeCookieName, { domain: candidateDomain })
-  }
-
-  writeCookie(themeCookieName, theme, { domain: domain ?? undefined, maxAge: themeCookieMaxAge })
+  storeSharedCookie(themeCookieName, theme, cookieMaxAge)
 }
 
 function applyTheme(resolvedTheme: ResolvedTheme) {
@@ -230,83 +214,6 @@ function readThemeCookie(): ThemePreference | null {
 
 function isThemePreference(value: string | null | undefined): value is ThemePreference {
   return value === 'light' || value === 'dark' || value === 'system'
-}
-
-function resolveSharedCookieDomains(): string[] {
-  const normalizedHostname = window.location.hostname.toLowerCase().replace(/\.$/, '')
-
-  if (!normalizedHostname || normalizedHostname === 'localhost' || normalizedHostname.endsWith('.localhost') || isIpAddress(normalizedHostname)) {
-    return []
-  }
-
-  const parts = normalizedHostname.split('.')
-
-  if (parts.length < 2) return []
-
-  const domains: string[] = []
-
-  for (let index = parts.length - 2; index >= 0; index -= 1) {
-    domains.push(parts.slice(index).join('.'))
-  }
-
-  return domains
-}
-
-function resolveWritableSharedCookieDomain(domains: string[]): string | null {
-  for (const domain of domains) {
-    const probeName = `${themeCookieName}-probe-${Date.now()}-${Math.random().toString(36).slice(2)}`
-    const probeValue = '1'
-
-    writeCookie(probeName, probeValue, { domain, maxAge: 60 })
-
-    const isWritable = readCookieValue(probeName) === probeValue
-    deleteCookie(probeName, { domain })
-
-    if (isWritable) return domain
-  }
-
-  return null
-}
-
-function readCookieValue(cookieName: string): string | null {
-  const cookies = document.cookie ? document.cookie.split('; ') : []
-
-  for (const cookie of cookies) {
-    const separatorIndex = cookie.indexOf('=')
-    const name = separatorIndex === -1 ? cookie : cookie.slice(0, separatorIndex)
-
-    if (decodeURIComponent(name) !== cookieName) continue
-
-    return separatorIndex === -1 ? '' : decodeURIComponent(cookie.slice(separatorIndex + 1))
-  }
-
-  return null
-}
-
-function deleteCookie(name: string, options: CookieOptions = {}) {
-  writeCookie(name, '', { domain: options.domain, maxAge: 0 })
-}
-
-function writeCookie(name: string, value: string, options: WritableCookieOptions) {
-  const attributes = [
-    `${encodeURIComponent(name)}=${encodeURIComponent(value)}`,
-    `Path=${cookiePath}`,
-    `Max-Age=${options.maxAge}`,
-    'SameSite=Lax',
-  ]
-
-  if (options.domain) attributes.push(`Domain=.${options.domain}`)
-  if (window.location.protocol === 'https:') attributes.push('Secure')
-
-  try {
-    document.cookie = attributes.join('; ')
-  } catch {
-    // Ignore cookie write failures from restricted embeds.
-  }
-}
-
-function isIpAddress(hostname: string): boolean {
-  return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) || hostname.includes(':')
 }
 
 function toAppLocale(locale: string): AppLocale {

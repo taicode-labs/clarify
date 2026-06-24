@@ -47,7 +47,7 @@ export function extractMdxSections(content: string): ContentSection[] {
 }
 
 function navigationSections(sections: ContentSection[]) {
-  return sections.map(s => ({ id: s.id, title: s.title, badge: s.badge, tags: s.tags }))
+  return sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags }))
 }
 
 export function normalizePath(path: string): string {

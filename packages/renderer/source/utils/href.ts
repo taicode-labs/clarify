@@ -1,15 +1,15 @@
-import type { ClarifyConfig } from '../types'
+import type { Config } from '../types'
 
 export function isExternalHref(href: string): boolean {
   return /^[a-z][a-z\d+.-]*:/i.test(href) || href.startsWith('//')
 }
 
-export function hasLocalePrefix(href: string, config: ClarifyConfig): boolean {
+export function hasLocalePrefix(href: string, config: Config): boolean {
   const firstSegment = href.replace(/^\/+/, '').split('/')[0]
   return Boolean(firstSegment && config.i18n?.locales.some((locale) => locale.code === firstSegment))
 }
 
-export function localizeHref(href: string, config: ClarifyConfig, locale?: string): string {
+export function localizeHref(href: string, config: Config, locale?: string): string {
   if (!locale || !config.i18n || isExternalHref(href) || href.startsWith('#')) return href
   if (locale === config.i18n.defaultLocale || hasLocalePrefix(href, config)) return href
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
 
-import type { ClarifyThemeConfig } from '../types'
+import type { ThemeConfig } from '../types'
 
 import { ThemeEditor } from './ThemeEditor'
 import { useTheme } from './ThemeProvider'
@@ -9,7 +9,7 @@ import { applyThemeCssVariables, resolveThemeVariableTargets, themeToCssVariable
 
 type ThemeRootProps = {
   children: ReactNode
-  theme: ClarifyThemeConfig
+  theme: ThemeConfig
   themeEditor?: boolean
 }
 

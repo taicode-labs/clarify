@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { Info } from 'lucide-react'
 import { createElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 
+import { PageTitleActions } from '../app/PageActions'
 import { Button, Callout, Card, CardGroup, Heading, LocalizedLink, Prose, WebFrame } from '../components'
 import { Code, CodeGroup, Pre } from '../components/Code'
 
@@ -10,7 +11,7 @@ type WrapperProps = { children: ReactNode }
 export function wrapper(arg0: WrapperProps) {  const { children } = arg0
 
   return (
-    <article className="clarify-mdx-page flex h-full flex-col pt-16 pb-10">
+    <article className="clarify-mdx-page flex h-full flex-col pt-14 pb-10">
       <Prose className="flex-auto">{children}</Prose>
     </article>
   )
@@ -19,6 +20,16 @@ export function wrapper(arg0: WrapperProps) {  const { children } = arg0
 export function a(arg0: ComponentPropsWithoutRef<'a'>) {  const { href = '', ...props } = arg0
 
   return <LocalizedLink href={href} {...props} />
+}
+
+export function h1(arg0: ComponentPropsWithoutRef<'h1'>) {  const { children, className, ...props } = arg0
+
+  return (
+    <div className="clarify-page-title-row flex flex-col gap-4  pb-4 sm:flex-row sm:items-start sm:justify-between">
+      <h1 className={clsx('clarify-page-title min-w-0 flex-1', className)} {...props}>{children}</h1>
+      <PageTitleActions />
+    </div>
+  )
 }
 
 export const code = Code

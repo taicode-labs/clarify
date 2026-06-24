@@ -1,4 +1,4 @@
-import type { ClarifyThemeConfig, ClarifyThemeRadiusTokensConfig } from '../types'
+import type { ThemeConfig, ThemeRadiusTokensConfig } from '../types'
 
 type RandomThemePalette = {
   primary: string;
@@ -77,7 +77,7 @@ const randomRadiusSets = [
   { sm: '8px', md: '12px', lg: '18px', xl: '24px' },
   { sm: '10px', md: '14px', lg: '20px', xl: '28px' },
   { sm: '12px', md: '16px', lg: '24px', xl: '32px' },
-] as const satisfies ReadonlyArray<ClarifyThemeRadiusTokensConfig>
+] as const satisfies ReadonlyArray<ThemeRadiusTokensConfig>
 
 const randomLayoutWidths = ['72rem', '76rem', '78rem', '80rem', '82rem', '86rem', '90rem', '96rem', '104rem', '112rem', '120rem', '128rem', '144rem'] as const
 
@@ -93,7 +93,7 @@ function modeColor(light: string, dark: string): { light: string; dark: string }
   return { light, dark }
 }
 
-export function createRandomTheme(): ClarifyThemeConfig {
+export function createRandomTheme(): ThemeConfig {
   const palette = randomItem(randomThemePalettes)
   const radius = randomItem(randomRadiusSets)
   const maxWidth = randomItem(randomLayoutWidths)

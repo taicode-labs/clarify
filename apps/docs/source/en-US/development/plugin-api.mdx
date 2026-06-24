@@ -1,0 +1,721 @@
+# Plugin API and UI Slots Design
+
+This document records the overall extension direction for Clarify plugins and defines the minimal first version of runtime UI slots. The first use case is GitHub-based comments, but the mechanism should not be specific to comments.
+
+The goal is to let plugins extend Clarify's build pipeline, content processing, runtime UI, and artifact generation while preserving static deployment, SSR, and client hydration consistency.
+
+---
+
+## Background
+
+Clarify plugins currently focus on build-time extension points, such as route adjustment, virtual module injection, HTML transforms, and post-build artifact generation.
+
+Some features need to extend runtime page UI, for example:
+
+- GitHub comments and feedback entry points
+- Page footer CTAs
+- Related content
+- Content copyright notices
+- AI summaries or copy actions
+- Internal platform integration metadata
+
+These features should not rely on `html:transform` plus DOM mutation, because that approach depends on internal class names, does not participate in SSR, and can easily cause hydration mismatches.
+
+Clarify needs a smaller and more stable UI extension point.
+
+---
+
+## Design Principles
+
+1. **Core provides slots only, not business logic**  
+   GitHub, comments, analytics, and similar features should be implemented by plugins.
+
+2. **Do not require route data changes**  
+   Slot components can read the current route through the built-in slot hook. A comments plugin can derive its binding key from `route.path` or `route.basePath`.
+
+3. **Context is read through hooks, not component parameters**  
+   RuntimeSlot only mounts components. Context such as route, locale, config, and static slot config is read through a hook exported by a built-in virtual module.
+
+4. **Build-time data injection still uses hooks**  
+   If a plugin needs to modify routes, disable pages, read frontmatter, or precompute data, it should keep using hooks such as `routes:resolved`.
+
+5. **Static deployment compatible**  
+   Plugin UI enters both the client and SSR bundles through virtual modules. No server runtime is required.
+
+6. **SSR and hydration consistent**  
+   Plugin components must render as part of the React tree instead of mutating the DOM on the client.
+
+---
+
+## Non-goals
+
+The first version does not solve the following:
+
+- No generic route extension field such as `route.extensions` or `route.data`
+- No unrestricted layout extension system
+- No arbitrary dynamic page regions
+- No plugin-level i18n registration system
+- No OAuth or server proxy mechanism
+- No plugin takeover of the core page layout
+
+These can be added later when real requirements appear.
+
+---
+
+## Current Plugin API Layers
+
+The existing Clarify plugin API already covers the major build pipeline stages:
+
+```ts
+export type ClarifyPlugin = {
+  name: string
+  hooks: Partial<ClarifyHooks>
+}
+```
+
+Existing hooks can be grouped by responsibility:
+
+| Layer | Hooks | Suitable capabilities |
+|------|-------|-----------------------|
+| Content | `pages:resolved`, `page:transform` | frontmatter normalization, content rewriting, automatic page metadata |
+| Routing | `routes:discover`, `routes:discovered`, `routes:resolved` | new content sources, page filtering, navigation updates, route enrichment |
+| Module | `modules:before` | virtual module injection, runtime config generation, plugin runtime entries |
+| HTML | `html:transform` | meta, script, link, preload, and HTML shell resources |
+| Development | `dev:configureServer` | local development services, debug APIs, content artifact previews |
+| Artifact | `build:done` | sitemap, search indexes, SEO files, extra static resources |
+
+This means plugin extensibility should not start from a large new interface. A better direction is:
+
+1. Keep hooks as the main build-time extension backbone.
+2. Add a small number of declarative capabilities for cases that hooks cannot express cleanly.
+3. Compile each declarative capability into the existing pipeline, such as virtual modules, HTML transforms, or artifact generation.
+
+The first version of `slots` is one such declarative capability. It is not a new business system, but a structured wrapper around `modules:before` plus stable renderer mount points.
+
+---
+
+## Pluginizable Capability Map
+
+From the current system, future plugin capabilities can be grouped as follows.
+
+| Capability | Current state | Recommended extension path | Example plugins |
+|------------|---------------|----------------------------|-----------------|
+| Content sources | Route discovery hooks exist | Continue enhancing hooks | OpenAPI, remote Markdown, CMS sync |
+| Page transforms | `page:transform` exists | Keep hook-based | auto summaries, frontmatter defaults, MDX rewriting |
+| Routes and navigation | `routes:*` hooks exist | Keep hooks, improve types when needed | auto grouping, draft hiding, versioned docs |
+| Runtime UI | No stable entry yet | Add `slots` | GitHub comments, feedback, CTAs, related content |
+| Runtime data | Possible through virtual modules | Keep using `modules:before`, later wrap as `runtimeModules` if needed | comments key maps, related content indexes |
+| HTML shell | `html:transform` exists | Keep hook-based | analytics scripts, site verification, preconnect |
+| Static artifacts | `build:done` exists | Keep hook-based | search indexes, llms.txt, RSS, manifests |
+| Development services | `dev:configureServer` exists | Keep hook-based | local preview APIs, debug panel data |
+| Theme | CSS variables and config exist | Do not add plugin theme registration yet | brand style packages through CSS/config first |
+| i18n | Site locale exists | Do not add plugin message registration yet | plugins manage messages internally from `locale` |
+| MDX components | Controlled by renderer provider | Consider future `mdxComponents` declaration | custom callouts, code block enhancements |
+| Search | Implemented as a built-in plugin | Can be made configurable or externalized later | Pagefind, remote search, Algolia |
+
+Rules for deciding whether a capability should become plugin API:
+
+- If it changes content, routes, navigation, or build artifacts, prefer hooks.
+- If it only renders UI in a stable page position, prefer `slots`.
+- If it passes build-time data to runtime, prefer virtual modules.
+- If it affects the final HTML shell, use `html:transform`.
+- If it needs a new public API, first prove that the existing hook/virtual-module combination is too costly.
+
+---
+
+## First Version Minimal API
+
+### Slot Names
+
+`ClarifyUISlotName` should not be named around one plugin scenario. It should describe stable, long-lived positions in Clarify's page structure.
+
+The naming rule is a dot-separated path. It does not enforce a fixed number of segments. It is composed of three semantic parts:
+
+```ts
+type ClarifyUISlotName = `${Scope}.${Path}.${Position}`
+```
+
+Here `Path` can be one level or several levels, depending on the real depth of the UI structure.
+
+| Part | Description | Examples |
+|------|-------------|----------|
+| `Scope` | Structural level that owns the slot (first segment) | `layout`, `page`, `content` |
+| `Path` | One or more stable UI regions reflecting real nesting | `footer`, `sidebar.navigation`, `openapi.operation` |
+| `Position` | Last segment: relative insertion point or semantic position | `before`, `after`, `start`, `end`, `actions`, `replace` |
+
+Why not enforce three segments: page structure has uneven nesting depth. Forcing everything into three segments distorts names, for example the bottom of sidebar navigation or the actions area of an OpenAPI operation title need a deeper path. Names should follow structure, not constrain it.
+
+Examples:
+
+```ts
+'page.footer.before'             // 3 segments: before the page footer
+'layout.sidebar.navigation.after' // 4 segments: after the sidebar navigation
+'page.openapi.operation.actions' // 4 segments: OpenAPI operation title actions
+'content.mdx.heading.after'      // 4 segments: after an MDX heading
+```
+
+Naming constraints:
+
+1. The first segment must be a known `Scope`.
+2. The last segment must be a known `Position`.
+3. Middle segments describe stable UI regions, written from outer to inner nesting.
+4. Segment names are lowercase, multi-word uses hyphens, for example `code-group`.
+
+Recommended initial namespace:
+
+```ts
+export type ClarifyUISlotName =
+  | 'layout.header.before'
+  | 'layout.header.after'
+  | 'layout.sidebar.before'
+  | 'layout.sidebar.after'
+  | 'layout.sidebar.navigation.after'
+  | 'page.main.before'
+  | 'page.main.after'
+  | 'page.title.before'
+  | 'page.title.after'
+  | 'page.title.actions'
+  | 'page.body.before'
+  | 'page.body.after'
+  | 'page.navigation.before'
+  | 'page.navigation.after'
+  | 'page.footer.before'
+  | 'page.footer.after'
+```
+
+Scope meanings:
+
+| Scope | Purpose |
+|-------|---------|
+| `layout` | Site shell positions such as header and sidebar. Suitable for global announcements, utility entries, and sidebar extensions. |
+| `page` | Current route page frame positions such as main, title, navigation, and footer. Suitable for comments, feedback, and page CTAs. |
+| `content` | Positions owned by a specific content renderer, such as MDX body or OpenAPI operation. These should only be exposed when that renderer explicitly supports them. |
+
+The first implementation should start with renderer-owned stable positions:
+
+```ts
+export type ClarifyUIExtensionSlotName =
+  | 'page.title.actions'
+  | 'page.navigation.before'
+  | 'page.navigation.after'
+  | 'page.footer.before'
+  | 'page.footer.after'
+```
+
+Comments, page feedback, and bottom CTAs should use:
+
+```ts
+'page.footer.before'
+```
+
+It is rendered after `PageNavigation` and before `PageFooter`. Its name follows the unified dot-path rule and leaves room for future deeper names such as `page.footer.after`, `layout.header.after`, and `layout.sidebar.navigation.after`.
+
+---
+
+### Slot Registration
+
+Plugins declare runtime UI through `slots`:
+
+```ts
+export type ClarifyUISlotRegistration = {
+  name: ClarifyUISlotName
+  component: string
+  config?: Record<string, unknown>
+}
+```
+
+Fields:
+
+| Field | Description |
+|------|-------------|
+| `name` | Slot name |
+| `component` | React component module path. It can be a normal module or a virtual module injected by the plugin |
+| `config` | Static configuration serialized at build time, stored in slot context, and read through `useClarifySlot()` |
+
+The first version does not include `order`, `clientOnly`, or `enabled`. If multiple components target the same slot, they render in plugin array order.
+
+---
+
+### Plugin Interface
+
+```ts
+export type ClarifyPlugin = {
+  name: string
+  hooks: Partial<ClarifyHooks>
+  slots?: ClarifyUISlotRegistration[]
+}
+```
+
+`slots` sits next to `hooks` and describes runtime UI extension declarations.
+
+---
+
+### Extension Slots vs Replacement Slots
+
+Slots fall into two categories with different semantics, conflict rules, and defaults, so slot names should clearly distinguish them:
+
+| Type | Name suffix | Semantics | Multi-plugin conflict | Default behavior |
+|------|-------------|-----------|-----------------------|------------------|
+| Extension | `before` / `after` / `actions` | Append UI at a fixed position without affecting the core component | Multiple allowed, rendered in order | Renders nothing extra when no plugin targets it |
+| Replacement | `replace` | Replace a core default component with a plugin component | Only one allowed, multiple is a conflict | Renders Clarify's built-in default component when no plugin targets it |
+
+Replacement slots let users replace Clarify's built-in components, for example a custom footer, custom previous/next navigation, or a custom content action bar.
+
+Recommended replacement slots:
+
+```ts
+export type ClarifyUIReplaceableSlotName =
+  | 'page.banner.replace'
+  | 'page.footer.replace'
+  | 'page.navigation.replace'
+  | 'layout.header.replace'
+  | 'layout.sidebar.replace'
+```
+
+The full slot name type is the union of both:
+
+```ts
+export type ClarifyUISlotName =
+  | ClarifyUIExtensionSlotName
+  | ClarifyUIReplaceableSlotName
+```
+
+Key rules for replacement slots:
+
+1. **Exclusive**: a `*.replace` slot can be owned by only one plugin. If multiple plugins declare the same replacement slot, it should fail at build time instead of silently overriding.
+2. **Default fallback**: every replacement slot maps to a Clarify built-in default component. When no plugin owns it, the default component renders and behavior is identical to today.
+3. **Receives the default component reference**: a replacement component can wrap or fully replace the default implementation. The default component is exposed through slot context:
+
+```tsx
+import { useClarifySlot } from 'virtual:clarify-slot'
+
+export default function CustomFooter() {
+  const { DefaultComponent, route } = useClarifySlot()
+
+  return (
+    <footer>
+      <MyExtraLinks route={route} />
+      <DefaultComponent />
+    </footer>
+  )
+}
+```
+
+4. **Separated from extension slots**: `RuntimeSlot` handles extension slots (possibly rendering multiple components); replacement slots are handled by a separate `ReplaceableSlot` (renders at most one component, otherwise falls back to the default).
+
+This keeps replacement capability from polluting the multi-component rendering model of extension slots, and avoids making `RuntimeSlot` carry both append and replace semantics.
+
+---
+
+### Relationship to the existing banner/footer component loading
+
+This is a design decision that needs to be explicit. Clarify already supports configuring `banner` and `footer` as a component path; the CLI compiles it into `virtual:clarify-runtime`, and `AppShell` uses it to replace the built-in `PageBanner` / `PageFooter`.
+
+That mechanism **overlaps** with replacement slots (`page.footer.replace`, etc.) — both replace a built-in region component with a custom one. Keeping both mechanisms causes several problems:
+
+- Two different configuration entry points (a component path in `clarify.ts` vs a plugin `slots` declaration) do the same thing, forcing users to learn two mental models.
+- When both target the same region, precedence and conflict rules become ambiguous.
+- Double the maintenance: component loading, SSR injection, and type generation all have to be implemented twice.
+
+Conclusion: **once replacement slots land, they should be the single region-replacement mechanism, and the existing banner/footer component-path loading should converge into them rather than coexist.**
+
+Recommended convergence:
+
+1. **Keep the pure-config form**: using `banner` / `footer` as a config object (links, copy, social entries, etc.) stays unchanged. That is not component replacement and does not overlap with slots.
+2. **Move the component form onto replacement slots**: the current "`banner`/`footer` accepts a component path" usage is equivalent to a built-in official plugin that owns `page.banner.replace` / `page.footer.replace`. Component loading, the `DefaultComponent` fallback, and SSR injection all reuse the same slot pathway.
+3. **Transitional compatibility**: internally, the "component path config" can be implemented as sugar that auto-registers the corresponding replacement slot, staying backward compatible for users while keeping only one underlying implementation path.
+
+This preserves the existing capability while avoiding long-term maintenance of two equivalent mechanisms after slots are introduced.
+
+---
+
+### Built-in Slot Context Hook
+
+Runtime slot components do not receive context props. Components read the current slot context from a Clarify built-in virtual module:
+
+```ts
+import { useClarifySlot } from 'virtual:clarify-slot'
+
+export type ClarifySlotContext = {
+  name: ClarifyUISlotName
+  plugin: string
+  route?: RouteItem
+  locale?: string
+  config?: Record<string, unknown>
+  DefaultComponent?: ComponentType
+}
+```
+
+Fields:
+
+| Field | Description |
+|------|-------------|
+| `name` | Current slot name |
+| `plugin` | Plugin name that owns the current slot definition |
+| `route` | Current route, including existing fields such as `path`, `basePath`, `locale`, and `title` |
+| `locale` | Current locale, for example `zh-CN` or `en-US` |
+| `config` | Static configuration from the slot registration |
+| `DefaultComponent` | Provided only for replacement slots; points to Clarify's built-in default component so a plugin can wrap or fully replace it |
+
+This keeps slot components as ordinary React components:
+
+```tsx
+export default function MySlot() {
+  const slot = useClarifySlot()
+  return null
+}
+```
+
+`RuntimeSlot` provides an isolated context for each component. Components do not receive `route`, `locale`, `config`, or other Clarify context through props.
+
+---
+
+### Project-level Virtual Module Type Declarations
+
+Because modules such as `virtual:clarify-slot` and `virtual:clarify-runtime-slots` only exist during the Clarify/Vite build, the TypeScript language service in the user project cannot recognize them by default.
+
+To avoid asking plugin authors or site authors to write `declare module` manually, Clarify dev should generate a project-level type declaration file from the current project and enabled plugins, for example:
+
+```txt
+clarify-env.d.ts
+```
+
+The file can contain:
+
+```ts
+declare module 'virtual:clarify-slot' {
+  import type { RouteItem } from '@clarify-labs/renderer'
+
+  export type ClarifyUISlotName =
+    | 'page.title.actions'
+    | 'page.navigation.before'
+    | 'page.navigation.after'
+    | 'page.footer.before'
+    | 'page.footer.after'
+
+  export type ClarifySlotContext = {
+    name: ClarifyUISlotName
+    plugin: string
+    route?: RouteItem
+    locale?: string
+    config?: Record<string, unknown>
+  }
+
+  export function useClarifySlot(): ClarifySlotContext
+}
+```
+
+Design requirements:
+
+- Generate it when dev starts and update it when plugin configuration changes.
+- Ensure it is generated before build as well, so CI type checks have declarations.
+- Use the filename `clarify-env.d.ts` in the user project root, similar to Vite's `vite-env.d.ts`.
+- Do not overwrite the user's own `env.d.ts` or other type declaration files.
+- Mark the file as generated so users can identify it and avoid manual edits.
+- Project templates should include `clarify-env.d.ts` in `tsconfig.json` by default; if an existing project does not include it, dev can prompt the user to add it.
+- If plugins later declare custom virtual modules, they should be able to contribute type declaration fragments to this file.
+
+This keeps runtime code implemented through virtual modules while development-time types are filled in automatically by Clarify. Users should not see errors such as `Cannot find module 'virtual:clarify-slot'`.
+
+---
+
+## Runtime Registration Module
+
+The CLI generates a virtual module from all plugin `slots`, for example:
+
+```ts
+// virtual:clarify-runtime-slots
+
+import Slot0 from 'virtual:clarify-github-comments-slot'
+
+export const runtimeSlots = {
+  'page.footer.before': [
+    {
+      plugin: 'clarify:github-comments',
+      component: Slot0,
+      config: {
+        repository: 'taicode-labs/clarify',
+        category: 'Docs Comments',
+      },
+    },
+  ],
+}
+```
+
+The renderer consumes this registry and renders it from `AppShell`:
+
+```tsx
+<PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
+<RuntimeSlot name="page.footer.before" />
+<PageFooter component={footerComponent} />
+```
+
+`RuntimeSlot` reads the current route and locale from AppShell or renderer context internally, then writes them into the slot context provider.
+
+---
+
+## RuntimeSlot Behavior
+
+`RuntimeSlot` is responsible for:
+
+1. Reading registered components by slot name
+2. Reading the current `route` and `locale` from renderer internal context
+3. Creating an isolated `ClarifySlotContext` for each slot component
+4. Rendering components in registration order
+5. Avoiding business logic
+
+Pseudo-code:
+
+```tsx
+export function RuntimeSlot(props: { name: ClarifyUISlotName }) {
+  const definitions = runtimeSlots[props.name] ?? []
+  const route = useCurrentRoute()
+  const locale = useCurrentLocale()
+
+  return definitions.map((definition) => {
+    const Component = definition.component
+
+    return (
+      <ClarifySlotProvider
+        key={definition.plugin}
+        value={{
+          name: props.name,
+          plugin: definition.plugin,
+          route,
+          locale,
+          config: definition.config,
+        }}
+      >
+        <Component />
+      </ClarifySlotProvider>
+    )
+  })
+}
+```
+
+`useClarifySlot()` can only be called inside a slot component or its descendants. If it is called outside the slot provider, it should throw a clear error to help plugin authors diagnose the issue.
+
+---
+
+## GitHub Comments Plugin Example
+
+Plugin declaration:
+
+```ts
+export function githubCommentsPlugin(options: {
+  repository: string
+  category?: string
+}): ClarifyPlugin {
+  return {
+    name: 'clarify:github-comments',
+    hooks: {},
+    slots: [
+      {
+        name: 'page.footer.before',
+        component: 'virtual:clarify-github-comments-slot',
+        config: options,
+      },
+    ],
+  }
+}
+```
+
+Runtime component:
+
+```tsx
+import { useClarifySlot } from 'virtual:clarify-slot'
+
+export default function GithubCommentsSlot() {
+  const { route, locale, config } = useClarifySlot()
+  if (!route) return null
+
+  const pathname = route.basePath ?? route.path
+  const commentsKey = `pathname:${pathname}`
+
+  return (
+    <GithubComments
+      commentsKey={commentsKey}
+      locale={locale}
+      repository={config?.repository as string}
+      category={config?.category as string | undefined}
+    />
+  )
+}
+```
+
+The article-to-GitHub-Discussion binding is computed by the plugin component after reading the current route through the slot hook, so the core route type does not need to change and RuntimeSlot does not need to pass route as a component prop.
+
+---
+
+## When to Use Hooks
+
+If a plugin needs build-time control, it should keep using hooks instead of making the slot API larger.
+
+Good hook use cases:
+
+- Read `comments: false` from frontmatter
+- Disable comments for some routes
+- Override the comments key for specific pages
+- Decide whether to show a slot based on page type
+- Generate extra static data during build
+
+Example:
+
+```ts
+hooks: {
+  'routes:resolved'(input) {
+    return {
+      ...input,
+      routes: input.routes.filter(route => route.path !== '/404'),
+      navigation: input.navigation,
+    }
+  },
+}
+```
+
+The slot component handles runtime rendering. Build-time page processing stays in hooks.
+
+---
+
+## Relationship with Theme
+
+Plugin UI does not receive a theme object explicitly.
+
+Recommended style:
+
+```tsx
+<section className="rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)">
+  ...
+</section>
+```
+
+If a plugin needs the current light or dark state, it can use `useTheme()` exported by the renderer.
+
+---
+
+## Relationship with Locale
+
+Plugin components read the current locale through `useClarifySlot()`:
+
+```ts
+const { locale } = useClarifySlot()
+const currentLocale = locale ?? 'en-US'
+```
+
+Plugins can keep their own message dictionaries:
+
+```ts
+const messages = {
+  'zh-CN': { title: '评论' },
+  'en-US': { title: 'Comments' },
+}
+```
+
+The first version does not provide plugin-level i18n registration.
+
+---
+
+## Why No route.data or route.extensions
+
+The default comments binding key can be derived from the route:
+
+```ts
+const commentsKey = `pathname:${route.basePath ?? route.path}`
+```
+
+Therefore, the comments feature does not require changing the route type.
+
+If a future plugin truly needs page-level build-time data, it can use hooks to adjust routes or maintain a separate virtual mapping module instead of forcing the minimal UI slot API to carry that complexity.
+
+---
+
+## Plugin API Evolution Path
+
+### Phase 1: Stable UI Slots
+
+Only add:
+
+- `ClarifyPlugin.slots`
+- `page.footer.before`
+- `RuntimeSlot`
+- `virtual:clarify-runtime-slots`
+- `virtual:clarify-slot` and `useClarifySlot()`
+- dev/build generated project-level `clarify-env.d.ts`
+
+This phase solves the clearest UI extension needs: comments, feedback, and bottom CTAs while avoiding slot component props growing with every new context value and preventing virtual module type errors in user projects.
+
+### Phase 2: Runtime Module Declarations
+
+If multiple plugins need to inject runtime data through `modules:before`, Clarify can consider a declarative module API:
+
+```ts
+runtimeModules?: {
+  id: string
+  code: string | (() => string | Promise<string>)
+}[]
+```
+
+The first version should still use the existing `modules:before` hook to avoid duplicate abstractions.
+
+### Phase 3: More Stable Slots
+
+Only add new slots when concrete plugins prove that `page.footer.before` is not enough, for example:
+
+- `page.afterContent`
+- `page.beforeNavigation`
+- `page.title.actions`
+- `layout.sidebar.footer`
+
+A new slot must satisfy two conditions:
+
+1. Its position is stable enough and does not expose internal layout details.
+2. At least one concrete plugin scenario cannot be implemented reasonably with existing slots.
+
+### Phase 4: Replacement Slots
+
+After extension slots are stable, expose replacement slots (`*.replace`) that let plugins replace Clarify built-in default components, for example:
+
+- `page.footer.replace`
+- `page.navigation.replace`
+- `layout.header.replace`
+
+Replacement slots must satisfy:
+
+1. Map to a stable built-in default component, exposed through slot context.
+2. Be exclusive per slot, failing at build time on multi-plugin conflict.
+3. Give the replacement component the same context as the default component to keep SSR and hydration consistent.
+
+### Phase 5: Specialized APIs such as MDX and Search
+
+Clarify can later evaluate:
+
+- `mdxComponents`: plugin-registered MDX component provider extensions.
+- `searchProvider`: replace or enhance search implementations.
+- `contentSources`: abstract remote content sources from route hooks.
+- `artifacts`: make common static artifacts declarative.
+
+These should be based on real hook usage experience instead of designing a complete plugin platform too early.
+
+---
+
+## Conclusion
+
+Clarify plugin APIs should keep hooks as the backbone and declarative capabilities as focused additions.
+
+The first version of plugin UI should stay very small:
+
+```ts
+slots?: {
+  name: 'page.footer.before'
+  component: string
+  config?: Record<string, unknown>
+}[]
+```
+
+Runtime components do not receive Clarify context parameters. They call:
+
+```ts
+const slot = useClarifySlot()
+```
+
+The core only provides stable slots, a React rendering path, and the built-in slot context hook. Business binding, page filtering, and build-time enhancement remain the responsibility of plugin components and hooks.

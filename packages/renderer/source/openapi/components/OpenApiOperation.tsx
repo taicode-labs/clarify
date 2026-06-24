@@ -168,13 +168,13 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
       aria-label="Server"
       onClick={onToggle}
       className={clsx(
-        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5',
+        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text-foreground) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5',
         open ? 'bg-(--clarify-ui-active-background) text-(--clarify-theme-tokens-colors-foreground)' : null,
       )}
     >
       <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
       <span className="hidden min-w-0 items-center gap-1 overflow-hidden sm:flex">
-        <span className="truncate text-xs">{url}</span>
+        <span className="truncate font-semibold text-xs">{url}</span>
         <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
       </span>
     </button>

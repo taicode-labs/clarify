@@ -52,6 +52,7 @@ export function resolveProjectConfig(config: ClarifyProjectConfig = {}): Resolve
     siteUrl: config.siteUrl,
     source: config.source,
     logo: config.logo,
+    homeUrl: config.homeUrl,
     favicon: config.favicon,
     routePrefix: config.routePrefix ?? '/',
     theme: resolveThemeConfig(config.theme),

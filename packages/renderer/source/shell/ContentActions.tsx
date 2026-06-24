@@ -8,7 +8,6 @@ import { copyTextToClipboard } from '../utils/clipboard'
 import { prefixHref } from '../utils/href'
 
 type ContentActionsProps = {
-  hasTabs?: boolean
   route?: RouteItem
   routePrefix?: string
 }
@@ -33,7 +32,7 @@ function getAbsoluteUrl(path: string): string {
 }
 
 export function ContentActions(arg0: ContentActionsProps) {
-  const { hasTabs = false, route, routePrefix } = arg0
+  const { route, routePrefix } = arg0
   const t = useBuiltInText()
   const [copied, setCopied] = useState<CopyState>('idle')
 
@@ -102,27 +101,27 @@ export function ContentActions(arg0: ContentActionsProps) {
   const PrimaryIcon = primaryAction && copied === primaryAction.key ? Check : primaryAction?.icon ?? PencilLine
 
   return (
-    <div className={`clarify-content-actions pointer-events-none sticky z-20 flex justify-end py-4 ${hasTabs ? 'top-16 lg:top-30' : 'top-16'}`}>
-      <Menu as="div" className="clarify-content-actions-menu pointer-events-auto relative inline-flex text-sm font-medium">
-        <div className="clarify-content-actions-group inline-flex overflow-hidden rounded-full border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/90 shadow-sm shadow-zinc-900/5 backdrop-blur">
+    <div className="clarify-content-actions not-prose flex shrink-0 justify-start sm:justify-end">
+      <Menu as="div" className="clarify-content-actions-menu relative inline-flex min-w-0 text-sm font-medium">
+        <div className="clarify-content-actions-group inline-flex min-w-0 overflow-hidden rounded-full border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-sm shadow-zinc-900/5">
           {primaryAction ? (
             <button
               type="button"
               onClick={primaryAction.run}
-              className="clarify-content-actions-primary clarify-ui-control inline-flex h-8 items-center gap-1.5 px-3 transition"
+              className="clarify-content-actions-primary clarify-ui-control inline-flex h-8 min-w-0 items-center gap-1.5 px-2.5 transition sm:px-3"
             >
-              <PrimaryIcon className="h-3.5 w-3.5" />
-              {copied === primaryAction.key ? t('actions.copied') : primaryAction.label}
+              <PrimaryIcon className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{copied === primaryAction.key ? t('actions.copied') : primaryAction.label}</span>
             </button>
           ) : (
             <a
               href={route.sourceUrl}
               target="_blank"
               rel="noreferrer"
-              className="clarify-content-actions-primary clarify-ui-control inline-flex h-8 items-center gap-1.5 px-3 no-underline transition"
+              className="clarify-content-actions-primary clarify-ui-control inline-flex h-8 min-w-0 items-center gap-1.5 px-2.5 no-underline transition sm:px-3"
             >
-              <PrimaryIcon className="h-3.5 w-3.5" />
-              {t('contentActions.editPage')}
+              <PrimaryIcon className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{t('contentActions.editPage')}</span>
             </a>
           )}
           <MenuButton className="clarify-content-actions-trigger clarify-ui-control inline-flex h-8 w-8 items-center justify-center border-l border-(--clarify-theme-tokens-colors-border) transition" aria-label={t('contentActions.copyOptions')}>
@@ -130,6 +129,7 @@ export function ContentActions(arg0: ContentActionsProps) {
           </MenuButton>
         </div>
         <MenuItems
+          modal={false}
           anchor="bottom end"
           className="clarify-content-actions-list clarify-ui-menu z-30 mt-2 w-(--clarify-ui-action-menu-width) origin-top-right rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1.5 shadow-xl shadow-zinc-900/5 transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
         >

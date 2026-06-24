@@ -41,6 +41,7 @@ export default defineConfig({
     light: '/logo-light.svg',
     dark: '/logo-dark.svg',
   },
+  homeUrl: 'https://example.com',
   favicon: '/favicon.ico',
   routePrefix: '/docs/',
   theme: {
@@ -250,6 +251,18 @@ If only one mode-specific asset is available, Clarify falls back to the availabl
 
 ---
 
+## `homeUrl`
+
+`homeUrl` configures where the top navigation logo links to. The default is `/`. It can be an internal path or a full external URL.
+
+```ts
+export default defineConfig({
+  homeUrl: 'https://example.com',
+})
+```
+
+---
+
 ## `routePrefix`
 
 `routePrefix` describes the subpath where the site is mounted. The default is `/`, meaning the site is deployed at the domain root. It does not change how content files are organized, but it does affect generated links and asset paths.
@@ -448,24 +461,54 @@ Keep only core entries in the top navigation, and let the sidebar carry the comp
 ## `banner`
 
 ```ts
-type ClarifyBannerConfig = {
+type ClarifyBannerLink = {
+  label: ClarifyLocalizedText
+  href: string
+  external?: boolean
+}
+
+type ClarifyBannerConfigOptions = {
   content: ClarifyLocalizedText
   dismissible?: boolean
+  link?: ClarifyBannerLink
 }
+
+type ClarifyBannerConfig =
+  | ClarifyBannerConfigOptions
+  | string
 ```
 
-`banner` renders a top announcement bar. It is best for short notices, not long paragraphs. `content` supports localized text, and `dismissible` controls whether users can close the announcement.
+`banner` renders a top announcement bar. It is best for short notices, not long paragraphs. It supports two forms: a built-in configuration object or a custom announcement component path string.
 
-```ts
+```ts title="Built-in banner config"
 export default defineConfig({
   banner: {
     content: {
       'zh-CN': '我们正在迁移到新的 API 文档结构',
       'en-US': 'We are migrating to a new API documentation structure',
     },
+    link: {
+      label: {
+        'zh-CN': '查看计划',
+        'en-US': 'View plan',
+      },
+      href: '/roadmap',
+    },
     dismissible: false,
   },
 })
+```
+
+```ts title="Custom banner component path"
+export default defineConfig({
+  banner: './source/Banner.tsx',
+})
+```
+
+```tsx title="source/Banner.tsx"
+export default function Banner() {
+  return <div>Custom announcement content</div>
+}
 ```
 
 Recommendations:

@@ -41,6 +41,7 @@ export default defineConfig({
     light: '/logo-light.svg',
     dark: '/logo-dark.svg',
   },
+  homeUrl: 'https://example.com',
   favicon: '/favicon.ico',
   routePrefix: '/docs/',
   theme: {
@@ -250,6 +251,18 @@ export default defineConfig({
 
 ---
 
+## `homeUrl`
+
+`homeUrl` 用来配置点击顶部导航 Logo 时跳转的地址，默认值为 `/`。它可以是站内路径，也可以是完整外部链接。
+
+```ts
+export default defineConfig({
+  homeUrl: 'https://example.com',
+})
+```
+
+---
+
 ## `routePrefix`
 
 `routePrefix` 用来描述站点部署时挂载的子路径。默认值是 `/`，表示站点部署在域名根路径。它不会改变内容文件的组织方式，但会影响构建产物中的链接和资源路径。
@@ -448,24 +461,54 @@ export default defineConfig({
 ## `banner`
 
 ```ts
-type ClarifyBannerConfig = {
+type ClarifyBannerLink = {
+  label: ClarifyLocalizedText
+  href: string
+  external?: boolean
+}
+
+type ClarifyBannerConfigOptions = {
   content: ClarifyLocalizedText
   dismissible?: boolean
+  link?: ClarifyBannerLink
 }
+
+type ClarifyBannerConfig =
+  | ClarifyBannerConfigOptions
+  | string
 ```
 
-`banner` 用于顶部公告，适合短消息而不是长段落。`content` 支持本地化文本；`dismissible` 控制用户是否可以关闭公告。
+`banner` 用于顶部公告，适合短消息而不是长段落。它支持两种形式：内置配置对象，或自定义公告组件路径字符串。
 
-```ts
+```ts title="内置公告配置"
 export default defineConfig({
   banner: {
     content: {
       'zh-CN': '我们正在迁移到新的 API 文档结构',
       'en-US': 'We are migrating to a new API documentation structure',
     },
+    link: {
+      label: {
+        'zh-CN': '查看计划',
+        'en-US': 'View plan',
+      },
+      href: '/roadmap',
+    },
     dismissible: false,
   },
 })
+```
+
+```ts title="自定义公告组件路径"
+export default defineConfig({
+  banner: './source/Banner.tsx',
+})
+```
+
+```tsx title="source/Banner.tsx"
+export default function Banner() {
+  return <div>Custom announcement content</div>
+}
 ```
 
 使用建议：

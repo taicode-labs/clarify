@@ -10,6 +10,7 @@ export default defineConfig({
     directory: 'apps/docs/source',
   },
   logo: '/clarify.svg',
+  homeUrl: 'https://clarify.pub',
   favicon: '/clarify-icon.png',
   i18n: {
     defaultLocale: 'zh-CN',
@@ -30,6 +31,20 @@ export default defineConfig({
   theme: {
     preset: 'default',
     editor: true,
+  },
+  banner: {
+    content: {
+      'zh-CN': 'Clarify 现在支持全局公告配置。',
+      'en-US': 'Clarify now supports global announcement banners.',
+    },
+    link: {
+      label: {
+        'zh-CN': '查看路线图',
+        'en-US': 'View roadmap',
+      },
+      href: '/roadmap',
+    },
+    dismissible: true,
   },
   navbar: {
     links: [
@@ -181,14 +196,6 @@ export default defineConfig({
                 'en-US': 'Plugin System',
               },
               icon: 'Puzzle',
-            },
-            {
-              page: 'showcase',
-              title: {
-                'zh-CN': '示例与演示',
-                'en-US': 'Showcase',
-              },
-              icon: 'MonitorPlay',
             },
             {
               page: 'roadmap',
@@ -387,6 +394,14 @@ export default defineConfig({
                 'en-US': 'SSG Pipeline',
               },
               icon: 'Blocks',
+            },
+            {
+              page: 'development/plugin-api',
+              title: {
+                'zh-CN': '插件扩展接口',
+                'en-US': 'Plugin API',
+              },
+              icon: 'PanelsTopLeft',
             },
             {
               page: 'development/contributing',

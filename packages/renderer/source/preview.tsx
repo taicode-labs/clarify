@@ -5,11 +5,11 @@ import { MemoryRouter } from 'react-router-dom'
 
 import { SectionProvider } from './app/SectionProvider'
 import type { Section } from './app/SectionProvider'
-import { ClarifyConfigContext, ClarifyLocaleContext, OpenApisContext } from './context'
+import { ConfigContext, LocaleContext, OpenApisContext } from './context'
 import { OpenApiExamplesPreview } from './preview/openapi'
 import type { PreviewEndpoint } from './preview/openapi'
 import { Navigation } from './shell'
-import type { ClarifyConfig, NavigationNode } from './types'
+import type { Config, NavigationNode } from './types'
 
 export type PreviewGuide = {
   label: string
@@ -154,7 +154,7 @@ const previewConfig = {
     missing: 'fallback',
     locales: [{ code: 'en', label: 'English' }],
   },
-} satisfies ClarifyConfig
+} satisfies Config
 
 const methodStyles: Record<string, string> = {
   GET: 'bg-emerald-400/15 text-emerald-600 dark:bg-emerald-400/20 dark:text-emerald-300',
@@ -178,15 +178,15 @@ function PreviewEnvironment(arg0: PreviewEnvironmentProps) {
 
   return (
     <MemoryRouter initialEntries={[initialEntry]}>
-      <ClarifyConfigContext.Provider value={previewConfig}>
-        <ClarifyLocaleContext.Provider value={previewConfig.i18n.defaultLocale}>
+      <ConfigContext.Provider value={previewConfig}>
+        <LocaleContext.Provider value={previewConfig.i18n.defaultLocale}>
           <OpenApisContext.Provider value={{}}>
             <SectionProvider sections={sections}>
               {children}
             </SectionProvider>
           </OpenApisContext.Provider>
-        </ClarifyLocaleContext.Provider>
-      </ClarifyConfigContext.Provider>
+        </LocaleContext.Provider>
+      </ConfigContext.Provider>
     </MemoryRouter>
   )
 }

@@ -1,25 +1,29 @@
 import clsx from 'clsx'
-import { Suspense, lazy, useEffect, useMemo } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import type { ComponentType } from 'react'
-import { Link, Routes, Route, useLocation } from 'react-router-dom'
+import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
-import { ClarifyLocaleContext } from '../context'
+import { LocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
-import { ContentActions, Header, Navigation } from '../shell'
-import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
+import { Header, Navigation } from '../shell'
+import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
+import type { RouteItem, Config, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { PageErrorBoundary } from './ErrorBoundary'
+import { PageActionsProvider } from './PageActions'
+import { PageBanner } from './PageBanner'
 import { PageFooter } from './PageFooter'
 import { PageNavigation } from './PageNavigation'
 import { PageSkeleton } from './PageSkeleton'
 import { SectionProvider, type Section } from './SectionProvider'
 
 export type AppShellProps = {
-  config: ClarifyConfig
+  config: Config
   routes: RouteItem[]
   navigation: NavigationTree
+  bannerComponent?: ComponentType
   footerComponent?: ComponentType
 }
 
@@ -40,6 +44,7 @@ function sectionsForRoute(route?: RouteItem): Section[] {
     route?.sections?.map((section) => ({
       id: section.id,
       title: section.title,
+      level: section.level,
       badge: section.badge,
       tags: section.tags,
     })) ?? []
@@ -63,12 +68,23 @@ function scrollToHash(hash: string) {
   })
 }
 
-function localeForPath(config: ClarifyConfig, pathname: string, route?: RouteItem): string | undefined {
-  if (route?.locale) return route.locale
+function explicitLocaleForPath(config: Config, pathname: string): string | undefined {
   const i18n = config.i18n
   if (!i18n) return undefined
   const firstSegment = pathname.split('/').filter(Boolean)[0]
-  return i18n.locales.find((locale) => locale.code === firstSegment)?.code ?? i18n.defaultLocale
+  return i18n.locales.find((locale) => locale.code === firstSegment)?.code
+}
+
+function fallbackLocale(config: Config): string | undefined {
+  return config.i18n?.defaultLocale
+}
+
+function storedLocaleForConfig(config: Config): string | null {
+  return getStoredLocalePreference(config.i18n?.locales.map(locale => locale.code))
+}
+
+function isDefaultLocale(config: Config, locale: string | undefined): boolean {
+  return Boolean(locale && config.i18n?.defaultLocale === locale)
 }
 
 function isTabbedNavigation(navigation: NavigationTree): navigation is TabbedNavigation {
@@ -102,7 +118,7 @@ function navigationForLocale(navigation: NavigationTree, locale: string | undefi
   return Array.isArray(localizedNavigation) ? { items: localizedNavigation } : navigationFromTabs(localizedNavigation, pathname)
 }
 
-function pageTitle(config: ClarifyConfig, route?: RouteItem): string {
+function pageTitle(config: Config, route?: RouteItem): string {
   const routeTitle = route?.title?.trim()
   if (!routeTitle || routeTitle === config.title) return config.title
   return `${routeTitle} - ${config.title}`
@@ -121,7 +137,7 @@ function setNamedMeta(name: string, content: string | undefined) {
   if (!existing) document.head.appendChild(meta)
 }
 
-function applyDocumentMetadata(config: ClarifyConfig, route?: RouteItem) {
+function applyDocumentMetadata(config: Config, route?: RouteItem) {
   document.title = pageTitle(config, route)
   setNamedMeta('description', route?.description ?? config.description)
   setNamedMeta('keywords', route?.keywords?.join(', '))
@@ -155,16 +171,22 @@ function NotFoundRouteElement(props: NotFoundRouteElementProps) {
 }
 
 export function AppShell(arg0: AppShellProps) {
-  const { config, routes, navigation, footerComponent } = arg0
+  const { config, routes, navigation, bannerComponent, footerComponent } = arg0
   const location = useLocation()
+  const navigate = useNavigate()
   const pathname = normalizeRoutePath(location.pathname)
   const currentRoute = routeForPath(routes, pathname)
-  const currentLocale = localeForPath(config, pathname, currentRoute)
+  const explicitLocale = explicitLocaleForPath(config, pathname)
+  const [storedLocale] = useState(() => storedLocaleForConfig(config))
+  const currentLocale = explicitLocale ?? storedLocale ?? fallbackLocale(config)
   const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
   const notFoundRoute = currentRoute ? undefined : notFoundRouteForPath(routes, pathname, currentLocale)
   const text = useBuiltInText(currentLocale)
   const currentNavigation = navigationForLocale(navigation, currentLocale, pathname)
   const sections = sectionsForRoute(currentRoute)
+  const [dismissedBannerKey, setDismissedBannerKey] = useState<string>()
+  const activeBannerKey = config.banner ? JSON.stringify(config.banner) : undefined
+  const hasBanner = Boolean(config.banner) && dismissedBannerKey !== activeBannerKey
   const hasTabs = Boolean(currentNavigation.tabs?.length)
   const renderRoutes = useMemo(
     () => routes.map(route => ({ ...route, component: resolveRouteComponent(route) })),
@@ -173,6 +195,17 @@ export function AppShell(arg0: AppShellProps) {
   const NotFoundRouteComponent = notFoundRoute
     ? renderRoutes.find(route => isSameRoutePath(route.path, notFoundRoute.path))?.component
     : undefined
+
+  useEffect(() => {
+    if (explicitLocale) storeLocalePreference(explicitLocale)
+  }, [explicitLocale])
+
+  useEffect(() => {
+    if (explicitLocale || !storedLocale || isDefaultLocale(config, storedLocale)) return
+    const localizedPath = currentRoute?.alternates?.[storedLocale]
+    if (!localizedPath || isSameRoutePath(localizedPath, pathname)) return
+    navigate(`${localizedPath}${location.search}${location.hash}`, { replace: true })
+  }, [config, currentRoute, explicitLocale, location.hash, location.search, navigate, pathname, storedLocale])
 
   useEffect(() => {
     if (location.hash) {
@@ -201,7 +234,7 @@ export function AppShell(arg0: AppShellProps) {
   }, [config, currentRoute, notFoundRoute])
 
   return (
-    <ClarifyLocaleContext.Provider value={currentLocale}>
+    <LocaleContext.Provider value={currentLocale}>
       <SectionProvider sections={sections}>
         <Header
           config={config}
@@ -210,51 +243,68 @@ export function AppShell(arg0: AppShellProps) {
           routes={routes}
           currentLocale={currentLocale}
           currentRoute={currentRoute}
+          banner={hasBanner ? <PageBanner component={bannerComponent} currentLocale={currentLocale} onDismiss={() => setDismissedBannerKey(activeBannerKey)} /> : undefined}
         />
-        <div className="clarify-layout pb-12 mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)">
+        <div className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)">
           <aside
             data-pagefind-ignore
+            className="clarify-sidebar hidden lg:block lg:self-stretch lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 xl:px-6"
+          >
+            <div
+              className={clsx(
+                'clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8',
+                hasTabs && hasBanner && 'lg:top-40 lg:h-(--clarify-sidebar-height-with-tabs-and-banner) lg:pt-10',
+                hasTabs && !hasBanner && 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-10',
+                !hasTabs && hasBanner && 'lg:top-[6.5rem] lg:h-(--clarify-sidebar-height-with-banner) lg:pt-10',
+                !hasTabs && !hasBanner && 'lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-10',
+              )}
+            >
+              <Navigation navigation={currentNavigation.items} />
+            </div>
+          </aside>
+          <div
             className={clsx(
-              'clarify-sidebar hidden lg:sticky lg:z-30 lg:block lg:h-(--clarify-sidebar-height) lg:self-start lg:overflow-y-auto lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 lg:pb-8 xl:px-6',
-              hasTabs ? 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-6' : 'lg:top-14 lg:pt-6',
+              'clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10',
+              hasTabs && hasBanner && 'pt-[6.5rem] lg:pt-40',
+              hasTabs && !hasBanner && 'pt-14 lg:pt-28',
+              !hasTabs && hasBanner && 'pt-[6.5rem]',
+              !hasTabs && !hasBanner && 'pt-14',
             )}
           >
-            <Navigation navigation={currentNavigation.items} />
-          </aside>
-          <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
-            <ContentActions hasTabs={hasTabs} route={currentRoute} routePrefix={config.routePrefix} />
-            <main className="clarify-main min-w-0 flex-auto" data-pagefind-body>
-              <PageErrorBoundary
-                key={pathname}
-                title={text('renderError.title')}
-                description={text('renderError.description')}
-                reloadLabel={text('renderError.reload')}
-                detailsLabel={text('renderError.details')}
-                pathLabel={text('renderError.path')}
-                typeLabel={text('renderError.type')}
-                messageLabel={text('renderError.message')}
-                stackLabel={text('renderError.stack')}
-                componentStackLabel={text('renderError.componentStack')}
-                timestampLabel={text('renderError.timestamp')}
-                copyLabel={text('actions.copy')}
-                copiedLabel={text('actions.copied')}
-                path={pathname}
-              >
-                <Suspense fallback={<PageSkeleton />}>
-                  <Routes>
-                    {renderRoutes.map((route) => (
-                      <Route key={route.path} path={route.path} element={<route.component />} />
-                    ))}
-                    <Route path="*" element={<NotFoundRouteElement component={NotFoundRouteComponent} />} />
-                  </Routes>
-                </Suspense>
-              </PageErrorBoundary>
-            </main>
-            <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
+            <PageActionsProvider route={currentRoute} routePrefix={config.routePrefix}>
+              <main className="clarify-main min-w-0 flex-auto" data-pagefind-body>
+                <PageErrorBoundary
+                  key={pathname}
+                  title={text('renderError.title')}
+                  description={text('renderError.description')}
+                  reloadLabel={text('renderError.reload')}
+                  detailsLabel={text('renderError.details')}
+                  pathLabel={text('renderError.path')}
+                  typeLabel={text('renderError.type')}
+                  messageLabel={text('renderError.message')}
+                  stackLabel={text('renderError.stack')}
+                  componentStackLabel={text('renderError.componentStack')}
+                  timestampLabel={text('renderError.timestamp')}
+                  copyLabel={text('actions.copy')}
+                  copiedLabel={text('actions.copied')}
+                  path={pathname}
+                >
+                  <Suspense fallback={<PageSkeleton />}>
+                    <Routes>
+                      {renderRoutes.map((route) => (
+                        <Route key={route.path} path={route.path} element={<route.component />} />
+                      ))}
+                      <Route path="*" element={<NotFoundRouteElement component={NotFoundRouteComponent} />} />
+                    </Routes>
+                  </Suspense>
+                </PageErrorBoundary>
+              </main>
+              <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
+              <PageFooter component={footerComponent} />
+            </PageActionsProvider>
           </div>
         </div>
-        <PageFooter component={footerComponent} />
       </SectionProvider>
-    </ClarifyLocaleContext.Provider>
+    </LocaleContext.Provider>
   )
 }

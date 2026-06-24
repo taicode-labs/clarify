@@ -84,6 +84,7 @@ type NavLinkProps = {
   tags?: string[]
   active?: boolean
   isAnchorLink?: boolean
+  level?: number
 }
 
 function NavLink(arg0: NavLinkProps) {  const {
@@ -93,6 +94,7 @@ function NavLink(arg0: NavLinkProps) {  const {
   icon,
   active = false,
   isAnchorLink = false,
+  level,
 } = arg0
 
   function handleClick() {
@@ -118,8 +120,9 @@ function NavLink(arg0: NavLinkProps) {  const {
       onClick={handleClick}
       className={clsx(
         'clarify-navigation-link flex h-8 items-center justify-between gap-2 pr-3 transition',
-        isAnchorLink ? 'clarify-navigation-anchor-link pl-7' : 'pl-4',
+        isAnchorLink ? 'clarify-navigation-anchor-link' : 'pl-4',
       )}
+      style={isAnchorLink ? { paddingLeft: `${1.75 + Math.max(0, (level ?? 2) - 2) * 0.75}rem` } : undefined}
     >
       <span className="flex min-w-0 flex-1 items-center gap-2">
         {icon ? <NavigationIcon name={icon} className="h-3.5 w-3.5" /> : null}
@@ -222,7 +225,7 @@ function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className
                     >
                       {sections.map((section) => (
                         <li key={section.id}>
-                          <NavLink href={`${link.href}#${section.id}`} badge={section.badge} tags={section.tags} isAnchorLink>
+                          <NavLink href={`${link.href}#${section.id}`} badge={section.badge} tags={section.tags} isAnchorLink level={section.level}>
                             {section.title}
                           </NavLink>
                         </li>
