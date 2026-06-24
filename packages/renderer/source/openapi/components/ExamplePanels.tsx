@@ -54,23 +54,23 @@ function SelectControl(arg0: SelectControlProps): ReactNode {
       <div className={wrapperClassName}>
         <ListboxButton
           aria-label={label}
-          className={`clarify-api-select-button flex ${buttonSizeClassName} items-center justify-between gap-2 rounded-lg bg-black/30 px-2 py-1 text-xs font-medium whitespace-nowrap text-zinc-100 outline-hidden transition hover:bg-black/50 focus:ring-2 focus:ring-emerald-400/25 data-open:bg-white/10 data-open:ring-2 data-open:ring-emerald-400/25`}
+          className={`clarify-api-select-button flex ${buttonSizeClassName} items-center justify-between gap-2 rounded-lg bg-(--clarify-code-control-background) px-2 py-1 text-xs font-medium whitespace-nowrap text-(--clarify-code-text) outline-hidden transition hover:bg-(--clarify-code-control-background-hover) focus:ring-2 focus:ring-(--clarify-ui-accent-border) data-open:bg-(--clarify-code-control-background-hover) data-open:ring-2 data-open:ring-(--clarify-ui-accent-border)`}
         >
           <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
-            {icon ? <span className="shrink-0 text-zinc-500">{icon}</span> : null}
+            {icon ? <span className="shrink-0 text-(--clarify-code-faint)">{icon}</span> : null}
             <span className="truncate">{selectedOption?.label ?? value}</span>
           </span>
-          <ChevronsUpDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />
+          <ChevronsUpDownIcon className="h-3.5 w-3.5 shrink-0 text-(--clarify-code-faint)" aria-hidden="true" />
         </ListboxButton>
         <ListboxOptions
           anchor="bottom end"
-          className="clarify-api-select-options z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-xl bg-zinc-900 p-1 text-xs shadow-lg shadow-black/20 ring-1 ring-white/10 [--anchor-gap:--spacing(1)] focus:outline-none"
+          className="clarify-api-select-options z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-xl bg-(--clarify-code-surface) p-1 text-xs shadow-lg shadow-black/20 ring-1 ring-(--clarify-code-border) [--anchor-gap:--spacing(1)] focus:outline-none"
         >
           {normalizedOptions.map((option) => (
             <ListboxOption
               key={option.value}
               value={option.value}
-              className="clarify-api-select-option group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs whitespace-nowrap text-zinc-300 select-none data-focus:bg-white/10 data-focus:text-white data-selected:text-emerald-300"
+              className="clarify-api-select-option group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs whitespace-nowrap text-(--clarify-code-muted) select-none data-focus:bg-(--clarify-code-control-background-hover) data-focus:text-(--clarify-code-text) data-selected:text-(--clarify-theme-tokens-colors-primary)"
             >
               <span>{option.label}</span>
               <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />
@@ -186,12 +186,12 @@ function CopyCodeButton(arg0: CopyCodeButtonProps): ReactNode {
           window.setTimeout(() => setCopied(false), 1000)
         })
       }}
-      className="flex items-center gap-1.5 rounded-full bg-black/ px-2.5 py-1.5 text-2xs font-medium text-zinc-400 transition hover:bg-black/50 hover:text-zinc-200 focus:bg-black/50 focus:text-zinc-200"
+      className="flex items-center gap-1.5 rounded-full bg-(--clarify-code-control-background) px-2.5 py-1.5 text-2xs font-medium text-(--clarify-code-muted) transition hover:bg-(--clarify-code-control-background-hover) hover:text-(--clarify-code-text) focus:bg-(--clarify-code-control-background-hover) focus:text-(--clarify-code-text)"
     >
       {copied ? (
-        <CheckIcon className="h-3.5 w-3.5 text-emerald-300" aria-hidden="true" />
+        <CheckIcon className="h-3.5 w-3.5 text-(--clarify-theme-tokens-colors-primary)" aria-hidden="true" />
       ) : (
-        <ClipboardIcon className="h-3.5 w-3.5 text-zinc-500" aria-hidden="true" />
+        <ClipboardIcon className="h-3.5 w-3.5 text-(--clarify-code-faint)" aria-hidden="true" />
       )}
       <span>{copied ? t('actions.copied') : t('actions.copy')}</span>
     </button>
@@ -319,14 +319,14 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
 
   const t = useBuiltInText()
   const metaClassName = comfortableMeta
-    ? 'flex min-h-11 min-w-0 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 py-2 dark:border-b-white/5 dark:bg-white/1'
-    : 'flex h-9 min-w-0 items-center gap-2 border-y border-t-transparent border-b-white/7.5 bg-zinc-900 px-4 dark:border-b-white/5 dark:bg-white/1'
+    ? 'flex min-h-11 min-w-0 items-center gap-2 border-y border-(--clarify-code-border) border-t-transparent bg-(--clarify-code-background) px-4 py-2'
+    : 'flex h-9 min-w-0 items-center gap-2 border-y border-(--clarify-code-border) border-t-transparent bg-(--clarify-code-background) px-4'
 
   return (
-    <div className="clarify-api-example my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
+    <div className="clarify-api-example my-6 overflow-hidden rounded-2xl bg-(--clarify-code-background) shadow-md ring-1 ring-(--clarify-code-border)">
       <div className="not-prose">
-        <div className="clarify-api-example-header flex min-h-(--clarify-code-header-min-height) items-center gap-3 border-b border-zinc-700 bg-zinc-800 px-4 py-2 dark:border-zinc-800 dark:bg-transparent">
-          <h3 className="mr-auto min-w-16 truncate py-1 text-xs font-semibold text-white">{title}</h3>
+        <div className="clarify-api-example-header flex min-h-(--clarify-code-header-min-height) items-center gap-3 border-b border-(--clarify-code-border) bg-(--clarify-code-header-background) px-4 py-2">
+          <h3 className="mr-auto min-w-16 truncate py-1 text-xs font-semibold text-(--clarify-code-text)">{title}</h3>
           <div className="ml-auto flex min-w-0 items-center gap-2 whitespace-nowrap">
             {mediaTypes && mediaTypes.length > 1 && selectedMediaType && onSelectMediaType ? (
               <SelectControl
@@ -359,19 +359,19 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
                 className="clarify-api-example-status font-semibold text-emerald-400"
               />
             ) : null}
-            {tag && label ? <span className="h-0.5 w-0.5 shrink-0 rounded-full bg-zinc-500" /> : null}
+            {tag && label ? <span className="h-0.5 w-0.5 shrink-0 rounded-full bg-(--clarify-code-faint)" /> : null}
             {label ? (
               <ExampleMetaValue
                 label={t('openapi.mediaType')}
                 value={label}
                 options={labelOptions}
                 onChange={onSelectLabel}
-                className="min-w-0 truncate text-xs text-zinc-400"
+                className="min-w-0 truncate text-xs text-(--clarify-code-muted)"
               />
             ) : null}
           </div>
         ) : null}
-        <div className="clarify-api-example-code group relative">
+        <div className="clarify-api-example-code group relative bg-(--clarify-code-background)">
           <CodeToolbar
             code={code}
             languageOptions={languageOptions}
@@ -381,7 +381,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
             selectedClientKey={selectedClientKey}
             onSelectClient={onSelectClient}
           />
-          <pre className={`max-h-128 overflow-auto overscroll-contain p-4 text-xs text-white ${languageOptions && languageOptions.length > 1 ? 'pt-14' : ''}`}>
+          <pre className={`max-h-128 overflow-auto overscroll-contain p-4 text-xs text-(--clarify-code-text) ${languageOptions && languageOptions.length > 1 ? 'pt-14' : ''}`}>
             <code className={`language-${language}`}>{code}</code>
           </pre>
         </div>
