@@ -220,7 +220,7 @@ export function AppShell(arg0: AppShellProps) {
             <div
               className={clsx(
                 'clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8',
-                hasTabs ? 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-6' : 'lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-6',
+                hasTabs ? 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-10' : 'lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-10',
               )}
             >
               <Navigation navigation={currentNavigation.items} />

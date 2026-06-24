@@ -400,7 +400,7 @@
     color: var(--clarify-ui-text-soft);
     font-size: var(--clarify-ui-navigation-section-font-size);
     line-height: var(--clarify-ui-navigation-section-line-height);
-    font-weight: 500;
+    font-weight: normal;
   }
 
   .clarify-navigation-link:hover,

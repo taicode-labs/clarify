@@ -11,7 +11,7 @@ type WrapperProps = { children: ReactNode }
 export function wrapper(arg0: WrapperProps) {  const { children } = arg0
 
   return (
-    <article className="clarify-mdx-page flex h-full flex-col pt-16 pb-10">
+    <article className="clarify-mdx-page flex h-full flex-col pt-10 pb-10">
       <Prose className="flex-auto">{children}</Prose>
     </article>
   )
