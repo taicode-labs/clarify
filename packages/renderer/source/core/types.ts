@@ -9,6 +9,7 @@ export type RouteComponent = ComponentType | (() => Promise<{ default: Component
 export type RouteSection = {
   id: string;
   title: string;
+  level?: number;
   badge?: string;
   tags?: string[];
 };

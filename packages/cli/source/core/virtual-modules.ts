@@ -53,7 +53,7 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
     : ''
   const routesArray = routes.map((r, i) => {
     const sections = r.sections && r.sections.length > 0
-      ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, badge: s.badge, tags: s.tags })))}`
+      ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags })))}`
       : ''
     const contentArtifactUrl = r.contentArtifactUrl ? `, contentArtifactUrl: ${JSON.stringify(r.contentArtifactUrl)}` : ''
     const basePath = r.basePath ? `, basePath: ${JSON.stringify(r.basePath)}` : ''

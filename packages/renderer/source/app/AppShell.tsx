@@ -41,6 +41,7 @@ function sectionsForRoute(route?: RouteItem): Section[] {
     route?.sections?.map((section) => ({
       id: section.id,
       title: section.title,
+      level: section.level,
       badge: section.badge,
       tags: section.tags,
     })) ?? []
