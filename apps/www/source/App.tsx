@@ -27,7 +27,9 @@ import {
 type ThemePreference = 'light' | 'dark' | 'system'
 type ResolvedTheme = 'light' | 'dark'
 
-const themeStorageKey = 'clarify:theme'
+const themeCookieName = 'clarify-theme'
+const themeCookieMaxAge = 60 * 60 * 24 * 365
+const cookiePath = '/'
 
 type AppProps = { path?: string }
 
@@ -192,23 +194,20 @@ function getStoredTheme(): ThemePreference {
     return 'system'
   }
 
-  try {
-    const storedTheme = window.localStorage.getItem(themeStorageKey)
-    return storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system' ? storedTheme : 'system'
-  } catch {
-    return 'system'
-  }
+  return readThemeCookie() ?? 'system'
 }
 
 function storeTheme(theme: ThemePreference) {
-  if (typeof window === 'undefined') {
-    return
-  }
+  if (typeof document === 'undefined') return
 
-  try {
-    window.localStorage.setItem(themeStorageKey, theme)
-  } catch {
-    // Ignore storage failures from private mode or restricted embeds.
+  const domains = resolveSharedCookieDomains()
+
+  if (domains.length === 0) {
+    writeCookie(themeCookieName, theme, { maxAge: themeCookieMaxAge })
+  } else {
+    for (const domain of domains) {
+      writeCookie(themeCookieName, theme, { domain, maxAge: themeCookieMaxAge })
+    }
   }
 }
 
@@ -219,6 +218,68 @@ function applyTheme(resolvedTheme: ResolvedTheme) {
 
   document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')
   document.documentElement.style.colorScheme = resolvedTheme
+}
+
+function readThemeCookie(): ThemePreference | null {
+  const cookies = document.cookie ? document.cookie.split('; ') : []
+
+  for (const cookie of cookies) {
+    const separatorIndex = cookie.indexOf('=')
+    const name = separatorIndex === -1 ? cookie : cookie.slice(0, separatorIndex)
+
+    if (decodeURIComponent(name) !== themeCookieName) continue
+
+    const value = separatorIndex === -1 ? '' : decodeURIComponent(cookie.slice(separatorIndex + 1))
+    return isThemePreference(value) ? value : null
+  }
+
+  return null
+}
+
+function isThemePreference(value: string | null | undefined): value is ThemePreference {
+  return value === 'light' || value === 'dark' || value === 'system'
+}
+
+function resolveSharedCookieDomains(): string[] {
+  const normalizedHostname = window.location.hostname.toLowerCase().replace(/\.$/, '')
+
+  if (!normalizedHostname || normalizedHostname === 'localhost' || normalizedHostname.endsWith('.localhost') || isIpAddress(normalizedHostname)) {
+    return []
+  }
+
+  const parts = normalizedHostname.split('.')
+
+  if (parts.length < 2) return []
+
+  const domains: string[] = []
+
+  for (let index = 0; index <= parts.length - 2; index += 1) {
+    domains.push(parts.slice(index).join('.'))
+  }
+
+  return domains
+}
+
+function writeCookie(name: string, value: string, options: { domain?: string; maxAge: number }) {
+  const attributes = [
+    `${encodeURIComponent(name)}=${encodeURIComponent(value)}`,
+    `Path=${cookiePath}`,
+    `Max-Age=${options.maxAge}`,
+    'SameSite=Lax',
+  ]
+
+  if (options.domain) attributes.push(`Domain=.${options.domain}`)
+  if (window.location.protocol === 'https:') attributes.push('Secure')
+
+  try {
+    document.cookie = attributes.join('; ')
+  } catch {
+    // Ignore cookie write failures from restricted embeds.
+  }
+}
+
+function isIpAddress(hostname: string): boolean {
+  return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) || hostname.includes(':')
 }
 
 function toAppLocale(locale: string): AppLocale {
