@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { MainPreview, MdxPreview, OpenApiPreview } from '@clarify-labs/renderer/preview'
+import { MdxPreview, OpenApiPreview } from '@clarify-labs/renderer/preview'
 
 import { site } from './content'
 import { AnnouncementBadge } from './ui/elements/announcement-badge'
@@ -16,6 +16,7 @@ import { FeatureWithDemo, FeaturesTwoColumnWithDemos } from './ui/sections/featu
 import { HeroLeftAlignedWithDemo } from './ui/sections/hero-left-aligned-with-demo'
 import { PlanComparisonTable } from './ui/sections/plan-comparison-table'
 import { Plan, PricingMultiTier } from './ui/sections/pricing-multi-tier'
+import { ProductDemo } from './ui/sections/product-demo'
 import { Stat, StatsFourColumns } from './ui/sections/stats-four-columns'
 import { Testimonial, TestimonialThreeColumnGrid } from './ui/sections/testimonials-three-column-grid'
 
@@ -181,14 +182,6 @@ function TestimonialsSection() {
         />
       ))}
     </TestimonialThreeColumnGrid>
-  )
-}
-
-function ProductDemo() {
-  return (
-    <Screenshot className="rounded-lg" wallpaper="blue" placement="bottom">
-      <MainPreview />
-    </Screenshot>
   )
 }
 
