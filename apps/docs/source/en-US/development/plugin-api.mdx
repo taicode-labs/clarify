@@ -265,6 +265,7 @@ Recommended replacement slots:
 
 ```ts
 export type ClarifyUIReplaceableSlotName =
+  | 'page.banner.replace'
   | 'page.footer.replace'
   | 'page.navigation.replace'
   | 'layout.header.replace'
@@ -303,6 +304,28 @@ export default function CustomFooter() {
 4. **Separated from extension slots**: `RuntimeSlot` handles extension slots (possibly rendering multiple components); replacement slots are handled by a separate `ReplaceableSlot` (renders at most one component, otherwise falls back to the default).
 
 This keeps replacement capability from polluting the multi-component rendering model of extension slots, and avoids making `RuntimeSlot` carry both append and replace semantics.
+
+---
+
+### Relationship to the existing banner/footer component loading
+
+This is a design decision that needs to be explicit. Clarify already supports configuring `banner` and `footer` as a component path; the CLI compiles it into `virtual:clarify-runtime`, and `AppShell` uses it to replace the built-in `PageBanner` / `PageFooter`.
+
+That mechanism **overlaps** with replacement slots (`page.footer.replace`, etc.) — both replace a built-in region component with a custom one. Keeping both mechanisms causes several problems:
+
+- Two different configuration entry points (a component path in `clarify.ts` vs a plugin `slots` declaration) do the same thing, forcing users to learn two mental models.
+- When both target the same region, precedence and conflict rules become ambiguous.
+- Double the maintenance: component loading, SSR injection, and type generation all have to be implemented twice.
+
+Conclusion: **once replacement slots land, they should be the single region-replacement mechanism, and the existing banner/footer component-path loading should converge into them rather than coexist.**
+
+Recommended convergence:
+
+1. **Keep the pure-config form**: using `banner` / `footer` as a config object (links, copy, social entries, etc.) stays unchanged. That is not component replacement and does not overlap with slots.
+2. **Move the component form onto replacement slots**: the current "`banner`/`footer` accepts a component path" usage is equivalent to a built-in official plugin that owns `page.banner.replace` / `page.footer.replace`. Component loading, the `DefaultComponent` fallback, and SSR injection all reuse the same slot pathway.
+3. **Transitional compatibility**: internally, the "component path config" can be implemented as sugar that auto-registers the corresponding replacement slot, staying backward compatible for users while keeping only one underlying implementation path.
+
+This preserves the existing capability while avoiding long-term maintenance of two equivalent mechanisms after slots are introduced.
 
 ---
 

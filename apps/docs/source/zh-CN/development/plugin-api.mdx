@@ -265,6 +265,7 @@ export type ClarifyPlugin = {
 
 ```ts
 export type ClarifyUIReplaceableSlotName =
+  | 'page.banner.replace'
   | 'page.footer.replace'
   | 'page.navigation.replace'
   | 'layout.header.replace'
@@ -303,6 +304,28 @@ export default function CustomFooter() {
 4. **与扩展型分离**：`RuntimeSlot` 处理扩展型插槽（可能渲染多个组件）；替换型插槽由独立的 `ReplaceableSlot` 处理（最多渲染一个组件，否则回退到默认组件）。
 
 这样替换能力不会污染扩展型插槽的多组件渲染模型，也不会让 `RuntimeSlot` 同时承担“追加”和“替换”两种语义。
+
+---
+
+### 与现有 banner/footer 组件加载的关系
+
+这是一个需要明确的设计决策：Clarify 目前已经支持把 `banner` 和 `footer` 配置为组件路径，CLI 会把它编译进 `virtual:clarify-runtime`，由 `AppShell` 用它替换内置的 `PageBanner` / `PageFooter`。
+
+这套机制与替换型插槽（`page.footer.replace` 等）在能力上是**重复的**——两者都是“用自定义组件替换内置区域组件”。如果两套机制同时存在，会带来几个问题：
+
+- 两条不同的配置入口（`clarify.ts` 的组件路径 vs 插件 `slots` 声明）做同一件事，用户需要理解两套心智模型。
+- 当两者同时配置同一区域时，优先级和冲突规则会变得含糊。
+- 维护成本翻倍：组件加载、SSR 注入、类型生成都要各做一遍。
+
+因此结论是：**替换型插槽一旦落地，就应该成为唯一的区域替换机制，现有的 banner/footer 组件路径加载应收敛进来，而不是并存。**
+
+推荐的收敛方向：
+
+1. **保留纯配置形态**：`banner` / `footer` 作为“配置对象”（链接、文案、社交项等）的用法保持不变，这部分不是组件替换，不与插槽重叠。
+2. **组件形态迁移到替换型插槽**：现在“`banner`/`footer` 接收组件路径”的用法，等价于内置一个占用 `page.banner.replace` / `page.footer.replace` 的官方插件。组件加载、`DefaultComponent` 回退、SSR 注入都复用插槽的同一条通路。
+3. **过渡期兼容**：可以在内部把“组件路径配置”实现为自动注册对应替换型插槽的语法糖，对用户保持向后兼容，底层只保留插槽一条实现路径。
+
+这样既不削弱现有能力，也避免在引入插槽后长期维护两套等价机制。
 
 ---
 
