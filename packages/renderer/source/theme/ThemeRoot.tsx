@@ -24,7 +24,6 @@ export function ThemeRoot(props: ThemeRootProps) {
     <div
       className="clarify-app h-full min-h-screen bg-(--clarify-theme-tokens-colors-background) text-(--clarify-theme-tokens-colors-foreground)"
       data-theme-preset={theme.preset}
-      style={themeVariables}
     >
       {children}
       {themeEditor ? <ThemeEditor initialTheme={theme} /> : null}
