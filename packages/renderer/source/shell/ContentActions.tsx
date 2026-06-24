@@ -129,6 +129,7 @@ export function ContentActions(arg0: ContentActionsProps) {
           </MenuButton>
         </div>
         <MenuItems
+          modal={false}
           anchor="bottom end"
           className="clarify-content-actions-list clarify-ui-menu z-30 mt-2 w-(--clarify-ui-action-menu-width) origin-top-right rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1.5 shadow-xl shadow-zinc-900/5 transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
         >
