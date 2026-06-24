@@ -1,17 +1,19 @@
 import clsx from 'clsx'
-import { Suspense, lazy, useEffect, useMemo } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import type { ComponentType } from 'react'
-import { Link, Routes, Route, useLocation } from 'react-router-dom'
+import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
 import { ClarifyLocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
 import { Header, Navigation } from '../shell'
+import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
 import type { RouteItem, ClarifyConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { PageErrorBoundary } from './ErrorBoundary'
 import { PageActionsProvider } from './PageActions'
+import { PageBanner } from './PageBanner'
 import { PageFooter } from './PageFooter'
 import { PageNavigation } from './PageNavigation'
 import { PageSkeleton } from './PageSkeleton'
@@ -21,6 +23,7 @@ export type AppShellProps = {
   config: ClarifyConfig
   routes: RouteItem[]
   navigation: NavigationTree
+  bannerComponent?: ComponentType
   footerComponent?: ComponentType
 }
 
@@ -65,12 +68,23 @@ function scrollToHash(hash: string) {
   })
 }
 
-function localeForPath(config: ClarifyConfig, pathname: string, route?: RouteItem): string | undefined {
-  if (route?.locale) return route.locale
+function explicitLocaleForPath(config: ClarifyConfig, pathname: string): string | undefined {
   const i18n = config.i18n
   if (!i18n) return undefined
   const firstSegment = pathname.split('/').filter(Boolean)[0]
-  return i18n.locales.find((locale) => locale.code === firstSegment)?.code ?? i18n.defaultLocale
+  return i18n.locales.find((locale) => locale.code === firstSegment)?.code
+}
+
+function fallbackLocale(config: ClarifyConfig): string | undefined {
+  return config.i18n?.defaultLocale
+}
+
+function storedLocaleForConfig(config: ClarifyConfig): string | null {
+  return getStoredLocalePreference(config.i18n?.locales.map(locale => locale.code))
+}
+
+function isDefaultLocale(config: ClarifyConfig, locale: string | undefined): boolean {
+  return Boolean(locale && config.i18n?.defaultLocale === locale)
 }
 
 function isTabbedNavigation(navigation: NavigationTree): navigation is TabbedNavigation {
@@ -157,16 +171,22 @@ function NotFoundRouteElement(props: NotFoundRouteElementProps) {
 }
 
 export function AppShell(arg0: AppShellProps) {
-  const { config, routes, navigation, footerComponent } = arg0
+  const { config, routes, navigation, bannerComponent, footerComponent } = arg0
   const location = useLocation()
+  const navigate = useNavigate()
   const pathname = normalizeRoutePath(location.pathname)
   const currentRoute = routeForPath(routes, pathname)
-  const currentLocale = localeForPath(config, pathname, currentRoute)
+  const explicitLocale = explicitLocaleForPath(config, pathname)
+  const [storedLocale] = useState(() => storedLocaleForConfig(config))
+  const currentLocale = explicitLocale ?? storedLocale ?? fallbackLocale(config)
   const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
   const notFoundRoute = currentRoute ? undefined : notFoundRouteForPath(routes, pathname, currentLocale)
   const text = useBuiltInText(currentLocale)
   const currentNavigation = navigationForLocale(navigation, currentLocale, pathname)
   const sections = sectionsForRoute(currentRoute)
+  const [dismissedBannerKey, setDismissedBannerKey] = useState<string>()
+  const activeBannerKey = config.banner ? JSON.stringify(config.banner) : undefined
+  const hasBanner = Boolean(config.banner) && dismissedBannerKey !== activeBannerKey
   const hasTabs = Boolean(currentNavigation.tabs?.length)
   const renderRoutes = useMemo(
     () => routes.map(route => ({ ...route, component: resolveRouteComponent(route) })),
@@ -175,6 +195,17 @@ export function AppShell(arg0: AppShellProps) {
   const NotFoundRouteComponent = notFoundRoute
     ? renderRoutes.find(route => isSameRoutePath(route.path, notFoundRoute.path))?.component
     : undefined
+
+  useEffect(() => {
+    if (explicitLocale) storeLocalePreference(explicitLocale)
+  }, [explicitLocale])
+
+  useEffect(() => {
+    if (explicitLocale || !storedLocale || isDefaultLocale(config, storedLocale)) return
+    const localizedPath = currentRoute?.alternates?.[storedLocale]
+    if (!localizedPath || isSameRoutePath(localizedPath, pathname)) return
+    navigate(`${localizedPath}${location.search}${location.hash}`, { replace: true })
+  }, [config, currentRoute, explicitLocale, location.hash, location.search, navigate, pathname, storedLocale])
 
   useEffect(() => {
     if (location.hash) {
@@ -212,6 +243,7 @@ export function AppShell(arg0: AppShellProps) {
           routes={routes}
           currentLocale={currentLocale}
           currentRoute={currentRoute}
+          banner={hasBanner ? <PageBanner component={bannerComponent} currentLocale={currentLocale} onDismiss={() => setDismissedBannerKey(activeBannerKey)} /> : undefined}
         />
         <div className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)">
           <aside
@@ -221,13 +253,24 @@ export function AppShell(arg0: AppShellProps) {
             <div
               className={clsx(
                 'clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8',
-                hasTabs ? 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-10' : 'lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-10',
+                hasTabs && hasBanner && 'lg:top-40 lg:h-(--clarify-sidebar-height-with-tabs-and-banner) lg:pt-10',
+                hasTabs && !hasBanner && 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-10',
+                !hasTabs && hasBanner && 'lg:top-[6.5rem] lg:h-(--clarify-sidebar-height-with-banner) lg:pt-10',
+                !hasTabs && !hasBanner && 'lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-10',
               )}
             >
               <Navigation navigation={currentNavigation.items} />
             </div>
           </aside>
-          <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10', hasTabs ? 'pt-14 lg:pt-28' : 'pt-14')}>
+          <div
+            className={clsx(
+              'clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10',
+              hasTabs && hasBanner && 'pt-[6.5rem] lg:pt-40',
+              hasTabs && !hasBanner && 'pt-14 lg:pt-28',
+              !hasTabs && hasBanner && 'pt-[6.5rem]',
+              !hasTabs && !hasBanner && 'pt-14',
+            )}
+          >
             <PageActionsProvider route={currentRoute} routePrefix={config.routePrefix}>
               <main className="clarify-main min-w-0 flex-auto" data-pagefind-body>
                 <PageErrorBoundary

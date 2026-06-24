@@ -61,10 +61,16 @@ export const clarifyNavbarLinkSchema = z.object({
   external: z.boolean().optional(),
 })
 
-export const clarifyBannerConfigSchema = z.object({
+export const clarifyBannerConfigOptionsSchema = z.object({
   content: clarifyLocalizedTextSchema,
   dismissible: z.boolean().optional(),
-})
+  link: clarifyNavbarLinkSchema.optional(),
+}).strict()
+
+export const clarifyBannerConfigSchema = z.union([
+  clarifyBannerConfigOptionsSchema,
+  z.string(),
+])
 
 export const clarifyFooterLinksConfigSchema = z.object({
   links: z.array(clarifyNavbarLinkSchema).optional(),
@@ -171,6 +177,7 @@ export const clarifyProjectConfigSchema = z.object({
   siteUrl: z.string().optional(),
   source: clarifySourceConfigSchema.optional(),
   logo: clarifyLogoConfigSchema.optional(),
+  homeUrl: z.string().optional(),
   favicon: clarifyFaviconConfigSchema.optional(),
   theme: clarifyThemeConfigSchema.optional(),
   routePrefix: z.string().optional(),

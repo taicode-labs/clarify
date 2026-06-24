@@ -6,6 +6,7 @@ import { forwardRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useBuiltInText } from '../i18n'
+import { storeLocalePreference } from '../theme/cookies'
 import { ThemeToggle } from '../theme/ThemeToggle'
 import type { ClarifyConfig, ClarifyLocalizedText, ClarifyLocaleConfig, ClarifyNavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
 import { isExternalHref, localizeHref } from '../utils/href'
@@ -65,6 +66,7 @@ function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, curren
               {({ focus }) => (
                 <Link
                   to={`${localizedPath}${suffix}`}
+                  onClick={() => storeLocalePreference(locale.code)}
                   className={clsx(
                     'clarify-language-switcher-item clarify-ui-menu-item flex items-center justify-between rounded-(--clarify-theme-tokens-radius-lg) px-3 py-2 no-underline transition',
                     focus && 'clarify-ui-menu-item-focus',
@@ -120,6 +122,11 @@ function TopLevelNavItem(arg0: TopLevelNavItemProps) {  const { href, children }
 }
 
 type MobileNavbarMenuProps = { links?: ClarifyNavbarLink[]; config: ClarifyConfig; currentLocale?: string }
+
+function resolveHomeHref(config: ClarifyConfig, currentLocale?: string): string {
+  const homeUrl = config.homeUrl ?? '/'
+  return isExternalHref(homeUrl) ? homeUrl : localizeHref(homeUrl, config, currentLocale)
+}
 
 function MobileNavbarMenu(arg0: MobileNavbarMenuProps) {
   const { links, config, currentLocale } = arg0
@@ -228,12 +235,15 @@ export const Header = forwardRef<
     routes: RouteItem[]
     currentLocale?: string
     currentRoute?: RouteItem
+    banner?: React.ReactNode
   }
->(function Header(arg0, ref) {  const { config, navigation, tabs, routes, currentLocale, currentRoute, className, ...props } = arg0
+>(function Header(arg0, ref) {  const { config, navigation, tabs, routes, currentLocale, currentRoute, banner, className, ...props } = arg0
 
   const t = useBuiltInText()
   const { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
+  const homeHref = resolveHomeHref(config, currentLocale)
+  const homeExternal = isExternalHref(homeHref)
 
   const { scrollY } = useScroll()
   const bgOpacityLight = useTransform(scrollY, [0, 72], ['70%', '95%'])
@@ -266,10 +276,17 @@ export const Header = forwardRef<
           <div className="clarify-mobile-brand flex items-center gap-5 lg:hidden">
             <MobileNavigation config={config} navigation={navigation} tabs={tabs} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
           </div>
-          <CloseButton as={Link} to={localizeHref('/', config, currentLocale)} aria-label={t('navbar.home')} className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
-            <SiteLogo logo={config.logo} className="h-6 w-auto shrink-0 object-contain" />
-            <span className="clarify-brand-title truncate font-semibold">{config.title}</span>
-          </CloseButton>
+          {homeExternal ? (
+            <CloseButton as="a" href={homeHref} aria-label={t('navbar.home')} className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
+              <SiteLogo logo={config.logo} className="h-6 w-auto shrink-0 object-contain" />
+              <span className="clarify-brand-title truncate font-semibold">{config.title}</span>
+            </CloseButton>
+          ) : (
+            <CloseButton as={Link} to={homeHref} aria-label={t('navbar.home')} className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
+              <SiteLogo logo={config.logo} className="h-6 w-auto shrink-0 object-contain" />
+              <span className="clarify-brand-title truncate font-semibold">{config.title}</span>
+            </CloseButton>
+          )}
         </div>
         <div className="clarify-header-center absolute left-1/2 hidden -translate-x-1/2 lg:block">
           <Search routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
@@ -293,6 +310,7 @@ export const Header = forwardRef<
           <MobileNavbarMenu links={config.navbar?.links} config={config} currentLocale={currentLocale} />
         </div>
       </div>
+      {banner}
       <ProductTabs tabs={tabs} />
     </motion.header>
   )

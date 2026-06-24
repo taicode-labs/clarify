@@ -2,6 +2,7 @@ import './styles.css'
 
 import { AppShell } from './app/AppShell'
 import { BuiltWithClarify } from './app/BuiltWithClarify'
+import { PageBanner } from './app/PageBanner'
 import { PageFooter } from './app/PageFooter'
 import { SectionProvider, useSectionStore, type Section } from './app/SectionProvider'
 import { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Feedback, GridPattern, Heading, HeroPattern, Logo, Pre, Prose, Tag, WebFrame } from './components'
@@ -15,6 +16,7 @@ import { render } from './runtime/render'
 import { applyClarifyThemeVariables, clarifyThemeEditorPresets, ThemeEditor } from './theme/ThemeEditor'
 import { ThemeProvider, useTheme } from './theme/ThemeProvider'
 import { ThemeToggle } from './theme/ThemeToggle'
+import { clarifyThemePresets, themeBootstrapScript } from './theme/variables'
 import type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions } from './types'
 import { remToPx } from './utils/remToPx'
 
@@ -23,7 +25,7 @@ export type { ThemeEditorProps } from './theme/ThemeEditor'
 export type { ClarifyConfig, RouteItem, RenderOptions, ServerRenderOptions, Section }
 
 // App and runtime exports
-export { AppShell, render, ClarifyConfigContext, OpenApisContext, useClarifyConfig, useOpenApis, BuiltWithClarify, PageFooter, ThemeProvider, ThemeToggle, ThemeEditor, useTheme, SectionProvider, useSectionStore, remToPx, applyClarifyThemeVariables, clarifyThemeEditorPresets }
+export { AppShell, render, ClarifyConfigContext, OpenApisContext, useClarifyConfig, useOpenApis, BuiltWithClarify, PageBanner, PageFooter, ThemeProvider, ThemeToggle, ThemeEditor, useTheme, SectionProvider, useSectionStore, remToPx, applyClarifyThemeVariables, clarifyThemeEditorPresets, clarifyThemePresets, themeBootstrapScript }
 
 // Built-in MDX and UI components
 export { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Pre, Prose, Heading, Logo, GridPattern, HeroPattern, Feedback, Tag, WebFrame }

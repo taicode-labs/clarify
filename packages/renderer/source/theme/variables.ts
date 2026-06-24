@@ -22,7 +22,7 @@ export const clarifyThemePresets = {
         foreground: '#111827',
         surface: '#ffffff',
         muted: '#64748b',
-        border: 'rgb(15 23 42 / 0.08)',
+        border: 'rgb(15 23 42 / 0.12)',
         codeBackground: '#f6fbf8',
       },
       radius: {

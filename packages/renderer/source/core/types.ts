@@ -63,10 +63,15 @@ export type ClarifyNavbarLink = {
   external?: boolean;
 };
 
-export type ClarifyBannerConfig = {
+export type ClarifyBannerComponentPath = string;
+
+export type ClarifyBannerConfigOptions = {
   content: ClarifyLocalizedText;
   dismissible?: boolean;
+  link?: ClarifyNavbarLink;
 };
+
+export type ClarifyBannerConfig = ClarifyBannerConfigOptions | ClarifyBannerComponentPath;
 
 export type ClarifyFooterLinksConfig = {
   links?: ClarifyNavbarLink[];
@@ -161,6 +166,7 @@ export type ClarifyTabsConfig = ClarifyTabItem[];
 export type ClarifyConfig = {
   title: string;
   logo?: ClarifyLogoConfig;
+  homeUrl?: string;
   favicon?: ClarifyFaviconConfig;
   theme: ClarifyThemeConfig;
   description: string;
@@ -201,6 +207,8 @@ export type RenderOptions = {
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
+  /** Custom banner component imported from a configured banner path. */
+  bannerComponent?: ComponentType;
   /** Custom footer component imported from a configured footer path. */
   footerComponent?: ComponentType;
   /** Whether to render the live theme editor inside the app tree. */
@@ -222,6 +230,8 @@ export type ServerRenderOptions = {
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
+  /** Custom banner component imported from a configured banner path. */
+  bannerComponent?: ComponentType;
   /** Custom footer component imported from a configured footer path. */
   footerComponent?: ComponentType;
   /** Whether to render the live theme editor inside the app tree. */

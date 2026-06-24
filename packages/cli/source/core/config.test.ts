@@ -64,6 +64,7 @@ describe('resolveProjectConfig', () => {
       siteUrl: undefined,
       source: undefined,
       logo: undefined,
+      homeUrl: undefined,
       favicon: undefined,
       routePrefix: '/',
       theme: {
@@ -106,6 +107,7 @@ describe('resolveProjectConfig', () => {
       siteUrl: 'https://docs.example.com',
       source: { repository: 'https://github.com/acme/docs' },
       theme: { tokens: { colors: { primary: '#333' } }, editor: true },
+      homeUrl: 'https://example.com',
       favicon: '/favicon.svg',
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
       banner: { content: 'v2 is out', dismissible: true },
@@ -129,6 +131,7 @@ describe('resolveProjectConfig', () => {
     expect(result.theme.tokens.colors.primary).toBe('#333')
     expect(result.theme.layout).toEqual({ maxWidth: '82rem' })
     expect(result.theme.editor).toBe(true)
+    expect(result.homeUrl).toBe('https://example.com')
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })

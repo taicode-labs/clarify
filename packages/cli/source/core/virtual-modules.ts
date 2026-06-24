@@ -11,11 +11,13 @@ export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 export type VirtualModules = Map<string, string>
 
 type RuntimeImports = {
+  bannerComponent?: string
   footerComponent?: string
 }
 
 type RuntimeModuleOptions = {
   imports?: RuntimeImports
+  bannerComponentSource?: 'path'
   footerComponentSource?: 'path'
 }
 
@@ -78,15 +80,24 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
 }
 
 export function createRuntimeModule(options: RuntimeModuleOptions = {}): string {
-  const footerComponentImport = options.footerComponentSource === 'path' && options.imports?.footerComponent
-    ? `import FooterComponent from ${moduleSpecifier(options.imports.footerComponent)};`
-    : ''
+  const imports = [
+    options.bannerComponentSource === 'path' && options.imports?.bannerComponent
+      ? `import BannerComponent from ${moduleSpecifier(options.imports.bannerComponent)};`
+      : undefined,
+    options.footerComponentSource === 'path' && options.imports?.footerComponent
+      ? `import FooterComponent from ${moduleSpecifier(options.imports.footerComponent)};`
+      : undefined,
+  ].filter(Boolean).join('\n')
+  const bannerComponent = options.bannerComponentSource === 'path'
+    ? 'BannerComponent'
+    : 'undefined'
   const footerComponent = options.footerComponentSource === 'path'
     ? 'FooterComponent'
     : 'undefined'
-  return `${footerComponentImport}
-export const openApis = {};
+  const exports = `export const openApis = {};
+export const bannerComponent = ${bannerComponent};
 export const footerComponent = ${footerComponent};`
+  return imports ? `${imports}\n${exports}` : exports
 }
 
 export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {
@@ -95,13 +106,18 @@ import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
-import { openApis, footerComponent } from '${VIRTUAL_RUNTIME}';
-render({ config, routes, navigation, openApis, footerComponent, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
+import { openApis, bannerComponent, footerComponent } from '${VIRTUAL_RUNTIME}';
+render({ config, routes, navigation, openApis, bannerComponent, footerComponent, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
 }
 
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
   const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
+  const bannerComponent = args.projectConfig.banner
+  const bannerComponentSource = typeof bannerComponent === 'string'
+    ? 'path'
+    : undefined
+  const bannerComponentImport = typeof bannerComponent === 'string' ? bannerComponent : undefined
   const footerComponent = args.projectConfig.footer
   const footerComponentSource = typeof footerComponent === 'string'
     ? 'path'
@@ -110,7 +126,7 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
-  modules.set(VIRTUAL_RUNTIME, createRuntimeModule({ footerComponentSource, imports: { footerComponent: footerComponentImport } }))
+  modules.set(VIRTUAL_RUNTIME, createRuntimeModule({ bannerComponentSource, footerComponentSource, imports: { bannerComponent: bannerComponentImport, footerComponent: footerComponentImport } }))
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
 

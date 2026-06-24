@@ -141,7 +141,9 @@
     --clarify-layout-sidebar-grid: 18rem minmax(0, 1fr);
     --clarify-layout-sidebar-grid-wide: 20rem minmax(0, 1fr);
     --clarify-sidebar-height: calc(100vh - 3.5rem);
+    --clarify-sidebar-height-with-banner: calc(100vh - 6.5rem);
     --clarify-sidebar-height-with-tabs: calc(100vh - 7rem);
+    --clarify-sidebar-height-with-tabs-and-banner: calc(100vh - 10rem);
     --clarify-popover-max-width: min(32rem, calc(100vw - 2rem));
     --clarify-code-header-min-height: calc(3rem + 1px);
     --clarify-feedback-actions-grid: 1fr 1px 1fr;
