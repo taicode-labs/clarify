@@ -1,5 +1,5 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
-import type { ComponentType } from 'react'
+import type { ComponentType as ReactComponentType } from 'react'
 import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
 import type { ResolvedBuildOptions } from './core/options.js'
@@ -436,7 +436,7 @@ export type ClarifySlotContext = {
   /** Current locale, for example `zh-CN` or `en-US`. */
   locale?: string
   /** Built-in default component for replacement slots. */
-  DefaultComponent?: ComponentType
+  DefaultComponent?: ReactComponentType
 }
 
 export type ClarifyPlugin = {
@@ -444,3 +444,8 @@ export type ClarifyPlugin = {
   hooks: Partial<ClarifyHooks>
   slots?: ClarifyUISlotRegistration[]
 }
+
+/**
+ * React component type, re-exported for clarity in plugin APIs.
+ */
+export type { ReactComponentType }

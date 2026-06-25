@@ -23,11 +23,11 @@ declare module 'virtual:clarify-slot' {
 }
 
 declare module 'virtual:clarify-runtime-slots' {
-  import type { ComponentType } from '@clarify-labs/cli'
+  import type { ReactComponentType } from '@clarify-labs/cli'
 
   export type RuntimeSlotEntry = {
     plugin: string
-    component: ComponentType
+    component: ReactComponentType
   }
 
   export const runtimeSlots: Record<string, RuntimeSlotEntry[]>
