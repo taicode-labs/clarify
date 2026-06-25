@@ -98,8 +98,8 @@ const VALID_SLOT_NAMES = new Set([
 
 /**
  * Collect every plugin's `slots` declarations into a single runtime registry
- * module. Each unique component module is imported once and grouped by slot
- * name, preserving plugin registration order.
+ * module. Component modules are exported as lazy import factories so the
+ * renderer can decide whether to code-split (client) or pre-resolve (SSR).
  */
 export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = []): string {
   const registrations: { plugin: string; slot: ClarifyUISlotRegistration }[] = []
@@ -116,20 +116,9 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = []): string 
     return 'export const runtimeSlots = {};\n'
   }
 
-  // Import each distinct component module once and reuse the local binding.
-  const componentBindings = new Map<string, string>()
-  const imports: string[] = []
-  for (const { slot } of registrations) {
-    if (componentBindings.has(slot.component)) continue
-    const binding = `Slot${componentBindings.size}`
-    componentBindings.set(slot.component, binding)
-    imports.push(`import ${binding} from ${moduleSpecifier(slot.component)};`)
-  }
-
   const grouped = new Map<string, string[]>()
   for (const { plugin, slot } of registrations) {
-    const binding = componentBindings.get(slot.component) as string
-    const entry = `{ plugin: ${JSON.stringify(plugin)}, component: ${binding} }`
+    const entry = `{ plugin: ${JSON.stringify(plugin)}, component: () => import(${moduleSpecifier(slot.component)}) }`
     const list = grouped.get(slot.name) ?? []
     list.push(entry)
     grouped.set(slot.name, list)
@@ -139,7 +128,7 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = []): string 
     .map(([name, list]) => `  ${JSON.stringify(name)}: [\n    ${list.join(',\n    ')}\n  ]`)
     .join(',\n')
 
-  return `${imports.join('\n')}\n\nexport const runtimeSlots = {\n${entries}\n};\n`
+  return `export const runtimeSlots = {\n${entries}\n};\n`
 }
 
 /**

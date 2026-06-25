@@ -39,11 +39,12 @@ declare module 'virtual:clarify/slot' {
 }
 
 declare module 'virtual:clarify/slots' {
-  import type { ReactComponentType } from '@clarify-labs/cli';
+  import type { ComponentType } from 'react'
 
   export type RuntimeSlotEntry = {
     plugin: string;
-    component: ReactComponentType;
+    /** Lazy import factory — yields the default-exported React component. */
+    component: () => Promise<{ default: ComponentType }>;
   };
 
   export const runtimeSlots: Record<string, RuntimeSlotEntry[]>;

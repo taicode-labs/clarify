@@ -26,30 +26,13 @@ const spec: OpenAPISpec = {
 
 describe('openapi virtual modules', () => {
   it('uses the shared Clarify runtime virtual module id', () => {
-    expect(openApiRegistryModuleId).toBe('virtual:clarify-runtime')
+    expect(openApiRegistryModuleId).toBe('virtual:clarify/openapi')
   })
 
   it('generates the OpenAPI registry module', () => {
     const code = generateOpenAPIRegistryModule({ 'virtual:clarify-page/api': spec })
     expect(code).toContain('export const openApis =')
     expect(code).toContain('Example API')
-  })
-
-  it('preserves other runtime module exports', () => {
-    const code = generateOpenAPIRegistryModule(
-      { 'virtual:clarify-page/api': spec },
-      'export const openApis = {};\nexport const footerComponent = undefined;',
-    )
-    expect(code).toContain('export const footerComponent = undefined;')
-    expect(code).toContain('Example API')
-  })
-
-  it('does not append duplicate openApis exports when the placeholder is missing', () => {
-    const code = generateOpenAPIRegistryModule(
-      { 'virtual:clarify-page/api': spec },
-      'export const footerComponent = undefined;',
-    )
-    expect(code).toBe('export const footerComponent = undefined;')
   })
 
   it('generates an OpenAPI route component module', () => {

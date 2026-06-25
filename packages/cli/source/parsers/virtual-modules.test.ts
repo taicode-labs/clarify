@@ -96,15 +96,7 @@ describe('generateRoutesModule', () => {
 
 describe('createRuntimeModule', () => {
   it('provides empty runtime extension data by default', () => {
-    expect(createRuntimeModule()).toBe('export const openApis = {};\nexport const bannerComponent = undefined;\nexport const footerComponent = undefined;')
-  })
-
-  it('imports a configured banner component path', () => {
-    expect(createRuntimeModule({ bannerComponentSource: 'path', imports: { bannerComponent: './source/Banner.tsx' } })).toBe('import BannerComponent from "./source/Banner.tsx";\nexport const openApis = {};\nexport const bannerComponent = BannerComponent;\nexport const footerComponent = undefined;')
-  })
-
-  it('imports a configured footer component path', () => {
-    expect(createRuntimeModule({ footerComponentSource: 'path', imports: { footerComponent: './source/Footer.tsx' } })).toBe('import FooterComponent from "./source/Footer.tsx";\nexport const openApis = {};\nexport const bannerComponent = undefined;\nexport const footerComponent = FooterComponent;')
+    expect(createRuntimeModule()).toBe('export const openApis = {};')
   })
 })
 
@@ -112,9 +104,8 @@ describe('createClientEntryModule', () => {
   it('passes the theme editor flag to the renderer', () => {
     const code = createClientEntryModule({ themeEditor: true })
 
-    expect(code).toContain("import { openApis, bannerComponent, footerComponent } from 'virtual:clarify-runtime';")
-    expect(code).toContain("import { runtimeSlots } from 'virtual:clarify-runtime-slots';")
-    expect(code).toContain('render({ config, routes, navigation, openApis, bannerComponent, footerComponent, runtimeSlots, themeEditor: true });')
+    expect(code).toContain("import { runtimeSlots } from 'virtual:clarify/slots';")
+    expect(code).toContain('render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: true });')
     expect(code).not.toContain('ThemeEditor')
     expect(code).not.toContain('react-dom/client')
   })
@@ -134,7 +125,7 @@ describe('createRuntimeSlotsModule', () => {
     expect(createRuntimeSlotsModule([{ name: 'p', hooks: {} }])).toBe('export const runtimeSlots = {};\n')
   })
 
-  it('imports each component once and groups entries by slot name', () => {
+  it('stores component import factories and groups entries by slot name', () => {
     const plugins: ClarifyPlugin[] = [
       {
         name: 'clarify:github-comments',
@@ -147,14 +138,13 @@ describe('createRuntimeSlotsModule', () => {
 
     const code = createRuntimeSlotsModule(plugins)
 
-    expect(code).toContain("import Slot0 from \"virtual:clarify-github-comments-slot\";")
+    expect(code).not.toContain('import ')
     expect(code).toContain('"page.footer.before": [')
     expect(code).toContain('plugin: "clarify:github-comments"')
-    expect(code).toContain('component: Slot0')
-
+    expect(code).toContain('component: () => import("virtual:clarify-github-comments-slot")')
   })
 
-  it('reuses the same import binding for a shared component module', () => {
+  it('stores each component import factory independently', () => {
     const plugins: ClarifyPlugin[] = [
       {
         name: 'a',
@@ -170,8 +160,7 @@ describe('createRuntimeSlotsModule', () => {
 
     const code = createRuntimeSlotsModule(plugins)
 
-    expect(code.match(/import Slot0 from/g)?.length).toBe(1)
-    expect(code).not.toContain('Slot1')
-    expect(code.match(/component: Slot0/g)?.length).toBe(2)
+    expect(code).not.toContain('import ')
+    expect(code.match(/import\("\.\/shared\.js"\)/g)?.length).toBe(2)
   })
 })

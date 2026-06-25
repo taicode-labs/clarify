@@ -1,4 +1,4 @@
-import { createContext, useContext, type ComponentType, type ReactNode } from 'react'
+import { createContext, lazy, Suspense, useContext, type ComponentType, type ReactNode } from 'react'
 
 import { useLocale } from '../core/context'
 import type { RouteItem } from '../core/types'
@@ -7,13 +7,20 @@ import { ClarifySlotProvider, type ClarifyUISlotName } from './context'
 
 /**
  * One registered slot component, as compiled by the CLI into
- * `virtual:clarify-runtime-slots`.
+ * `virtual:clarify/slots`.
+ *
+ * `component` is a lazy import factory `() => import('path')`. On the client
+ * it is passed to `React.lazy`. During SSR the factory is pre-resolved and
+ * the resulting component is stored in `_resolved`, which the renderer uses
+ * directly (no Suspense needed for `renderToString`).
  */
 export type RuntimeSlotEntry = {
   /** Plugin that registered this component, used as a stable render key. */
   plugin: string
-  /** The already-imported React component to render. */
-  component: ComponentType
+  /** Lazy import factory — `() => import('path')`. Set by CLI virtual module. */
+  component: () => Promise<{ default: ComponentType }>
+  /** @internal Pre-resolved component set by SSR before {@link renderToHTML}. */
+  _resolved?: ComponentType
 }
 
 /** Registry keyed by slot name. */
@@ -58,7 +65,10 @@ type RuntimeSlotProps = {
  * For replacement slots (*.replace), renders only the last registered plugin
  * component (if any), and passes the default component through context.
  *
- * Each component is wrapped in its own slot context provider.
+ * Each component is loaded via the import factory. If `_resolved` is set
+ * (SSR pre-resolution), the component is rendered synchronously for
+ * compatibility with `renderToString`. Otherwise, `React.lazy` + `Suspense`
+ * is used for client-side code-splitting.
  */
 export function RuntimeSlot(arg0: RuntimeSlotProps): ReactNode {
   const { name, default: DefaultComponent } = arg0
@@ -73,12 +83,11 @@ export function RuntimeSlot(arg0: RuntimeSlotProps): ReactNode {
   const isReplaceSlot = name.endsWith('.replace')
   if (isReplaceSlot) {
     const lastEntry = entries[entries.length - 1]
-    const Component = lastEntry.component
     return (
       <ClarifySlotProvider
         value={{ name, plugin: lastEntry.plugin, route, locale, DefaultComponent }}
       >
-        <Component />
+        <SlotEntryRenderer entry={lastEntry} />
       </ClarifySlotProvider>
     )
   }
@@ -86,17 +95,32 @@ export function RuntimeSlot(arg0: RuntimeSlotProps): ReactNode {
   // Extension slot (*.before/*.after): render all entries
   return (
     <>
-      {entries.map((entry) => {
-        const Component = entry.component
-        return (
-          <ClarifySlotProvider
-            key={`${name}:${entry.plugin}`}
-            value={{ name, plugin: entry.plugin, route, locale }}
-          >
-            <Component />
-          </ClarifySlotProvider>
-        )
-      })}
+      {entries.map((entry) => (
+        <ClarifySlotProvider
+          key={`${name}:${entry.plugin}`}
+          value={{ name, plugin: entry.plugin, route, locale }}
+        >
+          <SlotEntryRenderer entry={entry} />
+        </ClarifySlotProvider>
+      ))}
     </>
+  )
+}
+
+// ---- internal helpers ----
+
+function SlotEntryRenderer({ entry }: { entry: RuntimeSlotEntry }): ReactNode {
+  // SSR pre-resolved component — render synchronously (no Suspense needed)
+  if (entry._resolved) {
+    const Component = entry._resolved
+    return <Component />
+  }
+
+  // Client: lazy-load with code-splitting
+  const Component = lazy(entry.component)
+  return (
+    <Suspense fallback={null}>
+      <Component />
+    </Suspense>
   )
 }
