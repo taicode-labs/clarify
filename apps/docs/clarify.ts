@@ -1,4 +1,5 @@
 import { defineConfig } from '@clarify-labs/cli'
+import docsFooterPlugin from './plugin/index.js'
 
 export default defineConfig({
   title: 'Clarify',
@@ -416,4 +417,5 @@ export default defineConfig({
       ],
     },
   ],
+  plugins: [docsFooterPlugin],
 })

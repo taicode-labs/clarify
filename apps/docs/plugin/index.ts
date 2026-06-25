@@ -1,0 +1,18 @@
+import type { ClarifyPlugin } from '@clarify-labs/cli'
+
+/**
+ * Plugin: docs-footer
+ * Replaces the default footer with a custom site-specific design.
+ */
+const docsFooterPlugin: ClarifyPlugin = {
+  name: 'docs-footer',
+  hooks: {},
+  slots: [
+    {
+      name: 'page.footer.replace',
+      component: './source/Footer.tsx',
+    },
+  ],
+}
+
+export default docsFooterPlugin

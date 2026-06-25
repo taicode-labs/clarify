@@ -144,23 +144,38 @@ describe('createRuntimeSlotsModule', () => {
     expect(code).toContain('component: () => import("virtual:clarify-github-comments-slot")')
   })
 
-  it('stores each component import factory independently', () => {
+  it('resolves relative component paths against the project root', () => {
     const plugins: ClarifyPlugin[] = [
       {
         name: 'a',
         hooks: {},
-        slots: [{ name: 'page.footer.before', component: './shared.js' }],
+        slots: [{ name: 'page.footer.before', component: './my-component.tsx' }],
+      },
+    ]
+
+    const code = createRuntimeSlotsModule(plugins, '/project')
+
+    expect(code).not.toContain('import ')
+    expect(code).toContain('component: () => import("/project/my-component.tsx")')
+  })
+
+  it('stores each non-relative component path independently', () => {
+    const plugins: ClarifyPlugin[] = [
+      {
+        name: 'a',
+        hooks: {},
+        slots: [{ name: 'page.footer.before', component: 'some-pkg/Footer' }],
       },
       {
         name: 'b',
         hooks: {},
-        slots: [{ name: 'page.footer.before', component: './shared.js' }],
+        slots: [{ name: 'page.footer.before', component: 'some-pkg/Footer' }],
       },
     ]
 
     const code = createRuntimeSlotsModule(plugins)
 
     expect(code).not.toContain('import ')
-    expect(code.match(/import\("\.\/shared\.js"\)/g)?.length).toBe(2)
+    expect(code.match(/import\("some-pkg\/Footer"\)/g)?.length).toBe(2)
   })
 })

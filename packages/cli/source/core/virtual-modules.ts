@@ -1,3 +1,5 @@
+import { resolve } from 'path'
+
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../parsers/routes.js'
 import type { ClarifyPlugin, ClarifyUISlotRegistration, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
@@ -100,8 +102,12 @@ const VALID_SLOT_NAMES = new Set([
  * Collect every plugin's `slots` declarations into a single runtime registry
  * module. Component modules are exported as lazy import factories so the
  * renderer can decide whether to code-split (client) or pre-resolve (SSR).
+ *
+ * Relative component paths are resolved against the project `root` so that
+ * the generated `import()` call uses an absolute specifier — Vite cannot
+ * resolve relative imports from virtual modules.
  */
-export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = []): string {
+export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = [], root: string = process.cwd()): string {
   const registrations: { plugin: string; slot: ClarifyUISlotRegistration }[] = []
   for (const plugin of plugins) {
     for (const slot of plugin.slots ?? []) {
@@ -118,7 +124,10 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = []): string 
 
   const grouped = new Map<string, string[]>()
   for (const { plugin, slot } of registrations) {
-    const entry = `{ plugin: ${JSON.stringify(plugin)}, component: () => import(${moduleSpecifier(slot.component)}) }`
+    // Resolve relative component paths against the project root so that
+    // Vite can resolve the import from the virtual module.
+    const componentPath = slot.component.startsWith('.') ? resolve(root, slot.component) : slot.component
+    const entry = `{ plugin: ${JSON.stringify(plugin)}, component: () => import(${moduleSpecifier(componentPath)}) }`
     const list = grouped.get(slot.name) ?? []
     list.push(entry)
     grouped.set(slot.name, list)
@@ -167,7 +176,7 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
-  modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins))
+  modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))
   modules.set(VIRTUAL_OPENAPI, generateOpenApiModule())
   modules.set(VIRTUAL_SLOT, createSlotModule())
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
