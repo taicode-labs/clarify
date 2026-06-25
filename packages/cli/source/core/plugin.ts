@@ -11,6 +11,7 @@ import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } 
 
 import { createBuiltinPlugins } from './builtin.js'
 import { resolveProjectConfig } from './config.js'
+import { writeClarifyEnvDts } from './env-types.js'
 import { runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from './options.js'
 import { resolveClarifySite } from './site.js'
@@ -85,6 +86,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       generateOptions,
       routes,
       navigation: resolvedNavigation,
+      plugins: clarifyPlugins,
       themeEditor: viteConfig.command === 'serve' || projectConfig.theme.editor,
     })
     virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
@@ -150,6 +152,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     },
     async buildStart() {
       await rebuildVirtualModules()
+      writeClarifyEnvDts(root, clarifyPlugins)
     },
     async handleHotUpdate(ctx) {
       const changedFile = isAbsolute(ctx.file) ? ctx.file : join(root, ctx.file)

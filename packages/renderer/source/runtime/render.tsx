@@ -28,7 +28,7 @@ function isHydrationDebugEnabled(): boolean {
 }
 
 export function render(options: RenderOptions) {
-  const { config, routes, navigation, openApis = {}, bannerComponent, footerComponent, container, themeEditor = false } = options
+  const { config, routes, navigation, openApis = {}, runtimeSlots, container, themeEditor = false } = options
 
   const target = container ?? document.getElementById('root')
   if (!target) {
@@ -42,7 +42,7 @@ export function render(options: RenderOptions) {
           <OpenApisContext.Provider value={openApis}>
             <ThemeProvider>
               <ThemeRoot theme={config.theme} themeEditor={themeEditor}>
-                <AppShell config={config} routes={routes} navigation={navigation ?? []} bannerComponent={bannerComponent} footerComponent={footerComponent} />
+                <AppShell config={config} routes={routes} navigation={navigation ?? []} runtimeSlots={runtimeSlots} />
               </ThemeRoot>
             </ThemeProvider>
           </OpenApisContext.Provider>

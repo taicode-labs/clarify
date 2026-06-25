@@ -8,3 +8,6 @@ dist
 .turbo
 .reference
 .clarify.log
+
+# Clarify-generated ambient type declarations for virtual modules
+clarify-env.d.ts

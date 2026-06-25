@@ -1,6 +1,8 @@
 import { defineConfig } from '@clarify-labs/cli'
+import demoSlotsPlugin from './source/plugins/index.js'
 
 export default defineConfig({
+  plugins: [demoSlotsPlugin],
   title: 'Clarify Docs',
   description: 'A full-featured documentation starter powered by Clarify.',
   logo: '/logo.svg',

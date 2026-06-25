@@ -1,11 +1,12 @@
 import clsx from 'clsx'
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState, useContext } from 'react'
 import type { ComponentType, CSSProperties } from 'react'
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
-import { LocaleContext } from '../context'
+import { LocaleContext, useConfig, useLocale } from '../context'
 import { useBuiltInText } from '../core/i18n'
 import { Header, Navigation } from '../shell'
+import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots, RuntimeSlotsContext, ClarifySlotProvider } from '../slots'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
 import type { RouteItem, Config, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
@@ -23,8 +24,34 @@ export type AppShellProps = {
   config: Config
   routes: RouteItem[]
   navigation: NavigationTree
-  bannerComponent?: ComponentType
-  footerComponent?: ComponentType
+  runtimeSlots?: RuntimeSlots
+}
+
+function BannerSlot({
+  activeBannerKey,
+  dismissedBannerKey,
+  onDismiss,
+  config,
+  locale
+}: {
+  activeBannerKey: string | undefined
+  dismissedBannerKey: string | undefined
+  onDismiss: () => void
+  config: Config
+  locale?: string
+}) {
+  // 直接在插槽内部创建默认组件，这样它可以访问到上下文
+  function DefaultBannerComponent() {
+    const hasBanner = Boolean(config.banner) && dismissedBannerKey !== activeBannerKey
+    if (!hasBanner) return null
+    return <PageBanner currentLocale={locale} onDismiss={onDismiss} />
+  }
+  
+  return <RuntimeSlot name="page.banner.replace" default={DefaultBannerComponent} />
+}
+
+function DefaultFooterComponent() {
+  return <PageFooter />
 }
 
 function routeForPath(routes: RouteItem[], pathname: string): RouteItem | undefined {
@@ -171,7 +198,7 @@ function NotFoundRouteElement(props: NotFoundRouteElementProps) {
 }
 
 export function AppShell(arg0: AppShellProps) {
-  const { config, routes, navigation, bannerComponent, footerComponent } = arg0
+  const { config, routes, navigation, runtimeSlots } = arg0
   const location = useLocation()
   const navigate = useNavigate()
   const pathname = normalizeRoutePath(location.pathname)
@@ -235,6 +262,7 @@ export function AppShell(arg0: AppShellProps) {
 
   return (
     <LocaleContext.Provider value={currentLocale}>
+      <RuntimeSlotsProvider slots={runtimeSlots} route={currentRoute}>
       <SectionProvider sections={sections}>
         <Header
           config={config}
@@ -243,7 +271,15 @@ export function AppShell(arg0: AppShellProps) {
           routes={routes}
           currentLocale={currentLocale}
           currentRoute={currentRoute}
-          banner={hasBanner ? <PageBanner component={bannerComponent} currentLocale={currentLocale} onDismiss={() => setDismissedBannerKey(activeBannerKey)} /> : undefined}
+          banner={
+            <BannerSlot 
+              activeBannerKey={activeBannerKey}
+              dismissedBannerKey={dismissedBannerKey}
+              onDismiss={() => setDismissedBannerKey(activeBannerKey)}
+              config={config}
+              locale={currentLocale}
+            />
+          }
         />
         <div
           className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)"
@@ -312,11 +348,13 @@ export function AppShell(arg0: AppShellProps) {
                 </PageErrorBoundary>
               </main>
               <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
-              <PageFooter component={footerComponent} />
+              <RuntimeSlot name="page.footer.before" />
+              <RuntimeSlot name="page.footer.replace" default={DefaultFooterComponent} />
             </PageActionsProvider>
           </div>
         </div>
       </SectionProvider>
+      </RuntimeSlotsProvider>
     </LocaleContext.Provider>
   )
 }

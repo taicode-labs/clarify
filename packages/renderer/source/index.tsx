@@ -13,6 +13,7 @@ import { Markdown } from './mdx/Markdown'
 import { markdownRemarkPlugins } from './mdx/remark'
 import { OpenApiDocument, OpenApiOperation } from './openapi'
 import { render } from './runtime/render'
+import { ClarifySlotProvider, RuntimeSlot, RuntimeSlotsProvider, useClarifySlot } from './slots'
 import { applyThemeVariables, themeEditorPresets, ThemeEditor } from './theme/ThemeEditor'
 import { ThemeProvider, useTheme } from './theme/ThemeProvider'
 import { ThemeToggle } from './theme/ThemeToggle'
@@ -23,6 +24,7 @@ import { remToPx } from './utils/remToPx'
 export type { OpenApiOperationProps, OpenApiDocumentProps, OpenAPIOperation, OpenAPISpec } from './openapi'
 export type { ThemeEditorProps } from './theme/ThemeEditor'
 export type { Config, RouteItem, RenderOptions, ServerRenderOptions, Section }
+export type { ClarifySlotContext, ClarifyUISlotName, RuntimeSlotEntry, RuntimeSlots } from './slots'
 
 // App and runtime exports
 export { AppShell, render, ConfigContext, OpenApisContext, useConfig, useOpenApis, BuiltWithClarify, PageBanner, PageFooter, ThemeProvider, ThemeToggle, ThemeEditor, useTheme, SectionProvider, useSectionStore, remToPx, applyThemeVariables, themeEditorPresets, themePresets, themeBootstrapScript }
@@ -32,6 +34,9 @@ export { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Pre, Prose
 
 // MDX integration helpers
 export { DocShell, Markdown, useMDXComponents, markdownRemarkPlugins }
+
+// Plugin runtime UI slots
+export { ClarifySlotProvider, RuntimeSlot, RuntimeSlotsProvider, useClarifySlot }
 
 // OpenAPI components
 export { OpenApiDocument, OpenApiOperation }

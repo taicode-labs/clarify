@@ -1,31 +1,23 @@
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../parsers/routes.js'
-import type { ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
+import type { ClarifyPlugin, ClarifyUISlotRegistration, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
+export const VIRTUAL_SLOT = 'virtual:clarify-slot'
 export const VIRTUAL_CONFIG = 'virtual:clarify-config'
 export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
-export const VIRTUAL_SERVER_ROUTES = 'virtual:clarify-routes/server'
 export const VIRTUAL_RUNTIME = 'virtual:clarify-runtime'
+export const VIRTUAL_SERVER_ROUTES = 'virtual:clarify-routes/server'
+export const VIRTUAL_RUNTIME_SLOTS = 'virtual:clarify-runtime-slots'
 export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-entry-client'
 export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 
 export type VirtualModules = Map<string, string>
-
-type RuntimeImports = {
-  bannerComponent?: string
-  footerComponent?: string
-}
-
-type RuntimeModuleOptions = {
-  imports?: RuntimeImports
-  bannerComponentSource?: 'path'
-  footerComponentSource?: 'path'
-}
 
 type BuildVirtualModulesArgs = {
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
   routes: ContentRoute[]
   navigation?: NavigationTree
+  plugins?: ClarifyPlugin[]
   themeEditor?: boolean
 }
 
@@ -79,25 +71,8 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
-export function createRuntimeModule(options: RuntimeModuleOptions = {}): string {
-  const imports = [
-    options.bannerComponentSource === 'path' && options.imports?.bannerComponent
-      ? `import BannerComponent from ${moduleSpecifier(options.imports.bannerComponent)};`
-      : undefined,
-    options.footerComponentSource === 'path' && options.imports?.footerComponent
-      ? `import FooterComponent from ${moduleSpecifier(options.imports.footerComponent)};`
-      : undefined,
-  ].filter(Boolean).join('\n')
-  const bannerComponent = options.bannerComponentSource === 'path'
-    ? 'BannerComponent'
-    : 'undefined'
-  const footerComponent = options.footerComponentSource === 'path'
-    ? 'FooterComponent'
-    : 'undefined'
-  const exports = `export const openApis = {};
-export const bannerComponent = ${bannerComponent};
-export const footerComponent = ${footerComponent};`
-  return imports ? `${imports}\n${exports}` : exports
+export function createRuntimeModule(): string {
+  return `export const openApis = {};`
 }
 
 export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {
@@ -106,27 +81,105 @@ import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
-import { openApis, bannerComponent, footerComponent } from '${VIRTUAL_RUNTIME}';
-render({ config, routes, navigation, openApis, bannerComponent, footerComponent, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
+import { openApis } from '${VIRTUAL_RUNTIME}';
+import { runtimeSlots } from '${VIRTUAL_RUNTIME_SLOTS}';
+render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
+}
+
+/**
+ * Valid slot names (keep in sync with type definition).
+ */
+const VALID_SLOT_NAMES = new Set([
+  'page.footer.before',
+  'page.banner.replace',
+  'page.footer.replace',
+])
+
+/**
+ * Collect every plugin's `slots` declarations into a single runtime registry
+ * module. Each unique component module is imported once and grouped by slot
+ * name, preserving plugin registration order.
+ */
+export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = []): string {
+  const registrations: { plugin: string; slot: ClarifyUISlotRegistration }[] = []
+  for (const plugin of plugins) {
+    for (const slot of plugin.slots ?? []) {
+      if (!VALID_SLOT_NAMES.has(slot.name)) {
+        throw new Error(`[clarify] Plugin "${plugin.name}" registered invalid slot name "${slot.name}". Valid slots are: ${[...VALID_SLOT_NAMES].join(', ')}`)
+      }
+      registrations.push({ plugin: plugin.name, slot })
+    }
+  }
+
+  if (registrations.length === 0) {
+    return 'export const runtimeSlots = {};\n'
+  }
+
+  // Import each distinct component module once and reuse the local binding.
+  const componentBindings = new Map<string, string>()
+  const imports: string[] = []
+  for (const { slot } of registrations) {
+    if (componentBindings.has(slot.component)) continue
+    const binding = `Slot${componentBindings.size}`
+    componentBindings.set(slot.component, binding)
+    imports.push(`import ${binding} from ${moduleSpecifier(slot.component)};`)
+  }
+
+  const grouped = new Map<string, string[]>()
+  for (const { plugin, slot } of registrations) {
+    const binding = componentBindings.get(slot.component) as string
+    const entry = `{ plugin: ${JSON.stringify(plugin)}, component: ${binding} }`
+    const list = grouped.get(slot.name) ?? []
+    list.push(entry)
+    grouped.set(slot.name, list)
+  }
+
+  const entries = [...grouped.entries()]
+    .map(([name, list]) => `  ${JSON.stringify(name)}: [\n    ${list.join(',\n    ')}\n  ]`)
+    .join(',\n')
+
+  return `${imports.join('\n')}\n\nexport const runtimeSlots = {\n${entries}\n};\n`
+}
+
+/**
+ * Re-exports the slot context hook from the renderer so plugin components can
+ * `import { useClarifySlot } from 'virtual:clarify-slot'` without depending on
+ * renderer internals directly.
+ */
+export function createSlotModule(): string {
+  return `export { useClarifySlot } from '@clarify-labs/renderer';\n`
 }
 
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
   const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
-  const bannerComponent = args.projectConfig.banner
-  const bannerComponentSource = typeof bannerComponent === 'string'
-    ? 'path'
-    : undefined
-  const bannerComponentImport = typeof bannerComponent === 'string' ? bannerComponent : undefined
-  const footerComponent = args.projectConfig.footer
-  const footerComponentSource = typeof footerComponent === 'string'
-    ? 'path'
-    : undefined
-  const footerComponentImport = typeof footerComponent === 'string' ? footerComponent : undefined
+  
+  // Collect all plugins and internal slots from config
+  const allPlugins: ClarifyPlugin[] = [...(args.plugins ?? [])]
+  
+  // Create internal plugin for config banner/footer if they're component paths
+  const internalSlots: ClarifyUISlotRegistration[] = []
+  const bannerConfig = args.projectConfig.banner
+  const footerConfig = args.projectConfig.footer
+  
+  if (typeof bannerConfig === 'string') {
+    internalSlots.push({ name: 'page.banner.replace', component: bannerConfig })
+  }
+  
+  if (typeof footerConfig === 'string') {
+    internalSlots.push({ name: 'page.footer.replace', component: footerConfig })
+  }
+  
+  if (internalSlots.length > 0) {
+    allPlugins.push({ name: 'clarify-internal', hooks: {}, slots: internalSlots })
+  }
+  
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
-  modules.set(VIRTUAL_RUNTIME, createRuntimeModule({ bannerComponentSource, footerComponentSource, imports: { bannerComponent: bannerComponentImport, footerComponent: footerComponentImport } }))
+  modules.set(VIRTUAL_RUNTIME, createRuntimeModule())
+  modules.set(VIRTUAL_RUNTIME_SLOTS, createRuntimeSlotsModule(allPlugins))
+  modules.set(VIRTUAL_SLOT, createSlotModule())
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
 

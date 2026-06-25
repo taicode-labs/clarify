@@ -392,7 +392,37 @@ export type ClarifyHooks = {
   'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void
 }
 
+// ────────────────────────────────────────────────────────────────────────────────
+// Runtime UI slots
+// ────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Stable runtime UI slot positions.
+ *
+ * The name is a dot-path `${scope}.${path}.${position}`:
+ * - `*.before`: Extension slot, plugin components render before default
+ * - `*.after`: Extension slot, plugin components render after default
+ * - `*.replace`: Replacement slot, plugin component replaces default
+ */
+export type ClarifyUISlotName = 'page.footer.before' | 'page.banner.replace' | 'page.footer.replace'
+
+/**
+ * A runtime UI extension declared by a plugin. The CLI compiles every
+ * registration into `virtual:clarify-runtime-slots`.
+ */
+export type ClarifyUISlotRegistration = {
+  /** Target slot position. */
+  name: ClarifyUISlotName
+  /**
+   * Module path of the React component to mount. Can be a real module
+   * (resolvable from the project) or a virtual module the plugin injects via
+   * `modules:before`. The component is imported as a default export.
+   */
+  component: string
+}
+
 export type ClarifyPlugin = {
   name: string
   hooks: Partial<ClarifyHooks>
+  slots?: ClarifyUISlotRegistration[]
 }

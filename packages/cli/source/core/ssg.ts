@@ -84,10 +84,11 @@ export function routeOutputFiles(outputDirectory: string, route: ContentRoute): 
 export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify-labs/renderer/server';
 import { routes, navigation } from 'virtual:clarify-routes/server';
 import { config } from 'virtual:clarify-config';
-import { openApis, bannerComponent, footerComponent } from 'virtual:clarify-runtime';
+import { openApis } from 'virtual:clarify-runtime';
+import { runtimeSlots } from 'virtual:clarify-runtime-slots';
 
 export function render(url) {
-  return renderToHTML({ config, routes, navigation, openApis, bannerComponent, footerComponent, url, themeEditor: config.theme.editor });
+  return renderToHTML({ config, routes, navigation, openApis, runtimeSlots, url, themeEditor: config.theme.editor });
 }`
 
 export function createTempEntryFile(content: string): string {
