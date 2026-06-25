@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
-import type { ComponentType } from 'react'
+import type { ComponentType, CSSProperties } from 'react'
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
 import { LocaleContext } from '../context'
@@ -245,7 +245,19 @@ export function AppShell(arg0: AppShellProps) {
           currentRoute={currentRoute}
           banner={hasBanner ? <PageBanner component={bannerComponent} currentLocale={currentLocale} onDismiss={() => setDismissedBannerKey(activeBannerKey)} /> : undefined}
         />
-        <div className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)">
+        <div
+          className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)"
+          style={{
+            '--clarify-header-offset':
+              hasTabs && hasBanner
+                ? '10rem'
+                : hasTabs && !hasBanner
+                  ? '7rem'
+                  : !hasTabs && hasBanner
+                    ? '6.5rem'
+                    : '3.5rem',
+          } as CSSProperties}
+        >
           <aside
             data-pagefind-ignore
             className="clarify-sidebar hidden lg:block lg:self-stretch lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 xl:px-6"

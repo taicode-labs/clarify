@@ -5,16 +5,13 @@ import { CheckIcon, ChevronDownIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeI
 import { useState, type ReactNode } from 'react'
 
 import { Heading } from '../../components/Heading'
-import { useBuiltInText } from '../../core/i18n'
-import { Markdown } from '../../mdx/Markdown'
-import { Col, Row } from '../../mdx/primitives'
 import { getMediaTypeEntries, getOperationParameters, getRequestBody } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
-import type { OpenApiParameter, MediaTypeEntry, OpenApiServer, OpenApiServerVariable, RequestAuthInput } from '../types'
+import type { OpenApiServer, OpenApiServerVariable, RequestAuthInput } from '../types'
 
-import { authLabel, authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServerLabel, getServers, RequestExamplesPanel, ResponseExamplesPanel } from './ExamplePanels'
+import { EndpointRequest, EndpointResponse } from './EndpointSections'
+import { authLabel, authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServerLabel, getServers } from './ExamplePanels'
 import type { AuthOption } from './ExamplePanels'
-import { SchemaProperties, ParameterList, ResponseList } from './SchemaProperties'
 
 
 export type OpenApiOperationProps = {
@@ -22,54 +19,6 @@ export type OpenApiOperationProps = {
   path: string
   method: string
   operation: OpenAPIOperation
-}
-
-type EndpointExamplesProps = {
-  spec: OpenAPISpec
-  path: string
-  method: string
-  operation: OpenAPIOperation
-  parameters: OpenApiParameter[]
-  requestContents: MediaTypeEntry[]
-  selectedRequestMediaType: string
-  onSelectRequestMediaType: (value: string) => void
-  selectedServer: OpenApiServer
-  serverVariables: Record<string, string>
-  auth?: RequestAuthInput
-}
-
-function EndpointExamples(arg0: EndpointExamplesProps): ReactNode {
-  const {
-    spec,
-    path,
-    method,
-    operation,
-    parameters,
-    requestContents,
-    selectedRequestMediaType,
-    onSelectRequestMediaType,
-    selectedServer,
-    serverVariables,
-    auth,
-  } = arg0
-
-  return (
-    <div className="space-y-6">
-      <RequestExamplesPanel
-        spec={spec}
-        path={path}
-        method={method}
-        parameters={parameters}
-        requestContents={requestContents}
-        selectedMediaType={selectedRequestMediaType}
-        onSelectMediaType={onSelectRequestMediaType}
-        selectedServer={selectedServer}
-        serverVariables={serverVariables}
-        auth={auth}
-      />
-      <ResponseExamplesPanel operation={operation} spec={spec} />
-    </div>
-  )
 }
 
 const endpointMethodStyles: Record<string, string> = {
@@ -428,7 +377,6 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
 export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const { spec, path, method, operation } = arg0
 
-  const t = useBuiltInText()
   const id = slug(`${method.toLowerCase()} ${path}`)
   const summary = operation.summary ?? `${method} ${path}`
   const description = operation.description
@@ -459,6 +407,9 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
 
   return (
     <section className="clarify-api-endpoint scroll-mt-24 py-16 first:pt-0 last:pb-0" aria-labelledby={id}>
+      <Heading id={id}>
+        {summary}
+      </Heading>
       <EndpointIdentity
         method={method}
         path={path}
@@ -489,40 +440,23 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
         onSelectAuth={setSelectedAuthName}
         onChangeAuthValue={(name, value) => setAuthValues((current) => ({ ...current, [name]: value }))}
       />
-      <Heading id={id} className="mt-6">
-        {summary}
-      </Heading>
-      <Row>
-        <Col>
-          {description ? <Markdown className="mt-4 *:first:mt-0 *:last:mb-0">{description}</Markdown> : null}
-          <ParameterList title={t('openapi.pathParameters')} parameters={groupedParameters.path} />
-          <ParameterList title={t('openapi.queryParameters')} parameters={groupedParameters.query} />
-          <ParameterList title={t('openapi.headers')} parameters={groupedParameters.header} />
-          {requestBody && requestContents.length > 0 ? (
-            <>
-              <h3>{t('openapi.requestBody')}</h3>
-              {typeof requestBody.description === 'string' ? <Markdown>{requestBody.description}</Markdown> : null}
-              <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} />
-            </>
-          ) : null}
-          <ResponseList operation={operation} spec={spec} />
-        </Col>
-        <Col sticky>
-          <EndpointExamples
-            spec={spec}
-            path={path}
-            method={method}
-            operation={operation}
-            parameters={parameters}
-            requestContents={requestContents}
-            selectedRequestMediaType={selectedRequestContent?.mediaType ?? ''}
-            onSelectRequestMediaType={setSelectedRequestMediaType}
-            selectedServer={selectedServer}
-            serverVariables={serverVariables}
-            auth={authInput}
-          />
-        </Col>
-      </Row>
+      <EndpointRequest
+        spec={spec}
+        path={path}
+        method={method}
+        description={description}
+        groupedParameters={groupedParameters}
+        parameters={parameters}
+        requestBody={requestBody}
+        requestContents={requestContents}
+        requestSchema={requestSchema}
+        selectedRequestMediaType={selectedRequestContent?.mediaType ?? ''}
+        onSelectRequestMediaType={setSelectedRequestMediaType}
+        selectedServer={selectedServer}
+        serverVariables={serverVariables}
+        auth={authInput}
+      />
+      <EndpointResponse spec={spec} operation={operation} />
     </section>
   )
 }

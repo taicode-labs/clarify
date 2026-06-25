@@ -56,18 +56,18 @@ export function Note(arg0: NoteProps) {  const { children } = arg0
   )
 }
 
-type RowProps = { children: ReactNode }
+type RowProps = { children: ReactNode, className?: string }
 
-export function Row(arg0: RowProps) {  const { children } = arg0
+export function Row(arg0: RowProps) {  const { children, className } = arg0
 
-  return <div className="clarify-row grid grid-cols-1 items-start gap-x-8 gap-y-10 xl:max-w-none xl:grid-cols-2">{children}</div>
+  return <div className={clsx('clarify-row grid grid-cols-1 items-start gap-x-8 gap-y-10 xl:max-w-none xl:grid-cols-2', className)}>{children}</div>
 }
 
 type ColProps = { children: ReactNode; sticky?: boolean }
 
 export function Col(arg0: ColProps) {  const { children, sticky = false } = arg0
 
-  return <div className={clsx('clarify-col *:first:mt-0 *:last:mb-0', sticky && 'xl:sticky xl:top-24')}>{children}</div>
+  return <div className={clsx('clarify-col *:first:mt-0 *:last:mb-0', sticky && 'xl:sticky xl:top-[calc(var(--clarify-header-offset,3.5rem)+1.5rem)] xl:self-start')}>{children}</div>
 }
 
 type PropertiesProps = { children: ReactNode }

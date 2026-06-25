@@ -202,7 +202,7 @@ function SchemaNode(arg0: SchemaNodeProps): ReactNode {  const { node, depth = 0
           {type ? <span className="text-xs text-(--clarify-theme-tokens-colors-muted)">{type}</span> : null}
         </div>
         <div className="mt-0.5 text-sm/5 text-(--clarify-ui-text-soft) *:first:mt-0 *:last:mb-0">
-          {node.description ? <Markdown>{node.description}</Markdown> : fallbackDescription}
+          {node.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{node.description}</Markdown> : fallbackDescription}
           {node.details ? <p className="text-xs text-(--clarify-ui-text-faint)">{node.details}</p> : null}
         </div>
       </div>
@@ -288,7 +288,7 @@ export function ParameterList(arg0: ParameterListProps): ReactNode {  const { ti
             name={parameter.name ?? t('openapi.parameter')}
             type={[schemaToType(parameter.schema), parameter.required ? t('openapi.requiredBadge') : undefined].filter(Boolean).join(', ') || undefined}
           >
-            {parameter.description ? <Markdown>{parameter.description}</Markdown> : t('openapi.operationParameter')}
+            {parameter.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{parameter.description}</Markdown> : t('openapi.operationParameter')}
           </Property>
         ))}
       </Properties>
@@ -314,7 +314,7 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {  const { oper
 
           return (
             <Property key={status} name={status} type={type}>
-              {response.description ? <Markdown>{response.description}</Markdown> : `${t('openapi.response')}.`}
+              {response.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{response.description}</Markdown> : `${t('openapi.response')}.`}
             </Property>
           )
         })}
