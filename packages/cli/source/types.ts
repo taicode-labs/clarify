@@ -1,4 +1,5 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
+import type { ComponentType } from 'react'
 import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
 import type { ResolvedBuildOptions } from './core/options.js'
@@ -419,6 +420,23 @@ export type ClarifyUISlotRegistration = {
    * `modules:before`. The component is imported as a default export.
    */
   component: string
+}
+
+/**
+ * Context exposed to a slot component through the `useClarifySlot` hook.
+ * This type is re-exported from the CLI package for user plugins to use.
+ */
+export type ClarifySlotContext = {
+  /** The slot the current component is mounted into. */
+  name: ClarifyUISlotName
+  /** Name of the plugin that registered the current slot component. */
+  plugin: string
+  /** Current route, when a content route is active. */
+  route?: unknown
+  /** Current locale, for example `zh-CN` or `en-US`. */
+  locale?: string
+  /** Built-in default component for replacement slots. */
+  DefaultComponent?: ComponentType
 }
 
 export type ClarifyPlugin = {
