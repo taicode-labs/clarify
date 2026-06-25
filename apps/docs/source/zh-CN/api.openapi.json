@@ -659,6 +659,49 @@
         },
         "description": "一个小型公开接口，用于展示操作级安全覆盖、内联对象 Schema 和 const 值。"
       }
+    },
+    "/examples/single-server": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "operationId": "demoSingleServer",
+        "summary": "单一固定服务器",
+        "security": [],
+        "servers": [
+          {
+            "url": "https://api.clarify.local/v1",
+            "description": "固定的生产服务器。"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "当前 API 构建信息。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "version",
+                    "commit"
+                  ],
+                  "properties": {
+                    "version": {
+                      "type": "string",
+                      "example": "1.0.0"
+                    },
+                    "commit": {
+                      "type": "string",
+                      "example": "a1b2c3d"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "用单个没有变量的固定 URL 覆盖 servers，因此服务器地址以纯文本展示，不再提供切换功能。"
+      }
     }
   },
   "webhooks": {

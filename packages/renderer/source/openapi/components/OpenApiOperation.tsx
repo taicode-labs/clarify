@@ -102,13 +102,28 @@ type ServerUrlValueProps = {
   server: OpenApiServer
   variables: Record<string, string>
   open: boolean
+  interactive: boolean
   onToggle: () => void
 }
 
 function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
-  const { server, variables, open, onToggle } = arg0
+  const { server, variables, open, interactive, onToggle } = arg0
 
   const url = getServerPreviewUrl(server, variables)
+
+  if (!interactive) {
+    return (
+      <span
+        aria-label="Server"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text-foreground) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5"
+      >
+        <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
+        <span className="hidden min-w-0 items-center overflow-hidden sm:flex">
+          <span className="truncate font-semibold text-xs">{url}</span>
+        </span>
+      </span>
+    )
+  }
 
   return (
     <button
@@ -309,6 +324,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
   } = arg0
 
   const segments = path.split('/').filter(Boolean)
+  const serverInteractive = servers.length > 1 || Object.keys(selectedServer.variables ?? {}).length > 0
 
   return (
     <div className="not-prose flex w-full flex-col overflow-hidden rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs">
@@ -318,6 +334,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
           server={selectedServer}
           variables={serverVariables}
           open={serverOpen}
+          interactive={serverInteractive}
           onToggle={onToggleServer}
         />
         <div className="flex min-w-0 flex-1 items-center overflow-x-auto text-sm font-bold leading-6 whitespace-nowrap">
@@ -350,7 +367,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
           </button>
         ) : null}
       </div>
-      {serverOpen ? (
+      {serverInteractive && serverOpen ? (
         <ServerPanel
           servers={servers}
           selectedKey={selectedServerKey}
