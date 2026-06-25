@@ -1,13 +1,14 @@
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../parsers/routes.js'
 import type { ClarifyPlugin, ClarifyUISlotRegistration, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
-export const VIRTUAL_SLOT = 'virtual:clarify-slot'
-export const VIRTUAL_CONFIG = 'virtual:clarify-config'
-export const VIRTUAL_ROUTES = 'virtual:clarify-routes'
-export const VIRTUAL_RUNTIME = 'virtual:clarify-runtime'
-export const VIRTUAL_SERVER_ROUTES = 'virtual:clarify-routes/server'
-export const VIRTUAL_RUNTIME_SLOTS = 'virtual:clarify-runtime-slots'
-export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify-entry-client'
+// 新的虚拟模块命名 - 更清晰的职责划分
+export const VIRTUAL_CONFIG = 'virtual:clarify/config'
+export const VIRTUAL_ROUTES = 'virtual:clarify/routes'
+export const VIRTUAL_SERVER_ROUTES = 'virtual:clarify/routes/server'
+export const VIRTUAL_OPENAPI = 'virtual:clarify/openapi'
+export const VIRTUAL_SLOTS = 'virtual:clarify/slots'
+export const VIRTUAL_SLOT = 'virtual:clarify/slot'
+export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify/entry-client'
 export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 
 export type VirtualModules = Map<string, string>
@@ -81,8 +82,8 @@ import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
-import { openApis } from '${VIRTUAL_RUNTIME}';
-import { runtimeSlots } from '${VIRTUAL_RUNTIME_SLOTS}';
+import { openApis } from '${VIRTUAL_OPENAPI}';
+import { runtimeSlots } from '${VIRTUAL_SLOTS}';
 render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
 }
 
@@ -177,8 +178,8 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
-  modules.set(VIRTUAL_RUNTIME, createRuntimeModule())
-  modules.set(VIRTUAL_RUNTIME_SLOTS, createRuntimeSlotsModule(allPlugins))
+  modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins))
+  modules.set(VIRTUAL_OPENAPI, generateOpenApiModule())
   modules.set(VIRTUAL_SLOT, createSlotModule())
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
@@ -188,4 +189,9 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   }
 
   return modules
+}
+
+// 新的 OpenAPI 模块生成函数 - 独立出来
+export function generateOpenApiModule(): string {
+  return `export const openApis = {};`
 }

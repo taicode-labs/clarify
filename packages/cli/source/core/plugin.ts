@@ -28,6 +28,9 @@ import {
   VIRTUAL_CONFIG,
   VIRTUAL_ROUTES,
   VIRTUAL_SERVER_ROUTES,
+  VIRTUAL_OPENAPI,
+  VIRTUAL_SLOTS,
+  VIRTUAL_SLOT,
   buildVirtualModules,
   resolveVirtualId,
   stripVirtualPrefix,
@@ -174,6 +177,9 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       if (id === VIRTUAL_CONFIG || id === resolveVirtualId(VIRTUAL_CONFIG)) return resolveVirtualId(VIRTUAL_CONFIG)
       if (id === VIRTUAL_ROUTES || id === resolveVirtualId(VIRTUAL_ROUTES)) return resolveVirtualId(VIRTUAL_ROUTES)
       if (id === VIRTUAL_SERVER_ROUTES || id === resolveVirtualId(VIRTUAL_SERVER_ROUTES)) return resolveVirtualId(VIRTUAL_SERVER_ROUTES)
+      if (id === VIRTUAL_OPENAPI || id === resolveVirtualId(VIRTUAL_OPENAPI)) return resolveVirtualId(VIRTUAL_OPENAPI)
+      if (id === VIRTUAL_SLOTS || id === resolveVirtualId(VIRTUAL_SLOTS)) return resolveVirtualId(VIRTUAL_SLOTS)
+      if (id === VIRTUAL_SLOT || id === resolveVirtualId(VIRTUAL_SLOT)) return resolveVirtualId(VIRTUAL_SLOT)
       const moduleId = stripVirtualPrefix(id)
       if (virtualModules.has(moduleId)) return resolveVirtualId(moduleId)
       const route = routes.find(r => r.virtualModuleId === id || r.virtualModuleId === moduleId)

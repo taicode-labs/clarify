@@ -117,7 +117,6 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
       'modules:before': (modules, ctx) => {
         modules.set(openApiRegistryModuleId, generateOpenAPIRegistryModule(
           Object.fromEntries(Object.entries(specs).map(([moduleId, entry]) => [moduleId, entry.spec])),
-          modules.get(openApiRegistryModuleId),
         ))
 
         for (const [moduleId, entry] of Object.entries(specs)) {

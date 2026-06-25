@@ -1,14 +1,10 @@
-import { VIRTUAL_RUNTIME } from '../../core/virtual-modules.js'
+import { VIRTUAL_OPENAPI } from '../../core/virtual-modules.js'
 import type { ContentDiagnostic, OpenAPISpec } from '../../types.js'
 
-export const openApiRegistryModuleId = VIRTUAL_RUNTIME
+export const openApiRegistryModuleId = VIRTUAL_OPENAPI
 
-export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISpec>, runtimeModule = ''): string {
-  const openApisExport = `export const openApis = ${JSON.stringify(openApis)};`
-  const openApisPlaceholder = /export const openApis = \{\};?/
-  if (!runtimeModule) return openApisExport
-  if (openApisPlaceholder.test(runtimeModule)) return runtimeModule.replace(openApisPlaceholder, openApisExport)
-  return runtimeModule
+export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISpec>): string {
+  return `export const openApis = ${JSON.stringify(openApis)};`
 }
 
 export function generateOpenAPIModule(spec: OpenAPISpec, tagFilter?: string[]): string {
