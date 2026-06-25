@@ -1,4 +1,5 @@
 import { Collapse } from '../components/Collapse'
+import { Mermaid } from '../components/Mermaid'
 import { OpenApiDocument, OpenApiOperation } from '../openapi'
 
 import { Markdown } from './Markdown'
@@ -8,6 +9,7 @@ const builtInMDXComponents = {
   ...mdxPrimitives,
   Markdown,
   Collapse,
+  Mermaid,
 }
 
 const builtInOpenAPIComponents = {

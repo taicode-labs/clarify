@@ -147,6 +147,14 @@ export async function createViteConfig(options: ClarifyViteConfigOptions, env: C
                 priority: 30,
               },
               {
+                // Keep mermaid and its heavy diagram/render dependencies out of
+                // the eager `vendor` chunk so they stay lazily loaded only on
+                // pages that actually render a diagram.
+                name: 'mermaid-vendor',
+                test: /node_modules[\\/](mermaid|@mermaid-js|cytoscape|cytoscape-[^\\/]+|dagre-d3-es|@dagrejs|dagre|graphlib|elkjs|katex|d3|d3-[^\\/]+|internmap|delaunator|robust-predicates|roughjs|points-on-curve|points-on-path|path-data-parser|@braintree[\\/]sanitize-url|dompurify|khroma|ts-dedent|stylis|cose-base|layout-base)[\\/]/,
+                priority: 20,
+              },
+              {
                 name: 'vendor',
                 test: /node_modules[\\/]/,
                 priority: 10

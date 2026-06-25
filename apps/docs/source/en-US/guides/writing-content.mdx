@@ -177,6 +177,34 @@ Built-in GitHub Flavored Markdown support:
 
 ---
 
+## Mermaid diagrams
+
+Use a fenced code block with the `mermaid` language to render diagrams. They are rendered on the client and automatically follow the light/dark theme:
+
+````mdx
+```mermaid
+flowchart LR
+  A[Write MDX] --> B{Has mermaid block?}
+  B -- Yes --> C[Render diagram]
+  B -- No --> D[Render code block]
+```
+````
+
+The example above renders as:
+
+```mermaid
+flowchart LR
+  A[Write MDX] --> B{Has mermaid block?}
+  B -- Yes --> C[Render diagram]
+  B -- No --> D[Render code block]
+```
+
+All Mermaid diagram types are supported (flowcharts, sequence diagrams, class diagrams, state diagrams, ER diagrams, Gantt charts, and more). If a diagram fails to parse, Clarify shows the error alongside the original source instead of breaking the page.
+
+Large diagrams stay readable: each rendered diagram is zoomable and pannable. Scroll to zoom, drag to pan, double-click to reset, or use the zoom controls that appear on hover.
+
+---
+
 ## Built-in components
 
 Clarify registers a set of public components in MDX by default, ready to use without manual imports:

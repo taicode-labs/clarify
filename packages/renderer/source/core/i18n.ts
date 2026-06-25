@@ -94,6 +94,11 @@ export type BuiltInTextKey =
   | 'theme.switchToDark'
   | 'theme.switchToLight'
   | 'language.switch'
+  | 'mermaid.zoomIn'
+  | 'mermaid.zoomOut'
+  | 'mermaid.resetZoom'
+  | 'mermaid.renderError'
+  | 'mermaid.scrollHint'
 
 const builtInText = {
   en: {
@@ -186,6 +191,11 @@ const builtInText = {
     'theme.switchToDark': 'Switch to dark theme',
     'theme.switchToLight': 'Switch to light theme',
     'language.switch': 'Switch language',
+    'mermaid.zoomIn': 'Zoom in',
+    'mermaid.zoomOut': 'Zoom out',
+    'mermaid.resetZoom': 'Reset zoom',
+    'mermaid.renderError': 'Mermaid render error',
+    'mermaid.scrollHint': 'Click the diagram to enable scroll-to-zoom',
   },
   'zh-CN': {
     'actions.code': '代码',
@@ -277,6 +287,11 @@ const builtInText = {
     'theme.switchToDark': '切换到深色主题',
     'theme.switchToLight': '切换到浅色主题',
     'language.switch': '切换语言',
+    'mermaid.zoomIn': '放大',
+    'mermaid.zoomOut': '缩小',
+    'mermaid.resetZoom': '重置缩放',
+    'mermaid.renderError': 'Mermaid 渲染错误',
+    'mermaid.scrollHint': '点击图表后即可滚轮缩放',
   },
 } satisfies Record<BuiltInLocale, Record<BuiltInTextKey, string>>
 

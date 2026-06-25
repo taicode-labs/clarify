@@ -40,8 +40,10 @@ export function createClarifyRuntimeAliases(): AliasOptions {
     { find: /^@clarify-labs\/renderer\/client$/, replacement: resolvePackageExport('@clarify-labs/renderer', 'client') },
     { find: /^@clarify-labs\/renderer\/server$/, replacement: resolvePackageExport('@clarify-labs/renderer', 'server') },
     { find: /^@clarify-labs\/renderer$/, replacement: resolvePackageExport('@clarify-labs/renderer', '') },
-    { find: /^react\/jsx-runtime$/, replacement: resolveCliDependency('react/jsx-runtime') },
     { find: /^react\/jsx-dev-runtime$/, replacement: resolveCliDependency('react/jsx-dev-runtime') },
+    { find: /^react\/jsx-runtime$/, replacement: resolveCliDependency('react/jsx-runtime') },
+    { find: /^mermaid$/, replacement: resolveCliDependency('mermaid') },
+    { find: /^react-zoom-pan-pinch$/, replacement: resolveCliDependency('react-zoom-pan-pinch') },
     { find: /^react$/, replacement: resolveCliDependency('react') },
   ]
 }

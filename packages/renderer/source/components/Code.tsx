@@ -17,6 +17,8 @@ import { create } from 'zustand'
 import { useBuiltInText } from '../core/i18n'
 import { copyTextToClipboard } from '../utils/clipboard'
 
+import { Mermaid } from './Mermaid'
+
 const languageNames: Record<string, string> = {
   js: 'JavaScript',
   ts: 'TypeScript',
@@ -324,9 +326,15 @@ export function Code(arg0: CodeProps) {  const { children, ...props } = arg0
   return <code {...props}>{children}</code>
 }
 
-export function Pre(arg0: ComponentPropsWithoutRef<typeof CodeGroup>) {  const { children, ...props } = arg0
+type PreProps = ComponentPropsWithoutRef<typeof CodeGroup> & { language?: string; code?: string }
+
+export function Pre(arg0: PreProps) {  const { children, language, code, ...props } = arg0
 
   const isGrouped = useContext(CodeGroupContext)
+
+  if (language === 'mermaid') {
+    return <Mermaid chart={code ?? getNodeText(children)} />
+  }
 
   if (isGrouped) return children
 

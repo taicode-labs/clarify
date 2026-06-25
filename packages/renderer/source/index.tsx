@@ -5,7 +5,7 @@ import { BuiltWithClarify } from './app/BuiltWithClarify'
 import { PageBanner } from './app/PageBanner'
 import { PageFooter } from './app/PageFooter'
 import { SectionProvider, useSectionStore, type Section } from './app/SectionProvider'
-import { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Feedback, GridPattern, Heading, HeroPattern, Logo, Pre, Prose, Tag, WebFrame } from './components'
+import { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Feedback, GridPattern, Heading, HeroPattern, Logo, Mermaid, Pre, Prose, Tag, WebFrame } from './components'
 import { ConfigContext, OpenApisContext, useConfig, useOpenApis } from './context'
 import { useMDXComponents } from './mdx/components'
 import { DocShell } from './mdx/DocShell'
@@ -28,7 +28,7 @@ export type { Config, RouteItem, RenderOptions, ServerRenderOptions, Section }
 export { AppShell, render, ConfigContext, OpenApisContext, useConfig, useOpenApis, BuiltWithClarify, PageBanner, PageFooter, ThemeProvider, ThemeToggle, ThemeEditor, useTheme, SectionProvider, useSectionStore, remToPx, applyThemeVariables, themeEditorPresets, themePresets, themeBootstrapScript }
 
 // Built-in MDX and UI components
-export { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Pre, Prose, Heading, Logo, GridPattern, HeroPattern, Feedback, Tag, WebFrame }
+export { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Pre, Prose, Heading, Logo, Mermaid, GridPattern, HeroPattern, Feedback, Tag, WebFrame }
 
 // MDX integration helpers
 export { DocShell, Markdown, useMDXComponents, markdownRemarkPlugins }
