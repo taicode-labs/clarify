@@ -1,8 +1,7 @@
 import type { ComponentType } from 'react'
 
 import type { OpenAPISpec } from '../openapi/lib/utils'
-
-export type FooterComponentPath = string
+import type { RuntimeSlots } from '../slots'
 
 export type RouteComponent = ComponentType | (() => Promise<{ default: ComponentType }>)
 
@@ -63,23 +62,17 @@ export type NavbarLink = {
   external?: boolean;
 };
 
-export type BannerComponentPath = string;
-
-export type BannerConfigOptions = {
+export type BannerConfig = {
   content: LocalizedText;
   dismissible?: boolean;
   link?: NavbarLink;
 };
 
-export type BannerConfig = BannerConfigOptions | BannerComponentPath;
-
-export type FooterLinksConfig = {
+export type FooterConfig = {
   links?: NavbarLink[];
   socials?: Record<string, string>;
   copyright?: LocalizedText;
 };
-
-export type FooterConfig = FooterLinksConfig | FooterComponentPath;
 
 export type SourceConfig = {
   repository: string;
@@ -207,10 +200,8 @@ export type RenderOptions = {
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
-  /** Custom banner component imported from a configured banner path. */
-  bannerComponent?: ComponentType;
-  /** Custom footer component imported from a configured footer path. */
-  footerComponent?: ComponentType;
+  /** Plugin runtime UI slots imported from virtual:clarify-runtime-slots. */
+  runtimeSlots?: RuntimeSlots;
   /** Whether to render the live theme editor inside the app tree. */
   themeEditor?: boolean;
   /** 挂载节点，默认 document.getElementById('root') */
@@ -230,10 +221,8 @@ export type ServerRenderOptions = {
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
   openApis?: Record<string, OpenAPISpec>;
-  /** Custom banner component imported from a configured banner path. */
-  bannerComponent?: ComponentType;
-  /** Custom footer component imported from a configured footer path. */
-  footerComponent?: ComponentType;
+  /** Plugin runtime UI slots imported from virtual:clarify-runtime-slots. */
+  runtimeSlots?: RuntimeSlots;
   /** Whether to render the live theme editor inside the app tree. */
   themeEditor?: boolean;
   /** 当前请求的 URL */

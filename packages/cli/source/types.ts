@@ -1,6 +1,8 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
+import type { UISlotRegistration } from '@clarify-labs/renderer'
+
 import type { ResolvedBuildOptions } from './core/options.js'
 
 export type {
@@ -44,25 +46,17 @@ export type ClarifyNavbarLink = {
   external?: boolean
 }
 
-export type ClarifyBannerComponentPath = string
-
-export type ClarifyBannerConfigOptions = {
+export type ClarifyBannerConfig = {
   content: ClarifyLocalizedText
   dismissible?: boolean
   link?: ClarifyNavbarLink
 }
 
-export type ClarifyBannerConfig = ClarifyBannerConfigOptions | ClarifyBannerComponentPath
-
-export type ClarifyFooterComponentPath = string
-
-export type ClarifyFooterLinksConfig = {
+export type ClarifyFooterConfig = {
   links?: ClarifyNavbarLink[]
   socials?: Record<string, string>
   copyright?: ClarifyLocalizedText
 }
-
-export type ClarifyFooterConfig = ClarifyFooterLinksConfig | ClarifyFooterComponentPath
 
 export type ClarifySourceConfig = {
   /** Repository web URL, for example https://github.com/owner/repo. */
@@ -292,6 +286,9 @@ export type ContentRoute = {
   kind: string
   /** OpenAPI operation tag filter applied to this route. Undefined means all operations. */
   openapiTagFilter?: string[]
+  /** Deduplicated key derived from the source OpenAPI spec file path. Routes sharing
+   * the same spec file (e.g. filtered sub-routes) share the same key. */
+  specFileKey?: string
   frontmatter?: Record<string, unknown>
   /** Normalized source content captured during route discovery. */
   content?: string
@@ -356,6 +353,13 @@ export type ClarifyHtmlTransformInput = {
   dev: boolean
 }
 
+export type ClarifyEmitAsset = {
+  /** Output path relative to the build output directory, e.g. 'llms.txt' or 'guide/api.md'. */
+  fileName: string
+  /** Asset content as a UTF-8 string or raw bytes. */
+  source: string | Uint8Array
+}
+
 export type ClarifyHooks = {
   'pages:resolved'?: (
     pages: ClarifyPage[],
@@ -389,10 +393,12 @@ export type ClarifyHooks = {
     server: ViteDevServer,
     ctx: ClarifyHookContext
   ) => Promise<void> | void
+  'build:assets'?: (ctx: ClarifyHookContext) => Promise<ClarifyEmitAsset[]> | ClarifyEmitAsset[]
   'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void
 }
 
 export type ClarifyPlugin = {
   name: string
-  hooks: Partial<ClarifyHooks>
+  hooks?: Partial<ClarifyHooks>
+  slots?: UISlotRegistration[]
 }

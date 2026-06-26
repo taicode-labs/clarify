@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 import SwaggerParser from '@apidevtools/swagger-parser'
@@ -46,7 +46,6 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
       virtualModuleId: virtualModuleIdFromRef(ref),
       title: kebabToTitle(cleanPath.split('/').pop() ?? 'API'),
       kind: 'openapi',
-      content: readFileSync(fullPath, 'utf-8'),
     })
   }
 
@@ -56,6 +55,20 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
 function operationMatchesTags(operationTags: string[] | undefined, filterTags: string[] | undefined): boolean {
   if (!filterTags?.length) return true
   return operationTags?.some(tag => filterTags.includes(tag)) ?? false
+}
+
+/** Filter an OpenAPI spec to only include paths that have at least one operation matching the given tags. */
+export function filterSpecByTags(spec: OpenAPISpec, tags: string[]): OpenAPISpec {
+  const filteredPaths: Record<string, unknown> = {}
+  const paths = (spec.paths ?? {}) as Record<string, unknown>
+  for (const path of Object.keys(paths)) {
+    const pathItem = paths[path] as Record<string, unknown> | undefined
+    if (!pathItem) continue
+    const ops = Object.values(pathItem)
+    const hasMatch = ops.some(op => op && typeof op === 'object' && operationMatchesTags((op as Record<string, unknown>).tags as string[] | undefined, tags))
+    if (hasMatch) filteredPaths[path] = pathItem
+  }
+  return { ...spec, paths: filteredPaths } as OpenAPISpec
 }
 
 /** Extract endpoint operations from an OpenAPI spec as page sections. */

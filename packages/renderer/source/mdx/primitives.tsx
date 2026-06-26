@@ -8,21 +8,33 @@ import { Code, CodeGroup, Pre } from '../components/Code'
 
 type WrapperProps = { children: ReactNode }
 
-export function wrapper(arg0: WrapperProps) {  const { children } = arg0
+export function wrapper(arg0: WrapperProps) {
+  const { children } = arg0
 
   return (
-    <article className="clarify-mdx-page flex h-full flex-col pt-14 pb-10">
+    <article className="clarify-mdx-page flex h-full min-w-0 flex-col pt-14 pb-10">
       <Prose className="flex-auto">{children}</Prose>
     </article>
   )
 }
 
-export function a(arg0: ComponentPropsWithoutRef<'a'>) {  const { href = '', ...props } = arg0
+export function table(arg0: ComponentPropsWithoutRef<'table'>) {
+  const { className, ...props } = arg0
+  return (
+    <div className="overflow-x-auto">
+      <table className={className} {...props} />
+    </div>
+  )
+}
+
+export function a(arg0: ComponentPropsWithoutRef<'a'>) {
+  const { href = '', ...props } = arg0
 
   return <LocalizedLink href={href} {...props} />
 }
 
-export function h1(arg0: ComponentPropsWithoutRef<'h1'>) {  const { children, className, ...props } = arg0
+export function h1(arg0: ComponentPropsWithoutRef<'h1'>) {
+  const { children, className, ...props } = arg0
 
   return (
     <div className="clarify-page-title-row flex flex-col gap-4  pb-4 sm:flex-row sm:items-start sm:justify-between">
@@ -46,7 +58,8 @@ export function h3(props: Omit<ComponentPropsWithoutRef<typeof Heading>, 'level'
 
 type NoteProps = { children: ReactNode }
 
-export function Note(arg0: NoteProps) {  const { children } = arg0
+export function Note(arg0: NoteProps) {
+  const { children } = arg0
 
   return (
     <div className="clarify-note my-6 flex gap-2.5 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4 text-sm/6 text-(--clarify-theme-tokens-colors-foreground) [--tw-prose-links-hover:var(--clarify-ui-accent-text)] [--tw-prose-links:var(--clarify-theme-tokens-colors-foreground)]">
@@ -58,21 +71,24 @@ export function Note(arg0: NoteProps) {  const { children } = arg0
 
 type RowProps = { children: ReactNode, className?: string }
 
-export function Row(arg0: RowProps) {  const { children, className } = arg0
+export function Row(arg0: RowProps) {
+  const { children, className } = arg0
 
   return <div className={clsx('clarify-row grid grid-cols-1 items-start gap-x-8 gap-y-10 xl:max-w-none xl:grid-cols-2', className)}>{children}</div>
 }
 
 type ColProps = { children: ReactNode; sticky?: boolean }
 
-export function Col(arg0: ColProps) {  const { children, sticky = false } = arg0
+export function Col(arg0: ColProps) {
+  const { children, sticky = false } = arg0
 
   return <div className={clsx('clarify-col *:first:mt-0 *:last:mb-0', sticky && 'xl:sticky xl:top-[calc(var(--clarify-header-offset,3.5rem)+1.5rem)] xl:self-start')}>{children}</div>
 }
 
 type PropertiesProps = { children: ReactNode }
 
-export function Properties(arg0: PropertiesProps) {  const { children } = arg0
+export function Properties(arg0: PropertiesProps) {
+  const { children } = arg0
 
   return (
     <div className="clarify-properties my-6">
@@ -88,7 +104,8 @@ export function Properties(arg0: PropertiesProps) {  const { children } = arg0
 
 type PropertyProps = { name: string; children: ReactNode; type?: string }
 
-export function Property(arg0: PropertyProps) {  const { name, children, type } = arg0
+export function Property(arg0: PropertyProps) {
+  const { name, children, type } = arg0
 
   return (
     <li className="clarify-property m-0 px-0 py-4 first:pt-0 last:pb-0">

@@ -10,6 +10,7 @@
 type ClarifyPlugin = {
   name: string
   hooks: Partial<ClarifyHooks>
+  slots?: UISlotRegistration[]
 }
 ```
 
@@ -17,6 +18,104 @@ type ClarifyPlugin = {
 |------|------|------|------|
 | `name` | `string` | 是 | 插件名称，用于错误提示和调试 |
 | `hooks` | `Partial<ClarifyHooks>` | 是 | 插件实现的生命周期 Hook |
+| `slots` | `UISlotRegistration[]` | 否 | 注册的 UI 插槽组件 |
+
+---
+
+## UI 插槽
+
+Clarify 支持通过插件在特定位置注入自定义 UI 组件。
+
+### `UISlotName`
+
+可用的插槽位置：
+
+```ts
+type UISlotName = 
+  | 'page.footer.before'       // 页脚之前
+  | 'page.banner.replace'      // 替换顶部横幅
+  | 'page.footer.replace'      // 替换页脚
+```
+
+### `UISlotRegistration`
+
+注册一个插槽组件：
+
+```ts
+type UISlotRegistration = {
+  name: UISlotName      // 目标插槽位置
+  component: string            // React 组件模块路径（使用 / 前缀指向项目根目录，如 /source/plugins/MyFooter.tsx）
+}
+```
+
+### `useSlot`
+
+插槽组件内部使用此 Hook 获取上下文：
+
+```ts
+import { useSlot } from 'virtual:clarify/slot'
+
+function MySlotComponent() {
+  const {
+    name,       // 当前插槽名称
+    plugin,     // 注册该插槽的插件名称
+    route,      // 当前路由信息（如有）
+    locale,     // 当前语言（如 en-US 或 zh-CN）
+    DefaultComponent  // 仅替换插槽可用：原默认组件
+  } = useSlot()
+  // ...
+}
+```
+
+### 示例：注册扩展插槽
+
+```ts
+// my-plugin.ts
+export default {
+  name: 'my-plugin',
+  hooks: {},
+  slots: [
+    { 
+      name: 'page.footer.before', 
+      component: '/source/plugins/MyFooterExtra.tsx' 
+    }
+  ]
+}
+```
+
+### 示例：替换横幅
+
+```ts
+// my-plugin.ts
+export default {
+  name: 'my-theme',
+  hooks: {},
+  slots: [
+    { 
+      name: 'page.banner.replace', 
+      component: '/source/plugins/CustomBanner.tsx' 
+    }
+  ]
+}
+```
+
+```tsx
+// source/plugins/CustomBanner.tsx
+import { useSlot } from 'virtual:clarify/slot'
+
+export default function CustomBanner() {
+  const { DefaultComponent } = useSlot()
+  
+  // 可选：仍渲染原始横幅
+  // return <DefaultComponent />
+  
+  return (
+    <div className="my-custom-banner">
+      欢迎使用 Clarify！
+    </div>
+  )
+}
+```
 
 ---
 
@@ -40,9 +139,7 @@ type ClarifyHooks = {
 }
 ```
 
-所有 Hook 都可以同步或异步返回。除 `build:done` 外，Hook 必须返回同类型结果。
-
-> 类型定义中还包含预留的 `pages:resolved` 和 `page:transform`，但当前 CLI 构建流程不会调用它们。本文只列出当前流程实际触发的 Hook。
+Hook 可以同步或异步返回。`routes:resolved` 和 `modules:before` 需要返回与输入同类型的结果，`build:done` 无需返回值。
 
 ---
 
@@ -179,7 +276,12 @@ type ClarifyNavigationNode = {
 }
 ```
 
-启用 `tabs` 时，`navigation` 是 `{ tabs }` 结构；同时启用 i18n 时，`navigation` 是按 locale 分组的 `{ tabs }` 对象。未启用 `tabs` 时仍是普通侧边栏数组，启用 i18n 时是按 locale 分组的侧边栏数组。
+Clarify 始终基于 `tabs` 配置构建导航，因此 Hook 收到的 `navigation` 是：
+
+- 默认是 `TabbedNavigation`（`{ tabs }` 结构）。
+- 启用 i18n 时按 locale 分组，为 `LocalizedTabbedNavigation`（`Record<string, { tabs }>`）。
+
+`NavigationTree` 联合中的 `ClarifyNavigationNode[]` 和 `LocalizedNavigation` 是无 `tabs` 配置时的回退形态。
 
 ---
 
@@ -196,4 +298,4 @@ type ClarifyNavigationNode = {
 | `virtual:clarify-openapi-registry` | 已解析的 OpenAPI 规范表 |
 | `virtual:clarify-entry-client` | 客户端入口 |
 
-修改虚拟模块属于高级用法，建议只在实现搜索、分析或内部平台集成时使用。
+修改虚拟模块属于高级用法，适合实现搜索、分析或内部平台集成等场景。

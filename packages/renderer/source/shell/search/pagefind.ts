@@ -12,11 +12,6 @@ export function pagefindCacheKey(routePrefix: string, locale: string | undefined
   return `${routePrefix || '/'}:${locale || 'default'}`
 }
 
-export function logSearchDebug(message: string, data?: Record<string, unknown>) {
-  if (typeof window === 'undefined') return
-  console.info(`[clarify:search] ${message}`, data ?? '')
-}
-
 export function loadPagefind(routePrefix: string, locale: string | undefined): Promise<Pagefind | null> {
   if (typeof window === 'undefined') return Promise.resolve(null)
 
@@ -24,21 +19,17 @@ export function loadPagefind(routePrefix: string, locale: string | undefined): P
   const cacheKey = pagefindCacheKey(routePrefix, language)
   const cachedPagefind = pagefindPromises.get(cacheKey)
   if (cachedPagefind) {
-    logSearchDebug('reuse Pagefind instance promise', { cacheKey, language, routePrefix })
     return cachedPagefind
   }
 
   const pagefindUrl = prefixHref('/pagefind/pagefind.js', routePrefix)
-  logSearchDebug('create Pagefind instance promise', { cacheKey, language, pagefindUrl, routePrefix })
   const pagefindPromise = import(/* @vite-ignore */ pagefindUrl)
     .then(async (module: PagefindModule) => {
       const previousLanguage = document.documentElement.lang
       if (language) document.documentElement.lang = language
-      logSearchDebug('create Pagefind instance', { cacheKey, detectedLanguage: document.documentElement.lang, previousLanguage })
       const pagefind = module.createInstance()
       if (previousLanguage && previousLanguage !== language) document.documentElement.lang = previousLanguage
       await pagefind.init?.()
-      logSearchDebug('Pagefind instance ready', { cacheKey, language })
       return pagefind
     })
     .catch((error: unknown) => {

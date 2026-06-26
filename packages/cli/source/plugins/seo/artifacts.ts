@@ -1,6 +1,3 @@
-import { mkdir, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
-
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 function trimTrailingSlash(value: string): string {
@@ -58,16 +55,4 @@ export function createRobotsTxt(config: ResolvedProjectConfig): string | undefin
     `Sitemap: ${sitemapUrl}`,
     '',
   ].join('\n')
-}
-
-export async function writeSeoFiles(outputRoot: string, routes: ContentRoute[], config: ResolvedProjectConfig): Promise<void> {
-  const sitemap = createSitemapXml(routes, config)
-  const robots = createRobotsTxt(config)
-  if (!sitemap || !robots) return
-
-  await mkdir(outputRoot, { recursive: true })
-  await Promise.all([
-    writeFile(join(outputRoot, 'sitemap.xml'), sitemap, 'utf-8'),
-    writeFile(join(outputRoot, 'robots.txt'), robots, 'utf-8'),
-  ])
 }

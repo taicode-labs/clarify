@@ -1,6 +1,3 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, extname, join } from 'node:path'
-
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 const UTF8_SIGNATURE = '\uFEFF'
@@ -21,7 +18,7 @@ function withUtf8Signature(content: string): string {
 
 function shouldUseUtf8Signature(route: ContentRoute): boolean {
   if (route.kind === 'mdx') return true
-  return /\.ya?ml$/i.test(route.contentArtifactUrl ?? '')
+  return false
 }
 
 export function routeToMarkdownArtifactUrl(routePath: string): string {
@@ -29,16 +26,15 @@ export function routeToMarkdownArtifactUrl(routePath: string): string {
   return `${normalizedPath}.md`
 }
 
-export function routeToOpenAPIArtifactUrl(routePath: string, filePath: string): string {
-  const extension = extname(filePath).toLowerCase() || '.json'
+export function routeToOpenAPIArtifactUrl(routePath: string): string {
   const normalizedPath = routePath === '/' ? '/index' : routePath.replace(/\/$/, '')
-  return `${normalizedPath}.openapi${extension}`
+  return `${normalizedPath}.openapi.json`
 }
 
 export function attachContentArtifactUrls(routes: ContentRoute[]): void {
   for (const route of routes) {
     route.contentArtifactUrl = route.kind === 'openapi'
-      ? routeToOpenAPIArtifactUrl(route.path, route.filePath)
+      ? routeToOpenAPIArtifactUrl(route.path)
       : routeToMarkdownArtifactUrl(route.path)
   }
 }
@@ -51,16 +47,6 @@ export function readRouteContent(route: ContentRoute): string {
 export function readRouteArtifactContent(route: ContentRoute): string {
   const content = readRouteContent(route)
   return shouldUseUtf8Signature(route) ? withUtf8Signature(content) : content
-}
-
-export function writeContentArtifactFiles(routes: ContentRoute[], outputDirectory: string): void {
-  for (const route of routes) {
-    if (!route.contentArtifactUrl) continue
-
-    const outFile = join(outputDirectory, route.contentArtifactUrl.replace(/^\//, ''))
-    mkdirSync(dirname(outFile), { recursive: true })
-    writeFileSync(outFile, readRouteArtifactContent(route), 'utf-8')
-  }
 }
 
 export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedProjectConfig): string {
@@ -94,9 +80,4 @@ export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedPro
 
 export function createLlmsTxtArtifact(routes: ContentRoute[], projectConfig: ResolvedProjectConfig): string {
   return withUtf8Signature(createLlmsTxt(routes, projectConfig))
-}
-
-export function writeLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedProjectConfig, outputDirectory: string): void {
-  mkdirSync(outputDirectory, { recursive: true })
-  writeFileSync(join(outputDirectory, 'llms.txt'), createLlmsTxtArtifact(routes, projectConfig), 'utf-8')
 }

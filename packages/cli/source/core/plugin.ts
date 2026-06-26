@@ -11,7 +11,8 @@ import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } 
 
 import { createBuiltinPlugins } from './builtin.js'
 import { resolveProjectConfig } from './config.js'
-import { runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
+import { writeClarifyEnvDts } from './env-types.js'
+import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from './options.js'
 import { resolveClarifySite } from './site.js'
 import {
@@ -27,6 +28,9 @@ import {
   VIRTUAL_CONFIG,
   VIRTUAL_ROUTES,
   VIRTUAL_SERVER_ROUTES,
+  VIRTUAL_OPENAPI,
+  VIRTUAL_SLOTS,
+  VIRTUAL_SLOT,
   buildVirtualModules,
   resolveVirtualId,
   stripVirtualPrefix,
@@ -52,22 +56,8 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   let resolvedNavigation: NavigationTree = []
   let virtualModules: VirtualModules = new Map()
 
-  async function reloadProjectConfig() {
-    const userConfig = await loadClarifyConfig(root, { command: 'serve', mode: viteConfig.mode })
-    const buildOptions: ClarifyBuildOptions = {
-      ...userConfig,
-      projectRoot: options.projectRoot,
-      rootDirectory: options.rootDirectory,
-      outputDirectory: options.outputDirectory,
-    }
-    projectConfig = resolveProjectConfig(buildOptions)
-    generateOptions = resolveBuildOptions(buildOptions)
-    ctx.projectConfig = projectConfig
-    ctx.generateOptions = generateOptions
-  }
-
-  async function resolveRoutesAndSpecs() {
-    const site = await resolveClarifySite(options)
+  async function resolveRoutesAndSpecs(overrides?: ClarifyBuildOptions) {
+    const site = await resolveClarifySite(overrides ?? options)
     projectConfig = site.projectConfig
     generateOptions = site.generateOptions
     routes = site.routes
@@ -85,6 +75,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       generateOptions,
       routes,
       navigation: resolvedNavigation,
+      plugins: clarifyPlugins,
       themeEditor: viteConfig.command === 'serve' || projectConfig.theme.editor,
     })
     virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
@@ -150,12 +141,22 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     },
     async buildStart() {
       await rebuildVirtualModules()
+      writeClarifyEnvDts(root, clarifyPlugins)
     },
     async handleHotUpdate(ctx) {
       const changedFile = isAbsolute(ctx.file) ? ctx.file : join(root, ctx.file)
       if (configFilePath && changedFile === configFilePath) {
-        await reloadProjectConfig()
-        await refreshDevServer(ctx.server)
+        const userConfig = await loadClarifyConfig(root, { command: 'serve', mode: viteConfig.mode })
+        const newOptions: ClarifyBuildOptions = {
+          ...userConfig,
+          projectRoot: options.projectRoot,
+          rootDirectory: options.rootDirectory,
+          outputDirectory: options.outputDirectory,
+        }
+        await resolveRoutesAndSpecs(newOptions)
+        await rebuildVirtualModules()
+        invalidateVirtualModules(ctx.server)
+        ctx.server.ws.send({ type: 'full-reload' })
         return []
       }
 
@@ -171,6 +172,9 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       if (id === VIRTUAL_CONFIG || id === resolveVirtualId(VIRTUAL_CONFIG)) return resolveVirtualId(VIRTUAL_CONFIG)
       if (id === VIRTUAL_ROUTES || id === resolveVirtualId(VIRTUAL_ROUTES)) return resolveVirtualId(VIRTUAL_ROUTES)
       if (id === VIRTUAL_SERVER_ROUTES || id === resolveVirtualId(VIRTUAL_SERVER_ROUTES)) return resolveVirtualId(VIRTUAL_SERVER_ROUTES)
+      if (id === VIRTUAL_OPENAPI || id === resolveVirtualId(VIRTUAL_OPENAPI)) return resolveVirtualId(VIRTUAL_OPENAPI)
+      if (id === VIRTUAL_SLOTS || id === resolveVirtualId(VIRTUAL_SLOTS)) return resolveVirtualId(VIRTUAL_SLOTS)
+      if (id === VIRTUAL_SLOT || id === resolveVirtualId(VIRTUAL_SLOT)) return resolveVirtualId(VIRTUAL_SLOT)
       const moduleId = stripVirtualPrefix(id)
       if (virtualModules.has(moduleId)) return resolveVirtualId(moduleId)
       const route = routes.find(r => r.virtualModuleId === id || r.virtualModuleId === moduleId)
@@ -216,6 +220,18 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
           html: result.html,
           tags: result.tags,
         }
+      }
+    },
+    async generateBundle(_opts, bundle) {
+      // Collect assets from all plugins and emit them through Rollup so they
+      // appear in the Vite manifest and build log.
+      const assets = await runBuildAssetsHooks(clarifyPlugins, ctx)
+      for (const asset of assets) {
+        this.emitFile({
+          type: 'asset',
+          fileName: asset.fileName,
+          source: asset.source,
+        })
       }
     },
     async closeBundle() {
@@ -275,5 +291,3 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
 
   return [react(), tailwindcss(), normalizedMdxContentPlugin, clarifyCorePlugin, mdx].flat().filter(Boolean) as Plugin[]
 }
-
-export type { Plugin } from 'vite'

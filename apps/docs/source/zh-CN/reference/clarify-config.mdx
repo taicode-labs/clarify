@@ -473,12 +473,10 @@ type ClarifyBannerConfigOptions = {
   link?: ClarifyBannerLink
 }
 
-type ClarifyBannerConfig =
-  | ClarifyBannerConfigOptions
-  | string
+type ClarifyBannerConfig = ClarifyBannerConfigOptions
 ```
 
-`banner` 用于顶部公告，适合短消息而不是长段落。它支持两种形式：内置配置对象，或自定义公告组件路径字符串。
+`banner` 用于顶部公告，适合短消息而不是长段落。
 
 ```ts title="内置公告配置"
 export default defineConfig({
@@ -499,17 +497,7 @@ export default defineConfig({
 })
 ```
 
-```ts title="自定义公告组件路径"
-export default defineConfig({
-  banner: './source/Banner.tsx',
-})
-```
-
-```tsx title="source/Banner.tsx"
-export default function Banner() {
-  return <div>Custom announcement content</div>
-}
-```
+> 如需完全自定义横幅组件，请使用 [插件机制](/features/plugins) 注册 `page.banner.replace` 插槽。
 
 使用建议：
 
@@ -534,12 +522,10 @@ type ClarifyFooterLinksConfig = {
   copyright?: ClarifyLocalizedText
 }
 
-type ClarifyFooterConfig =
-  | ClarifyFooterLinksConfig
-  | string
+type ClarifyFooterConfig = ClarifyFooterLinksConfig
 ```
 
-`footer` 是页面底部区域，通常承载低频但重要的链接。两种形式只能选择一种：内置链接/社交/版权配置，或组件模块路径字符串。Clarify 品牌标识始终渲染在右下角，并位于自定义或内置页脚内容下方。
+`footer` 是页面底部区域，通常承载低频但重要的链接。Clarify 品牌标识始终渲染在右下角，并位于页脚内容下方。
 
 内置对象形式的字段说明：
 
@@ -550,18 +536,6 @@ type ClarifyFooterConfig =
 | `copyright` | `ClarifyLocalizedText` | 内置版权或组织声明，支持多语言。 |
 
 <CodeGroup>
-
-```ts title="自定义页脚组件路径"
-export default defineConfig({
-  footer: './source/Footer.tsx',
-})
-```
-
-```tsx title="source/Footer.tsx"
-export default function Footer() {
-  return <div>自定义页脚内容</div>
-}
-```
 
 ```ts title="基础页脚"
 export default defineConfig({

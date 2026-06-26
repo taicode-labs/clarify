@@ -473,12 +473,10 @@ type ClarifyBannerConfigOptions = {
   link?: ClarifyBannerLink
 }
 
-type ClarifyBannerConfig =
-  | ClarifyBannerConfigOptions
-  | string
+type ClarifyBannerConfig = ClarifyBannerConfigOptions
 ```
 
-`banner` renders a top announcement bar. It is best for short notices, not long paragraphs. It supports two forms: a built-in configuration object or a custom announcement component path string.
+`banner` renders a top announcement bar. It is best for short notices, not long paragraphs.
 
 ```ts title="Built-in banner config"
 export default defineConfig({
@@ -499,17 +497,7 @@ export default defineConfig({
 })
 ```
 
-```ts title="Custom banner component path"
-export default defineConfig({
-  banner: './source/Banner.tsx',
-})
-```
-
-```tsx title="source/Banner.tsx"
-export default function Banner() {
-  return <div>Custom announcement content</div>
-}
-```
+> For fully custom banner components, use the [plugin system](/features/plugins) to register the `page.banner.replace` slot.
 
 Recommendations:
 
@@ -534,12 +522,10 @@ type ClarifyFooterLinksConfig = {
   copyright?: ClarifyLocalizedText
 }
 
-type ClarifyFooterConfig =
-  | ClarifyFooterLinksConfig
-  | string
+type ClarifyFooterConfig = ClarifyFooterLinksConfig
 ```
 
-`footer` is the bottom page area for low-frequency but important links. Choose exactly one form: built-in link/social/copyright configuration or a custom component module path. Clarify branding is always rendered in the bottom-right corner below the custom or built-in footer content.
+`footer` is the bottom page area for low-frequency but important links. Clarify branding is always rendered in the bottom-right corner below the footer content.
 
 Field reference for the built-in object form:
 
@@ -550,18 +536,6 @@ Field reference for the built-in object form:
 | `copyright` | `ClarifyLocalizedText` | Built-in copyright or organization statement. Supports localized text. |
 
 <CodeGroup>
-
-```ts title="Custom footer component path"
-export default defineConfig({
-  footer: './source/Footer.tsx',
-})
-```
-
-```tsx title="source/Footer.tsx"
-export default function Footer() {
-  return <div>Custom footer content</div>
-}
-```
 
 ```ts title="Basic footer"
 export default defineConfig({

@@ -82,12 +82,20 @@ export function routeOutputFiles(outputDirectory: string, route: ContentRoute): 
 }
 
 export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify-labs/renderer/server';
-import { routes, navigation } from 'virtual:clarify-routes/server';
-import { config } from 'virtual:clarify-config';
-import { openApis, bannerComponent, footerComponent } from 'virtual:clarify-runtime';
+import { routes, navigation } from 'virtual:clarify/routes/server';
+import { config } from 'virtual:clarify/config';
+import { openApis } from 'virtual:clarify/openapi';
+import { runtimeSlots } from 'virtual:clarify/slots';
 
-export function render(url) {
-  return renderToHTML({ config, routes, navigation, openApis, bannerComponent, footerComponent, url, themeEditor: config.theme.editor });
+export async function render(url) {
+  // Pre-resolve every slot component factory so renderToString can use
+  // them synchronously (renderToString has no Suspense support).
+  const entries = Object.values(runtimeSlots).flat()
+  await Promise.all(entries.map(async (entry) => {
+    const mod = await entry.component()
+    entry._resolved = mod.default
+  }))
+  return renderToHTML({ config, routes, navigation, openApis, runtimeSlots, url, themeEditor: config.theme.editor });
 }`
 
 export function createTempEntryFile(content: string): string {
@@ -134,7 +142,7 @@ export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: Res
 
   for (const route of routes) {
     try {
-      const appHtml = render(route.path)
+      const appHtml = await render(route.path)
       const finalHtml = injectSSRIntoTemplate(template, appHtml, projectConfig, route)
 
       for (const outFile of routeOutputFiles(outputDirectory, route)) {

@@ -29,8 +29,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
     dts({
-      entryRoot: 'source',
       outDir: 'output',
+      entryRoot: 'source',
       include: ['source/**/*.ts', 'source/**/*.tsx'],
       exclude: ['source/**/*.test.ts', 'source/**/*.test.tsx'],
       rollupTypes: false,

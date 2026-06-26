@@ -1,4 +1,4 @@
-import { isValidElement, type ReactNode } from 'react'
+import { isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
 
 import { Mermaid } from '../components/Mermaid'
@@ -16,6 +16,15 @@ function getMermaidChart(children: ReactNode): string | undefined {
   return typeof props.children === 'string' ? props.children : undefined
 }
 
+function MarkdownTable(arg0: ComponentPropsWithoutRef<'table'>) {
+  const { className, ...props } = arg0
+  return (
+    <div className="overflow-x-auto">
+      <table className={className} {...props} />
+    </div>
+  )
+}
+
 const markdownComponents: Components = {
   a(props) {
     return <MarkdownLink {...props} />
@@ -29,6 +38,9 @@ const markdownComponents: Components = {
     if (chart !== undefined) return <Mermaid chart={chart} />
 
     return <MarkdownPre {...props}>{children}</MarkdownPre>
+  },
+  table(props) {
+    return <MarkdownTable {...props} />
   },
 }
 

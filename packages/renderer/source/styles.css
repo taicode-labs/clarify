@@ -625,4 +625,12 @@
     flex: none;
     accent-color: var(--clarify-theme-tokens-colors-primary, var(--color-emerald-500));
   }
+
+  .prose thead th {
+    white-space: nowrap;
+  }
+
+  .prose :not(pre) > code {
+    white-space: nowrap;
+  }
 }

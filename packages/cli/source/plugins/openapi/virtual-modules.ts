@@ -1,24 +1,52 @@
-import { VIRTUAL_RUNTIME } from '../../core/virtual-modules.js'
+import { VIRTUAL_OPENAPI } from '../../core/virtual-modules.js'
 import type { ContentDiagnostic, OpenAPISpec } from '../../types.js'
 
-export const openApiRegistryModuleId = VIRTUAL_RUNTIME
+export const openApiRegistryModuleId = VIRTUAL_OPENAPI
+export const OPENAPI_SPEC_PREFIX = 'virtual:clarify/openapi-spec/'
 
-export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISpec>, runtimeModule = ''): string {
-  const openApisExport = `export const openApis = ${JSON.stringify(openApis)};`
-  const openApisPlaceholder = /export const openApis = \{\};?/
-  if (!runtimeModule) return openApisExport
-  if (openApisPlaceholder.test(runtimeModule)) return runtimeModule.replace(openApisPlaceholder, openApisExport)
-  return runtimeModule
+export function specVirtualModuleId(specKey: string): string {
+  return `${OPENAPI_SPEC_PREFIX}${specKey}`
 }
 
-export function generateOpenAPIModule(spec: OpenAPISpec, tagFilter?: string[]): string {
-  return `import { createElement } from 'react';
-import { OpenApiDocument } from '@clarify-labs/renderer';
-const spec = ${JSON.stringify(spec)};
-const tagFilter = ${JSON.stringify(tagFilter)};
-export default function OpenApiRoutePage() {
-  return createElement(OpenApiDocument, { spec, tagFilter });
-}`
+export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISpec>): string {
+  return `export const openApis = ${JSON.stringify(openApis)};`
+}
+
+/** Generate a virtual module that exports a single spec as default. */
+export function generateOpenAPISpecModule(spec: OpenAPISpec): string {
+  return `export default ${JSON.stringify(spec)};`
+}
+
+type OpenAPIPageModuleOptions = { specKey: string; tagFilter?: string[] }
+
+export function generateOpenAPIPageModule(opts: OpenAPIPageModuleOptions): string {
+  const { specKey, tagFilter } = opts
+
+  return [
+    `import { createElement, useState, useEffect, useRef } from 'react';`,
+    `import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';`,
+    `const SPEC_KEY = ${JSON.stringify(specKey)};`,
+    `const TAG_FILTER = ${JSON.stringify(tagFilter ?? undefined)};`,
+    `let loadPromise = null;`,
+    `function loadSpec() {`,
+    `  if (!loadPromise) loadPromise = import(${JSON.stringify(specVirtualModuleId(specKey))}).then(function(m) { return m.default; });`,
+    `  return loadPromise;`,
+    `}`,
+    `export default function OpenApiRoutePage() {`,
+    `  const specs = useOpenApis();`,
+    `  const serverSpec = specs[SPEC_KEY];`,
+    `  const [spec, setSpec] = useState(serverSpec || null);`,
+    `  const mountedRef = useRef(false);`,
+    `  useEffect(function() {`,
+    `    if (mountedRef.current) return;`,
+    `    mountedRef.current = true;`,
+    `    if (spec) return;`,
+    `    loadSpec().then(setSpec);`,
+    `  }, []);`,
+    `  if (!spec) return null;`,
+    `  return createElement(OpenApiDocument, { spec: spec, tagFilter: TAG_FILTER });`,
+    `}`,
+  ].join('\n')
 }
 
 export function generateOpenAPIErrorModule(diagnostic: ContentDiagnostic): string {

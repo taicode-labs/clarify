@@ -1,4 +1,5 @@
 import { defineConfig } from '@clarify-labs/cli'
+import docsFooterPlugin from './plugin/index.js'
 
 export default defineConfig({
   title: 'Clarify',
@@ -111,8 +112,8 @@ export default defineConfig({
       pages: [
         {
           group: {
-            'zh-CN': '核心路径',
-            'en-US': 'Core Path',
+            'zh-CN': '快速开始',
+            'en-US': 'Get Started',
           },
           icon: 'Compass',
           pages: [
@@ -128,7 +129,7 @@ export default defineConfig({
               page: 'getting-started',
               title: {
                 'zh-CN': '快速开始',
-                'en-US': 'Get Started',
+                'en-US': 'Quickstart',
               },
               icon: 'Rocket',
             },
@@ -140,47 +141,130 @@ export default defineConfig({
               },
               icon: 'LayoutGrid',
             },
+          ],
+        },
+        {
+          group: {
+            'zh-CN': '写作文档',
+            'en-US': 'Writing Content',
+          },
+          icon: 'PenLine',
+          pages: [
             {
               page: 'guides/writing-content',
               title: {
-                'zh-CN': '写作文档',
-                'en-US': 'Writing Docs',
+                'zh-CN': 'MDX 与内容',
+                'en-US': 'MDX Guide',
               },
               icon: 'PenLine',
             },
             {
               page: 'guides/navigation',
               title: {
-                'zh-CN': '配置站点',
-                'en-US': 'Configure Site',
+                'zh-CN': '导航与配置',
+                'en-US': 'Navigation & Config',
               },
               icon: 'SlidersHorizontal',
             },
             {
-              page: 'features/openapi',
+              page: 'reference/built-in-components',
               title: {
-                'zh-CN': 'API 文档',
-                'en-US': 'API Documentation',
+                'zh-CN': '内置组件',
+                'en-US': 'Built-in Components',
               },
-              icon: 'Webhook',
+              icon: 'Component',
             },
             {
-              page: 'guides/deployment',
+              page: 'openapi/embedding',
               title: {
-                'zh-CN': '发布上线',
-                'en-US': 'Ship to Production',
+                'zh-CN': '在 MDX 中嵌入 OpenAPI',
+                'en-US': 'Embed OpenAPI in MDX',
               },
-              icon: 'UploadCloud',
+              icon: 'CodeXml',
             },
           ],
         },
         {
           group: {
-            'zh-CN': '场景补充',
-            'en-US': 'Scenarios',
+            'zh-CN': '平台特性',
+            'en-US': 'Platform Features',
           },
-          icon: 'Sparkles',
+          icon: 'Webhook',
           pages: [
+            {
+              page: 'features/openapi',
+              title: {
+                'zh-CN': 'OpenAPI 文档',
+                'en-US': 'OpenAPI Documentation',
+              },
+              icon: 'FileJson2',
+            },
+            {
+              page: 'features/plugins',
+              title: {
+                'zh-CN': '插件系统',
+                'en-US': 'Plugin System',
+              },
+              icon: 'Puzzle',
+            },
+          ],
+        },
+        {
+          group: {
+            'zh-CN': '参考手册',
+            'en-US': 'Reference',
+          },
+          icon: 'BookMarked',
+          pages: [
+            {
+              page: 'reference',
+              title: {
+                'zh-CN': '参考总览',
+                'en-US': 'Reference Overview',
+              },
+              icon: 'BookMarked',
+            },
+            {
+              page: 'reference/cli-commands',
+              title: {
+                'zh-CN': 'CLI 命令参考',
+                'en-US': 'CLI Reference',
+              },
+              icon: 'Terminal',
+            },
+            {
+              page: 'reference/clarify-config',
+              title: {
+                'zh-CN': '配置参考',
+                'en-US': 'Configuration Reference',
+              },
+              icon: 'Settings2',
+            },
+            {
+              page: 'reference/plugin-api',
+              title: {
+                'zh-CN': '插件 API 参考',
+                'en-US': 'Plugin API Reference',
+              },
+              icon: 'Puzzle',
+            },
+          ],
+        },
+        {
+          group: {
+            'zh-CN': '部署与维护',
+            'en-US': 'Deploy & Maintain',
+          },
+          icon: 'UploadCloud',
+          pages: [
+            {
+              page: 'guides/deployment',
+              title: {
+                'zh-CN': '部署上线',
+                'en-US': 'Deployment',
+              },
+              icon: 'Rocket',
+            },
             {
               page: 'guides/migrate-from-mintlify',
               title: {
@@ -190,28 +274,20 @@ export default defineConfig({
               icon: 'RefreshCcw',
             },
             {
-              page: 'features/plugins',
-              title: {
-                'zh-CN': '插件机制',
-                'en-US': 'Plugin System',
-              },
-              icon: 'Puzzle',
-            },
-            {
-              page: 'roadmap',
-              title: {
-                'zh-CN': '产品路线图',
-                'en-US': 'Product Roadmap',
-              },
-              icon: 'Milestone',
-            },
-            {
               page: 'changelog',
               title: {
                 'zh-CN': '更新日志',
                 'en-US': 'Changelog',
               },
               icon: 'History',
+            },
+            {
+              page: 'roadmap',
+              title: {
+                'zh-CN': '产品路线图',
+                'en-US': 'Roadmap',
+              },
+              icon: 'Milestone',
             },
           ],
         },
@@ -270,64 +346,6 @@ export default defineConfig({
                 'en-US': 'Embedding OpenAPI in MDX',
               },
               icon: 'CodeXml',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      tab: {
-        'zh-CN': '参考',
-        'en-US': 'Reference',
-      },
-      icon: 'Library',
-      pages: [
-        {
-          group: {
-            'zh-CN': '参考手册',
-            'en-US': 'Reference',
-          },
-          icon: 'Library',
-          pages: [
-            {
-              page: 'reference',
-              title: {
-                'zh-CN': '参考资料总览',
-                'en-US': 'Reference Overview',
-              },
-              icon: 'BookMarked',
-            },
-            {
-              page: 'reference/clarify-config',
-              title: {
-                'zh-CN': '配置文件参考',
-                'en-US': 'Configuration Reference',
-              },
-              icon: 'Settings2',
-            },
-            {
-              page: 'reference/cli-commands',
-              title: {
-                'zh-CN': 'CLI 命令参考',
-                'en-US': 'CLI Reference',
-              },
-              icon: 'Terminal',
-            },
-            {
-              page: 'reference/built-in-components',
-              title: {
-                'zh-CN': '内置公开组件',
-                'en-US': 'Built-in Components',
-              },
-              icon: 'Component',
-            },
-            {
-              page: 'reference/plugin-api',
-              title: {
-                'zh-CN': '插件 API 参考',
-                'en-US': 'Plugin API Reference',
-              },
-              icon: 'Puzzle',
             },
           ],
         },
@@ -416,4 +434,5 @@ export default defineConfig({
       ],
     },
   ],
+  plugins: [docsFooterPlugin],
 })

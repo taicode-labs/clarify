@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { OpenAPISpec } from '../../types.js'
 
-import { generateOpenAPIErrorModule, generateOpenAPIModule, generateOpenAPIRegistryModule, openApiRegistryModuleId } from './virtual-modules.js'
+import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 const spec: OpenAPISpec = {
   openapi: '3.0.0',
@@ -26,7 +26,7 @@ const spec: OpenAPISpec = {
 
 describe('openapi virtual modules', () => {
   it('uses the shared Clarify runtime virtual module id', () => {
-    expect(openApiRegistryModuleId).toBe('virtual:clarify-runtime')
+    expect(openApiRegistryModuleId).toBe('virtual:clarify/openapi')
   })
 
   it('generates the OpenAPI registry module', () => {
@@ -35,29 +35,34 @@ describe('openapi virtual modules', () => {
     expect(code).toContain('Example API')
   })
 
-  it('preserves other runtime module exports', () => {
-    const code = generateOpenAPIRegistryModule(
-      { 'virtual:clarify-page/api': spec },
-      'export const openApis = {};\nexport const footerComponent = undefined;',
-    )
-    expect(code).toContain('export const footerComponent = undefined;')
-    expect(code).toContain('Example API')
-  })
-
-  it('does not append duplicate openApis exports when the placeholder is missing', () => {
-    const code = generateOpenAPIRegistryModule(
-      { 'virtual:clarify-page/api': spec },
-      'export const footerComponent = undefined;',
-    )
-    expect(code).toBe('export const footerComponent = undefined;')
-  })
-
   it('generates an OpenAPI route component module', () => {
-    const code = generateOpenAPIModule(spec, ['Users'])
-    expect(code).toContain("import { OpenApiDocument } from '@clarify-labs/renderer';")
+    const code = generateOpenAPIPageModule({ specKey: 'api', tagFilter: ['Users'] })
+    expect(code).toContain("import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';")
     expect(code).toContain('function OpenApiRoutePage')
-    expect(code).toContain('Example API')
-    expect(code).toContain('const tagFilter = ["Users"]')
+    expect(code).toContain('SPEC_KEY = "api"')
+    expect(code).toContain('import("virtual:clarify/openapi-spec/api")')
+    expect(code).toContain('loadSpec()')
+    expect(code).toContain('const TAG_FILTER = ["Users"]')
+  })
+
+  it('generates an OpenAPI route component module without tag filter', () => {
+    const code = generateOpenAPIPageModule({ specKey: 'api' })
+    expect(code).toContain("import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';")
+    expect(code).toContain('function OpenApiRoutePage')
+    expect(code).toContain('const SPEC_KEY = "api"')
+    expect(code).toContain('import("virtual:clarify/openapi-spec/api")')
+    expect(code).toContain('const TAG_FILTER = undefined')
+  })
+
+  it('generates a per-spec virtual module', () => {
+    const code = generateOpenAPISpecModule(spec)
+    expect(code).toContain('export default')
+    expect(code).toContain('"Example API"')
+  })
+
+  it('derives spec virtual module IDs from spec keys', () => {
+    expect(specVirtualModuleId('api')).toBe('virtual:clarify/openapi-spec/api')
+    expect(specVirtualModuleId('some_nested_key')).toBe('virtual:clarify/openapi-spec/some_nested_key')
   })
 
   it('generates an OpenAPI diagnostic route component module', () => {

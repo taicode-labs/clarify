@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 
 import { resolveThemeConfig } from '../core/theme.js'
-import { createClientEntryModule, createRuntimeModule, generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
-import type { ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
+import { createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
+import type { ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 describe('generateConfigModule', () => {
   it('generates a valid ES module export', () => {
@@ -94,26 +94,13 @@ describe('generateRoutesModule', () => {
   })
 })
 
-describe('createRuntimeModule', () => {
-  it('provides empty runtime extension data by default', () => {
-    expect(createRuntimeModule()).toBe('export const openApis = {};\nexport const bannerComponent = undefined;\nexport const footerComponent = undefined;')
-  })
-
-  it('imports a configured banner component path', () => {
-    expect(createRuntimeModule({ bannerComponentSource: 'path', imports: { bannerComponent: './source/Banner.tsx' } })).toBe('import BannerComponent from "./source/Banner.tsx";\nexport const openApis = {};\nexport const bannerComponent = BannerComponent;\nexport const footerComponent = undefined;')
-  })
-
-  it('imports a configured footer component path', () => {
-    expect(createRuntimeModule({ footerComponentSource: 'path', imports: { footerComponent: './source/Footer.tsx' } })).toBe('import FooterComponent from "./source/Footer.tsx";\nexport const openApis = {};\nexport const bannerComponent = undefined;\nexport const footerComponent = FooterComponent;')
-  })
-})
-
 describe('createClientEntryModule', () => {
   it('passes the theme editor flag to the renderer', () => {
     const code = createClientEntryModule({ themeEditor: true })
 
-    expect(code).toContain("import { openApis, bannerComponent, footerComponent } from 'virtual:clarify-runtime';")
-    expect(code).toContain('render({ config, routes, navigation, openApis, bannerComponent, footerComponent, themeEditor: true });')
+    expect(code).toContain("import { runtimeSlots } from 'virtual:clarify/slots';")
+    expect(code).toContain("import { openApis } from 'virtual:clarify/openapi';")
+    expect(code).toContain('render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: true });')
     expect(code).not.toContain('ThemeEditor')
     expect(code).not.toContain('react-dom/client')
   })
@@ -121,8 +108,83 @@ describe('createClientEntryModule', () => {
   it('disables the theme editor by default', () => {
     const code = createClientEntryModule()
 
-    expect(code).toContain('render({ config, routes, navigation, openApis, bannerComponent, footerComponent, themeEditor: false });')
+    expect(code).toContain('render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: false });')
     expect(code).not.toContain('ThemeEditor')
     expect(code).not.toContain('react-dom/client')
+  })
+})
+
+describe('createRuntimeSlotsModule', () => {
+  it('exports an empty registry when no plugin declares slots', () => {
+    expect(createRuntimeSlotsModule([])).toBe('export const runtimeSlots = {};\n')
+    expect(createRuntimeSlotsModule([{ name: 'p', hooks: {} }])).toBe('export const runtimeSlots = {};\n')
+  })
+
+  it('stores component import factories and groups entries by slot name', () => {
+    const plugins: ClarifyPlugin[] = [
+      {
+        name: 'clarify:github-comments',
+        hooks: {},
+        slots: [
+          { name: 'page.footer.before', component: '/source/github-comments.tsx' },
+        ],
+      },
+    ]
+
+    const code = createRuntimeSlotsModule(plugins, '/project')
+
+    expect(code).not.toContain('import ')
+    expect(code).toContain('"page.footer.before": [')
+    expect(code).toContain('plugin: "clarify:github-comments"')
+    expect(code).toContain('component: () => import("/project/source/github-comments.tsx")')
+  })
+
+  it('resolves /-prefixed paths against the project root', () => {
+    const plugins: ClarifyPlugin[] = [
+      {
+        name: 'a',
+        hooks: {},
+        slots: [{ name: 'page.footer.before', component: '/source/my-component.tsx' }],
+      },
+    ]
+
+    const code = createRuntimeSlotsModule(plugins, '/project')
+
+    expect(code).not.toContain('import ')
+    expect(code).toContain('component: () => import("/project/source/my-component.tsx")')
+  })
+
+  it('stores each /-prefixed component path independently', () => {
+    const plugins: ClarifyPlugin[] = [
+      {
+        name: 'a',
+        hooks: {},
+        slots: [{ name: 'page.footer.before', component: '/some-pkg/Footer' }],
+      },
+      {
+        name: 'b',
+        hooks: {},
+        slots: [{ name: 'page.footer.before', component: '/some-pkg/Footer' }],
+      },
+    ]
+
+    const code = createRuntimeSlotsModule(plugins, '/project')
+
+    expect(code).not.toContain('import ')
+    expect(code.match(/import\("\/project\/some-pkg\/Footer"\)/g)?.length).toBe(2)
+  })
+
+  it('throws for component paths that do not start with /', () => {
+    const plugins: ClarifyPlugin[] = [
+      {
+        name: 'bad-plugin',
+        hooks: {},
+        slots: [{ name: 'page.footer.before', component: 'relative/path.tsx' }],
+      },
+    ]
+
+    expect(() => createRuntimeSlotsModule(plugins, '/project')).toThrow(
+      'invalid component path',
+    )
   })
 })

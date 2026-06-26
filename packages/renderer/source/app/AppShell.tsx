@@ -6,11 +6,13 @@ import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { LocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
 import { Header, Navigation } from '../shell'
+import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots } from '../slots'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
 import type { RouteItem, Config, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
+import { BuiltWithClarify } from './BuiltWithClarify'
 import { PageErrorBoundary } from './ErrorBoundary'
 import { PageActionsProvider } from './PageActions'
 import { PageBanner } from './PageBanner'
@@ -23,8 +25,31 @@ export type AppShellProps = {
   config: Config
   routes: RouteItem[]
   navigation: NavigationTree
-  bannerComponent?: ComponentType
-  footerComponent?: ComponentType
+  runtimeSlots?: RuntimeSlots
+}
+
+type BannerSlotProps = {
+  activeBannerKey: string | undefined
+  dismissedBannerKey: string | undefined
+  onDismiss: () => void
+  config: Config
+  locale?: string
+}
+
+function BannerSlot(props: BannerSlotProps) {
+  const { activeBannerKey, dismissedBannerKey, onDismiss, config, locale } = props
+  // 直接在插槽内部创建默认组件，这样它可以访问到上下文
+  function DefaultBannerComponent() {
+    const hasBanner = Boolean(config.banner) && dismissedBannerKey !== activeBannerKey
+    if (!hasBanner) return null
+    return <PageBanner currentLocale={locale} onDismiss={onDismiss} />
+  }
+  
+  return <RuntimeSlot name="page.banner.replace" default={DefaultBannerComponent} />
+}
+
+function DefaultFooterComponent() {
+  return <PageFooter />
 }
 
 function routeForPath(routes: RouteItem[], pathname: string): RouteItem | undefined {
@@ -171,7 +196,7 @@ function NotFoundRouteElement(props: NotFoundRouteElementProps) {
 }
 
 export function AppShell(arg0: AppShellProps) {
-  const { config, routes, navigation, bannerComponent, footerComponent } = arg0
+  const { config, routes, navigation, runtimeSlots } = arg0
   const location = useLocation()
   const navigate = useNavigate()
   const pathname = normalizeRoutePath(location.pathname)
@@ -235,6 +260,7 @@ export function AppShell(arg0: AppShellProps) {
 
   return (
     <LocaleContext.Provider value={currentLocale}>
+      <RuntimeSlotsProvider slots={runtimeSlots} route={currentRoute}>
       <SectionProvider sections={sections}>
         <Header
           config={config}
@@ -243,7 +269,15 @@ export function AppShell(arg0: AppShellProps) {
           routes={routes}
           currentLocale={currentLocale}
           currentRoute={currentRoute}
-          banner={hasBanner ? <PageBanner component={bannerComponent} currentLocale={currentLocale} onDismiss={() => setDismissedBannerKey(activeBannerKey)} /> : undefined}
+          banner={
+            <BannerSlot 
+              activeBannerKey={activeBannerKey}
+              dismissedBannerKey={dismissedBannerKey}
+              onDismiss={() => setDismissedBannerKey(activeBannerKey)}
+              config={config}
+              locale={currentLocale}
+            />
+          }
         />
         <div
           className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)"
@@ -267,7 +301,7 @@ export function AppShell(arg0: AppShellProps) {
                 'clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8',
                 hasTabs && hasBanner && 'lg:top-40 lg:h-(--clarify-sidebar-height-with-tabs-and-banner) lg:pt-10',
                 hasTabs && !hasBanner && 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-10',
-                !hasTabs && hasBanner && 'lg:top-[6.5rem] lg:h-(--clarify-sidebar-height-with-banner) lg:pt-10',
+                !hasTabs && hasBanner && 'lg:top-26 lg:h-(--clarify-sidebar-height-with-banner) lg:pt-10',
                 !hasTabs && !hasBanner && 'lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-10',
               )}
             >
@@ -277,9 +311,9 @@ export function AppShell(arg0: AppShellProps) {
           <div
             className={clsx(
               'clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10',
-              hasTabs && hasBanner && 'pt-[6.5rem] lg:pt-40',
+                hasTabs && hasBanner && 'pt-26 lg:pt-40',
               hasTabs && !hasBanner && 'pt-14 lg:pt-28',
-              !hasTabs && hasBanner && 'pt-[6.5rem]',
+              !hasTabs && hasBanner && 'pt-26',
               !hasTabs && !hasBanner && 'pt-14',
             )}
           >
@@ -312,11 +346,16 @@ export function AppShell(arg0: AppShellProps) {
                 </PageErrorBoundary>
               </main>
               <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
-              <PageFooter component={footerComponent} />
+              <RuntimeSlot name="page.footer.before" />
+              <RuntimeSlot name="page.footer.replace" default={DefaultFooterComponent} />
+              <div className="flex justify-end">
+                <BuiltWithClarify />
+              </div>
             </PageActionsProvider>
           </div>
         </div>
       </SectionProvider>
+      </RuntimeSlotsProvider>
     </LocaleContext.Provider>
   )
 }
