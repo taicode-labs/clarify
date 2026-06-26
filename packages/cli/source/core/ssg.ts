@@ -96,10 +96,7 @@ export async function render(url) {
     entry._resolved = mod.default
   }))
   return renderToHTML({ config, routes, navigation, openApis, runtimeSlots, url, themeEditor: config.theme.editor });
-}
-
-// Exposed so SSG can inject per-page spec data for hydration.
-export const ssrOpenApis = openApis;`
+}`
 
 export function createTempEntryFile(content: string): string {
   const tempDir = createClarifyTempDir('ssr')
@@ -134,7 +131,7 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
 }
 
 export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string, failOnError: boolean = true): Promise<void> {
-  const { render, ssrOpenApis } = await import(pathToFileURL(ssrBundlePath).href)
+  const { render } = await import(pathToFileURL(ssrBundlePath).href)
 
   const template = readIndexHtml(outputDirectory)
   if (!template) {
@@ -147,13 +144,6 @@ export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: Res
     try {
       const appHtml = await render(route.path)
       let finalHtml = injectSSRIntoTemplate(template, appHtml, projectConfig, route)
-
-      // Inject per-page OpenAPI spec data for hydration so the lazy page
-      // module can read it synchronously via getElementById().
-      if (route.specFileKey && ssrOpenApis?.[route.specFileKey]) {
-        const specScript = `<script id="__openapi-spec-${route.specFileKey}" type="application/json">${JSON.stringify(ssrOpenApis[route.specFileKey])}</script>`
-        finalHtml = finalHtml.replace('</head>', specScript + '\n  </head>')
-      }
 
       for (const outFile of routeOutputFiles(outputDirectory, route)) {
         mkdirSync(dirname(outFile), { recursive: true })

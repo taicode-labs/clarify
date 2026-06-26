@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, extname, join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { stringify as yamlStringify } from 'yaml'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
@@ -21,7 +22,7 @@ function withUtf8Signature(content: string): string {
 
 function shouldUseUtf8Signature(route: ContentRoute): boolean {
   if (route.kind === 'mdx') return true
-  return /\.ya?ml$/i.test(route.contentArtifactUrl ?? '')
+  return false
 }
 
 export function routeToMarkdownArtifactUrl(routePath: string): string {
@@ -29,16 +30,15 @@ export function routeToMarkdownArtifactUrl(routePath: string): string {
   return `${normalizedPath}.md`
 }
 
-export function routeToOpenAPIArtifactUrl(routePath: string, filePath: string): string {
-  const extension = extname(filePath).toLowerCase() || '.json'
+export function routeToOpenAPIArtifactUrl(routePath: string): string {
   const normalizedPath = routePath === '/' ? '/index' : routePath.replace(/\/$/, '')
-  return `${normalizedPath}.openapi${extension}`
+  return `${normalizedPath}.openapi.json`
 }
 
 export function attachContentArtifactUrls(routes: ContentRoute[]): void {
   for (const route of routes) {
     route.contentArtifactUrl = route.kind === 'openapi'
-      ? routeToOpenAPIArtifactUrl(route.path, route.filePath)
+      ? routeToOpenAPIArtifactUrl(route.path)
       : routeToMarkdownArtifactUrl(route.path)
   }
 }
@@ -60,6 +60,13 @@ export function writeContentArtifactFiles(routes: ContentRoute[], outputDirector
     const outFile = join(outputDirectory, route.contentArtifactUrl.replace(/^\//, ''))
     mkdirSync(dirname(outFile), { recursive: true })
     writeFileSync(outFile, readRouteArtifactContent(route), 'utf-8')
+
+    // For OpenAPI routes, also write a YAML variant
+    if (route.kind === 'openapi' && route.content) {
+      const yamlOutFile = outFile.replace(/\.json$/, '.yaml')
+      const spec = JSON.parse(route.content)
+      writeFileSync(yamlOutFile, yamlStringify(spec, { lineWidth: 0 }), 'utf-8')
+    }
   }
 }
 

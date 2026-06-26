@@ -2,24 +2,34 @@ import { VIRTUAL_OPENAPI } from '../../core/virtual-modules.js'
 import type { ContentDiagnostic, OpenAPISpec } from '../../types.js'
 
 export const openApiRegistryModuleId = VIRTUAL_OPENAPI
+export const OPENAPI_SPEC_PREFIX = 'virtual:clarify/openapi-spec/'
+
+export function specVirtualModuleId(specKey: string): string {
+  return `${OPENAPI_SPEC_PREFIX}${specKey}`
+}
 
 export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISpec>): string {
   return `export const openApis = ${JSON.stringify(openApis)};`
 }
 
+/** Generate a virtual module that exports a single spec as default. */
+export function generateOpenAPISpecModule(spec: OpenAPISpec): string {
+  return `export default ${JSON.stringify(spec)};`
+}
+
 type OpenAPIPageModuleOptions =
   | { mode: 'inline'; spec: OpenAPISpec; tagFilter?: string[] }
-  | { mode: 'lazy'; spec: OpenAPISpec; tagFilter?: string[]; specUrl: string; specKey: string }
+  | { mode: 'lazy'; specKey: string; tagFilter?: string[] }
 
 export function generateOpenAPIPageModule(opts: OpenAPIPageModuleOptions): string {
-  const { spec, tagFilter } = opts
+  const { tagFilter } = opts
 
   if (opts.mode === 'inline') {
     // Dev mode — inline spec data directly (fast, no file system round-trip)
     return [
       `import { createElement } from 'react';`,
       `import { OpenApiDocument } from '@clarify-labs/renderer';`,
-      `const spec = ${JSON.stringify(spec)};`,
+      `const spec = ${JSON.stringify(opts.spec)};`,
       `const tagFilter = ${JSON.stringify(tagFilter ?? undefined)};`,
       `export default function OpenApiRoutePage() {`,
       `  return createElement(OpenApiDocument, { spec, tagFilter });`,
@@ -27,42 +37,29 @@ export function generateOpenAPIPageModule(opts: OpenAPIPageModuleOptions): strin
     ].join('\n')
   }
 
-  // Build mode — lazy: check inline <script> (hydration) → fetch (SPA nav)
-  const { specUrl, specKey } = opts
+  // Build mode — lazy: SSR context first, then dynamic import() for SPA navigation
+  const { specKey } = opts
   return [
-    `import { createElement, useEffect, useRef, useState } from 'react';`,
+    `import { createElement, useState, useEffect, useRef } from 'react';`,
     `import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';`,
     `var SPEC_KEY = ${JSON.stringify(specKey)};`,
-    `var SPEC_URL = ${JSON.stringify(specUrl)};`,
     `var TAG_FILTER = ${JSON.stringify(tagFilter ?? undefined)};`,
-    `function getInitialSpec() {`,
-    `  try {`,
-    `    var el = document.getElementById('__openapi-spec-' + SPEC_KEY);`,
-    `    if (el) {`,
-    `      try { sessionStorage.setItem('__openapi-spec-' + SPEC_KEY, el.textContent); } catch(e) {}`,
-    `      return JSON.parse(el.textContent);`,
-    `    }`,
-    `  } catch(e) {}`,
-    `  try {`,
-    `    var cached = sessionStorage.getItem('__openapi-spec-' + SPEC_KEY);`,
-    `    if (cached) return JSON.parse(cached);`,
-    `  } catch(e) {}`,
-    `  return null;`,
+    `var loadPromise = null;`,
+    `function loadSpec() {`,
+    `  if (!loadPromise) loadPromise = import(${JSON.stringify(specVirtualModuleId(specKey))}).then(function(m) { return m.default; });`,
+    `  return loadPromise;`,
     `}`,
     `export default function OpenApiRoutePage() {`,
     `  var specs = useOpenApis();`,
     `  var serverSpec = specs[SPEC_KEY];`,
-    `  var [spec, setSpec] = useState(serverSpec || getInitialSpec());`,
-    `  var fetchRef = useRef(false);`,
+    `  var [spec, setSpec] = useState(serverSpec || null);`,
+    `  var mountedRef = useRef(false);`,
     `  useEffect(function() {`,
+    `    if (mountedRef.current) return;`,
+    `    mountedRef.current = true;`,
     `    if (spec) return;`,
-    `    if (fetchRef.current) return;`,
-    `    fetchRef.current = true;`,
-    `    fetch(SPEC_URL).then(function(r) { return r.json(); }).then(function(data) {`,
-    `      setSpec(data);`,
-    `      try { sessionStorage.setItem('__openapi-spec-' + SPEC_KEY, JSON.stringify(data)); } catch(e) {}`,
-    `    });`,
-    `  }, [spec]);`,
+    `    loadSpec().then(setSpec);`,
+    `  }, []);`,
     `  if (!spec) return null;`,
     `  return createElement(OpenApiDocument, { spec: spec, tagFilter: TAG_FILTER });`,
     `}`,

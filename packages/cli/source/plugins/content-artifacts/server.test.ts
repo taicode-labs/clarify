@@ -36,11 +36,7 @@ describe('content artifacts plugin server helpers', () => {
     expect(resolveContentArtifactType(createRoute('mdx', '/guide.md'))).toBe('text/markdown; charset=utf-8')
   })
 
-  it('uses yaml content type for yaml OpenAPI routes', () => {
-    expect(resolveContentArtifactType(createRoute('openapi', '/api.openapi.yaml'))).toBe('text/yaml; charset=utf-8')
-  })
-
-  it('uses json content type for JSON OpenAPI routes', () => {
+  it('uses json content type for OpenAPI routes', () => {
     expect(resolveContentArtifactType(createRoute('openapi', '/api.openapi.json'))).toBe('application/json; charset=utf-8')
   })
 })

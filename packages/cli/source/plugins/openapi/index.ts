@@ -1,11 +1,10 @@
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { relative } from 'node:path'
 
 import { localizedRoutePath, openAPIPagePathFromRef } from '../../parsers/routes.js'
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
 
-import { extractOpenAPISections, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
-import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, openApiRegistryModuleId } from './virtual-modules.js'
+import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
+import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 type OpenAPISpecEntry = {
   spec: OpenAPISpec
@@ -128,6 +127,12 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           route.title = spec.info?.title ?? route.title
           route.description = spec.info?.description ?? route.description
           route.sections = extractOpenAPISections(spec, route.openapiTagFilter)
+
+          // Set route.content to filtered or full JSON for the content-artifacts plugin
+          const pageSpec = route.openapiTagFilter?.length
+            ? filterSpecByTags(spec, route.openapiTagFilter)
+            : spec
+          route.content = JSON.stringify(pageSpec)
         }
 
         return nextRoutes
@@ -140,39 +145,29 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         }
         modules.set(openApiRegistryModuleId, generateOpenAPIRegistryModule(registryEntries))
 
-        const outputDirectory = ctx.generateOptions.outputDirectory
-        const isBuild = !isDevMode() && Boolean(outputDirectory)
+        const isBuild = !isDevMode() && Boolean(ctx.generateOptions.outputDirectory)
 
-        if (isBuild) {
-          mkdirSync(join(outputDirectory!, '__openapi'), { recursive: true })
+        // ── Per-spec virtual modules (lazy-loaded by page modules at runtime) ──
+        for (const [specKey, entry] of specs) {
+          modules.set(specVirtualModuleId(specKey), generateOpenAPISpecModule(entry.spec))
         }
 
         // ── Per-route page modules ──
         for (const route of ctx.routes.filter(r => r.kind === 'openapi' && !r.diagnostic && r.specFileKey)) {
-          const entry = specs.get(route.specFileKey!)
-          if (!entry) continue
-
-          const { spec } = entry
           const specKey = route.specFileKey!
           const moduleId = route.virtualModuleId
-          const specUrl = isBuild ? `/__openapi/${specKey}.json` : undefined
 
-          if (specUrl) {
-            // Write deduplicated JSON: only once per specFileKey
-            const jsonPath = join(outputDirectory!, '__openapi', `${specKey}.json`)
-            if (!existsSync(jsonPath)) {
-              writeFileSync(jsonPath, JSON.stringify(spec), 'utf-8')
-            }
+          if (isBuild) {
             modules.set(moduleId, generateOpenAPIPageModule({
-              spec,
-              tagFilter: route.openapiTagFilter,
-              specUrl,
               specKey,
+              tagFilter: route.openapiTagFilter,
               mode: 'lazy',
             }))
           } else {
+            const entry = specs.get(specKey)
+            if (!entry) continue
             modules.set(moduleId, generateOpenAPIPageModule({
-              spec,
+              spec: entry.spec,
               tagFilter: route.openapiTagFilter,
               mode: 'inline',
             }))

@@ -58,6 +58,21 @@ function operationMatchesTags(operationTags: string[] | undefined, filterTags: s
   return operationTags?.some(tag => filterTags.includes(tag)) ?? false
 }
 
+/** Filter an OpenAPI spec to only include paths that have at least one operation matching the given tags. */
+export function filterSpecByTags(spec: OpenAPISpec, tags: string[]): OpenAPISpec {
+  const filteredPaths: Record<string, unknown> = {}
+  const paths = spec.paths ?? {}
+  for (const path of Object.keys(paths)) {
+    const pathItem = paths[path as keyof typeof paths]
+    if (!pathItem) continue
+    const hasMatch = Object.values(pathItem as Record<string, unknown>).some(
+      op => op && typeof op === 'object' && 'tags' in op && Array.isArray((op as Record<string, unknown>).tags) && ((op as Record<string, unknown>).tags as string[]).some(t => tags.includes(t))
+    )
+    if (hasMatch) filteredPaths[path] = pathItem
+  }
+  return { ...spec, paths: filteredPaths } as OpenAPISpec
+}
+
 /** Extract endpoint operations from an OpenAPI spec as page sections. */
 export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[]): ContentSection[] {
   const sections: ContentSection[] = []

@@ -35,7 +35,7 @@ describe('content artifact helpers', () => {
     const routes = [
       route({ path: '/', filePath: join(tempDir, 'index.mdx') }),
       route({ path: '/guide/start', filePath: join(tempDir, 'guide/start.mdx') }),
-      route({ path: '/api', filePath: join(tempDir, 'api.openapi.json'), kind: 'openapi' }),
+      route({ path: '/api', filePath: join(tempDir, 'api.openapi.yaml'), kind: 'openapi' }),
     ]
 
     attachContentArtifactUrls(routes)
@@ -110,5 +110,22 @@ describe('content artifact helpers', () => {
     const routes = [route({ path: '/guide', title: '快速开始', contentArtifactUrl: '/guide.md' })]
 
     expect(createLlmsTxtArtifact(routes, config).startsWith('\uFEFF# 文档')).toBe(true)
+  })
+
+  it('writes both JSON and YAML artifacts for OpenAPI routes', () => {
+    const spec = { openapi: '3.0.0', info: { title: 'API', version: '1.0.0' }, paths: {} }
+    const routes = [route({
+      path: '/api',
+      filePath: join(tempDir, 'api.openapi.yaml'),
+      kind: 'openapi',
+      content: JSON.stringify(spec),
+    })]
+    attachContentArtifactUrls(routes)
+
+    writeContentArtifactFiles(routes, join(tempDir, 'output'))
+
+    expect(readFileSync(join(tempDir, 'output/api.openapi.json'), 'utf-8')).toBe(JSON.stringify(spec))
+    expect(readFileSync(join(tempDir, 'output/api.openapi.yaml'), 'utf-8')).toContain('openapi: 3.0.0')
+    expect(readFileSync(join(tempDir, 'output/api.openapi.yaml'), 'utf-8')).toContain('title: API')
   })
 })
