@@ -353,6 +353,13 @@ export type ClarifyHtmlTransformInput = {
   dev: boolean
 }
 
+export type ClarifyEmitAsset = {
+  /** Output path relative to the build output directory, e.g. 'llms.txt' or 'guide/api.md'. */
+  fileName: string
+  /** Asset content as a UTF-8 string or raw bytes. */
+  source: string | Uint8Array
+}
+
 export type ClarifyHooks = {
   'pages:resolved'?: (
     pages: ClarifyPage[],
@@ -386,6 +393,7 @@ export type ClarifyHooks = {
     server: ViteDevServer,
     ctx: ClarifyHookContext
   ) => Promise<void> | void
+  'build:assets'?: (ctx: ClarifyHookContext) => Promise<ClarifyEmitAsset[]> | ClarifyEmitAsset[]
   'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void
 }
 

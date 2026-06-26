@@ -1,17 +1,21 @@
-import { join } from 'node:path'
+import type { ClarifyEmitAsset, ClarifyPlugin } from '../../types.js'
 
-import type { ClarifyPlugin } from '../../types.js'
-
-import { writeSeoFiles } from './artifacts.js'
+import { createRobotsTxt, createSitemapXml } from './artifacts.js'
 
 export function createSeoPlugin(): ClarifyPlugin {
   return {
     name: 'clarify:seo',
     hooks: {
-      async 'build:done'(ctx) {
-        const outputDirectory = ctx.generateOptions.outputDirectory
-        if (!outputDirectory) return
-        await writeSeoFiles(join(ctx.generateOptions.projectRoot, outputDirectory), ctx.routes, ctx.projectConfig)
+      'build:assets'(ctx) {
+        const sitemap = createSitemapXml(ctx.routes, ctx.projectConfig)
+        const robots = createRobotsTxt(ctx.projectConfig)
+        if (!sitemap || !robots) return []
+
+        const assets: ClarifyEmitAsset[] = [
+          { fileName: 'sitemap.xml', source: sitemap },
+          { fileName: 'robots.txt', source: robots },
+        ]
+        return assets
       },
     },
   }

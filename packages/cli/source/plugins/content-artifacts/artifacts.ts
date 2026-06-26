@@ -1,8 +1,3 @@
-import { mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-
-import { stringify as yamlStringify } from 'yaml'
-
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 const UTF8_SIGNATURE = '\uFEFF'
@@ -54,23 +49,6 @@ export function readRouteArtifactContent(route: ContentRoute): string {
   return shouldUseUtf8Signature(route) ? withUtf8Signature(content) : content
 }
 
-export function writeContentArtifactFiles(routes: ContentRoute[], outputDirectory: string): void {
-  for (const route of routes) {
-    if (!route.contentArtifactUrl) continue
-
-    const outFile = join(outputDirectory, route.contentArtifactUrl.replace(/^\//, ''))
-    mkdirSync(dirname(outFile), { recursive: true })
-    writeFileSync(outFile, readRouteArtifactContent(route), 'utf-8')
-
-    // For OpenAPI routes, also write a YAML variant
-    if (route.kind === 'openapi' && route.content) {
-      const yamlOutFile = outFile.replace(/\.json$/, '.yaml')
-      const spec = JSON.parse(route.content)
-      writeFileSync(yamlOutFile, yamlStringify(spec, { lineWidth: 0 }), 'utf-8')
-    }
-  }
-}
-
 export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedProjectConfig): string {
   const basePath = normalizeBasePath(projectConfig.routePrefix)
   const lines = [
@@ -102,9 +80,4 @@ export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedPro
 
 export function createLlmsTxtArtifact(routes: ContentRoute[], projectConfig: ResolvedProjectConfig): string {
   return withUtf8Signature(createLlmsTxt(routes, projectConfig))
-}
-
-export function writeLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedProjectConfig, outputDirectory: string): void {
-  mkdirSync(outputDirectory, { recursive: true })
-  writeFileSync(join(outputDirectory, 'llms.txt'), createLlmsTxtArtifact(routes, projectConfig), 'utf-8')
 }

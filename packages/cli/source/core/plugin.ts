@@ -12,7 +12,7 @@ import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } 
 import { createBuiltinPlugins } from './builtin.js'
 import { resolveProjectConfig } from './config.js'
 import { writeClarifyEnvDts } from './env-types.js'
-import { runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
+import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from './options.js'
 import { resolveClarifySite } from './site.js'
 import {
@@ -220,6 +220,18 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
           html: result.html,
           tags: result.tags,
         }
+      }
+    },
+    async generateBundle(_opts, bundle) {
+      // Collect assets from all plugins and emit them through Rollup so they
+      // appear in the Vite manifest and build log.
+      const assets = await runBuildAssetsHooks(clarifyPlugins, ctx)
+      for (const asset of assets) {
+        this.emitFile({
+          type: 'asset',
+          fileName: asset.fileName,
+          source: asset.source,
+        })
       }
     },
     async closeBundle() {
