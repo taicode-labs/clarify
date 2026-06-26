@@ -3,7 +3,8 @@ import { createContext, useContext, useEffect, useState, type ComponentType, typ
 import { useLocale } from '../core/context'
 import type { RouteItem } from '../core/types'
 
-import { SlotProvider, type UISlotName } from './context'
+import { SlotProvider } from './context'
+import type { UISlotName } from './types'
 
 /**
  * One registered slot component, as compiled by the CLI into

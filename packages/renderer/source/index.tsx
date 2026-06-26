@@ -24,7 +24,7 @@ import { remToPx } from './utils/remToPx'
 export type { OpenApiOperationProps, OpenApiDocumentProps, OpenAPIOperation, OpenAPISpec } from './openapi'
 export type { ThemeEditorProps } from './theme/ThemeEditor'
 export type { Config, RouteItem, RenderOptions, ServerRenderOptions, Section }
-export type { RuntimeSlotEntry, RuntimeSlots } from './slots'
+export type { RuntimeSlotEntry, RuntimeSlots, UISlotRegistration, UISlotName, SlotContext } from './slots'
 
 // App and runtime exports
 export { AppShell, render, ConfigContext, OpenApisContext, useConfig, useOpenApis, BuiltWithClarify, PageBanner, PageFooter, ThemeProvider, ThemeToggle, ThemeEditor, useTheme, SectionProvider, useSectionStore, remToPx, applyThemeVariables, themeEditorPresets, themePresets, themeBootstrapScript }

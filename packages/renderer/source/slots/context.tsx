@@ -1,11 +1,6 @@
 import { createContext, useContext, type ReactNode } from 'react'
 
-import type { UISlotName, SlotContext } from '@clarify-labs/cli'
-
-/**
- * Runtime UI slot names — defined in `@clarify-labs/cli` as the single source
- * of truth for the plugin interface. The renderer imports and consumes them.
- */
+import type { UISlotName, SlotContext } from './types'
 
 // Re-export slot types so internal modules can import from './context'.
 export type { UISlotName, SlotContext }
