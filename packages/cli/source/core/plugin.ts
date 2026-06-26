@@ -56,22 +56,8 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   let resolvedNavigation: NavigationTree = []
   let virtualModules: VirtualModules = new Map()
 
-  async function reloadProjectConfig() {
-    const userConfig = await loadClarifyConfig(root, { command: 'serve', mode: viteConfig.mode })
-    const buildOptions: ClarifyBuildOptions = {
-      ...userConfig,
-      projectRoot: options.projectRoot,
-      rootDirectory: options.rootDirectory,
-      outputDirectory: options.outputDirectory,
-    }
-    projectConfig = resolveProjectConfig(buildOptions)
-    generateOptions = resolveBuildOptions(buildOptions)
-    ctx.projectConfig = projectConfig
-    ctx.generateOptions = generateOptions
-  }
-
-  async function resolveRoutesAndSpecs() {
-    const site = await resolveClarifySite(options)
+  async function resolveRoutesAndSpecs(overrides?: ClarifyBuildOptions) {
+    const site = await resolveClarifySite(overrides ?? options)
     projectConfig = site.projectConfig
     generateOptions = site.generateOptions
     routes = site.routes
@@ -160,8 +146,17 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     async handleHotUpdate(ctx) {
       const changedFile = isAbsolute(ctx.file) ? ctx.file : join(root, ctx.file)
       if (configFilePath && changedFile === configFilePath) {
-        await reloadProjectConfig()
-        await refreshDevServer(ctx.server)
+        const userConfig = await loadClarifyConfig(root, { command: 'serve', mode: viteConfig.mode })
+        const newOptions: ClarifyBuildOptions = {
+          ...userConfig,
+          projectRoot: options.projectRoot,
+          rootDirectory: options.rootDirectory,
+          outputDirectory: options.outputDirectory,
+        }
+        await resolveRoutesAndSpecs(newOptions)
+        await rebuildVirtualModules()
+        invalidateVirtualModules(ctx.server)
+        ctx.server.ws.send({ type: 'full-reload' })
         return []
       }
 
@@ -284,5 +279,3 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
 
   return [react(), tailwindcss(), normalizedMdxContentPlugin, clarifyCorePlugin, mdx].flat().filter(Boolean) as Plugin[]
 }
-
-export type { Plugin } from 'vite'

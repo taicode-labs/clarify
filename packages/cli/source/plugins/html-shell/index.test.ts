@@ -25,7 +25,7 @@ const ctx: ClarifyHookContext = {
 describe('createHtmlShellPlugin', () => {
   it('injects the theme bootstrap and dev client entry scripts', async () => {
     const plugin = createHtmlShellPlugin()
-    const result = await plugin.hooks['html:transform']?.({
+    const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [],
       clientEntryId: '/@id/virtual:clarify-entry-client',
@@ -49,7 +49,7 @@ describe('createHtmlShellPlugin', () => {
 
   it('injects the build client entry script', async () => {
     const plugin = createHtmlShellPlugin()
-    const result = await plugin.hooks['html:transform']?.({
+    const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [],
       clientEntryId: 'virtual:clarify-entry-client',
@@ -65,7 +65,7 @@ describe('createHtmlShellPlugin', () => {
 
   it('preserves existing html transform tags', async () => {
     const plugin = createHtmlShellPlugin()
-    const result = await plugin.hooks['html:transform']?.({
+    const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [{ tag: 'meta', attrs: { name: 'x' }, injectTo: 'head' }],
       clientEntryId: 'virtual:clarify-entry-client',
@@ -77,7 +77,7 @@ describe('createHtmlShellPlugin', () => {
 
   it('injects a configured favicon link', async () => {
     const plugin = createHtmlShellPlugin()
-    const result = await plugin.hooks['html:transform']?.({
+    const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [],
       clientEntryId: 'virtual:clarify-entry-client',
@@ -99,7 +99,7 @@ describe('createHtmlShellPlugin', () => {
 
   it('injects media-specific favicon links', async () => {
     const plugin = createHtmlShellPlugin()
-    const result = await plugin.hooks['html:transform']?.({
+    const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [],
       clientEntryId: 'virtual:clarify-entry-client',
@@ -141,7 +141,7 @@ describe('createHtmlShellPlugin', () => {
 
   it('falls back to logo when favicon is not configured', async () => {
     const plugin = createHtmlShellPlugin()
-    const result = await plugin.hooks['html:transform']?.({
+    const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [],
       clientEntryId: 'virtual:clarify-entry-client',
@@ -163,7 +163,7 @@ describe('createHtmlShellPlugin', () => {
 
   it('does not inject duplicate favicon links when html already has one', async () => {
     const plugin = createHtmlShellPlugin()
-    const result = await plugin.hooks['html:transform']?.({
+    const result = await plugin.hooks?.['html:transform']?.({
       html: '<html><head><link rel="icon" href="/custom.ico" /></head></html>',
       tags: [],
       clientEntryId: 'virtual:clarify-entry-client',

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { resolveThemeConfig } from '../core/theme.js'
-import { createClientEntryModule, createRuntimeModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
+import { createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
 import type { ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 describe('generateConfigModule', () => {
@@ -91,12 +91,6 @@ describe('generateRoutesModule', () => {
     const code = generateRoutesModule(routes)
     expect(code).toContain('"title": "Guide"')
     expect(code).not.toContain('"tabs"')
-  })
-})
-
-describe('createRuntimeModule', () => {
-  it('provides empty runtime extension data by default', () => {
-    expect(createRuntimeModule()).toBe('export const openApis = {};')
   })
 })
 

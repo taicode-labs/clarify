@@ -5,7 +5,7 @@ import type { ClarifyHookContext, ClarifyHooks, ClarifyPlugin } from '../types.j
 export async function runHooks<K extends Exclude<keyof ClarifyHooks, 'build:done' | 'dev:configureServer'>>(plugins: ClarifyPlugin[], hookName: K, input: Parameters<NonNullable<ClarifyHooks[K]>>[0], ctx: ClarifyHookContext): Promise<Parameters<NonNullable<ClarifyHooks[K]>>[0]> {
   let result = input
   for (const plugin of plugins) {
-    const hook = plugin.hooks[hookName]
+    const hook = plugin.hooks?.[hookName]
     if (!hook) continue
     try {
       result = await hook(result as never, ctx) as Parameters<NonNullable<ClarifyHooks[K]>>[0]
@@ -18,7 +18,7 @@ export async function runHooks<K extends Exclude<keyof ClarifyHooks, 'build:done
 
 export async function runDevConfigureServerHooks(plugins: ClarifyPlugin[], server: ViteDevServer, ctx: ClarifyHookContext): Promise<void> {
   for (const plugin of plugins) {
-    const hook = plugin.hooks['dev:configureServer']
+    const hook = plugin.hooks?.['dev:configureServer']
     if (!hook) continue
     try {
       await hook(server, ctx)
@@ -30,7 +30,7 @@ export async function runDevConfigureServerHooks(plugins: ClarifyPlugin[], serve
 
 export async function runBuildDoneHooks(plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<void> {
   for (const plugin of plugins) {
-    const hook = plugin.hooks['build:done']
+    const hook = plugin.hooks?.['build:done']
     if (!hook) continue
     try {
       await hook(ctx)

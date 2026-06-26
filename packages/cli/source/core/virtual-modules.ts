@@ -74,10 +74,6 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
-export function createRuntimeModule(): string {
-  return `export const openApis = {};`
-}
-
 export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {
   return `
 import '@clarify-labs/renderer/style.css';

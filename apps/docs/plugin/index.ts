@@ -6,7 +6,6 @@ import type { ClarifyPlugin } from '@clarify-labs/cli'
  */
 const docsFooterPlugin: ClarifyPlugin = {
   name: 'docs-footer',
-  hooks: {},
   slots: [
     {
       name: 'page.footer.replace',

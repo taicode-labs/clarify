@@ -441,7 +441,7 @@ export type ClarifySlotContext = {
 
 export type ClarifyPlugin = {
   name: string
-  hooks: Partial<ClarifyHooks>
+  hooks?: Partial<ClarifyHooks>
   slots?: ClarifyUISlotRegistration[]
 }
 
