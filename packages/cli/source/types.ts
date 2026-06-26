@@ -2,6 +2,8 @@ import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import type { ComponentType as ReactComponentType } from 'react'
 import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
+import type { RouteItem } from '@clarify-labs/renderer'
+
 import type { ResolvedBuildOptions } from './core/options.js'
 
 export type {
@@ -45,25 +47,17 @@ export type ClarifyNavbarLink = {
   external?: boolean
 }
 
-export type ClarifyBannerComponentPath = string
-
-export type ClarifyBannerConfigOptions = {
+export type ClarifyBannerConfig = {
   content: ClarifyLocalizedText
   dismissible?: boolean
   link?: ClarifyNavbarLink
 }
 
-export type ClarifyBannerConfig = ClarifyBannerConfigOptions | ClarifyBannerComponentPath
-
-export type ClarifyFooterComponentPath = string
-
-export type ClarifyFooterLinksConfig = {
+export type ClarifyFooterConfig = {
   links?: ClarifyNavbarLink[]
   socials?: Record<string, string>
   copyright?: ClarifyLocalizedText
 }
-
-export type ClarifyFooterConfig = ClarifyFooterLinksConfig | ClarifyFooterComponentPath
 
 export type ClarifySourceConfig = {
   /** Repository web URL, for example https://github.com/owner/repo. */
@@ -405,15 +399,38 @@ export type ClarifyHooks = {
  * - `*.after`: Extension slot, plugin components render after default
  * - `*.replace`: Replacement slot, plugin component replaces default
  */
-export type ClarifyUISlotName = 'page.footer.before' | 'page.banner.replace' | 'page.footer.replace'
+export type UISlotName =
+  | 'page.footer.before'
+  | 'page.banner.replace'
+  | 'page.footer.replace'
+
+/**
+ * Context exposed to a slot component through the `useSlot` hook.
+ *
+ * Slot components never receive Clarify context through props. Instead they read
+ * everything they need from this hook, which keeps slot components as ordinary
+ * React components and lets the slot context grow without changing signatures.
+ */
+export type SlotContext = {
+  /** The slot the current component is mounted into. */
+  name: UISlotName
+  /** Name of the plugin that registered the current slot component. */
+  plugin: string
+  /** Current route, when a content route is active. */
+  route?: RouteItem
+  /** Current locale, for example `zh-CN` or `en-US`. */
+  locale?: string
+  /** Built-in default component for replacement slots. */
+  DefaultComponent?: ReactComponentType
+}
 
 /**
  * A runtime UI extension declared by a plugin. The CLI compiles every
  * registration into `virtual:clarify-runtime-slots`.
  */
-export type ClarifyUISlotRegistration = {
+export type UISlotRegistration = {
   /** Target slot position. */
-  name: ClarifyUISlotName
+  name: UISlotName
   /**
    * Module path of the React component to mount. Can be a real module
    * (resolvable from the project) or a virtual module the plugin injects via
@@ -422,30 +439,8 @@ export type ClarifyUISlotRegistration = {
   component: string
 }
 
-/**
- * Context exposed to a slot component through the `useClarifySlot` hook.
- * This type is re-exported from the CLI package for user plugins to use.
- */
-export type ClarifySlotContext = {
-  /** The slot the current component is mounted into. */
-  name: ClarifyUISlotName
-  /** Name of the plugin that registered the current slot component. */
-  plugin: string
-  /** Current route, when a content route is active. */
-  route?: unknown
-  /** Current locale, for example `zh-CN` or `en-US`. */
-  locale?: string
-  /** Built-in default component for replacement slots. */
-  DefaultComponent?: ReactComponentType
-}
-
 export type ClarifyPlugin = {
   name: string
   hooks?: Partial<ClarifyHooks>
-  slots?: ClarifyUISlotRegistration[]
+  slots?: UISlotRegistration[]
 }
-
-/**
- * React component type, re-exported for clarity in plugin APIs.
- */
-export type { ReactComponentType }

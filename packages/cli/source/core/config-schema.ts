@@ -67,21 +67,13 @@ export const clarifyBannerConfigOptionsSchema = z.object({
   link: clarifyNavbarLinkSchema.optional(),
 }).strict()
 
-export const clarifyBannerConfigSchema = z.union([
-  clarifyBannerConfigOptionsSchema,
-  z.string(),
-])
+export const clarifyBannerConfigSchema = clarifyBannerConfigOptionsSchema
 
-export const clarifyFooterLinksConfigSchema = z.object({
+export const clarifyFooterConfigSchema = z.object({
   links: z.array(clarifyNavbarLinkSchema).optional(),
   socials: z.record(z.string(), z.string()).optional(),
   copyright: clarifyLocalizedTextSchema.optional(),
 }).strict()
-
-export const clarifyFooterConfigSchema = z.union([
-  clarifyFooterLinksConfigSchema,
-  z.string(),
-])
 
 export const clarifySourceConfigSchema = z.object({
   repository: z.string(),

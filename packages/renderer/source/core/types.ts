@@ -3,8 +3,6 @@ import type { ComponentType } from 'react'
 import type { OpenAPISpec } from '../openapi/lib/utils'
 import type { RuntimeSlots } from '../slots'
 
-export type FooterComponentPath = string
-
 export type RouteComponent = ComponentType | (() => Promise<{ default: ComponentType }>)
 
 export type RouteSection = {
@@ -64,23 +62,17 @@ export type NavbarLink = {
   external?: boolean;
 };
 
-export type BannerComponentPath = string;
-
-export type BannerConfigOptions = {
+export type BannerConfig = {
   content: LocalizedText;
   dismissible?: boolean;
   link?: NavbarLink;
 };
 
-export type BannerConfig = BannerConfigOptions | BannerComponentPath;
-
-export type FooterLinksConfig = {
+export type FooterConfig = {
   links?: NavbarLink[];
   socials?: Record<string, string>;
   copyright?: LocalizedText;
 };
-
-export type FooterConfig = FooterLinksConfig | FooterComponentPath;
 
 export type SourceConfig = {
   repository: string;

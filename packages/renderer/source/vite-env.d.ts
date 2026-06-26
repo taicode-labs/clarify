@@ -31,11 +31,9 @@ declare module 'virtual:clarify/openapi' {
 }
 
 declare module 'virtual:clarify/slot' {
-  import type { ClarifyUISlotName, ClarifySlotContext } from '@clarify-labs/cli';
+  import type { SlotContext } from '@clarify-labs/cli'
 
-  export { ClarifyUISlotName, ClarifySlotContext };
-
-  export function useClarifySlot(): ClarifySlotContext;
+  export function useSlot(): SlotContext
 }
 
 declare module 'virtual:clarify/slots' {

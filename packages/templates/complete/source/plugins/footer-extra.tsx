@@ -1,7 +1,7 @@
-import { useClarifySlot } from 'virtual:clarify-slot'
+import { useSlot } from 'virtual:clarify/slot'
 
 export default function FooterExtra() {
-  const { locale, plugin } = useClarifySlot()
+  const { locale, plugin } = useSlot()
   
   return (
     <div className="py-2 text-center text-xs text-gray-500 dark:text-gray-400">

@@ -1,8 +1,8 @@
-import { useClarifySlot, useConfig } from 'virtual:clarify-slot'
+import { useSlot, useConfig } from 'virtual:clarify/slot'
 
 export default function CustomBanner() {
   const config = useConfig()
-  const { locale, DefaultComponent } = useClarifySlot()
+  const { locale, DefaultComponent } = useSlot()
   
   return (
     <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3">

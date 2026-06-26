@@ -9,7 +9,7 @@ const docsFooterPlugin: ClarifyPlugin = {
   slots: [
     {
       name: 'page.footer.replace',
-      component: './source/Footer.tsx',
+      component: './source/plugins/custom-footer.tsx',
     },
   ],
 }

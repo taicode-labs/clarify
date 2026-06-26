@@ -1,9 +1,9 @@
-import { createContext, lazy, Suspense, useContext, type ComponentType, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, type ComponentType, type ReactNode } from 'react'
 
 import { useLocale } from '../core/context'
 import type { RouteItem } from '../core/types'
 
-import { ClarifySlotProvider, type ClarifyUISlotName } from './context'
+import { SlotProvider, type UISlotName } from './context'
 
 /**
  * One registered slot component, as compiled by the CLI into
@@ -24,7 +24,7 @@ export type RuntimeSlotEntry = {
 }
 
 /** Registry keyed by slot name. */
-export type RuntimeSlots = Partial<Record<ClarifyUISlotName, RuntimeSlotEntry[]>>
+export type RuntimeSlots = Partial<Record<UISlotName, RuntimeSlotEntry[]>>
 
 type RuntimeSlotsContextValue = {
   slots: RuntimeSlots
@@ -53,7 +53,7 @@ export function RuntimeSlotsProvider(arg0: RuntimeSlotsProviderProps): ReactNode
 }
 
 type RuntimeSlotProps = {
-  name: ClarifyUISlotName
+  name: UISlotName
   /** Built-in default component for replacement slots. */
   default?: ComponentType
 }
@@ -84,11 +84,11 @@ export function RuntimeSlot(arg0: RuntimeSlotProps): ReactNode {
   if (isReplaceSlot) {
     const lastEntry = entries[entries.length - 1]
     return (
-      <ClarifySlotProvider
+      <SlotProvider
         value={{ name, plugin: lastEntry.plugin, route, locale, DefaultComponent }}
       >
         <SlotEntryRenderer entry={lastEntry} />
-      </ClarifySlotProvider>
+      </SlotProvider>
     )
   }
 
@@ -96,12 +96,12 @@ export function RuntimeSlot(arg0: RuntimeSlotProps): ReactNode {
   return (
     <>
       {entries.map((entry) => (
-        <ClarifySlotProvider
+        <SlotProvider
           key={`${name}:${entry.plugin}`}
           value={{ name, plugin: entry.plugin, route, locale }}
         >
           <SlotEntryRenderer entry={entry} />
-        </ClarifySlotProvider>
+        </SlotProvider>
       ))}
     </>
   )
@@ -109,18 +109,37 @@ export function RuntimeSlot(arg0: RuntimeSlotProps): ReactNode {
 
 // ---- internal helpers ----
 
-function SlotEntryRenderer({ entry }: { entry: RuntimeSlotEntry }): ReactNode {
+type SlotEntryRendererProps = {
+  entry: RuntimeSlotEntry
+}
+
+function SlotEntryRenderer(props: SlotEntryRendererProps): ReactNode {
+  const { entry } = props
   // SSR pre-resolved component — render synchronously (no Suspense needed)
   if (entry._resolved) {
-    const Component = entry._resolved
-    return <Component />
+    return <entry._resolved />
   }
 
   // Client: lazy-load with code-splitting
-  const Component = lazy(entry.component)
-  return (
-    <Suspense fallback={null}>
-      <Component />
-    </Suspense>
-  )
+  return <LazySlotComponent loader={entry.component} />
+}
+
+type LazySlotComponentProps = {
+  loader: () => Promise<{ default: ComponentType }>
+}
+
+function LazySlotComponent(props: LazySlotComponentProps): ReactNode {
+  const { loader } = props
+  const [Component, setComponent] = useState<ComponentType | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    loader().then(mod => {
+      if (!cancelled) setComponent(() => mod.default)
+    })
+    return () => { cancelled = true }
+  }, [loader])
+
+  if (!Component) return null
+  return <Component />
 }

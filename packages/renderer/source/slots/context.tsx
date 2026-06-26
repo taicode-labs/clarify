@@ -1,54 +1,29 @@
-import { createContext, useContext, type ComponentType, type ReactNode } from 'react'
+import { createContext, useContext, type ReactNode } from 'react'
 
-import type { RouteItem } from '../core/types'
-
-/**
- * Runtime UI slot names.
- *
- * The name follows the dot-path convention documented in the plugin design:
- * `${scope}.${path}.${position}`. Keeping the union here (instead of a bare
- * string) gives slot consumers and the generated `clarify-env.d.ts` a single
- * source of truth.
- */
-export type ClarifyUISlotName = 'page.footer.before' | 'page.banner.replace' | 'page.footer.replace'
+import type { UISlotName, SlotContext } from '@clarify-labs/cli'
 
 /**
- * Context exposed to a slot component through {@link useClarifySlot}.
- *
- * Slot components never receive Clarify context through props. Instead they read
- * everything they need from this hook, which keeps slot components as ordinary
- * React components and lets the slot context grow without changing signatures.
+ * Runtime UI slot names — defined in `@clarify-labs/cli` as the single source
+ * of truth for the plugin interface. The renderer imports and consumes them.
  */
-export type ClarifySlotContext = {
-  /** The slot the current component is mounted into. */
-  name: ClarifyUISlotName
-  /** Name of the plugin that registered the current slot component. */
-  plugin: string
-  /** Current route, when a content route is active. */
-  route?: RouteItem
-  /** Current locale, for example `zh-CN` or `en-US`. */
-  locale?: string
-  /**
-   * Built-in default component for replacement slots. Only provided for
-   * `*.replace` slots (Phase 4); undefined for extension slots.
-   */
-  DefaultComponent?: ComponentType
-}
 
-const SlotContext = createContext<ClarifySlotContext | null>(null)
+// Re-export slot types so internal modules can import from './context'.
+export type { UISlotName, SlotContext }
 
-type ClarifySlotProviderProps = {
-  value: ClarifySlotContext
+const SlotContextValue = createContext<SlotContext | null>(null)
+
+type SlotProviderProps = {
+  value: SlotContext
   children: ReactNode
 }
 
 /**
- * Provides an isolated {@link ClarifySlotContext} for a single slot component.
+ * Provides an isolated {@link SlotContext} for a single slot component.
  * `RuntimeSlot` wraps every rendered slot component with this provider.
  */
-export function ClarifySlotProvider(arg0: ClarifySlotProviderProps): ReactNode {
+export function SlotProvider(arg0: SlotProviderProps): ReactNode {
   const { value, children } = arg0
-  return <SlotContext.Provider value={value}>{children}</SlotContext.Provider>
+  return <SlotContextValue.Provider value={value}>{children}</SlotContextValue.Provider>
 }
 
 /**
@@ -58,10 +33,10 @@ export function ClarifySlotProvider(arg0: ClarifySlotProviderProps): ReactNode {
  * slot provider throws, which helps plugin authors notice that the component was
  * not mounted through a Clarify slot.
  */
-export function useClarifySlot(): ClarifySlotContext {
-  const context = useContext(SlotContext)
+export function useSlot(): SlotContext {
+  const context = useContext(SlotContextValue)
   if (!context) {
-    throw new Error('[clarify] useClarifySlot must be called inside a Clarify slot component')
+    throw new Error('[clarify] useSlot must be called inside a slot component')
   }
   return context
 }

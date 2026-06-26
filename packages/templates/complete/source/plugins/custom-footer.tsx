@@ -1,8 +1,8 @@
-import { useClarifySlot, useConfig } from 'virtual:clarify-slot'
+import { useSlot, useConfig } from 'virtual:clarify/slot'
 
 export default function CustomFooter() {
   const config = useConfig()
-  const { DefaultComponent, locale } = useClarifySlot()
+  const { DefaultComponent, locale } = useSlot()
   
   return (
     <div className="py-8 border-t">

@@ -10,7 +10,7 @@
 type ClarifyPlugin = {
   name: string
   hooks: Partial<ClarifyHooks>
-  slots?: ClarifyUISlotRegistration[]
+  slots?: UISlotRegistration[]
 }
 ```
 
@@ -18,7 +18,7 @@ type ClarifyPlugin = {
 |------|------|------|------|
 | `name` | `string` | 是 | 插件名称，用于错误提示和调试 |
 | `hooks` | `Partial<ClarifyHooks>` | 是 | 插件实现的生命周期 Hook |
-| `slots` | `ClarifyUISlotRegistration[]` | 否 | 注册的 UI 插槽组件 |
+| `slots` | `UISlotRegistration[]` | 否 | 注册的 UI 插槽组件 |
 
 ---
 
@@ -26,34 +26,34 @@ type ClarifyPlugin = {
 
 Clarify 支持通过插件在特定位置注入自定义 UI 组件。
 
-### `ClarifyUISlotName`
+### `UISlotName`
 
 可用的插槽位置：
 
 ```ts
-type ClarifyUISlotName = 
+type UISlotName = 
   | 'page.footer.before'       // 页脚之前
   | 'page.banner.replace'      // 替换顶部横幅
   | 'page.footer.replace'      // 替换页脚
 ```
 
-### `ClarifyUISlotRegistration`
+### `UISlotRegistration`
 
 注册一个插槽组件：
 
 ```ts
-type ClarifyUISlotRegistration = {
-  name: ClarifyUISlotName      // 目标插槽位置
+type UISlotRegistration = {
+  name: UISlotName      // 目标插槽位置
   component: string            // React 组件模块路径
 }
 ```
 
-### `useClarifySlot`
+### `useSlot`
 
 插槽组件内部使用此 Hook 获取上下文：
 
 ```ts
-import { useClarifySlot } from 'virtual:clarify-slot'
+import { useSlot } from 'virtual:clarify/slot'
 
 function MySlotComponent() {
   const {
@@ -62,7 +62,7 @@ function MySlotComponent() {
     route,      // 当前路由信息（如有）
     locale,     // 当前语言（如 en-US 或 zh-CN）
     DefaultComponent  // 仅替换插槽可用：原默认组件
-  } = useClarifySlot()
+  } = useSlot()
   // ...
 }
 ```
@@ -101,11 +101,11 @@ export default {
 
 ```tsx
 // components/CustomBanner.tsx
-import { useClarifySlot, useConfig } from 'virtual:clarify-slot'
+import { useSlot, useConfig } from 'virtual:clarify/slot'
 
 export default function CustomBanner() {
   const config = useConfig()
-  const { DefaultComponent } = useClarifySlot()
+  const { DefaultComponent } = useSlot()
   
   // 可选：仍渲染原始横幅
   // return <DefaultComponent />

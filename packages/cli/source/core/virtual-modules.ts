@@ -1,7 +1,7 @@
 import { resolve } from 'path'
 
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../parsers/routes.js'
-import type { ClarifyPlugin, ClarifyUISlotRegistration, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
+import type { ClarifyPlugin, UISlotRegistration, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 // 新的虚拟模块命名 - 更清晰的职责划分
 export const VIRTUAL_CONFIG = 'virtual:clarify/config'
@@ -86,15 +86,6 @@ render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: ${JSON
 }
 
 /**
- * Valid slot names (keep in sync with type definition).
- */
-const VALID_SLOT_NAMES = new Set([
-  'page.footer.before',
-  'page.banner.replace',
-  'page.footer.replace',
-])
-
-/**
  * Collect every plugin's `slots` declarations into a single runtime registry
  * module. Component modules are exported as lazy import factories so the
  * renderer can decide whether to code-split (client) or pre-resolve (SSR).
@@ -102,14 +93,14 @@ const VALID_SLOT_NAMES = new Set([
  * Relative component paths are resolved against the project `root` so that
  * the generated `import()` call uses an absolute specifier — Vite cannot
  * resolve relative imports from virtual modules.
+ *
+ * Slot name validity is enforced at compile time by the `UISlotName`
+ * type — no runtime validation is needed.
  */
 export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = [], root: string = process.cwd()): string {
-  const registrations: { plugin: string; slot: ClarifyUISlotRegistration }[] = []
+  const registrations: { plugin: string; slot: UISlotRegistration }[] = []
   for (const plugin of plugins) {
     for (const slot of plugin.slots ?? []) {
-      if (!VALID_SLOT_NAMES.has(slot.name)) {
-        throw new Error(`[clarify] Plugin "${plugin.name}" registered invalid slot name "${slot.name}". Valid slots are: ${[...VALID_SLOT_NAMES].join(', ')}`)
-      }
       registrations.push({ plugin: plugin.name, slot })
     }
   }
@@ -120,6 +111,15 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = [], root: st
 
   const grouped = new Map<string, string[]>()
   for (const { plugin, slot } of registrations) {
+    // Warn when multiple plugins register the same replace slot — only the
+    // last one takes effect, which is almost certainly a configuration error.
+    if (slot.name.endsWith('.replace')) {
+      const existing = grouped.get(slot.name)
+      if (existing) {
+        console.warn(`[clarify] Multiple plugins register slot "${slot.name}": "${plugin}" overrides "${existing[existing.length - 1]}". Only the last registration is used.`)
+      }
+    }
+
     // Resolve relative component paths against the project root so that
     // Vite can resolve the import from the virtual module.
     const componentPath = slot.component.startsWith('.') ? resolve(root, slot.component) : slot.component
@@ -138,36 +138,19 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = [], root: st
 
 /**
  * Re-exports the slot context hook from the renderer so plugin components can
- * `import { useClarifySlot } from 'virtual:clarify-slot'` without depending on
+ * `import { useSlot } from 'virtual:clarify/slot'` without depending on
  * renderer internals directly.
  */
 export function createSlotModule(): string {
-  return `export { useClarifySlot } from '@clarify-labs/renderer';\n`
+  return `export { useSlot } from '@clarify-labs/renderer';\n`
 }
 
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
   const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
   
-  // Collect all plugins and internal slots from config
+  // Collect all plugins
   const allPlugins: ClarifyPlugin[] = [...(args.plugins ?? [])]
-  
-  // Create internal plugin for config banner/footer if they're component paths
-  const internalSlots: ClarifyUISlotRegistration[] = []
-  const bannerConfig = args.projectConfig.banner
-  const footerConfig = args.projectConfig.footer
-  
-  if (typeof bannerConfig === 'string') {
-    internalSlots.push({ name: 'page.banner.replace', component: bannerConfig })
-  }
-  
-  if (typeof footerConfig === 'string') {
-    internalSlots.push({ name: 'page.footer.replace', component: footerConfig })
-  }
-  
-  if (internalSlots.length > 0) {
-    allPlugins.push({ name: 'clarify-internal', hooks: {}, slots: internalSlots })
-  }
   
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))

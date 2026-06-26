@@ -1,12 +1,12 @@
 import clsx from 'clsx'
-import { Suspense, lazy, useEffect, useMemo, useState, useContext } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import type { ComponentType, CSSProperties } from 'react'
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
-import { LocaleContext, useConfig, useLocale } from '../context'
+import { LocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
 import { Header, Navigation } from '../shell'
-import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots, RuntimeSlotsContext, ClarifySlotProvider } from '../slots'
+import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots } from '../slots'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
 import type { RouteItem, Config, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
@@ -27,19 +27,16 @@ export type AppShellProps = {
   runtimeSlots?: RuntimeSlots
 }
 
-function BannerSlot({
-  activeBannerKey,
-  dismissedBannerKey,
-  onDismiss,
-  config,
-  locale
-}: {
+type BannerSlotProps = {
   activeBannerKey: string | undefined
   dismissedBannerKey: string | undefined
   onDismiss: () => void
   config: Config
   locale?: string
-}) {
+}
+
+function BannerSlot(props: BannerSlotProps) {
+  const { activeBannerKey, dismissedBannerKey, onDismiss, config, locale } = props
   // 直接在插槽内部创建默认组件，这样它可以访问到上下文
   function DefaultBannerComponent() {
     const hasBanner = Boolean(config.banner) && dismissedBannerKey !== activeBannerKey

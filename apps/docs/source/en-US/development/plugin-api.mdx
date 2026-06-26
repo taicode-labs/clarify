@@ -127,12 +127,12 @@ Rules for deciding whether a capability should become plugin API:
 
 ### Slot Names
 
-`ClarifyUISlotName` should not be named around one plugin scenario. It should describe stable, long-lived positions in Clarify's page structure.
+`UISlotName` should not be named around one plugin scenario. It should describe stable, long-lived positions in Clarify's page structure.
 
 The naming rule is a dot-separated path. It does not enforce a fixed number of segments. It is composed of three semantic parts:
 
 ```ts
-type ClarifyUISlotName = `${Scope}.${Path}.${Position}`
+type UISlotName = `${Scope}.${Path}.${Position}`
 ```
 
 Here `Path` can be one level or several levels, depending on the real depth of the UI structure.
@@ -164,7 +164,7 @@ Naming constraints:
 Recommended initial namespace:
 
 ```ts
-export type ClarifyUISlotName =
+export type UISlotName =
   | 'layout.header.before'
   | 'layout.header.after'
   | 'layout.sidebar.before'
@@ -194,7 +194,7 @@ Scope meanings:
 The first implementation should start with renderer-owned stable positions:
 
 ```ts
-export type ClarifyUIExtensionSlotName =
+export type UIEExtensionSlotName =
   | 'page.title.actions'
   | 'page.navigation.before'
   | 'page.navigation.after'
@@ -217,8 +217,8 @@ It is rendered after `PageNavigation` and before `PageFooter`. Its name follows 
 Plugins declare runtime UI through `slots`:
 
 ```ts
-export type ClarifyUISlotRegistration = {
-  name: ClarifyUISlotName
+export type UISlotRegistration = {
+  name: UISlotName
   component: string
   config?: Record<string, unknown>
 }
@@ -230,7 +230,7 @@ Fields:
 |------|-------------|
 | `name` | Slot name |
 | `component` | React component module path. It can be a normal module or a virtual module injected by the plugin |
-| `config` | Static configuration serialized at build time, stored in slot context, and read through `useClarifySlot()` |
+| `config` | Static configuration serialized at build time, stored in slot context, and read through `useSlot()` |
 
 The first version does not include `order`, `clientOnly`, or `enabled`. If multiple components target the same slot, they render in plugin array order.
 
@@ -242,7 +242,7 @@ The first version does not include `order`, `clientOnly`, or `enabled`. If multi
 export type ClarifyPlugin = {
   name: string
   hooks: Partial<ClarifyHooks>
-  slots?: ClarifyUISlotRegistration[]
+  slots?: UISlotRegistration[]
 }
 ```
 
@@ -264,7 +264,7 @@ Replacement slots let users replace Clarify's built-in components, for example a
 Recommended replacement slots:
 
 ```ts
-export type ClarifyUIReplaceableSlotName =
+export type UIReplaceableSlotName =
   | 'page.banner.replace'
   | 'page.footer.replace'
   | 'page.navigation.replace'
@@ -275,9 +275,9 @@ export type ClarifyUIReplaceableSlotName =
 The full slot name type is the union of both:
 
 ```ts
-export type ClarifyUISlotName =
-  | ClarifyUIExtensionSlotName
-  | ClarifyUIReplaceableSlotName
+export type UISlotName =
+  | UIEExtensionSlotName
+  | UIReplaceableSlotName
 ```
 
 Key rules for replacement slots:
@@ -287,10 +287,10 @@ Key rules for replacement slots:
 3. **Receives the default component reference**: a replacement component can wrap or fully replace the default implementation. The default component is exposed through slot context:
 
 ```tsx
-import { useClarifySlot } from 'virtual:clarify-slot'
+import { useSlot } from 'virtual:clarify/slot'
 
 export default function CustomFooter() {
-  const { DefaultComponent, route } = useClarifySlot()
+  const { DefaultComponent, route } = useSlot()
 
   return (
     <footer>
@@ -309,23 +309,17 @@ This keeps replacement capability from polluting the multi-component rendering m
 
 ### Relationship to the existing banner/footer component loading
 
-This is a design decision that needs to be explicit. Clarify already supports configuring `banner` and `footer` as a component path; the CLI compiles it into `virtual:clarify-runtime`, and `AppShell` uses it to replace the built-in `PageBanner` / `PageFooter`.
+> **Status: Resolved.** The component-path mechanism has been removed. All region replacement now uses the slot system exclusively.
 
-That mechanism **overlaps** with replacement slots (`page.footer.replace`, etc.) — both replace a built-in region component with a custom one. Keeping both mechanisms causes several problems:
+Clarify previously supported configuring `banner` and `footer` as a component path string; the CLI compiled it into `virtual:clarify-runtime`, and `AppShell` used it to replace the built-in `PageBanner` / `PageFooter`.
 
-- Two different configuration entry points (a component path in `clarify.ts` vs a plugin `slots` declaration) do the same thing, forcing users to learn two mental models.
-- When both target the same region, precedence and conflict rules become ambiguous.
-- Double the maintenance: component loading, SSR injection, and type generation all have to be implemented twice.
+That mechanism **overlapped** with replacement slots (`page.footer.replace`, etc.) — both replaced a built-in region component with a custom one. Keeping both mechanisms caused several problems:
 
-Conclusion: **once replacement slots land, they should be the single region-replacement mechanism, and the existing banner/footer component-path loading should converge into them rather than coexist.**
+- Two different configuration entry points (a component path in `clarify.ts` vs a plugin `slots` declaration) did the same thing, forcing users to learn two mental models.
+- When both targeted the same region, precedence and conflict rules became ambiguous.
+- Double the maintenance: component loading, SSR injection, and type generation all had to be implemented twice.
 
-Recommended convergence:
-
-1. **Keep the pure-config form**: using `banner` / `footer` as a config object (links, copy, social entries, etc.) stays unchanged. That is not component replacement and does not overlap with slots.
-2. **Move the component form onto replacement slots**: the current "`banner`/`footer` accepts a component path" usage is equivalent to a built-in official plugin that owns `page.banner.replace` / `page.footer.replace`. Component loading, the `DefaultComponent` fallback, and SSR injection all reuse the same slot pathway.
-3. **Transitional compatibility**: internally, the "component path config" can be implemented as sugar that auto-registers the corresponding replacement slot, staying backward compatible for users while keeping only one underlying implementation path.
-
-This preserves the existing capability while avoiding long-term maintenance of two equivalent mechanisms after slots are introduced.
+**Resolution**: The component-path form has been removed. Users who need a fully custom banner or footer should register a plugin with the corresponding replacement slot (`page.banner.replace` or `page.footer.replace`). The pure-config object form (`banner: { content: ... }`, `footer: { links: ... }`) remains unchanged.
 
 ---
 
@@ -334,10 +328,10 @@ This preserves the existing capability while avoiding long-term maintenance of t
 Runtime slot components do not receive context props. Components read the current slot context from a Clarify built-in virtual module:
 
 ```ts
-import { useClarifySlot } from 'virtual:clarify-slot'
+import { useSlot } from 'virtual:clarify/slot'
 
-export type ClarifySlotContext = {
-  name: ClarifyUISlotName
+export type SlotContext = {
+  name: UISlotName
   plugin: string
   route?: RouteItem
   locale?: string
@@ -361,7 +355,7 @@ This keeps slot components as ordinary React components:
 
 ```tsx
 export default function MySlot() {
-  const slot = useClarifySlot()
+  const slot = useSlot()
   return null
 }
 ```
@@ -372,7 +366,7 @@ export default function MySlot() {
 
 ### Project-level Virtual Module Type Declarations
 
-Because modules such as `virtual:clarify-slot` and `virtual:clarify-runtime-slots` only exist during the Clarify/Vite build, the TypeScript language service in the user project cannot recognize them by default.
+Because modules such as `virtual:clarify/slot` and `virtual:clarify-runtime-slots` only exist during the Clarify/Vite build, the TypeScript language service in the user project cannot recognize them by default.
 
 To avoid asking plugin authors or site authors to write `declare module` manually, Clarify dev should generate a project-level type declaration file from the current project and enabled plugins, for example:
 
@@ -383,25 +377,25 @@ clarify-env.d.ts
 The file can contain:
 
 ```ts
-declare module 'virtual:clarify-slot' {
+declare module 'virtual:clarify/slot' {
   import type { RouteItem } from '@clarify-labs/renderer'
 
-  export type ClarifyUISlotName =
+  export type UISlotName =
     | 'page.title.actions'
     | 'page.navigation.before'
     | 'page.navigation.after'
     | 'page.footer.before'
     | 'page.footer.after'
 
-  export type ClarifySlotContext = {
-    name: ClarifyUISlotName
+  export type SlotContext = {
+    name: UISlotName
     plugin: string
     route?: RouteItem
     locale?: string
     config?: Record<string, unknown>
   }
 
-  export function useClarifySlot(): ClarifySlotContext
+  export function useSlot(): SlotContext
 }
 ```
 
@@ -415,7 +409,7 @@ Design requirements:
 - Project templates should include `clarify-env.d.ts` in `tsconfig.json` by default; if an existing project does not include it, dev can prompt the user to add it.
 - If plugins later declare custom virtual modules, they should be able to contribute type declaration fragments to this file.
 
-This keeps runtime code implemented through virtual modules while development-time types are filled in automatically by Clarify. Users should not see errors such as `Cannot find module 'virtual:clarify-slot'`.
+This keeps runtime code implemented through virtual modules while development-time types are filled in automatically by Clarify. Users should not see errors such as `Cannot find module 'virtual:clarify/slot'`.
 
 ---
 
@@ -460,14 +454,14 @@ The renderer consumes this registry and renders it from `AppShell`:
 
 1. Reading registered components by slot name
 2. Reading the current `route` and `locale` from renderer internal context
-3. Creating an isolated `ClarifySlotContext` for each slot component
+3. Creating an isolated `SlotContext` for each slot component
 4. Rendering components in registration order
 5. Avoiding business logic
 
 Pseudo-code:
 
 ```tsx
-export function RuntimeSlot(props: { name: ClarifyUISlotName }) {
+export function RuntimeSlot(props: { name: UISlotName }) {
   const definitions = runtimeSlots[props.name] ?? []
   const route = useCurrentRoute()
   const locale = useCurrentLocale()
@@ -476,7 +470,7 @@ export function RuntimeSlot(props: { name: ClarifyUISlotName }) {
     const Component = definition.component
 
     return (
-      <ClarifySlotProvider
+      <SlotProvider
         key={definition.plugin}
         value={{
           name: props.name,
@@ -487,13 +481,13 @@ export function RuntimeSlot(props: { name: ClarifyUISlotName }) {
         }}
       >
         <Component />
-      </ClarifySlotProvider>
+      </SlotProvider>
     )
   })
 }
 ```
 
-`useClarifySlot()` can only be called inside a slot component or its descendants. If it is called outside the slot provider, it should throw a clear error to help plugin authors diagnose the issue.
+`useSlot()` can only be called inside a slot component or its descendants. If it is called outside the slot provider, it should throw a clear error to help plugin authors diagnose the issue.
 
 ---
 
@@ -523,10 +517,10 @@ export function githubCommentsPlugin(options: {
 Runtime component:
 
 ```tsx
-import { useClarifySlot } from 'virtual:clarify-slot'
+import { useSlot } from 'virtual:clarify/slot'
 
 export default function GithubCommentsSlot() {
-  const { route, locale, config } = useClarifySlot()
+  const { route, locale, config } = useSlot()
   if (!route) return null
 
   const pathname = route.basePath ?? route.path
@@ -595,10 +589,10 @@ If a plugin needs the current light or dark state, it can use `useTheme()` expor
 
 ## Relationship with Locale
 
-Plugin components read the current locale through `useClarifySlot()`:
+Plugin components read the current locale through `useSlot()`:
 
 ```ts
-const { locale } = useClarifySlot()
+const { locale } = useSlot()
 const currentLocale = locale ?? 'en-US'
 ```
 
@@ -639,7 +633,7 @@ Only add:
 - `page.footer.before`
 - `RuntimeSlot`
 - `virtual:clarify-runtime-slots`
-- `virtual:clarify-slot` and `useClarifySlot()`
+- `virtual:clarify/slot` and `useSlot()`
 - dev/build generated project-level `clarify-env.d.ts`
 
 This phase solves the clearest UI extension needs: comments, feedback, and bottom CTAs while avoiding slot component props growing with every new context value and preventing virtual module type errors in user projects.
@@ -715,7 +709,7 @@ slots?: {
 Runtime components do not receive Clarify context parameters. They call:
 
 ```ts
-const slot = useClarifySlot()
+const slot = useSlot()
 ```
 
 The core only provides stable slots, a React rendering path, and the built-in slot context hook. Business binding, page filtering, and build-time enhancement remain the responsibility of plugin components and hooks.
