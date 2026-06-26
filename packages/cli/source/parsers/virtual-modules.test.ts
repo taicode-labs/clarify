@@ -99,7 +99,8 @@ describe('createClientEntryModule', () => {
     const code = createClientEntryModule({ themeEditor: true })
 
     expect(code).toContain("import { runtimeSlots } from 'virtual:clarify/slots';")
-    expect(code).toContain('render({ config, routes, navigation, runtimeSlots, themeEditor: true });')
+    expect(code).toContain("import { openApis } from 'virtual:clarify/openapi';")
+    expect(code).toContain('render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: true });')
     expect(code).not.toContain('ThemeEditor')
     expect(code).not.toContain('react-dom/client')
   })
@@ -107,7 +108,7 @@ describe('createClientEntryModule', () => {
   it('disables the theme editor by default', () => {
     const code = createClientEntryModule()
 
-    expect(code).toContain('render({ config, routes, navigation, runtimeSlots, themeEditor: false });')
+    expect(code).toContain('render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: false });')
     expect(code).not.toContain('ThemeEditor')
     expect(code).not.toContain('react-dom/client')
   })

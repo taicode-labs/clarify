@@ -42,16 +42,16 @@ describe('openapi virtual modules', () => {
     expect(code).toContain('SPEC_KEY = "api"')
     expect(code).toContain('import("virtual:clarify/openapi-spec/api")')
     expect(code).toContain('loadSpec()')
-    expect(code).toContain('var TAG_FILTER = ["Users"]')
+    expect(code).toContain('const TAG_FILTER = ["Users"]')
   })
 
   it('generates an OpenAPI route component module without tag filter', () => {
     const code = generateOpenAPIPageModule({ specKey: 'api' })
     expect(code).toContain("import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';")
     expect(code).toContain('function OpenApiRoutePage')
-    expect(code).toContain('SPEC_KEY = "api"')
+    expect(code).toContain('const SPEC_KEY = "api"')
     expect(code).toContain('import("virtual:clarify/openapi-spec/api")')
-    expect(code).toContain('var TAG_FILTER = undefined')
+    expect(code).toContain('const TAG_FILTER = undefined')
   })
 
   it('generates a per-spec virtual module', () => {

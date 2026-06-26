@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 import SwaggerParser from '@apidevtools/swagger-parser'
@@ -46,7 +46,6 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
       virtualModuleId: virtualModuleIdFromRef(ref),
       title: kebabToTitle(cleanPath.split('/').pop() ?? 'API'),
       kind: 'openapi',
-      content: readFileSync(fullPath, 'utf-8'),
     })
   }
 
@@ -65,9 +64,8 @@ export function filterSpecByTags(spec: OpenAPISpec, tags: string[]): OpenAPISpec
   for (const path of Object.keys(paths)) {
     const pathItem = paths[path as keyof typeof paths]
     if (!pathItem) continue
-    const hasMatch = Object.values(pathItem as Record<string, unknown>).some(
-      op => op && typeof op === 'object' && 'tags' in op && Array.isArray((op as Record<string, unknown>).tags) && ((op as Record<string, unknown>).tags as string[]).some(t => tags.includes(t))
-    )
+    const ops = Object.values(pathItem as Record<string, unknown>)
+    const hasMatch = ops.some(op => op && typeof op === 'object' && operationMatchesTags((op as Record<string, unknown>).tags as string[] | undefined, tags))
     if (hasMatch) filteredPaths[path] = pathItem
   }
   return { ...spec, paths: filteredPaths } as OpenAPISpec

@@ -70,7 +70,6 @@ describe('createOpenAPIPlugin', () => {
       filePath: specPath,
       virtualModuleId: 'virtual:clarify-page/api',
       kind: 'openapi',
-      content: expect.stringContaining('Plugin API'),
     }])
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))

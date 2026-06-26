@@ -147,16 +147,16 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         }
 
         // ── Per-route page modules ──
-        for (const route of ctx.routes.filter(r => r.kind === 'openapi' && !r.diagnostic && r.specFileKey)) {
-          modules.set(route.virtualModuleId, generateOpenAPIPageModule({
-            specKey: route.specFileKey!,
-            tagFilter: route.openapiTagFilter,
-          }))
-        }
-
-        // Error modules for broken openapi routes
-        for (const route of ctx.routes.filter(r => r.kind === 'openapi' && r.diagnostic)) {
-          if (route.diagnostic) modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.diagnostic))
+        for (const route of ctx.routes) {
+          if (route.kind !== 'openapi') continue
+          if (route.diagnostic) {
+            modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.diagnostic))
+          } else if (route.specFileKey) {
+            modules.set(route.virtualModuleId, generateOpenAPIPageModule({
+              specKey: route.specFileKey,
+              tagFilter: route.openapiTagFilter,
+            }))
+          }
         }
 
         return modules
