@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 
 import { SectionProvider } from './app/SectionProvider'
 import type { Section } from './app/SectionProvider'
-import { ConfigContext, LocaleContext, OpenApisContext } from './context'
+import { ConfigContext, LocaleContext, OpenApisContext } from './core/context'
 import { OpenApiExamplesPreview } from './preview/openapi'
 import type { PreviewEndpoint } from './preview/openapi'
 import { Navigation } from './shell'

@@ -55,10 +55,10 @@ function localizeSpecModuleId(moduleId: string, specPath: string, locale: string
 }
 
 export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenAPISpec | null {
-  const specs = useOpenApis()
-  const location = useLocation()
   const config = useConfig()
   const locale = useLocale()
+  const specs = useOpenApis()
+  const location = useLocation()
 
   if (spec) return spec
   if (!specPath) return null

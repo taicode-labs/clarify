@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
 
 import { AppShell } from '../app/AppShell'
-import { ConfigContext, OpenApisContext } from '../context'
+import { ConfigContext, OpenApisContext } from '../core/context'
 import { ThemeProvider } from '../theme/ThemeProvider'
 import { ThemeRoot } from '../theme/ThemeRoot'
 import type { ServerRenderOptions } from '../types'

@@ -3,7 +3,7 @@ import { hydrateRoot, createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import { AppShell } from '../app/AppShell'
-import { ConfigContext, OpenApisContext } from '../context'
+import { ConfigContext, OpenApisContext } from '../core/context'
 import { ThemeProvider } from '../theme/ThemeProvider'
 import { ThemeRoot } from '../theme/ThemeRoot'
 import type { RenderOptions } from '../types'

@@ -101,10 +101,9 @@ export default {
 
 ```tsx
 // source/plugins/CustomBanner.tsx
-import { useSlot, useConfig } from 'virtual:clarify/slot'
+import { useSlot } from 'virtual:clarify/slot'
 
 export default function CustomBanner() {
-  const config = useConfig()
   const { DefaultComponent } = useSlot()
   
   // 可选：仍渲染原始横幅
@@ -112,7 +111,7 @@ export default function CustomBanner() {
   
   return (
     <div className="my-custom-banner">
-      欢迎使用 {config.title}！
+      欢迎使用 Clarify！
     </div>
   )
 }

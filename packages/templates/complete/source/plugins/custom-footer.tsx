@@ -1,7 +1,6 @@
-import { useSlot, useConfig } from 'virtual:clarify/slot'
+import { useSlot } from 'virtual:clarify/slot'
 
 export default function CustomFooter() {
-  const config = useConfig()
   const { DefaultComponent, locale } = useSlot()
   
   return (
@@ -10,9 +9,6 @@ export default function CustomFooter() {
         <div className="text-center text-sm text-gray-600 dark:text-gray-400">
           <p>
             {locale === 'zh-CN' ? '这是自定义页脚，来自插件！' : 'This is a custom footer from a plugin!'}
-          </p>
-          <p className="mt-2">
-            {config.title}
           </p>
         </div>
         

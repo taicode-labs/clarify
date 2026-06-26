@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useConfig, useLocale } from '../context'
+import { useConfig, useLocale } from '../core/context'
 import { isExternalHref, localizeHref } from '../utils/href'
 
 export function useLocalizedHref(href: string): string {
