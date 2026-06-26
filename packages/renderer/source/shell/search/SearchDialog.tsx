@@ -8,7 +8,7 @@ import { useBuiltInText } from '../../i18n'
 import type { NavigationNode, RouteItem } from '../../types'
 
 import { buildSearchItems } from './items'
-import { loadPagefind, logSearchDebug, normalizePagefindUrl, pagefindCacheKey } from './pagefind'
+import { loadPagefind, normalizePagefindUrl, pagefindCacheKey } from './pagefind'
 import { SearchInput } from './SearchInput'
 import { SearchResult } from './SearchResult'
 import type { FullTextSearchItem, Pagefind, SearchDisplayItem } from './types'
@@ -79,20 +79,16 @@ export function SearchDialog(arg0: SearchDialogProps) {
 
   useEffect(() => {
     let cancelled = false
-    logSearchDebug('locale or route prefix changed; reload Pagefind', { currentLocale, routePrefix, documentLanguage: document.documentElement.lang })
 
     loadPagefind(routePrefix, currentLocale).then((loadedPagefind) => {
       if (cancelled) {
-        logSearchDebug('ignore stale Pagefind load', { currentLocale, routePrefix })
         return
       }
-      logSearchDebug('Pagefind load applied', { currentLocale, routePrefix, available: Boolean(loadedPagefind) })
       setPagefindState({ key: pagefindKey, pagefind: loadedPagefind, available: Boolean(loadedPagefind) })
     })
 
     return () => {
       cancelled = true
-      logSearchDebug('cancel Pagefind load effect', { currentLocale, routePrefix })
     }
   }, [currentLocale, pagefindKey, routePrefix])
 
@@ -104,11 +100,9 @@ export function SearchDialog(arg0: SearchDialogProps) {
       if (cancelled) return
 
       try {
-        logSearchDebug('run Pagefind search', { currentLocale, query: trimmedQuery, routePrefix })
         const search = await pagefind.search(trimmedQuery, { limit: 8 })
         const data = await Promise.all(search.results.map(async (result) => ({ id: result.id, data: await result.data() })))
         if (cancelled) return
-        logSearchDebug('Pagefind search results', { currentLocale, query: trimmedQuery, count: data.length })
         setFullTextState({
           key: fullTextKey,
           results: data.map(({ id, data }) => ({

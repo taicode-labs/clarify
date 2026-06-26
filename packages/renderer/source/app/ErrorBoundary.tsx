@@ -120,15 +120,15 @@ function PageErrorPanel(props: PageErrorPanelProps) {
           </div>
           <div className="px-4 py-4 text-xs/5 text-(--clarify-ui-text)">
             <p className="font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">{messageLabel}</p>
-            <p className="mt-2 break-words font-mono text-sm/6 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{error.message}</p>
+            <p className="mt-2 wrap-break-word font-mono text-sm/6 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{error.message}</p>
             <p className="mt-6 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">{stackLabel}</p>
-            <pre className="mt-2 max-h-(--clarify-error-details-max-height) overflow-auto whitespace-pre-wrap break-words font-mono">
+            <pre className="mt-2 max-h-(--clarify-error-details-max-height) overflow-auto whitespace-pre-wrap wrap-break-word font-mono">
               {stack}
             </pre>
             {componentStack ? (
               <>
                 <p className="mt-6 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">{componentStackLabel}</p>
-                <pre className="mt-2 max-h-(--clarify-error-component-stack-max-height) overflow-auto whitespace-pre-wrap break-words font-mono">
+                <pre className="mt-2 max-h-(--clarify-error-component-stack-max-height) overflow-auto whitespace-pre-wrap wrap-break-word font-mono">
                   {componentStack}
                 </pre>
               </>

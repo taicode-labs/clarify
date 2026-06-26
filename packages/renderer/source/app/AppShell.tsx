@@ -301,7 +301,7 @@ export function AppShell(arg0: AppShellProps) {
                 'clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8',
                 hasTabs && hasBanner && 'lg:top-40 lg:h-(--clarify-sidebar-height-with-tabs-and-banner) lg:pt-10',
                 hasTabs && !hasBanner && 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-10',
-                !hasTabs && hasBanner && 'lg:top-[6.5rem] lg:h-(--clarify-sidebar-height-with-banner) lg:pt-10',
+                !hasTabs && hasBanner && 'lg:top-26 lg:h-(--clarify-sidebar-height-with-banner) lg:pt-10',
                 !hasTabs && !hasBanner && 'lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-10',
               )}
             >
@@ -311,9 +311,9 @@ export function AppShell(arg0: AppShellProps) {
           <div
             className={clsx(
               'clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10',
-              hasTabs && hasBanner && 'pt-[6.5rem] lg:pt-40',
+                hasTabs && hasBanner && 'pt-26 lg:pt-40',
               hasTabs && !hasBanner && 'pt-14 lg:pt-28',
-              !hasTabs && hasBanner && 'pt-[6.5rem]',
+              !hasTabs && hasBanner && 'pt-26',
               !hasTabs && !hasBanner && 'pt-14',
             )}
           >

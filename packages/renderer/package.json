@@ -54,7 +54,9 @@
     "build": "vite build",
     "lint": "eslint source/",
     "lint:fix": "eslint source/ --fix",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -72,7 +74,8 @@
     "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3",
     "vite": "^8.0.15",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^4.1.9"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
