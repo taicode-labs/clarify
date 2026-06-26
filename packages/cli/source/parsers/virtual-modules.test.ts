@@ -125,51 +125,65 @@ describe('createRuntimeSlotsModule', () => {
         name: 'clarify:github-comments',
         hooks: {},
         slots: [
-          { name: 'page.footer.before', component: 'virtual:clarify-github-comments-slot' },
+          { name: 'page.footer.before', component: '/source/github-comments.tsx' },
         ],
-      },
-    ]
-
-    const code = createRuntimeSlotsModule(plugins)
-
-    expect(code).not.toContain('import ')
-    expect(code).toContain('"page.footer.before": [')
-    expect(code).toContain('plugin: "clarify:github-comments"')
-    expect(code).toContain('component: () => import("virtual:clarify-github-comments-slot")')
-  })
-
-  it('resolves relative component paths against the project root', () => {
-    const plugins: ClarifyPlugin[] = [
-      {
-        name: 'a',
-        hooks: {},
-        slots: [{ name: 'page.footer.before', component: './my-component.tsx' }],
       },
     ]
 
     const code = createRuntimeSlotsModule(plugins, '/project')
 
     expect(code).not.toContain('import ')
-    expect(code).toContain('component: () => import("/project/my-component.tsx")')
+    expect(code).toContain('"page.footer.before": [')
+    expect(code).toContain('plugin: "clarify:github-comments"')
+    expect(code).toContain('component: () => import("/project/source/github-comments.tsx")')
   })
 
-  it('stores each non-relative component path independently', () => {
+  it('resolves /-prefixed paths against the project root', () => {
     const plugins: ClarifyPlugin[] = [
       {
         name: 'a',
         hooks: {},
-        slots: [{ name: 'page.footer.before', component: 'some-pkg/Footer' }],
+        slots: [{ name: 'page.footer.before', component: '/source/my-component.tsx' }],
+      },
+    ]
+
+    const code = createRuntimeSlotsModule(plugins, '/project')
+
+    expect(code).not.toContain('import ')
+    expect(code).toContain('component: () => import("/project/source/my-component.tsx")')
+  })
+
+  it('stores each /-prefixed component path independently', () => {
+    const plugins: ClarifyPlugin[] = [
+      {
+        name: 'a',
+        hooks: {},
+        slots: [{ name: 'page.footer.before', component: '/some-pkg/Footer' }],
       },
       {
         name: 'b',
         hooks: {},
-        slots: [{ name: 'page.footer.before', component: 'some-pkg/Footer' }],
+        slots: [{ name: 'page.footer.before', component: '/some-pkg/Footer' }],
       },
     ]
 
-    const code = createRuntimeSlotsModule(plugins)
+    const code = createRuntimeSlotsModule(plugins, '/project')
 
     expect(code).not.toContain('import ')
-    expect(code.match(/import\("some-pkg\/Footer"\)/g)?.length).toBe(2)
+    expect(code.match(/import\("\/project\/some-pkg\/Footer"\)/g)?.length).toBe(2)
+  })
+
+  it('throws for component paths that do not start with /', () => {
+    const plugins: ClarifyPlugin[] = [
+      {
+        name: 'bad-plugin',
+        hooks: {},
+        slots: [{ name: 'page.footer.before', component: 'relative/path.tsx' }],
+      },
+    ]
+
+    expect(() => createRuntimeSlotsModule(plugins, '/project')).toThrow(
+      'invalid component path',
+    )
   })
 })

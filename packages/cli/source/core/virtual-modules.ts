@@ -1,5 +1,3 @@
-import { resolve } from 'path'
-
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../parsers/routes.js'
@@ -122,9 +120,12 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = [], root: st
       }
     }
 
-    // Resolve relative component paths against the project root so that
+    // Resolve `/`-prefixed paths relative to the project root so that
     // Vite can resolve the import from the virtual module.
-    const componentPath = slot.component.startsWith('.') ? resolve(root, slot.component) : slot.component
+    if (!slot.component.startsWith('/')) {
+      throw new Error(`[clarify] Plugin "${plugin}" slot "${slot.name}" has an invalid component path "${slot.component}". Component paths must start with "/" to reference the project root.`)
+    }
+    const componentPath = root + slot.component
     const entry = `{ plugin: ${JSON.stringify(plugin)}, component: () => import(${moduleSpecifier(componentPath)}) }`
     const list = grouped.get(slot.name) ?? []
     list.push(entry)

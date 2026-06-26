@@ -47,9 +47,15 @@ export type UISlotRegistration = {
   /** Target slot position. */
   name: UISlotName
   /**
-   * Module path of the React component to mount. Can be a real module
-   * (resolvable from the project) or a virtual module the plugin injects via
-   * `modules:before`. The component is imported as a default export.
+   * Module path of the React component to mount.
+   *
+   * Use `/` prefix to reference files relative to the project root, for
+   * example:
+   * ```
+   * component: '/source/plugins/custom-footer.tsx'
+   * ```
+   *
+   * The component is imported as a default export.
    */
   component: string
 }

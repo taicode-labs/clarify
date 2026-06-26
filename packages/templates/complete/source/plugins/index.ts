@@ -6,15 +6,15 @@ const plugin: ClarifyPlugin = {
   slots: [
     { 
       name: 'page.banner.replace', 
-      component: './custom-banner.tsx' 
+      component: '/source/plugins/custom-banner.tsx' 
     },
     { 
       name: 'page.footer.before', 
-      component: './footer-extra.tsx' 
+      component: '/source/plugins/footer-extra.tsx' 
     },
     { 
       name: 'page.footer.replace', 
-      component: './custom-footer.tsx' 
+      component: '/source/plugins/custom-footer.tsx' 
     },
   ],
 }

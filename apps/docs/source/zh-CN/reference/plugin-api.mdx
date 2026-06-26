@@ -44,7 +44,7 @@ type UISlotName =
 ```ts
 type UISlotRegistration = {
   name: UISlotName      // 目标插槽位置
-  component: string            // React 组件模块路径
+  component: string            // React 组件模块路径（使用 / 前缀指向项目根目录，如 /source/plugins/MyFooter.tsx）
 }
 ```
 
@@ -77,7 +77,7 @@ export default {
   slots: [
     { 
       name: 'page.footer.before', 
-      component: './components/MyFooterExtra.tsx' 
+      component: '/source/plugins/MyFooterExtra.tsx' 
     }
   ]
 }
@@ -93,14 +93,14 @@ export default {
   slots: [
     { 
       name: 'page.banner.replace', 
-      component: './components/CustomBanner.tsx' 
+      component: '/source/plugins/CustomBanner.tsx' 
     }
   ]
 }
 ```
 
 ```tsx
-// components/CustomBanner.tsx
+// source/plugins/CustomBanner.tsx
 import { useSlot, useConfig } from 'virtual:clarify/slot'
 
 export default function CustomBanner() {
