@@ -80,9 +80,8 @@ import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
-import { openApis } from '${VIRTUAL_OPENAPI}';
 import { runtimeSlots } from '${VIRTUAL_SLOTS}';
-render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
+render({ config, routes, navigation, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
 }
 
 /**

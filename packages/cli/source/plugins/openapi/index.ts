@@ -1,12 +1,16 @@
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { join, relative } from 'node:path'
+
 import { localizedRoutePath, openAPIPagePathFromRef } from '../../parsers/routes.js'
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
 
 import { extractOpenAPISections, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
-import { generateOpenAPIErrorModule, generateOpenAPIModule, generateOpenAPIRegistryModule, openApiRegistryModuleId } from './virtual-modules.js'
+import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, openApiRegistryModuleId } from './virtual-modules.js'
 
 type OpenAPISpecEntry = {
   spec: OpenAPISpec
-  tagFilter?: string[]
+  /** Source spec file path – used as deduplication key across routes. */
+  filePath: string
 }
 
 function collectOpenAPIPageItems(config: ResolvedProjectConfig): Array<Extract<ClarifyPagesItem, { openapi: string }>> {
@@ -77,8 +81,18 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
   return config.i18n ? nextRoutes.map(route => withAlternates(route, nextRoutes, config.i18n!)) : nextRoutes
 }
 
+/** Derive a stable, deduplicated key from an absolute spec file path. */
+function specFileKeyFromPath(filePath: string, projectRoot: string): string {
+  return relative(projectRoot, filePath).replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
+}
+
+function isDevMode(): boolean {
+  return process.argv.some(arg => arg === 'dev' || arg === 'serve')
+}
+
 export function createOpenAPIPlugin(): ClarifyPlugin {
-  const specs: Record<string, OpenAPISpecEntry> = {}
+  /** specs keyed by specFileKey (deduplicated per source file). */
+  const specs = new Map<string, OpenAPISpecEntry>()
 
   return {
     name: 'clarify:openapi',
@@ -88,7 +102,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         routes: [...input.routes, ...findOpenAPIRoutes(input.contentRoot)],
       }),
       'routes:discovered': async (routes, ctx) => {
-        for (const key of Object.keys(specs)) delete specs[key]
+        specs.clear()
 
         const nextRoutes = createConfiguredOpenAPIRoutes(routes, ctx.projectConfig)
         const specByFilePath = new Map<string, OpenAPISpec>()
@@ -105,8 +119,12 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
 
           const spec = result.spec
           specByFilePath.set(route.filePath, spec)
-          specs[route.virtualModuleId] = { spec, tagFilter: route.openapiTagFilter }
-          specs[`virtual:clarify-page/${route.path.replace(/^\//, '')}`] = { spec, tagFilter: route.openapiTagFilter }
+
+          // Derive a stable dedup key from the spec file path
+          const specKey = specFileKeyFromPath(route.filePath, ctx.generateOptions.projectRoot)
+          route.specFileKey = specKey
+
+          specs.set(specKey, { spec, filePath: route.filePath })
           route.title = spec.info?.title ?? route.title
           route.description = spec.info?.description ?? route.description
           route.sections = extractOpenAPISections(spec, route.openapiTagFilter)
@@ -115,15 +133,54 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         return nextRoutes
       },
       'modules:before': (modules, ctx) => {
-        modules.set(openApiRegistryModuleId, generateOpenAPIRegistryModule(
-          Object.fromEntries(Object.entries(specs).map(([moduleId, entry]) => [moduleId, entry.spec])),
-        ))
+        // ── Registry module (used by SSR to populate OpenApisContext) ──
+        const registryEntries: Record<string, OpenAPISpec> = {}
+        for (const [specKey, entry] of specs) {
+          registryEntries[specKey] = entry.spec
+        }
+        modules.set(openApiRegistryModuleId, generateOpenAPIRegistryModule(registryEntries))
 
-        for (const [moduleId, entry] of Object.entries(specs)) {
-          modules.set(moduleId, generateOpenAPIModule(entry.spec, entry.tagFilter))
+        const outputDirectory = ctx.generateOptions.outputDirectory
+        const isBuild = !isDevMode() && Boolean(outputDirectory)
+
+        if (isBuild) {
+          mkdirSync(join(outputDirectory!, '__openapi'), { recursive: true })
         }
 
-        for (const route of ctx.routes.filter(route => route.kind === 'openapi' && route.diagnostic)) {
+        // ── Per-route page modules ──
+        for (const route of ctx.routes.filter(r => r.kind === 'openapi' && !r.diagnostic && r.specFileKey)) {
+          const entry = specs.get(route.specFileKey!)
+          if (!entry) continue
+
+          const { spec } = entry
+          const specKey = route.specFileKey!
+          const moduleId = route.virtualModuleId
+          const specUrl = isBuild ? `/__openapi/${specKey}.json` : undefined
+
+          if (specUrl) {
+            // Write deduplicated JSON: only once per specFileKey
+            const jsonPath = join(outputDirectory!, '__openapi', `${specKey}.json`)
+            if (!existsSync(jsonPath)) {
+              writeFileSync(jsonPath, JSON.stringify(spec), 'utf-8')
+            }
+            modules.set(moduleId, generateOpenAPIPageModule({
+              spec,
+              tagFilter: route.openapiTagFilter,
+              specUrl,
+              specKey,
+              mode: 'lazy',
+            }))
+          } else {
+            modules.set(moduleId, generateOpenAPIPageModule({
+              spec,
+              tagFilter: route.openapiTagFilter,
+              mode: 'inline',
+            }))
+          }
+        }
+
+        // Error modules for broken openapi routes
+        for (const route of ctx.routes.filter(r => r.kind === 'openapi' && r.diagnostic)) {
           if (route.diagnostic) modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.diagnostic))
         }
 

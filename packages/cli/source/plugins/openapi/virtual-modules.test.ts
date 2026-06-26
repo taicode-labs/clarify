@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { OpenAPISpec } from '../../types.js'
 
-import { generateOpenAPIErrorModule, generateOpenAPIModule, generateOpenAPIRegistryModule, openApiRegistryModuleId } from './virtual-modules.js'
+import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, openApiRegistryModuleId } from './virtual-modules.js'
 
 const spec: OpenAPISpec = {
   openapi: '3.0.0',
@@ -35,12 +35,22 @@ describe('openapi virtual modules', () => {
     expect(code).toContain('Example API')
   })
 
-  it('generates an OpenAPI route component module', () => {
-    const code = generateOpenAPIModule(spec, ['Users'])
+  it('generates an OpenAPI route component module (inline/dev mode)', () => {
+    const code = generateOpenAPIPageModule({ mode: 'inline', spec, tagFilter: ['Users'] })
     expect(code).toContain("import { OpenApiDocument } from '@clarify-labs/renderer';")
     expect(code).toContain('function OpenApiRoutePage')
     expect(code).toContain('Example API')
     expect(code).toContain('const tagFilter = ["Users"]')
+  })
+
+  it('generates an OpenAPI route component module (lazy/build mode)', () => {
+    const code = generateOpenAPIPageModule({ mode: 'lazy', spec, tagFilter: ['Users'], specUrl: '/__openapi/api.json', specKey: 'api' })
+    expect(code).toContain("import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';")
+    expect(code).toContain('function OpenApiRoutePage')
+    expect(code).toContain('SPEC_URL')
+    expect(code).toContain('/__openapi/api.json')
+    expect(code).toContain("document.getElementById('__openapi-spec-")
+    expect(code).toContain('var TAG_FILTER = ["Users"]')
   })
 
   it('generates an OpenAPI diagnostic route component module', () => {

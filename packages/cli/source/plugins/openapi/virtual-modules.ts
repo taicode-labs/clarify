@@ -7,14 +7,66 @@ export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISp
   return `export const openApis = ${JSON.stringify(openApis)};`
 }
 
-export function generateOpenAPIModule(spec: OpenAPISpec, tagFilter?: string[]): string {
-  return `import { createElement } from 'react';
-import { OpenApiDocument } from '@clarify-labs/renderer';
-const spec = ${JSON.stringify(spec)};
-const tagFilter = ${JSON.stringify(tagFilter)};
-export default function OpenApiRoutePage() {
-  return createElement(OpenApiDocument, { spec, tagFilter });
-}`
+type OpenAPIPageModuleOptions =
+  | { mode: 'inline'; spec: OpenAPISpec; tagFilter?: string[] }
+  | { mode: 'lazy'; spec: OpenAPISpec; tagFilter?: string[]; specUrl: string; specKey: string }
+
+export function generateOpenAPIPageModule(opts: OpenAPIPageModuleOptions): string {
+  const { spec, tagFilter } = opts
+
+  if (opts.mode === 'inline') {
+    // Dev mode — inline spec data directly (fast, no file system round-trip)
+    return [
+      `import { createElement } from 'react';`,
+      `import { OpenApiDocument } from '@clarify-labs/renderer';`,
+      `const spec = ${JSON.stringify(spec)};`,
+      `const tagFilter = ${JSON.stringify(tagFilter ?? undefined)};`,
+      `export default function OpenApiRoutePage() {`,
+      `  return createElement(OpenApiDocument, { spec, tagFilter });`,
+      `}`,
+    ].join('\n')
+  }
+
+  // Build mode — lazy: check inline <script> (hydration) → fetch (SPA nav)
+  const { specUrl, specKey } = opts
+  return [
+    `import { createElement, useEffect, useRef, useState } from 'react';`,
+    `import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';`,
+    `var SPEC_KEY = ${JSON.stringify(specKey)};`,
+    `var SPEC_URL = ${JSON.stringify(specUrl)};`,
+    `var TAG_FILTER = ${JSON.stringify(tagFilter ?? undefined)};`,
+    `function getInitialSpec() {`,
+    `  try {`,
+    `    var el = document.getElementById('__openapi-spec-' + SPEC_KEY);`,
+    `    if (el) {`,
+    `      try { sessionStorage.setItem('__openapi-spec-' + SPEC_KEY, el.textContent); } catch(e) {}`,
+    `      return JSON.parse(el.textContent);`,
+    `    }`,
+    `  } catch(e) {}`,
+    `  try {`,
+    `    var cached = sessionStorage.getItem('__openapi-spec-' + SPEC_KEY);`,
+    `    if (cached) return JSON.parse(cached);`,
+    `  } catch(e) {}`,
+    `  return null;`,
+    `}`,
+    `export default function OpenApiRoutePage() {`,
+    `  var specs = useOpenApis();`,
+    `  var serverSpec = specs[SPEC_KEY];`,
+    `  var [spec, setSpec] = useState(serverSpec || getInitialSpec());`,
+    `  var fetchRef = useRef(false);`,
+    `  useEffect(function() {`,
+    `    if (spec) return;`,
+    `    if (fetchRef.current) return;`,
+    `    fetchRef.current = true;`,
+    `    fetch(SPEC_URL).then(function(r) { return r.json(); }).then(function(data) {`,
+    `      setSpec(data);`,
+    `      try { sessionStorage.setItem('__openapi-spec-' + SPEC_KEY, JSON.stringify(data)); } catch(e) {}`,
+    `    });`,
+    `  }, [spec]);`,
+    `  if (!spec) return null;`,
+    `  return createElement(OpenApiDocument, { spec: spec, tagFilter: TAG_FILTER });`,
+    `}`,
+  ].join('\n')
 }
 
 export function generateOpenAPIErrorModule(diagnostic: ContentDiagnostic): string {

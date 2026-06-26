@@ -286,6 +286,9 @@ export type ContentRoute = {
   kind: string
   /** OpenAPI operation tag filter applied to this route. Undefined means all operations. */
   openapiTagFilter?: string[]
+  /** Deduplicated key derived from the source OpenAPI spec file path. Routes sharing
+   * the same spec file (e.g. filtered sub-routes) share the same key. */
+  specFileKey?: string
   frontmatter?: Record<string, unknown>
   /** Normalized source content captured during route discovery. */
   content?: string
