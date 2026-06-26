@@ -17,28 +17,11 @@ export function generateOpenAPISpecModule(spec: OpenAPISpec): string {
   return `export default ${JSON.stringify(spec)};`
 }
 
-type OpenAPIPageModuleOptions =
-  | { mode: 'inline'; spec: OpenAPISpec; tagFilter?: string[] }
-  | { mode: 'lazy'; specKey: string; tagFilter?: string[] }
+type OpenAPIPageModuleOptions = { specKey: string; tagFilter?: string[] }
 
 export function generateOpenAPIPageModule(opts: OpenAPIPageModuleOptions): string {
-  const { tagFilter } = opts
+  const { specKey, tagFilter } = opts
 
-  if (opts.mode === 'inline') {
-    // Dev mode — inline spec data directly (fast, no file system round-trip)
-    return [
-      `import { createElement } from 'react';`,
-      `import { OpenApiDocument } from '@clarify-labs/renderer';`,
-      `const spec = ${JSON.stringify(opts.spec)};`,
-      `const tagFilter = ${JSON.stringify(tagFilter ?? undefined)};`,
-      `export default function OpenApiRoutePage() {`,
-      `  return createElement(OpenApiDocument, { spec, tagFilter });`,
-      `}`,
-    ].join('\n')
-  }
-
-  // Build mode — lazy: SSR context first, then dynamic import() for SPA navigation
-  const { specKey } = opts
   return [
     `import { createElement, useState, useEffect, useRef } from 'react';`,
     `import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';`,

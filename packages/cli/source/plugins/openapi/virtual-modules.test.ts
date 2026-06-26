@@ -35,22 +35,23 @@ describe('openapi virtual modules', () => {
     expect(code).toContain('Example API')
   })
 
-  it('generates an OpenAPI route component module (inline/dev mode)', () => {
-    const code = generateOpenAPIPageModule({ mode: 'inline', spec, tagFilter: ['Users'] })
-    expect(code).toContain("import { OpenApiDocument } from '@clarify-labs/renderer';")
-    expect(code).toContain('function OpenApiRoutePage')
-    expect(code).toContain('Example API')
-    expect(code).toContain('const tagFilter = ["Users"]')
-  })
-
-  it('generates an OpenAPI route component module (lazy/build mode)', () => {
-    const code = generateOpenAPIPageModule({ mode: 'lazy', specKey: 'api', tagFilter: ['Users'] })
+  it('generates an OpenAPI route component module', () => {
+    const code = generateOpenAPIPageModule({ specKey: 'api', tagFilter: ['Users'] })
     expect(code).toContain("import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';")
     expect(code).toContain('function OpenApiRoutePage')
     expect(code).toContain('SPEC_KEY = "api"')
     expect(code).toContain('import("virtual:clarify/openapi-spec/api")')
     expect(code).toContain('loadSpec()')
     expect(code).toContain('var TAG_FILTER = ["Users"]')
+  })
+
+  it('generates an OpenAPI route component module without tag filter', () => {
+    const code = generateOpenAPIPageModule({ specKey: 'api' })
+    expect(code).toContain("import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';")
+    expect(code).toContain('function OpenApiRoutePage')
+    expect(code).toContain('SPEC_KEY = "api"')
+    expect(code).toContain('import("virtual:clarify/openapi-spec/api")')
+    expect(code).toContain('var TAG_FILTER = undefined')
   })
 
   it('generates a per-spec virtual module', () => {

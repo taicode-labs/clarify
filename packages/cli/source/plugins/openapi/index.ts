@@ -85,10 +85,6 @@ function specFileKeyFromPath(filePath: string, projectRoot: string): string {
   return relative(projectRoot, filePath).replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
 }
 
-function isDevMode(): boolean {
-  return process.argv.some(arg => arg === 'dev' || arg === 'serve')
-}
-
 export function createOpenAPIPlugin(): ClarifyPlugin {
   /** specs keyed by specFileKey (deduplicated per source file). */
   const specs = new Map<string, OpenAPISpecEntry>()
@@ -145,8 +141,6 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         }
         modules.set(openApiRegistryModuleId, generateOpenAPIRegistryModule(registryEntries))
 
-        const isBuild = !isDevMode() && Boolean(ctx.generateOptions.outputDirectory)
-
         // ── Per-spec virtual modules (lazy-loaded by page modules at runtime) ──
         for (const [specKey, entry] of specs) {
           modules.set(specVirtualModuleId(specKey), generateOpenAPISpecModule(entry.spec))
@@ -154,24 +148,10 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
 
         // ── Per-route page modules ──
         for (const route of ctx.routes.filter(r => r.kind === 'openapi' && !r.diagnostic && r.specFileKey)) {
-          const specKey = route.specFileKey!
-          const moduleId = route.virtualModuleId
-
-          if (isBuild) {
-            modules.set(moduleId, generateOpenAPIPageModule({
-              specKey,
-              tagFilter: route.openapiTagFilter,
-              mode: 'lazy',
-            }))
-          } else {
-            const entry = specs.get(specKey)
-            if (!entry) continue
-            modules.set(moduleId, generateOpenAPIPageModule({
-              spec: entry.spec,
-              tagFilter: route.openapiTagFilter,
-              mode: 'inline',
-            }))
-          }
+          modules.set(route.virtualModuleId, generateOpenAPIPageModule({
+            specKey: route.specFileKey!,
+            tagFilter: route.openapiTagFilter,
+          }))
         }
 
         // Error modules for broken openapi routes
