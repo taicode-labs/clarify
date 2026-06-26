@@ -150,7 +150,6 @@ export default {
           },
 
           table: {
-            width: '100%',
             tableLayout: 'auto',
             textAlign: 'left',
             marginTop: theme('spacing.8'),

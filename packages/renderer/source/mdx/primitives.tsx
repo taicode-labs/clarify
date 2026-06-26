@@ -11,9 +11,18 @@ type WrapperProps = { children: ReactNode }
 export function wrapper(arg0: WrapperProps) {  const { children } = arg0
 
   return (
-    <article className="clarify-mdx-page flex h-full flex-col pt-14 pb-10">
+    <article className="clarify-mdx-page flex h-full min-w-0 flex-col pt-14 pb-10">
       <Prose className="flex-auto">{children}</Prose>
     </article>
+  )
+}
+
+export function table(arg0: ComponentPropsWithoutRef<'table'>) {
+  const { className, ...props } = arg0
+  return (
+    <div className="overflow-x-auto">
+      <table className={className} {...props} />
+    </div>
   )
 }
 

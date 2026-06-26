@@ -14,7 +14,7 @@ export function Prose<T extends ElementType = 'div'>(arg0: ProseProps<T>) {
     <Component
       className={clsx(
         className,
-        'clarify-prose prose max-w-none dark:prose-invert wrap-break-word',
+        'clarify-prose prose max-w-none min-w-0 dark:prose-invert wrap-break-word',
         '[html_:where(&>*)]:w-full [html_:where(&>*)]:min-w-0 [html_:where(&>*)]:max-w-full',
       )}
       {...props}
