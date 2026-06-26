@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+
 import { stringify as yamlStringify } from 'yaml'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'

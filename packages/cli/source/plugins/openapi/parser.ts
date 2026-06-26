@@ -60,11 +60,11 @@ function operationMatchesTags(operationTags: string[] | undefined, filterTags: s
 /** Filter an OpenAPI spec to only include paths that have at least one operation matching the given tags. */
 export function filterSpecByTags(spec: OpenAPISpec, tags: string[]): OpenAPISpec {
   const filteredPaths: Record<string, unknown> = {}
-  const paths = spec.paths ?? {}
+  const paths = (spec.paths ?? {}) as Record<string, unknown>
   for (const path of Object.keys(paths)) {
-    const pathItem = paths[path as keyof typeof paths]
+    const pathItem = paths[path] as Record<string, unknown> | undefined
     if (!pathItem) continue
-    const ops = Object.values(pathItem as Record<string, unknown>)
+    const ops = Object.values(pathItem)
     const hasMatch = ops.some(op => op && typeof op === 'object' && operationMatchesTags((op as Record<string, unknown>).tags as string[] | undefined, tags))
     if (hasMatch) filteredPaths[path] = pathItem
   }

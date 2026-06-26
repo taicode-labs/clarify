@@ -143,7 +143,7 @@ export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: Res
   for (const route of routes) {
     try {
       const appHtml = await render(route.path)
-      let finalHtml = injectSSRIntoTemplate(template, appHtml, projectConfig, route)
+      const finalHtml = injectSSRIntoTemplate(template, appHtml, projectConfig, route)
 
       for (const outFile of routeOutputFiles(outputDirectory, route)) {
         mkdirSync(dirname(outFile), { recursive: true })

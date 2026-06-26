@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
+
 import { stringify as yamlStringify } from 'yaml'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
