@@ -5,8 +5,6 @@ import { useConfig } from '../core/context'
 import type { Config, LocalizedText, NavbarLink } from '../core/types'
 import { isExternalHref, localizeHref } from '../utils/href'
 
-import { BuiltWithClarify } from './BuiltWithClarify'
-
 function resolveLocalizedText(text: LocalizedText, locale?: string, fallbackLocale?: string): string {
   if (typeof text === 'string') return text
   return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
@@ -97,9 +95,6 @@ export function PageFooter() {
             ))}
           </div>
         ) : null}
-      </div>
-      <div className="clarify-footer-brand flex justify-end self-end">
-        <BuiltWithClarify />
       </div>
     </footer>
   )

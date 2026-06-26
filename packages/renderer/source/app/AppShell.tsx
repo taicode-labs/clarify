@@ -12,6 +12,7 @@ import type { RouteItem, Config, NavigationNode, NavigationTab, NavigationTree, 
 import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
+import { BuiltWithClarify } from './BuiltWithClarify'
 import { PageErrorBoundary } from './ErrorBoundary'
 import { PageActionsProvider } from './PageActions'
 import { PageBanner } from './PageBanner'
@@ -347,6 +348,9 @@ export function AppShell(arg0: AppShellProps) {
               <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
               <RuntimeSlot name="page.footer.before" />
               <RuntimeSlot name="page.footer.replace" default={DefaultFooterComponent} />
+              <div className="flex justify-end">
+                <BuiltWithClarify />
+              </div>
             </PageActionsProvider>
           </div>
         </div>
