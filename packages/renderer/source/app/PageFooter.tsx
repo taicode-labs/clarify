@@ -2,13 +2,9 @@ import clsx from 'clsx'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useConfig } from '../core/context'
-import type { Config, LocalizedText, NavbarLink } from '../core/types'
+import type { Config, NavbarLink } from '../core/types'
 import { isExternalHref, localizeHref } from '../utils/href'
-
-function resolveLocalizedText(text: LocalizedText, locale?: string, fallbackLocale?: string): string {
-  if (typeof text === 'string') return text
-  return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
-}
+import { resolveLocalizedText } from '../utils/localized-text'
 
 function localeForPath(config: Config, pathname: string): string | undefined {
   const i18n = config.i18n

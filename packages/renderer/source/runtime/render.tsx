@@ -2,11 +2,9 @@ import { StrictMode } from 'react'
 import { hydrateRoot, createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
-import { AppShell } from '../app/AppShell'
-import { ConfigContext, OpenApisContext } from '../core/context'
-import { ThemeProvider } from '../theme/ThemeProvider'
-import { ThemeRoot } from '../theme/ThemeRoot'
 import type { RenderOptions } from '../types'
+
+import { ClarifyShell } from './ClarifyShell'
 
 /**
  * Clarify 客户端 Hydration 入口。
@@ -38,15 +36,14 @@ export function render(options: RenderOptions) {
   const app = (
     <StrictMode>
       <BrowserRouter basename={config.routePrefix}>
-        <ConfigContext.Provider value={config}>
-          <OpenApisContext.Provider value={openApis}>
-            <ThemeProvider>
-              <ThemeRoot theme={config.theme} themeEditor={themeEditor}>
-                <AppShell config={config} routes={routes} navigation={navigation ?? []} runtimeSlots={runtimeSlots} />
-              </ThemeRoot>
-            </ThemeProvider>
-          </OpenApisContext.Provider>
-        </ConfigContext.Provider>
+        <ClarifyShell
+          config={config}
+          routes={routes}
+          navigation={navigation}
+          openApis={openApis}
+          runtimeSlots={runtimeSlots}
+          themeEditor={themeEditor}
+        />
       </BrowserRouter>
     </StrictMode>
   )

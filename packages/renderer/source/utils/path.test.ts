@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { isSameRoutePath, normalizeRoutePath } from './path'
 
 describe('normalizeRoutePath', () => {

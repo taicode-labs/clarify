@@ -136,13 +136,13 @@ describe('findLocalizedContentRoutes', () => {
     writeFileSync(join(tempDir, 'en-US', 'guide.mdx'), '# Guide', 'utf-8')
 
     const result = findLocalizedContentRoutes(tempDir, testI18n)
-    expect(result.map(route => route.path)).toEqual(expect.arrayContaining(['/', '/guide', '/en-US', '/en-US/guide']))
+    expect(result.map(route => route.path)).toEqual(expect.arrayContaining(['/zh-CN', '/zh-CN/guide', '/en-US', '/en-US/guide']))
     expect(result.find(route => route.path === '/en-US/guide')).toMatchObject({
       basePath: '/guide',
       locale: 'en-US',
     })
-    expect(result.find(route => route.path === '/guide')?.alternates).toEqual({
-      'zh-CN': '/guide',
+    expect(result.find(route => route.path === '/zh-CN/guide')?.alternates).toEqual({
+      'zh-CN': '/zh-CN/guide',
       'en-US': '/en-US/guide',
     })
   })
@@ -167,8 +167,8 @@ describe('findLocalizedContentRoutes', () => {
     writeFileSync(join(tempDir, 'en-US', 'index.mdx'), '# Home', 'utf-8')
 
     const result = findLocalizedContentRoutes(tempDir, { ...testI18n, missing: 'hide' })
-    expect(result.find(route => route.path === '/guide')?.alternates).toEqual({
-      'zh-CN': '/guide',
+    expect(result.find(route => route.path === '/zh-CN/guide')?.alternates).toEqual({
+      'zh-CN': '/zh-CN/guide',
     })
   })
 })

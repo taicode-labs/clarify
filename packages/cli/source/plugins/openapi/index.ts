@@ -1,7 +1,7 @@
 import { relative } from 'node:path'
 
-import { localizedRoutePath, openAPIPagePathFromRef } from '../../parsers/routes.js'
-import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
+import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/routes.js'
+import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedProjectConfig } from '../../types.js'
 
 import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
 import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
@@ -27,18 +27,6 @@ function collectOpenAPIPageItems(config: ResolvedProjectConfig): Array<Extract<C
   for (const tab of config.tabs ?? []) visitPages(tab.pages)
 
   return items
-}
-
-function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute {
-  const basePath = route.basePath ?? route.path
-  const routeByLocaleAndBase = new Map(routes.map(route => [`${route.locale ?? ''}:${route.basePath ?? route.path}`, route]))
-  const alternates = Object.fromEntries(
-    i18n.locales.flatMap((locale) => {
-      const alternate = routeByLocaleAndBase.get(`${locale.code}:${basePath}`)
-      return alternate ? [[locale.code, alternate.path]] : []
-    })
-  )
-  return { ...route, alternates }
 }
 
 function virtualModuleIdFromPath(path: string): string {
@@ -139,7 +127,6 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         // so both page modules and embedded components (useOpenApiSpec)
         // look up specs the same way.
         const registryEntries: Record<string, OpenAPISpec> = {}
-        const defaultLocale = ctx.projectConfig?.i18n?.defaultLocale
 
         for (const route of ctx.routes) {
           if (route.kind !== 'openapi' || !route.specFileKey) continue
@@ -147,17 +134,14 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           if (!spec) continue
 
           const base = (route.basePath ?? route.path).replace(/^\//, '')
-          const locale = route.locale
 
-          // Default-locale entry (always present — this is what useOpenApiSpec
-          // and the default-locale page module look up).
-          registryEntries[`virtual:clarify-page/${base}`] = spec
-
-          // Additional locale-scoped entry so useOpenApiSpec can resolve
-          // absolute specPath lookups on non-default locale pages.
-          if (locale && locale !== defaultLocale) {
-            registryEntries[`virtual:clarify-page/${locale}/${base}`] = spec
-          }
+          // Always use an explicit locale-prefixed key so no two routes
+          // can overwrite each other.  Falls back to bare path only when
+          // i18n is disabled (no locale on the route).
+          const registryKey = route.locale
+            ? `virtual:clarify-page/${route.locale}/${base}`
+            : `virtual:clarify-page/${base}`
+          registryEntries[registryKey] = spec
         }
 
         modules.set(openApiRegistryModuleId, generateOpenAPIRegistryModule(registryEntries))
@@ -174,7 +158,9 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
             modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.diagnostic))
           } else if (route.specFileKey) {
             const base = (route.basePath ?? route.path).replace(/^\//, '')
-            const specRegistryKey = `virtual:clarify-page/${base}`
+            const specRegistryKey = route.locale
+              ? `virtual:clarify-page/${route.locale}/${base}`
+              : `virtual:clarify-page/${base}`
             modules.set(route.virtualModuleId, generateOpenAPIPageModule({
               specKey: route.specFileKey,
               specRegistryKey,

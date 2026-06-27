@@ -10,7 +10,7 @@ import type { ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesC
 
 import { parseFrontmatter } from './frontmatter.js'
 
-function kebabToTitle(str: string): string {
+export function kebabToTitle(str: string): string {
   return str
     .split('-')
     .map(w => w.charAt(0).toUpperCase() + w.slice(1))
@@ -90,15 +90,15 @@ export function virtualModuleIdFromRef(ref: string): string {
     .replace(/\/+/g, '/')
 }
 
-export function localizedRoutePath(basePath: string, locale: string, i18n: ResolvedClarifyI18nConfig): string {
+export function localizedRoutePath(basePath: string, locale: string, _i18n: ResolvedClarifyI18nConfig): string {
   const normalizedBasePath = normalizePath(basePath)
-  if (locale === i18n.defaultLocale) return normalizedBasePath
   const prefix = normalizePath(locale)
   return normalizedBasePath === '/' ? prefix : normalizePath(`${prefix}${normalizedBasePath}`)
 }
 
 export function resolveLocalizedText(text: ClarifyLocalizedText | undefined, locale: string, fallbackLocale?: string): string | undefined {
-  if (typeof text === 'string' || text === undefined) return text
+  if (typeof text === 'string') return text
+  if (text === undefined) return undefined
   return text[locale] ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0]
 }
 
@@ -165,9 +165,14 @@ function frontmatterKeywords(frontmatter: Record<string, unknown>): string[] | u
   return keywords.length > 0 ? keywords : undefined
 }
 
-function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute {
+export function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute {
   const basePath = route.basePath ?? route.path
-  const routeByLocaleAndBase = new Map(routes.map(route => [`${route.locale ?? ''}:${route.basePath ?? route.path}`, route]))
+  // 排除裸路径别名，避免覆盖带 locale 前缀的路径
+  const routeByLocaleAndBase = new Map(
+    routes
+      .filter(r => !r.locale || r.path === `/${r.locale}` || r.path.startsWith(`/${r.locale}/`))
+      .map(r => [`${r.locale ?? ''}:${r.basePath ?? r.path}`, r]),
+  )
   const alternates = Object.fromEntries(
     i18n.locales.flatMap((locale) => {
       const alternate = routeByLocaleAndBase.get(`${locale.code}:${basePath}`)
@@ -214,7 +219,20 @@ export function findLocalizedContentRoutes(contentRoot: string, i18n?: ResolvedC
     }
   }
 
-  return localizedRoutes.map(route => withAlternates(route, localizedRoutes, i18n))
+  const routesWithAlternates = localizedRoutes.map(route => withAlternates(route, localizedRoutes, i18n))
+
+  // 为默认语言生成无前缀的裸路径别名，方便不带语言前缀的 URL 也能访问
+  const bareRoutes: ContentRoute[] = []
+  const seenBare = new Set(routesWithAlternates.map(r => r.path))
+  for (const route of routesWithAlternates) {
+    if (route.locale !== i18n.defaultLocale) continue
+    const bp = route.basePath ?? route.path
+    if (bp === route.path || seenBare.has(bp)) continue
+    seenBare.add(bp)
+    bareRoutes.push({ ...route, path: bp })
+  }
+
+  return [...routesWithAlternates, ...bareRoutes]
 }
 
 export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[] {
@@ -308,7 +326,22 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
   }
 
   const nextRoutes = [...routes, ...additions]
-  return i18n ? nextRoutes.map(route => withAlternates(route, nextRoutes, i18n)) : nextRoutes
+  const routesWithAlternates = i18n ? nextRoutes.map(route => withAlternates(route, nextRoutes, i18n)) : nextRoutes
+
+  if (!i18n) return routesWithAlternates
+
+  // 为默认语言生成无前缀的裸路径别名，方便不带语言前缀的 URL 也能访问
+  const bareRoutes: ContentRoute[] = []
+  const seenBare = new Set(routesWithAlternates.map(r => r.path))
+  for (const route of routesWithAlternates) {
+    if (route.locale !== i18n.defaultLocale) continue
+    const bp = route.basePath ?? route.path
+    if (bp === route.path || seenBare.has(bp)) continue
+    seenBare.add(bp)
+    bareRoutes.push({ ...route, path: bp })
+  }
+
+  return [...routesWithAlternates, ...bareRoutes]
 }
 
 function buildNavigationFromPagesConfig(routes: ContentRoute[], config?: ClarifyPagesConfig): ClarifyNavigationNode[] {

@@ -8,19 +8,15 @@ import { Link, useLocation } from 'react-router-dom'
 import { useBuiltInText } from '../i18n'
 import { storeLocalePreference } from '../theme/cookies'
 import { ThemeToggle } from '../theme/ThemeToggle'
-import type { Config, LocalizedText, LocaleConfig, NavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
+import type { Config, LocaleConfig, NavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
 import { isExternalHref, localizeHref } from '../utils/href'
+import { resolveLocalizedText } from '../utils/localized-text'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { NavigationIcon } from './icons'
 import { MobileNavigation, useIsInsideMobileNavigation, useMobileNavigationStore } from './mobile'
 import { MobileSearch, Search } from './Search'
 import { SiteLogo } from './SiteLogo'
-
-function resolveLocalizedText(text: LocalizedText, locale?: string, fallbackLocale?: string): string {
-  if (typeof text === 'string') return text
-  return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
-}
 
 function localizedRoutePath(config: Config, locale: string, route?: RouteItem): string | undefined {
   const alternatePath = route?.alternates?.[locale]

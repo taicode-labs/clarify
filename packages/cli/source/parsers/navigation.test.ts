@@ -42,8 +42,8 @@ describe('buildNavigation', () => {
 describe('buildLocalizedNavigation', () => {
   it('builds localized navigation from one manual pages config', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/', basePath: '/', locale: 'zh-CN', title: '首页', filePath: 'zh-CN/index.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/zh-CN', basePath: '/', locale: 'zh-CN', title: '首页', filePath: 'zh-CN/index.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/en-US', basePath: '/', locale: 'en-US', title: 'Home', filePath: 'en-US/index.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
     ]
@@ -53,7 +53,7 @@ describe('buildLocalizedNavigation', () => {
 
     const navigation = buildLocalizedNavigation(routes, pages, testI18n)
     expect(navigation?.['zh-CN']?.[0].title).toBe('指南')
-    expect(navigation?.['zh-CN']?.[0].children?.map(node => node.path)).toEqual(['/', '/guide'])
+    expect(navigation?.['zh-CN']?.[0].children?.map(node => node.path)).toEqual(['/zh-CN', '/zh-CN/guide'])
     expect(navigation?.['zh-CN']?.[0].children?.[1].title).toBe('开始')
     expect(navigation?.['en-US']?.[0].title).toBe('Guide')
     expect(navigation?.['en-US']?.[0].children?.map(node => node.path)).toEqual(['/en-US', '/en-US/guide'])
@@ -82,7 +82,7 @@ describe('buildNavigationFromTabsConfig', () => {
 
   it('builds localized tabbed navigation', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
     ]
 
@@ -91,14 +91,14 @@ describe('buildNavigationFromTabsConfig', () => {
     ], testI18n)
 
     expect(navigation?.['zh-CN'].tabs[0].title).toBe('文档')
-    expect(navigation?.['zh-CN'].tabs[0].path).toBe('/guide')
+    expect(navigation?.['zh-CN'].tabs[0].path).toBe('/zh-CN/guide')
     expect(navigation?.['en-US'].tabs[0].title).toBe('Docs')
     expect(navigation?.['en-US'].tabs[0].path).toBe('/en-US/guide')
   })
 
   it('builds localized tabbed navigation with explicit page paths', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/docs/start', basePath: '/docs/start', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/zh-CN/docs/start', basePath: '/docs/start', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/en-US/docs/start', basePath: '/docs/start', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
     ]
 
@@ -106,8 +106,8 @@ describe('buildNavigationFromTabsConfig', () => {
       { tab: { 'zh-CN': '文档', 'en-US': 'Docs' }, pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: [{ page: 'guide', path: 'docs/start' }] }] },
     ], testI18n)
 
-    expect(navigation?.['zh-CN'].tabs[0].path).toBe('/docs/start')
-    expect(navigation?.['zh-CN'].tabs[0].children[0].children?.[0].path).toBe('/docs/start')
+    expect(navigation?.['zh-CN'].tabs[0].path).toBe('/zh-CN/docs/start')
+    expect(navigation?.['zh-CN'].tabs[0].children[0].children?.[0].path).toBe('/zh-CN/docs/start')
     expect(navigation?.['en-US'].tabs[0].path).toBe('/en-US/docs/start')
     expect(navigation?.['en-US'].tabs[0].children[0].children?.[0].path).toBe('/en-US/docs/start')
   })
@@ -132,7 +132,7 @@ describe('applyConfiguredPageRoutePaths', () => {
 
   it('adds localized explicit page path route aliases', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
       mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
     ]
 
@@ -140,7 +140,7 @@ describe('applyConfiguredPageRoutePaths', () => {
       { tab: 'Docs', pages: [{ group: 'Guide', pages: [{ page: 'guide', path: 'docs/start' }] }] },
     ], testI18n)
 
-    expect(nextRoutes.find(route => route.locale === 'zh-CN' && route.basePath === '/docs/start')?.path).toBe('/docs/start')
+    expect(nextRoutes.find(route => route.locale === 'zh-CN' && route.basePath === '/docs/start')?.path).toBe('/zh-CN/docs/start')
     expect(nextRoutes.find(route => route.locale === 'en-US' && route.basePath === '/docs/start')?.path).toBe('/en-US/docs/start')
   })
 })

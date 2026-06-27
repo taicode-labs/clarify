@@ -40,13 +40,12 @@ function normalizeSpecPath(specPath: string, currentRoutePath?: string, routePre
 /**
  * 为绝对 specPath 生成带 locale 前缀的候选模块 ID。
  *
- * 局部嵌入（OpenApiOperation / OpenApiDocument）通常使用 `/api` 这样的绝对路径。
- * 默认 locale 的 spec 注册在 `virtual:clarify-page/api`，而其他 locale 的 spec
- * 注册在 `virtual:clarify-page/<locale>/api`。相对路径会因为当前路由已含 locale 前缀
- * 而自动解析到正确的 spec，但绝对路径不会，因此这里显式注入 locale 前缀。
+ * 所有 locale 的 spec 都注册在 `virtual:clarify-page/<locale>/...` 下，
+ * 因此绝对路径（如 `/api`）需要显式注入 locale 前缀才能命中。
+ * 相对路径会因为当前路由已含 locale 前缀而自动解析到正确的 spec。
  */
-function localizeSpecModuleId(moduleId: string, specPath: string, locale: string | undefined, defaultLocale: string | undefined): string | undefined {
-  if (!locale || locale === defaultLocale) return undefined
+function localizeSpecModuleId(moduleId: string, specPath: string, locale: string | undefined, _defaultLocale: string | undefined): string | undefined {
+  if (!locale) return undefined
   // 仅处理绝对路径；相对路径已经基于含 locale 前缀的当前路由解析。
   if (!specPath.startsWith('/') || specPath.startsWith(VIRTUAL_PREFIX)) return undefined
   const rest = moduleId.slice(VIRTUAL_PREFIX.length)

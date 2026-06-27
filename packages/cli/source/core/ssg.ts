@@ -54,6 +54,26 @@ function setNamedMeta(html: string, name: string, content: string | undefined): 
   return html.replace('</head>', `  ${meta}\n  </head>`)
 }
 
+function canonicalUrl(projectConfig: ResolvedProjectConfig, route: ContentRoute): string | undefined {
+  if (!projectConfig.siteUrl || !route.alternates || !route.locale) return undefined
+  const prefixedPath = route.alternates[route.locale]
+  if (!prefixedPath || prefixedPath === route.path) return undefined
+
+  const base = projectConfig.siteUrl.replace(/\/+$/, '')
+  const prefix = (!projectConfig.routePrefix || projectConfig.routePrefix === '/')
+    ? ''
+    : `/${projectConfig.routePrefix.replace(/^\/+|\/+$/g, '')}`
+  return `${base}${prefix}${prefixedPath}`
+}
+
+function injectCanonicalUrl(html: string, projectConfig: ResolvedProjectConfig, route?: ContentRoute): string {
+  const url = route ? canonicalUrl(projectConfig, route) : undefined
+  // Remove any existing canonical link
+  html = html.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*\/?>\n?/gi, '')
+  if (!url) return html
+  return html.replace('</head>', `  <link rel="canonical" href="${escapeHtml(url)}" />\n  </head>`)
+}
+
 export function injectSSRIntoTemplate(template: string, appHtml: string, projectConfig: ResolvedProjectConfig, route?: ContentRoute): string {
   let html = injectHtmlLocaleAttributes(template, projectConfig, route)
 
@@ -62,6 +82,7 @@ export function injectSSRIntoTemplate(template: string, appHtml: string, project
 
   html = setNamedMeta(html, 'description', route?.description ?? projectConfig.description)
   html = setNamedMeta(html, 'keywords', route?.keywords?.join(', '))
+  html = injectCanonicalUrl(html, projectConfig, route)
 
   // Replace <div id="root">...</div> with SSR rendered content
   html = html.replace(/<div id="root">[\s\S]*?<\/div>/, `<div id="root">${appHtml}</div>`)

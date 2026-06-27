@@ -3,13 +3,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useConfig } from '../core/context'
-import type { Config, LocalizedText } from '../core/types'
+import type { Config } from '../core/types'
 import { isExternalHref, localizeHref } from '../utils/href'
-
-function resolveLocalizedText(text: LocalizedText, locale?: string, fallbackLocale?: string): string {
-  if (typeof text === 'string') return text
-  return (locale ? text[locale] : undefined) ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0] ?? ''
-}
+import { resolveLocalizedText } from '../utils/localized-text'
 
 function bannerStorageKey(config: Config, content: string): string {
   return `clarify:banner:dismissed:${config.title}:${content}`

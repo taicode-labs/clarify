@@ -11,7 +11,8 @@ export function hasLocalePrefix(href: string, config: Config): boolean {
 
 export function localizeHref(href: string, config: Config, locale?: string): string {
   if (!locale || !config.i18n || isExternalHref(href) || href.startsWith('#')) return href
-  if (locale === config.i18n.defaultLocale || hasLocalePrefix(href, config)) return href
+  if (hasLocalePrefix(href, config)) return href
+  if (locale === config.i18n.defaultLocale) return href.startsWith('/') ? href : `/${href}`
 
   const cleanHref = href === '/' ? '' : href.replace(/^\/+/, '')
   return `/${locale}${cleanHref ? `/${cleanHref}` : ''}`

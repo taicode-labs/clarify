@@ -2,12 +2,10 @@ import { StrictMode } from 'react'
 import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
 
-import { AppShell } from '../app/AppShell'
-import { ConfigContext, OpenApisContext } from '../core/context'
-import { ThemeProvider } from '../theme/ThemeProvider'
-import { ThemeRoot } from '../theme/ThemeRoot'
 import type { ServerRenderOptions } from '../types'
 import { prefixHref } from '../utils/href'
+
+import { ClarifyShell } from './ClarifyShell'
 
 /**
  * Clarify 服务端渲染入口。
@@ -21,15 +19,14 @@ export function renderToHTML(options: ServerRenderOptions): string {
   return renderToString(
     <StrictMode>
       <StaticRouter basename={config.routePrefix} location={location}>
-        <ConfigContext.Provider value={config}>
-          <OpenApisContext.Provider value={openApis}>
-            <ThemeProvider>
-              <ThemeRoot theme={config.theme} themeEditor={themeEditor}>
-                <AppShell config={config} routes={routes} navigation={navigation ?? []} runtimeSlots={runtimeSlots} />
-              </ThemeRoot>
-            </ThemeProvider>
-          </OpenApisContext.Provider>
-        </ConfigContext.Provider>
+        <ClarifyShell
+          config={config}
+          routes={routes}
+          navigation={navigation}
+          openApis={openApis}
+          runtimeSlots={runtimeSlots}
+          themeEditor={themeEditor}
+        />
       </StaticRouter>
     </StrictMode>
   )

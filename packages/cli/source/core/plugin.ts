@@ -222,7 +222,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
         }
       }
     },
-    async generateBundle(_opts, bundle) {
+    async generateBundle(_opts, _bundle) {
       // Collect assets from all plugins and emit them through Rollup so they
       // appear in the Vite manifest and build log.
       const assets = await runBuildAssetsHooks(clarifyPlugins, ctx)
@@ -254,11 +254,12 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
             resolveId(id) {
               if (id === VIRTUAL_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
               if (id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
-              if (id === VIRTUAL_CONFIG) return id
-              if (id === VIRTUAL_ROUTES) return id
               if (id === VIRTUAL_SERVER_ROUTES) return id
               if (id === VIRTUAL_OPENAPI) return id
+              if (id === VIRTUAL_CONFIG) return id
+              if (id === VIRTUAL_ROUTES) return id
               if (id === VIRTUAL_SLOTS) return id
+              if (id === VIRTUAL_SLOT) return id
               if (virtualModules.has(stripVirtualPrefix(id))) return stripVirtualPrefix(id)
               const route = routes.find(r => r.virtualModuleId === id)
               if (route) return id

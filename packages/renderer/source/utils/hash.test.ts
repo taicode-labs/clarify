@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { safeDecodeURIComponent } from './hash'
 
 describe('safeDecodeURIComponent', () => {

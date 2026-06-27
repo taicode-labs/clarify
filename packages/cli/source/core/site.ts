@@ -1,7 +1,7 @@
 import { join, relative } from 'node:path'
 
-import { applyConfiguredPageRoutePaths, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef } from '../parsers/routes.js'
-import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree, ResolvedClarifyI18nConfig } from '../types.js'
+import { applyConfiguredPageRoutePaths, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef, withAlternates } from '../parsers/routes.js'
+import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../types.js'
 
 import { createBuiltinPlugins } from './builtin.js'
 import { resolveProjectConfig } from './config.js'
@@ -21,18 +21,6 @@ export type ResolvedClarifySite = {
 
 export type ResolveClarifySiteOptions = {
   includeHtmlShellPlugin?: boolean
-}
-
-function withAlternates(route: ContentRoute, routeList: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute {
-  const basePath = route.basePath ?? route.path
-  const routeByLocaleAndBase = new Map(routeList.map(route => [`${route.locale ?? ''}:${route.basePath ?? route.path}`, route]))
-  const alternates = Object.fromEntries(
-    i18n.locales.flatMap((locale) => {
-      const alternate = routeByLocaleAndBase.get(`${locale.code}:${basePath}`)
-      return alternate ? [[locale.code, alternate.path]] : []
-    })
-  )
-  return { ...route, alternates }
 }
 
 async function discoverRoutesForRoot(routeRoot: string, locale: string | undefined, plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<ContentRoute[]> {
@@ -82,7 +70,21 @@ async function discoverRoutes(root: string, contentRoot: string, plugins: Clarif
     }
   }
 
-  return localizedRoutes.map(route => withAlternates(route, localizedRoutes, i18n))
+  const routesWithAlternates = localizedRoutes.map(route => withAlternates(route, localizedRoutes, i18n))
+
+  // 为默认语言生成无前缀的裸路径别名 (/example)，方便不带语言前缀的 URL 也能访问
+  const defaultLocale = i18n.defaultLocale
+  const bareRoutes: ContentRoute[] = []
+  const seenBare = new Set(routesWithAlternates.map(r => r.path))
+  for (const route of routesWithAlternates) {
+    if (route.locale !== defaultLocale) continue
+    const bp = route.basePath ?? route.path
+    if (bp === route.path || seenBare.has(bp)) continue
+    seenBare.add(bp)
+    bareRoutes.push({ ...route, path: bp })
+  }
+
+  return [...routesWithAlternates, ...bareRoutes]
 }
 
 export async function resolveClarifySite(options: ClarifyBuildOptions = {}, resolveOptions: ResolveClarifySiteOptions = {}): Promise<ResolvedClarifySite> {

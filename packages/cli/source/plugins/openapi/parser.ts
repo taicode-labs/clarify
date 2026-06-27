@@ -4,7 +4,7 @@ import { join, relative } from 'node:path'
 import SwaggerParser from '@apidevtools/swagger-parser'
 import { slug } from 'github-slugger'
 
-import { routePathFromRef, virtualModuleIdFromRef } from '../../parsers/routes.js'
+import { kebabToTitle, routePathFromRef, virtualModuleIdFromRef } from '../../parsers/routes.js'
 import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
@@ -15,13 +15,6 @@ export type OpenAPIParseResult =
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
-}
-
-function kebabToTitle(str: string): string {
-  return str
-    .split('-')
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ')
 }
 
 export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute[] {
