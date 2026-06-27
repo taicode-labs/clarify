@@ -210,6 +210,9 @@ export default {
           ':is(a, h1, h2, h3, blockquote, thead th) code': {
             color: 'inherit',
           },
+          ':is(tbody, tfoot) td code': {
+            whiteSpace: 'normal',
+          },
           ':is(h1, h2, h3) + *': {
             marginTop: '0',
           },
