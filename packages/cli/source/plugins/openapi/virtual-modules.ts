@@ -17,15 +17,21 @@ export function generateOpenAPISpecModule(spec: OpenAPISpec): string {
   return `export default ${JSON.stringify(spec)};`
 }
 
-type OpenAPIPageModuleOptions = { specKey: string; tagFilter?: string[] }
+type OpenAPIPageModuleOptions = {
+  /** specFileKey used for per-spec virtual module lazy-loading (namespace 2). */
+  specKey: string
+  /** virtual:clarify-page/… key used for OpenApisContext registry lookup (namespace 3). */
+  specRegistryKey: string
+  tagFilter?: string[]
+}
 
 export function generateOpenAPIPageModule(opts: OpenAPIPageModuleOptions): string {
-  const { specKey, tagFilter } = opts
+  const { specKey, specRegistryKey, tagFilter } = opts
 
   return [
     `import { createElement, useState, useEffect, useRef } from 'react';`,
     `import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';`,
-    `const SPEC_KEY = ${JSON.stringify(specKey)};`,
+    `const SPEC_KEY = ${JSON.stringify(specRegistryKey)};`,
     `const TAG_FILTER = ${JSON.stringify(tagFilter ?? undefined)};`,
     `let loadPromise = null;`,
     `function loadSpec() {`,

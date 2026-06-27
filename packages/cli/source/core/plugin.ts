@@ -257,6 +257,8 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
               if (id === VIRTUAL_CONFIG) return id
               if (id === VIRTUAL_ROUTES) return id
               if (id === VIRTUAL_SERVER_ROUTES) return id
+              if (id === VIRTUAL_OPENAPI) return id
+              if (id === VIRTUAL_SLOTS) return id
               if (virtualModules.has(stripVirtualPrefix(id))) return stripVirtualPrefix(id)
               const route = routes.find(r => r.virtualModuleId === id)
               if (route) return id

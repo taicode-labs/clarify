@@ -135,10 +135,31 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
       },
       'modules:before': (modules, ctx) => {
         // ── Registry module (used by SSR to populate OpenApisContext) ──
+        // Keys are unified in namespace 3 (virtual:clarify-page/…)
+        // so both page modules and embedded components (useOpenApiSpec)
+        // look up specs the same way.
         const registryEntries: Record<string, OpenAPISpec> = {}
-        for (const [specKey, entry] of specs) {
-          registryEntries[specKey] = entry.spec
+        const defaultLocale = ctx.projectConfig?.i18n?.defaultLocale
+
+        for (const route of ctx.routes) {
+          if (route.kind !== 'openapi' || !route.specFileKey) continue
+          const spec = specs.get(route.specFileKey)?.spec
+          if (!spec) continue
+
+          const base = (route.basePath ?? route.path).replace(/^\//, '')
+          const locale = route.locale
+
+          // Default-locale entry (always present — this is what useOpenApiSpec
+          // and the default-locale page module look up).
+          registryEntries[`virtual:clarify-page/${base}`] = spec
+
+          // Additional locale-scoped entry so useOpenApiSpec can resolve
+          // absolute specPath lookups on non-default locale pages.
+          if (locale && locale !== defaultLocale) {
+            registryEntries[`virtual:clarify-page/${locale}/${base}`] = spec
+          }
         }
+
         modules.set(openApiRegistryModuleId, generateOpenAPIRegistryModule(registryEntries))
 
         // ── Per-spec virtual modules (lazy-loaded by page modules at runtime) ──
@@ -152,8 +173,11 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           if (route.diagnostic) {
             modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.diagnostic))
           } else if (route.specFileKey) {
+            const base = (route.basePath ?? route.path).replace(/^\//, '')
+            const specRegistryKey = `virtual:clarify-page/${base}`
             modules.set(route.virtualModuleId, generateOpenAPIPageModule({
               specKey: route.specFileKey,
+              specRegistryKey,
               tagFilter: route.openapiTagFilter,
             }))
           }
