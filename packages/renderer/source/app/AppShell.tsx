@@ -202,7 +202,7 @@ export function AppShell(arg0: AppShellProps) {
   const pathname = normalizeRoutePath(location.pathname)
   const currentRoute = routeForPath(routes, pathname)
   const explicitLocale = explicitLocaleForPath(config, pathname)
-  const [storedLocale] = useState(() => storedLocaleForConfig(config))
+  const storedLocale = storedLocaleForConfig(config)
   const currentLocale = explicitLocale ?? storedLocale ?? fallbackLocale(config)
   const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
   const notFoundRoute = currentRoute ? undefined : notFoundRouteForPath(routes, pathname, currentLocale)
