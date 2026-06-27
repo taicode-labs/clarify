@@ -423,7 +423,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   }
 
   return (
-    <section className="clarify-api-endpoint scroll-mt-24 py-16 first:pt-0 last:pb-0" aria-labelledby={id}>
+    <section className="clarify-api-endpoint scroll-mt-24 pb-16 first:pt-0 last:pb-0" aria-labelledby={id}>
       <Heading id={id}>
         {summary}
       </Heading>
