@@ -2,7 +2,9 @@ import type { ReactNode } from 'react'
 
 import { AppShell } from '../app/AppShell'
 import { ConfigContext, OpenApisContext } from '../core/context'
-import type { Config, NavigationTree, OpenAPISpec, RouteItem, RuntimeSlots } from '../core/types'
+import type { Config, NavigationTree, RouteItem } from '../core/types'
+import type { OpenAPISpec } from '../openapi/lib/utils'
+import type { RuntimeSlots } from '../slots'
 import { ThemeProvider } from '../theme/ThemeProvider'
 import { ThemeRoot } from '../theme/ThemeRoot'
 
