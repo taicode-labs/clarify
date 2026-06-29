@@ -54,6 +54,7 @@ describe('content artifact helpers', () => {
       title: 'Docs',
       description: 'Helpful docs',
       routePrefix: '/docs',
+      assetPrefix: '/docs/',
       i18n: {
         defaultLocale: 'en-US',
         missing: 'fallback',
@@ -80,6 +81,7 @@ describe('content artifact helpers', () => {
       title: 'Docs',
       description: 'Helpful docs',
       routePrefix: '',
+      assetPrefix: '/',
       i18n: {
         defaultLocale: 'zh-CN',
         missing: 'fallback',
@@ -109,6 +111,7 @@ describe('content artifact helpers', () => {
       title: '文档',
       description: '中文说明',
       routePrefix: '/',
+  assetPrefix: '/',
       theme: resolveThemeConfig(),
     }
     const routes = [route({ path: '/guide', title: '快速开始', contentArtifactUrl: '/guide.md' })]

@@ -214,6 +214,9 @@ export type ClarifyProjectConfig = {
   /** Base path for the docs site. Default: '/' */
   routePrefix?: string
 
+  /** Base path or URL for emitted static assets. Defaults to routePrefix. */
+  assetPrefix?: string
+
   /** Top navigation links. */
   navbar?: {
     links?: ClarifyNavbarLink[]
@@ -244,6 +247,7 @@ export type ResolvedProjectConfig = {
   siteUrl?: string
   source?: ClarifySourceConfig
   routePrefix: string
+  assetPrefix: string
   favicon?: ClarifyFaviconConfig
   theme: ResolvedClarifyThemeConfig
   navbar?: { links?: ClarifyNavbarLink[] }

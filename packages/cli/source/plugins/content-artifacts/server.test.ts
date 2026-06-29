@@ -9,6 +9,7 @@ const projectConfig: ResolvedProjectConfig = {
   title: 'Clarify',
   description: '',
   routePrefix: '/',
+  assetPrefix: '/',
   theme: resolveThemeConfig(),
 }
 

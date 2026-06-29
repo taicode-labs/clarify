@@ -38,6 +38,7 @@ describe('injectSSRIntoTemplate', () => {
     title: 'Test Docs',
     description: 'A test site',
     routePrefix: '/',
+    assetPrefix: '/',
     theme: resolveThemeConfig(),
   }
 

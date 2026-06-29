@@ -13,6 +13,7 @@ const projectConfig: ResolvedProjectConfig = {
   title: 'Test',
   description: 'Test docs',
   routePrefix: '/',
+  assetPrefix: '/',
   theme: resolveThemeConfig({ tokens: { colors: { primary: '#000000' } } }),
 }
 
