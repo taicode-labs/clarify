@@ -49,20 +49,59 @@ describe('content artifact helpers', () => {
     expect(readRouteArtifactContent(r)).toBe('# Getting Started')
   })
 
-  it('creates an llms.txt sitemap with markdown and OpenAPI links', () => {
+  it('creates an llms.txt sitemap with described markdown and OpenAPI links', () => {
     const config: ResolvedProjectConfig = {
       title: 'Docs',
       description: 'Helpful docs',
       routePrefix: '/docs',
+      i18n: {
+        defaultLocale: 'en-US',
+        missing: 'fallback',
+        locales: [{ code: 'en-US', label: 'English' }],
+      },
       theme: resolveThemeConfig(),
     }
     const routes = [
-      route({ path: '/guide', title: 'Guide', contentArtifactUrl: '/guide.md' }),
+      route({ path: '/guide', locale: 'en-US', title: 'Guide', description: 'Start here.', contentArtifactUrl: '/guide.md' }),
+      route({ path: '/reference', locale: 'en-US', title: 'Reference', sections: [{ id: 'config', title: 'Config', level: 2 }], contentArtifactUrl: '/reference.md' }),
+      route({ path: '/404', locale: 'en-US', title: '404', contentArtifactUrl: '/404.md' }),
       route({ path: '/api', title: 'API', kind: 'openapi', contentArtifactUrl: '/api.openapi.json' }),
     ]
 
-    expect(createLlmsTxt(routes, config)).toContain('- [Guide](/docs/guide.md)')
-    expect(createLlmsTxt(routes, config)).toContain('- [API](/docs/api.openapi.json)')
+    expect(createLlmsTxt(routes, config)).toContain('## Docs')
+    expect(createLlmsTxt(routes, config)).toContain('- [Guide](/docs/guide.md): Start here.')
+    expect(createLlmsTxt(routes, config)).toContain('- [Reference](/docs/reference.md): Covers Config.')
+    expect(createLlmsTxt(routes, config)).toContain('- [API](/docs/api.openapi.json): OpenAPI artifact for machine-readable API reference data.')
+    expect(createLlmsTxt(routes, config)).not.toContain('/404.md')
+  })
+
+  it('groups default-locale aliases without a duplicate Default section', () => {
+    const config: ResolvedProjectConfig = {
+      title: 'Docs',
+      description: 'Helpful docs',
+      routePrefix: '',
+      i18n: {
+        defaultLocale: 'zh-CN',
+        missing: 'fallback',
+        locales: [
+          { code: 'zh-CN', label: '简体中文' },
+          { code: 'en-US', label: 'English' },
+        ],
+      },
+      theme: resolveThemeConfig(),
+    }
+    const routes = [
+      route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', contentArtifactUrl: '/zh-CN/guide.md' }),
+      route({ path: '/guide', basePath: '/guide', title: '指南', contentArtifactUrl: '/guide.md' }),
+      route({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', contentArtifactUrl: '/en-US/guide.md' }),
+    ]
+    const llmsTxt = createLlmsTxt(routes, config)
+
+    expect(llmsTxt).toContain('## Docs - 简体中文')
+    expect(llmsTxt).toContain('## Docs - English')
+    expect(llmsTxt).not.toContain('## Docs - Default')
+    expect(llmsTxt).toContain('- [指南](/guide.md)')
+    expect(llmsTxt).not.toContain('/zh-CN/guide.md')
   })
 
   it('creates llms.txt artifacts with a UTF-8 signature when they contain non-ASCII text', () => {
