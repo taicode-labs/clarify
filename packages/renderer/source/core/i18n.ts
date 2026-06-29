@@ -93,6 +93,7 @@ export type BuiltInTextKey =
   | 'renderError.type'
   | 'theme.switchToDark'
   | 'theme.switchToLight'
+  | 'theme.switchToSystem'
   | 'language.switch'
   | 'mermaid.zoomIn'
   | 'mermaid.zoomOut'
@@ -190,6 +191,7 @@ const builtInText = {
     'renderError.type': 'Error type',
     'theme.switchToDark': 'Switch to dark theme',
     'theme.switchToLight': 'Switch to light theme',
+    'theme.switchToSystem': 'Follow system theme',
     'language.switch': 'Switch language',
     'mermaid.zoomIn': 'Zoom in',
     'mermaid.zoomOut': 'Zoom out',
@@ -286,6 +288,7 @@ const builtInText = {
     'renderError.type': '错误类型',
     'theme.switchToDark': '切换到深色主题',
     'theme.switchToLight': '切换到浅色主题',
+    'theme.switchToSystem': '跟随系统主题',
     'language.switch': '切换语言',
     'mermaid.zoomIn': '放大',
     'mermaid.zoomOut': '缩小',
