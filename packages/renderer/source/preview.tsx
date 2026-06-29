@@ -123,6 +123,7 @@ const previewConfig = {
   description: 'Renderer preview environment',
   rootDirectory: 'source',
   routePrefix: '/',
+  assetPrefix: '/',
   outputDirectory: 'output',
   theme: {
     preset: 'default',
