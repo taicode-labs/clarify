@@ -1,7 +1,7 @@
 # Clarify
 
 <p align="center">
-  <img src="./apps/docs/public/clarify.svg" alt="Clarify logo" width="112" />
+  <img src="./design/clarify.svg" alt="Clarify logo" width="112" />
 </p>
 
 <p align="center">
@@ -19,7 +19,7 @@
 ---
 
 <p align="center">
-  <img src="./design/banner.png" alt="Clarify banner" />
+  <img src="./design/x-promo.png" alt="Clarify banner" />
 </p>
 
 ## Core Highlights

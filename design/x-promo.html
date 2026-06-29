@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clarify X Promo</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap");
+
+      :root {
+        color-scheme: dark;
+        --bg: #050706;
+        --panel: #0b100f;
+        --panel-2: #101817;
+        --line: rgba(210, 255, 236, 0.13);
+        --line-strong: rgba(0, 246, 146, 0.38);
+        --text: #f4fff9;
+        --muted: rgba(233, 255, 246, 0.66);
+        --faint: rgba(219, 255, 240, 0.42);
+        --green: #00f692;
+        --mint: #00f6c9;
+        --cyan: #75ffe4;
+        --amber: #ffbf5c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #111;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .poster {
+        position: relative;
+        width: 1600px;
+        height: 900px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 10% 20%, rgba(0, 246, 146, 0.15), transparent 25%),
+          radial-gradient(circle at 76% 47%, rgba(0, 246, 201, 0.13), transparent 30%),
+          radial-gradient(circle at 58% 110%, rgba(255, 191, 92, 0.08), transparent 28%),
+          linear-gradient(112deg, #050706 0%, #07100d 42%, #030504 100%);
+        color: var(--text);
+        isolation: isolate;
+      }
+
+      .poster::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+        background-size: 80px 80px;
+        mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.18) 58%, transparent);
+        opacity: 0.55;
+      }
+
+      .poster::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(130deg, transparent 0 28%, rgba(255, 255, 255, 0.16) 28.1%, transparent 28.25%),
+          linear-gradient(177deg, transparent 0 65%, rgba(0, 246, 146, 0.18) 65.1%, transparent 65.22%),
+          linear-gradient(96deg, transparent 0 54%, rgba(255, 255, 255, 0.08) 54.1%, transparent 54.22%);
+        opacity: 0.75;
+        pointer-events: none;
+      }
+
+      .grain {
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.34'/%3E%3C/svg%3E");
+        mix-blend-mode: overlay;
+        opacity: 0.27;
+        pointer-events: none;
+      }
+
+      .left {
+        position: absolute;
+        z-index: 2;
+        left: 76px;
+        top: 112px;
+        width: 600px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .brand-mark {
+        width: 62px;
+        height: 45px;
+        object-fit: contain;
+        filter: drop-shadow(0 0 24px rgba(0, 246, 146, 0.32));
+      }
+
+      .brand-name {
+        font-family: "Familjen Grotesk", Inter, sans-serif;
+        font-size: 48px;
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+
+      .eyebrow {
+        margin-top: 82px;
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        color: var(--green);
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 26px 0 0;
+        max-width: 560px;
+        font-family: "Familjen Grotesk", Inter, sans-serif;
+        font-size: 78px;
+        font-weight: 700;
+        line-height: 0.94;
+        letter-spacing: 0;
+      }
+
+      .subhead {
+        margin: 32px 0 0;
+        width: 455px;
+        color: var(--muted);
+        font-size: 28px;
+        line-height: 1.35;
+        letter-spacing: 0;
+      }
+
+      .footer-line {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-top: 64px;
+        color: var(--faint);
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 15px;
+        font-weight: 600;
+      }
+
+      .pulse {
+        width: 11px;
+        height: 11px;
+        border-radius: 999px;
+        background: var(--green);
+        box-shadow: 0 0 0 8px rgba(0, 246, 146, 0.08), 0 0 28px rgba(0, 246, 146, 0.7);
+      }
+
+      .product {
+        position: absolute;
+        z-index: 2;
+        right: -12px;
+        top: 128px;
+        width: 820px;
+        height: 580px;
+        perspective: 1400px;
+      }
+
+      .workspace {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        border: 1px solid rgba(212, 255, 239, 0.16);
+        border-radius: 22px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0)),
+          linear-gradient(120deg, rgba(7, 15, 13, 0.92), rgba(7, 10, 10, 0.98));
+        box-shadow:
+          0 48px 120px rgba(0, 0, 0, 0.58),
+          0 0 0 1px rgba(0, 246, 146, 0.08),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        transform: rotateY(-16deg) rotateX(3deg) rotateZ(1.4deg);
+        transform-origin: 50% 50%;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        height: 58px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .traffic {
+        display: flex;
+        gap: 8px;
+        padding: 0 18px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.24);
+      }
+
+      .dot:nth-child(1) {
+        background: #ff675f;
+      }
+
+      .dot:nth-child(2) {
+        background: #ffca59;
+      }
+
+      .dot:nth-child(3) {
+        background: var(--green);
+      }
+
+      .tabs {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+        align-self: stretch;
+      }
+
+      .tab {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        padding: 0 22px;
+        border-left: 1px solid var(--line);
+        border-right: 1px solid rgba(255, 255, 255, 0.04);
+        color: rgba(236, 255, 247, 0.55);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .tab.active {
+        color: var(--text);
+        background: rgba(0, 246, 146, 0.08);
+        box-shadow: inset 0 -2px 0 var(--green);
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        height: calc(100% - 58px);
+      }
+
+      .sidebar {
+        padding: 24px 18px;
+        border-right: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.16);
+      }
+
+      .side-title {
+        color: var(--faint);
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .side-items {
+        display: grid;
+        gap: 9px;
+        margin-top: 18px;
+      }
+
+      .side-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 35px;
+        padding: 0 12px;
+        border-radius: 9px;
+        color: rgba(239, 255, 249, 0.68);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .side-item::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.22);
+      }
+
+      .side-item.active {
+        color: var(--text);
+        background: rgba(0, 246, 146, 0.12);
+      }
+
+      .side-item.active::before {
+        background: var(--green);
+        box-shadow: 0 0 18px rgba(0, 246, 146, 0.72);
+      }
+
+      .main {
+        position: relative;
+        padding: 32px;
+      }
+
+      .path {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--faint);
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .path strong {
+        color: var(--green);
+        font-weight: 600;
+      }
+
+      .doc-title {
+        margin: 34px 0 0;
+        max-width: 540px;
+        font-size: 40px;
+        font-weight: 700;
+        line-height: 1.06;
+        letter-spacing: 0;
+      }
+
+      .doc-copy {
+        margin: 18px 0 0;
+        max-width: 520px;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.55;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 30px;
+        width: 500px;
+      }
+
+      .feature {
+        min-height: 90px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .feature b {
+        display: block;
+        color: var(--text);
+        font-size: 16px;
+        line-height: 1.2;
+      }
+
+      .feature span {
+        display: block;
+        margin-top: 8px;
+        color: rgba(233, 255, 246, 0.55);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .code-card {
+        position: absolute;
+        right: 22px;
+        bottom: 24px;
+        width: 332px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 246, 146, 0.28);
+        border-radius: 18px;
+        background: rgba(3, 7, 6, 0.94);
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.46);
+      }
+
+      .code-head {
+        display: flex;
+        justify-content: space-between;
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--line);
+        color: var(--faint);
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      pre {
+        margin: 0;
+        padding: 16px 16px 18px;
+        color: rgba(241, 255, 250, 0.84);
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 11px;
+        line-height: 1.58;
+      }
+
+      .green {
+        color: var(--green);
+      }
+
+      .cyan {
+        color: var(--cyan);
+      }
+
+      .amber {
+        color: var(--amber);
+      }
+
+      .glow-line {
+        position: absolute;
+        z-index: 1;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(0, 246, 146, 0.8), rgba(0, 246, 201, 0.7), transparent);
+        opacity: 0.78;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="poster" aria-label="Clarify promotional image">
+      <div class="grain"></div>
+
+      <section class="left">
+        <div class="brand">
+          <img class="brand-mark" src="./clarify.svg" alt="" />
+          <div class="brand-name">Clarify</div>
+        </div>
+
+        <div class="eyebrow">Open-source docs publishing</div>
+        <h1>Own your developer docs.</h1>
+        <p class="subhead">MDX, OpenAPI, i18n, theme tokens, static output, and AI-readable docs in one local-first workflow.</p>
+
+        <div class="footer-line">
+          <span class="pulse"></span>
+          <span>clarify.pub</span>
+        </div>
+      </section>
+
+      <section class="product" aria-hidden="true">
+        <div class="workspace">
+          <div class="topbar">
+            <div class="traffic">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <div class="tabs">
+              <div class="tab active">docs.mdx</div>
+              <div class="tab">openapi.yaml</div>
+              <div class="tab">theme.ts</div>
+              <div class="tab">llms.txt</div>
+            </div>
+          </div>
+
+          <div class="shell">
+            <aside class="sidebar">
+              <div class="side-title">Project</div>
+              <div class="side-items">
+                <div class="side-item active">Getting started</div>
+                <div class="side-item">Guides</div>
+                <div class="side-item">API reference</div>
+                <div class="side-item">Changelog</div>
+                <div class="side-item">Translations</div>
+                <div class="side-item">Deploy static</div>
+              </div>
+            </aside>
+
+            <div class="main">
+              <div class="path"><strong>GET</strong> /docs/source-to-static</div>
+              <div class="doc-title">Source-owned docs for modern product teams.</div>
+              <p class="doc-copy">Keep documentation in Git, publish fast static sites, and ship content that works for readers, teams, and AI agents.</p>
+
+              <div class="feature-grid">
+                <div class="feature">
+                  <b>MDX pages</b>
+                  <span>Write guides, tutorials, and references together.</span>
+                </div>
+                <div class="feature">
+                  <b>OpenAPI native</b>
+                  <span>Generate API docs and embed operations anywhere.</span>
+                </div>
+                <div class="feature">
+                  <b>Typed config</b>
+                  <span>Version navigation, locales, and theme tokens.</span>
+                </div>
+                <div class="feature">
+                  <b>AI-ready output</b>
+                  <span>Static assets, raw content, OpenAPI, and llms.txt.</span>
+                </div>
+              </div>
+
+              <div class="code-card">
+                <div class="code-head">
+                  <span>clarify.config.ts</span>
+                  <span>build</span>
+                </div>
+                <pre><span class="green">export default</span> defineConfig({
+  <span class="cyan">source</span>: <span class="amber">"docs"</span>,
+  <span class="cyan">openapi</span>: <span class="amber">"api.yaml"</span>,
+  <span class="cyan">locales</span>: [<span class="amber">"en"</span>, <span class="amber">"zh-CN"</span>],
+  <span class="cyan">output</span>: {
+    <span class="cyan">static</span>: true,
+    <span class="cyan">llmsTxt</span>: true
+  }
+})</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="glow-line"></div>
+    </main>
+  </body>
+</html>
