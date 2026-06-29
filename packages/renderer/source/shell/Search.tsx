@@ -64,7 +64,7 @@ export function MobileSearch(arg0: MobileSearchProps) {  const {
     <div className="clarify-mobile-search contents lg:hidden">
       <button
         type="button"
-        className="clarify-mobile-search-button clarify-ui-control relative flex size-6 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition lg:hidden"
+        className="clarify-mobile-search-button clarify-ui-control relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition lg:hidden"
         aria-label={t('search.placeholder')}
         {...buttonProps}
       >

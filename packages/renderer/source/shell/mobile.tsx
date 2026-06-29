@@ -29,7 +29,6 @@ type MobileTabsSelectProps = { tabs?: NavigationTab[] }
 function MobileTabsSelect(arg0: MobileTabsSelectProps) {
   const { tabs } = arg0
   const pathname = normalizeRoutePath(useLocation().pathname)
-  const { close } = useMobileNavigationStore()
   if (!tabs?.length) return null
 
   const activeTab = tabs.find((tab) => isActiveTab(tab, pathname)) ?? tabs[0]
@@ -51,7 +50,6 @@ function MobileTabsSelect(arg0: MobileTabsSelectProps) {
             <MenuItem key={`${tab.title}-${tab.path}`}>
               <Link
                 to={tab.path}
-                onClick={close}
                 className={clsx(
                   'clarify-mobile-tabs-select-item clarify-ui-menu-item flex items-center justify-between gap-3 rounded-(--clarify-theme-tokens-radius-lg) px-3 py-2.5 no-underline transition',
                   active && 'clarify-ui-menu-item-active',
@@ -171,7 +169,7 @@ export function MobileNavigation(arg0: MobileNavigationProps) {  const {
     <IsInsideMobileNavigationContext.Provider value={true}>
       <button
         type="button"
-        className="clarify-mobile-navigation-button clarify-ui-icon-button relative flex size-6 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
+        className="clarify-mobile-navigation-button clarify-ui-icon-button relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
         aria-label={t('navigation.toggle')}
         onClick={toggle}
       >

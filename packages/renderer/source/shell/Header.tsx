@@ -41,7 +41,7 @@ function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, curren
   return (
     <Menu as="div" className="clarify-language-switcher relative">
       <MenuButton
-        className="clarify-language-switcher-button clarify-ui-control flex h-7 items-center gap-1.5 rounded-(--clarify-theme-tokens-radius-md) px-1.5 transition"
+        className="clarify-language-switcher-button clarify-ui-control flex h-8 items-center gap-1.5 rounded-(--clarify-theme-tokens-radius-md) px-1.5 transition"
         aria-label={t('language.switch')}
       >
         <span className="absolute size-12 pointer-fine:hidden" />
