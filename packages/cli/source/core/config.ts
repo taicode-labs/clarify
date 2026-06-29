@@ -45,7 +45,27 @@ function resolveI18nConfig(i18n?: ClarifyI18nConfig): ResolvedClarifyI18nConfig 
   }
 }
 
+function resolveRoutePrefix(routePrefix?: string): string {
+  const trimmed = routePrefix?.trim()
+  if (!trimmed || trimmed === '/') return '/'
+
+  return `/${trimmed.replace(/^\/+|\/+$/g, '')}/`
+}
+
+function resolveAssetPrefix(assetPrefix: string | undefined, routePrefix: string): string {
+  const trimmed = assetPrefix?.trim()
+  if (trimmed === undefined) return routePrefix
+  if (trimmed === './' || trimmed === '') return trimmed || '/'
+  if (!trimmed || trimmed === '/') return '/'
+  if (/^[a-z][a-z\d+.-]*:\/\//i.test(trimmed)) return trimmed.endsWith('/') ? trimmed : `${trimmed}/`
+  if (trimmed.startsWith('./') || trimmed.startsWith('../')) return trimmed.endsWith('/') ? trimmed : `${trimmed}/`
+
+  return `/${trimmed.replace(/^\/+|\/+$/g, '')}/`
+}
+
 export function resolveProjectConfig(config: ClarifyProjectConfig = {}): ResolvedProjectConfig {
+  const routePrefix = resolveRoutePrefix(config.routePrefix)
+
   return {
     title: config.title ?? 'Clarify Docs',
     description: config.description ?? '',
@@ -54,7 +74,8 @@ export function resolveProjectConfig(config: ClarifyProjectConfig = {}): Resolve
     logo: config.logo,
     homeUrl: config.homeUrl,
     favicon: config.favicon,
-    routePrefix: config.routePrefix ?? '/',
+    routePrefix,
+    assetPrefix: resolveAssetPrefix(config.assetPrefix, routePrefix),
     theme: resolveThemeConfig(config.theme),
     navbar: config.navbar,
     banner: config.banner,

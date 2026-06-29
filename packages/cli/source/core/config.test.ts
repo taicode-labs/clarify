@@ -67,6 +67,7 @@ describe('resolveProjectConfig', () => {
       homeUrl: undefined,
       favicon: undefined,
       routePrefix: '/',
+      assetPrefix: '/',
       theme: {
         preset: 'default',
         tokens: {
@@ -133,6 +134,7 @@ describe('resolveProjectConfig', () => {
     expect(result.theme.editor).toBe(true)
     expect(result.homeUrl).toBe('https://example.com')
     expect(result.favicon).toBe('/favicon.svg')
+    expect(result.assetPrefix).toBe('/')
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
     expect(result.footer).toEqual({ copyright: '© 2026' })
@@ -147,6 +149,27 @@ describe('resolveProjectConfig', () => {
     expect(result.tabs).toEqual([
       { tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] },
     ])
+  })
+
+  it('normalizes routePrefix for Vite base paths', () => {
+    expect(resolveProjectConfig({ routePrefix: '' }).routePrefix).toBe('/')
+    expect(resolveProjectConfig({ routePrefix: '/' }).routePrefix).toBe('/')
+    expect(resolveProjectConfig({ routePrefix: 'docs' }).routePrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ routePrefix: '/docs' }).routePrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ routePrefix: '/docs/' }).routePrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ routePrefix: ' /docs/api/ ' }).routePrefix).toBe('/docs/api/')
+  })
+
+  it('defaults assetPrefix to routePrefix and normalizes overrides', () => {
+    expect(resolveProjectConfig({ routePrefix: '/docs' }).assetPrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ routePrefix: '/docs', assetPrefix: '' }).assetPrefix).toBe('/')
+    expect(resolveProjectConfig({ assetPrefix: 'assets' }).assetPrefix).toBe('/assets/')
+    expect(resolveProjectConfig({ assetPrefix: '/assets/' }).assetPrefix).toBe('/assets/')
+    expect(resolveProjectConfig({ assetPrefix: './' }).assetPrefix).toBe('./')
+    expect(resolveProjectConfig({ assetPrefix: './assets' }).assetPrefix).toBe('./assets/')
+    expect(resolveProjectConfig({ assetPrefix: '../assets' }).assetPrefix).toBe('../assets/')
+    expect(resolveProjectConfig({ assetPrefix: ' https://cdn.example.com/docs ' }).assetPrefix).toBe('https://cdn.example.com/docs/')
+    expect(resolveProjectConfig({ assetPrefix: 'https://cdn.example.com/docs/' }).assetPrefix).toBe('https://cdn.example.com/docs/')
   })
 
   it('applies theme presets before project overrides', () => {

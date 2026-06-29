@@ -33,6 +33,7 @@ i18n.use(initReactI18next).init({
           theme: {
             switchToDark: 'Switch to dark theme',
             switchToLight: 'Switch to light theme',
+            switchToSystem: 'Follow system theme',
           },
           language: {
             switchTo: 'Switch language to {{language}}',
@@ -249,6 +250,7 @@ i18n.use(initReactI18next).init({
           theme: {
             switchToDark: '切换到暗色主题',
             switchToLight: '切换到亮色主题',
+            switchToSystem: '跟随系统主题',
           },
           language: {
             switchTo: '切换语言到{{language}}',
