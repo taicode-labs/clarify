@@ -1,8 +1,11 @@
 import type { ThemeConfig, ThemeRadiusTokensConfig } from '../types'
 
-type RandomThemePalette = {
+type RandomThemeAccentPair = {
   primary: string;
   accent: string;
+}
+
+type RandomThemePalette = RandomThemeAccentPair & {
   background: string;
   foreground: string;
   surface: string;
@@ -81,6 +84,26 @@ const randomRadiusSets = [
 
 const randomLayoutWidths = ['72rem', '76rem', '78rem', '80rem', '82rem', '86rem', '90rem', '96rem', '104rem', '112rem', '120rem', '128rem', '144rem'] as const
 
+type RandomThemeSelection = {
+  palette: RandomThemePalette;
+  darkAccents: RandomThemeAccentPair;
+  radius: ThemeRadiusTokensConfig;
+  maxWidth: string;
+}
+
+const randomDarkAccentPairs = [
+  { primary: '#34d399', accent: '#2dd4bf' },
+  { primary: '#60a5fa', accent: '#38bdf8' },
+  { primary: '#a78bfa', accent: '#c084fc' },
+  { primary: '#f472b6', accent: '#fb7185' },
+  { primary: '#fb923c', accent: '#facc15' },
+  { primary: '#a3e635', accent: '#22c55e' },
+  { primary: '#22d3ee', accent: '#818cf8' },
+  { primary: '#f87171', accent: '#fb923c' },
+  { primary: '#e879f9', accent: '#f472b6' },
+  { primary: '#5eead4', accent: '#60a5fa' },
+] as const satisfies readonly RandomThemeAccentPair[]
+
 function randomItem<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)]
 }
@@ -93,27 +116,42 @@ function modeColor(light: string, dark: string): { light: string; dark: string }
   return { light, dark }
 }
 
-export function createRandomTheme(): ThemeConfig {
+function createRandomThemeSelection(): RandomThemeSelection {
   const palette = randomItem(randomThemePalettes)
-  const radius = randomItem(randomRadiusSets)
-  const maxWidth = randomItem(randomLayoutWidths)
+
+  return {
+    palette,
+    darkAccents: randomItem(randomDarkAccentPairs),
+    radius: randomItem(randomRadiusSets),
+    maxWidth: randomItem(randomLayoutWidths),
+  }
+}
+
+function createRandomThemeColors(selection: RandomThemeSelection): ThemeConfig['tokens']['colors'] {
+  const { palette, darkAccents } = selection
+
+  return {
+    primary: modeColor(palette.primary, darkAccents.primary),
+    accent: modeColor(palette.accent, darkAccents.accent),
+    background: modeColor(palette.background, '#09090b'),
+    foreground: modeColor(palette.foreground, '#f8fafc'),
+    surface: modeColor(palette.surface, '#18181b'),
+    muted: modeColor(palette.muted, '#a1a1aa'),
+    border: modeColor(randomRgbMix(palette.foreground, palette.borderMix), 'rgb(255 255 255 / 0.1)'),
+    codeBackground: modeColor(randomRgbMix(palette.primary, palette.codeMix), '#18181b'),
+  }
+}
+
+export function createRandomTheme(): ThemeConfig {
+  const selection = createRandomThemeSelection()
 
   return {
     preset: 'default',
     tokens: {
-      colors: {
-        primary: modeColor(palette.primary, palette.accent),
-        accent: modeColor(palette.accent, palette.primary),
-        background: modeColor(palette.background, '#09090b'),
-        foreground: modeColor(palette.foreground, '#f8fafc'),
-        surface: modeColor(palette.surface, '#18181b'),
-        muted: modeColor(palette.muted, '#a1a1aa'),
-        border: modeColor(randomRgbMix(palette.foreground, palette.borderMix), 'rgb(255 255 255 / 0.1)'),
-        codeBackground: modeColor(randomRgbMix(palette.primary, palette.codeMix), '#18181b'),
-      },
-      radius: { ...radius },
+      colors: createRandomThemeColors(selection),
+      radius: { ...selection.radius },
     },
-    layout: { maxWidth },
+    layout: { maxWidth: selection.maxWidth },
     editor: false,
   }
 }
