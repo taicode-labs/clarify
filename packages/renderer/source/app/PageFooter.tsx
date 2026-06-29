@@ -59,16 +59,16 @@ export function PageFooter() {
   const location = useLocation()
   const locale = localeForPath(config, location.pathname)
   const footer = config.footer
-  if (!footer) return null
-
-  const links = footer.links ?? []
-  const socials = Object.entries(footer.socials ?? {})
-  const copyright = footer.copyright
+  const links = footer?.links ?? []
+  const socials = Object.entries(footer?.socials ?? {})
+  const copyright = footer?.copyright
     ? resolveLocalizedText(footer.copyright, locale, config.i18n?.defaultLocale)
     : undefined
   const hasContent = Boolean(copyright || links.length > 0 || socials.length > 0)
 
-  if (!hasContent) return null
+  if (!hasContent) {
+    return <footer aria-hidden="true" className="clarify-page-footer mt-16 w-full border-t border-(--clarify-theme-tokens-colors-border) pt-8 lg:mt-24" />
+  }
 
   return (
     <footer className="clarify-page-footer mt-16 flex w-full flex-col gap-4 border-t border-(--clarify-theme-tokens-colors-border) py-8 lg:mt-24">
