@@ -200,6 +200,14 @@ export default defineConfig({
               icon: 'FileJson2',
             },
             {
+              page: 'features/variables',
+              title: {
+                'zh-CN': '项目变量',
+                'en-US': 'Project Variables',
+              },
+              icon: 'Braces',
+            },
+            {
               page: 'features/plugins',
               title: {
                 'zh-CN': '插件系统',

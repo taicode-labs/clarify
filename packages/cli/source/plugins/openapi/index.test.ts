@@ -1,10 +1,12 @@
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { describe, expect, it, afterEach, beforeEach } from 'vitest'
 
+import { setProjectContentProcessor } from '../../core/content.js'
 import { resolveThemeConfig } from '../../core/theme.js'
+import { createContentProcessor } from '../../parsers/content.js'
 import type { ClarifyHookContext, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 import { createOpenAPIPlugin } from './index.js'
@@ -15,6 +17,7 @@ const projectConfig: ResolvedProjectConfig = {
   routePrefix: '/',
   assetPrefix: '/',
   theme: resolveThemeConfig({ tokens: { colors: { primary: '#000000' } } }),
+  variables: {},
 }
 
 const generateOptions: ResolvedBuildOptions = {
@@ -31,6 +34,28 @@ function createContext(routes: ContentRoute[]): ClarifyHookContext {
     routes,
     navigation: [],
   }
+}
+
+function createContextWithVariables(routes: ContentRoute[]): ClarifyHookContext {
+  const ctx: ClarifyHookContext = {
+    projectConfig: {
+      ...projectConfig,
+      variables: {
+        product: { name: 'Clarify' },
+        apiVersion: '1.0.0',
+      },
+    },
+    generateOptions,
+    routes,
+    navigation: [],
+  }
+  setProjectContentProcessor(ctx, createContentProcessor(input => ({
+    ...input,
+    content: input.content
+      .replaceAll('{{ product.name }}', 'Clarify')
+      .replaceAll('{{ apiVersion }}', '1.0.0'),
+  })))
+  return ctx
 }
 
 describe('createOpenAPIPlugin', () => {
@@ -110,6 +135,55 @@ describe('createOpenAPIPlugin', () => {
     const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(routes))
     expect(modules?.get('virtual:clarify-page/broken')).toContain('OpenApiErrorRoutePage')
     expect(modules?.get('virtual:clarify-page/broken')).toContain('Why it happened')
+  })
+
+  it('expands project variables before parsing OpenAPI specs', async () => {
+    const specPath = join(tempDir, 'api.openapi.json')
+    mkdirSync(join(tempDir, 'components'))
+    writeFileSync(join(tempDir, 'components', 'project.schema.json'), JSON.stringify({
+      type: 'object',
+      properties: { id: { type: 'string' } },
+    }), 'utf-8')
+    writeFileSync(specPath, JSON.stringify({
+      openapi: '3.0.0',
+      info: { title: '{{ product.name }} API', version: '{{ apiVersion }}' },
+      paths: {
+        '/projects': {
+          get: {
+            summary: 'List {{ product.name }} projects',
+            tags: ['Projects'],
+            responses: {
+              200: {
+                description: 'OK',
+                content: {
+                  'application/json': {
+                    schema: { $ref: './components/project.schema.json' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }), 'utf-8')
+
+    const plugin = createOpenAPIPlugin()
+    const routes: ContentRoute[] = [{
+      path: '/api',
+      title: 'API',
+      filePath: specPath,
+      virtualModuleId: 'virtual:clarify-page/api',
+      kind: 'openapi',
+    }]
+
+    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContextWithVariables(routes))
+
+    expect(discovered?.[0].title).toBe('Clarify API')
+    expect(discovered?.[0].sections).toEqual([
+      { id: 'get-projects', title: 'List Clarify projects', badge: 'GET', level: 2, tags: ['Projects'] },
+    ])
+    expect(discovered?.[0].content).toContain('"version":"1.0.0"')
+    expect(discovered?.[0].content).toContain('"properties":{"id":{"type":"string"}}')
   })
 
   it('creates tag-filtered OpenAPI routes from navigation config', async () => {

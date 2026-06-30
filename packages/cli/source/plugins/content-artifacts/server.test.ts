@@ -11,6 +11,7 @@ const projectConfig: ResolvedProjectConfig = {
   routePrefix: '/',
   assetPrefix: '/',
   theme: resolveThemeConfig(),
+  variables: {},
 }
 
 function createRoute(kind: 'mdx' | 'openapi', contentArtifactUrl: string): ContentRoute {

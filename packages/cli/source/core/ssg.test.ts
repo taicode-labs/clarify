@@ -40,6 +40,7 @@ describe('injectSSRIntoTemplate', () => {
     routePrefix: '/',
     assetPrefix: '/',
     theme: resolveThemeConfig(),
+    variables: {},
   }
 
   const baseTemplate = `<!doctype html>
