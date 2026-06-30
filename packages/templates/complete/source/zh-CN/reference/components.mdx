@@ -1,0 +1,65 @@
+---
+title: MDX 组件
+description: Clarify 页面中可用的内置 MDX 组件示例。
+---
+
+# MDX 组件
+
+本页展示 Clarify MDX 页面中可用的内置组件。
+
+## 卡片
+
+<CardGroup cols={2}>
+  <Card title="链接卡片" icon="ArrowRight" href="/guides/writing-content">
+    卡片可以链接到站内或站外目标。
+  </Card>
+  <Card title="静态卡片" icon="Box">
+    卡片也可以作为静态功能摘要使用。
+  </Card>
+</CardGroup>
+
+## Callout 和 Note
+
+<Callout title="Callout">
+  用于展示需要从正文中突出显示的重要说明。
+</Callout>
+
+<Note>
+  Note 适合承载轻量的上下文提示。
+</Note>
+
+## 属性
+
+<Properties>
+  <Property name="children" type="ReactNode">
+    组件内部渲染的内容。
+  </Property>
+  <Property name="title" type="string">
+    卡片、提示或标题使用的短标签。
+  </Property>
+  <Property name="icon" type="string">
+    图标名称会从 Lucide icons 中解析。
+  </Property>
+</Properties>
+
+## 代码
+
+```ts title="typed-example.ts"
+type Feature = {
+  name: string
+  stable: boolean
+}
+
+export const feature: Feature = {
+  name: 'Clarify starter',
+  stable: true,
+}
+```
+
+## OpenAPI 端点
+
+使用 `OpenApiOperation` 可以从站点的 OpenAPI spec 中嵌入单个操作：
+
+<OpenApiOperation specPath="/api" path="/v1/projects" method="get" />
+
+<OpenApiOperation specPath="/api" path="/v1/projects" method="post" />

@@ -1,0 +1,46 @@
+---
+title: 嵌入 API 端点
+description: 在面向工作流的 MDX 页面中渲染 OpenAPI 操作。
+---
+
+# 嵌入 API 端点
+
+当某个端点需要贴近教程、设置指南或集成流程时，可以使用嵌入式 OpenAPI 组件。
+
+## Markdown 描述
+
+OpenAPI 的 `description` 字符串会在完整参考页和嵌入式操作中渲染 Markdown。这样可以把接口说明保留在 spec 中，同时支持链接、列表、强调和 `inline code`。
+
+```json
+{
+  "description": "Returns **active** projects.\n\n- Use `limit` for page size.\n- Use `nextCursor` for pagination."
+}
+```
+
+## 嵌入单个操作
+
+```mdx
+<OpenApiOperation specPath="/api" path="/v1/projects" method="get" />
+```
+
+<OpenApiOperation specPath="/api" path="/v1/projects" method="get" />
+
+## 嵌入带请求体的操作
+
+```mdx
+<OpenApiOperation specPath="/api" path="/v1/projects" method="post" />
+```
+
+<OpenApiOperation specPath="/api" path="/v1/projects" method="post" />
+
+## 嵌入完整 API 页面
+
+如果想在完整参考文档前添加说明文字，可以使用 `OpenApiDocument`。
+
+```mdx
+<OpenApiDocument specPath="/api" />
+```
+
+<Callout title="Spec path 约定">
+  `specPath` 是从 OpenAPI 文件名生成的路由。`api.openapi.json` 会生成 `/api`。
+</Callout>

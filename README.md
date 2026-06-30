@@ -65,23 +65,38 @@ npm run dev
 
 If your team uses pnpm or yarn, the generated `dev` script also works with `pnpm dev` or `yarn dev`.
 
-## Developing this repository
+## Create your first docs site
 
-If you want to run the Clarify monorepo itself:
+The starter includes a typed `clarify.ts` config, MDX pages, public assets, and scripts for local preview and production builds.
 
-```bash
-pnpm install
-pnpm dev:docs
+Add or edit pages in the generated content folder:
+
+```text
+source/
+├── index.mdx
+├── guides/
+│   └── writing-content.mdx
+└── api.openapi.json
 ```
 
-Useful workspace commands:
+Then build static output:
 
 ```bash
-pnpm dev:www
-pnpm build
-pnpm typecheck
-pnpm lint
+npm run build
 ```
+
+The generated `output/` directory can be deployed to any static host.
+
+## Core workflow
+
+Use Clarify from the documentation project where your content lives:
+
+```bash
+npx clarify dev
+npx clarify build
+```
+
+Configure navigation, OpenAPI references, theme tokens, locale behavior, and metadata in `clarify.ts`.
 
 ## What you get out of the box
 
@@ -120,24 +135,6 @@ Mintlify is a polished hosted documentation platform. Clarify takes a different 
 | Best fit | Teams that want open-source control, self-hosting, and code-level customization | Teams that prefer managed hosting and a turnkey docs product |
 
 Clarify is not trying to clone Mintlify. It is for teams that like the modern docs experience Mintlify popularized, but want more ownership over the source, rendering layer, and deployment target.
-
-## Monorepo structure
-
-```
-├── apps/
-│   ├── docs/          # Documentation playground and local dev site
-│   └── www/           # Marketing website and landing page
-├── packages/
-│   ├── renderer/      # Shared React components and UI primitives
-│   └── cli/           # Clarify CLI and docs engine
-```
-
-## Tech Stack
-
-- React 19 + TypeScript 5
-- Tailwind CSS 4
-- Vite-powered internals wrapped by the Clarify CLI
-- pnpm workspaces
 
 ## License
 

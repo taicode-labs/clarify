@@ -1,0 +1,78 @@
+---
+title: 导航
+description: 配置标签页、侧边栏分组、页面链接、OpenAPI 条目、导航栏链接和页脚链接。
+---
+
+# 导航
+
+Clarify 的导航在 `clarify.ts` 中配置。这个完整模板使用显式标签页，让你可以看清每一部分如何组合在一起。
+
+## 标签页和侧边栏分组
+
+```ts title="clarify.ts"
+export default defineConfig({
+  tabs: [
+    {
+      tab: 'Docs',
+      icon: 'BookOpen',
+      pages: [
+        {
+          group: 'Start here',
+          icon: 'Rocket',
+          pages: [
+            { page: 'index', title: 'Overview', icon: 'Sparkles' },
+            { page: 'guides/writing-content', title: 'Writing content', icon: 'PenLine' },
+          ],
+        },
+      ],
+    },
+  ],
+})
+```
+
+## 文件树模式
+
+对于规模较小的文档，可以使用 `FileTree`，让 Clarify 从文件结构自动生成导航。
+
+```ts title="clarify.ts"
+export default defineConfig({
+  tabs: [
+    {
+      tab: 'Docs',
+      pages: 'FileTree',
+    },
+  ],
+})
+```
+
+## 导航栏和页脚
+
+```ts title="clarify.ts"
+export default defineConfig({
+  navbar: {
+    links: [
+      { label: 'Guides', href: '/guides/writing-content' },
+      { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
+    ],
+  },
+  footer: {
+    copyright: '© 2026 Your Company.',
+    links: [{ label: 'Configuration', href: '/reference/configuration' }],
+    socials: { GitHub: 'https://github.com/taicode-labs/clarify' },
+  },
+})
+```
+
+## OpenAPI 条目
+
+在导航中使用 `openapi` 而不是 `page`，即可添加 OpenAPI 文件。
+
+```ts title="clarify.ts"
+{
+  openapi: 'api.openapi.json',
+  title: 'OpenAPI reference',
+  icon: 'FileJson2',
+}
+```
+
+这会把 `{{contentDir}}/api.openapi.json` 渲染为 `/api` 下的完整参考文档。

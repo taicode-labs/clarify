@@ -1,0 +1,77 @@
+---
+title: 配置
+description: 了解此模板使用的 Clarify 配置字段。
+---
+
+# 配置
+
+`clarify.ts` 控制站点外壳、主题、导航和 OpenAPI 条目。
+
+<Properties>
+  <Property name="title" type="string">
+    产品或文档站点名称。
+  </Property>
+  <Property name="description" type="string">
+    站点默认 SEO 描述。
+  </Property>
+  <Property name="logo" type="string | { light?: string; dark?: string }">
+    `public` 中的 logo 路径，或一个绝对 URL。
+  </Property>
+  <Property name="favicon" type="string | { light?: string; dark?: string }">
+    浏览器 favicon 路径。
+  </Property>
+  <Property name="banner" type="{ content: string; dismissible?: boolean }">
+    显示在站点顶部的可选公告横幅。
+  </Property>
+  <Property name="theme" type="ClarifyThemeConfig">
+    主题预设、颜色 token、圆角 token 和布局设置。
+  </Property>
+  <Property name="navbar" type="{ links?: ClarifyNavbarLink[] }">
+    顶部导航链接。站外链接请使用 `external: true`。
+  </Property>
+  <Property name="footer" type="ClarifyFooterConfig">
+    页脚链接、社交链接、版权文本，或自定义页脚组件路径。Clarify 品牌标识会始终保留在右下角。
+  </Property>
+  <Property name="tabs" type="ClarifyTabsConfig">
+    顶级导航标签页和侧边栏页面。
+  </Property>
+  <Property name="i18n" type="ClarifyI18nConfig">
+    多语言站点的可选 locale 配置。
+  </Property>
+</Properties>
+
+## 主题示例
+
+```ts title="clarify.ts"
+theme: {
+  preset: 'default',
+  tokens: {
+    colors: {
+      primary: '#2563eb',
+      accent: '#7c3aed',
+      background: '#ffffff',
+      foreground: '#111827',
+      muted: { light: '#64748b', dark: '#a1a1aa' },
+    },
+    radius: {
+      lg: '0.75rem',
+      xl: '1rem',
+    },
+  },
+}
+```
+
+## i18n 示例
+
+```ts title="clarify.ts"
+i18n: {
+  defaultLocale: 'en-US',
+  missing: 'fallback',
+  locales: [
+    { code: 'en-US', label: 'English', dir: 'ltr' },
+    { code: 'zh-CN', label: '简体中文', dir: 'ltr' },
+  ],
+}
+```
+
+启用 i18n 后，请把内容放在 locale 目录下，例如 `{{contentDir}}/en-US/index.mdx` 和 `{{contentDir}}/zh-CN/index.mdx`。
