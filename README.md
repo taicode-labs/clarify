@@ -1,50 +1,93 @@
 # Clarify
 
-<p align="center">
-  <img src="./design/clarify.svg" alt="Clarify logo" width="112" />
-</p>
+Ship a modern docs site from your own repository.
 
-<p align="center">
-  <strong>Open-source documentation publishing for MDX, OpenAPI, and AI-ready knowledge bases.</strong>
-</p>
+Clarify turns MDX, OpenAPI, and project content into a fast, multilingual, self-hostable documentation experience your team actually owns.
 
-<p align="center">
-  Build fast, multilingual, developer-friendly documentation sites with a local-first CLI and a fully composable React renderer.
-</p>
-
-<p align="center">
-  <a href="./README.zh-CN.md">🇨🇳 中文版</a>
-</p>
+[中文版本](./README.zh-CN.md)
 
 ---
 
-<p align="center">
-  <img src="./design/x-promo.png" alt="Clarify banner" />
-</p>
+![Clarify banner](./design/x-promo.png)
 
-## Core Highlights
+## Why teams choose Clarify
 
-Clarify is built for teams that want modern documentation without giving up source ownership, local workflows, or deployment control.
+Clarify is built for teams that want polished docs without moving content into a hosted black box.
 
 | Highlight | What you get |
 |-----------|--------------|
-| **Docs live with code** | Version MDX pages, OpenAPI specs, navigation, and theme config in the same repository. |
-| **MDX + OpenAPI in one site** | Combine tutorials, product guides, and generated API reference pages without a separate docs product. |
-| **Built-in full-text search** | Generate static Pagefind indexes in dev and production, with multilingual isolation and highlighted excerpts. |
-| **Static, self-hostable output** | Build standalone HTML, assets, copied public files, raw Markdown/OpenAPI artifacts, search indexes, and `llms.txt`. |
-| **AI-readable by default** | Expose raw page content, raw specs, and discovery metadata so agents and internal tools can read your docs. |
-| **Typed, extensible publishing** | Configure navigation, i18n, theme tokens, footer, route prefixes, and build plugins in TypeScript. |
+| **Keep docs in your repo** | Version docs, API specs, navigation, and branding together with the product they describe. |
+| **Publish guides and API docs together** | Put MDX pages, tutorials, changelogs, and generated OpenAPI references in one coherent site. |
+| **Own the experience** | Self-host the output, customize the renderer, and keep deployment on infrastructure you control. |
+| **Built for multilingual teams** | Organize localized content by locale and keep navigation, search, and raw content aligned by language. |
+| **Search and AI readiness included** | Generate Pagefind indexes, raw content artifacts, and `llms.txt` without extra systems. |
+| **Grow without switching tools** | Start with a local CLI, then extend with typed config, theme tokens, and plugins when you need more. |
 
-## What is Clarify?
+## What Clarify helps you ship
 
-Clarify is an open-source documentation publishing tool for teams that want their docs to stay close to the codebase. It turns MDX content, OpenAPI specifications, and a typed `clarify.ts` configuration into a production-ready static documentation site.
+With Clarify, you can publish:
 
-The project is designed for product docs, API references, engineering handbooks, and AI-readable documentation portals that should be easy to version, customize, and self-host.
+- Product documentation that evolves with your codebase
+- API references generated from OpenAPI 3.0 and 3.1 specs
+- Internal engineering guides and team handbooks
+- Multilingual help centers and developer portals
+- AI-readable knowledge bases for agents and internal tooling
 
-## Core Features
+Clarify turns MDX content, OpenAPI specifications, and a typed `clarify.ts` configuration into a production-ready static documentation site.
+
+## Built for teams that care about ownership
+
+Most documentation tools optimize for convenience first. Clarify optimizes for long-term control.
+
+- Your content stays in Git.
+- Your docs build locally.
+- Your output is static and portable.
+- Your renderer is part of the codebase.
+- Your team can customize without waiting on a hosted platform roadmap.
+
+If you like the modern docs experience of tools like Mintlify, but want the source, rendering, and deployment model to stay under your control, Clarify is the fit.
+
+## Quick start
+
+Start a new Clarify project:
+
+```bash
+npx @clarify-labs/cli init my-docs
+cd my-docs
+```
+
+Then install dependencies and start the local site through the project script:
+
+```bash
+npm install
+npm run dev
+```
+
+If your team uses pnpm or yarn, the generated `dev` script also works with `pnpm dev` or `yarn dev`.
+
+## Developing this repository
+
+If you want to run the Clarify monorepo itself:
+
+```bash
+pnpm install
+pnpm dev:docs
+```
+
+Useful workspace commands:
+
+```bash
+pnpm dev:www
+pnpm build
+pnpm typecheck
+pnpm lint
+```
+
+## What you get out of the box
 
 - **MDX-first authoring** — Write Markdown, embed React components, use built-in callouts/cards/code blocks, and keep examples, guides, and reference pages in one content workflow.
 - **OpenAPI documentation** — Render OpenAPI 3.0/3.1 specs as navigable API reference pages and embed individual operations inside MDX guides.
+- **Project variables** — Define reusable project-wide content values once and reference them across pages and specs.
 - **Static site generation** — Build deployable static output with one HTML file per route, client-side navigation, copied public assets, and route-prefix support.
 - **Built-in internationalization** — Organize localized content by locale folders, configure locale fallback behavior, and localize navigation/footer labels in `clarify.ts`.
 - **Built-in full-text search** — Generate and serve Pagefind indexes in both `clarify dev` and `clarify build`, with current-language results and highlighted excerpts.
@@ -53,6 +96,14 @@ The project is designed for product docs, API references, engineering handbooks,
 - **AI-ready output** — Generate raw `.md` / `.openapi.*` artifacts, page copy actions, stable raw-content links, and `llms.txt` for AI agents and developer tools.
 - **Plugin-ready pipeline** — Extend route resolution, virtual modules, and build completion hooks for governance, translation workflows, or custom artifacts.
 - **Local-first workflow** — Use `clarify dev` and `clarify build` in the repository where the docs live.
+
+## A good fit if you want to
+
+- Replace scattered Markdown folders with a polished docs site
+- Publish product docs and API docs from the same repository
+- Keep documentation review inside normal pull requests
+- Self-host docs without giving up modern UX
+- Prepare documentation for both humans and AI agents
 
 ## Why Clarify instead of Mintlify?
 
@@ -70,7 +121,7 @@ Mintlify is a polished hosted documentation platform. Clarify takes a different 
 
 Clarify is not trying to clone Mintlify. It is for teams that like the modern docs experience Mintlify popularized, but want more ownership over the source, rendering layer, and deployment target.
 
-## Monorepo Structure
+## Monorepo structure
 
 ```
 ├── apps/
@@ -87,22 +138,6 @@ Clarify is not trying to clone Mintlify. It is for teams that like the modern do
 - Tailwind CSS 4
 - Vite-powered internals wrapped by the Clarify CLI
 - pnpm workspaces
-
-## Quick Start
-
-```bash
-pnpm install
-pnpm dev:docs
-```
-
-Useful workspace commands:
-
-```bash
-pnpm dev:www
-pnpm build
-pnpm typecheck
-pnpm lint
-```
 
 ## License
 

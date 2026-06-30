@@ -2,6 +2,13 @@
 
 Official Clarify CLI package.
 
+Start a new project with:
+
+```bash
+npx @clarify-labs/cli init my-docs
+cd my-docs
+```
+
 This package provides the public `clarify` command used for:
 
 - `clarify init`

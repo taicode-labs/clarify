@@ -13,16 +13,28 @@ You need:
 - Node.js ≥ 20
 - pnpm ≥ 9
 
-Create a project and install the CLI:
+Create a new project with the official init command:
+
+<CodeGroup>
 
 ```bash
-mkdir my-docs
+pnpm dlx @clarify-labs/cli init my-docs
 cd my-docs
-pnpm init
-pnpm add -D @clarify-labs/cli
 ```
 
-Add scripts to `package.json`:
+```bash
+npx @clarify-labs/cli init my-docs
+cd my-docs
+```
+
+```bash
+yarn dlx @clarify-labs/cli init my-docs
+cd my-docs
+```
+
+</CodeGroup>
+
+The scaffold adds scripts to `package.json` for you:
 
 ```json
 {
@@ -118,9 +130,23 @@ Routes are generated automatically:
 
 ## 4. Start the dev server
 
+Prefer starting through the project script so the same flow works whether the CLI is installed locally or available globally:
+
+<CodeGroup>
+
 ```bash
 pnpm dev
 ```
+
+```bash
+npm run dev
+```
+
+```bash
+yarn dev
+```
+
+</CodeGroup>
 
 Open the local address printed in the terminal. After you edit MDX, configuration, or OpenAPI files, the dev server regenerates the pages.
 
@@ -128,9 +154,21 @@ Open the local address printed in the terminal. After you edit MDX, configuratio
 
 ## 5. Build the production version
 
+<CodeGroup>
+
 ```bash
 pnpm build
 ```
+
+```bash
+npm run build
+```
+
+```bash
+yarn build
+```
+
+</CodeGroup>
 
 By default the output goes to `output/`:
 

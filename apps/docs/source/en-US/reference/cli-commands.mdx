@@ -6,22 +6,57 @@
 
 ## Installation
 
-We recommend installing the CLI as a project dev dependency, so the CLI version is locked and reviewed alongside the repository:
+For a new project, the shortest path is to scaffold it directly with the published package:
+
+<CodeGroup>
+
+```bash
+pnpm dlx @clarify-labs/cli init my-docs
+cd my-docs
+pnpm dev
+```
+
+```bash
+npx @clarify-labs/cli init my-docs
+cd my-docs
+npm run dev
+```
+
+```bash
+yarn dlx @clarify-labs/cli init my-docs
+cd my-docs
+yarn dev
+```
+
+</CodeGroup>
+
+If you want to add Clarify to an existing project, install the CLI as a project dev dependency so the CLI version is locked and reviewed alongside the repository:
+
+<CodeGroup>
 
 ```bash
 pnpm add -D @clarify-labs/cli
 ```
 
-Then run it via `pnpm exec`:
+```bash
+npm install -D @clarify-labs/cli
+```
 
 ```bash
-pnpm exec clarify init
+yarn add -D @clarify-labs/cli
+```
+
+</CodeGroup>
+
+Then you can run the CLI directly via `pnpm exec`:
+
+```bash
 pnpm exec clarify dev
 pnpm exec clarify check
 pnpm exec clarify build
 ```
 
-Or add scripts to `package.json`:
+Or add scripts to `package.json` and prefer running through the package manager script entry:
 
 ```json
 {
@@ -41,7 +76,7 @@ For a quick trial, you can also install it globally and run `clarify dev` / `cla
 Creates a Clarify project skeleton and automatically updates the `dev` and `build` scripts in `package.json`.
 
 ```bash
-pnpm exec clarify init
+npx @clarify-labs/cli init my-docs
 ```
 
 By default, `clarify init` generates or updates the following:
@@ -54,22 +89,22 @@ By default, `clarify init` generates or updates the following:
 If you want to install dependencies immediately after initialization, use:
 
 ```bash
-pnpm exec clarify init --install
+npx @clarify-labs/cli init my-docs --install
 ```
 
 When `--install` is not used, the command prints the next steps, for example:
 
 ```bash
 cd <project-root>
-pnpm install
-clarify dev
+npm install
+npm run dev
 ```
 
 Common options:
 
 | Option | Description | Default |
 |------|------|--------|
-| `--root <dir>` | The project root directory | Current directory |
+| `[directory]` | The target project directory | Current directory |
 | `--content <dir>` | The content directory | `source` |
 | `--template <name>` | The `minimal`, `standard`, or `complete` template | `standard` |
 | `--force` | Overwrite existing initialization files | `false` |
@@ -90,8 +125,26 @@ Template use cases:
 Starts the local documentation dev server.
 
 ```bash
-pnpm exec clarify dev
+npm run dev
 ```
+
+This is the preferred user-facing entry because it works the same way whether `clarify` comes from a local dependency or a global install. The underlying script typically runs `clarify dev`.
+
+<CodeGroup>
+
+```bash
+pnpm dev
+```
+
+```bash
+npm run dev
+```
+
+```bash
+yarn dev
+```
+
+</CodeGroup>
 
 Common options:
 

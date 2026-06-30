@@ -38,9 +38,9 @@ Clarify keeps your documentation in the code repository: you maintain `source/`,
 We recommend installing Clarify as a project dev dependency, so the CLI version is locked and reviewed alongside the repository:
 
 ```bash
-pnpm init
-pnpm add -D @clarify-labs/cli
-pnpm exec clarify dev
+npx @clarify-labs/cli init my-docs
+cd my-docs
+npm run dev
 ```
 
 **clarify.ts**

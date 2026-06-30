@@ -38,9 +38,9 @@ Clarify 让文档留在代码仓库里：你维护 `source/`、OpenAPI 规范和
 推荐把 Clarify 作为项目开发依赖安装，这样 CLI 版本会跟随仓库一起被锁定和 Review：
 
 ```bash
-pnpm init
-pnpm add -D @clarify-labs/cli
-pnpm exec clarify dev
+npx @clarify-labs/cli init my-docs
+cd my-docs
+npm run dev
 ```
 
 **clarify.ts**

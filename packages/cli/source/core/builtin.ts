@@ -1,10 +1,10 @@
 import { createContentArtifactsPlugin } from '../plugins/content-artifacts/index.js'
-import { createVariablesPlugin } from '../plugins/variables/index.js'
 import { createHtmlShellPlugin } from '../plugins/html-shell/index.js'
 import { createOpenAPIPlugin } from '../plugins/openapi/index.js'
 import { createSearchIndexPlugin } from '../plugins/search-index/index.js'
 import { createSeoPlugin } from '../plugins/seo/index.js'
 import { createSourceLinksPlugin } from '../plugins/source-links/index.js'
+import { createVariablesPlugin } from '../plugins/variables/index.js'
 import type { ClarifyPlugin } from '../types.js'
 
 export type BuiltinPluginOptions = {

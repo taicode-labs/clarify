@@ -153,7 +153,7 @@ describe('runInit', () => {
     expect(spawnSpy).toHaveBeenCalledWith('pnpm', ['--version'], { stdio: 'ignore' })
     expect(spawnSpy).toHaveBeenCalledWith('pnpm', ['install'], expect.objectContaining({ cwd: tempDir, stdio: 'inherit' }))
     expect(logSpy).toHaveBeenCalledWith('[clarify] Dependencies installed successfully.')
-    expect(logSpy).toHaveBeenCalledWith('[clarify] You can now run `clarify dev` to start the local documentation server.')
+    expect(logSpy).toHaveBeenCalledWith('[clarify] You can now run `pnpm dev` to start the local documentation server.')
 
     spawnSpy.mockRestore()
   })

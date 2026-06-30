@@ -6,22 +6,57 @@
 
 ## 安装
 
-推荐把 CLI 安装为项目开发依赖，这样 CLI 版本会跟随仓库一起被锁定和 Review：
+对于新项目，最短路径是直接通过已发布包完成初始化：
+
+<CodeGroup>
+
+```bash
+pnpm dlx @clarify-labs/cli init my-docs
+cd my-docs
+pnpm dev
+```
+
+```bash
+npx @clarify-labs/cli init my-docs
+cd my-docs
+npm run dev
+```
+
+```bash
+yarn dlx @clarify-labs/cli init my-docs
+cd my-docs
+yarn dev
+```
+
+</CodeGroup>
+
+如果你是把 Clarify 接入现有项目，推荐把 CLI 安装为项目开发依赖，这样 CLI 版本会跟随仓库一起被锁定和 Review：
+
+<CodeGroup>
 
 ```bash
 pnpm add -D @clarify-labs/cli
 ```
 
-然后通过 `pnpm exec` 运行：
+```bash
+npm install -D @clarify-labs/cli
+```
 
 ```bash
-pnpm exec clarify init
+yarn add -D @clarify-labs/cli
+```
+
+</CodeGroup>
+
+然后可以通过 `pnpm exec` 直接调用：
+
+```bash
 pnpm exec clarify dev
 pnpm exec clarify check
 pnpm exec clarify build
 ```
 
-或者在 `package.json` 中添加脚本：
+或者在 `package.json` 中添加脚本，并优先通过包管理器脚本入口启动：
 
 ```json
 {
@@ -41,7 +76,7 @@ pnpm exec clarify build
 创建一个 Clarify 项目骨架，并自动更新 `package.json` 中的 `dev` 和 `build` 脚本。
 
 ```bash
-pnpm exec clarify init
+npx @clarify-labs/cli init my-docs
 ```
 
 默认情况下，`clarify init` 会生成或更新以下内容：
@@ -54,22 +89,22 @@ pnpm exec clarify init
 如果希望初始化完成后立即安装依赖，可以使用：
 
 ```bash
-pnpm exec clarify init --install
+npx @clarify-labs/cli init my-docs --install
 ```
 
 未使用 `--install` 时，命令会提示下一步操作，例如：
 
 ```bash
 cd <project-root>
-pnpm install
-clarify dev
+npm install
+npm run dev
 ```
 
 常用选项：
 
 | 选项 | 说明 | 默认值 |
 |------|------|--------|
-| `--root <dir>` | 项目根目录 | 当前目录 |
+| `[directory]` | 目标项目目录 | 当前目录 |
 | `--content <dir>` | 内容目录 | `source` |
 | `--template <name>` | `minimal`、`standard` 或 `complete` 模板 | `standard` |
 | `--force` | 覆盖已存在的初始化文件 | `false` |
@@ -90,8 +125,26 @@ clarify dev
 启动本地文档开发服务器。
 
 ```bash
-pnpm exec clarify dev
+npm run dev
 ```
+
+这是更推荐的用户入口，因为无论 `clarify` 来自项目本地依赖还是全局安装，团队使用方式都一致。底层脚本通常仍然是 `clarify dev`。
+
+<CodeGroup>
+
+```bash
+pnpm dev
+```
+
+```bash
+npm run dev
+```
+
+```bash
+yarn dev
+```
+
+</CodeGroup>
 
 常用选项：
 

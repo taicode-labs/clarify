@@ -13,16 +13,28 @@ Clarify = MDX 内容 + `clarify.ts` 配置 + OpenAPI 规范 + 静态站点生成
 - Node.js ≥ 20
 - pnpm ≥ 9
 
-创建项目并安装 CLI：
+使用官方初始化命令创建新项目：
+
+<CodeGroup>
 
 ```bash
-mkdir my-docs
+pnpm dlx @clarify-labs/cli init my-docs
 cd my-docs
-pnpm init
-pnpm add -D @clarify-labs/cli
 ```
 
-在 `package.json` 中添加脚本：
+```bash
+npx @clarify-labs/cli init my-docs
+cd my-docs
+```
+
+```bash
+yarn dlx @clarify-labs/cli init my-docs
+cd my-docs
+```
+
+</CodeGroup>
+
+脚手架会自动帮你写入 `package.json` 脚本：
 
 ```json
 {
@@ -118,6 +130,24 @@ title: 快速开始
 
 ## 4. 启动开发服务器
 
+优先通过项目脚本启动，这样无论 CLI 是全局安装还是项目本地依赖，使用方式都一致：
+
+<CodeGroup>
+
+```bash
+pnpm dev
+```
+
+```bash
+npm run dev
+```
+
+```bash
+yarn dev
+```
+
+</CodeGroup>
+
 ```bash
 pnpm dev
 ```
@@ -128,9 +158,21 @@ pnpm dev
 
 ## 5. 构建生产版本
 
+<CodeGroup>
+
 ```bash
 pnpm build
 ```
+
+```bash
+npm run build
+```
+
+```bash
+yarn build
+```
+
+</CodeGroup>
 
 默认输出到 `output/`：
 

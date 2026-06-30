@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { fileURLToPath } from 'node:url'
+
 import { cac } from 'cac'
 
 import { runBuild } from './commands/build.js'
@@ -14,6 +16,18 @@ type InitCommandOptions = CliOptions & {
   install?: boolean
 }
 
+function withBuildOptions(command: ReturnType<ReturnType<typeof cac>['command']>) {
+  return command
+    .option('--content <dir>', 'Content directory relative to root')
+}
+
+function resolveInitOptions(directory: string | undefined, options: InitCommandOptions): ResolvedCliOptions {
+  return resolveOptions({
+    ...options,
+    root: directory,
+  })
+}
+
 function withSharedOptions(command: ReturnType<ReturnType<typeof cac>['command']>) {
   return command
     .option('--root <dir>', 'Project root directory')
@@ -25,7 +39,7 @@ function resolveOptions(options: CliOptions): ResolvedCliOptions {
   return resolveCliOptions(options)
 }
 
-async function main(): Promise<void> {
+export function createCli() {
   const cli = cac('clarify')
 
   cli
@@ -52,16 +66,21 @@ async function main(): Promise<void> {
       await runCheck(options)
     })
 
-  withSharedOptions(cli.command('init', 'Create a Clarify project scaffold'))
+  withBuildOptions(cli.command('init [directory]', 'Create a Clarify project scaffold'))
     .option('--force', 'Overwrite files created by init')
     .option('--template <name>', 'Template to use: minimal, standard, or complete')
     .option('--install', 'Install dependencies after init')
-    .action((options: InitCommandOptions) => {
-      runInit(resolveOptions(options), options.force === true, options.template, options.install === true)
+    .action((directory: string | undefined, options: InitCommandOptions) => {
+      runInit(resolveInitOptions(directory, options), options.force === true, options.template, options.install === true)
     })
 
-  const args = process.argv.slice(2)
-  cli.parse(process.argv, { run: false })
+  return cli
+}
+
+export async function main(argv = process.argv): Promise<void> {
+  const cli = createCli()
+  const args = argv.slice(2)
+  cli.parse(argv, { run: false })
 
   if (args.length === 0) {
     cli.outputHelp()
@@ -71,7 +90,9 @@ async function main(): Promise<void> {
   await cli.runMatchedCommand()
 }
 
-main().catch(error => {
-  console.error(error instanceof Error ? error.stack ?? error.message : String(error))
-  process.exitCode = 1
-})
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main().catch(error => {
+    console.error(error instanceof Error ? error.stack ?? error.message : String(error))
+    process.exitCode = 1
+  })
+}

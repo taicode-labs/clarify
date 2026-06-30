@@ -55,6 +55,12 @@ function getSuggestedInstallCommand(): string {
   return 'npm install'
 }
 
+function getSuggestedRunCommand(): string {
+  if (commandExists('pnpm')) return 'pnpm dev'
+  if (commandExists('yarn')) return 'yarn dev'
+  return 'npm run dev'
+}
+
 function updatePackageJson(root: string, force: boolean): boolean {
   const packageJsonPath = resolve(root, 'package.json')
   const packageJson = existsSync(packageJsonPath)
@@ -97,17 +103,19 @@ export function runInit(options: ResolvedCliOptions, force: boolean, template?: 
 
   if (install) {
     installDependencies(options.root)
+    const suggestedRun = getSuggestedRunCommand()
     console.log('[clarify] Dependencies installed successfully.')
-    console.log('[clarify] You can now run `clarify dev` to start the local documentation server.')
+    console.log(`[clarify] You can now run \`${suggestedRun}\` to start the local documentation server.`)
     return
   }
 
   const suggestedInstall = getSuggestedInstallCommand()
+  const suggestedRun = getSuggestedRunCommand()
   console.log('[clarify] Next steps:')
   console.log('  1. Change into your new project directory:')
   console.log(`       cd ${options.root}`)
   console.log('  2. Install dependencies:')
   console.log(`       ${suggestedInstall}`)
   console.log('  3. Start the local documentation server:')
-  console.log('       clarify dev')
+  console.log(`       ${suggestedRun}`)
 }
