@@ -71,6 +71,15 @@ export default defineConfig({
     },
     copyright: '© 2026 Clarify Team',
   },
+  variables: {
+    product: {
+      name: 'Clarify',
+      version: '0.8.0',
+    },
+    links: {
+      support: 'https://clarify.pub/support',
+    },
+  },
   i18n: {
     defaultLocale: 'zh-CN',
     missing: 'fallback',
@@ -110,6 +119,7 @@ export default defineConfig({
 | `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | Top navigation. Use it for a small number of global entries such as Docs, API, GitHub, or Dashboard. |
 | `banner` | `ClarifyBannerConfig` | — | Top announcement bar for releases, migrations, maintenance windows, or short notices. |
 | `footer` | `ClarifyFooterConfig` | — | Footer links, social/community links, copyright text, or a custom footer component path. Clarify branding remains required. |
+| `variables` | `Record<string, string \| number \| boolean \| object>` | `{}` | Global project variables. Use them in MDX frontmatter, page body, and OpenAPI JSON/YAML specs with `{{ name }}` or `{{ nested.name }}` placeholders for product names, versions, links, contacts, API base URLs, and legal text. |
 | `i18n` | `ClarifyI18nConfig` | — | Internationalization configuration: locales, default locale, text direction, and missing-translation behavior. |
 | `tabs` | `ClarifyTabsConfig` | Generated automatically from the file tree | First-level site categories and each category’s sidebar structure. Omit it to generate navigation from the content directory. |
 | `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | Static generation policy. Controls whether a page prerendering error fails the entire build. |
@@ -378,6 +388,59 @@ export default defineConfig({
 </CodeGroup>
 
 Color tokens can be strings directly, or separate values for light and dark modes as `{ light?: string; dark?: string }`. If one mode is missing, Clarify falls back to an available value or the preset default. The current version does not read custom CSS or `tailwind.config.js` from the user project to override renderer styles.
+
+---
+
+## `variables`
+
+`variables` defines reusable project-wide constants for MDX frontmatter, page body content, and OpenAPI JSON/YAML specs. They are expanded before MDX is compiled or OpenAPI specs are parsed, so the resolved text is also used by page titles, descriptions, headings, section anchors, endpoint metadata, search indexing, and copied content artifacts.
+
+```ts
+export default defineConfig({
+  variables: {
+    product: {
+      name: 'Acme Cloud',
+      version: '2.4.0',
+    },
+    links: {
+      support: 'https://support.example.com',
+      status: 'https://status.example.com',
+    },
+    apiBaseUrl: 'https://api.example.com/v1',
+  },
+})
+```
+
+Use variables in MDX with double braces:
+
+```mdx
+---
+title: "{{ product.name }} {{ product.version }}"
+description: "Support docs for {{ product.name }}"
+---
+
+# Welcome to {{ product.name }}
+
+Current version: {{ product.version }}
+
+- Support: {{ links.support }}
+- API base URL: `{{ apiBaseUrl }}`
+```
+
+You can also use the same placeholders in OpenAPI files before Clarify parses and dereferences the spec:
+
+```yaml title="source/api.openapi.yaml"
+openapi: 3.0.0
+info:
+  title: "{{ product.name }} API"
+  version: "{{ product.version }}"
+servers:
+  - url: "{{ apiBaseUrl }}"
+```
+
+When using variables in YAML frontmatter, wrap the placeholder in quotes so YAML parses it as a string.
+
+Supported values are strings, numbers, booleans, and nested objects. Placeholders can reference nested keys with dot paths. Unknown placeholders and object-valued placeholders are left unchanged, which keeps examples such as `{{ user_supplied_value }}` safe in documentation. String variables may reference other variables; circular references fail the build with a clear error.
 
 ---
 

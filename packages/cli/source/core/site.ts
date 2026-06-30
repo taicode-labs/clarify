@@ -5,6 +5,7 @@ import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } 
 
 import { createBuiltinPlugins } from './builtin.js'
 import { resolveProjectConfig } from './config.js'
+import { createProjectContentProcessor, getProjectContentProcessor, setProjectContentProcessor } from './content.js'
 import { runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions, type ResolvedBuildOptions } from './options.js'
 
@@ -27,7 +28,7 @@ async function discoverRoutesForRoot(routeRoot: string, locale: string | undefin
   const discovered = await runHooks(plugins, 'routes:discover', {
     contentRoot: routeRoot,
     locale,
-    routes: findContentRoutes(routeRoot),
+    routes: await findContentRoutes(routeRoot, routeRoot, { contentProcessor: getProjectContentProcessor(ctx) }),
   }, ctx)
   return discovered.routes
 }
@@ -94,6 +95,7 @@ export async function resolveClarifySite(options: ClarifyBuildOptions = {}, reso
   const contentRoot = join(root, generateOptions.rootDirectory)
   const plugins = [...createBuiltinPlugins({ htmlShell: resolveOptions.includeHtmlShellPlugin }), ...(options.plugins ?? [])]
   const ctx: ClarifyHookContext = { projectConfig, generateOptions, routes: [], navigation: [] }
+  setProjectContentProcessor(ctx, createProjectContentProcessor(plugins, ctx))
 
   let routes = await discoverRoutes(root, contentRoot, plugins, ctx)
   routes = await runHooks(plugins, 'routes:discovered', routes, ctx)

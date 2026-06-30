@@ -12,6 +12,12 @@ describe('clarifyProjectConfigSchema', () => {
       siteUrl: 'https://docs.example.com',
       source: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' },
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+      variables: {
+        product: { name: 'Clarify' },
+        version: '0.8.0',
+        stable: true,
+        build: 8,
+      },
       i18n: {
         defaultLocale: 'zh-CN',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
@@ -24,6 +30,12 @@ describe('clarifyProjectConfigSchema', () => {
       siteUrl: 'https://docs.example.com',
       source: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' },
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+      variables: {
+        product: { name: 'Clarify' },
+        version: '0.8.0',
+        stable: true,
+        build: 8,
+      },
       i18n: {
         defaultLocale: 'zh-CN',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
@@ -96,6 +108,7 @@ describe('resolveProjectConfig', () => {
       navbar: undefined,
       banner: undefined,
       footer: undefined,
+      variables: {},
       i18n: undefined,
       tabs: undefined,
     })
@@ -113,6 +126,10 @@ describe('resolveProjectConfig', () => {
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
       banner: { content: 'v2 is out', dismissible: true },
       footer: { copyright: '© 2026' },
+      variables: {
+        product: { name: 'Clarify' },
+        apiVersion: '1.0.0',
+      },
       i18n: {
         defaultLocale: 'zh-CN',
         locales: [
@@ -138,6 +155,10 @@ describe('resolveProjectConfig', () => {
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
     expect(result.footer).toEqual({ copyright: '© 2026' })
+    expect(result.variables).toEqual({
+      product: { name: 'Clarify' },
+      apiVersion: '1.0.0',
+    })
     expect(result.i18n).toEqual({
       defaultLocale: 'zh-CN',
       missing: 'fallback',

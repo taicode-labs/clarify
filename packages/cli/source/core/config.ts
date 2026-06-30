@@ -80,6 +80,7 @@ export function resolveProjectConfig(config: ClarifyProjectConfig = {}): Resolve
     navbar: config.navbar,
     banner: config.banner,
     footer: config.footer,
+    variables: config.variables ?? {},
     i18n: resolveI18nConfig(config.i18n),
     tabs: config.tabs,
   }

@@ -59,11 +59,19 @@ Clarify's current build flow calls the following hooks:
 
 | Hook | When it fires | Typical use |
 |------|----------|----------|
+| `content:transform` | Before Clarify extracts metadata from content sources such as MDX and OpenAPI specs | Expand project variables, normalize frontmatter, inject generated content, or validate raw content |
+| `routes:discover` | While discovering routes from a content root | Add non-MDX routes such as OpenAPI routes, or replace discovery results |
+| `routes:discovered` | After route discovery, before configured page paths and navigation are applied | Enrich discovered routes, add source links, or attach artifact URLs |
 | `routes:resolved` | After routes and navigation are generated | Adjust routes, navigation, groups, and visible pages |
 | `modules:before` | After virtual modules are generated, before handing them to Vite | Inject or modify runtime virtual modules |
+| `html:transform` | Before HTML is emitted or served | Inject HTML tags, theme bootstrapping scripts, or client entry scripts |
+| `dev:configureServer` | When the Vite dev server is configured | Register local middleware or dev-only endpoints |
+| `build:assets` | During build asset emission | Emit additional static files |
 | `build:done` | After the build and SSG complete | Generate extra artifacts, report build results |
 
 Plugins run in the order of the `plugins` array. The result returned by one plugin becomes the input to the next.
+
+Clarify's built-in project variables are implemented as a `content:transform` plugin. User plugins run in the same lifecycle, after built-in plugins.
 
 > The types also reserve `pages:resolved` and `page:transform`, but the current CLI build flow does not yet trigger them. Plugin authors should prefer the hooks in the table above.
 
@@ -114,6 +122,34 @@ export default defineConfig({
 ```
 
 If you modify both `routes` and `navigation`, you must keep them consistent to avoid the sidebar pointing to nonexistent pages.
+
+---
+
+## Example: transform MDX content
+
+Use `content:transform` when you need to modify content before Clarify extracts page titles, descriptions, headings, section anchors, endpoint metadata, and search text. The input includes `kind`, so plugins can target MDX pages without accidentally changing OpenAPI specs:
+
+```ts
+import { defineConfig, type ClarifyPlugin } from '@clarify-labs/cli'
+
+const legalNoticePlugin: ClarifyPlugin = {
+  name: 'legal-notice',
+  hooks: {
+    'content:transform'(page) {
+      if (page.kind !== 'mdx') return page
+
+      return {
+        ...page,
+        content: `${page.content}\n\n<LegalNotice />`,
+      }
+    },
+  },
+}
+
+export default defineConfig({
+  plugins: [legalNoticePlugin],
+})
+```
 
 ---
 

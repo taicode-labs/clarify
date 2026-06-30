@@ -8,7 +8,11 @@ import { visit } from 'unist-util-visit'
 
 import type { ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, ResolvedClarifyI18nConfig, TabbedNavigation } from '../types.js'
 
-import { parseFrontmatter } from './frontmatter.js'
+import { createContentProcessor, type ContentProcessor } from './content.js'
+
+export type FindContentRoutesOptions = {
+  contentProcessor?: ContentProcessor
+}
 
 export function kebabToTitle(str: string): string {
   return str
@@ -102,7 +106,7 @@ export function resolveLocalizedText(text: ClarifyLocalizedText | undefined, loc
   return text[locale] ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0]
 }
 
-export function findContentRoutes(dir: string, base: string = dir): ContentRoute[] {
+export async function findContentRoutes(dir: string, base: string = dir, options: FindContentRoutesOptions = {}): Promise<ContentRoute[]> {
   const routes: ContentRoute[] = []
   if (!existsSync(dir)) return routes
 
@@ -110,7 +114,7 @@ export function findContentRoutes(dir: string, base: string = dir): ContentRoute
   for (const entry of entries) {
     const fullPath = join(dir, entry.name)
     if (entry.isDirectory()) {
-      routes.push(...findContentRoutes(fullPath, base))
+      routes.push(...await findContentRoutes(fullPath, base, options))
     } else if (entry.isFile() && /\.mdx?$/.test(entry.name)) {
       const relativePath = relative(base, fullPath)
       const pathParts = relativePath.replace(/\.mdx?$/, '').split('/')
@@ -118,7 +122,7 @@ export function findContentRoutes(dir: string, base: string = dir): ContentRoute
       const cleanPath = path.replace(/\/+/g, '/').replace(/\/$/, '') || '/'
 
       const source = readFileSync(fullPath, 'utf-8')
-      const { frontmatter, content } = parseFrontmatter(source)
+      const { frontmatter, content } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
 
       let title = typeof frontmatter.title === 'string' ? frontmatter.title : ''
       if (!title) {
@@ -182,13 +186,13 @@ export function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n
   return { ...route, alternates }
 }
 
-export function findLocalizedContentRoutes(contentRoot: string, i18n?: ResolvedClarifyI18nConfig): ContentRoute[] {
-  if (!i18n) return findContentRoutes(contentRoot)
+export async function findLocalizedContentRoutes(contentRoot: string, i18n?: ResolvedClarifyI18nConfig, options: FindContentRoutesOptions = {}): Promise<ContentRoute[]> {
+  if (!i18n) return findContentRoutes(contentRoot, contentRoot, options)
 
   const localizedRoutes: ContentRoute[] = []
   for (const locale of i18n.locales) {
     const localeRoot = join(contentRoot, locale.code)
-    const discovered = findContentRoutes(localeRoot)
+    const discovered = await findContentRoutes(localeRoot, localeRoot, options)
     for (const route of discovered) {
       const basePath = route.basePath ?? route.path
       localizedRoutes.push({
