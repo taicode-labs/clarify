@@ -20,7 +20,7 @@ describe('createCli', () => {
   it('passes the positional init directory as the project root', async () => {
     process.argv = ['node', 'clarify', 'init', 'my-docs', '--content', 'docs', '--template', 'minimal', '--install']
 
-    const { main } = await import('./index.js')
+    const { main } = await import('./program.js')
     await main(process.argv)
 
     expect(runInitSpy).toHaveBeenCalledWith(expect.objectContaining({
@@ -33,7 +33,7 @@ describe('createCli', () => {
   it('uses the current working directory when init directory is omitted', async () => {
     process.argv = ['node', 'clarify', 'init']
 
-    const { main } = await import('./index.js')
+    const { main } = await import('./program.js')
     await main(process.argv)
 
     expect(runInitSpy).toHaveBeenCalledWith(expect.objectContaining({
