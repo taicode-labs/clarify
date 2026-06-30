@@ -1,0 +1,164 @@
+# Project Variables
+
+Project variables let you define reusable values once in `clarify.ts` and use them across MDX pages, frontmatter, and OpenAPI JSON/YAML specs.
+
+They are useful when the same documentation source needs to serve multiple product editions, brands, deployments, or environments. Instead of editing every page when a name, host, support link, or API base URL changes, keep those values in one configuration object and reference them with `{{ name }}` placeholders.
+
+---
+
+## When variables help
+
+| Scenario | What variables keep consistent |
+|------|----------|
+| OEM or white-label documentation | Product name, brand name, support email, legal company name, logo alt text, and contact links |
+| Private deployments | Console host, API base host, status page, SSO entry, and regional endpoints |
+| Official links | Website, docs home, changelog, pricing page, support portal, GitHub repository, and community links |
+| Release-oriented docs | Current version, SDK version, API version, release channel, and migration guide links |
+| Multi-environment examples | Sandbox host, production host, callback URL, webhook URL, and dashboard URL |
+| Shared legal or compliance text | Data processing contact, privacy policy URL, terms URL, and jurisdiction-specific notices |
+
+Variables work best for stable project facts that appear in many places. They are not meant to replace authoring prose, translation, or runtime user input.
+
+---
+
+## Define variables
+
+Add `variables` to `clarify.ts`:
+
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  title: 'Acme Cloud Docs',
+  variables: {
+    product: {
+      name: 'Acme Cloud',
+      edition: 'Enterprise',
+    },
+    links: {
+      home: 'https://acme.example.com',
+      support: 'https://support.example.com',
+      status: 'https://status.example.com',
+    },
+    hosts: {
+      console: 'https://console.acme.example.com',
+      api: 'https://api.acme.example.com/v1',
+      sandboxApi: 'https://sandbox-api.acme.example.com/v1',
+    },
+    versions: {
+      api: '2026-06-30',
+      sdk: '4.2.0',
+    },
+  },
+})
+```
+
+Supported values are strings, numbers, booleans, and nested objects. Use dot paths to read nested values, for example `{{ product.name }}` or `{{ hosts.api }}`.
+
+---
+
+## Use variables in MDX
+
+Variables are expanded before Clarify extracts page titles, descriptions, headings, sections, search text, and raw content artifacts.
+
+```mdx
+---
+title: "Deploy {{ product.name }}"
+description: "Connect your service to {{ product.name }} {{ product.edition }}."
+---
+
+# Deploy {{ product.name }}
+
+Open the console at [{{ hosts.console }}]({{ hosts.console }}) and create a new project.
+
+For help, contact support through [{{ links.support }}]({{ links.support }}).
+```
+
+When using variables in YAML frontmatter, wrap placeholders in quotes so YAML reads them as strings.
+
+---
+
+## Use variables in OpenAPI specs
+
+The same placeholders also work in `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` files. Clarify expands them before parsing and dereferencing the spec, so generated API pages, endpoint metadata, server selectors, raw OpenAPI output, and `llms.txt` all see the resolved values.
+
+```yaml title="source/api.openapi.yaml"
+openapi: 3.0.0
+info:
+  title: "{{ product.name }} API"
+  version: "{{ versions.api }}"
+servers:
+  - url: "{{ hosts.api }}"
+    description: Production
+  - url: "{{ hosts.sandboxApi }}"
+    description: Sandbox
+paths:
+  /projects:
+    get:
+      summary: List {{ product.name }} projects
+      responses:
+        '200':
+          description: OK
+```
+
+Relative `$ref` values still resolve from the original OpenAPI file location, even when variables are expanded in the root spec.
+
+---
+
+## OEM and white-label docs
+
+For OEM or white-label deployments, keep brand-specific facts in variables and keep the article structure shared:
+
+```ts
+export default defineConfig({
+  title: 'Partner Cloud Docs',
+  variables: {
+    product: {
+      name: 'Partner Cloud',
+      vendor: 'Partner Inc.',
+    },
+    links: {
+      home: 'https://partner.example.com',
+      support: 'https://partner.example.com/support',
+      privacy: 'https://partner.example.com/privacy',
+    },
+    hosts: {
+      console: 'https://console.partner.example.com',
+      api: 'https://api.partner.example.com/v1',
+    },
+  },
+})
+```
+
+```mdx
+# Welcome to {{ product.name }}
+
+{{ product.name }} is operated by {{ product.vendor }}.
+
+- Console: {{ hosts.console }}
+- API base URL: {{ hosts.api }}
+- Privacy policy: {{ links.privacy }}
+```
+
+This keeps the maintenance model simple: update the config for each edition, keep the source pages and OpenAPI structure consistent, and review brand-specific changes in one place.
+
+---
+
+## Good variable boundaries
+
+Use variables for facts that should stay identical everywhere:
+
+- Product, edition, company, and release names.
+- Official host names and base URLs.
+- Support, status, legal, pricing, and repository links.
+- Current API, SDK, or platform versions.
+- Environment labels such as sandbox, staging, production, or region names.
+
+Avoid variables for text that should be written and translated naturally:
+
+- Full paragraphs and conceptual explanations.
+- Locale-specific grammar or sentence structure.
+- Runtime values entered by the reader.
+- OpenAPI `servers[].variables`, which are part of the OpenAPI runtime server selection model and are separate from Clarify project variables.
+
+Unknown placeholders and object-valued placeholders are left unchanged. This makes it safe to show template examples such as `{{ customer_id }}` in documentation without defining every example placeholder in `clarify.ts`.

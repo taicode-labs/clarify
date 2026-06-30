@@ -1,13 +1,17 @@
-import { existsSync, readdirSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { join, relative, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import SwaggerParser from '@apidevtools/swagger-parser'
 import { slug } from 'github-slugger'
 
+import type { ContentProcessor } from '../../parsers/content.js'
 import { kebabToTitle, routePathFromRef, virtualModuleIdFromRef } from '../../parsers/routes.js'
 import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
+
+type ResolverFileInfo = { url: string }
 
 export type OpenAPIParseResult =
   | { ok: true; spec: OpenAPISpec }
@@ -15,6 +19,14 @@ export type OpenAPIParseResult =
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
+}
+
+function isSameOpenAPIFile(url: string, filePath: string): boolean {
+  try {
+    return resolve(fileURLToPath(url)) === resolve(filePath)
+  } catch {
+    return resolve(url) === resolve(filePath)
+  }
 }
 
 export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute[] {
@@ -80,9 +92,26 @@ export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[])
   return sections
 }
 
-export async function readOpenAPISpec(filePath: string): Promise<OpenAPIParseResult> {
+export async function readOpenAPISpec(filePath: string, contentProcessor?: ContentProcessor): Promise<OpenAPIParseResult> {
   try {
-    return { ok: true, spec: await SwaggerParser.dereference(filePath) as OpenAPISpec }
+    if (!contentProcessor) return { ok: true, spec: await SwaggerParser.dereference(filePath) as OpenAPISpec }
+
+    const source = readFileSync(filePath, 'utf-8')
+    const transformedSource = await contentProcessor.processText(source, 'openapi', filePath)
+    if (transformedSource === source) return { ok: true, spec: await SwaggerParser.dereference(filePath) as OpenAPISpec }
+
+    return {
+      ok: true,
+      spec: await SwaggerParser.dereference(filePath, {
+        resolve: {
+          transformedOpenAPISource: {
+            order: 1,
+            canRead: (file: ResolverFileInfo) => isSameOpenAPIFile(file.url, filePath),
+            read: () => transformedSource,
+          },
+        },
+      }) as OpenAPISpec,
+    }
   } catch (error) {
     return {
       ok: false,

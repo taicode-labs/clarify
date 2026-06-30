@@ -1,7 +1,6 @@
 # Changelog
 
 ---
-
 ## v0.8.2
 
 ### Improved
@@ -10,6 +9,157 @@
 - Added support for project variables so project-wide fixed content can be defined and reused centrally
 - Regenerated the CLI bundles so `clarify --version` matches the released patch version
 - Rebuilt the documentation site output so the roadmap and changelog pages reflect the latest patch release
+
+---
+
+## v0.8.0
+
+### Added
+
+- Added runtime UI slots for plugins, including SSR-aware lazy loading and support for replacing selected built-in surfaces
+- Added the `build:assets` plugin hook so plugins can collect and emit static assets during production builds
+- Added locale-specific OpenAPI virtual modules so multilingual sites can render and embed the correct localized API specification
+- Added Vitest coverage across CLI commands, configuration loading, routing, SSG, OpenAPI, content artifacts, SEO artifacts, source links, and renderer utilities
+
+### Improved
+
+- Improved OpenAPI rendering with per-page spec data injection, cleaner virtual module generation, and better SSR behavior
+- Improved prose table rendering with wrappers, nowrap headers, and safer inline-code layout inside table cells
+- Improved plugin type exports and runtime slot naming for clearer integration boundaries
+
+---
+
+## v0.7.2
+
+### Added
+
+- Added an OpenAPI single-server example and improved interactive server URL display
+- Added dedicated request and response components for OpenAPI operation rendering
+
+### Improved
+
+- Improved application shell layout by accounting for dynamic header offsets
+
+---
+
+## v0.7.1
+
+### Improved
+
+- Improved footer rendering and marketing surface integration for the website
+
+---
+
+## v0.7.0
+
+### Added
+
+- Added built-in Pagefind full-text search with indexing, result display, loading states, and multilingual search isolation
+- Added the `WebFrame` MDX component for embedding web content in documentation pages
+
+### Improved
+
+- Refactored Vite and OpenAPI module generation to make API references and inline OpenAPI embeds more reliable
+- Fixed locale-aware OpenAPI spec resolution for inline embeds
+
+---
+
+## v0.6.7
+
+### Added
+
+- Added global announcement banner configuration for site-wide notices
+- Added page action handling for content copy and raw-content entry points
+
+### Improved
+
+- Improved page title, page action, and content action layout consistency
+
+---
+
+## v0.6.6
+
+### Added
+
+- Added global content variable planning to the roadmap and documentation direction
+
+### Improved
+
+- Improved theme color variables and visual consistency across light and dark modes
+
+---
+
+## v0.6.5
+
+### Improved
+
+- Migrated theme preference persistence from local storage to cookies
+- Improved theme preference handling for server-rendered pages and client hydration
+
+---
+
+## v0.6.4
+
+### Added
+
+- Added source repository metadata support for “Edit this page” links
+
+### Improved
+
+- Improved raw content, source links, and content action behavior across generated pages
+
+---
+
+## v0.6.3
+
+### Added
+
+- Added `siteUrl`-based SEO artifact generation for `sitemap.xml` and `robots.txt`
+- Added stronger page metadata support for generated static pages
+
+---
+
+## v0.6.2
+
+### Improved
+
+- Improved `routePrefix` handling for subpath deployments, internal links, and static assets
+
+---
+
+## v0.6.1
+
+### Improved
+
+- Improved multilingual routing, locale fallback behavior, and localized navigation labels
+
+---
+
+## v0.6.0
+
+### Added
+
+- Added multilingual documentation support with locale directories and prefixed non-default locale routes
+- Added AI-ready content artifacts including raw Markdown/OpenAPI output and `llms.txt`
+
+---
+
+## v0.5.0
+
+### Added
+
+- Added OpenAPI reference generation from `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` files
+- Added OpenAPI tag filtering and single-operation embedding inside MDX pages
+- Added request, response, schema, authentication, server, and copyable request-code displays
+
+---
+
+## v0.4.0
+
+### Added
+
+- Added the plugin system with build-time hooks for route resolution, virtual modules, HTML transforms, and build completion
+- Added configuration support for redirects, route overrides, external links, icons, and richer sidebar structures
 
 ---
 

@@ -1,4 +1,4 @@
-import { Moon, Sun } from 'lucide-react'
+import { Monitor, Moon, Sun } from 'lucide-react'
 import { type ReactElement, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -116,8 +116,8 @@ function ThemeToggle() {
   const [theme, setThemeState] = useState<ThemePreference>(() => getStoredTheme())
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(() => getSystemTheme())
   const resolvedTheme = theme === 'system' ? systemTheme : theme
-  const nextTheme: ResolvedTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
-  const label = nextTheme === 'dark' ? t('common.theme.switchToDark') : t('common.theme.switchToLight')
+  const nextTheme = getNextTheme(theme)
+  const label = getThemeLabel(nextTheme, t)
 
   useEffect(() => {
     applyTheme(resolvedTheme)
@@ -150,10 +150,23 @@ function ThemeToggle() {
       className="relative inline-flex size-9 shrink-0 items-center justify-center rounded-full text-(--clarify-ui-text-strong) transition hover:bg-(--clarify-ui-hover-background)"
     >
       <span className="absolute size-12 pointer-fine:hidden" />
-      <Sun className="size-5 stroke-(--clarify-ui-text-strong) dark:hidden" aria-hidden="true" />
-      <Moon className="hidden size-5 stroke-(--clarify-ui-text-strong) dark:block" aria-hidden="true" />
+      {theme === 'system' ? <Monitor className="size-5 stroke-(--clarify-ui-text-strong)" aria-hidden="true" /> : null}
+      {theme === 'light' ? <Sun className="size-5 stroke-(--clarify-ui-text-strong)" aria-hidden="true" /> : null}
+      {theme === 'dark' ? <Moon className="size-5 stroke-(--clarify-ui-text-strong)" aria-hidden="true" /> : null}
     </button>
   )
+}
+
+function getNextTheme(theme: ThemePreference): ThemePreference {
+  if (theme === 'system') return 'light'
+  if (theme === 'light') return 'dark'
+  return 'system'
+}
+
+function getThemeLabel(theme: ThemePreference, t: ReturnType<typeof useTranslation>['t']) {
+  if (theme === 'dark') return t('common.theme.switchToDark')
+  if (theme === 'light') return t('common.theme.switchToLight')
+  return t('common.theme.switchToSystem')
 }
 
 type LanguageToggleProps = { currentLocale: AppLocale }

@@ -1,0 +1,164 @@
+# 项目变量
+
+项目变量可以在 `clarify.ts` 中集中定义可复用值，并在 MDX 页面、frontmatter 和 OpenAPI JSON/YAML 规范中使用。
+
+当同一套文档需要服务多个产品版本、品牌、私有化部署或环境时，变量尤其有用。产品名、基础 host、支持链接或 API base URL 改动时，不需要逐篇文章搜索替换，只需要维护一处配置，然后用 `{{ name }}` 占位符引用。
+
+---
+
+## 适合哪些场景
+
+| 场景 | 变量可以统一维护什么 |
+|------|----------|
+| OEM / 白标文档 | 产品名、品牌名、支持邮箱、法务主体、logo 替代文本和联系入口 |
+| 私有化部署 | 控制台 host、API base host、状态页、SSO 入口和地域端点 |
+| 官方链接 | 官网、文档首页、更新日志、价格页、支持中心、GitHub 仓库和社区链接 |
+| 跟随版本发布的文档 | 当前版本、SDK 版本、API 版本、发布通道和迁移指南链接 |
+| 多环境示例 | Sandbox host、生产 host、callback URL、webhook URL 和 dashboard URL |
+| 共享法律或合规文本 | 数据处理联系人、隐私政策 URL、服务条款 URL 和地区性声明 |
+
+变量最适合放稳定的项目事实，并且这些事实会在很多页面重复出现。它不应该替代正文写作、翻译或运行时用户输入。
+
+---
+
+## 定义变量
+
+在 `clarify.ts` 中添加 `variables`：
+
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  title: 'Acme Cloud Docs',
+  variables: {
+    product: {
+      name: 'Acme Cloud',
+      edition: 'Enterprise',
+    },
+    links: {
+      home: 'https://acme.example.com',
+      support: 'https://support.example.com',
+      status: 'https://status.example.com',
+    },
+    hosts: {
+      console: 'https://console.acme.example.com',
+      api: 'https://api.acme.example.com/v1',
+      sandboxApi: 'https://sandbox-api.acme.example.com/v1',
+    },
+    versions: {
+      api: '2026-06-30',
+      sdk: '4.2.0',
+    },
+  },
+})
+```
+
+支持的值包括字符串、数字、布尔值和嵌套对象。引用嵌套值时使用点路径，例如 `{{ product.name }}` 或 `{{ hosts.api }}`。
+
+---
+
+## 在 MDX 中使用变量
+
+变量会在 Clarify 提取页面标题、描述、正文标题、章节、搜索文本和原始内容产物之前展开。
+
+```mdx
+---
+title: "部署 {{ product.name }}"
+description: "将你的服务接入 {{ product.name }} {{ product.edition }}。"
+---
+
+# 部署 {{ product.name }}
+
+打开控制台 [{{ hosts.console }}]({{ hosts.console }}) 并创建一个新项目。
+
+如需帮助，请通过 [{{ links.support }}]({{ links.support }}) 联系支持团队。
+```
+
+在 YAML frontmatter 中使用变量时，请给占位符加引号，确保 YAML 将它解析为字符串。
+
+---
+
+## 在 OpenAPI 规范中使用变量
+
+同样的占位符也可以写在 `.openapi.json`、`.openapi.yaml` 和 `.openapi.yml` 文件中。Clarify 会在解析和 dereference 规范前先展开变量，因此生成的 API 页面、接口元数据、server 选择器、原始 OpenAPI 输出和 `llms.txt` 都会使用展开后的值。
+
+```yaml title="source/api.openapi.yaml"
+openapi: 3.0.0
+info:
+  title: "{{ product.name }} API"
+  version: "{{ versions.api }}"
+servers:
+  - url: "{{ hosts.api }}"
+    description: Production
+  - url: "{{ hosts.sandboxApi }}"
+    description: Sandbox
+paths:
+  /projects:
+    get:
+      summary: List {{ product.name }} projects
+      responses:
+        '200':
+          description: OK
+```
+
+即使根 OpenAPI 规范经过了变量展开，相对 `$ref` 仍然会从原始 OpenAPI 文件所在位置解析。
+
+---
+
+## OEM 和白标文档维护
+
+在 OEM 或白标场景中，可以把品牌相关事实放进变量，让文章结构保持共享：
+
+```ts
+export default defineConfig({
+  title: 'Partner Cloud Docs',
+  variables: {
+    product: {
+      name: 'Partner Cloud',
+      vendor: 'Partner Inc.',
+    },
+    links: {
+      home: 'https://partner.example.com',
+      support: 'https://partner.example.com/support',
+      privacy: 'https://partner.example.com/privacy',
+    },
+    hosts: {
+      console: 'https://console.partner.example.com',
+      api: 'https://api.partner.example.com/v1',
+    },
+  },
+})
+```
+
+```mdx
+# Welcome to {{ product.name }}
+
+{{ product.name }} is operated by {{ product.vendor }}.
+
+- Console: {{ hosts.console }}
+- API base URL: {{ hosts.api }}
+- Privacy policy: {{ links.privacy }}
+```
+
+这样维护模型会更简单：每个版本只改配置，页面和 OpenAPI 结构保持一致，品牌差异也集中在一个地方 Review。
+
+---
+
+## 合适的变量边界
+
+适合放入变量的是需要全站保持一致的事实：
+
+- 产品名、版本名、公司名和发布名称。
+- 官方 host 和基础 URL。
+- 支持、状态页、法律、价格页和仓库链接。
+- 当前 API、SDK 或平台版本。
+- Sandbox、staging、production、region 等环境标签。
+
+不建议把这些内容变量化：
+
+- 完整段落和概念解释。
+- 依赖语言语法的本地化句子。
+- 读者在运行时输入的值。
+- OpenAPI `servers[].variables`，它属于 OpenAPI 自身的运行时 server 选择模型，和 Clarify 项目变量不是同一个概念。
+
+未知占位符和对象值占位符会保持原样。因此文档中展示 `{{ customer_id }}` 这类模板示例是安全的，不需要把每个示例占位符都定义进 `clarify.ts`。

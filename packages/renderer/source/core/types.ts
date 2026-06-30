@@ -167,6 +167,7 @@ export type Config = {
   source?: SourceConfig;
   rootDirectory: string;
   routePrefix: string;
+  assetPrefix: string;
   outputDirectory: string;
   navbar?: { links?: NavbarLink[] };
   banner?: BannerConfig;

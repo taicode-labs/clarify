@@ -12,6 +12,12 @@ describe('clarifyProjectConfigSchema', () => {
       siteUrl: 'https://docs.example.com',
       source: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' },
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+      variables: {
+        product: { name: 'Clarify' },
+        version: '0.8.0',
+        stable: true,
+        build: 8,
+      },
       i18n: {
         defaultLocale: 'zh-CN',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
@@ -24,6 +30,12 @@ describe('clarifyProjectConfigSchema', () => {
       siteUrl: 'https://docs.example.com',
       source: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' },
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+      variables: {
+        product: { name: 'Clarify' },
+        version: '0.8.0',
+        stable: true,
+        build: 8,
+      },
       i18n: {
         defaultLocale: 'zh-CN',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
@@ -67,6 +79,7 @@ describe('resolveProjectConfig', () => {
       homeUrl: undefined,
       favicon: undefined,
       routePrefix: '/',
+      assetPrefix: '/',
       theme: {
         preset: 'default',
         tokens: {
@@ -95,6 +108,7 @@ describe('resolveProjectConfig', () => {
       navbar: undefined,
       banner: undefined,
       footer: undefined,
+      variables: {},
       i18n: undefined,
       tabs: undefined,
     })
@@ -112,6 +126,10 @@ describe('resolveProjectConfig', () => {
       navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
       banner: { content: 'v2 is out', dismissible: true },
       footer: { copyright: '© 2026' },
+      variables: {
+        product: { name: 'Clarify' },
+        apiVersion: '1.0.0',
+      },
       i18n: {
         defaultLocale: 'zh-CN',
         locales: [
@@ -133,9 +151,14 @@ describe('resolveProjectConfig', () => {
     expect(result.theme.editor).toBe(true)
     expect(result.homeUrl).toBe('https://example.com')
     expect(result.favicon).toBe('/favicon.svg')
+    expect(result.assetPrefix).toBe('/')
     expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
     expect(result.footer).toEqual({ copyright: '© 2026' })
+    expect(result.variables).toEqual({
+      product: { name: 'Clarify' },
+      apiVersion: '1.0.0',
+    })
     expect(result.i18n).toEqual({
       defaultLocale: 'zh-CN',
       missing: 'fallback',
@@ -147,6 +170,27 @@ describe('resolveProjectConfig', () => {
     expect(result.tabs).toEqual([
       { tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] },
     ])
+  })
+
+  it('normalizes routePrefix for Vite base paths', () => {
+    expect(resolveProjectConfig({ routePrefix: '' }).routePrefix).toBe('/')
+    expect(resolveProjectConfig({ routePrefix: '/' }).routePrefix).toBe('/')
+    expect(resolveProjectConfig({ routePrefix: 'docs' }).routePrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ routePrefix: '/docs' }).routePrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ routePrefix: '/docs/' }).routePrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ routePrefix: ' /docs/api/ ' }).routePrefix).toBe('/docs/api/')
+  })
+
+  it('defaults assetPrefix to routePrefix and normalizes overrides', () => {
+    expect(resolveProjectConfig({ routePrefix: '/docs' }).assetPrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ routePrefix: '/docs', assetPrefix: '' }).assetPrefix).toBe('/')
+    expect(resolveProjectConfig({ assetPrefix: 'assets' }).assetPrefix).toBe('/assets/')
+    expect(resolveProjectConfig({ assetPrefix: '/assets/' }).assetPrefix).toBe('/assets/')
+    expect(resolveProjectConfig({ assetPrefix: './' }).assetPrefix).toBe('./')
+    expect(resolveProjectConfig({ assetPrefix: './assets' }).assetPrefix).toBe('./assets/')
+    expect(resolveProjectConfig({ assetPrefix: '../assets' }).assetPrefix).toBe('../assets/')
+    expect(resolveProjectConfig({ assetPrefix: ' https://cdn.example.com/docs ' }).assetPrefix).toBe('https://cdn.example.com/docs/')
+    expect(resolveProjectConfig({ assetPrefix: 'https://cdn.example.com/docs/' }).assetPrefix).toBe('https://cdn.example.com/docs/')
   })
 
   it('applies theme presets before project overrides', () => {

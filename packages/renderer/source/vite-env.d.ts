@@ -19,6 +19,7 @@ declare module 'virtual:clarify/config' {
     theme: ThemeConfig;
     description: string;
     routePrefix: string;
+    assetPrefix: string;
     rootDirectory: string;
     outputDirectory: string;
   };

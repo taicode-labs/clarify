@@ -10,7 +10,9 @@ const ctx: ClarifyHookContext = {
     title: 'Docs',
     description: '',
     routePrefix: '/',
+    assetPrefix: '/',
     theme: resolveThemeConfig(),
+    variables: {},
   },
   generateOptions: {
     projectRoot: '/site',

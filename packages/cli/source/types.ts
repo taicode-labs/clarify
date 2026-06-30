@@ -58,6 +58,12 @@ export type ClarifyFooterConfig = {
   copyright?: ClarifyLocalizedText
 }
 
+export type ClarifyVariablePrimitive = string | number | boolean
+
+export type ClarifyVariableValue = ClarifyVariablePrimitive | { [key: string]: ClarifyVariableValue }
+
+export type ClarifyVariablesConfig = Record<string, ClarifyVariableValue>
+
 export type ClarifySourceConfig = {
   /** Repository web URL, for example https://github.com/owner/repo. */
   repository: string
@@ -214,6 +220,9 @@ export type ClarifyProjectConfig = {
   /** Base path for the docs site. Default: '/' */
   routePrefix?: string
 
+  /** Base path or URL for emitted static assets. Defaults to routePrefix. */
+  assetPrefix?: string
+
   /** Top navigation links. */
   navbar?: {
     links?: ClarifyNavbarLink[]
@@ -224,6 +233,9 @@ export type ClarifyProjectConfig = {
 
   /** Footer configuration. */
   footer?: ClarifyFooterConfig
+
+  /** Reusable constants available in supported content via {{ variableName }} placeholders. */
+  variables?: ClarifyVariablesConfig
 
   /** Native multi-language support. Locale content lives under rootDirectory/{locale}. */
   i18n?: ClarifyI18nConfig
@@ -244,11 +256,13 @@ export type ResolvedProjectConfig = {
   siteUrl?: string
   source?: ClarifySourceConfig
   routePrefix: string
+  assetPrefix: string
   favicon?: ClarifyFaviconConfig
   theme: ResolvedClarifyThemeConfig
   navbar?: { links?: ClarifyNavbarLink[] }
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig
+  variables: ClarifyVariablesConfig
   i18n?: ResolvedClarifyI18nConfig
   tabs?: ClarifyTabsConfig
 }
@@ -346,6 +360,16 @@ export type ClarifyRouteDiscoveryInput = {
   routes: ContentRoute[]
 }
 
+export type ClarifyContentKind = 'mdx' | 'openapi'
+
+export type ClarifyContentTransformInput = {
+  kind: ClarifyContentKind
+  source: string
+  filePath?: string
+  frontmatter: Record<string, unknown>
+  content: string
+}
+
 export type ClarifyHtmlTransformInput = {
   html: string
   tags: HtmlTagDescriptor[]
@@ -361,6 +385,10 @@ export type ClarifyEmitAsset = {
 }
 
 export type ClarifyHooks = {
+  'content:transform'?: (
+    input: ClarifyContentTransformInput,
+    ctx: ClarifyHookContext
+  ) => Promise<ClarifyContentTransformInput> | ClarifyContentTransformInput
   'pages:resolved'?: (
     pages: ClarifyPage[],
     ctx: ClarifyHookContext

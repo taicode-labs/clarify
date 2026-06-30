@@ -9,7 +9,9 @@ const projectConfig: ResolvedProjectConfig = {
   title: 'Clarify',
   description: '',
   routePrefix: '/',
+  assetPrefix: '/',
   theme: resolveThemeConfig(),
+  variables: {},
 }
 
 function createRoute(kind: 'mdx' | 'openapi', contentArtifactUrl: string): ContentRoute {

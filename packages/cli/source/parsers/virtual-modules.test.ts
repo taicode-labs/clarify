@@ -10,7 +10,9 @@ describe('generateConfigModule', () => {
       title: 'Test',
       description: 'Desc',
       routePrefix: '/',
+      assetPrefix: '/',
       theme: resolveThemeConfig({ tokens: { colors: { primary: '#fff' } } }),
+      variables: {},
     }
     const generateOptions: ResolvedBuildOptions = {
       projectRoot: '/site',
@@ -71,7 +73,9 @@ describe('generateRoutesModule', () => {
       title: 'Docs',
       description: '',
       routePrefix: '/',
+      assetPrefix: '/',
       theme: resolveThemeConfig(),
+      variables: {},
       tabs: [
         { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
       ],

@@ -59,11 +59,19 @@ Clarify 当前构建流程会调用以下 Hook：
 
 | Hook | 触发时机 | 典型用途 |
 |------|----------|----------|
+| `content:transform` | Clarify 从 MDX、OpenAPI 规范等内容源提取元数据前 | 展开项目变量、规范化 frontmatter、注入生成内容或校验原始内容 |
+| `routes:discover` | 从内容根目录发现路由时 | 添加 OpenAPI 等非 MDX 路由，或替换发现结果 |
+| `routes:discovered` | 路由发现后、应用配置路径和导航前 | 丰富已发现路由、添加源文件链接或挂载产物 URL |
 | `routes:resolved` | 路由和导航生成后 | 调整路由、导航、分组和可见页面 |
 | `modules:before` | 虚拟模块生成后、交给 Vite 前 | 注入或修改运行时虚拟模块 |
+| `html:transform` | HTML 输出或开发服务返回前 | 注入 HTML 标签、主题启动脚本或客户端入口脚本 |
+| `dev:configureServer` | Vite 开发服务器配置时 | 注册本地中间件或仅开发环境使用的接口 |
+| `build:assets` | 构建产物写入阶段 | 生成额外静态文件 |
 | `build:done` | 构建和 SSG 完成后 | 生成额外产物、上报构建结果 |
 
 插件按照 `plugins` 数组顺序依次执行。前一个插件返回的结果会作为下一个插件的输入。
+
+Clarify 内置的项目变量就是通过 `content:transform` 插件实现的。用户插件也运行在同一个生命周期中，并且会在内置插件之后执行。
 
 > 类型中还预留了 `pages:resolved` 和 `page:transform`，但当前 CLI 构建流程尚未触发它们。插件作者应优先使用上表中的 Hook。
 
@@ -114,6 +122,34 @@ export default defineConfig({
 ```
 
 如果同时修改 `routes` 和 `navigation`，需要保证两者一致，避免侧边栏指向不存在的页面。
+
+---
+
+## 示例：转换 MDX 内容
+
+如果需要在 Clarify 提取页面标题、描述、正文标题、章节锚点、接口元数据和搜索文本之前修改内容，可以使用 `content:transform`。输入中包含 `kind`，因此插件可以只处理 MDX 页面，避免误改 OpenAPI 规范：
+
+```ts
+import { defineConfig, type ClarifyPlugin } from '@clarify-labs/cli'
+
+const legalNoticePlugin: ClarifyPlugin = {
+  name: 'legal-notice',
+  hooks: {
+    'content:transform'(page) {
+      if (page.kind !== 'mdx') return page
+
+      return {
+        ...page,
+        content: `${page.content}\n\n<LegalNotice />`,
+      }
+    },
+  },
+}
+
+export default defineConfig({
+  plugins: [legalNoticePlugin],
+})
+```
 
 ---
 

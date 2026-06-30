@@ -10,7 +10,9 @@ const mockCtx: ClarifyHookContext = {
     title: 'Test',
     description: '',
     routePrefix: '/',
+    assetPrefix: '/',
     theme: resolveThemeConfig(),
+    variables: {},
   },
   generateOptions: {
     projectRoot: '/site',

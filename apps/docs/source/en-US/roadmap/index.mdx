@@ -18,8 +18,9 @@ The current documentation reflects the latest patch release, `v0.8.2`. This upda
 | Site configuration and navigation | Released | TypeScript config, tabs, grouped sidebars, top navigation, footer, redirects, `routePrefix`, and the global announcement banner. |
 | Theming and branding | Released | Light/dark themes, system preference, theme tokens, layout width, radius settings, and the visual theme editor. |
 | AI-ready output | Released | Raw Markdown/OpenAPI artifacts, page copy actions, raw content links, and `llms.txt`. |
-| Extensible build pipeline | Released | Plugin hooks for route resolution, virtual modules, HTML transforms, build completion, and built-in index generation. |
+| Extensible build pipeline | Released | Plugin hooks for route resolution, virtual modules, HTML transforms, build assets, build completion, runtime UI slots, and built-in index generation. |
 | Search experience | Released | Built-in Pagefind full-text search with dev-time temporary indexes, production static indexes, multilingual isolation, highlighted excerpts, and section quick-jump fallback. |
+| Test coverage | In progress | Core CLI, routing, SSG, OpenAPI, plugin artifacts, SEO artifacts, source links, and renderer utilities now have focused Vitest coverage. |
 
 ---
 
@@ -78,7 +79,8 @@ The current documentation reflects the latest patch release, `v0.8.2`. This upda
 - [x] Page copy actions, raw content links, and `llms.txt`
 - [x] Pagefind static search indexes and dev-time temporary index serving
 - [x] Sitemap, robots, and baseline SEO artifacts
-- [x] Plugin hooks: `routes:resolved`, `modules:before`, `html:transform`, and `build:done`
+- [x] Plugin hooks: `routes:resolved`, `modules:before`, `html:transform`, `build:assets`, and `build:done`
+- [x] Runtime UI slots for plugin-rendered page surfaces, including banner replacement
 - [x] `clarify dev`, `clarify build`, and `clarify init`
 
 ---
@@ -89,13 +91,13 @@ Near-term work focuses on making the existing capabilities more reliable, comple
 
 | Direction | Goal |
 |-----------|------|
-| Search experience polish | Improve Pagefind loading feedback, result excerpts, highlighting, keyboard behavior, and consistency after multilingual switching. |
+| Search experience polish | Keep improving result ranking, keyboard behavior, and edge cases after multilingual switching. |
 | SEO and social cards | Improve Open Graph, Twitter Card, canonical URL, page title, and page description behavior. |
 | OpenAPI experience | Improve complex schemas, error states, example selection, code samples, and large-spec loading behavior. |
 | GitHub feedback entry points | Design GitHub Issues / Discussions-based flows for page comments, issue feedback, and content improvement suggestions. |
 | Theme system polish | Promote more visual rules into stable tokens and improve theme editor export/documentation. |
-| Docs and templates | Improve the complete template, migration guide, deployment guide, built-in component reference, and best practices. |
-| Test coverage | Strengthen regression coverage for the CLI, routing, OpenAPI, i18n, theming, and renderer components. |
+| Docs and templates | Improve the complete template, migration guide, deployment guide, plugin examples, built-in component reference, and best practices. |
+| Test coverage | Expand regression coverage around runtime slots, multilingual OpenAPI behavior, themes, and renderer components. |
 
 ---
 
@@ -107,8 +109,8 @@ These capabilities will be explored after the core experience becomes more stabl
 - [ ] **GitHub-based comments and feedback**: link documentation pages to GitHub Issues or Discussions so readers can leave comments, report problems, request missing content, and let maintainers follow up inside their existing GitHub workflow.
 - [ ] **Custom MDX component registration**: provide a stable way to expose project-specific components to MDX.
 - [ ] **Content quality checks**: detect broken links, missing translations, duplicate headings, invalid OpenAPI references, and related issues.
-- [ ] **Runtime UI slots (designed, under evaluation)**: let plugins render runtime UI at fixed page positions (such as comments, feedback, and bottom CTAs) and even replace built-in components. The [design draft](/development/plugin-api) is complete, but the mechanism involves SSR/hydration consistency, multi-plugin conflicts, virtual modules, and type generation, so it is fairly complex; whether and when to adopt it still needs further evaluation.
-- [ ] **Expanded plugin API**: provide more stable extension points for search, translation, governance, and internal platform integrations.
+- [ ] **Runtime UI slot expansion**: runtime UI slots have landed for key page surfaces; the next step is to stabilize more slot positions, conflict rules, examples, and type generation for real plugins.
+- [ ] **Expanded plugin API**: provide more stable extension points for search, translation, governance, asset emission, and internal platform integrations.
 
 ---
 

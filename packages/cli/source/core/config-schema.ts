@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { ClarifyProjectConfig } from '../types.js'
+import type { ClarifyVariableValue, ClarifyProjectConfig } from '../types.js'
 
 export const clarifyLogoConfigSchema = z.union([
   z.string(),
@@ -74,6 +74,15 @@ export const clarifyFooterConfigSchema = z.object({
   socials: z.record(z.string(), z.string()).optional(),
   copyright: clarifyLocalizedTextSchema.optional(),
 }).strict()
+
+export const clarifyVariableValueSchema: z.ZodType<ClarifyVariableValue> = z.lazy(() => z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.record(z.string(), clarifyVariableValueSchema),
+]))
+
+export const clarifyVariablesConfigSchema = z.record(z.string(), clarifyVariableValueSchema)
 
 export const clarifySourceConfigSchema = z.object({
   repository: z.string(),
@@ -173,11 +182,13 @@ export const clarifyProjectConfigSchema = z.object({
   favicon: clarifyFaviconConfigSchema.optional(),
   theme: clarifyThemeConfigSchema.optional(),
   routePrefix: z.string().optional(),
+  assetPrefix: z.string().optional(),
   navbar: z.object({
     links: z.array(clarifyNavbarLinkSchema).optional(),
   }).optional(),
   banner: clarifyBannerConfigSchema.optional(),
   footer: clarifyFooterConfigSchema.optional(),
+  variables: clarifyVariablesConfigSchema.optional(),
   i18n: clarifyI18nConfigSchema.optional(),
   tabs: clarifyTabsConfigSchema.optional(),
 }) satisfies z.ZodType<ClarifyProjectConfig>

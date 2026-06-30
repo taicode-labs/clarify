@@ -71,6 +71,15 @@ export default defineConfig({
     },
     copyright: '© 2026 Clarify Team',
   },
+  variables: {
+    product: {
+      name: 'Clarify',
+      version: '0.8.0',
+    },
+    links: {
+      support: 'https://clarify.pub/support',
+    },
+  },
   i18n: {
     defaultLocale: 'zh-CN',
     missing: 'fallback',
@@ -110,6 +119,7 @@ export default defineConfig({
 | `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | 顶部导航。适合放置“文档”“API”“GitHub”“控制台”等少量全局入口。复杂信息架构应放入 `tabs` 和侧边栏。 |
 | `banner` | `ClarifyBannerConfig` | — | 顶部公告条。适合展示版本发布、迁移提示、维护窗口、活动通知等短消息。 |
 | `footer` | `ClarifyFooterConfig` | — | 页脚。可放置常用链接、社区入口、版权声明、外部社交账号，或自定义页脚组件路径。Clarify 品牌标识始终保留。 |
+| `variables` | `Record<string, string \| number \| boolean \| object>` | `{}` | 全局项目变量。可在 MDX frontmatter、正文和 OpenAPI JSON/YAML 规范中用 `{{ name }}` 或 `{{ nested.name }}` 占位符复用产品名、版本号、链接、联系方式、API 基础地址和法律声明等内容。 |
 | `i18n` | `ClarifyI18nConfig` | — | 多语言配置。声明可用语言、默认语言、文本方向，以及缺失翻译的处理策略。 |
 | `tabs` | `ClarifyTabsConfig` | 按文件树自动生成 | 站点一级业务分类和每个分类下的侧边栏结构。省略时按内容目录自动生成导航。 |
 | `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | 静态生成策略。控制预渲染单个页面失败时是否中断整个构建。 |
@@ -378,6 +388,59 @@ export default defineConfig({
 </CodeGroup>
 
 颜色 token 可以直接写字符串，也可以按亮暗模式分别提供 `{ light?: string; dark?: string }`。如果某个模式缺失，Clarify 会回退到可用值或 preset 默认值。当前版本不会读取用户项目中的自定义 CSS 或 `tailwind.config.js` 来覆盖渲染器样式。
+
+---
+
+## `variables`
+
+`variables` 用来定义 MDX frontmatter、页面正文和 OpenAPI JSON/YAML 规范中可复用的项目级常量。变量会在 MDX 编译前或 OpenAPI 解析前展开，因此解析后的文本也会用于页面标题、描述、正文标题、章节锚点、接口元数据、搜索索引和复制内容产物。
+
+```ts
+export default defineConfig({
+  variables: {
+    product: {
+      name: 'Acme Cloud',
+      version: '2.4.0',
+    },
+    links: {
+      support: 'https://support.example.com',
+      status: 'https://status.example.com',
+    },
+    apiBaseUrl: 'https://api.example.com/v1',
+  },
+})
+```
+
+在 MDX 中使用双花括号引用变量：
+
+```mdx
+---
+title: "{{ product.name }} {{ product.version }}"
+description: "Support docs for {{ product.name }}"
+---
+
+# Welcome to {{ product.name }}
+
+Current version: {{ product.version }}
+
+- Support: {{ links.support }}
+- API base URL: `{{ apiBaseUrl }}`
+```
+
+同样的占位符也可以写在 OpenAPI 文件中，Clarify 会在解析和 dereference 规范前先展开变量：
+
+```yaml title="source/api.openapi.yaml"
+openapi: 3.0.0
+info:
+  title: "{{ product.name }} API"
+  version: "{{ product.version }}"
+servers:
+  - url: "{{ apiBaseUrl }}"
+```
+
+在 YAML frontmatter 中使用变量时，请给占位符加引号，确保 YAML 将它解析为字符串。
+
+支持的值包括字符串、数字、布尔值和嵌套对象。占位符可以通过点路径引用嵌套字段。未知占位符和对象值占位符会保持原样，因此文档中展示 `{{ user_supplied_value }}` 这类模板示例也是安全的。字符串变量可以继续引用其他变量；循环引用会让构建失败，并输出清晰的错误信息。
 
 ---
 

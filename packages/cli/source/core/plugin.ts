@@ -125,7 +125,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       await resolveRoutesAndSpecs()
 
       return {
-        base: projectConfig.routePrefix,
+        base: projectConfig.assetPrefix,
         build: {
           ...(generateOptions.outputDirectory ? { outDir: generateOptions.outputDirectory } : {}),
           manifest: true,
