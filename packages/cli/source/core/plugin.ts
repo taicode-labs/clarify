@@ -11,6 +11,7 @@ import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } 
 
 import { createBuiltinPlugins } from './builtin.js'
 import { resolveProjectConfig } from './config.js'
+import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from './dev-routes.js'
 import { writeClarifyEnvDts } from './env-types.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from './options.js'
@@ -189,6 +190,12 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       if (configFilePath) {
         server.watcher.add(configFilePath)
       }
+
+      // Dev-only endpoint that exposes the in-memory route manifest so external
+      // tooling (e.g. the VS Code extension) can resolve file paths to preview URLs.
+      server.middlewares.use(CLARIFY_DEV_ROUTE_ENDPOINT, (req, res) => {
+        handleDevRouteRequest(req, res, routes, projectConfig, contentRoot)
+      })
 
       const handleContentTreeChange = async (filePath: string) => {
         const changedFile = isAbsolute(filePath) ? filePath : join(root, filePath)

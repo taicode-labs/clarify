@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Clarify Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/extensions/vscode"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/extensions/vscode/output/**/*.js"
+      ],
+      "preLaunchTask": "clarify: build extension"
+    }
+  ]
+}

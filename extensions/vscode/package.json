@@ -1,0 +1,91 @@
+{
+  "name": "clarify",
+  "displayName": "Clarify",
+  "description": "Live preview for Clarify documentation projects.",
+  "version": "0.8.2",
+  "license": "AGPL-3.0-only",
+  "publisher": "taicode-labs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taicode-labs/clarify",
+    "directory": "extensions/vscode"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["Other", "Previewers"],
+  "main": "./output/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "clarify.startPreview",
+        "title": "Clarify: Start Dev Server"
+      },
+      {
+        "command": "clarify.stopPreview",
+        "title": "Clarify: Stop Dev Server"
+      },
+      {
+        "command": "clarify.openPreview",
+        "title": "Clarify: Preview",
+        "icon": {
+          "light": "assets/clarify.svg",
+          "dark": "assets/clarify.svg"
+        }
+      },
+      {
+        "command": "clarify.refreshPreview",
+        "title": "Clarify: Refresh Preview"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "clarify.openPreview",
+          "when": "resourceExtname == .md || resourceExtname == .mdx || resourceFilename =~ /.*\\.openapi\\.(json|ya?ml)$/",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Clarify",
+      "properties": {
+        "clarify.version": {
+          "type": "string",
+          "default": "latest",
+          "description": "Clarify CLI version to use when the workspace has no local install (e.g. \"latest\" or \"0.8.2\")."
+        },
+        "clarify.port": {
+          "type": "number",
+          "default": 5173,
+          "description": "Dev server port. Set to 0 to let Clarify pick a free port."
+        },
+        "clarify.autoOpenPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh the preview when switching to a content file."
+        },
+        "clarify.openToSide": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open the preview panel beside the active editor instead of replacing it."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint source/",
+    "lint:fix": "eslint source/ --fix",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.5.0",
+    "vite": "^8.0.0"
+  }
+}
