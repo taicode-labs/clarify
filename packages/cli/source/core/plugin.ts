@@ -15,6 +15,7 @@ import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from './dev-routes.
 import { writeClarifyEnvDts } from './env-types.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from './options.js'
+import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from './project-info.js'
 import { resolveClarifySite } from './site.js'
 import {
   SSR_ENTRY_CODE,
@@ -191,10 +192,16 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
         server.watcher.add(configFilePath)
       }
 
-      // Dev-only endpoint that exposes the in-memory route manifest so external
-      // tooling (e.g. the VS Code extension) can resolve file paths to preview URLs.
-      server.middlewares.use(CLARIFY_DEV_ROUTE_ENDPOINT, (req, res) => {
-        handleDevRouteRequest(req, res, routes, projectConfig, contentRoot)
+      // Dev-only endpoints for external tooling (e.g. VS Code extension).
+      // Need to match exact paths, so check req.url before handling.
+      server.middlewares.use((req, res, next) => {
+        if (req.url === CLARIFY_DEV_ROUTE_ENDPOINT && req.method === 'POST') {
+          return handleDevRouteRequest(req, res, routes, projectConfig, contentRoot)
+        }
+        if (req.url === CLARIFY_DEV_PROJECT_INFO_ENDPOINT && (req.method === 'GET' || req.method === 'HEAD')) {
+          return handleProjectInfoRequest(req, res, root, contentRoot, projectConfig)
+        }
+        next()
       })
 
       const handleContentTreeChange = async (filePath: string) => {

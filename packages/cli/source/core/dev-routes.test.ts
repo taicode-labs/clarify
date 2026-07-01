@@ -1,14 +1,17 @@
+import { EventEmitter } from 'node:events'
+import type { IncomingMessage } from 'node:http'
+
 import { describe, it, expect } from 'vitest'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../types.js'
 
-import { resolveThemeConfig } from './theme.js'
 import {
   toDevRouteEntry,
   resolveRouteForFile,
   inferRouteForFile,
   handleDevRouteRequest,
 } from './dev-routes.js'
+import { resolveThemeConfig } from './theme.js'
 
 function makeRoute(overrides: Partial<ContentRoute>): ContentRoute {
   return {
@@ -58,9 +61,9 @@ function mockRes() {
 }
 
 /** Create a mock IncomingMessage that emits the given JSON body. */
-function mockReq(body: unknown = {}): import('node:http').IncomingMessage {
+function mockReq(body: unknown = {}): IncomingMessage {
   const json = JSON.stringify(body)
-  const emitter = new (require('node:events').EventEmitter)() as import('node:http').IncomingMessage
+  const emitter = new EventEmitter() as IncomingMessage
   process.nextTick(() => {
     emitter.emit('data', Buffer.from(json))
     emitter.emit('end')
@@ -230,7 +233,7 @@ describe('handleDevRouteRequest', () => {
   it('returns 400 on invalid JSON body', async () => {
     const routes = [makeRoute({})]
     const { res, body } = mockRes()
-    const emitter = new (require('node:events').EventEmitter)() as import('node:http').IncomingMessage
+    const emitter = new EventEmitter() as IncomingMessage
     process.nextTick(() => {
       emitter.emit('data', Buffer.from('not json'))
       emitter.emit('end')

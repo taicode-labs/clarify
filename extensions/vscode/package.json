@@ -15,12 +15,9 @@
   },
   "categories": ["Other", "Previewers"],
   "main": "./output/extension.js",
+  "activationEvents": ["onStartupFinished"],
   "contributes": {
     "commands": [
-      {
-        "command": "clarify.startPreview",
-        "title": "Clarify: Start Dev Server"
-      },
       {
         "command": "clarify.stopPreview",
         "title": "Clarify: Stop Dev Server"
@@ -55,10 +52,15 @@
           "default": "latest",
           "description": "Clarify CLI version to use when the workspace has no local install (e.g. \"latest\" or \"0.8.2\")."
         },
-        "clarify.port": {
-          "type": "number",
-          "default": 5173,
-          "description": "Dev server port. Set to 0 to let Clarify pick a free port."
+        "clarify.cliPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to a `clarify` binary. When set, this overrides all automatic resolution (local install, managed install, npx). Useful for monorepo development or pointing at a custom build."
+        },
+        "clarify.autoStartServer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically start the dev server when opening a Clarify project."
         },
         "clarify.autoOpenPreview": {
           "type": "boolean",

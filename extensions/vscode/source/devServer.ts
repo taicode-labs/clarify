@@ -1,28 +1,33 @@
 import { ChildProcess, spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { join } from 'node:path'
 
 import * as vscode from 'vscode'
 
-const SERVER_URL_REGEX = /https?:\/\/localhost:\d+/
-const SERVER_READY_TIMEOUT_MS = 30_000
+import { DependencyManager } from './dependencyManager'
+import { resolveLocalClarifyBin } from './utils'
+
+// Give Vite up to 120 seconds to compile and start on first run
+const SERVER_READY_TIMEOUT_MS = 120_000
+const SERVER_READY_CHECK_INTERVAL_MS = 300
 const CLARIFY_NPM_PACKAGE = '@clarify-labs/cli'
 
 /**
+ * Generate a random port in the range 10000-65000.
+ */
+function getRandomPort(): number {
+  return Math.floor(Math.random() * (65000 - 10000 + 1)) + 10000
+}
+
+/**
  * Manages the lifecycle of a `clarify dev` subprocess.
- *
- * Version resolution:
- *  1. If the project has a local `@clarify-labs/cli` install, use its bin
- *     (local install always wins to avoid version drift).
- *  2. Otherwise fall back to `npx @clarify-labs/cli@<version>` using the
- *     `clarify.version` setting (default "latest").
  */
 export class DevServerManager {
   private process?: ChildProcess
   private serverUrl?: string
-  private disposables: vscode.Disposable[] = []
+  /** Shared promise for any in-progress start. Callers await this directly. */
+  private starting?: Promise<string>
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly context: vscode.ExtensionContext, private readonly deps: DependencyManager) {}
 
   isRunning(): boolean {
     return this.process !== undefined && !this.process.killed
@@ -32,40 +37,50 @@ export class DevServerManager {
     return this.serverUrl
   }
 
-  async start(workspaceRoot: string): Promise<string> {
-    if (this.isRunning()) {
-      return this.serverUrl!
+  /**
+   * Start the dev server and resolve once it is accepting HTTP requests.
+   * If a start is already in progress, all callers share the same Promise.
+   * If the server is already running and ready, resolves immediately.
+   */
+  start(workspaceRoot: string): Promise<string> {
+    // Already running and healthy — return immediately
+    if (!this.starting && this.isRunning() && this.serverUrl) {
+      return Promise.resolve(this.serverUrl)
     }
 
+    // A start is already in progress — share it
+    if (this.starting) {
+      return this.starting
+    }
+
+    // Kick off a new start and store the shared promise
+    this.starting = this.doStart(workspaceRoot).finally(() => {
+      this.starting = undefined
+    })
+
+    return this.starting
+  }
+
+  private async doStart(workspaceRoot: string): Promise<string> {
     const config = vscode.workspace.getConfiguration('clarify')
-    const port = config.get<number>('port', 5173)
     const version = config.get<string>('version', 'latest')
 
-    const bin = this.resolveClarifyBin(workspaceRoot, version)
-    const args = ['dev', '--port', String(port), '--no-open']
+    const bin = await this.resolveClarifyBin(workspaceRoot, version)
+    console.log(`[clarify] Starting: ${bin} dev in ${workspaceRoot}`)
 
-    this.serverUrl = undefined
+    const port = getRandomPort()
+    const url = `http://localhost:${port}`
+    this.serverUrl = url
 
-    this.process = spawn(bin, args, {
+    this.process = spawn(bin, ['dev', '--port', String(port), '--no-open'], {
       cwd: workspaceRoot,
-      shell: true,
-      env: { ...process.env, FORCE_COLOR: '0' },
+      env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
     })
 
-    this.process.stdout?.on('data', (chunk: Buffer) => {
-      const text = chunk.toString()
-      process.stdout.write(text)
-      if (!this.serverUrl) {
-        const match = text.match(SERVER_URL_REGEX)
-        if (match) this.serverUrl = match[0]
-      }
-    })
-
-    this.process.stderr?.on('data', (chunk: Buffer) => {
-      process.stderr.write(chunk)
-    })
-
+    this.process.stdout?.on('data', (chunk: Buffer) => process.stdout.write(chunk))
+    this.process.stderr?.on('data', (chunk: Buffer) => process.stderr.write(chunk))
     this.process.on('exit', (code) => {
+      console.log(`[clarify] Process exited with code ${code}`)
       this.process = undefined
       this.serverUrl = undefined
       if (code !== null && code !== 0) {
@@ -73,10 +88,43 @@ export class DevServerManager {
       }
     })
 
-    return this.waitForServerUrl()
+    await this.pollUntilReady(url)
+    console.log(`[clarify] Server ready at ${url}`)
+    return url
+  }
+
+  /** Poll HTTP HEAD until the server responds OK or timeout is reached. */
+  private pollUntilReady(url: string): Promise<void> {
+    const deadline = Date.now() + SERVER_READY_TIMEOUT_MS
+
+    return new Promise((resolve, reject) => {
+      const attempt = async () => {
+        if (!this.process) {
+          reject(new Error('Dev server process exited before becoming ready'))
+          return
+        }
+        if (Date.now() > deadline) {
+          reject(new Error(`Timed out waiting for dev server at ${url}`))
+          return
+        }
+        try {
+          const res = await fetch(url, { method: 'HEAD' })
+          if (res.ok || res.status === 404) {
+            // 404 is still a valid HTTP response — server is up
+            resolve()
+            return
+          }
+        } catch {
+          // ECONNREFUSED — server not up yet, retry
+        }
+        setTimeout(attempt, SERVER_READY_CHECK_INTERVAL_MS)
+      }
+      attempt()
+    })
   }
 
   async stop(): Promise<void> {
+    this.starting = undefined
     if (!this.process) return
     const proc = this.process
     this.process = undefined
@@ -84,57 +132,42 @@ export class DevServerManager {
 
     return new Promise((resolve) => {
       proc.once('exit', () => resolve())
-      if (!proc.kill('SIGTERM')) {
-        proc.kill('SIGKILL')
-      }
-      // Don't hang forever if the process refuses to exit.
-      setTimeout(() => {
-        resolve()
-      }, 3000)
+      if (!proc.kill('SIGTERM')) proc.kill('SIGKILL')
+      setTimeout(resolve, 3000)
     })
   }
 
-  dispose(): void {
-    void this.stop()
-    for (const d of this.disposables) d.dispose()
-    this.disposables = []
-  }
+  private async resolveClarifyBin(workspaceRoot: string, version: string): Promise<string> {
+    const cliPath = vscode.workspace.getConfiguration('clarify').get<string>('cliPath', '')
+    if (cliPath && existsSync(cliPath)) {
+      console.log(`[clarify] Using explicit cliPath: ${cliPath}`)
+      return cliPath
+    }
 
-  /**
-   * Resolve the `clarify` binary to spawn.
-   *
-   * 1. Local install: `<workspaceRoot>/node_modules/.bin/clarify` — always wins
-   *    so the user's pinned version is used.
-   * 2. `npx @clarify-labs/cli@<version>` — uses the `clarify.version` setting.
-   *    Falls back to `@clarify-labs/cli@latest` if the configured version fails.
-   */
-  private resolveClarifyBin(workspaceRoot: string, version: string): string {
-    const localBin = join(workspaceRoot, 'node_modules', '.bin', 'clarify')
-    if (existsSync(localBin)) {
+    const localBin = resolveLocalClarifyBin(workspaceRoot)
+    if (localBin) {
+      console.log(`[clarify] Using local CLI: ${localBin}`)
       return localBin
     }
+
+    try {
+      await this.deps.ensureInstalled(version)
+      if (existsSync(this.deps.binPath)) {
+        console.log(`[clarify] Using managed install: ${this.deps.binPath}`)
+        return this.deps.binPath
+      }
+    } catch (err) {
+      vscode.window.showWarningMessage(
+        `Clarify: could not install @clarify-labs/cli@${version} — falling back to npx. (${formatError(err)})`,
+      )
+    }
+
+    console.log(`[clarify] Falling back to npx`)
     return `npx ${CLARIFY_NPM_PACKAGE}@${version}`
   }
+}
 
-  private waitForServerUrl(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const start = Date.now()
-      const check = () => {
-        if (this.serverUrl) {
-          resolve(this.serverUrl)
-          return
-        }
-        if (!this.process) {
-          reject(new Error('dev server process exited before becoming ready'))
-          return
-        }
-        if (Date.now() - start > SERVER_READY_TIMEOUT_MS) {
-          reject(new Error(`timed out waiting for dev server to start (is ${CLARIFY_NPM_PACKAGE} installed?)`))
-          return
-        }
-        setTimeout(check, 200)
-      }
-      check()
-    })
-  }
+function formatError(err: unknown): string {
+  if (err instanceof Error) return err.message
+  return String(err)
 }
