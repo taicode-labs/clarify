@@ -47,6 +47,44 @@ Most documentation tools optimize for convenience first. Clarify optimizes for l
 
 If you like the modern docs experience of tools like Mintlify, but want the source, rendering, and deployment model to stay under your control, Clarify is the fit.
 
+## VSCode Extension
+
+The Clarify VSCode extension provides live preview and instant navigation for your documentation projects directly in the editor.
+
+### Features
+
+- **Live Preview** — View your documentation with real-time hot module replacement as you edit MDX, OpenAPI specs, or config files.
+- **Smart Navigation** — Automatically refresh the preview when switching between content files.
+- **Integrated Dev Server** — Start, stop, and manage the Clarify dev server without leaving the editor.
+- **Route Resolution** — Preview panel intelligently resolves the current route based on your open file.
+
+### Installation
+
+Download the latest `.vsix` extension package from the [GitHub Releases](https://github.com/taicode-labs/clarify/releases) page.
+
+Then install it manually in VSCode:
+
+```bash
+code --install-extension clarify-vscode-extension-*.vsix
+```
+
+Or install through VSCode UI:
+
+1. Open **Extensions** sidebar (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+2. Click the `...` menu at the top-right of the Extensions view
+3. Select **Install from VSIX...**
+4. Choose the downloaded `.vsix` file
+
+### Usage
+
+Once installed, the extension automatically detects Clarify projects (by the presence of `clarify.ts` in the workspace).
+
+- Click the **Clarify icon** in the editor title bar to open the live preview panel
+- The preview will auto-refresh when you edit and save content files
+- Use **Clarify: Stop Dev Server** from the command palette to stop the background server
+
+![VSCode Extension Screenshot](./design/extensions.png)
+
 ## Quick start
 
 Start a new Clarify project:
