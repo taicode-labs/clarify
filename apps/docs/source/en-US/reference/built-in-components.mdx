@@ -11,6 +11,7 @@ The following components can be used directly in MDX pages:
 - Content hints: `Callout`, `Note`
 - Entries and actions: `CardGroup` / `Card`, `Button`
 - Code and collapsible content: `CodeGroup`, `Collapse`
+- Page organization: `Steps` / `Step`, `Tabs` / `Tab`
 - Layout and property descriptions: `Row` / `Col`, `Properties` / `Property`
 - Content embedding: `WebFrame`
 - Markdown rendering: `Markdown`
@@ -35,6 +36,12 @@ The following components can be used directly in MDX pages:
   </Card>
   <Card title="Collapse" icon="list-collapse" href="#collapse">
     Used to collapse optional details, long lists, and advanced notes.
+  </Card>
+  <Card title="Steps / Step" icon="list-ordered" href="#steps--step">
+    Used to guide users through sequential tasks with numbered steps.
+  </Card>
+  <Card title="Tabs / Tab" icon="tabs" href="#tabs--tab">
+    Used to organize related content in switchable panels.
   </Card>
   <Card title="WebFrame" icon="monitor" href="#webframe">
     Used to embed product pages, demos, previews, and other web content.
@@ -244,6 +251,237 @@ Rendered result:
 
 ---
 
+## Steps / Step
+
+`Steps` and `Step` are used to guide users through sequential tasks with numbered steps. They are ideal for installation guides, setup instructions, tutorials, and any multi-step process.
+
+### Basic usage
+
+```mdx
+<Steps>
+  <Step title="Install dependencies">
+    Run the following command to install Clarify CLI:
+    `pnpm add -D @clarify-labs/cli`
+  </Step>
+
+  <Step title="Create configuration file">
+    Create a `clarify.ts` file in your project root with the configuration.
+  </Step>
+
+  <Step title="Start development server">
+    Run the dev server to preview your documentation:
+    `pnpm exec clarify dev`
+  </Step>
+</Steps>
+```
+
+Rendered result:
+
+<Steps>
+  <Step title="Install dependencies">
+    Run the following command to install Clarify CLI: `pnpm add -D @clarify-labs/cli`
+  </Step>
+  <Step title="Create configuration file">
+    Create a `clarify.ts` file in your project root with your documentation title and navigation structure.
+  </Step>
+  <Step title="Start development server">
+    Run the dev server to preview your documentation: `pnpm exec clarify dev`
+  </Step>
+</Steps>
+
+### With custom icons
+
+You can use Lucide icon names (kebab-case or PascalCase) for step indicators:
+
+```mdx
+<Steps>
+  <Step title="Download" icon="download">
+    Download the installation package.
+  </Step>
+  <Step title="Install" icon="package">
+    Run the installer and follow the prompts.
+  </Step>
+  <Step title="Configure" icon="settings">
+    Set up your preferences and API keys.
+  </Step>
+</Steps>
+```
+
+<Steps>
+  <Step title="Download" icon="download">
+    Download the installation package.
+  </Step>
+  <Step title="Install" icon="package">
+    Run the installer and follow the prompts.
+  </Step>
+  <Step title="Configure" icon="settings">
+    Set up your preferences and API keys.
+  </Step>
+</Steps>
+
+### Custom numbering
+
+You can override the automatic numbering with the `stepNumber` prop:
+
+```mdx
+<Steps>
+  <Step title="Prerequisites" stepNumber={0}>
+    Check system requirements before installation.
+  </Step>
+  <Step title="Install">
+    Install the package.
+  </Step>
+  <Step title="Verify">
+    Verify the installation was successful.
+  </Step>
+</Steps>
+```
+
+### Props
+
+#### Steps
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `titleSize` | `'p' \| 'h2' \| 'h3' \| 'h4'` | `'h3'` | HTML tag for step titles |
+| `className` | `string` | - | Additional CSS class names |
+
+#### Step
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `title` | `string` | Required | Step title |
+| `icon` | `string \| ReactNode` | - | Lucide icon name or custom React element |
+| `stepNumber` | `number` | Auto-numbered | Override automatic numbering |
+| `id` | `string` | Auto-generated | HTML id for anchor linking; auto-generated from title if not provided |
+| `noAnchor` | `boolean` | `false` | Hide the anchor link icon |
+| `titleSize` | `'p' \| 'h2' \| 'h3' \| 'h4'` | `'h3'` | HTML tag for this step's title; inherits from `Steps` if not set |
+| `className` | `string` | - | Additional CSS class names |
+
+---
+
+## Tabs / Tab
+
+`Tabs` and `Tab` are used to organize related content in switchable panels. They are ideal for showing code examples in different languages, configuration for different platforms, or alternative approaches to the same task.
+
+### Basic usage
+
+```mdx
+<Tabs>
+  <Tab title="npm">
+    Install: `npm install @clarify-labs/cli`
+  </Tab>
+  <Tab title="pnpm">
+    Install: `pnpm add @clarify-labs/cli`
+  </Tab>
+  <Tab title="yarn">
+    Install: `yarn add @clarify-labs/cli`
+  </Tab>
+</Tabs>
+```
+
+Rendered result:
+
+<Tabs>
+  <Tab title="npm">
+    Install using npm: `npm install @clarify-labs/cli`
+  </Tab>
+  <Tab title="pnpm">
+    Install using pnpm: `pnpm add @clarify-labs/cli`
+  </Tab>
+  <Tab title="yarn">
+    Install using yarn: `yarn add @clarify-labs/cli`
+  </Tab>
+</Tabs>
+
+### With icons
+
+Add visual indicators to tabs using Lucide icon names:
+
+```mdx
+<Tabs>
+  <Tab title="JavaScript" icon="javascript">
+    Example: `export default function hello() { console.log('Hello, world!') }`
+  </Tab>
+  <Tab title="TypeScript" icon="braces">
+    Example: `export default function hello(): void { console.log('Hello, world!') }`
+  </Tab>
+  <Tab title="Python" icon="code">
+    Example: `def hello(): print('Hello, world!')`
+  </Tab>
+</Tabs>
+```
+
+<Tabs>
+  <Tab title="JavaScript" icon="javascript">
+    JavaScript example: `export default function hello() { console.log('Hello, world!') }`
+  </Tab>
+  <Tab title="TypeScript" icon="braces">
+    TypeScript example: `export default function hello(): void { console.log('Hello, world!') }`
+  </Tab>
+  <Tab title="Python" icon="code">
+    Python example: `def hello(): print('Hello, world!')`
+  </Tab>
+</Tabs>
+
+### Synchronized tabs
+
+By default, tabs with the same title are synchronized across the page. When a user selects a tab, all other tab groups with matching titles will update automatically. This is useful for maintaining consistent language or platform selection throughout documentation.
+
+```mdx
+<Tabs>
+  <Tab title="macOS">
+    Instructions for macOS users.
+  </Tab>
+  <Tab title="Windows">
+    Instructions for Windows users.
+  </Tab>
+  <Tab title="Linux">
+    Instructions for Linux users.
+  </Tab>
+</Tabs>
+
+Later in the same page:
+
+<Tabs>
+  <Tab title="macOS">
+    Additional macOS-specific information.
+  </Tab>
+  <Tab title="Windows">
+    Additional Windows-specific information.
+  </Tab>
+  <Tab title="Linux">
+    Additional Linux-specific information.
+  </Tab>
+</Tabs>
+```
+
+<Callout type="tip">
+  When a user clicks on "Windows" in the first tab group, the second tab group will automatically switch to "Windows" as well. To disable this behavior, set `sync={false}`.
+</Callout>
+
+### Props
+
+#### Tabs
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `defaultTabIndex` | `number` | `0` | Index of the initially selected tab |
+| `sync` | `boolean` | `true` | Whether to synchronize selection across all tab groups with matching titles |
+| `borderBottom` | `boolean` | `true` | Add a bottom border below the tab list |
+| `className` | `string` | - | Additional CSS class names |
+
+#### Tab
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `title` | `string` | Required | Tab label |
+| `icon` | `string \| ReactNode` | - | Lucide icon name or custom React element |
+| `id` | `string` | - | HTML id for the tab panel |
+| `className` | `string` | - | Additional CSS class names |
+
+---
+
 ## WebFrame
 
 `WebFrame` is used to embed web content in documentation pages, such as product screens, hosted demos, generated previews, or other internal pages. It renders a simulated browser window by default, and you can disable that chrome with `showWindow={false}`.
@@ -447,6 +685,8 @@ The OpenAPI panel displays servers, authentication, parameters, request bodies, 
 - Prefer `CardGroup` / `Card` for homepages, section indexes, and feature matrices.
 - Use `Callout` for limitations, risks, and supplementary notes strongly related to the main text; use `Note` for lightweight supplementary notes.
 - Use `Button` when guiding users to continue reading or perform an action.
+- Use `Steps` / `Step` for sequential tasks, installation guides, tutorials, and multi-step processes.
+- Use `Tabs` / `Tab` for code examples in different languages, platform-specific instructions, or alternative approaches; leverage `sync={true}` to maintain consistent selection across the page.
 - Use `CodeGroup` for examples covering multiple languages, environments, or package managers.
 - Use `Collapse` for optional details, long lists, and advanced content.
 - Use `WebFrame` for embedded demos, previews, and product screens; disable `showWindow` when the embedded content already has its own chrome.
