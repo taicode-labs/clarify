@@ -1,0 +1,57 @@
+# VS Code Extension
+
+The Clarify VS Code extension brings local preview and workspace-aware Clarify support to Visual Studio Code.
+
+It is shipped from `extensions/vscode` and is designed to work with Clarify documentation projects that use Markdown, MDX, and OpenAPI source files.
+
+## What it provides
+
+- Detects Clarify projects and content files inside a workspace.
+- Starts a local Clarify preview server for the current project.
+- Opens a preview panel inside VS Code for documentation pages.
+- Supports commands to open, refresh, and stop the preview.
+- Uses the same Clarify source code and CLI workflows as the rest of the repository.
+
+## How to use it
+
+1. Open a Clarify project folder in VS Code.
+2. Open a content file such as `index.mdx`, `guide.mdx`, or `api.openapi.json`.
+3. Run the command `Clarify: Preview` from the Command Palette.
+4. Use `Clarify: Refresh Preview` after making content or configuration changes.
+5. Use `Clarify: Stop Dev Server` to end the preview session.
+
+## Development
+
+The extension source lives in `extensions/vscode/source`. The extension is built with Vite and bundled into a single CommonJS output.
+
+```bash
+cd extensions/vscode
+pnpm install
+pnpm build
+```
+
+Run the extension tests:
+
+```bash
+cd extensions/vscode
+pnpm test
+```
+
+## Packaging
+
+The repository includes a dedicated release workflow that packages the extension and uploads the generated `.vsix` asset to GitHub release attachments.
+
+To package the extension locally:
+
+```bash
+cd extensions/vscode
+pnpm exec vsce package --no-dependencies
+```
+
+The built package is written to `extensions/vscode/*.vsix`.
+
+## Learn more
+
+- Extension source: `extensions/vscode/source`
+- Extension manifest: `extensions/vscode/package.json`
+- Local docs: `extensions/vscode/README.md`

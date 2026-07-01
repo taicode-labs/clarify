@@ -1,0 +1,96 @@
+# VS Code 扩展
+
+本页介绍 Clarify VS Code 扩展架构、与 CLI 的集成，以及编辑器内预览流程。
+
+## 本文涵盖内容
+
+- 扩展架构与关键模块
+- CLI 解析与 Dev Server 启动
+- 预览路由与 Webview 同步
+- 配置项与命令
+- 测试说明与已知限制
+
+## 扩展架构
+
+扩展位于 `extensions/vscode`，并通过 Vite 打包为单个 CommonJS bundle。
+
+核心模块包括：
+
+- `extension.ts` — 激活入口与生命周期管理
+- `devServer.ts` — `DevServerManager`，进程启动、健康检查和关闭
+- `routeResolver.ts` — 通过 CLI dev server 解析编辑器文件到预览路由
+- `previewPanel.ts` — 在 Webview 中显示 iframe 预览
+- `dependencyManager.ts` — 无本地 CLI 时安装和复用私有 CLI
+- `projectInfo.ts` — 查询 `/dev/project-info` 获取文件识别规则
+- `utils.ts` — 工作区检测、文件分类、本地 CLI 解析
+- `utils.test.ts` — `utils.ts` 的单元测试
+
+## 预览流程
+
+1. 用户触发 `Clarify: Preview`。
+2. 扩展调用 `ensureServerReady(projectRoot)`。
+3. 若已有可用 dev server，则复用它。
+4. 否则扩展解析或安装 CLI 并启动 `clarify dev`。
+5. 服务器就绪后，`RouteResolver` 获取当前文件对应的路由。
+6. Webview 打开指向生成预览 URL 的 iframe。
+
+## 关键概念
+
+### CLI 解析优先级
+
+扩展优先使用本地工作区 CLI，然后是私有安装，最后回退到 `npx`：
+
+1. `clarify.cliPath` 配置
+2. 工作区中的 `packages/cli/bin/clarify.js`
+3. `node_modules/.bin/clarify`
+4. `node_modules/@clarify-labs/cli/bin/clarify.js`
+5. 扩展存储下的私有安装
+6. `npx @clarify-labs/cli@<version>`
+
+### Dev server 启动
+
+`DevServerManager`：
+
+- 使用 `net.listen(0)` 分配空闲端口
+- 启动 `clarify dev --port <port>`
+- 轮询服务器 URL 直到响应
+- 并发请求共享同一个启动 Promise
+- 发送 SIGTERM 关闭，超时后强制 kill
+
+### 项目信息
+
+扩展通过 `GET /dev/project-info` 加载 CLI 驱动的约定：
+
+- `configFilenames`
+- `contentFileExtensions`
+- `contentRoot`
+
+这可以确保扩展与运行中的 CLI 版本保持一致。
+
+## 配置项
+
+扩展提供如下设置：
+
+- `clarify.version` — 未找到本地 CLI 时安装的版本
+- `clarify.cliPath` — 绝对 binary 路径覆盖所有自动解析
+- `clarify.autoStartServer` — 激活时启动服务
+- `clarify.autoOpenPreview` — 切换内容文件时同步预览
+- `clarify.openToSide` — 在侧边打开预览面板
+
+## VS Code 命令
+
+- `clarify.openPreview` — 打开或刷新当前文件的预览
+- `clarify.stopPreview` — 停止 dev server 并关闭面板
+- `clarify.refreshPreview` — 重新加载预览 iframe
+
+## 测试说明
+
+单元测试覆盖 `extensions/vscode/source/utils.test.ts` 中的纯函数。
+
+实时预览和进程管理行为通过本地扩展运行与调试验证。
+
+## 已知限制
+
+- 多根工作区目前只会为第一个检测到的 Clarify 项目启动服务。
+- `getFreePort()` 在 dev server 监听前仍存在小的竞争窗口。
+- 部分 VS Code 环境中，Webview 的 HMR WebSocket 可能受限。
