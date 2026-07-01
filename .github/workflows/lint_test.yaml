@@ -38,6 +38,13 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Package VS Code extension
+        working-directory: extensions/vscode
+        run: pnpm exec vsce package --no-dependencies
+
+      - name: Verify VS Code extension artifact
+        run: ls extensions/vscode/*.vsix
+
       - name: Test
         run: pnpm test
 
