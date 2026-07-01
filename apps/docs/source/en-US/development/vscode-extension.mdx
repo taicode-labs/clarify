@@ -1,0 +1,95 @@
+# VS Code Extension
+
+This page documents the Clarify VS Code extension architecture, its integration with the CLI, and the editor-specific preview flow.
+
+## What it covers
+
+- Extension architecture and key modules
+- CLI resolution and dev server startup
+- Preview routing and Webview sync
+- Configuration and commands
+- Testing notes and limitations
+
+## Extension architecture
+
+The extension lives under `extensions/vscode` and is built with Vite into a single CommonJS bundle.
+
+The core modules are:
+
+- `extension.ts` — activation entry and lifecycle management
+- `devServer.ts` — `DevServerManager`, process startup, health checks, and shutdown
+- `routeResolver.ts` — resolves editor files to preview routes via the CLI dev server
+- `previewPanel.ts` — the Webview panel that shows the preview iframe
+- `dependencyManager.ts` — installs and reuses a private CLI when no local CLI is available
+- `projectInfo.ts` — queries `/dev/project-info` for authoritative file conventions
+- `utils.ts` — workspace detection, file classification, local CLI resolution
+- `utils.test.ts` — unit tests for `utils.ts`
+
+## Preview flow
+
+1. The user triggers `Clarify: Preview`.
+2. The extension calls `ensureServerReady(projectRoot)`.
+3. If a dev server is already available, it reuses it.
+4. Otherwise the extension resolves or installs a CLI and starts `clarify dev`.
+5. Once the server is ready, `RouteResolver` requests the route for the current file.
+6. The Webview opens an iframe to the generated preview URL.
+
+## Key concepts
+
+### CLI resolution priority
+
+The extension prefers a local workspace CLI, then a private install, and finally `npx`:
+
+1. `clarify.cliPath` config
+2. `packages/cli/bin/clarify.js` in the workspace
+3. `node_modules/.bin/clarify`
+4. `node_modules/@clarify-labs/cli/bin/clarify.js`
+5. Private install under extension storage
+6. `npx @clarify-labs/cli@<version>`
+
+### Dev server startup
+
+`DevServerManager`:
+
+- allocates a free port using `net.listen(0)`
+- spawns `clarify dev --port <port>`
+- polls the server URL until it responds
+- shares one startup promise across concurrent requests
+- shuts down gracefully with SIGTERM and a forced kill timeout
+
+### Project info
+
+The extension queries `GET /dev/project-info` to load CLI-driven conventions such as:
+
+- `configFilenames`
+- `contentFileExtensions`
+- `contentRoot`
+
+This keeps the extension aligned with the running CLI version.
+
+## Configuration
+
+The extension contributes these settings:
+
+- `clarify.version` — version to install when no local CLI exists
+- `clarify.cliPath` — absolute binary path override
+- `clarify.autoStartServer` — start the server on activation
+- `clarify.autoOpenPreview` — sync the preview when switching files
+- `clarify.openToSide` — open the preview panel beside the editor
+
+## VS Code commands
+
+- `clarify.openPreview` — open or refresh the preview for the current file
+- `clarify.stopPreview` — stop the dev server and close the panel
+- `clarify.refreshPreview` — reload the preview iframe
+
+## Testing notes
+
+Unit tests cover the extension's pure utilities in `extensions/vscode/source/utils.test.ts`.
+The live preview and process-management behavior are validated via manual debugging and local extension runs.
+
+## Known limitations
+
+- Multi-root workspaces currently only start one service for the first detected Clarify project.
+- `getFreePort()` has a small race window before the `clarify dev` server binds the port.
+- Webview HMR may be blocked by restrictive environments in some VS Code setups.

@@ -16,11 +16,16 @@ export function defineConfig(config: ClarifyConfig): ClarifyConfig {
   return config
 }
 
-const CONFIG_FILENAMES = [
+/**
+ * Config filenames Clarify CLI looks for at the project root, in resolution
+ * order. Exported so other modules (e.g. the dev `project-info` endpoint) can
+ * surface the same list to tooling without duplicating it.
+ */
+export const CONFIG_FILENAMES = [
   'clarify.ts',
   'clarify.js',
   'clarify.json',
-]
+] as const
 
 export function findClarifyConfigFile(root: string): string | undefined {
   for (const filename of CONFIG_FILENAMES) {

@@ -208,6 +208,14 @@ export default defineConfig({
               icon: 'Braces',
             },
             {
+              page: 'features/vscode-extension',
+              title: {
+                'zh-CN': 'VS Code 扩展',
+                'en-US': 'VS Code Extension',
+              },
+              icon: 'Package',
+            },
+            {
               page: 'features/plugins',
               title: {
                 'zh-CN': '插件系统',
@@ -396,6 +404,14 @@ export default defineConfig({
                 'en-US': 'CLI and Engine',
               },
               icon: 'Terminal',
+            },
+            {
+              page: 'development/vscode-extension',
+              title: {
+                'zh-CN': 'VS Code 扩展',
+                'en-US': 'VS Code Extension',
+              },
+              icon: 'Package',
             },
             {
               page: 'development/renderer',

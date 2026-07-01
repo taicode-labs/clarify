@@ -1,0 +1,97 @@
+{
+  "name": "clarify-vscode-extension",
+  "displayName": "Clarify",
+  "description": "Live preview for Clarify documentation projects.",
+  "version": "0.9.0",
+  "license": "AGPL-3.0-only",
+  "publisher": "taicode-labs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taicode-labs/clarify",
+    "directory": "extensions/vscode"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["Other", "Previewers"],
+  "main": "./output/extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "commands": [
+      {
+        "command": "clarify.stopPreview",
+        "title": "Clarify: Stop Dev Server"
+      },
+      {
+        "command": "clarify.openPreview",
+        "title": "Clarify: Preview",
+        "icon": {
+          "light": "assets/clarify.svg",
+          "dark": "assets/clarify.svg"
+        }
+      },
+      {
+        "command": "clarify.refreshPreview",
+        "title": "Clarify: Refresh Preview"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "clarify.openPreview",
+          "when": "clarify.inProject",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Clarify",
+      "properties": {
+        "clarify.version": {
+          "type": "string",
+          "default": "latest",
+          "description": "Clarify CLI version to use when the workspace has no local install (e.g. \"latest\" or \"0.9.0\")."
+        },
+        "clarify.cliPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to a `clarify` binary. When set, this overrides all automatic resolution (local install, managed install, npx). Useful for monorepo development or pointing at a custom build."
+        },
+        "clarify.autoStartServer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically start the dev server when opening a Clarify project."
+        },
+        "clarify.autoOpenPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh the preview when switching to a content file."
+        },
+        "clarify.openToSide": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open the preview panel beside the active editor instead of replacing it."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint source/",
+    "lint:fix": "eslint source/ --fix",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^2.0.0",
+    "typescript": "^5.5.0",
+    "vite": "^8.0.0",
+    "vitest": "^4.1.9"
+  }
+}

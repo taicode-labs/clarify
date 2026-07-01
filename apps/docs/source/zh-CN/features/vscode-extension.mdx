@@ -1,0 +1,57 @@
+# VS Code 扩展
+
+Clarify VS Code 扩展为 Visual Studio Code 提供本地预览和 Clarify 文档工作区集成。
+
+它来自仓库的 `extensions/vscode`，适用于同一个项目中的 Markdown、MDX 和 OpenAPI 源文件。
+
+## 提供的能力
+
+- 识别 Clarify 项目和内容文件（`.md`、`.mdx`、`.openapi.json`、`.openapi.yaml`、`.openapi.yml`）。
+- 为当前项目启动本地 Clarify 预览服务。
+- 在 VS Code 内打开文档预览面板。
+- 支持打开、刷新和停止预览的命令。
+- 与仓库中的 Clarify 源码和 CLI 工作流共用同一套基础。
+
+## 如何使用
+
+1. 在 VS Code 中打开 Clarify 项目文件夹。
+2. 选择 `index.mdx`、`guide.mdx` 或 `api.openapi.json` 等内容文件。
+3. 通过命令面板运行 `Clarify: Preview`。
+4. 修改内容或配置后，运行 `Clarify: Refresh Preview`。
+5. 结束预览会话时，运行 `Clarify: Stop Dev Server`。
+
+## 开发
+
+扩展源码位于 `extensions/vscode/source`，使用 Vite 构建为单个 CommonJS bundle。
+
+```bash
+cd extensions/vscode
+pnpm install
+pnpm build
+```
+
+运行扩展测试：
+
+```bash
+cd extensions/vscode
+pnpm test
+```
+
+## 打包
+
+仓库已配置 release workflow，会打包扩展并将生成的 `.vsix` 附件上传到 GitHub Release。
+
+本地打包命令：
+
+```bash
+cd extensions/vscode
+pnpm exec vsce package --no-dependencies
+```
+
+构建结果会输出到 `extensions/vscode/*.vsix`。
+
+## 了解更多
+
+- 扩展源码：`extensions/vscode/source`
+- 扩展清单：`extensions/vscode/package.json`
+- 本地文档：`extensions/vscode/README.md`

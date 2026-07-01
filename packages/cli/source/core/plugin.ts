@@ -11,9 +11,11 @@ import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } 
 
 import { createBuiltinPlugins } from './builtin.js'
 import { resolveProjectConfig } from './config.js'
+import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from './dev-routes.js'
 import { writeClarifyEnvDts } from './env-types.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from './options.js'
+import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from './project-info.js'
 import { resolveClarifySite } from './site.js'
 import {
   SSR_ENTRY_CODE,
@@ -189,6 +191,18 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       if (configFilePath) {
         server.watcher.add(configFilePath)
       }
+
+      // Dev-only endpoints for external tooling (e.g. VS Code extension).
+      // Need to match exact paths, so check req.url before handling.
+      server.middlewares.use((req, res, next) => {
+        if (req.url === CLARIFY_DEV_ROUTE_ENDPOINT && req.method === 'POST') {
+          return handleDevRouteRequest(req, res, routes, projectConfig, contentRoot)
+        }
+        if (req.url === CLARIFY_DEV_PROJECT_INFO_ENDPOINT && (req.method === 'GET' || req.method === 'HEAD')) {
+          return handleProjectInfoRequest(req, res, root, contentRoot, projectConfig)
+        }
+        next()
+      })
 
       const handleContentTreeChange = async (filePath: string) => {
         const changedFile = isAbsolute(filePath) ? filePath : join(root, filePath)
