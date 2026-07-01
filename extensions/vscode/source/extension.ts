@@ -3,12 +3,13 @@ import * as vscode from 'vscode'
 import { DevServerManager } from './devServer'
 import { PreviewPanel } from './previewPanel'
 import { RouteResolver } from './routeResolver'
-import { isContentFile } from './utils'
+import { resolveClarifyContentFile } from './utils'
 
 let devServer: DevServerManager
 let routeResolver: RouteResolver | undefined
 let previewPanel: PreviewPanel
 let autoOpenDisposable: vscode.Disposable | undefined
+let activeEditorDisposable: vscode.Disposable | undefined
 
 export function activate(context: vscode.ExtensionContext): void {
   devServer = new DevServerManager(context)
@@ -29,12 +30,20 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const openCmd = vscode.commands.registerCommand('clarify.openPreview', async () => {
     const active = vscode.window.activeTextEditor
-    if (!active || !isContentFile(active.document.uri.fsPath)) {
+    if (!active) {
       vscode.window.showInformationMessage('Clarify: open a content file (.md/.mdx) to preview.')
       return
     }
 
-    const started = await ensureDevServerStarted(context)
+    const info = resolveClarifyContentFile(active.document.uri.fsPath)
+    if (!info) {
+      vscode.window.showInformationMessage(
+        'Clarify: this file is not inside a Clarify project content root.',
+      )
+      return
+    }
+
+    const started = await ensureDevServerStarted(context, info.projectRoot)
     if (!started) return
 
     await navigateToRoute(active.document.uri.fsPath)
@@ -45,25 +54,37 @@ export function activate(context: vscode.ExtensionContext): void {
   })
 
   context.subscriptions.push(startCmd, stopCmd, openCmd, refreshCmd)
+
+  // Dynamically show/hide the preview button based on whether the active file
+  // is a Clarify content file. The `clarify.inProject` context key is consumed
+  // by the `editor/title` menu `when` clause in package.json.
+  updateContentFileContext(vscode.window.activeTextEditor)
+  activeEditorDisposable = vscode.window.onDidChangeActiveTextEditor((editor) => {
+    updateContentFileContext(editor)
+  })
+  context.subscriptions.push(activeEditorDisposable)
 }
 
 export function deactivate(): Promise<void> {
   return devServer?.stop() ?? Promise.resolve()
 }
 
-function pickWorkspaceFolder(): vscode.WorkspaceFolder | undefined {
-  const folders = vscode.workspace.workspaceFolders
-  if (!folders || folders.length === 0) return undefined
-  if (folders.length === 1) return folders[0]
-  return vscode.workspace.workspaceFolders?.[0]
+function updateContentFileContext(editor: vscode.TextEditor | undefined): void {
+  const inProject = !!editor && !!resolveClarifyContentFile(editor.document.uri.fsPath)
+  void vscode.commands.executeCommand('setContext', 'clarify.inProject', inProject)
 }
 
-async function ensureDevServerStarted(context: vscode.ExtensionContext): Promise<boolean> {
+async function ensureDevServerStarted(
+  context: vscode.ExtensionContext,
+  projectRoot?: string,
+): Promise<boolean> {
   if (devServer.isRunning() && routeResolver) return true
 
-  const folder = pickWorkspaceFolder()
-  if (!folder) {
-    vscode.window.showWarningMessage('Clarify: Open a workspace folder first.')
+  const root = projectRoot ?? resolveProjectRootFromActiveEditor()
+  if (!root) {
+    vscode.window.showWarningMessage(
+      'Clarify: open a content file inside a Clarify project first.',
+    )
     return false
   }
 
@@ -74,7 +95,7 @@ async function ensureDevServerStarted(context: vscode.ExtensionContext): Promise
         title: 'Clarify: starting dev server...',
         cancellable: false,
       },
-      () => devServer.start(folder.uri.fsPath),
+      () => devServer.start(root),
     )
     routeResolver = new RouteResolver(serverUrl)
     vscode.window.showInformationMessage(`Clarify dev server running at ${serverUrl}`)
@@ -86,6 +107,12 @@ async function ensureDevServerStarted(context: vscode.ExtensionContext): Promise
   }
 }
 
+function resolveProjectRootFromActiveEditor(): string | undefined {
+  const active = vscode.window.activeTextEditor
+  if (!active) return undefined
+  return resolveClarifyContentFile(active.document.uri.fsPath)?.projectRoot
+}
+
 function registerAutoOpen(context: vscode.ExtensionContext): void {
   autoOpenDisposable?.dispose()
   const config = vscode.workspace.getConfiguration('clarify')
@@ -94,7 +121,7 @@ function registerAutoOpen(context: vscode.ExtensionContext): void {
   autoOpenDisposable = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
     if (!editor) return
     const filePath = editor.document.uri.fsPath
-    if (!isContentFile(filePath)) return
+    if (!resolveClarifyContentFile(filePath)) return
     await navigateToRoute(filePath)
   })
   context.subscriptions.push(autoOpenDisposable)

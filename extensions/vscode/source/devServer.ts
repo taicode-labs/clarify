@@ -6,15 +6,16 @@ import * as vscode from 'vscode'
 
 const SERVER_URL_REGEX = /https?:\/\/localhost:\d+/
 const SERVER_READY_TIMEOUT_MS = 30_000
+const CLARIFY_NPM_PACKAGE = '@clarify-labs/cli'
 
 /**
  * Manages the lifecycle of a `clarify dev` subprocess.
  *
  * Version resolution:
- *  1. If the workspace has a local `@clarify-labs/cli` install, use its bin
+ *  1. If the project has a local `@clarify-labs/cli` install, use its bin
  *     (local install always wins to avoid version drift).
- *  2. Otherwise fall back to `npx clarify@<version>` using the `clarify.version`
- *     setting (default "latest").
+ *  2. Otherwise fall back to `npx @clarify-labs/cli@<version>` using the
+ *     `clarify.version` setting (default "latest").
  */
 export class DevServerManager {
   private process?: ChildProcess
@@ -99,12 +100,20 @@ export class DevServerManager {
     this.disposables = []
   }
 
+  /**
+   * Resolve the `clarify` binary to spawn.
+   *
+   * 1. Local install: `<workspaceRoot>/node_modules/.bin/clarify` — always wins
+   *    so the user's pinned version is used.
+   * 2. `npx @clarify-labs/cli@<version>` — uses the `clarify.version` setting.
+   *    Falls back to `@clarify-labs/cli@latest` if the configured version fails.
+   */
   private resolveClarifyBin(workspaceRoot: string, version: string): string {
     const localBin = join(workspaceRoot, 'node_modules', '.bin', 'clarify')
     if (existsSync(localBin)) {
       return localBin
     }
-    return `npx clarify@${version}`
+    return `npx ${CLARIFY_NPM_PACKAGE}@${version}`
   }
 
   private waitForServerUrl(): Promise<string> {
@@ -120,7 +129,7 @@ export class DevServerManager {
           return
         }
         if (Date.now() - start > SERVER_READY_TIMEOUT_MS) {
-          reject(new Error('timed out waiting for dev server to start (is @clarify-labs/cli installed?)'))
+          reject(new Error(`timed out waiting for dev server to start (is ${CLARIFY_NPM_PACKAGE} installed?)`))
           return
         }
         setTimeout(check, 200)

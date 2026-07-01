@@ -42,7 +42,7 @@
       "editor/title": [
         {
           "command": "clarify.openPreview",
-          "when": "resourceExtname == .md || resourceExtname == .mdx || resourceFilename =~ /.*\\.openapi\\.(json|ya?ml)$/",
+          "when": "clarify.inProject",
           "group": "navigation"
         }
       ]
