@@ -1,5 +1,6 @@
 import { ChildProcess, spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
+import { createServer } from 'node:net'
 
 import * as vscode from 'vscode'
 
@@ -11,11 +12,17 @@ const SERVER_READY_TIMEOUT_MS = 120_000
 const SERVER_READY_CHECK_INTERVAL_MS = 300
 const CLARIFY_NPM_PACKAGE = '@clarify-labs/cli'
 
-/**
- * Generate a random port in the range 10000-65000.
- */
-function getRandomPort(): number {
-  return Math.floor(Math.random() * (65000 - 10000 + 1)) + 10000
+/** Ask the OS to assign a free port by binding to :0, then release it. */
+function getFreePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const srv = createServer()
+    srv.listen(0, () => {
+      const addr = srv.address()
+      const port = typeof addr === 'object' && addr ? addr.port : 0
+      srv.close((err) => (err ? reject(err) : resolve(port)))
+    })
+    srv.on('error', reject)
+  })
 }
 
 /**
@@ -27,7 +34,7 @@ export class DevServerManager {
   /** Shared promise for any in-progress start. Callers await this directly. */
   private starting?: Promise<string>
 
-  constructor(private readonly context: vscode.ExtensionContext, private readonly deps: DependencyManager) {}
+  constructor(private readonly deps: DependencyManager) {}
 
   isRunning(): boolean {
     return this.process !== undefined && !this.process.killed
@@ -68,7 +75,7 @@ export class DevServerManager {
     const bin = await this.resolveClarifyBin(workspaceRoot, version)
     console.log(`[clarify] Starting: ${bin} dev in ${workspaceRoot}`)
 
-    const port = getRandomPort()
+    const port = await getFreePort()
     const url = `http://localhost:${port}`
     this.serverUrl = url
 
@@ -124,11 +131,11 @@ export class DevServerManager {
   }
 
   async stop(): Promise<void> {
-    this.starting = undefined
     if (!this.process) return
     const proc = this.process
     this.process = undefined
     this.serverUrl = undefined
+    // pollUntilReady checks this.process and will reject the in-flight start naturally
 
     return new Promise((resolve) => {
       proc.once('exit', () => resolve())

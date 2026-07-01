@@ -28,7 +28,7 @@ let conventions: ProjectConventions = BOOTSTRAP_CONVENTIONS
 export function activate(context: vscode.ExtensionContext): void {
   extensionContext = context
   deps = new DependencyManager(context)
-  devServer = new DevServerManager(context, deps)
+  devServer = new DevServerManager(deps)
   previewPanel = new PreviewPanel(context)
 
   statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)

@@ -137,7 +137,7 @@ export function resolveClarifyContentFile(filePath: string, conventions: Project
   const rel = relative(contentRoot, filePath)
   // If the relative path starts with `..` or is absolute, the file is outside
   // the content root and should not get a preview button.
-  if (!rel || rel.startsWith('..') || rel.startsWith(projectRoot)) {
+  if (!rel || rel.startsWith('..')) {
     return undefined
   }
   return { projectRoot }
