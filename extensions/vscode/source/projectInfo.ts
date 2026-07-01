@@ -4,6 +4,13 @@
  * recognizes — the extension avoids hardcoding these conventions so it stays
  * in sync with whatever CLI version is running.
  */
+/**
+ * Metadata fetched from the running Clarify dev server.
+ *
+ * The extension uses this data to stay aligned with the CLI's active
+ * configuration and file discovery rules rather than relying on hardcoded
+ * defaults.
+ */
 export type ProjectInfo = {
   configFilenames: readonly string[]
   contentFileExtensions: readonly string[]
@@ -42,6 +49,9 @@ export async function fetchProjectInfo(serverUrl: string): Promise<ProjectInfo |
     }
     return data
   } catch {
+    // The endpoint may not exist on older CLI versions or the server may
+    // not yet be ready. In that case we gracefully fall back to bootstrap
+    // conventions.
     return null
   }
 }

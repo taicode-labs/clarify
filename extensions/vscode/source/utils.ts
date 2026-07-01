@@ -9,7 +9,7 @@ import {
 } from './projectInfo'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Local CLI binary resolution
+// Local CLI binary resolution and Clarify project discovery helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -65,6 +65,13 @@ export type ProjectConventions = {
   contentFileExtensions: readonly string[]
   contentRoot: string
 }
+
+/**
+ * Helper helpers that mirror the runtime conventions used by the Clarify CLI.
+ *
+ * These are used before the dev server is running, and are replaced by the
+ * CLI-provided metadata once `/dev/project-info` returns successfully.
+ */
 
 /** Bootstrap conventions used before the dev server is reachable. */
 export const BOOTSTRAP_CONVENTIONS: ProjectConventions = {

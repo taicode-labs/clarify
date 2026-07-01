@@ -55,9 +55,8 @@ export class DependencyManager {
    * Returns `true` when the requested version is already installed.
    *
    * For `"latest"` we treat any existing install as sufficient — re-running
-   * `npm install` on every activation would be wasteful. Users who want to
-   * force an update can switch to a pinned version (which triggers a reinstall
-   * when it doesn't match) or delete the extension's global storage.
+   * `npm install` on every activation would be wasteful. Users can pin a
+   * version if they need deterministic updates.
    */
   isVersionInstalled(version: string): boolean {
     const installed = this.getInstalledVersion()
@@ -73,6 +72,13 @@ export class DependencyManager {
    * Calls for a different version while an install is in-flight wait for the
    * in-flight install to finish, then re-check.
    */
+  /**
+   * Ensure the requested CLI version is available in extension-managed storage.
+   *
+   * If the same version is already installing, callers share the in-flight
+   * installation. If another version is currently installing, callers wait for
+   * it to complete before re-checking the requested version.
+   */
   async ensureInstalled(version: string): Promise<void> {
     if (this.isVersionInstalled(version)) return
 
@@ -83,7 +89,8 @@ export class DependencyManager {
     }
 
     // If an install for a different version is running, wait for it first,
-    // then re-evaluate.
+    // then re-check the desired version. This prevents duplicate concurrent
+    // installs from different activation paths.
     if (this.installPromise) {
       await this.installPromise.promise.catch(() => {})
       if (this.isVersionInstalled(version)) return
@@ -108,6 +115,7 @@ export class DependencyManager {
       )
     }
 
+    // Show progress while npm installs the requested CLI version.
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -118,6 +126,16 @@ export class DependencyManager {
     )
   }
 
+  /**
+   * Run `npm install` inside the extension-managed CLI install directory.
+   *
+   * Captures stderr to provide a helpful failure message if the install fails.
+   */
+  /**
+   * Run `npm install` in the extension-managed CLI install directory.
+   *
+   * Captures stderr so the error message remains informative on failure.
+   */
   private runNpmInstall(version: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const proc = spawn('npm', ['install', `${CLARIFY_NPM_PACKAGE}@${version}`], {

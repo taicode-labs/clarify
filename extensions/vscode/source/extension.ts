@@ -1,3 +1,13 @@
+/**
+ * Clarify VS Code extension host entrypoint.
+ *
+ * This module coordinates the preview lifecycle, including:
+ *   - resolving and installing the Clarify CLI
+ *   - starting and stopping `clarify dev`
+ *   - translating editor files into preview routes
+ *   - creating and refreshing the preview Webview panel
+ *   - updating the status bar and command context
+ */
 import * as vscode from 'vscode'
 
 import { DependencyManager } from './dependencyManager'
@@ -23,8 +33,22 @@ let statusBar: vscode.StatusBarItem
 let isInstallingCli = false
 let extensionContext: vscode.ExtensionContext
 
+// Current project conventions for file detection. Replaced by live CLI values
+// after `/dev/project-info` has been fetched.
 let conventions: ProjectConventions = BOOTSTRAP_CONVENTIONS
 
+/**
+ * Activate the Clarify extension.
+ *
+ * This sets up the status bar, registers commands, starts any background
+ * CLI installation, and optionally begins a silent dev server startup.
+ */
+/**
+ * Activate the Clarify VS Code extension.
+ *
+ * This sets up the extension state, status bar, command registration, and
+ * optional background startup of the Clarify dev server.
+ */
 export function activate(context: vscode.ExtensionContext): void {
   extensionContext = context
   deps = new DependencyManager(context)
@@ -95,8 +119,10 @@ export function deactivate(): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
- * The single entry point for "open preview".
- * Starts the server (with progress UI), sets up the resolver, navigates.
+ * The single entry point for opening a preview.
+ *
+ * This ensures the dev server is running, enables auto-open behavior,
+ * refreshes the status bar, and resolves the current file's preview route.
  */
 async function openPreview(projectRoot: string, filePath: string): Promise<void> {
   try {
@@ -112,7 +138,7 @@ async function openPreview(projectRoot: string, filePath: string): Promise<void>
 
 /**
  * Silently start the dev server when the extension activates.
- * Errors are suppressed — the user can always click the preview button to retry.
+ * Errors are logged but not shown to the user so activation remains non-blocking.
  */
 async function backgroundStart(): Promise<void> {
   try {
@@ -166,6 +192,10 @@ async function ensureServerReady(projectRoot: string, withProgress: boolean): Pr
 
 /**
  * Resolve a file to its preview URL and show the webview panel.
+ *
+ * The actual route resolution logic is implemented in the CLI, so this
+ * wrapper simply posts the file path to the dev server and handles the
+ * resulting preview URL.
  */
 async function navigateToRoute(filePath: string): Promise<void> {
   if (!routeResolver) return
@@ -191,6 +221,8 @@ function setupAutoOpen(): void {
   autoOpenDisposable?.dispose()
   if (!vscode.workspace.getConfiguration('clarify').get<boolean>('autoOpenPreview', true)) return
 
+  // When the active editor changes, automatically update the preview if the
+  // new file is recognized as a Clarify content file and the dev server is ready.
   autoOpenDisposable = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
     if (!editor || !routeResolver || !devServer.isRunning()) return
     const filePath = editor.document.uri.fsPath
@@ -251,7 +283,12 @@ function updateStatusBar(): void {
   statusBar.show()
 }
 
+/**
+ * Ensure the managed CLI is installed if the workspace does not already provide
+ * a local `clarify` binary.
+ */
 async function ensureCliInstalled(): Promise<void> {
+  // Skip managed install if the workspace already provides a local clarify CLI.
   if (workspaceHasLocalClarifyCli()) return
   const version = vscode.workspace.getConfiguration('clarify').get<string>('version', 'latest')
   if (deps.isVersionInstalled(version)) return
@@ -268,6 +305,10 @@ async function ensureCliInstalled(): Promise<void> {
   }
 }
 
+/**
+ * Block until a usable CLI is available.
+ * This is used by both manual preview open and background startup.
+ */
 async function ensureCliAvailable(): Promise<void> {
   if (isInstallingCli) {
     await vscode.window.withProgress(
@@ -298,6 +339,7 @@ async function ensureCliAvailable(): Promise<void> {
 }
 
 function workspaceHasLocalClarifyCli(): boolean {
+  // If the user explicitly configured `clarify.cliPath`, prefer it.
   if (vscode.workspace.getConfiguration('clarify').get<string>('cliPath', '')) return true
   for (const folder of vscode.workspace.workspaceFolders ?? []) {
     if (resolveLocalClarifyBin(folder.uri.fsPath)) return true

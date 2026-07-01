@@ -13,6 +13,9 @@ export class PreviewPanel {
 
   constructor(private readonly context: vscode.ExtensionContext) {}
 
+  /**
+   * Show or reveal the preview panel and load the specified preview URL.
+   */
   show(previewUrl: string, openToSide: boolean): void {
     this.currentUrl = previewUrl
 

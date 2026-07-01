@@ -1,3 +1,9 @@
+/**
+ * Host-side process management for the Clarify dev server.
+ *
+ * This module is responsible for starting `clarify dev` in the workspace,
+ * waiting until the dev server is reachable, and stopping it cleanly.
+ */
 import { ChildProcess, spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { createServer } from 'node:net'
@@ -100,7 +106,12 @@ export class DevServerManager {
     return url
   }
 
-  /** Poll HTTP HEAD until the server responds OK or timeout is reached. */
+  /**
+   * Poll the dev server until any valid HTTP response is received.
+   *
+   * The dev server may return 404 before the preview route exists, so we
+   * treat any response as readiness if the process is still alive.
+   */
   private pollUntilReady(url: string): Promise<void> {
     const deadline = Date.now() + SERVER_READY_TIMEOUT_MS
 
@@ -130,6 +141,12 @@ export class DevServerManager {
     })
   }
 
+  /**
+   * Stop the currently running dev server process.
+   *
+   * The server is asked to terminate gracefully, and a forced kill is used
+   * if it does not exit within a short timeout.
+   */
   async stop(): Promise<void> {
     if (!this.process) return
     const proc = this.process
@@ -169,6 +186,7 @@ export class DevServerManager {
       )
     }
 
+    // Fallback to `npx` when the workspace/local/manage install strategies fail.
     console.log(`[clarify] Falling back to npx`)
     return `npx ${CLARIFY_NPM_PACKAGE}@${version}`
   }

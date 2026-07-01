@@ -2,7 +2,8 @@
  * Queries the Clarify dev server's `/dev/query-preview-route` endpoint to
  * resolve a content file path to its preview URL.
  *
- * Requires the CLI-side endpoint added in M1 (packages/cli/source/core/dev-routes.ts).
+ * This class is intentionally thin: most route inference logic lives on the
+ * CLI side so the extension remains a lightweight editor integration.
  */
 export class RouteResolver {
   constructor(private readonly serverUrl: string) {}
