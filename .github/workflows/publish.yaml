@@ -78,7 +78,7 @@ jobs:
           echo "asset_name=$(basename "$file")" >> "$GITHUB_OUTPUT"
 
       - name: Upload VS Code extension asset
-        uses: actions/upload-release-asset@v3
+        uses: actions/upload-release-asset@v2
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: ${{ steps.find-extension-asset.outputs.asset }}
