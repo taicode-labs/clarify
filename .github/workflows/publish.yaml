@@ -79,15 +79,13 @@ jobs:
         run: |
           file=$(ls extensions/vscode/*.vsix | head -n 1)
           echo "asset=$file" >> "$GITHUB_OUTPUT"
-          echo "asset_name=$(basename "$file")" >> "$GITHUB_OUTPUT"
 
       - name: Upload VS Code extension asset
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ steps.find-extension-asset.outputs.asset }}
-          asset_name: ${{ steps.find-extension-asset.outputs.asset_name }}
-          asset_content_type: application/octet-stream
+          files: ${{ steps.find-extension-asset.outputs.asset }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-renderer:
     runs-on: ubuntu-latest
