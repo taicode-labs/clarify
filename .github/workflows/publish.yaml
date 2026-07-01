@@ -67,6 +67,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build VS Code extension
+        working-directory: extensions/vscode
+        run: pnpm exec vite build
+
       - name: Package VS Code extension
         working-directory: extensions/vscode
         run: pnpm exec vsce package --no-dependencies
@@ -105,6 +109,10 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build VS Code extension
+        working-directory: extensions/vscode
+        run: pnpm exec vite build
 
       - name: Publish VS Code extension to Marketplace
         working-directory: extensions/vscode
