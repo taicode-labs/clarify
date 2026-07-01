@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import type { ComponentType, CSSProperties } from 'react'
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
@@ -10,6 +10,7 @@ import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots } from '../slots'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
 import type { RouteItem, Config, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
+import { resolveLocalizedText } from '../utils/localized-text'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { BuiltWithClarify } from './BuiltWithClarify'
@@ -31,16 +32,17 @@ export type AppShellProps = {
 type BannerSlotProps = {
   activeBannerKey: string | undefined
   dismissedBannerKey: string | undefined
+  bannerResolved: boolean
   onDismiss: () => void
   config: Config
   locale?: string
 }
 
 function BannerSlot(props: BannerSlotProps) {
-  const { activeBannerKey, dismissedBannerKey, onDismiss, config, locale } = props
+  const { activeBannerKey, dismissedBannerKey, bannerResolved, onDismiss, config, locale } = props
   // 直接在插槽内部创建默认组件，这样它可以访问到上下文
   function DefaultBannerComponent() {
-    const hasBanner = Boolean(config.banner) && dismissedBannerKey !== activeBannerKey
+    const hasBanner = bannerResolved && Boolean(config.banner) && dismissedBannerKey !== activeBannerKey
     if (!hasBanner) return null
     return <PageBanner currentLocale={locale} onDismiss={onDismiss} />
   }
@@ -209,9 +211,15 @@ export function AppShell(arg0: AppShellProps) {
   const text = useBuiltInText(currentLocale)
   const currentNavigation = navigationForLocale(navigation, currentLocale, pathname)
   const sections = sectionsForRoute(currentRoute)
+  const banner = config.banner
+  const bannerContent = banner
+    ? resolveLocalizedText(banner.content, currentLocale, config.i18n?.defaultLocale)
+    : ''
+  const bannerStorageKey = banner && bannerContent ? `clarify:banner:dismissed:${config.title}:${bannerContent}` : undefined
+  const [bannerResolved, setBannerResolved] = useState<boolean>(() => !banner?.dismissible)
   const [dismissedBannerKey, setDismissedBannerKey] = useState<string>()
-  const activeBannerKey = config.banner ? JSON.stringify(config.banner) : undefined
-  const hasBanner = Boolean(config.banner) && dismissedBannerKey !== activeBannerKey
+  const activeBannerKey = banner ? JSON.stringify(banner) : undefined
+  const hasBanner = bannerResolved && Boolean(banner) && dismissedBannerKey !== activeBannerKey
   const hasTabs = Boolean(currentNavigation.tabs?.length)
   const renderRoutes = useMemo(
     () => routes.map(route => ({ ...route, component: resolveRouteComponent(route) })),
@@ -220,6 +228,19 @@ export function AppShell(arg0: AppShellProps) {
   const NotFoundRouteComponent = notFoundRoute
     ? renderRoutes.find(route => isSameRoutePath(route.path, notFoundRoute.path))?.component
     : undefined
+
+  useLayoutEffect(() => {
+    if (bannerResolved || !banner || !banner.dismissible || typeof window === 'undefined') return
+
+    if (!bannerStorageKey) {
+      setBannerResolved(true)
+      return
+    }
+
+    const dismissed = window.localStorage.getItem(bannerStorageKey) === '1'
+    setDismissedBannerKey(dismissed ? activeBannerKey : undefined)
+    setBannerResolved(true)
+  }, [banner, bannerResolved, bannerStorageKey, activeBannerKey])
 
   useEffect(() => {
     if (explicitLocale) storeLocalePreference(explicitLocale)
@@ -273,6 +294,7 @@ export function AppShell(arg0: AppShellProps) {
             <BannerSlot 
               activeBannerKey={activeBannerKey}
               dismissedBannerKey={dismissedBannerKey}
+              bannerResolved={bannerResolved}
               onDismiss={() => setDismissedBannerKey(activeBannerKey)}
               config={config}
               locale={currentLocale}
