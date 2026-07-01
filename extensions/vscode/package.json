@@ -1,5 +1,5 @@
 {
-  "name": "clarify",
+  "name": "@clarify-labs/vscode-extension",
   "displayName": "Clarify",
   "description": "Live preview for Clarify documentation projects.",
   "version": "0.8.2",
