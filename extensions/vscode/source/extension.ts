@@ -10,7 +10,6 @@
  */
 import * as vscode from 'vscode'
 
-import { DependencyManager } from './dependencyManager'
 import { DevServerManager } from './devServer'
 import { PreviewPanel } from './previewPanel'
 import { fetchProjectInfo } from './projectInfo'
@@ -21,16 +20,15 @@ import {
   findClarifyProjectRoot,
   resolveClarifyContentFile,
   resolveLocalClarifyBin,
+  resolveGlobalClarifyBin,
   type ProjectConventions,
 } from './utils'
 
 let devServer: DevServerManager
-let deps: DependencyManager
 let routeResolver: RouteResolver | undefined
 let previewPanel: PreviewPanel
 let autoOpenDisposable: vscode.Disposable | undefined
 let statusBar: vscode.StatusBarItem
-let isInstallingCli = false
 let extensionContext: vscode.ExtensionContext
 
 // Current project conventions for file detection. Replaced by live CLI values
@@ -51,15 +49,13 @@ let conventions: ProjectConventions = BOOTSTRAP_CONVENTIONS
  */
 export function activate(context: vscode.ExtensionContext): void {
   extensionContext = context
-  deps = new DependencyManager(context)
-  devServer = new DevServerManager(deps)
+  devServer = new DevServerManager()
   previewPanel = new PreviewPanel(context)
 
   statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
   statusBar.command = 'clarify.openPreview'
   context.subscriptions.push(statusBar)
 
-  void ensureCliInstalled()
   updateStatusBar()
 
   // Auto-start the dev server silently in the background
@@ -165,8 +161,6 @@ async function ensureServerReady(projectRoot: string, withProgress: boolean): Pr
     return devServer.getServerUrl()!
   }
 
-  await ensureCliAvailable()
-
   const doStart = (): Promise<string> => devServer.start(projectRoot)
   const serverUrl = withProgress
     ? await vscode.window.withProgress(
@@ -255,13 +249,6 @@ function detectProjectRoot(): string | undefined {
 }
 
 function updateStatusBar(): void {
-  if (isInstallingCli) {
-    statusBar.text = '$(loading~spin) Clarify: Installing CLI…'
-    statusBar.tooltip = 'Installing Clarify CLI'
-    statusBar.show()
-    return
-  }
-
   if (devServer.isRunning()) {
     statusBar.text = '$(vm-active) Clarify'
     statusBar.tooltip = `Dev server running at ${devServer.getServerUrl() ?? 'unknown'}\nClick to open preview`
@@ -274,77 +261,29 @@ function updateStatusBar(): void {
     return
   }
 
-  const version = vscode.workspace.getConfiguration('clarify').get<string>('version', 'latest')
-  const hasCli = workspaceHasLocalClarifyCli() || deps.isVersionInstalled(version)
+  const hasCli = hasAvailableClarifyCli()
   statusBar.text = hasCli ? '$(circle-outline) Clarify' : '$(warning) Clarify'
   statusBar.tooltip = hasCli
     ? 'Clarify project detected — click to open preview'
-    : 'Clarify project detected — CLI not installed, click to install and preview'
+    : 'Clarify project detected — CLI not found, click to see installation instructions'
   statusBar.show()
 }
 
 /**
- * Ensure the managed CLI is installed if the workspace does not already provide
- * a local `clarify` binary.
+ * Check if a Clarify CLI is available in the workspace, globally, or via explicit config.
  */
-async function ensureCliInstalled(): Promise<void> {
-  // Skip managed install if the workspace already provides a local clarify CLI.
-  if (workspaceHasLocalClarifyCli()) return
-  const version = vscode.workspace.getConfiguration('clarify').get<string>('version', 'latest')
-  if (deps.isVersionInstalled(version)) return
-
-  isInstallingCli = true
-  updateStatusBar()
-  try {
-    await deps.ensureInstalled(version)
-  } catch (err) {
-    vscode.window.showErrorMessage(`Clarify: failed to install CLI — ${formatError(err)}`)
-  } finally {
-    isInstallingCli = false
-    updateStatusBar()
-  }
-}
-
-/**
- * Block until a usable CLI is available.
- * This is used by both manual preview open and background startup.
- */
-async function ensureCliAvailable(): Promise<void> {
-  if (isInstallingCli) {
-    await vscode.window.withProgress(
-      {
-        location: vscode.ProgressLocation.Notification,
-        title: 'Clarify: waiting for CLI install…',
-        cancellable: false,
-      },
-      async () => {
-        while (isInstallingCli) {
-          await new Promise<void>((r) => setTimeout(r, 100))
-        }
-      },
-    )
-  }
-  if (workspaceHasLocalClarifyCli()) return
-  const version = vscode.workspace.getConfiguration('clarify').get<string>('version', 'latest')
-  if (deps.isVersionInstalled(version)) return
-
-  isInstallingCli = true
-  updateStatusBar()
-  try {
-    await deps.ensureInstalled(version)
-  } finally {
-    isInstallingCli = false
-    updateStatusBar()
-  }
-}
-
-function workspaceHasLocalClarifyCli(): boolean {
+function hasAvailableClarifyCli(): boolean {
   // If the user explicitly configured `clarify.cliPath`, prefer it.
-  if (vscode.workspace.getConfiguration('clarify').get<string>('cliPath', '')) return true
+  const cliPath = vscode.workspace.getConfiguration('clarify').get<string>('cliPath', '')
+  if (cliPath) return true
+  
+  // Check for workspace-local install
   for (const folder of vscode.workspace.workspaceFolders ?? []) {
     if (resolveLocalClarifyBin(folder.uri.fsPath)) return true
   }
-  return false
+  
+  // Check for global CLI
+  return !!resolveGlobalClarifyBin()
 }
 
 function formatError(err: unknown): string {

@@ -10,13 +10,11 @@ import { createServer } from 'node:net'
 
 import * as vscode from 'vscode'
 
-import { DependencyManager } from './dependencyManager'
-import { resolveLocalClarifyBin } from './utils'
+import { resolveLocalClarifyBin, resolveGlobalClarifyBin } from './utils'
 
 // Give Vite up to 120 seconds to compile and start on first run
 const SERVER_READY_TIMEOUT_MS = 120_000
 const SERVER_READY_CHECK_INTERVAL_MS = 300
-const CLARIFY_NPM_PACKAGE = '@clarify-labs/cli'
 
 /** Ask the OS to assign a free port by binding to :0, then release it. */
 function getFreePort(): Promise<number> {
@@ -39,8 +37,6 @@ export class DevServerManager {
   private serverUrl?: string
   /** Shared promise for any in-progress start. Callers await this directly. */
   private starting?: Promise<string>
-
-  constructor(private readonly deps: DependencyManager) {}
 
   isRunning(): boolean {
     return this.process !== undefined && !this.process.killed
@@ -75,10 +71,7 @@ export class DevServerManager {
   }
 
   private async doStart(workspaceRoot: string): Promise<string> {
-    const config = vscode.workspace.getConfiguration('clarify')
-    const version = config.get<string>('version', 'latest')
-
-    const bin = await this.resolveClarifyBin(workspaceRoot, version)
+    const bin = await this.resolveClarifyBin(workspaceRoot)
     console.log(`[clarify] Starting: ${bin} dev in ${workspaceRoot}`)
 
     const port = await getFreePort()
@@ -161,38 +154,43 @@ export class DevServerManager {
     })
   }
 
-  private async resolveClarifyBin(workspaceRoot: string, version: string): Promise<string> {
+  /**
+   * Resolve the `clarify` binary path to use for starting the dev server.
+   *
+   * Resolution order:
+   *   1. `clarify.cliPath` configuration (explicit path, useful for dev mode)
+   *   2. Workspace-local install (`node_modules/.bin/clarify`)
+   *   3. Global CLI (`which clarify` / `where clarify`)
+   *   4. Prompt user to install
+   */
+  private async resolveClarifyBin(workspaceRoot: string): Promise<string> {
+    // 1. Explicit cliPath configuration
     const cliPath = vscode.workspace.getConfiguration('clarify').get<string>('cliPath', '')
     if (cliPath && existsSync(cliPath)) {
       console.log(`[clarify] Using explicit cliPath: ${cliPath}`)
       return cliPath
     }
 
+    // 2. Workspace-local install
     const localBin = resolveLocalClarifyBin(workspaceRoot)
     if (localBin) {
       console.log(`[clarify] Using local CLI: ${localBin}`)
       return localBin
     }
 
-    try {
-      await this.deps.ensureInstalled(version)
-      if (existsSync(this.deps.binPath)) {
-        console.log(`[clarify] Using managed install: ${this.deps.binPath}`)
-        return this.deps.binPath
-      }
-    } catch (err) {
-      vscode.window.showWarningMessage(
-        `Clarify: could not install @clarify-labs/cli@${version} — falling back to npx. (${formatError(err)})`,
-      )
+    // 3. Global CLI
+    const globalBin = resolveGlobalClarifyBin()
+    if (globalBin) {
+      console.log(`[clarify] Using global CLI: ${globalBin}`)
+      return globalBin
     }
 
-    // Fallback to `npx` when the workspace/local/manage install strategies fail.
-    console.log(`[clarify] Falling back to npx`)
-    return `npx ${CLARIFY_NPM_PACKAGE}@${version}`
+    // 4. No CLI found — prompt user to install
+    throw new Error(
+      'Clarify CLI not found. Please install it:\n\n' +
+      '  • Locally: pnpm add -D @clarify-labs/cli\n' +
+      '  • Globally: pnpm add -g @clarify-labs/cli\n' +
+      '  • Or set "clarify.cliPath" in settings'
+    )
   }
-}
-
-function formatError(err: unknown): string {
-  if (err instanceof Error) return err.message
-  return String(err)
 }

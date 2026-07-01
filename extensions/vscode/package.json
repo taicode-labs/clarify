@@ -47,15 +47,10 @@
     "configuration": {
       "title": "Clarify",
       "properties": {
-        "clarify.version": {
-          "type": "string",
-          "default": "latest",
-          "description": "Clarify CLI version to use when the workspace has no local install (e.g. \"latest\" or \"0.9.0\")."
-        },
         "clarify.cliPath": {
           "type": "string",
           "default": "",
-          "description": "Absolute path to a `clarify` binary. When set, this overrides all automatic resolution (local install, managed install, npx). Useful for monorepo development or pointing at a custom build."
+          "description": "Absolute path to a `clarify` binary. When set, this overrides all automatic resolution (local install, global install). Useful for monorepo development or pointing at a custom build."
         },
         "clarify.autoStartServer": {
           "type": "boolean",

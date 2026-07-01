@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
+import { spawnSync } from 'node:child_process'
 
 import {
   BOOTSTRAP_CONFIG_FILENAMES,
@@ -49,6 +50,25 @@ export function resolveLocalClarifyBin(projectRoot: string): string | undefined 
     }
     prev = dir
     dir = dirname(dir)
+  }
+  return undefined
+}
+
+/**
+ * Check if `clarify` is available in the global PATH.
+ *
+ * This runs `which clarify` (or `where clarify` on Windows) to detect a
+ * globally installed CLI. Returns the absolute path to the binary when found,
+ * or `undefined` when not available.
+ */
+export function resolveGlobalClarifyBin(): string | undefined {
+  const isWindows = process.platform === 'win32'
+  const command = isWindows ? 'where' : 'which'
+  const result = spawnSync(command, ['clarify'], { encoding: 'utf8', shell: true })
+  
+  if (result.status === 0 && result.stdout) {
+    const path = result.stdout.trim().split('\n')[0]
+    return path || undefined
   }
   return undefined
 }
