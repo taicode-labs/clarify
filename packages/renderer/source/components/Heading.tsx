@@ -66,13 +66,11 @@ export function Heading<Level extends 2 | 3>(arg0: HeadingProps<Level>) {
   })
 
   useEffect(() => {
-    if (resolvedLevel === 2) {
-      registerHeading({
-        id: props.id,
-        ref,
-        offsetRem: tag || label ? 8 : 6,
-      })
-    }
+    registerHeading({
+      id: props.id,
+      ref,
+      offsetRem: tag || label ? 8 : 6,
+    })
   }, [label, props.id, registerHeading, resolvedLevel, tag])
 
   return (

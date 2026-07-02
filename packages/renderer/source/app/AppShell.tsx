@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ComponentType, CSSProperties } from 'react'
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
@@ -202,6 +202,7 @@ export function AppShell(arg0: AppShellProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const pathname = normalizeRoutePath(location.pathname)
+  const headerRef = useRef<HTMLElement>(null)
   const currentRoute = routeForPath(routes, pathname)
   const explicitLocale = explicitLocaleForPath(config, pathname)
   const storedLocale = storedLocaleForConfig(config)
@@ -282,8 +283,9 @@ export function AppShell(arg0: AppShellProps) {
   return (
     <LocaleContext.Provider value={currentLocale}>
       <RuntimeSlotsProvider slots={runtimeSlots} route={currentRoute}>
-      <SectionProvider sections={sections}>
+      <SectionProvider sections={sections} headerRef={headerRef}>
         <Header
+          ref={headerRef}
           config={config}
           navigation={currentNavigation.items}
           tabs={currentNavigation.tabs}
