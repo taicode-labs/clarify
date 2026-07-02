@@ -296,6 +296,45 @@ function useDocumentMetadata(config: Config, route?: RouteItem) {
   }, [config, route])
 }
 
+function headerOffsetForLayout(hasTabs: boolean, hasBanner: boolean) {
+  if (hasTabs && hasBanner) return '10rem'
+  if (hasTabs) return '7rem'
+  if (hasBanner) return '6.5rem'
+  return '3.5rem'
+}
+
+function sidebarScrollClassName(hasTabs: boolean, hasBanner: boolean) {
+  const classNames = ['clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8']
+
+  if (hasTabs && hasBanner) {
+    classNames.push('lg:top-40 lg:h-(--clarify-sidebar-height-with-tabs-and-banner) lg:pt-10')
+  } else if (hasTabs) {
+    classNames.push('lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-10')
+  } else if (hasBanner) {
+    classNames.push('lg:top-26 lg:h-(--clarify-sidebar-height-with-banner) lg:pt-10')
+  } else {
+    classNames.push('lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-10')
+  }
+
+  return clsx(classNames)
+}
+
+function contentClassName(hasTabs: boolean, hasBanner: boolean) {
+  const classNames = ['clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10']
+
+  if (hasTabs && hasBanner) {
+    classNames.push('pt-26 lg:pt-40')
+  } else if (hasTabs) {
+    classNames.push('pt-14 lg:pt-28')
+  } else if (hasBanner) {
+    classNames.push('pt-26')
+  } else {
+    classNames.push('pt-14')
+  }
+
+  return clsx(classNames)
+}
+
 function BuiltInNotFoundPage() {
   const text = useBuiltInText()
 
@@ -350,105 +389,132 @@ export function AppShell(arg0: AppShellProps) {
   useDocumentLanguage(currentLocale, currentLocaleConfig)
   useDocumentMetadata(config, currentRoute ?? notFoundRoute)
 
+  const layoutStyle = {
+    '--clarify-header-offset': headerOffsetForLayout(hasTabs, hasBanner),
+  } as CSSProperties
+
+  function renderBannerSlot() {
+    return (
+      <BannerSlot
+        activeBannerKey={activeBannerKey}
+        dismissedBannerKey={dismissedBannerKey}
+        bannerResolved={bannerResolved}
+        onDismiss={dismissBanner}
+        config={config}
+        locale={currentLocale}
+      />
+    )
+  }
+
+  function renderHeader() {
+    return (
+      <Header
+        ref={headerRef}
+        config={config}
+        navigation={currentNavigation.items}
+        tabs={currentNavigation.tabs}
+        routes={routes}
+        currentLocale={currentLocale}
+        currentRoute={currentRoute}
+        banner={renderBannerSlot()}
+      />
+    )
+  }
+
+  function renderSidebar() {
+    return (
+      <aside
+        data-pagefind-ignore
+        className="clarify-sidebar hidden lg:block lg:self-stretch lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 xl:px-6"
+      >
+        <div className={sidebarScrollClassName(hasTabs, hasBanner)}>
+          <Navigation navigation={currentNavigation.items} />
+        </div>
+      </aside>
+    )
+  }
+
+  function renderRouteElements() {
+    return (
+      <Routes>
+        {renderRoutes.map((route) => (
+          <Route key={route.path} path={route.path} element={<route.component />} />
+        ))}
+        <Route path="*" element={<NotFoundRouteElement component={NotFoundRouteComponent} />} />
+      </Routes>
+    )
+  }
+
+  function renderMain() {
+    return (
+      <main className="clarify-main min-w-0 flex-auto" data-pagefind-body>
+        <PageErrorBoundary
+          key={pathname}
+          title={text('renderError.title')}
+          description={text('renderError.description')}
+          reloadLabel={text('renderError.reload')}
+          detailsLabel={text('renderError.details')}
+          pathLabel={text('renderError.path')}
+          typeLabel={text('renderError.type')}
+          messageLabel={text('renderError.message')}
+          stackLabel={text('renderError.stack')}
+          componentStackLabel={text('renderError.componentStack')}
+          timestampLabel={text('renderError.timestamp')}
+          copyLabel={text('actions.copy')}
+          copiedLabel={text('actions.copied')}
+          path={pathname}
+        >
+          <Suspense fallback={<PageSkeleton />}>
+            {renderRouteElements()}
+          </Suspense>
+        </PageErrorBoundary>
+      </main>
+    )
+  }
+
+  function renderFooter() {
+    return (
+      <>
+        <RuntimeSlot name="page.footer.before" />
+        <RuntimeSlot name="page.footer.replace" default={DefaultFooterComponent} />
+        <div className="flex justify-end">
+          <BuiltWithClarify />
+        </div>
+      </>
+    )
+  }
+
+  function renderContent() {
+    return (
+      <div className={contentClassName(hasTabs, hasBanner)}>
+        <PageActionsProvider route={currentRoute} routePrefix={config.routePrefix}>
+          {renderMain()}
+          <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
+          {renderFooter()}
+        </PageActionsProvider>
+      </div>
+    )
+  }
+
+  function renderLayout() {
+    return (
+      <div
+        className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)"
+        style={layoutStyle}
+      >
+        {renderSidebar()}
+        {renderContent()}
+      </div>
+    )
+  }
+
   return (
     <LocaleContext.Provider value={currentLocale}>
       <RuntimeSlotsProvider slots={runtimeSlots} route={currentRoute}>
-      <SectionProvider sections={sections} headerRef={headerRef}>
-        <Header
-          ref={headerRef}
-          config={config}
-          navigation={currentNavigation.items}
-          tabs={currentNavigation.tabs}
-          routes={routes}
-          currentLocale={currentLocale}
-          currentRoute={currentRoute}
-          banner={
-            <BannerSlot 
-              activeBannerKey={activeBannerKey}
-              dismissedBannerKey={dismissedBannerKey}
-              bannerResolved={bannerResolved}
-              onDismiss={dismissBanner}
-              config={config}
-              locale={currentLocale}
-            />
-          }
-        />
-        <div
-          className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)"
-          style={{
-            '--clarify-header-offset':
-              hasTabs && hasBanner
-                ? '10rem'
-                : hasTabs && !hasBanner
-                  ? '7rem'
-                  : !hasTabs && hasBanner
-                    ? '6.5rem'
-                    : '3.5rem',
-          } as CSSProperties}
-        >
-          <aside
-            data-pagefind-ignore
-            className="clarify-sidebar hidden lg:block lg:self-stretch lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 xl:px-6"
-          >
-            <div
-              className={clsx(
-                'clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8',
-                hasTabs && hasBanner && 'lg:top-40 lg:h-(--clarify-sidebar-height-with-tabs-and-banner) lg:pt-10',
-                hasTabs && !hasBanner && 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-10',
-                !hasTabs && hasBanner && 'lg:top-26 lg:h-(--clarify-sidebar-height-with-banner) lg:pt-10',
-                !hasTabs && !hasBanner && 'lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-10',
-              )}
-            >
-              <Navigation navigation={currentNavigation.items} />
-            </div>
-          </aside>
-          <div
-            className={clsx(
-              'clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10',
-                hasTabs && hasBanner && 'pt-26 lg:pt-40',
-              hasTabs && !hasBanner && 'pt-14 lg:pt-28',
-              !hasTabs && hasBanner && 'pt-26',
-              !hasTabs && !hasBanner && 'pt-14',
-            )}
-          >
-            <PageActionsProvider route={currentRoute} routePrefix={config.routePrefix}>
-              <main className="clarify-main min-w-0 flex-auto" data-pagefind-body>
-                <PageErrorBoundary
-                  key={pathname}
-                  title={text('renderError.title')}
-                  description={text('renderError.description')}
-                  reloadLabel={text('renderError.reload')}
-                  detailsLabel={text('renderError.details')}
-                  pathLabel={text('renderError.path')}
-                  typeLabel={text('renderError.type')}
-                  messageLabel={text('renderError.message')}
-                  stackLabel={text('renderError.stack')}
-                  componentStackLabel={text('renderError.componentStack')}
-                  timestampLabel={text('renderError.timestamp')}
-                  copyLabel={text('actions.copy')}
-                  copiedLabel={text('actions.copied')}
-                  path={pathname}
-                >
-                  <Suspense fallback={<PageSkeleton />}>
-                    <Routes>
-                      {renderRoutes.map((route) => (
-                        <Route key={route.path} path={route.path} element={<route.component />} />
-                      ))}
-                      <Route path="*" element={<NotFoundRouteElement component={NotFoundRouteComponent} />} />
-                    </Routes>
-                  </Suspense>
-                </PageErrorBoundary>
-              </main>
-              <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
-              <RuntimeSlot name="page.footer.before" />
-              <RuntimeSlot name="page.footer.replace" default={DefaultFooterComponent} />
-              <div className="flex justify-end">
-                <BuiltWithClarify />
-              </div>
-            </PageActionsProvider>
-          </div>
-        </div>
-      </SectionProvider>
+        <SectionProvider sections={sections} headerRef={headerRef}>
+          {renderHeader()}
+          {renderLayout()}
+        </SectionProvider>
       </RuntimeSlotsProvider>
     </LocaleContext.Provider>
   )
