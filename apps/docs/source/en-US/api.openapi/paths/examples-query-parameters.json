@@ -1,0 +1,88 @@
+{
+  "get": {
+    "tags": [
+      "Search"
+    ],
+    "operationId": "demoQueryParameters",
+    "summary": "Query parameter example",
+    "description": "Covers required query parameters, JSON-encoded query content, array responses, query API key authentication, and CSV as an alternate media type.",
+    "security": [
+      {
+        "QueryApiKeyAuth": []
+      }
+    ],
+    "servers": [
+      {
+        "url": "https://search.clarify.local/{region}/{version}",
+        "description": "Regional search server.",
+        "variables": {
+          "region": {
+            "default": "us",
+            "enum": [
+              "us",
+              "eu",
+              "apac"
+            ],
+            "description": "Search region."
+          },
+          "version": {
+            "default": "v1",
+            "enum": [
+              "v1",
+              "v2"
+            ],
+            "description": "Search API version."
+          }
+        }
+      }
+    ],
+    "parameters": [
+      {
+        "$ref": "../../api.openapi.json#/components/parameters/TraceId"
+      },
+      {
+        "name": "q",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "example": "openapi"
+      },
+      {
+        "name": "filters",
+        "in": "query",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../api.openapi.json#/components/schemas/SearchFilters"
+            }
+          }
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Search results.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../api.openapi.json#/components/schemas/SearchResult"
+              }
+            }
+          },
+          "text/csv": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "id,title,score\npg_123,Getting Started,0.97\n"
+          }
+        }
+      }
+    },
+    "deprecated": false
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "get": {
+    "tags": [
+      "System"
+    ],
+    "operationId": "demoSingleServer",
+    "summary": "Single fixed server",
+    "description": "Overrides servers with a single fixed URL that has no variables, so the server value is shown as plain text without a switcher.",
+    "security": [],
+    "servers": [
+      {
+        "url": "https://api.clarify.local/v1",
+        "description": "Fixed production server."
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Current API build metadata.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "version",
+                "commit"
+              ],
+              "properties": {
+                "version": {
+                  "type": "string",
+                  "example": "1.0.0"
+                },
+                "commit": {
+                  "type": "string",
+                  "example": "a1b2c3d"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

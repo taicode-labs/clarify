@@ -1,0 +1,167 @@
+{
+  "post": {
+    "tags": [
+      "Pages"
+    ],
+    "operationId": "demoComplexRequestBody",
+    "summary": "Complex request body example",
+    "description": "Covers nested JSON examples, YAML examples, multiple response statuses, and multiple response media types in one operation.",
+    "requestBody": {
+      "required": true,
+      "description": "Complex example definition in JSON or YAML.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../api.openapi.json#/components/schemas/ExportRequest"
+          },
+          "examples": {
+            "fullSite": {
+              "summary": "Full site export",
+              "value": {
+                "format": "html",
+                "scope": "site",
+                "includeDrafts": false,
+                "callbackUrl": "https://example.com/hooks/export"
+              }
+            },
+            "publishedPdf": {
+              "summary": "Published PDF export",
+              "value": {
+                "format": "pdf",
+                "scope": "published",
+                "includeDrafts": false
+              }
+            },
+            "selectedWithOptions": {
+              "summary": "Selected pages with nested options",
+              "value": {
+                "format": "html",
+                "scope": "selected",
+                "includeDrafts": true,
+                "callbackUrl": "https://example.com/hooks/export",
+                "selection": {
+                  "rootPageId": "pg_docs",
+                  "pageIds": [
+                    "pg_intro",
+                    "pg_api",
+                    "pg_guides"
+                  ],
+                  "filters": {
+                    "tags": [
+                      "release",
+                      "public"
+                    ],
+                    "updatedAfter": "2026-06-01T00:00:00Z"
+                  }
+                },
+                "rendering": {
+                  "theme": {
+                    "mode": "dark",
+                    "brandColor": "#2563eb",
+                    "logo": {
+                      "assetId": "asset_logo",
+                      "alt": "Clarify"
+                    }
+                  },
+                  "navigation": {
+                    "includeHidden": false,
+                    "levels": [
+                      {
+                        "depth": 1,
+                        "label": "Sections"
+                      },
+                      {
+                        "depth": 2,
+                        "label": "Pages"
+                      }
+                    ]
+                  }
+                },
+                "delivery": {
+                  "archive": {
+                    "type": "zip",
+                    "checksum": "sha256"
+                  },
+                  "destinations": [
+                    {
+                      "type": "webhook",
+                      "url": "https://example.com/hooks/export-ready",
+                      "headers": {
+                        "X-Project": "clarify"
+                      }
+                    },
+                    {
+                      "type": "storage",
+                      "bucket": "docs-exports",
+                      "path": "clarify/2026-06"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "application/x-yaml": {
+          "schema": {
+            "type": "string",
+            "description": "YAML representation of an export job."
+          },
+          "examples": {
+            "siteYaml": {
+              "summary": "Full site YAML",
+              "value": "format: html\nscope: site\nincludeDrafts: false\ncallbackUrl: https://example.com/hooks/export\n"
+            },
+            "draftYaml": {
+              "summary": "Draft YAML",
+              "value": "format: markdown\nscope: site\nincludeDrafts: true\n"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "202": {
+        "description": "Export job accepted.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../api.openapi.json#/components/schemas/ExportJob"
+            },
+            "examples": {
+              "queued": {
+                "summary": "Queued job",
+                "value": {
+                  "id": "exp_123",
+                  "status": "queued",
+                  "downloadUrl": null
+                }
+              },
+              "processing": {
+                "summary": "Processing job",
+                "value": {
+                  "id": "exp_456",
+                  "status": "processing",
+                  "downloadUrl": null
+                }
+              }
+            }
+          },
+          "text/plain": {
+            "schema": {
+              "type": "string"
+            },
+            "examples": {
+              "plain": {
+                "summary": "Plain job ID",
+                "value": "exp_123"
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "../../api.openapi.json#/components/responses/BadRequest"
+      }
+    }
+  }
+}

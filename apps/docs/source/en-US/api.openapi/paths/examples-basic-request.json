@@ -1,0 +1,232 @@
+{
+  "summary": "Basic request examples.",
+  "description": "Demonstrates common request parameters and response metadata.",
+  "parameters": [
+    {
+      "$ref": "../../api.openapi.json#/components/parameters/TraceId"
+    }
+  ],
+  "get": {
+    "tags": [
+      "Pages"
+    ],
+    "operationId": "demoBasicRequest",
+    "summary": "Basic request structure",
+    "description": "Demonstrates path-level headers, query parameters, examples, response headers, links, and security overrides.",
+    "parameters": [
+      {
+        "$ref": "../../api.openapi.json#/components/parameters/PageCursor"
+      },
+      {
+        "$ref": "../../api.openapi.json#/components/parameters/PageLimit"
+      },
+      {
+        "name": "status",
+        "in": "query",
+        "description": "Filter by publishing status.",
+        "schema": {
+          "$ref": "../../api.openapi.json#/components/schemas/PageStatus"
+        },
+        "examples": {
+          "published": {
+            "summary": "Published pages only",
+            "value": "published"
+          }
+        }
+      },
+      {
+        "name": "include",
+        "in": "query",
+        "description": "Related resources to include in the response.",
+        "style": "form",
+        "explode": false,
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "authors",
+              "assets",
+              "children"
+            ]
+          }
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Page collection.",
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "../../api.openapi.json#/components/headers/RequestId"
+          },
+          "X-RateLimit-Remaining": {
+            "$ref": "../../api.openapi.json#/components/headers/RateLimitRemaining"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../api.openapi.json#/components/schemas/PageList"
+            },
+            "examples": {
+              "default": {
+                "$ref": "../../api.openapi.json#/components/examples/PageListExample"
+              }
+            }
+          }
+        },
+        "links": {
+          "GetPageById": {
+            "$ref": "../../api.openapi.json#/components/links/GetPageById"
+          }
+        }
+      },
+      "400": {
+        "$ref": "../../api.openapi.json#/components/responses/BadRequest"
+      },
+      "401": {
+        "$ref": "../../api.openapi.json#/components/responses/Unauthorized"
+      },
+      "default": {
+        "$ref": "../../api.openapi.json#/components/responses/UnexpectedError"
+      }
+    },
+    "security": [
+      {
+        "BearerAuth": []
+      },
+      {
+        "ApiKeyAuth": []
+      }
+    ]
+  },
+  "post": {
+    "tags": [
+      "Pages"
+    ],
+    "operationId": "demoRequestBodyVariants",
+    "summary": "Request body variants",
+    "description": "Demonstrates JSON, YAML, multipart form data, OAuth security, and callback rendering.",
+    "requestBody": {
+      "required": true,
+      "description": "Example payload.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../api.openapi.json#/components/schemas/PageCreate"
+          },
+          "examples": {
+            "guide": {
+              "$ref": "../../api.openapi.json#/components/examples/PageCreateExample"
+            }
+          }
+        },
+        "application/x-yaml": {
+          "schema": {
+            "type": "string",
+            "description": "YAML representation of the page payload."
+          },
+          "example": "title: Getting Started\nslug: getting-started\ncontent: '# Hello'\n"
+        },
+        "multipart/form-data": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "file"
+            ],
+            "properties": {
+              "file": {
+                "type": "string",
+                "format": "binary",
+                "description": "Binary upload field rendered from string format=binary."
+              },
+              "metadata": {
+                "$ref": "../../api.openapi.json#/components/schemas/AssetMetadata"
+              }
+            }
+          },
+          "encoding": {
+            "metadata": {
+              "contentType": "application/json"
+            }
+          },
+          "examples": {
+            "image": {
+              "summary": "Image upload",
+              "value": {
+                "metadata": {
+                  "alt": "Clarify dashboard screenshot",
+                  "caption": "Generated docs preview",
+                  "tags": [
+                    "docs",
+                    "openapi"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Page created.",
+        "headers": {
+          "Location": {
+            "description": "URL of the created page.",
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../api.openapi.json#/components/schemas/Page"
+            }
+          }
+        }
+      },
+      "202": {
+        "description": "Asset upload accepted when using multipart/form-data.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../api.openapi.json#/components/schemas/Asset"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "../../api.openapi.json#/components/responses/BadRequest"
+      },
+      "409": {
+        "description": "Slug already exists.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "../../api.openapi.json#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "default": {
+        "$ref": "../../api.openapi.json#/components/responses/UnexpectedError"
+      }
+    },
+    "callbacks": {
+      "pagePublished": {
+        "$ref": "../../api.openapi.json#/components/callbacks/PagePublished"
+      }
+    },
+    "security": [
+      {
+        "OAuth2": [
+          "pages:write"
+        ]
+      }
+    ]
+  }
+}

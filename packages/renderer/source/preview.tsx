@@ -157,12 +157,12 @@ const previewConfig = {
   },
 } satisfies Config
 
-const methodStyles: Record<string, string> = {
-  GET: 'bg-emerald-400/15 text-emerald-600 dark:bg-emerald-400/20 dark:text-emerald-300',
-  POST: 'bg-sky-400/15 text-sky-600 dark:bg-sky-400/20 dark:text-sky-300',
-  PUT: 'bg-amber-400/15 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300',
-  PATCH: 'bg-amber-400/15 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300',
-  DELETE: 'bg-rose-400/15 text-rose-600 dark:bg-rose-400/20 dark:text-rose-300',
+const methodStyleVars: Record<string, string> = {
+  GET: 'bg-(--clarify-http-method-get-background) text-(--clarify-http-method-get-text)',
+  POST: 'bg-(--clarify-http-method-post-background) text-(--clarify-http-method-post-text)',
+  PUT: 'bg-(--clarify-http-method-put-background) text-(--clarify-http-method-put-text)',
+  PATCH: 'bg-(--clarify-http-method-patch-background) text-(--clarify-http-method-patch-text)',
+  DELETE: 'bg-(--clarify-http-method-delete-background) text-(--clarify-http-method-delete-text)',
 }
 
 const mainPreviewPath = '/openapi/embedding'
@@ -218,7 +218,7 @@ function MethodBadge(arg0: MethodBadgeProps) {
   const method = arg0.method.toUpperCase()
 
   return (
-    <span className={`rounded-md px-2.5 py-0.5 text-xs/6 font-black tracking-wide ${methodStyles[method] ?? 'bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text-soft)'}`}>
+    <span className={`rounded-md px-2.5 py-0.5 text-xs/6 font-black tracking-wide ${methodStyleVars[method] ?? 'bg-(--clarify-http-method-default-background) text-(--clarify-http-method-default-text)'}`}>
       {method}
     </span>
   )

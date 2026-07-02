@@ -167,6 +167,19 @@
     --clarify-schema-row-nested-width: calc(100% + 1rem);
     --clarify-server-url-max-width: min(36%, 16rem);
     --clarify-openapi-control-grid: minmax(0, 1fr) minmax(0, 1.2fr);
+    --clarify-openapi-variable-grid: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+    --clarify-http-method-get-background: color-mix(in srgb, var(--color-emerald-400) 24%, transparent);
+    --clarify-http-method-get-text: var(--color-emerald-700);
+    --clarify-http-method-post-background: color-mix(in srgb, var(--color-sky-400) 24%, transparent);
+    --clarify-http-method-post-text: var(--color-sky-700);
+    --clarify-http-method-put-background: color-mix(in srgb, var(--color-amber-400) 28%, transparent);
+    --clarify-http-method-put-text: var(--color-amber-700);
+    --clarify-http-method-patch-background: var(--clarify-http-method-put-background);
+    --clarify-http-method-patch-text: var(--clarify-http-method-put-text);
+    --clarify-http-method-delete-background: color-mix(in srgb, var(--color-rose-400) 24%, transparent);
+    --clarify-http-method-delete-text: var(--color-rose-700);
+    --clarify-http-method-default-background: color-mix(in srgb, var(--color-zinc-400) 20%, transparent);
+    --clarify-http-method-default-text: var(--color-zinc-800);
     --clarify-search-dialog-padding-block-lg: 15vh;
     --clarify-search-max-width: 36vw;
     --clarify-ui-control-font-size: 0.875rem;
@@ -203,6 +216,16 @@
     --clarify-code-surface: color-mix(in srgb, #0f172a 92%, var(--clarify-theme-tokens-colors-primary));
     --clarify-code-header-background: color-mix(in srgb, #111827 90%, var(--clarify-theme-tokens-colors-primary));
     --clarify-code-border: rgb(255 255 255 / 0.12);
+    --clarify-http-method-get-background: color-mix(in srgb, var(--color-emerald-400) 30%, transparent);
+    --clarify-http-method-get-text: var(--color-emerald-200);
+    --clarify-http-method-post-background: color-mix(in srgb, var(--color-sky-400) 30%, transparent);
+    --clarify-http-method-post-text: var(--color-sky-200);
+    --clarify-http-method-put-background: color-mix(in srgb, var(--color-amber-400) 34%, transparent);
+    --clarify-http-method-put-text: var(--color-amber-200);
+    --clarify-http-method-delete-background: color-mix(in srgb, var(--color-rose-400) 30%, transparent);
+    --clarify-http-method-delete-text: var(--color-rose-200);
+    --clarify-http-method-default-background: color-mix(in srgb, var(--color-zinc-400) 26%, transparent);
+    --clarify-http-method-default-text: var(--color-zinc-100);
   }
 
   .clarify-ui-control {

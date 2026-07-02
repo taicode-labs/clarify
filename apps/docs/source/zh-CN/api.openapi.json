@@ -660,6 +660,115 @@
         "description": "一个小型公开接口，用于展示操作级安全覆盖、内联对象 Schema 和 const 值。"
       }
     },
+    "/examples/variable-server-matrix": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "operationId": "demoVariableServerMatrix",
+        "summary": "多变量服务器矩阵",
+        "security": [],
+        "servers": [
+          {
+            "url": "https://{tenant}.{region}.clarify.local/{stage}/{version}",
+            "description": "按租户隔离的区域 API。",
+            "variables": {
+              "tenant": {
+                "default": "acme-docs",
+                "description": "用于工作区隔离的租户子域名。"
+              },
+              "region": {
+                "default": "us",
+                "enum": [
+                  "us",
+                  "eu",
+                  "apac"
+                ],
+                "description": "主要 API 区域。"
+              },
+              "stage": {
+                "default": "preview",
+                "enum": [
+                  "preview",
+                  "staging",
+                  "production"
+                ],
+                "description": "部署阶段。"
+              },
+              "version": {
+                "default": "v2",
+                "enum": [
+                  "v1",
+                  "v2",
+                  "v3-beta"
+                ],
+                "description": "API 版本。"
+              }
+            }
+          },
+          {
+            "url": "https://edge.{region}.clarify.local/{stage}/{version}",
+            "description": "边缘缓存 API。",
+            "variables": {
+              "region": {
+                "default": "global",
+                "enum": [
+                  "global",
+                  "us",
+                  "eu"
+                ],
+                "description": "边缘路由区域。"
+              },
+              "stage": {
+                "default": "production",
+                "enum": [
+                  "staging",
+                  "production"
+                ],
+                "description": "边缘部署阶段。"
+              },
+              "version": {
+                "default": "v2",
+                "enum": [
+                  "v2",
+                  "v3-beta"
+                ],
+                "description": "边缘 API 版本。"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "解析后的服务器元数据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "server",
+                    "variables"
+                  ],
+                  "properties": {
+                    "server": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "variables": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "演示多个可选服务器，并且当前服务器暴露多个 URL 变量。服务器选择器应保持单行布局，其余变量自适应为响应式网格。"
+      }
+    },
     "/examples/single-server": {
       "get": {
         "tags": [

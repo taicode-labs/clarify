@@ -1,0 +1,109 @@
+{
+  "get": {
+    "tags": [
+      "System"
+    ],
+    "operationId": "demoVariableServerMatrix",
+    "summary": "Variable server matrix",
+    "description": "Demonstrates multiple selectable servers where the selected server exposes several URL variables. The server selector should stay on one row while variables adapt into a responsive grid.",
+    "security": [],
+    "servers": [
+      {
+        "url": "https://{tenant}.{region}.clarify.local/{stage}/{version}",
+        "description": "Tenant-scoped regional API.",
+        "variables": {
+          "tenant": {
+            "default": "acme-docs",
+            "description": "Tenant subdomain used for workspace isolation."
+          },
+          "region": {
+            "default": "us",
+            "enum": [
+              "us",
+              "eu",
+              "apac"
+            ],
+            "description": "Primary API region."
+          },
+          "stage": {
+            "default": "preview",
+            "enum": [
+              "preview",
+              "staging",
+              "production"
+            ],
+            "description": "Deployment stage."
+          },
+          "version": {
+            "default": "v2",
+            "enum": [
+              "v1",
+              "v2",
+              "v3-beta"
+            ],
+            "description": "API version."
+          }
+        }
+      },
+      {
+        "url": "https://edge.{region}.clarify.local/{stage}/{version}",
+        "description": "Edge cache API.",
+        "variables": {
+          "region": {
+            "default": "global",
+            "enum": [
+              "global",
+              "us",
+              "eu"
+            ],
+            "description": "Edge routing region."
+          },
+          "stage": {
+            "default": "production",
+            "enum": [
+              "staging",
+              "production"
+            ],
+            "description": "Edge deployment stage."
+          },
+          "version": {
+            "default": "v2",
+            "enum": [
+              "v2",
+              "v3-beta"
+            ],
+            "description": "Edge API version."
+          }
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Resolved server metadata.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "server",
+                "variables"
+              ],
+              "properties": {
+                "server": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "variables": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

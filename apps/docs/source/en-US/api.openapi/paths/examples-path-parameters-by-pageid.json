@@ -1,0 +1,38 @@
+{
+  "parameters": [
+    {
+      "$ref": "../../api.openapi.json#/components/parameters/PageId"
+    }
+  ],
+  "get": {
+    "tags": [
+      "Pages"
+    ],
+    "operationId": "demoPathParameters",
+    "summary": "Path parameter example",
+    "description": "Demonstrates a templated path parameter and referenced response schema.",
+    "responses": {
+      "200": {
+        "description": "Example resource details.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../api.openapi.json#/components/schemas/Page"
+            },
+            "examples": {
+              "default": {
+                "$ref": "../../api.openapi.json#/components/examples/PageExample"
+              }
+            }
+          }
+        }
+      },
+      "404": {
+        "$ref": "../../api.openapi.json#/components/responses/NotFound"
+      },
+      "default": {
+        "$ref": "../../api.openapi.json#/components/responses/UnexpectedError"
+      }
+    }
+  }
+}

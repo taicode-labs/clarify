@@ -1,0 +1,37 @@
+{
+  "get": {
+    "tags": [
+      "System"
+    ],
+    "operationId": "demoBasicResponse",
+    "summary": "Basic response structure",
+    "description": "A small public endpoint that demonstrates operation-level security overrides, inline object schemas, and const values.",
+    "security": [],
+    "responses": {
+      "200": {
+        "description": "Service is healthy.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "status",
+                "time"
+              ],
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "const": "ok"
+                },
+                "time": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
