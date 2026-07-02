@@ -171,6 +171,7 @@ export type ClarifyPagesItem =
       tags?: string[]
     }
   }
+  | ClarifyPagesGroup
 
 export type ClarifyPagesGroup = {
   group: ClarifyLocalizedText

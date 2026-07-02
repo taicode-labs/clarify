@@ -200,6 +200,30 @@ describe('buildNavigationFromConfig', () => {
     })
   })
 
+  it('builds nested group navigation from explicit config', () => {
+    const routes: ContentRoute[] = [
+      mdxRoute({ path: '/guides/install', title: 'Install', filePath: 'install.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/guides/deploy', title: 'Deploy', filePath: 'deploy.mdx', virtualModuleId: 'v' }),
+    ]
+    const config: ClarifyPagesGroup[] = [
+      {
+        group: 'Guides',
+        pages: [
+          {
+            group: 'Setup',
+            icon: 'Wrench',
+            pages: ['guides/install', 'guides/deploy'],
+          },
+        ],
+      },
+    ]
+
+    const tree = buildNavigationFromConfig(routes, config)
+    expect(tree[0]).toMatchObject({ title: 'Guides', path: '/guides/install' })
+    expect(tree[0].children?.[0]).toMatchObject({ title: 'Setup', icon: 'Wrench', path: '/guides/install' })
+    expect(tree[0].children?.[0].children?.map(node => node.path)).toEqual(['/guides/install', '/guides/deploy'])
+  })
+
   it('uses explicit OpenAPI paths in navigation', () => {
     const routes: ContentRoute[] = [
       {

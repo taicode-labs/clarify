@@ -90,7 +90,17 @@ export const clarifySourceConfigSchema = z.object({
   directory: z.string().optional(),
 })
 
-export const clarifyPagesItemSchema = z.union([
+type ClarifyPagesItemInput = ClarifyProjectConfig['tabs'] extends Array<infer Tab>
+  ? Tab extends { pages?: infer Pages }
+    ? Pages extends Array<infer Group>
+      ? Group extends { pages: Array<infer Item> }
+        ? Item
+        : never
+      : never
+    : never
+  : never
+
+export const clarifyPagesItemSchema: z.ZodType<ClarifyPagesItemInput> = z.lazy(() => z.union([
   z.string(),
   z.object({
     page: z.string(),
@@ -108,13 +118,14 @@ export const clarifyPagesItemSchema = z.union([
       tags: z.array(z.string()).optional(),
     }).optional(),
   }),
-])
+  clarifyPagesGroupSchema,
+]))
 
-export const clarifyPagesGroupSchema = z.object({
+export const clarifyPagesGroupSchema: z.ZodType<Extract<ClarifyPagesItemInput, { group: unknown }>> = z.lazy(() => z.object({
   group: clarifyLocalizedTextSchema,
   icon: z.string().optional(),
   pages: z.array(clarifyPagesItemSchema),
-})
+}))
 
 export const clarifyPagesConfigSchema = z.union([
   z.array(clarifyPagesGroupSchema),

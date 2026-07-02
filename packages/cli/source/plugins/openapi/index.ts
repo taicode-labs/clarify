@@ -18,10 +18,14 @@ function collectOpenAPIPageItems(config: ResolvedProjectConfig): Array<Extract<C
 
   function visitPages(pages?: ClarifyPagesConfig) {
     if (!pages || pages === 'FileTree') return
-    for (const group of pages) {
-      for (const item of group.pages) {
-        if (typeof item !== 'string' && 'openapi' in item && (item.path || item.filter?.tags?.length)) items.push(item)
+    const visitItems = (pageItems: ClarifyPagesItem[]) => {
+      for (const item of pageItems) {
+        if (typeof item !== 'string' && 'group' in item) visitItems(item.pages)
+        else if (typeof item !== 'string' && 'openapi' in item && (item.path || item.filter?.tags?.length)) items.push(item)
       }
+    }
+    for (const group of pages) {
+      visitItems(group.pages)
     }
   }
 

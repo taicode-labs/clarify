@@ -268,8 +268,12 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
   return root
 }
 
+function isPagesGroup(item: ClarifyPagesItem): item is ClarifyPagesGroup {
+  return typeof item !== 'string' && 'group' in item
+}
+
 function resolvePageItem(
-  item: ClarifyPagesItem
+  item: Exclude<ClarifyPagesItem, ClarifyPagesGroup>
 ): { pageRef?: string; openapiRef?: string; openapiTagFilter?: string[]; path?: string; redirect?: string; title?: ClarifyLocalizedText; icon?: string } {
   if (typeof item === 'string') return { pageRef: item }
   if ('openapi' in item) return { openapiRef: item.openapi, openapiTagFilter: item.filter?.tags, path: item.path, title: item.title, icon: item.icon }
@@ -290,13 +294,13 @@ function collectExplicitPagePathItems(tabs?: ClarifyTabsConfig): Array<{ pageRef
 
   for (const tab of tabs ?? []) {
     if (!tab.pages || tab.pages === 'FileTree') continue
-    for (const group of tab.pages) {
-      for (const item of group.pages) {
-        if (typeof item !== 'string' && 'page' in item && item.path) {
-          items.push({ pageRef: item.page, path: item.path })
-        }
+    const visitItems = (pageItems: ClarifyPagesItem[]) => {
+      for (const item of pageItems) {
+        if (isPagesGroup(item)) visitItems(item.pages)
+        else if (typeof item !== 'string' && 'page' in item && item.path) items.push({ pageRef: item.page, path: item.path })
       }
     }
+    for (const group of tab.pages) visitItems(group.pages)
   }
 
   return items
@@ -371,8 +375,9 @@ export function buildNavigationFromTabsConfig(routes: ContentRoute[], tabs: Clar
 export function buildNavigationFromConfig(routes: ContentRoute[], config: ClarifyPagesGroup[]): ClarifyNavigationNode[] {
   const routeMap = new Map(routes.map(r => [r.path, r]))
 
-  return config.map(group => {
-    const children = group.pages.map(item => {
+  function buildPageItem(item: ClarifyPagesItem): ClarifyNavigationNode {
+    if (isPagesGroup(item)) return buildGroup(item)
+
       const { pageRef, openapiRef, openapiTagFilter, path: explicitPath, redirect, title, icon } = resolvePageItem(item)
 
       if (openapiRef) {
@@ -395,7 +400,10 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
         icon,
         sections: route?.sections ? navigationSections(route.sections) : undefined,
       }
-    })
+  }
+
+  function buildGroup(group: ClarifyPagesGroup): ClarifyNavigationNode {
+    const children = group.pages.map(buildPageItem)
 
     return {
       path: children[0]?.path ?? '/',
@@ -403,7 +411,9 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
       icon: group.icon,
       children,
     }
-  })
+  }
+
+  return config.map(buildGroup)
 }
 
 function localizeNavigationPaths(nodes: ClarifyNavigationNode[], locale: string, i18n: ResolvedClarifyI18nConfig): ClarifyNavigationNode[] {
@@ -433,8 +443,9 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
   }
 
   const routeMap = new Map(routes.map(route => [route.basePath ?? route.path, route]))
-  return config.map(group => {
-    const children = group.pages.map(item => {
+  function buildPageItem(item: ClarifyPagesItem): ClarifyNavigationNode {
+    if (isPagesGroup(item)) return buildGroup(item)
+
       const { pageRef, openapiRef, openapiTagFilter, path: explicitPath, redirect, title, icon } = resolvePageItem(item)
       const ref = openapiRef ?? pageRef ?? ''
       const basePath = openapiRef ? openAPIPagePathFromRef(openapiRef, openapiTagFilter, explicitPath) : routePathFromRef(ref, explicitPath)
@@ -448,7 +459,10 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
         icon,
         sections: route?.sections ? navigationSections(route.sections) : undefined,
       }
-    })
+  }
+
+  function buildGroup(group: ClarifyPagesGroup): ClarifyNavigationNode {
+    const children = group.pages.map(buildPageItem)
 
     return {
       path: children[0]?.path ?? localizedRoutePath('/', locale, i18n),
@@ -456,7 +470,9 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
       icon: group.icon,
       children,
     }
-  })
+  }
+
+  return config.map(buildGroup)
 }
 
 export function buildLocalizedNavigationFromTabsConfig(routes: ContentRoute[], tabs: ClarifyTabsConfig, i18n?: ResolvedClarifyI18nConfig): LocalizedTabbedNavigation | undefined {

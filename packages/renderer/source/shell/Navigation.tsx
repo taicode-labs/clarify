@@ -17,11 +17,7 @@ import { useIsInsideMobileNavigation } from './mobile'
 type NavGroup = {
   title: string
   icon?: string
-  links: Array<{
-    title: string
-    href: string
-    icon?: string
-  }>
+  links: NavigationNode[]
 }
 
 function useInitialValue<T>(value: T, condition = true) {
@@ -40,11 +36,7 @@ function navigationToGroups(navigation: NavigationNode[], defaultTitle: string):
     return {
       title: node.children?.length ? node.title : defaultTitle,
       icon: node.icon,
-      links: children.map((child) => ({
-        title: child.title,
-        href: normalizePath(child.path),
-        icon: child.icon,
-      })),
+      links: children,
     }
   })
 }
@@ -135,6 +127,10 @@ function NavLink(arg0: NavLinkProps) {  const {
 
 type VisibleSectionHighlightProps = { group: NavGroup; pathname: string }
 
+function flattenNavigationLinks(links: NavigationNode[]): NavigationNode[] {
+  return links.flatMap(link => link.children?.length ? flattenNavigationLinks(link.children) : link)
+}
+
 function VisibleSectionHighlight(arg0: VisibleSectionHighlightProps) {  const { group, pathname } = arg0
 
   const [sections, visibleSections] = useInitialValue(
@@ -149,7 +145,7 @@ function VisibleSectionHighlight(arg0: VisibleSectionHighlightProps) {  const { 
   )
   const itemHeight = remToPx(2)
   const height = isPresent ? Math.max(1, visibleSections.length) * itemHeight : itemHeight
-  const top = group.links.findIndex((link) => isSameRoutePath(link.href, pathname)) * itemHeight + firstVisibleSectionIndex * itemHeight
+  const top = flattenNavigationLinks(group.links).findIndex((link) => isSameRoutePath(normalizePath(link.path), pathname)) * itemHeight + firstVisibleSectionIndex * itemHeight
 
   return (
     <motion.div
@@ -168,7 +164,7 @@ function ActivePageMarker(arg0: ActivePageMarkerProps) {  const { group, pathnam
 
   const itemHeight = remToPx(2)
   const offset = remToPx(0.25)
-  const activePageIndex = group.links.findIndex((link) => isSameRoutePath(link.href, pathname))
+  const activePageIndex = flattenNavigationLinks(group.links).findIndex((link) => isSameRoutePath(normalizePath(link.path), pathname))
   const top = offset + activePageIndex * itemHeight
 
   return (
@@ -191,7 +187,52 @@ function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className
     [normalizeRoutePath(useLocation().pathname), useSectionStore((s) => s.sections)],
     isInsideMobileNavigation,
   )
-  const isActiveGroup = group.links.findIndex((link) => isSameRoutePath(link.href, pathname)) !== -1
+  const isActiveGroup = flattenNavigationLinks(group.links).findIndex((link) => isSameRoutePath(normalizePath(link.path), pathname)) !== -1
+
+  function renderNavigationNode(node: NavigationNode, depth = 0) {
+    const href = normalizePath(node.path)
+    const children = node.children ?? []
+    const active = isSameRoutePath(href, pathname)
+
+    if (children.length > 0) {
+      return (
+        <li key={`${href}-${node.title}`} className="relative">
+          <NavLink href={href} icon={node.icon} active={active} level={depth + 1}>
+            {node.title}
+          </NavLink>
+          <ul role="list">
+            {children.map(child => renderNavigationNode(child, depth + 1))}
+          </ul>
+        </li>
+      )
+    }
+
+    return (
+      <li key={href} className="relative">
+        <NavLink href={href} icon={node.icon} active={active} level={depth + 1}>
+          {node.title}
+        </NavLink>
+        <AnimatePresence initial={false}>
+          {active && sections.length > 0 ? (
+            <motion.ul
+              role="list"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { delay: 0.1 } }}
+              exit={{ opacity: 0, transition: { duration: 0.15 } }}
+            >
+              {sections.map((section) => (
+                <li key={section.id}>
+                  <NavLink href={`${href}#${section.id}`} badge={section.badge} tags={section.tags} isAnchorLink level={section.level}>
+                    {section.title}
+                  </NavLink>
+                </li>
+              ))}
+            </motion.ul>
+          ) : null}
+        </AnimatePresence>
+      </li>
+    )
+  }
 
   return (
     <li className={clsx('clarify-navigation-group relative mb-6', className)}>
@@ -208,34 +249,7 @@ function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className
           {isActiveGroup ? <ActivePageMarker group={group} pathname={pathname} /> : null}
         </AnimatePresence>
         <ul role="list" className="border-l border-transparent">
-          {group.links.map((link) => {
-            const active = isSameRoutePath(link.href, pathname)
-            return (
-              <li key={link.href} className="relative">
-                <NavLink href={link.href} icon={link.icon} active={active}>
-                  {link.title}
-                </NavLink>
-                <AnimatePresence initial={false}>
-                  {active && sections.length > 0 ? (
-                    <motion.ul
-                      role="list"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1, transition: { delay: 0.1 } }}
-                      exit={{ opacity: 0, transition: { duration: 0.15 } }}
-                    >
-                      {sections.map((section) => (
-                        <li key={section.id}>
-                          <NavLink href={`${link.href}#${section.id}`} badge={section.badge} tags={section.tags} isAnchorLink level={section.level}>
-                            {section.title}
-                          </NavLink>
-                        </li>
-                      ))}
-                    </motion.ul>
-                  ) : null}
-                </AnimatePresence>
-              </li>
-            )
-          })}
+          {group.links.map(link => renderNavigationNode(link))}
         </ul>
       </div>
     </li>
