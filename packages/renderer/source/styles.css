@@ -469,11 +469,6 @@
     background: var(--clarify-ui-subtle-background);
   }
 
-  .clarify-table-of-contents {
-    position: sticky;
-    top: var(--clarify-header-offset);
-  }
-
   .clarify-toc-title {
     color: var(--clarify-ui-text-strong);
   }

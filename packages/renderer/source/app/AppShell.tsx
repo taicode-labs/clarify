@@ -435,7 +435,7 @@ export function AppShell(arg0: AppShellProps) {
   }
 
   function renderTableOfContents() {
-    if (!currentRoute || sections.length === 0) {
+    if (!currentRoute) {
       return null
     }
 
@@ -445,7 +445,7 @@ export function AppShell(arg0: AppShellProps) {
         className="clarify-toc-sidebar hidden xl:block xl:self-stretch xl:bg-(--clarify-theme-tokens-colors-background) xl:px-5"
       >
         <div className={sidebarScrollClassName(hasTabs, hasBanner)}>
-          <TableOfContents currentPath={pathname} />
+          <TableOfContents currentPath={pathname} route={currentRoute} routePrefix={config.routePrefix} />
         </div>
       </aside>
     )

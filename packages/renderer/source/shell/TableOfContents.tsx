@@ -4,7 +4,11 @@ import clsx from 'clsx'
 
 import { useSectionStore } from '../app/SectionProvider'
 import { useBuiltInText } from '../core/i18n'
+import type { RouteItem } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
+import { remToPx } from '../utils/remToPx'
+
+import { ContentActions } from './ContentActions'
 
 const sectionBadgeColorStyles: Record<string, string> = {
   GET: 'text-emerald-500 dark:text-emerald-400',
@@ -64,7 +68,7 @@ function SectionLink(arg0: SectionLinkProps) {
       to={href}
       onClick={handleClick}
       className={clsx(
-        'clarify-toc-link flex h-7 items-center gap-2 pr-3 text-sm transition',
+        'clarify-toc-link flex h-8 items-center gap-2 pr-3 text-sm transition',
         active ? 'clarify-toc-link-active' : 'clarify-toc-link-inactive',
       )}
       style={{ paddingLeft: `${0.75 + Math.max(0, level - 2) * 0.75}rem` }}
@@ -77,51 +81,86 @@ function SectionLink(arg0: SectionLinkProps) {
   )
 }
 
+type SectionHighlightProps = {
+  activeIndex: number
+}
+
+function SectionHighlight(arg0: SectionHighlightProps) {
+  const { activeIndex } = arg0
+
+  if (activeIndex === -1) return null
+
+  const itemHeight = remToPx(2)
+  const top = activeIndex * itemHeight
+  const height = itemHeight
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, top, height, transition: { duration: 0.2, ease: 'easeOut' } }}
+      exit={{ opacity: 0, height: 0, transition: { duration: 0.15, ease: 'easeIn' } }}
+      className="clarify-navigation-section-highlight absolute inset-x-0 top-0 will-change-transform"
+      style={{ borderRadius: 'var(--clarify-theme-tokens-radius-sm)', height, top }}
+    />
+  )
+}
+
 export type TableOfContentsProps = {
   currentPath: string
   className?: string
+  route?: RouteItem
+  routePrefix?: string
 }
 
 export function TableOfContents(arg0: TableOfContentsProps) {
-  const { currentPath, className } = arg0
+  const { currentPath, className, route, routePrefix } = arg0
   const t = useBuiltInText()
   const sections = useSectionStore((s) => s.sections)
   const visibleSections = useSectionStore((s) => s.visibleSections)
 
-  if (sections.length === 0) {
-    return null
-  }
-
   const activeSection = visibleSections[0]
+  const activeSectionIndex = sections.findIndex((section) => section.id === activeSection)
 
   return (
-    <nav className={clsx('clarify-table-of-contents', className)} aria-label={t('tableOfContents.label')}>
-      <h2 className="clarify-toc-title mb-3 px-3 text-sm font-semibold tracking-tight">
-        {t('tableOfContents.title')}
-      </h2>
-      <AnimatePresence initial={false}>
-        <motion.ul
-          role="list"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, transition: { duration: 0.2 } }}
-          exit={{ opacity: 0, transition: { duration: 0.15 } }}
-          className="space-y-1"
-        >
-          {sections.map((section) => (
-            <li key={section.id}>
-              <SectionLink
-                href={`${currentPath}#${section.id}`}
-                badge={section.badge}
-                tags={section.tags}
-                level={section.level}
-                active={section.id === activeSection}
+    <div className={clsx('clarify-table-of-contents-wrapper', className)}>
+      <div className="mb-6 flex justify-end">
+        <ContentActions route={route} routePrefix={routePrefix} />
+      </div>
+      {sections.length > 0 ? (
+        <nav className="clarify-table-of-contents" aria-label={t('tableOfContents.label')}>
+          <h2 className="clarify-toc-title mb-3 px-3 text-sm font-semibold tracking-tight">
+            {t('tableOfContents.title')}
+          </h2>
+          <div className="relative">
+            <AnimatePresence initial={false}>
+              <SectionHighlight activeIndex={activeSectionIndex} />
+            </AnimatePresence>
+            <AnimatePresence initial={false}>
+              <motion.ul
+                role="list"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { duration: 0.2 } }}
+                exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                className="relative"
               >
-                {section.title}
-              </SectionLink>
-            </li>
-          ))}
-        </motion.ul>
-      </AnimatePresence>
-    </nav>
+                {sections.map((section) => (
+                  <li key={section.id}>
+                    <SectionLink
+                      href={`${currentPath}#${section.id}`}
+                      badge={section.badge}
+                      tags={section.tags}
+                      level={section.level}
+                      active={section.id === activeSection}
+                    >
+                      {section.title}
+                    </SectionLink>
+                  </li>
+                ))}
+              </motion.ul>
+            </AnimatePresence>
+          </div>
+        </nav>
+      ) : null}
+    </div>
   )
 }
