@@ -57,14 +57,20 @@ function createSectionStore(sections: Section[]) {
   }))
 }
 
-function useVisibleSections(sectionStore: StoreApi<SectionState>) {
+function getVisibleViewportTop(scrollY: number, headerRef?: RefObject<HTMLElement | null>) {
+  const headerBottom = headerRef?.current?.getBoundingClientRect().bottom ?? 0
+
+  return scrollY + Math.max(0, headerBottom)
+}
+
+function useVisibleSections(sectionStore: StoreApi<SectionState>, headerRef?: RefObject<HTMLElement | null>) {
   const setVisibleSections = useStore(sectionStore, (state) => state.setVisibleSections)
   const sections = useStore(sectionStore, (state) => state.sections)
 
   useEffect(() => {
     function checkVisibleSections() {
       const { innerHeight, scrollY } = window
-      const viewportTop = scrollY
+      const viewportTop = getVisibleViewportTop(scrollY, headerRef)
       const viewportBottom = scrollY + innerHeight
       const newVisibleSections: string[] = []
 
@@ -104,7 +110,7 @@ function useVisibleSections(sectionStore: StoreApi<SectionState>) {
       window.removeEventListener('scroll', checkVisibleSections)
       window.removeEventListener('resize', checkVisibleSections)
     }
-  }, [setVisibleSections, sections])
+  }, [headerRef, setVisibleSections, sections])
 }
 
 const SectionStoreContext = createContext<StoreApi<SectionState> | null>(null)
@@ -113,17 +119,19 @@ const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : us
 
 type SectionProviderProps = {
   sections: Section[]
+  headerRef?: RefObject<HTMLElement | null>
   children: ReactNode
 }
 
 export function SectionProvider(arg0: SectionProviderProps) {  const {
   sections,
+  headerRef,
   children,
 } = arg0
 
   const [sectionStore] = useState(() => createSectionStore(sections))
 
-  useVisibleSections(sectionStore)
+  useVisibleSections(sectionStore, headerRef)
 
   useIsomorphicLayoutEffect(() => {
     sectionStore.setState((state) => ({

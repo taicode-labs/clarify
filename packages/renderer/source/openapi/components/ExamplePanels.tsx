@@ -116,7 +116,7 @@ export function getServerKey(server: OpenApiServer, index: number): string {
 }
 
 export function getServerLabel(server: OpenApiServer, index: number): string {
-  return server.description ? `${server.description} (${server.url})` : server.url ?? `Server ${index + 1}`
+  return server.url ?? `Server ${index + 1}`
 }
 
 export function defaultServerVariables(server?: OpenApiServer): Record<string, string> {
