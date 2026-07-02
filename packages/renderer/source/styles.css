@@ -140,6 +140,7 @@
     --clarify-ui-action-menu-width: 19.5rem;
     --clarify-layout-sidebar-grid: 18rem minmax(0, 1fr);
     --clarify-layout-sidebar-grid-wide: 20rem minmax(0, 1fr);
+    --clarify-layout-three-column-grid: 18rem minmax(0, 1fr) 16rem;
     --clarify-sidebar-height: calc(100vh - 3.5rem);
     --clarify-sidebar-height-with-banner: calc(100vh - 6.5rem);
     --clarify-sidebar-height-with-tabs: calc(100vh - 7rem);
@@ -466,6 +467,31 @@
 
   .clarify-navigation-section-highlight {
     background: var(--clarify-ui-subtle-background);
+  }
+
+  .clarify-table-of-contents {
+    position: sticky;
+    top: var(--clarify-header-offset);
+  }
+
+  .clarify-toc-title {
+    color: var(--clarify-ui-text-strong);
+  }
+
+  .clarify-toc-link {
+    color: var(--clarify-ui-text-soft);
+    font-weight: 400;
+    border-radius: var(--clarify-theme-tokens-radius-sm);
+  }
+
+  .clarify-toc-link:hover {
+    color: var(--clarify-ui-text-strong);
+    background: var(--clarify-ui-background-muted);
+  }
+
+  .clarify-toc-link-active {
+    color: var(--clarify-theme-tokens-colors-primary);
+    font-weight: 500;
   }
 
   .clarify-tag,

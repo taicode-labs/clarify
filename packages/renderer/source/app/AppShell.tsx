@@ -5,7 +5,7 @@ import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
 import { LocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
-import { Header, Navigation } from '../shell'
+import { Header, Navigation, TableOfContents } from '../shell'
 import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots } from '../slots'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
 import type { RouteItem, Config, LocaleConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
@@ -434,6 +434,23 @@ export function AppShell(arg0: AppShellProps) {
     )
   }
 
+  function renderTableOfContents() {
+    if (!currentRoute || sections.length === 0) {
+      return null
+    }
+
+    return (
+      <aside
+        data-pagefind-ignore
+        className="clarify-toc-sidebar hidden xl:block xl:self-stretch xl:bg-(--clarify-theme-tokens-colors-background) xl:px-5"
+      >
+        <div className={sidebarScrollClassName(hasTabs, hasBanner)}>
+          <TableOfContents currentPath={pathname} />
+        </div>
+      </aside>
+    )
+  }
+
   function renderRouteElements() {
     return (
       <Routes>
@@ -499,11 +516,12 @@ export function AppShell(arg0: AppShellProps) {
   function renderLayout() {
     return (
       <div
-        className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-sidebar-grid-wide)"
+        className="clarify-layout mx-auto grid w-full max-w-(--clarify-theme-layout-max-width) grid-cols-1 lg:grid-cols-(--clarify-layout-sidebar-grid) xl:grid-cols-(--clarify-layout-three-column-grid)"
         style={layoutStyle}
       >
         {renderSidebar()}
         {renderContent()}
+        {renderTableOfContents()}
       </div>
     )
   }

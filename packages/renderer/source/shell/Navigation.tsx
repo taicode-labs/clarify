@@ -1,10 +1,9 @@
 import { CloseButton } from '@headlessui/react'
 import clsx from 'clsx'
-import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
-import { useSectionStore } from '../app/SectionProvider'
 import { useBuiltInText } from '../i18n'
 import type { NavigationNode } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
@@ -178,21 +177,11 @@ function hasActiveDescendant(node: NavigationNode, pathname: string): boolean {
 
 function VisibleSectionHighlight(arg0: VisibleSectionHighlightProps) {  const { pathname, visibleLinks } = arg0
 
-  const [sections, visibleSections] = useInitialValue(
-    [useSectionStore((s) => s.sections), useSectionStore((s) => s.visibleSections)],
-    useIsInsideMobileNavigation(),
-  )
-
-  const isPresent = useIsPresent()
-  const firstVisibleSectionIndex = Math.max(
-    0,
-    [{ id: '_top' }, ...sections].findIndex((section) => section.id === visibleSections[0]),
-  )
   const itemHeight = remToPx(2)
-  const height = isPresent ? Math.max(1, visibleSections.length) * itemHeight : itemHeight
+  const height = itemHeight
   const activeIndex = flattenVisibleNavigationLinks(visibleLinks).findIndex((link) => isSameRoutePath(normalizePath(link.path), pathname))
   if (activeIndex === -1) return null
-  const top = activeIndex * itemHeight + firstVisibleSectionIndex * itemHeight
+  const top = activeIndex * itemHeight
 
   return (
     <motion.div
@@ -231,8 +220,8 @@ type NavigationGroupProps = { group: NavGroup; className?: string }
 function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className } = arg0
 
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
-  const [pathname, sections] = useInitialValue(
-    [normalizeRoutePath(useLocation().pathname), useSectionStore((s) => s.sections)],
+  const pathname = useInitialValue(
+    normalizeRoutePath(useLocation().pathname),
     isInsideMobileNavigation,
   )
   const isActiveGroup = flattenNavigationLinks(group.links).findIndex((link) => isSameRoutePath(normalizePath(link.path), pathname)) !== -1
@@ -318,24 +307,6 @@ function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className
         <NavLink href={href} icon={node.icon} active={active} level={depth + 1}>
           {node.title}
         </NavLink>
-        <AnimatePresence initial={false}>
-          {active && sections.length > 0 ? (
-            <motion.ul
-              role="list"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { delay: 0.1 } }}
-              exit={{ opacity: 0, transition: { duration: 0.15 } }}
-            >
-              {sections.map((section) => (
-                <li key={section.id}>
-                  <NavLink href={`${href}#${section.id}`} badge={section.badge} tags={section.tags} isAnchorLink level={section.level}>
-                    {section.title}
-                  </NavLink>
-                </li>
-              ))}
-            </motion.ul>
-          ) : null}
-        </AnimatePresence>
       </li>
     )
   }

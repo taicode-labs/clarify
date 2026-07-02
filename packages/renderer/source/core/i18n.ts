@@ -100,6 +100,8 @@ export type BuiltInTextKey =
   | 'mermaid.resetZoom'
   | 'mermaid.renderError'
   | 'mermaid.scrollHint'
+  | 'tableOfContents.label'
+  | 'tableOfContents.title'
 
 const builtInText = {
   en: {
@@ -198,6 +200,8 @@ const builtInText = {
     'mermaid.resetZoom': 'Reset zoom',
     'mermaid.renderError': 'Mermaid render error',
     'mermaid.scrollHint': 'Click the diagram to enable scroll-to-zoom',
+    'tableOfContents.label': 'Table of contents',
+    'tableOfContents.title': 'On this page',
   },
   'zh-CN': {
     'actions.code': '代码',
@@ -295,6 +299,8 @@ const builtInText = {
     'mermaid.resetZoom': '重置缩放',
     'mermaid.renderError': 'Mermaid 渲染错误',
     'mermaid.scrollHint': '点击图表后即可滚轮缩放',
+    'tableOfContents.label': '目录',
+    'tableOfContents.title': '本页内容',
   },
 } satisfies Record<BuiltInLocale, Record<BuiltInTextKey, string>>
 
