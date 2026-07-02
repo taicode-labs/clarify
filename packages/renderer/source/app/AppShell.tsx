@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { ComponentType, CSSProperties } from 'react'
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
@@ -8,7 +8,7 @@ import { useBuiltInText } from '../core/i18n'
 import { Header, Navigation } from '../shell'
 import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots } from '../slots'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
-import type { RouteItem, Config, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
+import type { RouteItem, Config, LocaleConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { resolveLocalizedText } from '../utils/localized-text'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
@@ -170,6 +170,132 @@ function applyDocumentMetadata(config: Config, route?: RouteItem) {
   setNamedMeta('keywords', route?.keywords?.join(', '))
 }
 
+function useRouteState(config: Config, routes: RouteItem[], navigation: NavigationTree, pathname: string) {
+  const currentRoute = routeForPath(routes, pathname)
+  const explicitLocale = explicitLocaleForPath(config, pathname)
+  const storedLocale = storedLocaleForConfig(config)
+  const currentLocale = explicitLocale ?? storedLocale ?? fallbackLocale(config)
+  const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
+  const notFoundRoute = currentRoute ? undefined : notFoundRouteForPath(routes, pathname, currentLocale)
+  const currentNavigation = navigationForLocale(navigation, currentLocale, pathname)
+  const sections = sectionsForRoute(currentRoute)
+
+  return {
+    currentRoute,
+    explicitLocale,
+    storedLocale,
+    currentLocale,
+    currentLocaleConfig,
+    notFoundRoute,
+    currentNavigation,
+    sections,
+  }
+}
+
+function useRenderedRoutes(routes: RouteItem[], notFoundRoute?: RouteItem) {
+  const renderRoutes = useMemo(
+    () => routes.map(route => ({ ...route, component: resolveRouteComponent(route) })),
+    [routes],
+  )
+  const NotFoundRouteComponent = notFoundRoute
+    ? renderRoutes.find(route => isSameRoutePath(route.path, notFoundRoute.path))?.component
+    : undefined
+
+  return { renderRoutes, NotFoundRouteComponent }
+}
+
+function emptySubscribe() {
+  return () => {}
+}
+
+function useStoredBannerDismissed(storageKey: string | undefined) {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => Boolean(storageKey && window.localStorage.getItem(storageKey) === '1'),
+    () => false,
+  )
+}
+
+function useBannerState(config: Config, currentLocale: string | undefined) {
+  const banner = config.banner
+  const bannerContent = banner
+    ? resolveLocalizedText(banner.content, currentLocale, config.i18n?.defaultLocale)
+    : ''
+  const bannerStorageKey = banner && bannerContent ? `clarify:banner:dismissed:${config.title}:${bannerContent}` : undefined
+  const storedBannerDismissed = useStoredBannerDismissed(banner?.dismissible ? bannerStorageKey : undefined)
+  const [dismissedBannerKey, setDismissedBannerKey] = useState<string>()
+  const activeBannerKey = banner ? JSON.stringify(banner) : undefined
+  const bannerResolved = !banner?.dismissible || !storedBannerDismissed
+  const hasBanner = Boolean(banner && bannerContent) && !storedBannerDismissed && dismissedBannerKey !== activeBannerKey
+
+  return {
+    activeBannerKey,
+    bannerResolved,
+    dismissedBannerKey,
+    hasBanner,
+    dismissBanner: () => setDismissedBannerKey(activeBannerKey),
+  }
+}
+
+type StoredLocaleRedirectOptions = {
+  config: Config
+  currentRoute?: RouteItem
+  explicitLocale?: string
+  location: ReturnType<typeof useLocation>
+  navigate: ReturnType<typeof useNavigate>
+  pathname: string
+  storedLocale: string | null
+}
+
+function useStoredLocalePreference(explicitLocale: string | undefined) {
+  useEffect(() => {
+    if (explicitLocale) storeLocalePreference(explicitLocale)
+  }, [explicitLocale])
+}
+
+function useStoredLocaleRedirect(arg0: StoredLocaleRedirectOptions) {
+  const { config, currentRoute, explicitLocale, location, navigate, pathname, storedLocale } = arg0
+
+  useEffect(() => {
+    if (explicitLocale || !storedLocale || isDefaultLocale(config, storedLocale)) return
+    const localizedPath = currentRoute?.alternates?.[storedLocale]
+    if (!localizedPath || isSameRoutePath(localizedPath, pathname)) return
+    navigate(`${localizedPath}${location.search}${location.hash}`, { replace: true })
+  }, [config, currentRoute, explicitLocale, location.hash, location.search, navigate, pathname, storedLocale])
+}
+
+function useRouteScroll(location: ReturnType<typeof useLocation>) {
+  useEffect(() => {
+    if (location.hash) {
+      scrollToHash(location.hash)
+      return
+    }
+
+    window.scrollTo({ top: 0, left: 0 })
+    window.requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('scroll'))
+    })
+  }, [location.hash, location.pathname])
+}
+
+function useDocumentLanguage(currentLocale: string | undefined, currentLocaleConfig: LocaleConfig | undefined) {
+  useEffect(() => {
+    if (!currentLocale) return
+    document.documentElement.lang = currentLocale
+    if (currentLocaleConfig?.dir) {
+      document.documentElement.dir = currentLocaleConfig.dir
+    } else {
+      document.documentElement.removeAttribute('dir')
+    }
+  }, [currentLocale, currentLocaleConfig?.dir])
+}
+
+function useDocumentMetadata(config: Config, route?: RouteItem) {
+  useEffect(() => {
+    applyDocumentMetadata(config, route)
+  }, [config, route])
+}
+
 function BuiltInNotFoundPage() {
   const text = useBuiltInText()
 
@@ -203,82 +329,26 @@ export function AppShell(arg0: AppShellProps) {
   const navigate = useNavigate()
   const pathname = normalizeRoutePath(location.pathname)
   const headerRef = useRef<HTMLElement>(null)
-  const currentRoute = routeForPath(routes, pathname)
-  const explicitLocale = explicitLocaleForPath(config, pathname)
-  const storedLocale = storedLocaleForConfig(config)
-  const currentLocale = explicitLocale ?? storedLocale ?? fallbackLocale(config)
-  const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
-  const notFoundRoute = currentRoute ? undefined : notFoundRouteForPath(routes, pathname, currentLocale)
+  const {
+    currentRoute,
+    explicitLocale,
+    storedLocale,
+    currentLocale,
+    currentLocaleConfig,
+    notFoundRoute,
+    currentNavigation,
+    sections,
+  } = useRouteState(config, routes, navigation, pathname)
   const text = useBuiltInText(currentLocale)
-  const currentNavigation = navigationForLocale(navigation, currentLocale, pathname)
-  const sections = sectionsForRoute(currentRoute)
-  const banner = config.banner
-  const bannerContent = banner
-    ? resolveLocalizedText(banner.content, currentLocale, config.i18n?.defaultLocale)
-    : ''
-  const bannerStorageKey = banner && bannerContent ? `clarify:banner:dismissed:${config.title}:${bannerContent}` : undefined
-  const [bannerResolved, setBannerResolved] = useState<boolean>(() => !banner?.dismissible)
-  const [dismissedBannerKey, setDismissedBannerKey] = useState<string>()
-  const activeBannerKey = banner ? JSON.stringify(banner) : undefined
-  const hasBanner = bannerResolved && Boolean(banner) && dismissedBannerKey !== activeBannerKey
+  const { activeBannerKey, bannerResolved, dismissedBannerKey, hasBanner, dismissBanner } = useBannerState(config, currentLocale)
   const hasTabs = Boolean(currentNavigation.tabs?.length)
-  const renderRoutes = useMemo(
-    () => routes.map(route => ({ ...route, component: resolveRouteComponent(route) })),
-    [routes],
-  )
-  const NotFoundRouteComponent = notFoundRoute
-    ? renderRoutes.find(route => isSameRoutePath(route.path, notFoundRoute.path))?.component
-    : undefined
+  const { renderRoutes, NotFoundRouteComponent } = useRenderedRoutes(routes, notFoundRoute)
 
-  useLayoutEffect(() => {
-    if (bannerResolved || !banner || !banner.dismissible || typeof window === 'undefined') return
-
-    if (!bannerStorageKey) {
-      setBannerResolved(true)
-      return
-    }
-
-    const dismissed = window.localStorage.getItem(bannerStorageKey) === '1'
-    setDismissedBannerKey(dismissed ? activeBannerKey : undefined)
-    setBannerResolved(true)
-  }, [banner, bannerResolved, bannerStorageKey, activeBannerKey])
-
-  useEffect(() => {
-    if (explicitLocale) storeLocalePreference(explicitLocale)
-  }, [explicitLocale])
-
-  useEffect(() => {
-    if (explicitLocale || !storedLocale || isDefaultLocale(config, storedLocale)) return
-    const localizedPath = currentRoute?.alternates?.[storedLocale]
-    if (!localizedPath || isSameRoutePath(localizedPath, pathname)) return
-    navigate(`${localizedPath}${location.search}${location.hash}`, { replace: true })
-  }, [config, currentRoute, explicitLocale, location.hash, location.search, navigate, pathname, storedLocale])
-
-  useEffect(() => {
-    if (location.hash) {
-      scrollToHash(location.hash)
-      return
-    }
-
-    window.scrollTo({ top: 0, left: 0 })
-    window.requestAnimationFrame(() => {
-      window.dispatchEvent(new Event('scroll'))
-    })
-  }, [location.hash, location.pathname])
-
-  useEffect(() => {
-    if (!currentLocale) return
-    document.documentElement.lang = currentLocale
-    if (currentLocaleConfig?.dir) {
-      document.documentElement.dir = currentLocaleConfig.dir
-    } else {
-      document.documentElement.removeAttribute('dir')
-    }
-  }, [currentLocale, currentLocaleConfig?.dir])
-
-  useEffect(() => {
-    applyDocumentMetadata(config, currentRoute ?? notFoundRoute)
-  }, [config, currentRoute, notFoundRoute])
+  useStoredLocalePreference(explicitLocale)
+  useStoredLocaleRedirect({ config, currentRoute, explicitLocale, location, navigate, pathname, storedLocale })
+  useRouteScroll(location)
+  useDocumentLanguage(currentLocale, currentLocaleConfig)
+  useDocumentMetadata(config, currentRoute ?? notFoundRoute)
 
   return (
     <LocaleContext.Provider value={currentLocale}>
@@ -297,7 +367,7 @@ export function AppShell(arg0: AppShellProps) {
               activeBannerKey={activeBannerKey}
               dismissedBannerKey={dismissedBannerKey}
               bannerResolved={bannerResolved}
-              onDismiss={() => setDismissedBannerKey(activeBannerKey)}
+              onDismiss={dismissBanner}
               config={config}
               locale={currentLocale}
             />
