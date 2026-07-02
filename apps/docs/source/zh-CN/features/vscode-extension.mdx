@@ -1,57 +1,83 @@
 # VS Code 扩展
 
-Clarify VS Code 扩展为 Visual Studio Code 提供本地预览和 Clarify 文档工作区集成。
+Clarify VS Code 扩展可以让你在 Visual Studio Code 里直接预览 Clarify 文档项目。
 
-它来自仓库的 `extensions/vscode`，适用于同一个项目中的 Markdown、MDX 和 OpenAPI 源文件。
+当你编写 Markdown、MDX 或 OpenAPI 文档时，可以用它在编辑器内打开当前页面对应的实时预览。
 
-## 提供的能力
+## 安装扩展
 
-- 识别 Clarify 项目和内容文件（`.md`、`.mdx`、`.openapi.json`、`.openapi.yaml`、`.openapi.yml`）。
-- 为当前项目启动本地 Clarify 预览服务。
-- 在 VS Code 内打开文档预览面板。
-- 支持打开、刷新和停止预览的命令。
-- 与仓库中的 Clarify 源码和 CLI 工作流共用同一套基础。
+通过 Clarify Release 中提供的扩展包安装：
 
-## 如何使用
+1. 从最新的 Clarify GitHub Release 下载 `clarify-vscode-extension-*.vsix` 文件。
+2. 在 VS Code 中打开命令面板。
+3. 运行 `Extensions: Install from VSIX...`。
+4. 选择下载好的 `.vsix` 文件。
+5. 如果 VS Code 提示，重新加载窗口。
+
+安装完成后，扩展会在 Extensions 视图中显示为 **Clarify**。
+
+## 打开预览
 
 1. 在 VS Code 中打开 Clarify 项目文件夹。
-2. 选择 `index.mdx`、`guide.mdx` 或 `api.openapi.json` 等内容文件。
-3. 通过命令面板运行 `Clarify: Preview`。
-4. 修改内容或配置后，运行 `Clarify: Refresh Preview`。
-5. 结束预览会话时，运行 `Clarify: Stop Dev Server`。
+2. 打开 `index.mdx`、`guide.mdx`、`api.openapi.json`、`api.openapi.yaml` 或 `api.openapi.yml` 等内容文件。
+3. 从命令面板运行 `Clarify: Preview`，也可以点击编辑器标题栏中出现的 Clarify 图标。
+4. 扩展会启动本地 Clarify dev server，并在 VS Code 预览面板中打开当前文件对应的文档页面。
 
-## 开发
+预览默认会在当前编辑器旁边打开。切换到其他 Clarify 内容文件时，预览也可以自动跟随当前文件更新。
 
-扩展源码位于 `extensions/vscode/source`，使用 Vite 构建为单个 CommonJS bundle。
+## 功能
 
-```bash
-cd extensions/vscode
-pnpm install
-pnpm build
-```
+- 识别当前工作区中的 Clarify 项目。
+- 识别 Markdown、MDX 和 OpenAPI 源文件。
+- 为项目启动并复用本地 Clarify 预览服务。
+- 根据正在编辑的文件打开对应路由。
+- 在内容或配置变更后刷新预览。
+- 可以从 VS Code 停止本地 dev server。
+- 优先使用项目中的 Clarify CLI，也支持通过配置指定自定义 CLI 路径。
 
-运行扩展测试：
+## 命令
 
-```bash
-cd extensions/vscode
-pnpm test
-```
+| 命令 | 作用 |
+| --- | --- |
+| `Clarify: Preview` | 为当前 Clarify 内容文件打开或更新预览。 |
+| `Clarify: Refresh Preview` | 在内容、配置或依赖变更后重新加载预览面板。 |
+| `Clarify: Stop Dev Server` | 停止本地 Clarify dev server，并结束预览会话。 |
 
-## 打包
+## 设置
 
-仓库已配置 release workflow，会打包扩展并将生成的 `.vsix` 附件上传到 GitHub Release。
+打开 VS Code 设置并搜索 `Clarify`，即可配置扩展。
 
-本地打包命令：
+| 设置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `clarify.autoStartServer` | `true` | 打开项目时自动启动 Clarify dev server。 |
+| `clarify.autoOpenPreview` | `true` | 在内容文件之间切换时自动更新预览。 |
+| `clarify.openToSide` | `true` | 在当前编辑器旁边打开预览面板。 |
+| `clarify.cliPath` | 空 | 使用指定的 `clarify` binary，而不是自动查找 CLI。 |
 
-```bash
-cd extensions/vscode
-pnpm exec vsce package --no-dependencies
-```
+大多数项目不需要修改这些设置。只有在需要运行某个本地或自定义 Clarify CLI 构建时，才需要配置 `clarify.cliPath`。
 
-构建结果会输出到 `extensions/vscode/*.vsix`。
+## 支持的文件
 
-## 了解更多
+扩展面向使用以下源文件的 Clarify 项目：
 
-- 扩展源码：`extensions/vscode/source`
-- 扩展清单：`extensions/vscode/package.json`
-- 本地文档：`extensions/vscode/README.md`
+- `.md`
+- `.mdx`
+- `.openapi.json`
+- `.openapi.yaml`
+- `.openapi.yml`
+
+扩展还会读取运行中的 Clarify 项目信息，因此项目文件约定会与当前工作区使用的 CLI 版本保持一致。
+
+## 常见问题
+
+- **看不到预览命令**：确认你打开的是 Clarify 项目文件夹，而不是单个文件。
+- **预览打开了错误页面**：先保存文件，再运行 `Clarify: Refresh Preview`。
+- **dev server 启动失败**：确认项目可以在终端中正常运行 `clarify dev`。
+- **需要使用自定义 CLI**：将 `clarify.cliPath` 设置为目标 `clarify` binary 的绝对路径。
+- **配置变更后预览仍然是旧内容**：先运行 `Clarify: Stop Dev Server`，再运行 `Clarify: Preview`。
+
+## 相关文档
+
+- [快速开始](/getting-started)
+- [MDX 与内容](/guides/writing-content)
+- [OpenAPI 文档](/features/openapi)

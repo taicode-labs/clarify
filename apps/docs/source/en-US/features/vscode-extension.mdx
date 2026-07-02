@@ -1,57 +1,83 @@
 # VS Code Extension
 
-The Clarify VS Code extension brings local preview and workspace-aware Clarify support to Visual Studio Code.
+The Clarify VS Code extension lets you preview a Clarify documentation project without leaving Visual Studio Code.
 
-It is shipped from `extensions/vscode` and is designed to work with Clarify documentation projects that use Markdown, MDX, and OpenAPI source files.
+Use it when you are writing Markdown, MDX, or OpenAPI docs and want a live preview that follows the file you are editing.
 
-## What it provides
+## Install the extension
 
-- Detects Clarify projects and content files inside a workspace.
-- Starts a local Clarify preview server for the current project.
-- Opens a preview panel inside VS Code for documentation pages.
-- Supports commands to open, refresh, and stop the preview.
-- Uses the same Clarify source code and CLI workflows as the rest of the repository.
+Install the extension from a Clarify release package:
 
-## How to use it
+1. Download the `clarify-vscode-extension-*.vsix` file from the latest Clarify GitHub Release.
+2. In VS Code, open the Command Palette.
+3. Run `Extensions: Install from VSIX...`.
+4. Select the downloaded `.vsix` file.
+5. Reload VS Code if prompted.
+
+After installation, the extension is named **Clarify** in the Extensions view.
+
+## Open a preview
 
 1. Open a Clarify project folder in VS Code.
-2. Open a content file such as `index.mdx`, `guide.mdx`, or `api.openapi.json`.
-3. Run the command `Clarify: Preview` from the Command Palette.
-4. Use `Clarify: Refresh Preview` after making content or configuration changes.
-5. Use `Clarify: Stop Dev Server` to end the preview session.
+2. Open a content file such as `index.mdx`, `guide.mdx`, `api.openapi.json`, `api.openapi.yaml`, or `api.openapi.yml`.
+3. Run `Clarify: Preview` from the Command Palette, or use the Clarify icon in the editor title bar when it appears.
+4. The extension starts a local Clarify dev server and opens the matching documentation page in a VS Code preview panel.
 
-## Development
+The preview opens beside the editor by default. When you switch to another Clarify content file, the preview can follow the active editor automatically.
 
-The extension source lives in `extensions/vscode/source`. The extension is built with Vite and bundled into a single CommonJS output.
+## Features
 
-```bash
-cd extensions/vscode
-pnpm install
-pnpm build
-```
+- Detects Clarify projects in your current workspace.
+- Recognizes Markdown, MDX, and OpenAPI source files.
+- Starts and reuses a local Clarify preview server for the project.
+- Opens the matching route for the file you are editing.
+- Refreshes the preview when content or configuration changes.
+- Lets you stop the dev server from VS Code when you are done.
+- Uses the project CLI when available, with an optional custom CLI path for advanced setups.
 
-Run the extension tests:
+## Commands
 
-```bash
-cd extensions/vscode
-pnpm test
-```
+| Command | What it does |
+| --- | --- |
+| `Clarify: Preview` | Opens or updates the preview for the current Clarify content file. |
+| `Clarify: Refresh Preview` | Reloads the preview panel after content, configuration, or dependency changes. |
+| `Clarify: Stop Dev Server` | Stops the local Clarify dev server and closes the preview session. |
 
-## Packaging
+## Settings
 
-The repository includes a dedicated release workflow that packages the extension and uploads the generated `.vsix` asset to GitHub release attachments.
+Open VS Code settings and search for `Clarify` to configure the extension.
 
-To package the extension locally:
+| Setting | Default | Description |
+| --- | --- | --- |
+| `clarify.autoStartServer` | `true` | Starts the Clarify dev server automatically when a project is opened. |
+| `clarify.autoOpenPreview` | `true` | Updates the preview automatically when switching between content files. |
+| `clarify.openToSide` | `true` | Opens the preview beside the active editor. |
+| `clarify.cliPath` | empty | Uses a specific `clarify` binary instead of automatic CLI discovery. |
 
-```bash
-cd extensions/vscode
-pnpm exec vsce package --no-dependencies
-```
+Most projects do not need custom settings. Use `clarify.cliPath` only when you want the extension to run a specific local or custom Clarify CLI build.
 
-The built package is written to `extensions/vscode/*.vsix`.
+## Supported files
 
-## Learn more
+The extension is designed for Clarify projects that use these source files:
 
-- Extension source: `extensions/vscode/source`
-- Extension manifest: `extensions/vscode/package.json`
-- Local docs: `extensions/vscode/README.md`
+- `.md`
+- `.mdx`
+- `.openapi.json`
+- `.openapi.yaml`
+- `.openapi.yml`
+
+It also reads the running Clarify project information, so project-specific conventions stay aligned with the CLI version used by the workspace.
+
+## Troubleshooting
+
+- **The preview command is not visible**: make sure you opened a Clarify project folder, not only an individual file.
+- **The preview opens the wrong page**: save the file, then run `Clarify: Refresh Preview`.
+- **The dev server does not start**: confirm the project can run `clarify dev` from the terminal.
+- **A custom CLI should be used**: set `clarify.cliPath` to the absolute path of the desired `clarify` binary.
+- **The preview is stale after configuration changes**: run `Clarify: Stop Dev Server`, then `Clarify: Preview` again.
+
+## Related docs
+
+- [Quickstart](/getting-started)
+- [MDX Guide](/guides/writing-content)
+- [OpenAPI Documentation](/features/openapi)
