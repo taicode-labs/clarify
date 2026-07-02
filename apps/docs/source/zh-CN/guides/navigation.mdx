@@ -73,6 +73,45 @@ export default defineConfig({
 | `title` | 覆盖页面在导航中的显示标题 |
 | `icon` | 使用 lucide 图标名称 |
 
+## 嵌套侧边栏分组
+
+Clarify 支持在 `tabs[].pages` 内嵌套 `group`，这样可以表达更深的侧边栏结构，而不会把导航扁平化。
+
+```ts
+export default defineConfig({
+  tabs: [
+    {
+      tab: '文档',
+      pages: [
+        {
+          group: '指南',
+          pages: [
+            {
+              group: '安装与配置',
+              icon: 'Wrench',
+              pages: [
+                { page: 'guides/install', title: '安装', icon: 'Package' },
+                { page: 'guides/configure', title: '配置', icon: 'SlidersHorizontal' },
+              ],
+            },
+            {
+              group: '高级',
+              pages: [
+                { page: 'guides/advanced/ssg', title: 'SSG', icon: 'Rocket' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+})
+```
+
+页面引用使用与文件路由相同的路径语法，相对于 `source/`。
+
+例如：`source/guides/advanced/ssg.mdx` 对应 `/guides/advanced/ssg`。
+
 示例 OpenAPI 入口：
 
 ```ts

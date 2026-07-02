@@ -53,7 +53,32 @@ Clarify 按照 `source/` 下的文件结构生成页面路径：
 - `index.mdx` 映射为所在目录根路径。
 - 文件名建议使用小写和连字符，例如 `api-authentication.mdx`。
 - 支持 `.mdx` 内容文件，以及 `.openapi.json`、`.openapi.yaml`、`.openapi.yml` 规范文件。
+- 嵌套目录会直接映射为嵌套路由，例如 `source/guides/advanced/ssg.mdx` 对应 `/guides/advanced/ssg`，`source/guides/advanced/index.mdx` 对应 `/guides/advanced`。
 - 如果站点部署在子路径，使用 `routePrefix` 配置前缀，见 [配置站点](/guides/navigation)。
+
+## 显式侧边栏配置中的嵌套目录
+
+当你显式配置 `tabs[].pages` 时，可以使用相同的嵌套页面路径语法来引用更深层级的页面：
+
+```ts
+export default defineConfig({
+  tabs: [
+    {
+      tab: '文档',
+      pages: [
+        {
+          group: '指南',
+          pages: [
+            { page: 'guides/advanced/ssg', title: 'SSG' },
+          ],
+        },
+      ],
+    },
+  ],
+})
+```
+
+这让侧边栏结构与文件树和路由路径保持一致。
 
 ---
 

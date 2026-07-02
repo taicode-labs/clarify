@@ -441,6 +441,24 @@
     color: var(--clarify-ui-text-soft);
   }
 
+  .clarify-navigation-directory-link {
+    color: var(--clarify-ui-text-soft);
+    font-weight: 600;
+    background: var(--clarify-ui-background-muted);
+    border-radius: var(--clarify-theme-tokens-radius-sm);
+    padding-left: 0.75rem;
+  }
+
+  .clarify-navigation-directory-link:hover,
+  .clarify-navigation-directory-link[aria-expanded='true'] {
+    color: var(--clarify-ui-text-strong);
+    background: var(--clarify-ui-background);
+  }
+
+  .clarify-navigation-directory-link > span > span {
+    color: inherit;
+  }
+
   .clarify-navigation-section-badge {
     font-size: var(--clarify-ui-navigation-section-badge-font-size);
     line-height: var(--clarify-ui-navigation-section-badge-line-height);

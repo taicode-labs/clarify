@@ -73,6 +73,45 @@ Page item types:
 | `title` | Overrides the page's display title in navigation |
 | `icon` | Uses a lucide icon name |
 
+## Nested sidebar groups
+
+Clarify supports nested `group` entries inside `tabs[].pages`, so you can represent deeper sidebar structure without flattening the navigation.
+
+```ts
+export default defineConfig({
+  tabs: [
+    {
+      tab: 'Docs',
+      pages: [
+        {
+          group: 'Guides',
+          pages: [
+            {
+              group: 'Setup',
+              icon: 'Wrench',
+              pages: [
+                { page: 'guides/install', title: 'Install', icon: 'Package' },
+                { page: 'guides/configure', title: 'Configure', icon: 'SlidersHorizontal' },
+              ],
+            },
+            {
+              group: 'Advanced',
+              pages: [
+                { page: 'guides/advanced/ssg', title: 'SSG', icon: 'Rocket' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+})
+```
+
+Page references use the same path syntax as file routing, relative to `source/`.
+
+Example: `source/guides/advanced/ssg.mdx` maps to `/guides/advanced/ssg`.
+
 Example OpenAPI entry:
 
 ```ts

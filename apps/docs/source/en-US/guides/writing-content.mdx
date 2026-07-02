@@ -53,7 +53,32 @@ Rules:
 - `index.mdx` maps to the root path of its directory.
 - File names should use lowercase and hyphens, e.g. `api-authentication.mdx`.
 - `.mdx` content files are supported, as well as `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` spec files.
+- Nested directories map directly to nested routes, for example `source/guides/advanced/ssg.mdx` becomes `/guides/advanced/ssg`, and `source/guides/advanced/index.mdx` becomes `/guides/advanced`.
 - If the site is deployed under a subpath, configure the prefix with `routePrefix` — see [Configuring the Site](/guides/navigation).
+
+## Nested directories in sidebar config
+
+When you explicitly configure `tabs[].pages`, use the same nested page path syntax to point to deeper files:
+
+```ts
+export default defineConfig({
+  tabs: [
+    {
+      tab: 'Docs',
+      pages: [
+        {
+          group: 'Guides',
+          pages: [
+            { page: 'guides/advanced/ssg', title: 'SSG' },
+          ],
+        },
+      ],
+    },
+  ],
+})
+```
+
+This keeps the sidebar structure aligned with the file tree and route paths.
 
 ---
 
