@@ -291,6 +291,8 @@ export type ContentRoute = {
   basePath?: string
   locale?: string
   isFallback?: boolean
+  /** Indicates this route is a bare alias for the default locale (e.g., /path instead of /locale/path). Should not be indexed. */
+  isBareAlias?: boolean
   alternates?: Record<string, string>
   title: string
   description?: string

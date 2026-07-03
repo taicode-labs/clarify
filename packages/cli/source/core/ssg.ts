@@ -85,7 +85,10 @@ export function injectSSRIntoTemplate(template: string, appHtml: string, project
   html = injectCanonicalUrl(html, projectConfig, route)
 
   // Replace <div id="root">...</div> with SSR rendered content
-  html = html.replace(/<div id="root">[\s\S]*?<\/div>/, `<div id="root">${appHtml}</div>`)
+  // For bare alias routes (e.g., /path) in multilingual sites, mark the root div
+  // with data-pagefind-ignore to prevent Pagefind from indexing duplicates
+  const dataPagefindIgnore = route?.isBareAlias ? ' data-pagefind-ignore' : ''
+  html = html.replace(/<div id="root">([\s\S]*?)<\/div>/, `<div id="root"${dataPagefindIgnore}>${appHtml}</div>`)
 
   return html
 }

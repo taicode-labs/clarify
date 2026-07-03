@@ -56,13 +56,14 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
     const basePath = r.basePath ? `, basePath: ${JSON.stringify(r.basePath)}` : ''
     const locale = r.locale ? `, locale: ${JSON.stringify(r.locale)}` : ''
     const isFallback = r.isFallback ? ', isFallback: true' : ''
+    const isBareAlias = r.isBareAlias ? ', isBareAlias: true' : ''
     const alternates = r.alternates ? `, alternates: ${JSON.stringify(r.alternates)}` : ''
     const description = r.description ? `, description: ${JSON.stringify(r.description)}` : ''
     const keywords = r.keywords && r.keywords.length > 0 ? `, keywords: ${JSON.stringify(r.keywords)}` : ''
     const sourceUrl = r.sourceUrl ? `, sourceUrl: ${JSON.stringify(r.sourceUrl)}` : ''
     const component = mode === 'server' ? `Page${i}` : `() => import(${moduleSpecifier(r.virtualModuleId)})`
     const lazy = mode === 'client' ? ', lazy: true' : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${alternates}${description}${keywords}${sections}${contentArtifactUrl}${sourceUrl} }`
+    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${isBareAlias}${alternates}${description}${keywords}${sections}${contentArtifactUrl}${sourceUrl} }`
   }).join(',\n')
 
   const navigation = resolvedNavigation ?? (projectConfig?.tabs

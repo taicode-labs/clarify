@@ -26,6 +26,7 @@ export type RouteItem = {
   basePath?: string;
   locale?: string;
   isFallback?: boolean;
+  isBareAlias?: boolean;
   alternates?: Record<string, string>;
   title: string;
   description?: string;

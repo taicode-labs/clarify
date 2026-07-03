@@ -83,6 +83,10 @@ async function generateDevSearchIndex(ctx: ClarifyHookContext, root: string): Pr
   try {
     let pageCount = 0
     for (const route of ctx.routes) {
+      // Skip bare alias routes (e.g., /path) to avoid indexing duplicates in multilingual sites
+      // Only index the full path with locale prefix (e.g., /locale/path)
+      if (route.isBareAlias) continue
+      
       const content = routeSearchContent(route)
       if (!content.trim()) continue
       const result = await index.addCustomRecord({
