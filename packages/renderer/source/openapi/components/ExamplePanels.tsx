@@ -1,270 +1,24 @@
-import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
-import { CheckIcon, ChevronsUpDownIcon, ClipboardIcon, CodeIcon, PackageIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
 import { useBuiltInText } from '../../core/i18n'
-import { copyTextToClipboard } from '../../utils/clipboard'
-import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getPathItem, getResponseEntries, isRecord, stringifyExample } from '../lib/helpers'
+import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getResponseEntries, stringifyExample } from '../lib/helpers'
 import { buildRequestCodeExamples } from '../lib/request-code'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 import type {
   ExampleEntry,
   MediaTypeEntry,
   OpenApiParameter,
-  OpenApiSecurityRequirement,
-  OpenApiSecurityScheme,
-  OpenApiServer,
   RequestAuthInput,
-  RequestCodeExample,
 } from '../types'
 
-type SelectOption = {
-  value: string
-  label: string
-}
 
-type SelectControlProps = {
-  label: string
-  value: string
-  options: Array<string | SelectOption>
-  onChange: (value: string) => void
-  icon?: ReactNode
-  compact?: boolean
-}
-
-function SelectControl(arg0: SelectControlProps): ReactNode {
-  const {
-    label,
-    value,
-    options,
-    onChange,
-    icon,
-    compact = false,
-  } = arg0
-
-  const normalizedOptions = options.map((option) => (typeof option === 'string' ? { value: option, label: option } : option))
-  const selectedOption = normalizedOptions.find((option) => option.value === value) ?? normalizedOptions[0]
-  const wrapperClassName = compact ? 'clarify-api-select relative min-w-0 text-xs' : 'clarify-api-select relative shrink-0 text-xs'
-  const buttonSizeClassName = compact ? 'w-full min-w-0 max-w-32' : 'min-w-28 max-w-48'
-
-  if (normalizedOptions.length <= 1) return null
-
-  return (
-    <Listbox value={value} onChange={onChange}>
-      <div className={wrapperClassName}>
-        <ListboxButton
-          aria-label={label}
-          className={`clarify-api-select-button flex ${buttonSizeClassName} items-center justify-between gap-2 rounded-lg bg-(--clarify-code-control-background) px-2 py-1 text-xs font-medium whitespace-nowrap text-(--clarify-code-text) outline-hidden transition hover:bg-(--clarify-code-control-background-hover) focus:ring-2 focus:ring-(--clarify-ui-accent-border) data-open:bg-(--clarify-code-control-background-hover) data-open:ring-2 data-open:ring-(--clarify-ui-accent-border)`}
-        >
-          <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
-            {icon ? <span className="shrink-0 text-(--clarify-code-faint)">{icon}</span> : null}
-            <span className="truncate">{selectedOption?.label ?? value}</span>
-          </span>
-          <ChevronsUpDownIcon className="h-3.5 w-3.5 shrink-0 text-(--clarify-code-faint)" aria-hidden="true" />
-        </ListboxButton>
-        <ListboxOptions
-          anchor="bottom end"
-          className="clarify-api-select-options z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-xl bg-(--clarify-code-surface) p-1 text-xs shadow-lg shadow-black/20 ring-1 ring-(--clarify-code-border) [--anchor-gap:--spacing(1)] focus:outline-none"
-        >
-          {normalizedOptions.map((option) => (
-            <ListboxOption
-              key={option.value}
-              value={option.value}
-              className="clarify-api-select-option group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs whitespace-nowrap text-(--clarify-code-muted) select-none data-focus:bg-(--clarify-code-control-background-hover) data-focus:text-(--clarify-code-text) data-selected:text-(--clarify-theme-tokens-colors-primary)"
-            >
-              <span>{option.label}</span>
-              <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />
-            </ListboxOption>
-          ))}
-        </ListboxOptions>
-      </div>
-    </Listbox>
-  )
-}
-
-function getExampleLabel(example: ExampleEntry, t: ReturnType<typeof useBuiltInText>): string {
-  return example.generated && example.title === 'schema' ? t('openapi.schemaExample') : example.title
-}
-
-function getLanguageOptions(codeOptions?: RequestCodeExample[]): SelectOption[] {
-  const languages = new Map<string, string>()
-  for (const option of codeOptions ?? []) languages.set(option.languageKey, option.title)
-  return Array.from(languages, ([value, label]) => ({ value, label }))
-}
-
-function getClientOptions(codeOptions: RequestCodeExample[] | undefined, languageKey?: string): SelectOption[] {
-  return (codeOptions ?? [])
-    .filter((option) => option.languageKey === languageKey)
-    .map((option) => ({ value: option.clientKey, label: option.clientTitle }))
-}
-
-export function getServers(spec: OpenAPISpec, operation: OpenAPIOperation, path?: string): OpenApiServer[] {
-  const operationServers = (operation as Record<string, unknown>).servers
-  const pathServers = path ? getPathItem(spec, path)?.servers : undefined
-  const servers = Array.isArray(operationServers)
-    ? operationServers
-    : Array.isArray(pathServers)
-      ? pathServers
-      : (spec as Record<string, unknown>).servers
-  if (!Array.isArray(servers)) return [{ url: 'https://api.example.com' }]
-  const validServers = servers.filter((server): server is OpenApiServer => isRecord(server) && typeof server.url === 'string')
-  return validServers.length > 0 ? validServers : [{ url: 'https://api.example.com' }]
-}
-
-export function getServerKey(server: OpenApiServer, index: number): string {
-  return `${index}:${server.url ?? ''}`
-}
-
-export function getServerLabel(server: OpenApiServer, index: number): string {
-  return server.url ?? `Server ${index + 1}`
-}
-
-export function defaultServerVariables(server?: OpenApiServer): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(server?.variables ?? {}).map(([name, variable]) => [name, variable.default ?? variable.enum?.[0] ?? '']),
-  )
-}
-
-function getSecuritySchemes(spec: OpenAPISpec): Record<string, OpenApiSecurityScheme> {
-  const schemes = (spec as Record<string, unknown>).components
-  if (!isRecord(schemes) || !isRecord(schemes.securitySchemes)) return {}
-
-  return Object.fromEntries(
-    Object.entries(schemes.securitySchemes).filter((entry): entry is [string, OpenApiSecurityScheme] => isRecord(entry[1])),
-  )
-}
-
-function getSecurityRequirements(spec: OpenAPISpec, operation: OpenAPIOperation): OpenApiSecurityRequirement[] {
-  const operationSecurity = (operation as Record<string, unknown>).security
-  if (Array.isArray(operationSecurity)) return operationSecurity.filter(isRecord) as OpenApiSecurityRequirement[]
-
-  const specSecurity = (spec as Record<string, unknown>).security
-  return Array.isArray(specSecurity) ? specSecurity.filter(isRecord) as OpenApiSecurityRequirement[] : []
-}
-
-export type AuthOption = { name: string; scheme: OpenApiSecurityScheme }
-
-export function getAuthOptions(spec: OpenAPISpec, operation: OpenAPIOperation): AuthOption[] {
-  const schemes = getSecuritySchemes(spec)
-  const requirements = getSecurityRequirements(spec, operation)
-  const names = new Set(requirements.flatMap((requirement) => Object.keys(requirement)))
-
-  return Array.from(names)
-    .map((name) => ({ name, scheme: schemes[name] }))
-    .filter((option): option is AuthOption => Boolean(option.scheme))
-}
-
-type AuthPlaceholderArg = { scheme: OpenApiSecurityScheme }
-
-export function authPlaceholder(auth?: AuthPlaceholderArg): string {
-  if (!auth) return ''
-  if (auth.scheme.type === 'apiKey') return '{api_key}'
-  if (auth.scheme.type === 'http' && auth.scheme.scheme?.toLowerCase() === 'basic') return '{base64_credentials}'
-  return '{token}'
-}
-
-export function authLabel(name: string, scheme: OpenApiSecurityScheme): string {
-  const location = scheme.type === 'apiKey' && scheme.in && scheme.name ? ` · ${scheme.in}: ${scheme.name}` : ''
-  return `${name}${location}`
-}
-
-type CopyCodeButtonProps = { code: string }
-
-function CopyCodeButton(arg0: CopyCodeButtonProps): ReactNode {
-  const { code } = arg0
-
-  const t = useBuiltInText()
-  const [copied, setCopied] = useState(false)
-
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        void copyTextToClipboard(code).then((ok) => {
-          if (!ok) return
-          setCopied(true)
-          window.setTimeout(() => setCopied(false), 1000)
-        })
-      }}
-      className="flex items-center gap-1.5 rounded-full bg-(--clarify-code-control-background) px-2.5 py-1.5 text-2xs font-medium text-(--clarify-code-muted) transition hover:bg-(--clarify-code-control-background-hover) hover:text-(--clarify-code-text) focus:bg-(--clarify-code-control-background-hover) focus:text-(--clarify-code-text)"
-    >
-      {copied ? (
-        <CheckIcon className="h-3.5 w-3.5 text-(--clarify-theme-tokens-colors-primary)" aria-hidden="true" />
-      ) : (
-        <ClipboardIcon className="h-3.5 w-3.5 text-(--clarify-code-faint)" aria-hidden="true" />
-      )}
-      <span>{copied ? t('actions.copied') : t('actions.copy')}</span>
-    </button>
-  )
-}
-
-type ExampleMetaValueProps = {
-  label: string
-  value: string
-  options?: string[]
-  onChange?: (value: string) => void
-  className: string
-}
-
-function ExampleMetaValue(arg0: ExampleMetaValueProps): ReactNode {
-  const { label, value, options, onChange, className } = arg0
-
-  if (options && options.length > 1 && onChange) {
-    return <SelectControl label={label} value={value} options={options} onChange={onChange} />
-  }
-
-  return <span className={className}>{value}</span>
-}
-
-type CodeToolbarProps = {
-  code: string
-  languageOptions?: SelectOption[]
-  selectedLanguageKey?: string
-  onSelectLanguage?: (key: string) => void
-  clientOptions?: SelectOption[]
-  selectedClientKey?: string
-  onSelectClient?: (key: string) => void
-}
-
-function CodeToolbar(arg0: CodeToolbarProps): ReactNode {
-  const {
-    code,
-    languageOptions,
-    selectedLanguageKey,
-    onSelectLanguage,
-    clientOptions,
-    selectedClientKey,
-    onSelectClient,
-  } = arg0
-
-  const t = useBuiltInText()
-
-  return (
-    <div className="absolute top-3.5 right-4 left-4 z-10 flex items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-2">
-        {languageOptions && languageOptions.length > 1 && selectedLanguageKey && onSelectLanguage ? (
-          <SelectControl
-            label={t('openapi.language')}
-            value={selectedLanguageKey}
-            options={languageOptions}
-            onChange={onSelectLanguage}
-            icon={<CodeIcon className="h-3.5 w-3.5" aria-hidden="true" />}
-          />
-        ) : null}
-        {clientOptions && clientOptions.length > 1 && selectedClientKey && onSelectClient ? (
-          <SelectControl
-            label={t('openapi.client')}
-            value={selectedClientKey}
-            options={clientOptions}
-            onChange={onSelectClient}
-            icon={<PackageIcon className="h-3.5 w-3.5" aria-hidden="true" />}
-          />
-        ) : null}
-      </div>
-      <CopyCodeButton code={code} />
-    </div>
-  )
-}
+import { ExampleMetaValue, CodeToolbar } from './CodeDisplay'
+import {
+  getExampleLabel,
+  getLanguageOptions,
+  getClientOptions,
+} from './helpers'
+import { SelectControl, type SelectOption } from './SelectControl'
 
 type ApiExampleCodeGroupProps = {
   title: string
@@ -398,7 +152,7 @@ type RequestExamplesPanelProps = {
   requestContents: MediaTypeEntry[]
   selectedMediaType: string
   onSelectMediaType: (value: string) => void
-  selectedServer: OpenApiServer
+  selectedServer: Parameters<typeof buildRequestCodeExamples>[0]['server']
   serverVariables: Record<string, string>
   auth?: RequestAuthInput
   sharedExampleKey?: string
@@ -413,7 +167,7 @@ type UseRequestExamplesStateArgs = {
   requestContents: MediaTypeEntry[]
   selectedMediaType: string
   onSelectMediaType: (value: string) => void
-  selectedServer: OpenApiServer
+  selectedServer: Parameters<typeof buildRequestCodeExamples>[0]['server']
   serverVariables: Record<string, string>
   auth?: RequestAuthInput
   sharedExampleKey?: string
@@ -632,3 +386,15 @@ export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNo
     />
   )
 }
+
+// Re-export helpers for backward compatibility
+export {
+  getServers,
+  getServerKey,
+  getServerLabel,
+  defaultServerVariables,
+  authPlaceholder,
+  authLabel,
+  getAuthOptions,
+  type AuthOption,
+} from './helpers'
