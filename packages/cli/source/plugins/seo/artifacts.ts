@@ -26,7 +26,8 @@ function escapeXml(value: string): string {
 }
 
 function publicRoutes(routes: ContentRoute[]): ContentRoute[] {
-  return routes.filter(route => route.path !== '/404')
+  // Exclude 404 routes and bare alias routes (e.g., /path without language prefix) in multilingual sites
+  return routes.filter(route => route.path !== '/404' && !route.isBareAlias)
 }
 
 export function createSitemapXml(routes: ContentRoute[], config: ResolvedProjectConfig): string | undefined {

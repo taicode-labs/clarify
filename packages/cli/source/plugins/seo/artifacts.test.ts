@@ -51,4 +51,46 @@ describe('SEO artifacts', () => {
       'User-agent: *\nAllow: /\nSitemap: https://docs.example.com/docs/sitemap.xml\n',
     )
   })
+
+  it('excludes bare alias routes from sitemap.xml in multilingual sites', () => {
+    const multilingualRoutes: ContentRoute[] = [
+      {
+        path: '/zh-CN/guide',
+        basePath: '/guide',
+        locale: 'zh-CN',
+        title: 'Guide',
+        filePath: '/docs/source/zh-CN/guide.mdx',
+        virtualModuleId: '/docs/source/zh-CN/guide.mdx',
+        kind: 'mdx',
+      },
+      {
+        path: '/guide',
+        basePath: '/guide',
+        isBareAlias: true,
+        title: 'Guide',
+        filePath: '/docs/source/zh-CN/guide.mdx',
+        virtualModuleId: '/docs/source/zh-CN/guide.mdx',
+        kind: 'mdx',
+      },
+      {
+        path: '/en-US/guide',
+        basePath: '/guide',
+        locale: 'en-US',
+        title: 'Guide',
+        filePath: '/docs/source/en-US/guide.mdx',
+        virtualModuleId: '/docs/source/en-US/guide.mdx',
+        kind: 'mdx',
+      },
+    ]
+    const config = resolveProjectConfig({ siteUrl: 'https://docs.example.com/', routePrefix: '/docs/' })
+
+    const sitemap = createSitemapXml(multilingualRoutes, config)!
+
+    // Should include language-prefixed routes
+    expect(sitemap).toContain('<loc>https://docs.example.com/docs/zh-CN/guide</loc>')
+    expect(sitemap).toContain('<loc>https://docs.example.com/docs/en-US/guide</loc>')
+    
+    // Should exclude bare alias route
+    expect(sitemap).not.toContain('<loc>https://docs.example.com/docs/guide</loc>')
+  })
 })

@@ -125,7 +125,8 @@ export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedPro
 
   lines.push('This file lists the source-ready Markdown and OpenAPI artifacts for this documentation site.', '')
 
-  const mdxRoutes = routes.filter(route => route.kind === 'mdx' && isLlmsTxtRoute(route))
+  // Exclude bare alias routes (e.g., /path without language prefix) in multilingual sites
+  const mdxRoutes = routes.filter(route => route.kind === 'mdx' && isLlmsTxtRoute(route) && !route.isBareAlias)
   if (mdxRoutes.length > 0) {
     const localizedGroups = groupLlmsTxtRoutesByLocale(mdxRoutes, projectConfig)
     for (const [locale, localeRoutes] of localizedGroups) {
@@ -140,7 +141,8 @@ export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedPro
     }
   }
 
-  const openApiRoutes = routes.filter(route => route.kind === 'openapi' && isLlmsTxtRoute(route))
+  // Exclude bare alias routes (e.g., /path without language prefix) in multilingual sites
+  const openApiRoutes = routes.filter(route => route.kind === 'openapi' && isLlmsTxtRoute(route) && !route.isBareAlias)
   if (openApiRoutes.length > 0) {
     if (lines.at(-1) !== '') lines.push('')
     lines.push('## OpenAPI')

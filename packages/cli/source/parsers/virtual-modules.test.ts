@@ -96,6 +96,24 @@ describe('generateRoutesModule', () => {
     expect(code).toContain('"title": "Guide"')
     expect(code).not.toContain('"tabs"')
   })
+
+  it('exports isBareAlias flag for multilingual sites', () => {
+    const routes: ContentRoute[] = [
+      { path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: 'Guide', filePath: '/a/guide.mdx', virtualModuleId: 'virtual:clarify-page/guide', kind: 'mdx' },
+      { path: '/guide', basePath: '/guide', isBareAlias: true, title: 'Guide', filePath: '/a/guide.mdx', virtualModuleId: 'virtual:clarify-page/guide', kind: 'mdx' },
+      { path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: '/a/guide.mdx', virtualModuleId: 'virtual:clarify-page/guide', kind: 'mdx' },
+    ]
+    const code = generateRoutesModule(routes)
+    
+    // The localized route should not have isBareAlias
+    expect(code).toContain('{ path: "/zh-CN/guide", title: "Guide", component: () => import("virtual:clarify-page/guide"), lazy: true, kind: "mdx", basePath: "/guide", locale: "zh-CN" }')
+    
+    // The bare alias route should have isBareAlias: true
+    expect(code).toContain('{ path: "/guide", title: "Guide", component: () => import("virtual:clarify-page/guide"), lazy: true, kind: "mdx", basePath: "/guide", isBareAlias: true }')
+    
+    // The other locale route should not have isBareAlias
+    expect(code).toContain('{ path: "/en-US/guide", title: "Guide", component: () => import("virtual:clarify-page/guide"), lazy: true, kind: "mdx", basePath: "/guide", locale: "en-US" }')
+  })
 })
 
 describe('createClientEntryModule', () => {

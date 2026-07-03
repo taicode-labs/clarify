@@ -121,4 +121,36 @@ describe('content artifact helpers', () => {
 
     expect(createLlmsTxtArtifact(routes, config).startsWith('\uFEFF# 文档')).toBe(true)
   })
+
+  it('excludes bare alias routes from llms.txt in multilingual sites', () => {
+    const config: ResolvedProjectConfig = {
+      title: 'Docs',
+      description: 'Helpful docs',
+      routePrefix: '',
+      assetPrefix: '/',
+      i18n: {
+        defaultLocale: 'zh-CN',
+        missing: 'fallback',
+        locales: [
+          { code: 'zh-CN', label: '简体中文' },
+          { code: 'en-US', label: 'English' },
+        ],
+      },
+      theme: resolveThemeConfig(),
+      variables: {},
+    }
+    const routes = [
+      route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: 'Guide', contentArtifactUrl: '/zh-CN/guide.md' }),
+      route({ path: '/guide', basePath: '/guide', isBareAlias: true, title: 'Guide', contentArtifactUrl: '/guide.md' }),
+      route({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', contentArtifactUrl: '/en-US/guide.md' }),
+    ]
+    const llmsTxt = createLlmsTxt(routes, config)
+
+    // Should include language-prefixed routes
+    expect(llmsTxt).toContain('- [Guide](/zh-CN/guide.md)')
+    expect(llmsTxt).toContain('- [Guide](/en-US/guide.md)')
+    
+    // Should exclude bare alias route
+    expect(llmsTxt).not.toContain('- [Guide](/guide.md)')
+  })
 })

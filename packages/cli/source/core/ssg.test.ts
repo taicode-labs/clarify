@@ -165,6 +165,56 @@ describe('injectSSRIntoTemplate', () => {
     const html = injectSSRIntoTemplate(baseTemplate, '', config)
     expect(html).toContain('content="A&amp;B"')
   })
+
+  it('adds data-pagefind-ignore to bare alias routes in multilingual sites', () => {
+    const html = injectSSRIntoTemplate(baseTemplate, '<h1>Content</h1>', baseConfig, {
+      path: '/guide',
+      basePath: '/guide',
+      isBareAlias: true,
+      title: 'Guide',
+      filePath: '/content/guide.mdx',
+      kind: 'mdx',
+      virtualModuleId: 'virtual:guide',
+    })
+    expect(html).toContain('<div id="root" data-pagefind-ignore><h1>Content</h1></div>')
+  })
+
+  it('does not add data-pagefind-ignore to regular (non-bare-alias) routes', () => {
+    const html = injectSSRIntoTemplate(baseTemplate, '<h1>Content</h1>', baseConfig, {
+      path: '/guide',
+      title: 'Guide',
+      filePath: '/content/guide.mdx',
+      kind: 'mdx',
+      virtualModuleId: 'virtual:guide',
+    })
+    expect(html).toContain('<div id="root"><h1>Content</h1></div>')
+    expect(html).not.toContain('data-pagefind-ignore')
+  })
+
+  it('does not add data-pagefind-ignore to localized routes', () => {
+    const config: ResolvedProjectConfig = {
+      ...baseConfig,
+      i18n: {
+        defaultLocale: 'zh-CN',
+        missing: 'fallback',
+        locales: [
+          { code: 'zh-CN', label: '简体中文' },
+          { code: 'en-US', label: 'English' },
+        ],
+      },
+    }
+    const html = injectSSRIntoTemplate(baseTemplate, '<h1>Content</h1>', config, {
+      path: '/en-US/guide',
+      basePath: '/guide',
+      locale: 'en-US',
+      title: 'Guide',
+      filePath: '/content/en-US/guide.mdx',
+      kind: 'mdx',
+      virtualModuleId: 'virtual:guide',
+    })
+    expect(html).toContain('<div id="root"><h1>Content</h1></div>')
+    expect(html).not.toContain('data-pagefind-ignore')
+  })
 })
 
 describe('routeOutputFiles', () => {
