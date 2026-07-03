@@ -1,10 +1,12 @@
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import clsx from 'clsx'
 import { slug } from 'github-slugger'
-import { CheckIcon, ChevronDownIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { CheckIcon, ChevronDownIcon, CopyIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 import { Heading } from '../../components/Heading'
+import { useBuiltInText } from '../../core/i18n'
+import { copyTextToClipboard } from '../../utils/clipboard'
 import { getMediaTypeEntries, getResponseEntries } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 import type { OpenApiServer, OpenApiServerVariable } from '../types'
@@ -47,28 +49,31 @@ function EndpointMethodBadge(arg0: EndpointMethodBadgeProps): ReactNode {
   )
 }
 
-type EndpointPathProps = { path: string }
+type EndpointPathProps = { path: string; copied?: boolean; onCopy?: () => void }
 
-function EndpointPath(arg0: EndpointPathProps): ReactNode {
-  const { path } = arg0
-
-  const segments = path.split('/').filter(Boolean)
+export function EndpointPath(arg0: EndpointPathProps): ReactNode {
+  const { path, copied = false, onCopy } = arg0
+  const t = useBuiltInText()
 
   return (
-    <div className="flex min-w-0 flex-1 items-center overflow-x-auto text-sm font-bold leading-6 whitespace-nowrap">
-      {segments.length > 0 ? (
-        <>
-          <span className="text-(--clarify-ui-text-faint)">/</span>
-          {segments.map((segment, index) => (
-            <span key={`${segment}-${index}`} className="flex items-center">
-              {index > 0 ? <span className="text-(--clarify-ui-text-faint)">/</span> : null}
-              <span className="font-bold text-(--clarify-theme-tokens-colors-foreground)">{segment}</span>
-            </span>
-          ))}
-        </>
-      ) : (
-        <span className="font-bold text-(--clarify-theme-tokens-colors-foreground)">/</span>
-      )}
+    <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+      <div className="min-w-0 flex-1 overflow-x-auto text-sm font-bold leading-6 whitespace-nowrap">
+        <span className="select-text font-mono text-(--clarify-theme-tokens-colors-foreground)">{path || '/'}</span>
+      </div>
+      {onCopy ? (
+        <button
+          type="button"
+          aria-label={copied ? t('actions.copied') : t('actions.copy')}
+          title={copied ? t('actions.copied') : t('actions.copy')}
+          onClick={onCopy}
+          className={clsx(
+            'flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) text-(--clarify-ui-text-soft) transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground)',
+            copied && 'border-emerald-400/70 bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-200',
+          )}
+        >
+          {copied ? <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" /> : <CopyIcon className="h-3.5 w-3.5" aria-hidden="true" />}
+        </button>
+      ) : null}
     </div>
   )
 }
@@ -123,6 +128,16 @@ function InlineListbox(arg0: InlineListboxProps): ReactNode {
 
 function getServerPreviewUrl(server: OpenApiServer, variables: Record<string, string>): string {
   return (server.url ?? '').replace(/\{([^}]+)\}/g, (_, name: string) => variables[name] ?? server.variables?.[name]?.default ?? `{${name}}`)
+}
+
+function getFullEndpointUrl(server: OpenApiServer, variables: Record<string, string>, path: string): string {
+  const base = getServerPreviewUrl(server, variables)
+  if (!base) return path
+
+  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+
+  return `${normalizedBase}${normalizedPath}`
 }
 
 function getDefaultResponseStatus(operation: OpenAPIOperation, spec?: OpenAPISpec): string {
@@ -374,6 +389,21 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
   } = arg0
 
   const serverInteractive = servers.length > 1 || Object.keys(selectedServer.variables ?? {}).length > 0
+  const [copiedUrl, setCopiedUrl] = useState(false)
+  const fullUrl = getFullEndpointUrl(selectedServer, serverVariables, path)
+
+  useEffect(() => {
+    if (!copiedUrl) return undefined
+
+    const timeout = window.setTimeout(() => setCopiedUrl(false), 1200)
+    return () => window.clearTimeout(timeout)
+  }, [copiedUrl])
+
+  async function handleCopyUrl() {
+    if (await copyTextToClipboard(fullUrl)) {
+      setCopiedUrl(true)
+    }
+  }
 
   return (
     <div className="not-prose flex w-full flex-col overflow-hidden rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs">
@@ -386,7 +416,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
           interactive={serverInteractive}
           onToggle={onToggleServer}
         />
-        <EndpointPath path={path} />
+        <EndpointPath path={path} copied={copiedUrl} onCopy={handleCopyUrl} />
         {authOptions.length > 0 ? (
           <button
             type="button"

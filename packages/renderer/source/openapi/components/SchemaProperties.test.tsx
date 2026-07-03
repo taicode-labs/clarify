@@ -3,7 +3,26 @@ import { describe, expect, it } from 'vitest'
 
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 
-import { ResponseList } from './SchemaProperties'
+import { EndpointPath } from './OpenApiOperation'
+import { ParameterList, ResponseList } from './SchemaProperties'
+
+describe('ParameterList', () => {
+  it('renders a normalized empty state when there are no parameters', () => {
+    const markup = renderToStaticMarkup(<ParameterList title="Query parameters" parameters={[]} />)
+
+    expect(markup).toContain('Query parameters')
+    expect(markup).toContain('None')
+  })
+})
+
+describe('EndpointPath', () => {
+  it('renders only the endpoint path while keeping the full URL available for copy', () => {
+    const markup = renderToStaticMarkup(<EndpointPath path="/pets/{id}" />)
+
+    expect(markup).toContain('/pets/{id}')
+    expect(markup).not.toContain('https://api.example.com')
+  })
+})
 
 describe('ResponseList', () => {
   it('renders response body properties from the declared schema', () => {

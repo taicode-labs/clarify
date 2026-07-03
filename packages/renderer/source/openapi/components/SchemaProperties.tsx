@@ -8,7 +8,7 @@ import { Markdown } from '../../mdx/Markdown'
 import { Properties, Property } from '../../mdx/primitives'
 import { getJsonLikeContent, getResponseEntries, isRecord, isReference, resolveReferenceName, resolveSchema, schemaHasType, schemaToType } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
-import type { OpenApiParameter } from '../types'
+import type { OpenApiParameter, OpenApiResponse } from '../types'
 
 type SchemaTreeNode = {
   key: string
@@ -67,14 +67,15 @@ type GetSchemaChildrenArgs = {
   seen?: Set<string>
 }
 
-function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {  const {
-  spec,
-  schema,
-  path,
-  required = [],
-  depth = 0,
-  seen = new Set<string>(),
-} = arg0
+function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
+  const {
+    spec,
+    schema,
+    path,
+    required = [],
+    depth = 0,
+    seen = new Set<string>(),
+  } = arg0
 
   if (depth > 12) return []
 
@@ -124,14 +125,14 @@ function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {  con
 
   const additionalPropertyChildren = isRecord(schema.additionalProperties)
     ? [{
-        key: `${path || 'root'}.*`,
-        name: '*',
-        type: schemaToType(schema.additionalProperties),
-        description: getSchemaDescription(schema.additionalProperties),
-        details: getSchemaDetails(schema.additionalProperties),
-        required: false,
-        children: getSchemaChildren({ spec, schema: schema.additionalProperties, path: `${path || 'root'}.*`, depth: depth + 1, seen }),
-      }]
+      key: `${path || 'root'}.*`,
+      name: '*',
+      type: schemaToType(schema.additionalProperties),
+      description: getSchemaDescription(schema.additionalProperties),
+      details: getSchemaDetails(schema.additionalProperties),
+      required: false,
+      children: getSchemaChildren({ spec, schema: schema.additionalProperties, path: `${path || 'root'}.*`, depth: depth + 1, seen }),
+    }]
     : []
 
   const composedChildren = getComposedBranches(schema).map(({ label, schema: branchSchema }) => {
@@ -183,7 +184,8 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode |
 
 type SchemaNodeProps = { node: SchemaTreeNode; depth?: number }
 
-function SchemaNode(arg0: SchemaNodeProps): ReactNode {  const { node, depth = 0 } = arg0
+function SchemaNode(arg0: SchemaNodeProps): ReactNode {
+  const { node, depth = 0 } = arg0
 
   const t = useBuiltInText()
   const [expanded, setExpanded] = useState(depth < 1)
@@ -237,7 +239,8 @@ function SchemaNode(arg0: SchemaNodeProps): ReactNode {  const { node, depth = 0
 
 type SchemaTreeProps = { nodes: SchemaTreeNode[]; depth?: number }
 
-function SchemaTree(arg0: SchemaTreeProps): ReactNode {  const { nodes, depth = 0 } = arg0
+function SchemaTree(arg0: SchemaTreeProps): ReactNode {
+  const { nodes, depth = 0 } = arg0
 
   if (nodes.length === 0) return null
 
@@ -256,7 +259,8 @@ function SchemaTree(arg0: SchemaTreeProps): ReactNode {  const { nodes, depth = 
 
 type SchemaPropertiesProps = { title: string; schema: unknown; spec: OpenAPISpec }
 
-export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {  const { title, schema, spec } = arg0
+export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {
+  const { title, schema, spec } = arg0
 
   const root = getRootSchemaNode(spec, schema)
 
@@ -274,24 +278,26 @@ export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {  cons
 
 type ParameterListProps = { title: string; parameters: OpenApiParameter[] }
 
-export function ParameterList(arg0: ParameterListProps): ReactNode {  const { title, parameters } = arg0
+export function ParameterList(arg0: ParameterListProps): ReactNode {
+  const { title, parameters } = arg0
 
   const t = useBuiltInText()
-  if (parameters.length === 0) return null
 
   return (
     <div>
       <h3>{title}</h3>
       <Properties>
-        {parameters.map((parameter) => (
-          <Property
-            key={`${parameter.in}-${parameter.name}`}
-            name={parameter.name ?? t('openapi.parameter')}
-            type={[schemaToType(parameter.schema), parameter.required ? t('openapi.requiredBadge') : undefined].filter(Boolean).join(', ') || undefined}
-          >
-            {parameter.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{parameter.description}</Markdown> : t('openapi.operationParameter')}
-          </Property>
-        ))}
+        {parameters.length > 0 ? (
+          parameters.map((parameter) => (
+            <Property
+              key={`${parameter.in}-${parameter.name}`}
+              name={parameter.name ?? t('openapi.parameter')}
+              type={[schemaToType(parameter.schema), parameter.required ? t('openapi.requiredBadge') : undefined].filter(Boolean).join(', ') || undefined}
+            >
+              {parameter.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{parameter.description}</Markdown> : t('openapi.operationParameter')}
+            </Property>
+          ))
+        ) : (<span className="text-sm/5 text-(--clarify-ui-text-soft)">{t('openapi.none')}</span>)}
       </Properties>
     </div>
   )
@@ -299,7 +305,13 @@ export function ParameterList(arg0: ParameterListProps): ReactNode {  const { ti
 
 type ResponseListProps = { operation: OpenAPIOperation; spec?: OpenAPISpec; selectedStatus?: string; onSelectStatus?: (value: string) => void }
 
-export function ResponseList(arg0: ResponseListProps): ReactNode {  const { operation, spec, selectedStatus, onSelectStatus } = arg0
+type RenderResponsePanelArgs = {
+  status: string
+  response: OpenApiResponse
+}
+
+export function ResponseList(arg0: ResponseListProps): ReactNode {
+  const { operation, spec, selectedStatus, onSelectStatus } = arg0
 
   const t = useBuiltInText()
   const responses = getResponseEntries(operation, spec)
@@ -318,7 +330,7 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {  const { oper
 
   if (orderedResponses.length === 0) return null
 
-  const renderResponsePanel = ({ status, response }: { status: string; response: NonNullable<(typeof orderedResponses)[number]['response']> }) => {
+  const renderResponsePanel = ({ status, response }: RenderResponsePanelArgs) => {
     const content = getJsonLikeContent(response.content, spec)
     const responseSchema = content?.value.schema
     const type = schemaToType(responseSchema)

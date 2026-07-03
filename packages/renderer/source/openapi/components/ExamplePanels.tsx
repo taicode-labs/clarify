@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 import { useBuiltInText } from '../../core/i18n'
 import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getResponseEntries, stringifyExample } from '../lib/helpers'
@@ -323,6 +323,12 @@ function firstExampleKeyForResponseContent(content?: MediaTypeEntry): string {
   return getExampleEntries(content?.value)[0]?.key ?? ''
 }
 
+type ResponseSelectionState = {
+  status: string
+  mediaType: string
+  exampleKey: string
+}
+
 function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
   const { operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
   const responses = getResponseEntries(operation, spec).filter(({ response }) => getMediaTypeEntries(response.content, spec).length > 0)
@@ -344,16 +350,21 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
   const activeStatus = selectedStatus ?? internalSelectedStatus
   const selectedResponse = orderedResponses.find(({ status }) => status === activeStatus) ?? orderedResponses[0]
   const responseContents = getMediaTypeEntries(selectedResponse?.response.content, spec)
-  const [selectedMediaType, setSelectedMediaType] = useState(responseContents[0]?.mediaType ?? '')
-  const selectedContent = responseContents.find((content) => content.mediaType === selectedMediaType) ?? responseContents[0]
+  const [selection, setSelection] = useState<ResponseSelectionState>(() => ({
+    status: activeStatus,
+    mediaType: responseContents[0]?.mediaType ?? '',
+    exampleKey: firstExampleKeyForResponseContent(responseContents[0]),
+  }))
+  const resolvedSelection = selection.status === activeStatus
+    ? selection
+    : {
+        status: activeStatus,
+        mediaType: responseContents[0]?.mediaType ?? '',
+        exampleKey: firstExampleKeyForResponseContent(responseContents[0]),
+      }
+  const selectedContent = responseContents.find((content) => content.mediaType === resolvedSelection.mediaType) ?? responseContents[0]
   const examples = getExampleEntries(selectedContent?.value)
-  const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
-
-  useEffect(() => {
-    const nextContents = getMediaTypeEntries(selectedResponse?.response.content, spec)
-    setSelectedMediaType(nextContents[0]?.mediaType ?? '')
-    setSelectedExampleKey(firstExampleKeyForResponseContent(nextContents[0]))
-  }, [activeStatus])
+  const selectedExampleKey = examples.some((example) => example.key === resolvedSelection.exampleKey) ? resolvedSelection.exampleKey : examples[0]?.key ?? ''
   const linkedExampleKey = sharedExampleKey && examples.some((example) => example.key === sharedExampleKey) ? sharedExampleKey : undefined
   const currentExampleKey = linkedExampleKey ?? selectedExampleKey
   const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
@@ -372,15 +383,25 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
       const nextContents = getMediaTypeEntries(nextResponse?.response.content, spec)
       if (typeof selectedStatus === 'undefined') setInternalSelectedStatus(value)
       onSelectStatus?.(value)
-      setSelectedMediaType(nextContents[0]?.mediaType ?? '')
-      setSelectedExampleKey(firstExampleKeyForResponseContent(nextContents[0]))
+      setSelection({
+        status: value,
+        mediaType: nextContents[0]?.mediaType ?? '',
+        exampleKey: firstExampleKeyForResponseContent(nextContents[0]),
+      })
     },
     onSelectMediaType: (value: string) => {
-      setSelectedMediaType(value)
-      setSelectedExampleKey(firstExampleKeyForResponseContent(responseContents.find((content) => content.mediaType === value)))
+      const nextContent = responseContents.find((content) => content.mediaType === value)
+      setSelection((current) => ({
+        ...current,
+        mediaType: value,
+        exampleKey: firstExampleKeyForResponseContent(nextContent),
+      }))
     },
     onSelectExample: (value: string) => {
-      setSelectedExampleKey(value)
+      setSelection((current) => ({
+        ...current,
+        exampleKey: value,
+      }))
       onSelectExampleKey?.(value)
     },
   }

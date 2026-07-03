@@ -58,6 +58,7 @@ export type BuiltInTextKey =
   | 'openapi.language'
   | 'openapi.client'
   | 'openapi.mediaType'
+  | 'openapi.none'
   | 'openapi.openApiReference'
   | 'openapi.operationParameter'
   | 'openapi.optional'
@@ -157,6 +158,7 @@ const builtInText = {
     'openapi.language': 'Language',
     'openapi.client': 'Client',
     'openapi.mediaType': 'Media type',
+    'openapi.none': 'None',
     'openapi.openApiReference': 'OpenAPI Reference',
     'openapi.operationParameter': 'Operation parameter.',
     'openapi.optional': 'Optional.',
@@ -255,6 +257,7 @@ const builtInText = {
     'openapi.language': '语言',
     'openapi.client': '客户端',
     'openapi.mediaType': '媒体类型',
+    'openapi.none': '无',
     'openapi.openApiReference': 'OpenAPI 参考',
     'openapi.operationParameter': '操作参数。',
     'openapi.optional': '可选。',

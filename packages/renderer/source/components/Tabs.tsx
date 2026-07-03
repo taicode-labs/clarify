@@ -18,6 +18,10 @@ type ClarifyTabsProps = {
   panelsClassName?: string
 }
 
+type TabClassNameProps = {
+  selected: boolean
+}
+
 export function Tabs(arg0: ClarifyTabsProps) {
   const { items, selectedIndex, onChange, className, listClassName, panelsClassName } = arg0
 
@@ -36,12 +40,12 @@ export function Tabs(arg0: ClarifyTabsProps) {
         {items.map((item) => (
           <Tab
             key={item.id}
-            className={({ selected }: { selected: boolean }) => clsx(
+            className={({ selected }: TabClassNameProps) => clsx(
               'clarify-ui-tab relative inline-flex h-10 shrink-0 items-center px-0 py-0 text-sm font-medium transition focus:outline-none',
               selected && 'clarify-ui-tab-active',
             )}
           >
-            {({ selected }: { selected: boolean }) => (
+            {({ selected }: TabClassNameProps) => (
               <>
                 <span>{item.label}</span>
                 {selected ? (
