@@ -401,6 +401,8 @@ type RequestExamplesPanelProps = {
   selectedServer: OpenApiServer
   serverVariables: Record<string, string>
   auth?: RequestAuthInput
+  sharedExampleKey?: string
+  onSelectExampleKey?: (value: string) => void
 }
 
 export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode {
@@ -415,6 +417,8 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
     selectedServer,
     serverVariables,
     auth,
+    sharedExampleKey,
+    onSelectExampleKey,
   } = arg0
 
   const t = useBuiltInText()
@@ -423,8 +427,11 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
   const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
   const [selectedLanguageKey, setSelectedLanguageKey] = useState('shell')
   const [selectedClientKey, setSelectedClientKey] = useState('curl')
-  const selectedExample = examples.find((example) => example.key === selectedExampleKey) ?? examples[0]
+  const linkedExampleKey = sharedExampleKey && examples.some((example) => example.key === sharedExampleKey) ? sharedExampleKey : undefined
+  const currentExampleKey = linkedExampleKey ?? selectedExampleKey
+  const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
   const requestContent = selectedContent ? { ...selectedContent, value: { ...selectedContent.value, example: selectedExample?.value, examples: undefined } } : undefined
+
   const codeOptions = buildRequestCodeExamples({
     spec,
     path,
@@ -457,7 +464,10 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
         }}
         examples={examples}
         selectedExampleKey={selectedExample?.key}
-        onSelectExample={setSelectedExampleKey}
+        onSelectExample={(value) => {
+          setSelectedExampleKey(value)
+          onSelectExampleKey?.(value)
+        }}
         languageOptions={languageOptions}
         selectedLanguageKey={selectedCode.languageKey}
         onSelectLanguage={(value) => {
@@ -472,10 +482,15 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
   )
 }
 
-type ResponseExamplesPanelProps = { operation: OpenAPIOperation; spec?: OpenAPISpec }
+type ResponseExamplesPanelProps = {
+  operation: OpenAPIOperation
+  spec?: OpenAPISpec
+  sharedExampleKey?: string
+  onSelectExampleKey?: (value: string) => void
+}
 
 export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNode {
-  const { operation, spec } = arg0
+  const { operation, spec, sharedExampleKey, onSelectExampleKey } = arg0
 
   const t = useBuiltInText()
   const responses = getResponseEntries(operation, spec).filter(({ response }) => getMediaTypeEntries(response.content, spec).length > 0)
@@ -486,7 +501,9 @@ export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNo
   const selectedContent = responseContents.find((content) => content.mediaType === selectedMediaType) ?? responseContents[0]
   const examples = getExampleEntries(selectedContent?.value)
   const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
-  const selectedExample = examples.find((example) => example.key === selectedExampleKey) ?? examples[0]
+  const linkedExampleKey = sharedExampleKey && examples.some((example) => example.key === sharedExampleKey) ? sharedExampleKey : undefined
+  const currentExampleKey = linkedExampleKey ?? selectedExampleKey
+  const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
   const responseCode = stringifyExample(selectedExample?.value)
 
   if (!selectedResponse || !selectedContent || !responseCode) return null
@@ -514,7 +531,10 @@ export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNo
       language={codeLanguageForMediaType(selectedContent.mediaType)}
       examples={examples}
       selectedExampleKey={selectedExample?.key}
-      onSelectExample={setSelectedExampleKey}
+      onSelectExample={(value) => {
+        setSelectedExampleKey(value)
+        onSelectExampleKey?.(value)
+      }}
     />
   )
 }

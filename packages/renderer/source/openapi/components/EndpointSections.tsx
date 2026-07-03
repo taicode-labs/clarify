@@ -28,6 +28,8 @@ type EndpointRequestProps = {
   selectedServer: OpenApiServer
   serverVariables: Record<string, string>
   auth?: RequestAuthInput
+  sharedExampleKey?: string
+  onSelectExampleKey?: (value: string) => void
 }
 
 export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
@@ -46,6 +48,8 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
     selectedServer,
     serverVariables,
     auth,
+    sharedExampleKey,
+    onSelectExampleKey,
   } = arg0
 
   const t = useBuiltInText()
@@ -77,6 +81,8 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
           selectedServer={selectedServer}
           serverVariables={serverVariables}
           auth={auth}
+          sharedExampleKey={sharedExampleKey}
+          onSelectExampleKey={onSelectExampleKey}
         />
       </Col>
     </Row>
@@ -86,10 +92,12 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
 type EndpointResponseProps = {
   spec: OpenAPISpec
   operation: OpenAPIOperation
+  sharedExampleKey?: string
+  onSelectExampleKey?: (value: string) => void
 }
 
 export function EndpointResponse(arg0: EndpointResponseProps): ReactNode {
-  const { spec, operation } = arg0
+  const { spec, operation, sharedExampleKey, onSelectExampleKey } = arg0
 
   return (
     <Row className="relative mt-6">
@@ -97,7 +105,12 @@ export function EndpointResponse(arg0: EndpointResponseProps): ReactNode {
         <ResponseList operation={operation} spec={spec} />
       </Col>
       <Col sticky>
-        <ResponseExamplesPanel operation={operation} spec={spec} />
+        <ResponseExamplesPanel
+          operation={operation}
+          spec={spec}
+          sharedExampleKey={sharedExampleKey}
+          onSelectExampleKey={onSelectExampleKey}
+        />
       </Col>
     </Row>
   )

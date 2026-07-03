@@ -5,13 +5,13 @@ import { CheckIcon, ChevronDownIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeI
 import { useState, type ReactNode } from 'react'
 
 import { Heading } from '../../components/Heading'
-import { getMediaTypeEntries, getOperationParameters, getRequestBody } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
-import type { OpenApiServer, OpenApiServerVariable, RequestAuthInput } from '../types'
+import type { OpenApiServer, OpenApiServerVariable } from '../types'
 
 import { EndpointRequest, EndpointResponse } from './EndpointSections'
-import { authLabel, authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServerLabel, getServers } from './ExamplePanels'
+import { authLabel, authPlaceholder, getServerKey, getServerLabel } from './ExamplePanels'
 import type { AuthOption } from './ExamplePanels'
+import { useOperationAuthState, useOperationRequestState, useOperationServerState } from './OpenApiOperation.state'
 
 
 export type OpenApiOperationProps = {
@@ -43,6 +43,32 @@ function EndpointMethodBadge(arg0: EndpointMethodBadgeProps): ReactNode {
     >
       {method}
     </span>
+  )
+}
+
+type EndpointPathProps = { path: string }
+
+function EndpointPath(arg0: EndpointPathProps): ReactNode {
+  const { path } = arg0
+
+  const segments = path.split('/').filter(Boolean)
+
+  return (
+    <div className="flex min-w-0 flex-1 items-center overflow-x-auto text-sm font-bold leading-6 whitespace-nowrap">
+      {segments.length > 0 ? (
+        <>
+          <span className="text-(--clarify-ui-text-faint)">/</span>
+          {segments.map((segment, index) => (
+            <span key={`${segment}-${index}`} className="flex items-center">
+              {index > 0 ? <span className="text-(--clarify-ui-text-faint)">/</span> : null}
+              <span className="font-bold text-(--clarify-theme-tokens-colors-foreground)">{segment}</span>
+            </span>
+          ))}
+        </>
+      ) : (
+        <span className="font-bold text-(--clarify-theme-tokens-colors-foreground)">/</span>
+      )}
+    </div>
   )
 }
 
@@ -327,7 +353,6 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
     onChangeAuthValue,
   } = arg0
 
-  const segments = path.split('/').filter(Boolean)
   const serverInteractive = servers.length > 1 || Object.keys(selectedServer.variables ?? {}).length > 0
 
   return (
@@ -341,21 +366,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
           interactive={serverInteractive}
           onToggle={onToggleServer}
         />
-        <div className="flex min-w-0 flex-1 items-center overflow-x-auto text-sm font-bold leading-6 whitespace-nowrap">
-          {segments.length > 0 ? (
-            <>
-              <span className="text-(--clarify-ui-text-faint)">/</span>
-              {segments.map((segment, index) => (
-                <span key={`${segment}-${index}`} className="flex items-center">
-                  {index > 0 ? <span className="text-(--clarify-ui-text-faint)">/</span> : null}
-                  <span className="font-bold text-(--clarify-theme-tokens-colors-foreground)">{segment}</span>
-                </span>
-              ))}
-            </>
-          ) : (
-            <span className="font-bold text-(--clarify-theme-tokens-colors-foreground)">/</span>
-          )}
-        </div>
+        <EndpointPath path={path} />
         {authOptions.length > 0 ? (
           <button
             type="button"
@@ -401,30 +412,10 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const id = slug(`${method.toLowerCase()} ${path}`)
   const summary = operation.summary ?? `${method} ${path}`
   const description = operation.description
-  const parameters = getOperationParameters(spec, path, operation)
-  const requestBody = getRequestBody(spec, operation)
-  const requestContents = getMediaTypeEntries(requestBody?.content, spec)
-  const [selectedRequestMediaType, setSelectedRequestMediaType] = useState(requestContents[0]?.mediaType ?? '')
-  const selectedRequestContent = requestContents.find((content) => content.mediaType === selectedRequestMediaType) ?? requestContents[0]
-  const requestSchema = selectedRequestContent?.value.schema
-  const servers = getServers(spec, operation, path)
-  const [selectedServerKey, setSelectedServerKey] = useState(getServerKey(servers[0], 0))
-  const selectedServer = servers.find((server, index) => getServerKey(server, index) === selectedServerKey) ?? servers[0]
-  const [serverVariables, setServerVariables] = useState(defaultServerVariables(selectedServer))
-  const [serverOpen, setServerOpen] = useState(false)
-  const authOptions = getAuthOptions(spec, operation)
-  const [selectedAuthName, setSelectedAuthName] = useState(authOptions[0]?.name ?? '')
-  const selectedAuth = authOptions.find((option) => option.name === selectedAuthName)
-  const [authValues, setAuthValues] = useState<Record<string, string>>({})
-  const [authOpen, setAuthOpen] = useState(false)
-  const authInput: RequestAuthInput | undefined = selectedAuth
-    ? { name: selectedAuth.name, scheme: selectedAuth.scheme, value: authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth) }
-    : undefined
-  const groupedParameters = {
-    path: parameters.filter((parameter) => parameter.in === 'path'),
-    query: parameters.filter((parameter) => parameter.in === 'query'),
-    header: parameters.filter((parameter) => parameter.in === 'header'),
-  }
+  const requestState = useOperationRequestState(spec, path, operation)
+  const serverState = useOperationServerState(spec, operation, path)
+  const authState = useOperationAuthState(spec, operation)
+  const [linkedExampleKey, setLinkedExampleKey] = useState('')
 
   return (
     <section className="clarify-api-endpoint scroll-mt-24 pb-16 first:pt-0 last:pb-0" aria-labelledby={id}>
@@ -434,50 +425,53 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
       <EndpointIdentity
         method={method}
         path={path}
-        servers={servers}
-        selectedServerKey={selectedServerKey}
-        selectedServer={selectedServer}
-        serverVariables={serverVariables}
-        serverOpen={serverOpen}
-        authOptions={authOptions}
-        selectedAuthName={selectedAuthName}
-        selectedAuth={selectedAuth}
-        authValues={authValues}
-        authOpen={authOpen}
-        onSelectServer={(value) => {
-          const nextServer = servers.find((server, index) => getServerKey(server, index) === value) ?? servers[0]
-          setSelectedServerKey(value)
-          setServerVariables(defaultServerVariables(nextServer))
-        }}
-        onChangeServerVariable={(name, value) => setServerVariables((current) => ({ ...current, [name]: value }))}
+        servers={serverState.servers}
+        selectedServerKey={serverState.selectedServerKey}
+        selectedServer={serverState.selectedServer}
+        serverVariables={serverState.serverVariables}
+        serverOpen={serverState.serverOpen}
+        authOptions={authState.authOptions}
+        selectedAuthName={authState.selectedAuthName}
+        selectedAuth={authState.selectedAuth}
+        authValues={authState.authValues}
+        authOpen={authState.authOpen}
+        onSelectServer={serverState.onSelectServer}
+        onChangeServerVariable={serverState.onChangeServerVariable}
         onToggleServer={() => {
-          setServerOpen((current) => !current)
-          setAuthOpen(false)
+          serverState.onToggleServer()
+          authState.closeAuth()
         }}
         onToggleAuth={() => {
-          setAuthOpen((current) => !current)
-          setServerOpen(false)
+          authState.onToggleAuth()
+          serverState.closeServer()
         }}
-        onSelectAuth={setSelectedAuthName}
-        onChangeAuthValue={(name, value) => setAuthValues((current) => ({ ...current, [name]: value }))}
+        onSelectAuth={authState.onSelectAuth}
+        onChangeAuthValue={authState.onChangeAuthValue}
       />
       <EndpointRequest
         spec={spec}
         path={path}
         method={method}
         description={description}
-        groupedParameters={groupedParameters}
-        parameters={parameters}
-        requestBody={requestBody}
-        requestContents={requestContents}
-        requestSchema={requestSchema}
-        selectedRequestMediaType={selectedRequestContent?.mediaType ?? ''}
-        onSelectRequestMediaType={setSelectedRequestMediaType}
-        selectedServer={selectedServer}
-        serverVariables={serverVariables}
-        auth={authInput}
+        groupedParameters={requestState.groupedParameters}
+        parameters={requestState.parameters}
+        requestBody={requestState.requestBody}
+        requestContents={requestState.requestContents}
+        requestSchema={requestState.requestSchema}
+        selectedRequestMediaType={requestState.selectedRequestMediaType}
+        onSelectRequestMediaType={requestState.setSelectedRequestMediaType}
+        selectedServer={serverState.selectedServer}
+        serverVariables={serverState.serverVariables}
+        auth={authState.authInput}
+        sharedExampleKey={linkedExampleKey}
+        onSelectExampleKey={setLinkedExampleKey}
       />
-      <EndpointResponse spec={spec} operation={operation} />
+      <EndpointResponse
+        spec={spec}
+        operation={operation}
+        sharedExampleKey={linkedExampleKey}
+        onSelectExampleKey={setLinkedExampleKey}
+      />
     </section>
   )
 }
