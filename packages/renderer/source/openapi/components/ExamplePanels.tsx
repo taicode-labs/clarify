@@ -405,7 +405,26 @@ type RequestExamplesPanelProps = {
   onSelectExampleKey?: (value: string) => void
 }
 
-export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode {
+type UseRequestExamplesStateArgs = {
+  spec: OpenAPISpec
+  path: string
+  method: string
+  parameters: OpenApiParameter[]
+  requestContents: MediaTypeEntry[]
+  selectedMediaType: string
+  onSelectMediaType: (value: string) => void
+  selectedServer: OpenApiServer
+  serverVariables: Record<string, string>
+  auth?: RequestAuthInput
+  sharedExampleKey?: string
+  onSelectExampleKey?: (value: string) => void
+}
+
+function firstExampleKeyForMediaType(requestContents: MediaTypeEntry[], mediaType: string): string {
+  return getExampleEntries(requestContents.find((content) => content.mediaType === mediaType)?.value)[0]?.key ?? ''
+}
+
+function useRequestExamplesState(arg0: UseRequestExamplesStateArgs) {
   const {
     spec,
     path,
@@ -421,12 +440,12 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
     onSelectExampleKey,
   } = arg0
 
-  const t = useBuiltInText()
   const selectedContent = requestContents.find((content) => content.mediaType === selectedMediaType) ?? requestContents[0]
   const examples = getExampleEntries(selectedContent?.value)
   const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
   const [selectedLanguageKey, setSelectedLanguageKey] = useState('shell')
   const [selectedClientKey, setSelectedClientKey] = useState('curl')
+
   const linkedExampleKey = sharedExampleKey && examples.some((example) => example.key === sharedExampleKey) ? sharedExampleKey : undefined
   const currentExampleKey = linkedExampleKey ?? selectedExampleKey
   const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
@@ -449,35 +468,81 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
   const languageOptions = getLanguageOptions(codeOptions)
   const clientOptions = getClientOptions(codeOptions, selectedCode.languageKey)
 
+  return {
+    selectedContent,
+    selectedExample,
+    selectedCode,
+    languageOptions,
+    clientOptions,
+    examples,
+    onSelectMediaType: (value: string) => {
+      onSelectMediaType(value)
+      setSelectedExampleKey(firstExampleKeyForMediaType(requestContents, value))
+    },
+    onSelectExample: (value: string) => {
+      setSelectedExampleKey(value)
+      onSelectExampleKey?.(value)
+    },
+    onSelectLanguage: (value: string) => {
+      const nextCode = codeOptions.find((option) => option.languageKey === value)
+      setSelectedLanguageKey(nextCode?.languageKey ?? value)
+      setSelectedClientKey(nextCode?.clientKey ?? '')
+    },
+    onSelectClient: setSelectedClientKey,
+  }
+}
+
+export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode {
+  const {
+    spec,
+    path,
+    method,
+    parameters,
+    requestContents,
+    selectedMediaType,
+    onSelectMediaType,
+    selectedServer,
+    serverVariables,
+    auth,
+    sharedExampleKey,
+    onSelectExampleKey,
+  } = arg0
+
+  const t = useBuiltInText()
+  const state = useRequestExamplesState({
+    spec,
+    path,
+    method,
+    parameters,
+    requestContents,
+    selectedMediaType,
+    onSelectMediaType,
+    selectedServer,
+    serverVariables,
+    auth,
+    sharedExampleKey,
+    onSelectExampleKey,
+  })
+
   return (
     <ApiExampleCodeGroup
       title={t('openapi.request')}
       tag={method}
       label={path}
-      code={selectedCode.code}
-        language={selectedCode.language}
-        mediaTypes={requestContents.map((content) => content.mediaType)}
-        selectedMediaType={selectedContent?.mediaType}
-        onSelectMediaType={(value) => {
-          onSelectMediaType(value)
-          setSelectedExampleKey(getExampleEntries(requestContents.find((content) => content.mediaType === value)?.value)[0]?.key ?? '')
-        }}
-        examples={examples}
-        selectedExampleKey={selectedExample?.key}
-        onSelectExample={(value) => {
-          setSelectedExampleKey(value)
-          onSelectExampleKey?.(value)
-        }}
-        languageOptions={languageOptions}
-        selectedLanguageKey={selectedCode.languageKey}
-        onSelectLanguage={(value) => {
-          const nextCode = codeOptions.find((option) => option.languageKey === value)
-          setSelectedLanguageKey(nextCode?.languageKey ?? value)
-          setSelectedClientKey(nextCode?.clientKey ?? '')
-        }}
-      clientOptions={clientOptions}
-      selectedClientKey={selectedCode.clientKey}
-      onSelectClient={setSelectedClientKey}
+      code={state.selectedCode.code}
+      language={state.selectedCode.language}
+      mediaTypes={requestContents.map((content) => content.mediaType)}
+      selectedMediaType={state.selectedContent?.mediaType}
+      onSelectMediaType={state.onSelectMediaType}
+      examples={state.examples}
+      selectedExampleKey={state.selectedExample?.key}
+      onSelectExample={state.onSelectExample}
+      languageOptions={state.languageOptions}
+      selectedLanguageKey={state.selectedCode.languageKey}
+      onSelectLanguage={state.onSelectLanguage}
+      clientOptions={state.clientOptions}
+      selectedClientKey={state.selectedCode.clientKey}
+      onSelectClient={state.onSelectClient}
     />
   )
 }
@@ -489,10 +554,19 @@ type ResponseExamplesPanelProps = {
   onSelectExampleKey?: (value: string) => void
 }
 
-export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNode {
-  const { operation, spec, sharedExampleKey, onSelectExampleKey } = arg0
+type UseResponseExamplesStateArgs = {
+  operation: OpenAPIOperation
+  spec?: OpenAPISpec
+  sharedExampleKey?: string
+  onSelectExampleKey?: (value: string) => void
+}
 
-  const t = useBuiltInText()
+function firstExampleKeyForResponseContent(content?: MediaTypeEntry): string {
+  return getExampleEntries(content?.value)[0]?.key ?? ''
+}
+
+function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
+  const { operation, spec, sharedExampleKey, onSelectExampleKey } = arg0
   const responses = getResponseEntries(operation, spec).filter(({ response }) => getMediaTypeEntries(response.content, spec).length > 0)
   const [selectedStatus, setSelectedStatus] = useState(responses.find(({ status }) => status.startsWith('2'))?.status ?? responses[0]?.status ?? '')
   const selectedResponse = responses.find(({ status }) => status === selectedStatus) ?? responses[0]
@@ -506,35 +580,55 @@ export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNo
   const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
   const responseCode = stringifyExample(selectedExample?.value)
 
-  if (!selectedResponse || !selectedContent || !responseCode) return null
+  return {
+    responses,
+    selectedResponse,
+    responseContents,
+    selectedContent,
+    examples,
+    selectedExample,
+    responseCode,
+    onSelectStatus: (value: string) => {
+      const nextResponse = responses.find(({ status }) => status === value)
+      const nextContents = getMediaTypeEntries(nextResponse?.response.content, spec)
+      setSelectedStatus(value)
+      setSelectedMediaType(nextContents[0]?.mediaType ?? '')
+      setSelectedExampleKey(firstExampleKeyForResponseContent(nextContents[0]))
+    },
+    onSelectMediaType: (value: string) => {
+      setSelectedMediaType(value)
+      setSelectedExampleKey(firstExampleKeyForResponseContent(responseContents.find((content) => content.mediaType === value)))
+    },
+    onSelectExample: (value: string) => {
+      setSelectedExampleKey(value)
+      onSelectExampleKey?.(value)
+    },
+  }
+}
+
+export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNode {
+  const { operation, spec, sharedExampleKey, onSelectExampleKey } = arg0
+
+  const t = useBuiltInText()
+  const state = useResponseExamplesState({ operation, spec, sharedExampleKey, onSelectExampleKey })
+
+  if (!state.selectedResponse || !state.selectedContent || !state.responseCode) return null
 
   return (
     <ApiExampleCodeGroup
       title={t('openapi.response')}
-      tag={selectedResponse.status}
-      tagOptions={responses.map(({ status }) => status)}
-      onSelectTag={(value) => {
-        const nextResponse = responses.find(({ status }) => status === value)
-        const nextContents = getMediaTypeEntries(nextResponse?.response.content, spec)
-        setSelectedStatus(value)
-        setSelectedMediaType(nextContents[0]?.mediaType ?? '')
-        setSelectedExampleKey(getExampleEntries(nextContents[0]?.value)[0]?.key ?? '')
-      }}
-      label={selectedContent.mediaType}
-      labelOptions={responseContents.map((content) => content.mediaType)}
-      onSelectLabel={(value) => {
-        setSelectedMediaType(value)
-        setSelectedExampleKey(getExampleEntries(responseContents.find((content) => content.mediaType === value)?.value)[0]?.key ?? '')
-      }}
+      tag={state.selectedResponse.status}
+      tagOptions={state.responses.map(({ status }) => status)}
+      onSelectTag={state.onSelectStatus}
+      label={state.selectedContent.mediaType}
+      labelOptions={state.responseContents.map((content) => content.mediaType)}
+      onSelectLabel={state.onSelectMediaType}
       comfortableMeta
-      code={responseCode}
-      language={codeLanguageForMediaType(selectedContent.mediaType)}
-      examples={examples}
-      selectedExampleKey={selectedExample?.key}
-      onSelectExample={(value) => {
-        setSelectedExampleKey(value)
-        onSelectExampleKey?.(value)
-      }}
+      code={state.responseCode}
+      language={codeLanguageForMediaType(state.selectedContent.mediaType)}
+      examples={state.examples}
+      selectedExampleKey={state.selectedExample?.key}
+      onSelectExample={state.onSelectExample}
     />
   )
 }

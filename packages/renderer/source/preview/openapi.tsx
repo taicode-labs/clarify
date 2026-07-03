@@ -39,6 +39,84 @@ type CreatePreviewOpenApiResult = {
 
 type OpenApiExamplesPreviewProps = { endpoint: PreviewEndpoint }
 
+type UsePreviewRequestStateArgs = {
+  spec: OpenAPISpec
+  operation: OpenAPIOperation
+}
+
+function usePreviewRequestState(arg0: UsePreviewRequestStateArgs) {
+  const { spec, operation } = arg0
+  const requestBody = getRequestBody(spec, operation)
+  const requestContents = getMediaTypeEntries(requestBody?.content, spec)
+  const [selectedRequestMediaType, setSelectedRequestMediaType] = useState(requestContents[0]?.mediaType ?? '')
+  const selectedRequestContent = requestContents.find((content) => content.mediaType === selectedRequestMediaType) ?? requestContents[0]
+
+  return {
+    requestContents,
+    selectedRequestContent,
+    setSelectedRequestMediaType,
+  }
+}
+
+type UsePreviewIdentityStateArgs = {
+  spec: OpenAPISpec
+  operation: OpenAPIOperation
+  path: string
+}
+
+function usePreviewIdentityState(arg0: UsePreviewIdentityStateArgs) {
+  const { spec, operation, path } = arg0
+  const servers = getServers(spec, operation, path)
+  const [selectedServerKey, setSelectedServerKey] = useState(getServerKey(servers[0], 0))
+  const selectedServer = servers.find((server, index) => getServerKey(server, index) === selectedServerKey) ?? servers[0]
+  const [serverVariables, setServerVariables] = useState(defaultServerVariables(selectedServer))
+  const [serverOpen, setServerOpen] = useState(false)
+
+  const authOptions = getAuthOptions(spec, operation)
+  const [selectedAuthName, setSelectedAuthName] = useState(authOptions[0]?.name ?? '')
+  const selectedAuth = authOptions.find((option) => option.name === selectedAuthName)
+  const [authValues, setAuthValues] = useState<Record<string, string>>({})
+  const [authOpen, setAuthOpen] = useState(false)
+
+  const authInput: RequestAuthInput | undefined = selectedAuth
+    ? { name: selectedAuth.name, scheme: selectedAuth.scheme, value: authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth) }
+    : undefined
+
+  return {
+    servers,
+    selectedServerKey,
+    selectedServer,
+    serverVariables,
+    serverOpen,
+    authOptions,
+    selectedAuthName,
+    selectedAuth,
+    authValues,
+    authOpen,
+    authInput,
+    onSelectServer: (value: string) => {
+      const nextServer = servers.find((server, index) => getServerKey(server, index) === value) ?? servers[0]
+      setSelectedServerKey(value)
+      setServerVariables(defaultServerVariables(nextServer))
+    },
+    onChangeServerVariable: (name: string, value: string) => {
+      setServerVariables((current) => ({ ...current, [name]: value }))
+    },
+    onToggleServer: () => {
+      setServerOpen((current) => !current)
+      setAuthOpen(false)
+    },
+    onToggleAuth: () => {
+      setAuthOpen((current) => !current)
+      setServerOpen(false)
+    },
+    onSelectAuth: setSelectedAuthName,
+    onChangeAuthValue: (name: string, value: string) => {
+      setAuthValues((current) => ({ ...current, [name]: value }))
+    },
+  }
+}
+
 function schemaFromType(type: string): unknown {
   if (type.endsWith('[]')) return { type: 'array', items: schemaFromType(type.slice(0, -2)) }
   if (type === 'number' || type === 'integer' || type === 'boolean' || type === 'object') return { type }
@@ -162,56 +240,36 @@ export function OpenApiExamplesPreview(arg0: OpenApiExamplesPreviewProps) {
   const { endpoint } = arg0
   const { operation, spec, parameters } = createPreviewOpenApi(endpoint)
   const method = endpoint.method.toUpperCase()
-  const requestBody = getRequestBody(spec, operation)
-  const requestContents = getMediaTypeEntries(requestBody?.content, spec)
-  const [selectedRequestMediaType, setSelectedRequestMediaType] = useState(requestContents[0]?.mediaType ?? '')
-  const selectedRequestContent = requestContents.find((content) => content.mediaType === selectedRequestMediaType) ?? requestContents[0]
-  const servers = getServers(spec, operation, endpoint.path)
-  const [selectedServerKey, setSelectedServerKey] = useState(getServerKey(servers[0], 0))
-  const selectedServer = servers.find((server, index) => getServerKey(server, index) === selectedServerKey) ?? servers[0]
-  const [serverVariables, setServerVariables] = useState(defaultServerVariables(selectedServer))
-  const [serverOpen, setServerOpen] = useState(false)
-  const authOptions = getAuthOptions(spec, operation)
-  const [selectedAuthName, setSelectedAuthName] = useState(authOptions[0]?.name ?? '')
-  const selectedAuth = authOptions.find((option) => option.name === selectedAuthName)
-  const [authValues, setAuthValues] = useState<Record<string, string>>({})
-  const [authOpen, setAuthOpen] = useState(false)
-  const authInput: RequestAuthInput | undefined = selectedAuth
-    ? { name: selectedAuth.name, scheme: selectedAuth.scheme, value: authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth) }
-    : undefined
+  const { requestContents, selectedRequestContent, setSelectedRequestMediaType } = usePreviewRequestState({ spec, operation })
+  const identityState = usePreviewIdentityState({ spec, operation, path: endpoint.path })
 
-  return (
-    <div className="space-y-4">
+  function renderIdentity() {
+    return (
       <EndpointIdentity
         method={method}
         path={endpoint.path}
-        servers={servers}
-        selectedServerKey={selectedServerKey}
-        selectedServer={selectedServer}
-        serverVariables={serverVariables}
-        serverOpen={serverOpen}
-        authOptions={authOptions}
-        selectedAuthName={selectedAuthName}
-        selectedAuth={selectedAuth}
-        authValues={authValues}
-        authOpen={authOpen}
-        onSelectServer={(value) => {
-          const nextServer = servers.find((server, index) => getServerKey(server, index) === value) ?? servers[0]
-          setSelectedServerKey(value)
-          setServerVariables(defaultServerVariables(nextServer))
-        }}
-        onChangeServerVariable={(name, value) => setServerVariables((current) => ({ ...current, [name]: value }))}
-        onToggleServer={() => {
-          setServerOpen((current) => !current)
-          setAuthOpen(false)
-        }}
-        onToggleAuth={() => {
-          setAuthOpen((current) => !current)
-          setServerOpen(false)
-        }}
-        onSelectAuth={setSelectedAuthName}
-        onChangeAuthValue={(name, value) => setAuthValues((current) => ({ ...current, [name]: value }))}
+        servers={identityState.servers}
+        selectedServerKey={identityState.selectedServerKey}
+        selectedServer={identityState.selectedServer}
+        serverVariables={identityState.serverVariables}
+        serverOpen={identityState.serverOpen}
+        authOptions={identityState.authOptions}
+        selectedAuthName={identityState.selectedAuthName}
+        selectedAuth={identityState.selectedAuth}
+        authValues={identityState.authValues}
+        authOpen={identityState.authOpen}
+        onSelectServer={identityState.onSelectServer}
+        onChangeServerVariable={identityState.onChangeServerVariable}
+        onToggleServer={identityState.onToggleServer}
+        onToggleAuth={identityState.onToggleAuth}
+        onSelectAuth={identityState.onSelectAuth}
+        onChangeAuthValue={identityState.onChangeAuthValue}
       />
+    )
+  }
+
+  function renderExamples() {
+    return (
       <div className="grid min-w-0 gap-4 lg:grid-cols-2">
         <RequestExamplesPanel
           spec={spec}
@@ -221,12 +279,19 @@ export function OpenApiExamplesPreview(arg0: OpenApiExamplesPreviewProps) {
           requestContents={requestContents}
           selectedMediaType={selectedRequestContent?.mediaType ?? ''}
           onSelectMediaType={setSelectedRequestMediaType}
-          selectedServer={selectedServer}
-          serverVariables={serverVariables}
-          auth={authInput}
+          selectedServer={identityState.selectedServer}
+          serverVariables={identityState.serverVariables}
+          auth={identityState.authInput}
         />
         <ResponseExamplesPanel operation={operation} spec={spec} />
       </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {renderIdentity()}
+      {renderExamples()}
     </div>
   )
 }

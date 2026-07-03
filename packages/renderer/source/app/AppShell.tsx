@@ -248,14 +248,14 @@ type StoredLocaleRedirectOptions = {
   storedLocale: string | null
 }
 
-function useStoredLocalePreference(explicitLocale: string | undefined) {
+type AppShellNavigationEffectsArgs = StoredLocaleRedirectOptions
+
+function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
+  const { config, currentRoute, explicitLocale, location, navigate, pathname, storedLocale } = arg0
+
   useEffect(() => {
     if (explicitLocale) storeLocalePreference(explicitLocale)
   }, [explicitLocale])
-}
-
-function useStoredLocaleRedirect(arg0: StoredLocaleRedirectOptions) {
-  const { config, currentRoute, explicitLocale, location, navigate, pathname, storedLocale } = arg0
 
   useEffect(() => {
     if (explicitLocale || !storedLocale || isDefaultLocale(config, storedLocale)) return
@@ -263,9 +263,7 @@ function useStoredLocaleRedirect(arg0: StoredLocaleRedirectOptions) {
     if (!localizedPath || isSameRoutePath(localizedPath, pathname)) return
     navigate(`${localizedPath}${location.search}${location.hash}`, { replace: true })
   }, [config, currentRoute, explicitLocale, location.hash, location.search, navigate, pathname, storedLocale])
-}
 
-function useRouteScroll(location: ReturnType<typeof useLocation>) {
   useEffect(() => {
     if (location.hash) {
       scrollToHash(location.hash)
@@ -279,7 +277,16 @@ function useRouteScroll(location: ReturnType<typeof useLocation>) {
   }, [location.hash, location.pathname])
 }
 
-function useDocumentLanguage(currentLocale: string | undefined, currentLocaleConfig: LocaleConfig | undefined) {
+type AppShellDocumentEffectsArgs = {
+  currentLocale: string | undefined
+  currentLocaleConfig: LocaleConfig | undefined
+  config: Config
+  route?: RouteItem
+}
+
+function useAppShellDocumentEffects(arg0: AppShellDocumentEffectsArgs) {
+  const { currentLocale, currentLocaleConfig, config, route } = arg0
+
   useEffect(() => {
     if (!currentLocale) return
     document.documentElement.lang = currentLocale
@@ -289,51 +296,52 @@ function useDocumentLanguage(currentLocale: string | undefined, currentLocaleCon
       document.documentElement.removeAttribute('dir')
     }
   }, [currentLocale, currentLocaleConfig?.dir])
-}
 
-function useDocumentMetadata(config: Config, route?: RouteItem) {
   useEffect(() => {
     applyDocumentMetadata(config, route)
   }, [config, route])
 }
 
-function headerOffsetForLayout(hasTabs: boolean, hasBanner: boolean) {
-  if (hasTabs && hasBanner) return '10rem'
-  if (hasTabs) return '7rem'
-  if (hasBanner) return '6.5rem'
-  return '3.5rem'
+type LayoutVariant = 'base' | 'banner' | 'tabs' | 'tabs-banner'
+
+type LayoutConfig = {
+  headerOffset: string
+  sidebarScrollClassName: string
+  contentClassName: string
 }
 
-function sidebarScrollClassName(hasTabs: boolean, hasBanner: boolean) {
-  const classNames = ['clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8']
-
-  if (hasTabs && hasBanner) {
-    classNames.push('lg:top-40 lg:h-(--clarify-sidebar-height-with-tabs-and-banner) lg:pt-10')
-  } else if (hasTabs) {
-    classNames.push('lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-10')
-  } else if (hasBanner) {
-    classNames.push('lg:top-26 lg:h-(--clarify-sidebar-height-with-banner) lg:pt-10')
-  } else {
-    classNames.push('lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-10')
-  }
-
-  return clsx(classNames)
+const appShellLayoutConfig: Record<LayoutVariant, LayoutConfig> = {
+  base: {
+    headerOffset: '3.5rem',
+    sidebarScrollClassName: 'lg:top-14 lg:h-(--clarify-sidebar-height) lg:pt-10',
+    contentClassName: 'pt-14',
+  },
+  banner: {
+    headerOffset: '6.5rem',
+    sidebarScrollClassName: 'lg:top-26 lg:h-(--clarify-sidebar-height-with-banner) lg:pt-10',
+    contentClassName: 'pt-26',
+  },
+  tabs: {
+    headerOffset: '7rem',
+    sidebarScrollClassName: 'lg:top-28 lg:h-(--clarify-sidebar-height-with-tabs) lg:pt-10',
+    contentClassName: 'pt-14 lg:pt-28',
+  },
+  'tabs-banner': {
+    headerOffset: '10rem',
+    sidebarScrollClassName: 'lg:top-40 lg:h-(--clarify-sidebar-height-with-tabs-and-banner) lg:pt-10',
+    contentClassName: 'pt-26 lg:pt-40',
+  },
 }
 
-function contentClassName(hasTabs: boolean, hasBanner: boolean) {
-  const classNames = ['clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10']
+function getLayoutVariant(hasTabs: boolean, hasBanner: boolean): LayoutVariant {
+  if (hasTabs && hasBanner) return 'tabs-banner'
+  if (hasTabs) return 'tabs'
+  if (hasBanner) return 'banner'
+  return 'base'
+}
 
-  if (hasTabs && hasBanner) {
-    classNames.push('pt-26 lg:pt-40')
-  } else if (hasTabs) {
-    classNames.push('pt-14 lg:pt-28')
-  } else if (hasBanner) {
-    classNames.push('pt-26')
-  } else {
-    classNames.push('pt-14')
-  }
-
-  return clsx(classNames)
+function getAppShellLayoutConfig(hasTabs: boolean, hasBanner: boolean): LayoutConfig {
+  return appShellLayoutConfig[getLayoutVariant(hasTabs, hasBanner)]
 }
 
 function BuiltInNotFoundPage() {
@@ -383,16 +391,14 @@ export function AppShell(arg0: AppShellProps) {
   const text = useBuiltInText(currentLocale)
   const { activeBannerKey, bannerResolved, dismissedBannerKey, hasBanner, dismissBanner } = useBannerState(config, currentLocale)
   const hasTabs = Boolean(currentNavigation.tabs?.length)
+  const layoutConfig = getAppShellLayoutConfig(hasTabs, hasBanner)
   const { renderRoutes, NotFoundRouteComponent } = useRenderedRoutes(routes, notFoundRoute)
 
-  useStoredLocalePreference(explicitLocale)
-  useStoredLocaleRedirect({ config, currentRoute, explicitLocale, location, navigate, pathname, storedLocale })
-  useRouteScroll(location)
-  useDocumentLanguage(currentLocale, currentLocaleConfig)
-  useDocumentMetadata(config, currentRoute ?? notFoundRoute)
+  useAppShellNavigationEffects({ config, currentRoute, explicitLocale, location, navigate, pathname, storedLocale })
+  useAppShellDocumentEffects({ currentLocale, currentLocaleConfig, config, route: currentRoute ?? notFoundRoute })
 
   const layoutStyle = {
-    '--clarify-header-offset': headerOffsetForLayout(hasTabs, hasBanner),
+    '--clarify-header-offset': layoutConfig.headerOffset,
   } as CSSProperties
 
   function renderBannerSlot() {
@@ -430,7 +436,7 @@ export function AppShell(arg0: AppShellProps) {
         data-pagefind-ignore
         className="clarify-sidebar hidden lg:block lg:self-stretch lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 xl:px-6"
       >
-        <div className={sidebarScrollClassName(hasTabs, hasBanner)}>
+        <div className={clsx('clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8', layoutConfig.sidebarScrollClassName)}>
           <Navigation navigation={currentNavigation.items} />
         </div>
       </aside>
@@ -489,7 +495,7 @@ export function AppShell(arg0: AppShellProps) {
 
   function renderContent() {
     return (
-      <div className={contentClassName(hasTabs, hasBanner)}>
+      <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10', layoutConfig.contentClassName)}>
         <PageActionsProvider route={currentRoute} routePrefix={config.routePrefix}>
           {renderMain()}
           <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
