@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Globe2, MoreHorizontal } from 'lucide-react'
 import { forwardRef } from 'react'
+import type { RefObject } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useBuiltInText } from '../i18n'
@@ -191,7 +192,7 @@ function ProductTabs(arg0: ProductTabsProps) {  const { tabs } = arg0
   if (!tabs?.length) return null
 
   return (
-    <div className="clarify-product-tabs hidden h-14 border-t border-(--clarify-theme-tokens-colors-border) lg:block dark:border-white/10">
+    <div data-clarify-header-tabs className="clarify-product-tabs hidden h-14 border-t border-(--clarify-theme-tokens-colors-border) lg:block dark:border-white/10">
       <nav className="clarify-product-tabs-nav mx-auto flex h-full w-full max-w-(--clarify-theme-layout-max-width) items-stretch gap-6 overflow-x-auto px-5" aria-label={t('navbar.sections')}>
         {tabs.map((tab) => {
           const active = isActiveTab(tab, pathname)
@@ -232,8 +233,9 @@ export const Header = forwardRef<
     currentLocale?: string
     currentRoute?: RouteItem
     banner?: React.ReactNode
+    topAreaRef?: RefObject<HTMLDivElement | null>
   }
->(function Header(arg0, ref) {  const { config, navigation, tabs, routes, currentLocale, currentRoute, banner, className, ...props } = arg0
+>(function Header(arg0, ref) {  const { config, navigation, tabs, routes, currentLocale, currentRoute, banner, topAreaRef, className, ...props } = arg0
 
   const t = useBuiltInText()
   const { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
@@ -244,6 +246,87 @@ export const Header = forwardRef<
   const { scrollY } = useScroll()
   const bgOpacityLight = useTransform(scrollY, [0, 72], ['70%', '95%'])
   const bgOpacityDark = useTransform(scrollY, [0, 72], ['60%', '92%'])
+  const hasNavbarLinks = Boolean(config.navbar?.links?.length)
+
+  function renderBrand() {
+    if (homeExternal) {
+      return (
+        <CloseButton as="a" href={homeHref} aria-label={t('navbar.home')} className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
+          <SiteLogo logo={config.logo} className="h-6 w-auto shrink-0 object-contain" />
+          <span className="clarify-brand-title truncate font-semibold">{config.title}</span>
+        </CloseButton>
+      )
+    }
+
+    return (
+      <CloseButton as={Link} to={homeHref} aria-label={t('navbar.home')} className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
+        <SiteLogo logo={config.logo} className="h-6 w-auto shrink-0 object-contain" />
+        <span className="clarify-brand-title truncate font-semibold">{config.title}</span>
+      </CloseButton>
+    )
+  }
+
+  function renderTopLinks() {
+    if (!hasNavbarLinks) return null
+
+    return (
+      <nav className="clarify-top-nav hidden md:block">
+        <ul role="list" className="flex items-center gap-8">
+          {config.navbar?.links?.map((link) => (
+            <TopLevelNavItem key={link.href} href={localizeHref(link.href, config, currentLocale)}>
+              {resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale)}
+            </TopLevelNavItem>
+          ))}
+        </ul>
+      </nav>
+    )
+  }
+
+  function renderHeaderActions() {
+    return (
+      <div className="clarify-header-actions flex shrink-0 items-center gap-5">
+        {renderTopLinks()}
+        {hasNavbarLinks ? <div className="hidden md:block md:h-5 md:w-px md:bg-(--clarify-theme-tokens-colors-border) md:dark:bg-white/15" /> : null}
+        <MobileSearch routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
+        <LanguageSwitcher config={config} currentLocale={currentLocale} currentRoute={currentRoute} />
+        <ThemeToggle />
+        <MobileNavbarMenu links={config.navbar?.links} config={config} currentLocale={currentLocale} />
+      </div>
+    )
+  }
+
+  function renderHeaderMain() {
+    return (
+      <div
+        data-clarify-header-main
+        className={clsx(
+          'clarify-header-main relative mx-auto flex h-14 w-full max-w-(--clarify-theme-layout-max-width) items-center justify-between gap-6 px-4 sm:px-6 lg:px-5',
+          (isInsideMobileNavigation || !mobileNavIsOpen) && 'shadow-none',
+        )}
+      >
+        <div className="clarify-header-left flex min-w-0 items-center gap-5">
+          <div className="clarify-mobile-brand flex items-center gap-5 lg:hidden">
+            <MobileNavigation config={config} navigation={navigation} tabs={tabs} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
+          </div>
+          {renderBrand()}
+        </div>
+        <div className="clarify-header-center absolute left-1/2 hidden -translate-x-1/2 lg:block">
+          <Search routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
+        </div>
+        {renderHeaderActions()}
+      </div>
+    )
+  }
+
+  function renderTopArea() {
+    return (
+      <div ref={topAreaRef}>
+        {renderHeaderMain()}
+        <div data-clarify-header-banner>{banner}</div>
+        <ProductTabs tabs={tabs} />
+      </div>
+    )
+  }
 
   return (
     <motion.header
@@ -262,52 +345,7 @@ export const Header = forwardRef<
         } as React.CSSProperties
       }
     >
-      <div
-        className={clsx(
-          'clarify-header-main relative mx-auto flex h-14 w-full max-w-(--clarify-theme-layout-max-width) items-center justify-between gap-6 px-4 sm:px-6 lg:px-5',
-          (isInsideMobileNavigation || !mobileNavIsOpen) && 'shadow-none',
-        )}
-      >
-        <div className="clarify-header-left flex min-w-0 items-center gap-5">
-          <div className="clarify-mobile-brand flex items-center gap-5 lg:hidden">
-            <MobileNavigation config={config} navigation={navigation} tabs={tabs} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
-          </div>
-          {homeExternal ? (
-            <CloseButton as="a" href={homeHref} aria-label={t('navbar.home')} className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
-              <SiteLogo logo={config.logo} className="h-6 w-auto shrink-0 object-contain" />
-              <span className="clarify-brand-title truncate font-semibold">{config.title}</span>
-            </CloseButton>
-          ) : (
-            <CloseButton as={Link} to={homeHref} aria-label={t('navbar.home')} className="clarify-brand flex min-w-0 items-center gap-2 no-underline">
-              <SiteLogo logo={config.logo} className="h-6 w-auto shrink-0 object-contain" />
-              <span className="clarify-brand-title truncate font-semibold">{config.title}</span>
-            </CloseButton>
-          )}
-        </div>
-        <div className="clarify-header-center absolute left-1/2 hidden -translate-x-1/2 lg:block">
-          <Search routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
-        </div>
-        <div className="clarify-header-actions flex shrink-0 items-center gap-5">
-          {config.navbar?.links?.length ? (
-            <nav className="clarify-top-nav hidden md:block">
-              <ul role="list" className="flex items-center gap-8">
-                {config.navbar.links.map((link) => (
-                  <TopLevelNavItem key={link.href} href={localizeHref(link.href, config, currentLocale)}>
-                    {resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale)}
-                  </TopLevelNavItem>
-                ))}
-              </ul>
-            </nav>
-          ) : null}
-          {config.navbar?.links?.length ? <div className="hidden md:block md:h-5 md:w-px md:bg-(--clarify-theme-tokens-colors-border) md:dark:bg-white/15" /> : null}
-          <MobileSearch routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
-          <LanguageSwitcher config={config} currentLocale={currentLocale} currentRoute={currentRoute} />
-          <ThemeToggle />
-          <MobileNavbarMenu links={config.navbar?.links} config={config} currentLocale={currentLocale} />
-        </div>
-      </div>
-      {banner}
-      <ProductTabs tabs={tabs} />
+      {renderTopArea()}
     </motion.header>
   )
 })

@@ -212,7 +212,8 @@ function useStoredBannerDismissed(storageKey: string | undefined) {
   return useSyncExternalStore(
     emptySubscribe,
     () => Boolean(storageKey && window.localStorage.getItem(storageKey) === '1'),
-    () => false,
+    // Avoid SSR/hydration flash for dismissible banners by resolving dismissal on the client.
+    () => true,
   )
 }
 
@@ -368,6 +369,7 @@ export function AppShell(arg0: AppShellProps) {
   const navigate = useNavigate()
   const pathname = normalizeRoutePath(location.pathname)
   const headerRef = useRef<HTMLElement>(null)
+  const headerTopAreaRef = useRef<HTMLDivElement>(null)
   const {
     currentRoute,
     explicitLocale,
@@ -410,6 +412,7 @@ export function AppShell(arg0: AppShellProps) {
     return (
       <Header
         ref={headerRef}
+        topAreaRef={headerTopAreaRef}
         config={config}
         navigation={currentNavigation.items}
         tabs={currentNavigation.tabs}
@@ -511,7 +514,7 @@ export function AppShell(arg0: AppShellProps) {
   return (
     <LocaleContext.Provider value={currentLocale}>
       <RuntimeSlotsProvider slots={runtimeSlots} route={currentRoute}>
-        <SectionProvider sections={sections} headerRef={headerRef}>
+        <SectionProvider sections={sections} headerTopAreaRef={headerTopAreaRef}>
           {renderHeader()}
           {renderLayout()}
         </SectionProvider>

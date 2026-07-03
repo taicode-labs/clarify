@@ -1,8 +1,10 @@
 import {
+  useCallback,
   createContext,
   useContext,
   useEffect,
   useLayoutEffect,
+  useRef,
   useState,
   type ReactNode,
   type RefObject,
@@ -57,82 +59,136 @@ function createSectionStore(sections: Section[]) {
   }))
 }
 
-function getVisibleViewportTop(scrollY: number, headerRef?: RefObject<HTMLElement | null>) {
-  const headerBottom = headerRef?.current?.getBoundingClientRect().bottom ?? 0
-
-  return scrollY + Math.max(0, headerBottom)
+function getHeaderBlockedTop(innerHeight: number, headerTopAreaRef?: RefObject<HTMLDivElement | null>) {
+  const blockedTop = headerTopAreaRef?.current?.offsetHeight ?? 0
+  return Math.max(0, Math.min(innerHeight, blockedTop))
 }
 
-function useVisibleSections(sectionStore: StoreApi<SectionState>, headerRef?: RefObject<HTMLElement | null>) {
-  const setVisibleSections = useStore(sectionStore, (state) => state.setVisibleSections)
-  const sections = useStore(sectionStore, (state) => state.sections)
+function getVisibleViewportTop(scrollY: number, innerHeight: number, headerTopAreaRef?: RefObject<HTMLDivElement | null>) {
+  return scrollY + getHeaderBlockedTop(innerHeight, headerTopAreaRef)
+}
 
-  useEffect(() => {
-    function checkVisibleSections() {
-      const { innerHeight, scrollY } = window
-      const viewportTop = getVisibleViewportTop(scrollY, headerRef)
-      const viewportBottom = scrollY + innerHeight
-      const newVisibleSections: string[] = []
+function getVisibleViewportBottom(scrollY: number, innerHeight: number, headerTopAreaRef?: RefObject<HTMLDivElement | null>) {
+  const blockedTop = getHeaderBlockedTop(innerHeight, headerTopAreaRef)
 
-      for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex += 1) {
-        const { id, headingRef, offsetRem = 0 } = sections[sectionIndex]
+  return scrollY + Math.max(0, innerHeight - blockedTop)
+}
 
-        if (!headingRef?.current) {
-          continue
-        }
+type VisibilitySnapshot = {
+  scrollY: number
+  innerHeight: number
+  blockedTop: number
+  viewportTop: number
+  viewportBottom: number
+  visibleSections: string[]
+}
 
-        const offset = remToPx(offsetRem)
-        const top = headingRef.current.getBoundingClientRect().top + scrollY
+function computeVisibleSections(sections: Section[], scrollY: number, viewportTop: number, viewportBottom: number) {
+  const visibleSections: string[] = []
 
-        if (sectionIndex === 0 && top - offset > viewportTop) {
-          newVisibleSections.push('_top')
-        }
+  for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex += 1) {
+    const { id, headingRef, offsetRem = 0 } = sections[sectionIndex]
 
-        const nextSection = sections[sectionIndex + 1]
-        const bottom =
-          (nextSection?.headingRef?.current?.getBoundingClientRect().top ?? Infinity) +
-          scrollY
+    if (!headingRef?.current) continue
 
-        if (bottom > viewportTop && top < viewportBottom) {
-          newVisibleSections.push(id)
-        }
-      }
+    const offset = remToPx(offsetRem)
+    const top = headingRef.current.getBoundingClientRect().top + scrollY
+    const sectionTop = top - offset
 
-      setVisibleSections(newVisibleSections)
+    if (sectionIndex === 0 && sectionTop > viewportTop) {
+      visibleSections.push('_top')
     }
 
+    const nextSection = sections[sectionIndex + 1]
+    const nextOffset = remToPx(nextSection?.offsetRem ?? offsetRem)
+    const sectionBottom =
+      (nextSection?.headingRef?.current?.getBoundingClientRect().top ?? Infinity) +
+      scrollY -
+      nextOffset
+
+    if (sectionBottom > viewportTop && sectionTop < viewportBottom) {
+      visibleSections.push(id)
+    }
+  }
+
+  return visibleSections
+}
+
+function useSectionVisibilityDebug(headerTopAreaRef?: RefObject<HTMLDivElement | null>) {
+  const lastDebugSignatureRef = useRef('')
+
+  return (snapshot: VisibilitySnapshot) => {
+    const { scrollY, innerHeight, blockedTop, visibleSections } = snapshot
+    const debugSignature = [
+      Math.round(scrollY),
+      innerHeight,
+      Math.round(blockedTop),
+      visibleSections.join(','),
+    ].join('|')
+
+    if (lastDebugSignatureRef.current === debugSignature) return
+    lastDebugSignatureRef.current = debugSignature
+
+    console.info('[clarify][section-visibility]', {
+      ...snapshot,
+      topAreaHeight: headerTopAreaRef?.current?.offsetHeight ?? 0,
+    })
+  }
+}
+
+function useSectionVisibilityObserver(checkVisibleSections: () => void, headerTopAreaRef?: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
     const raf = window.requestAnimationFrame(() => checkVisibleSections())
     window.addEventListener('scroll', checkVisibleSections, { passive: true })
     window.addEventListener('resize', checkVisibleSections)
+
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? undefined
+        : new ResizeObserver(() => {
+            checkVisibleSections()
+          })
+    if (resizeObserver && headerTopAreaRef?.current) {
+      resizeObserver.observe(headerTopAreaRef.current)
+    }
 
     return () => {
       window.cancelAnimationFrame(raf)
       window.removeEventListener('scroll', checkVisibleSections)
       window.removeEventListener('resize', checkVisibleSections)
+      resizeObserver?.disconnect()
     }
-  }, [headerRef, setVisibleSections, sections])
+  }, [checkVisibleSections, headerTopAreaRef])
 }
 
-const SectionStoreContext = createContext<StoreApi<SectionState> | null>(null)
+function useVisibleSections(sectionStore: StoreApi<SectionState>, headerTopAreaRef?: RefObject<HTMLDivElement | null>) {
+  const setVisibleSections = useStore(sectionStore, (state) => state.setVisibleSections)
+  const sections = useStore(sectionStore, (state) => state.sections)
+  const emitVisibilityDebug = useSectionVisibilityDebug(headerTopAreaRef)
 
-const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
+  const checkVisibleSections = useCallback(() => {
+    const { innerHeight, scrollY } = window
+    const viewportTop = getVisibleViewportTop(scrollY, innerHeight, headerTopAreaRef)
+    const viewportBottom = getVisibleViewportBottom(scrollY, innerHeight, headerTopAreaRef)
+    const blockedTop = getHeaderBlockedTop(innerHeight, headerTopAreaRef)
+    const newVisibleSections = computeVisibleSections(sections, scrollY, viewportTop, viewportBottom)
 
-type SectionProviderProps = {
-  sections: Section[]
-  headerRef?: RefObject<HTMLElement | null>
-  children: ReactNode
+    emitVisibilityDebug({
+      scrollY,
+      innerHeight,
+      blockedTop,
+      viewportTop,
+      viewportBottom,
+      visibleSections: newVisibleSections,
+    })
+
+    setVisibleSections(newVisibleSections)
+  }, [emitVisibilityDebug, headerTopAreaRef, sections, setVisibleSections])
+
+  useSectionVisibilityObserver(checkVisibleSections, headerTopAreaRef)
 }
 
-export function SectionProvider(arg0: SectionProviderProps) {  const {
-  sections,
-  headerRef,
-  children,
-} = arg0
-
-  const [sectionStore] = useState(() => createSectionStore(sections))
-
-  useVisibleSections(sectionStore, headerRef)
-
+function useSyncSections(sectionStore: StoreApi<SectionState>, sections: Section[]) {
   useIsomorphicLayoutEffect(() => {
     sectionStore.setState((state) => ({
       sections: sections.map((section) => {
@@ -146,6 +202,28 @@ export function SectionProvider(arg0: SectionProviderProps) {  const {
       visibleSections: [],
     }))
   }, [sectionStore, sections])
+}
+
+const SectionStoreContext = createContext<StoreApi<SectionState> | null>(null)
+
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
+type SectionProviderProps = {
+  sections: Section[]
+  headerTopAreaRef?: RefObject<HTMLDivElement | null>
+  children: ReactNode
+}
+
+export function SectionProvider(arg0: SectionProviderProps) {  const {
+  sections,
+  headerTopAreaRef,
+  children,
+} = arg0
+
+  const [sectionStore] = useState(() => createSectionStore(sections))
+
+  useVisibleSections(sectionStore, headerTopAreaRef)
+  useSyncSections(sectionStore, sections)
 
   return <SectionStoreContext.Provider value={sectionStore}>{children}</SectionStoreContext.Provider>
 }
