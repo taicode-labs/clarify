@@ -26,6 +26,7 @@ describe('buildSearchItems', () => {
     ]
     const navigation: NavigationNode[] = [
       {
+        path: '#',
         title: 'Docs',
         children: [
           { title: 'Guide', path: '/guide' },
@@ -90,6 +91,7 @@ describe('buildSearchItems', () => {
     ]
     const navigation: NavigationNode[] = [
       {
+        path: '#',
         title: 'Docs',
         children: [
           { title: 'Guide', path: '/guide' },
@@ -158,6 +160,7 @@ describe('buildSearchItems', () => {
     ]
     const navigation: NavigationNode[] = [
       {
+        path: '#',
         title: 'Main',
         children: [{ title: 'Documentation', path: '/docs' }],
       },
