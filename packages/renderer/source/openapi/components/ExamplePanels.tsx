@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 import { useBuiltInText } from '../../core/i18n'
 import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getResponseEntries, stringifyExample } from '../lib/helpers'
@@ -306,6 +306,8 @@ type ResponseExamplesPanelProps = {
   spec?: OpenAPISpec
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
+  selectedStatus?: string
+  onSelectStatus?: (value: string) => void
 }
 
 type UseResponseExamplesStateArgs = {
@@ -313,6 +315,8 @@ type UseResponseExamplesStateArgs = {
   spec?: OpenAPISpec
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
+  selectedStatus?: string
+  onSelectStatus?: (value: string) => void
 }
 
 function firstExampleKeyForResponseContent(content?: MediaTypeEntry): string {
@@ -320,22 +324,43 @@ function firstExampleKeyForResponseContent(content?: MediaTypeEntry): string {
 }
 
 function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
-  const { operation, spec, sharedExampleKey, onSelectExampleKey } = arg0
+  const { operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
   const responses = getResponseEntries(operation, spec).filter(({ response }) => getMediaTypeEntries(response.content, spec).length > 0)
-  const [selectedStatus, setSelectedStatus] = useState(responses.find(({ status }) => status.startsWith('2'))?.status ?? responses[0]?.status ?? '')
-  const selectedResponse = responses.find(({ status }) => status === selectedStatus) ?? responses[0]
+  const orderedResponses = [...responses].sort((left, right) => {
+    if (left.status === 'default') return -1
+    if (right.status === 'default') return 1
+
+    const leftCode = Number(left.status)
+    const rightCode = Number(right.status)
+
+    if (!Number.isNaN(leftCode) && !Number.isNaN(rightCode)) return leftCode - rightCode
+    return left.status.localeCompare(right.status)
+  })
+  const defaultStatus = orderedResponses.find(({ status }) => status === 'default')?.status
+    ?? orderedResponses.find(({ status }) => status.startsWith('2'))?.status
+    ?? orderedResponses[0]?.status
+    ?? ''
+  const [internalSelectedStatus, setInternalSelectedStatus] = useState(defaultStatus)
+  const activeStatus = selectedStatus ?? internalSelectedStatus
+  const selectedResponse = orderedResponses.find(({ status }) => status === activeStatus) ?? orderedResponses[0]
   const responseContents = getMediaTypeEntries(selectedResponse?.response.content, spec)
   const [selectedMediaType, setSelectedMediaType] = useState(responseContents[0]?.mediaType ?? '')
   const selectedContent = responseContents.find((content) => content.mediaType === selectedMediaType) ?? responseContents[0]
   const examples = getExampleEntries(selectedContent?.value)
   const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
+
+  useEffect(() => {
+    const nextContents = getMediaTypeEntries(selectedResponse?.response.content, spec)
+    setSelectedMediaType(nextContents[0]?.mediaType ?? '')
+    setSelectedExampleKey(firstExampleKeyForResponseContent(nextContents[0]))
+  }, [activeStatus])
   const linkedExampleKey = sharedExampleKey && examples.some((example) => example.key === sharedExampleKey) ? sharedExampleKey : undefined
   const currentExampleKey = linkedExampleKey ?? selectedExampleKey
   const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
   const responseCode = stringifyExample(selectedExample?.value)
 
   return {
-    responses,
+    responses: orderedResponses,
     selectedResponse,
     responseContents,
     selectedContent,
@@ -343,9 +368,10 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
     selectedExample,
     responseCode,
     onSelectStatus: (value: string) => {
-      const nextResponse = responses.find(({ status }) => status === value)
+      const nextResponse = orderedResponses.find(({ status }) => status === value)
       const nextContents = getMediaTypeEntries(nextResponse?.response.content, spec)
-      setSelectedStatus(value)
+      if (typeof selectedStatus === 'undefined') setInternalSelectedStatus(value)
+      onSelectStatus?.(value)
       setSelectedMediaType(nextContents[0]?.mediaType ?? '')
       setSelectedExampleKey(firstExampleKeyForResponseContent(nextContents[0]))
     },
@@ -361,10 +387,10 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
 }
 
 export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNode {
-  const { operation, spec, sharedExampleKey, onSelectExampleKey } = arg0
+  const { operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
 
   const t = useBuiltInText()
-  const state = useResponseExamplesState({ operation, spec, sharedExampleKey, onSelectExampleKey })
+  const state = useResponseExamplesState({ operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus })
 
   if (!state.selectedResponse || !state.selectedContent || !state.responseCode) return null
 

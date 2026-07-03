@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
+import { Tabs } from '../../components'
 import { useBuiltInText } from '../../core/i18n'
 import { Markdown } from '../../mdx/Markdown'
 import { Properties, Property } from '../../mdx/primitives'
@@ -296,29 +297,75 @@ export function ParameterList(arg0: ParameterListProps): ReactNode {  const { ti
   )
 }
 
-type ResponseListProps = { operation: OpenAPIOperation; spec?: OpenAPISpec }
+type ResponseListProps = { operation: OpenAPIOperation; spec?: OpenAPISpec; selectedStatus?: string; onSelectStatus?: (value: string) => void }
 
-export function ResponseList(arg0: ResponseListProps): ReactNode {  const { operation, spec } = arg0
+export function ResponseList(arg0: ResponseListProps): ReactNode {  const { operation, spec, selectedStatus, onSelectStatus } = arg0
 
   const t = useBuiltInText()
   const responses = getResponseEntries(operation, spec)
-  if (responses.length === 0) return null
+  const orderedResponses = [...responses].sort((left, right) => {
+    if (left.status === 'default') return -1
+    if (right.status === 'default') return 1
+
+    const leftCode = Number(left.status)
+    const rightCode = Number(right.status)
+
+    if (!Number.isNaN(leftCode) && !Number.isNaN(rightCode)) return leftCode - rightCode
+    return left.status.localeCompare(right.status)
+  })
+  const activeStatus = selectedStatus ?? orderedResponses.find(({ status }) => status === 'default')?.status ?? orderedResponses.find(({ status }) => status.startsWith('2'))?.status ?? orderedResponses[0]?.status ?? ''
+  const selectedIndex = Math.max(0, orderedResponses.findIndex(({ status }) => status === activeStatus))
+
+  if (orderedResponses.length === 0) return null
+
+  const renderResponsePanel = ({ status, response }: { status: string; response: NonNullable<(typeof orderedResponses)[number]['response']> }) => {
+    const content = getJsonLikeContent(response.content, spec)
+    const responseSchema = content?.value.schema
+    const type = schemaToType(responseSchema)
+
+    return (
+      <div className="rounded-(--clarify-theme-tokens-radius-xl) p-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm/5 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{status}</span>
+          {type ? <span className="text-xs text-(--clarify-theme-tokens-colors-muted)">{type}</span> : null}
+        </div>
+        <div className="mt-3 text-sm/6 text-(--clarify-ui-text-soft) *:first:mt-0 *:last:mb-0">
+          {response.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{response.description}</Markdown> : `${t('openapi.response')}.`}
+        </div>
+        {responseSchema && spec ? (
+          <div className="mt-4">
+            <SchemaProperties title={t('openapi.responseBodyProperties')} schema={responseSchema} spec={spec} />
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
+  if (orderedResponses.length === 1) {
+    const [{ status, response }] = orderedResponses
+    return (
+      <div>
+        <h3>{t('openapi.responses')}</h3>
+        {renderResponsePanel({ status, response })}
+      </div>
+    )
+  }
 
   return (
     <div>
       <h3>{t('openapi.responses')}</h3>
-      <Properties>
-        {responses.map(({ status, response }) => {
-          const content = getJsonLikeContent(response.content, spec)
-          const type = schemaToType(content?.value.schema)
-
-          return (
-            <Property key={status} name={status} type={type}>
-              {response.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{response.description}</Markdown> : `${t('openapi.response')}.`}
-            </Property>
-          )
-        })}
-      </Properties>
+      <Tabs
+        selectedIndex={selectedIndex}
+        onChange={(index) => {
+          onSelectStatus?.(orderedResponses[index]?.status ?? '')
+        }}
+        items={orderedResponses.map(({ status, response }) => ({
+          id: status,
+          label: status,
+          panel: renderResponsePanel({ status, response }),
+        }))}
+        panelsClassName="mt-4"
+      />
     </div>
   )
 }

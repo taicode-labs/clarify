@@ -5,6 +5,7 @@ import { CheckIcon, ChevronDownIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeI
 import { useState, type ReactNode } from 'react'
 
 import { Heading } from '../../components/Heading'
+import { getMediaTypeEntries, getResponseEntries } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 import type { OpenApiServer, OpenApiServerVariable } from '../types'
 
@@ -122,6 +123,25 @@ function InlineListbox(arg0: InlineListboxProps): ReactNode {
 
 function getServerPreviewUrl(server: OpenApiServer, variables: Record<string, string>): string {
   return (server.url ?? '').replace(/\{([^}]+)\}/g, (_, name: string) => variables[name] ?? server.variables?.[name]?.default ?? `{${name}}`)
+}
+
+function getDefaultResponseStatus(operation: OpenAPIOperation, spec?: OpenAPISpec): string {
+  const responses = getResponseEntries(operation, spec).filter(({ response }) => getMediaTypeEntries(response.content, spec).length > 0)
+  const orderedResponses = [...responses].sort((left, right) => {
+    if (left.status === 'default') return -1
+    if (right.status === 'default') return 1
+
+    const leftCode = Number(left.status)
+    const rightCode = Number(right.status)
+
+    if (!Number.isNaN(leftCode) && !Number.isNaN(rightCode)) return leftCode - rightCode
+    return left.status.localeCompare(right.status)
+  })
+
+  return orderedResponses.find(({ status }) => status === 'default')?.status
+    ?? orderedResponses.find(({ status }) => status.startsWith('2'))?.status
+    ?? orderedResponses[0]?.status
+    ?? ''
 }
 
 type ServerUrlValueProps = {
@@ -416,6 +436,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const serverState = useOperationServerState(spec, operation, path)
   const authState = useOperationAuthState(spec, operation)
   const [linkedExampleKey, setLinkedExampleKey] = useState('')
+  const [selectedResponseStatus, setSelectedResponseStatus] = useState(() => getDefaultResponseStatus(operation, spec))
 
   return (
     <section className="clarify-api-endpoint scroll-mt-24 pb-16 first:pt-0 last:pb-0" aria-labelledby={id}>
@@ -471,6 +492,8 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
         operation={operation}
         sharedExampleKey={linkedExampleKey}
         onSelectExampleKey={setLinkedExampleKey}
+        selectedStatus={selectedResponseStatus}
+        onSelectStatus={setSelectedResponseStatus}
       />
     </section>
   )

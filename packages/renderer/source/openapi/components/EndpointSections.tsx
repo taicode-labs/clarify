@@ -55,37 +55,43 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
   const t = useBuiltInText()
 
   return (
-    <Row className="relative mt-6">
-      <Col>
-        {description ? <Markdown>{description}</Markdown> : null}
-        <ParameterList title={t('openapi.pathParameters')} parameters={groupedParameters.path} />
-        <ParameterList title={t('openapi.queryParameters')} parameters={groupedParameters.query} />
-        <ParameterList title={t('openapi.headers')} parameters={groupedParameters.header} />
-        {requestBody && requestContents.length > 0 ? (
-          <>
-            <h3>{t('openapi.requestBody')}</h3>
-            {typeof requestBody.description === 'string' ? <Markdown>{requestBody.description}</Markdown> : null}
-            <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} />
-          </>
-        ) : null}
-      </Col>
-      <Col sticky>
-        <RequestExamplesPanel
-          spec={spec}
-          path={path}
-          method={method}
-          parameters={parameters}
-          requestContents={requestContents}
-          selectedMediaType={selectedRequestMediaType}
-          onSelectMediaType={onSelectRequestMediaType}
-          selectedServer={selectedServer}
-          serverVariables={serverVariables}
-          auth={auth}
-          sharedExampleKey={sharedExampleKey}
-          onSelectExampleKey={onSelectExampleKey}
-        />
-      </Col>
-    </Row>
+    <>
+      {description ? <Markdown>{description}</Markdown> : null}
+      <Row className="relative mt-6">
+        <Col>
+          <div className="w-full">
+            <ParameterList title={t('openapi.pathParameters')} parameters={groupedParameters.path} />
+            <ParameterList title={t('openapi.queryParameters')} parameters={groupedParameters.query} />
+            <ParameterList title={t('openapi.headers')} parameters={groupedParameters.header} />
+            {requestBody && requestContents.length > 0 ? (
+              <>
+                <h3>{t('openapi.requestBody')}</h3>
+                {typeof requestBody.description === 'string' ? <Markdown>{requestBody.description}</Markdown> : null}
+                <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} />
+              </>
+            ) : null}
+          </div>
+        </Col>
+        <Col sticky>
+          <div className="w-full">
+            <RequestExamplesPanel
+              spec={spec}
+              path={path}
+              method={method}
+              parameters={parameters}
+              requestContents={requestContents}
+              selectedMediaType={selectedRequestMediaType}
+              onSelectMediaType={onSelectRequestMediaType}
+              selectedServer={selectedServer}
+              serverVariables={serverVariables}
+              auth={auth}
+              sharedExampleKey={sharedExampleKey}
+              onSelectExampleKey={onSelectExampleKey}
+            />
+          </div>
+        </Col>
+      </Row>
+    </>
   )
 }
 
@@ -94,24 +100,34 @@ type EndpointResponseProps = {
   operation: OpenAPIOperation
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
+  selectedStatus?: string
+  onSelectStatus?: (value: string) => void
 }
 
 export function EndpointResponse(arg0: EndpointResponseProps): ReactNode {
-  const { spec, operation, sharedExampleKey, onSelectExampleKey } = arg0
+  const { spec, operation, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
 
   return (
-    <Row className="relative mt-6">
-      <Col>
-        <ResponseList operation={operation} spec={spec} />
-      </Col>
-      <Col sticky>
-        <ResponseExamplesPanel
-          operation={operation}
-          spec={spec}
-          sharedExampleKey={sharedExampleKey}
-          onSelectExampleKey={onSelectExampleKey}
-        />
-      </Col>
-    </Row>
+    <div className="mt-6">
+      <Row className="relative">
+        <Col>
+          <div className="w-full">
+            <ResponseList operation={operation} spec={spec} selectedStatus={selectedStatus} onSelectStatus={onSelectStatus} />
+          </div>
+        </Col>
+        <Col sticky>
+          <div className="w-full">
+            <ResponseExamplesPanel
+              operation={operation}
+              spec={spec}
+              sharedExampleKey={sharedExampleKey}
+              onSelectExampleKey={onSelectExampleKey}
+              selectedStatus={selectedStatus}
+              onSelectStatus={onSelectStatus}
+            />
+          </div>
+        </Col>
+      </Row>
+    </div>
   )
 }
