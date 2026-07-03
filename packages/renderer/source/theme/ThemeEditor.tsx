@@ -190,10 +190,15 @@ function themeToConfigSource(theme: ThemeConfig): string {
   )
 }
 
-export function ThemeEditor(props: ThemeEditorProps) {
-  const { initialTheme, onChange, target, defaultOpen = false, className } = props
-  const { resolvedTheme } = useTheme()
-  const [isOpen, setIsOpen] = useState(defaultOpen)
+type UseThemeEditorStateArgs = {
+  initialTheme?: ThemeConfig
+  onChange?: (theme: ThemeConfig) => void
+  target?: ThemeVariableTarget
+  resolvedTheme: 'light' | 'dark'
+}
+
+function useThemeEditorState(arg0: UseThemeEditorStateArgs) {
+  const { initialTheme, onChange, target, resolvedTheme } = arg0
   const [theme, setTheme] = useState<ThemeConfig>(() => cloneTheme(initialTheme ?? themeEditorPresets.default))
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const configSource = useMemo(() => themeToConfigSource(theme), [theme])
@@ -256,119 +261,168 @@ export function ThemeEditor(props: ThemeEditorProps) {
     }
   }
 
+  return {
+    theme,
+    copyState,
+    commit,
+    updatePreset,
+    updateColorToken,
+    updateRadiusToken,
+    updateLayoutToken,
+    copyConfig,
+  }
+}
+
+export function ThemeEditor(props: ThemeEditorProps) {
+  const { initialTheme, onChange, target, defaultOpen = false, className } = props
+  const { resolvedTheme } = useTheme()
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+  const {
+    theme,
+    copyState,
+    commit,
+    updatePreset,
+    updateColorToken,
+    updateRadiusToken,
+    updateLayoutToken,
+    copyConfig,
+  } = useThemeEditorState({ initialTheme, onChange, target, resolvedTheme })
+
+  function renderPanelHeader() {
+    return (
+      <header className="shrink-0 flex items-start justify-between gap-4 border-b border-(--clarify-theme-tokens-colors-border) px-4 py-3">
+        <div>
+          <h2 className="text-sm/6 font-semibold text-(--clarify-theme-tokens-colors-foreground)">Theme editor</h2>
+          <p className="mt-0.5 text-xs/5 text-(--clarify-ui-text-soft)">Live CSS variable preview for Clarify theme tokens.</p>
+        </div>
+        <button
+          type="button"
+          className="-mr-1 flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong)"
+          aria-label="Close theme editor"
+          onClick={() => setIsOpen(false)}
+        >
+          <X className="size-4 stroke-current stroke-2" />
+        </button>
+      </header>
+    )
+  }
+
+  function renderPanelBody() {
+    return (
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <div className="grid gap-5">
+          <label htmlFor="clarify-theme-editor-preset" className="grid gap-1.5 text-xs/5 font-medium text-(--clarify-ui-text)">
+            Preset
+            <span className="relative block">
+              <select
+                id="clarify-theme-editor-preset"
+                value={theme.preset}
+                className="h-9 w-full appearance-none rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 pr-9 text-sm text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
+                onChange={(event) => updatePreset(event.target.value as ThemePreset)}
+              >
+                <option value="default">default</option>
+                <option value="base">base</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 stroke-current stroke-2 text-(--clarify-ui-text-faint)" />
+            </span>
+          </label>
+
+          <fieldset className="grid gap-3">
+            <legend className="mb-2 text-xs/5 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">Colors</legend>
+            <div className="grid grid-cols-1 gap-3">
+              {colorTokenFields.map((field) => (
+                <ColorField
+                  key={field.key}
+                  id={`clarify-theme-editor-color-${field.key}`}
+                  label={field.label}
+                  value={theme.tokens.colors[field.key]}
+                  onChange={(mode, value) => updateColorToken(field.key, mode, value)}
+                />
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="grid gap-3">
+            <legend className="mb-2 text-xs/5 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">Radius</legend>
+            <div className="grid grid-cols-2 gap-3">
+              {radiusTokenFields.map((field) => (
+                <TextField
+                  key={field.key}
+                  id={`clarify-theme-editor-radius-${field.key}`}
+                  label={field.label}
+                  value={theme.tokens.radius[field.key]}
+                  onChange={(value) => updateRadiusToken(field.key, value)}
+                />
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="grid gap-3">
+            <legend className="mb-2 text-xs/5 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">Layout</legend>
+            {layoutFields.map((field) => (
+              <TextField
+                key={field.key}
+                id={`clarify-theme-editor-layout-${field.key}`}
+                label={field.label}
+                value={theme.layout[field.key]}
+                onChange={(value) => updateLayoutToken(field.key, value)}
+              />
+            ))}
+          </fieldset>
+        </div>
+      </div>
+    )
+  }
+
+  function renderPanelFooter() {
+    return (
+      <footer className="shrink-0 flex items-center justify-between gap-3 border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) px-4 py-3">
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            className="rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-1.5 text-xs/5 font-semibold text-(--clarify-ui-text) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong)"
+            onClick={() => updatePreset(theme.preset)}
+          >
+            Reset preset
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-1.5 text-xs/5 font-semibold text-(--clarify-ui-text) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong)"
+            onClick={() => commit(createRandomTheme())}
+          >
+            <WandSparkles className="size-3.5 stroke-current stroke-2" />
+            Random
+          </button>
+        </div>
+        <button
+          type="button"
+          className="rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-theme-tokens-colors-primary) px-3 py-1.5 text-xs/5 font-semibold text-white shadow-xs transition hover:opacity-90"
+          onClick={copyConfig}
+        >
+          {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy config'}
+        </button>
+      </footer>
+    )
+  }
+
+  function renderEditorPanel() {
+    if (!isOpen) return null
+
+    return (
+      <section
+        className="mb-3 flex max-h-(--clarify-theme-editor-panel-max-height) w-(--clarify-theme-editor-width) flex-col overflow-hidden rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/95 shadow-2xl shadow-zinc-900/15 backdrop-blur"
+        aria-label="Clarify theme editor"
+      >
+        {renderPanelHeader()}
+        {renderPanelBody()}
+        {renderPanelFooter()}
+      </section>
+    )
+  }
+
   return (
     <div className={clsx('clarify-theme-editor fixed right-4 bottom-4 z-50 text-(--clarify-theme-tokens-colors-foreground)', className)}>
-      {isOpen ? (
-        <section
-          className="mb-3 flex max-h-(--clarify-theme-editor-panel-max-height) w-(--clarify-theme-editor-width) flex-col overflow-hidden rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/95 shadow-2xl shadow-zinc-900/15 backdrop-blur"
-          aria-label="Clarify theme editor"
-        >
-          <header className="shrink-0 flex items-start justify-between gap-4 border-b border-(--clarify-theme-tokens-colors-border) px-4 py-3">
-            <div>
-              <h2 className="text-sm/6 font-semibold text-(--clarify-theme-tokens-colors-foreground)">Theme editor</h2>
-              <p className="mt-0.5 text-xs/5 text-(--clarify-ui-text-soft)">Live CSS variable preview for Clarify theme tokens.</p>
-            </div>
-            <button
-              type="button"
-              className="-mr-1 flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong)"
-              aria-label="Close theme editor"
-              onClick={() => setIsOpen(false)}
-            >
-              <X className="size-4 stroke-current stroke-2" />
-            </button>
-          </header>
-
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-            <div className="grid gap-5">
-              <label htmlFor="clarify-theme-editor-preset" className="grid gap-1.5 text-xs/5 font-medium text-(--clarify-ui-text)">
-                Preset
-                <span className="relative block">
-                  <select
-                    id="clarify-theme-editor-preset"
-                    value={theme.preset}
-                    className="h-9 w-full appearance-none rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 pr-9 text-sm text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
-                    onChange={(event) => updatePreset(event.target.value as ThemePreset)}
-                  >
-                    <option value="default">default</option>
-                    <option value="base">base</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 stroke-current stroke-2 text-(--clarify-ui-text-faint)" />
-                </span>
-              </label>
-
-              <fieldset className="grid gap-3">
-                <legend className="mb-2 text-xs/5 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">Colors</legend>
-                <div className="grid grid-cols-1 gap-3">
-                  {colorTokenFields.map((field) => (
-                    <ColorField
-                      key={field.key}
-                      id={`clarify-theme-editor-color-${field.key}`}
-                      label={field.label}
-                      value={theme.tokens.colors[field.key]}
-                      onChange={(mode, value) => updateColorToken(field.key, mode, value)}
-                    />
-                  ))}
-                </div>
-              </fieldset>
-
-              <fieldset className="grid gap-3">
-                <legend className="mb-2 text-xs/5 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">Radius</legend>
-                <div className="grid grid-cols-2 gap-3">
-                  {radiusTokenFields.map((field) => (
-                    <TextField
-                      key={field.key}
-                      id={`clarify-theme-editor-radius-${field.key}`}
-                      label={field.label}
-                      value={theme.tokens.radius[field.key]}
-                      onChange={(value) => updateRadiusToken(field.key, value)}
-                    />
-                  ))}
-                </div>
-              </fieldset>
-
-              <fieldset className="grid gap-3">
-                <legend className="mb-2 text-xs/5 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">Layout</legend>
-                {layoutFields.map((field) => (
-                  <TextField
-                    key={field.key}
-                    id={`clarify-theme-editor-layout-${field.key}`}
-                    label={field.label}
-                    value={theme.layout[field.key]}
-                    onChange={(value) => updateLayoutToken(field.key, value)}
-                  />
-                ))}
-              </fieldset>
-            </div>
-          </div>
-
-          <footer className="shrink-0 flex items-center justify-between gap-3 border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) px-4 py-3">
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                className="rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-1.5 text-xs/5 font-semibold text-(--clarify-ui-text) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong)"
-                onClick={() => updatePreset(theme.preset)}
-              >
-                Reset preset
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-1.5 text-xs/5 font-semibold text-(--clarify-ui-text) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong)"
-                onClick={() => commit(createRandomTheme())}
-              >
-                <WandSparkles className="size-3.5 stroke-current stroke-2" />
-                Random
-              </button>
-            </div>
-            <button
-              type="button"
-              className="rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-theme-tokens-colors-primary) px-3 py-1.5 text-xs/5 font-semibold text-white shadow-xs transition hover:opacity-90"
-              onClick={copyConfig}
-            >
-              {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy config'}
-            </button>
-          </footer>
-        </section>
-      ) : null}
+      {renderEditorPanel()}
 
       <button
         type="button"

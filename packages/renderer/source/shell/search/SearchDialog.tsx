@@ -35,27 +35,52 @@ type FullTextSearchState = {
   results: FullTextSearchItem[] | null
 }
 
-export function SearchDialog(arg0: SearchDialogProps) {
-  const {
-    open,
-    setOpen,
-    routes,
-    navigation,
-    routePrefix = '/',
-    currentLocale,
-    className,
-    onNavigate = () => {},
-  } = arg0
+type UseSearchDialogLifecycleArgs = {
+  open: boolean
+  setOpen: (open: boolean) => void
+}
 
-  const t = useBuiltInText()
-  const navigate = useNavigate()
+function useSearchDialogLifecycle(arg0: UseSearchDialogLifecycleArgs) {
+  const { open, setOpen } = arg0
   const location = useLocation()
-  const inputRef = useRef<React.ElementRef<typeof SearchInput>>(null)
-  const [query, setQuery] = useState('')
-  const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    setOpen(false)
+  }, [location.pathname, location.search, location.hash, setOpen])
+
+  useEffect(() => {
+    if (open) return undefined
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault()
+        setOpen(true)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [open, setOpen])
+}
+
+type UseSearchDataArgs = {
+  query: string
+  searchItems: ReturnType<typeof buildSearchItems>
+  routePrefix: string
+  currentLocale?: string
+}
+
+type SearchDataState = {
+  results: SearchDisplayItem[]
+  searchInputLoading: boolean
+  showNoResults: boolean
+}
+
+function useSearchData(arg0: UseSearchDataArgs): SearchDataState {
+  const { query, searchItems, routePrefix, currentLocale } = arg0
   const [fullTextState, setFullTextState] = useState<FullTextSearchState | null>(null)
   const [pagefindState, setPagefindState] = useState<PagefindState | null>(null)
-  const searchItems = useMemo(() => buildSearchItems(routes, navigation), [navigation, routes])
+
   const quickResults = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
     if (!normalizedQuery) return []
@@ -71,19 +96,13 @@ export function SearchDialog(arg0: SearchDialogProps) {
   const fullTextResults = fullTextState?.key === fullTextKey ? fullTextState.results : null
   const results: SearchDisplayItem[] = fullTextResults ?? quickResults
   const searchInputLoading = pagefindAvailable === null || Boolean(trimmedQuery && pagefind && fullTextState?.key !== fullTextKey)
-  const showNoResults = query && results.length === 0 && pagefindAvailable !== null
-
-  useEffect(() => {
-    setOpen(false)
-  }, [location.pathname, location.search, location.hash, setOpen])
+  const showNoResults = Boolean(query.trim()) && results.length === 0 && pagefindAvailable !== null
 
   useEffect(() => {
     let cancelled = false
 
     loadPagefind(routePrefix, currentLocale).then((loadedPagefind) => {
-      if (cancelled) {
-        return
-      }
+      if (cancelled) return
       setPagefindState({ key: pagefindKey, pagefind: loadedPagefind, available: Boolean(loadedPagefind) })
     })
 
@@ -124,19 +143,34 @@ export function SearchDialog(arg0: SearchDialogProps) {
     }
   }, [currentLocale, fullTextKey, pagefind, routePrefix, trimmedQuery])
 
-  useEffect(() => {
-    if (open) return undefined
+  return {
+    results,
+    searchInputLoading,
+    showNoResults,
+  }
+}
 
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault()
-        setOpen(true)
-      }
-    }
+export function SearchDialog(arg0: SearchDialogProps) {
+  const {
+    open,
+    setOpen,
+    routes,
+    navigation,
+    routePrefix = '/',
+    currentLocale,
+    className,
+    onNavigate = () => {},
+  } = arg0
 
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [open, setOpen])
+  const t = useBuiltInText()
+  const navigate = useNavigate()
+  const inputRef = useRef<React.ElementRef<typeof SearchInput>>(null)
+  const [query, setQuery] = useState('')
+  const [activeIndex, setActiveIndex] = useState(0)
+  const searchItems = useMemo(() => buildSearchItems(routes, navigation), [navigation, routes])
+
+  useSearchDialogLifecycle({ open, setOpen })
+  const { results, searchInputLoading, showNoResults } = useSearchData({ query, searchItems, routePrefix, currentLocale })
 
   const updateQuery = (value: string) => {
     setQuery(value)
@@ -153,6 +187,35 @@ export function SearchDialog(arg0: SearchDialogProps) {
     navigate(result.url)
     onNavigate()
     closeDialog()
+  }
+
+  function renderResultsPanel() {
+    return (
+      <div className="border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5">
+        {showNoResults ? (
+          <div className="p-6 text-center">
+            <SearchX className="mx-auto h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-zinc-600" />
+            <p className="mt-2 text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">
+              {t('search.noResults', { query })}
+            </p>
+          </div>
+        ) : null}
+        {results.length ? (
+          <ul id="clarify-search-results" className="clarify-search-results" role="listbox">
+            {results.map((result, resultIndex) => (
+              <SearchResult
+                key={result.type === 'full-text' ? result.id : result.url}
+                result={result}
+                query={query}
+                active={resultIndex === activeIndex}
+                onActive={() => setActiveIndex(resultIndex)}
+                onSelect={() => selectResult(result)}
+              />
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    )
   }
 
   return (
@@ -185,30 +248,7 @@ export function SearchDialog(arg0: SearchDialogProps) {
             onSubmit={() => selectResult()}
             loading={searchInputLoading}
           />
-          <div className="border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5">
-            {showNoResults ? (
-              <div className="p-6 text-center">
-                <SearchX className="mx-auto h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-zinc-600" />
-                <p className="mt-2 text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">
-                  {t('search.noResults', { query })}
-                </p>
-              </div>
-            ) : null}
-            {results.length ? (
-              <ul id="clarify-search-results" className="clarify-search-results" role="listbox">
-                {results.map((result, resultIndex) => (
-                  <SearchResult
-                    key={result.type === 'full-text' ? result.id : result.url}
-                    result={result}
-                    query={query}
-                    active={resultIndex === activeIndex}
-                    onActive={() => setActiveIndex(resultIndex)}
-                    onSelect={() => selectResult(result)}
-                  />
-                ))}
-              </ul>
-            ) : null}
-          </div>
+          {renderResultsPanel()}
         </DialogPanel>
       </div>
     </Dialog>
