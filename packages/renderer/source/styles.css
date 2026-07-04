@@ -57,7 +57,12 @@
 
   html {
     height: 100%;
-    scroll-padding-top: 3.5rem;
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--clarify-header-offset, 3.5rem) + 1rem);
+  }
+
+  [id] {
+    scroll-margin-top: calc(var(--clarify-header-offset, 3.5rem) + 1rem);
   }
 
   body,

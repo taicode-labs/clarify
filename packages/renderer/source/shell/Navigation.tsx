@@ -7,7 +7,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { useSectionStore } from '../app/SectionProvider'
 import { useBuiltInText } from '../i18n'
 import type { NavigationNode } from '../types'
-import { safeDecodeURIComponent } from '../utils/hash'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 import { remToPx } from '../utils/remToPx'
 
@@ -97,27 +96,11 @@ function NavLink(arg0: NavLinkProps) {  const {
   level,
 } = arg0
 
-  function handleClick() {
-    if (!isAnchorLink) return
-
-    const hashIndex = href.indexOf('#')
-    if (hashIndex === -1) return
-
-    const targetId = safeDecodeURIComponent(href.slice(hashIndex + 1))
-    window.requestAnimationFrame(() => {
-      document.getElementById(targetId)?.scrollIntoView()
-      window.requestAnimationFrame(() => {
-        window.dispatchEvent(new Event('scroll'))
-      })
-    })
-  }
-
   return (
     <CloseButton
       as={Link}
       to={href}
       aria-current={active ? 'page' : undefined}
-      onClick={handleClick}
       className={clsx(
         'clarify-navigation-link flex h-8 items-center justify-between gap-2 pr-3 transition',
         isAnchorLink ? 'clarify-navigation-anchor-link' : 'pl-4',

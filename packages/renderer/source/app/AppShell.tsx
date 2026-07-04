@@ -87,11 +87,26 @@ function scrollToHash(hash: string) {
   if (!hash) return
 
   const targetId = safeDecodeURIComponent(hash.slice(1))
-  window.requestAnimationFrame(() => {
-    document.getElementById(targetId)?.scrollIntoView()
+  const tryScrollToTarget = (attempt = 0) => {
+    const target = document.getElementById(targetId)
+
+    if (!target) {
+      if (attempt < 12) {
+        window.requestAnimationFrame(() => {
+          tryScrollToTarget(attempt + 1)
+        })
+      }
+      return
+    }
+
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
     window.requestAnimationFrame(() => {
       window.dispatchEvent(new Event('scroll'))
     })
+  }
+
+  window.requestAnimationFrame(() => {
+    tryScrollToTarget()
   })
 }
 
