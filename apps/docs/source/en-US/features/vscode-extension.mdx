@@ -21,17 +21,17 @@ After installation, the extension is named **Clarify** in the Extensions view.
 1. Open a Clarify project folder in VS Code.
 2. Open a content file such as `index.mdx`, `guide.mdx`, `api.openapi.json`, `api.openapi.yaml`, or `api.openapi.yml`.
 3. Run `Clarify: Preview` from the Command Palette, or use the Clarify icon in the editor title bar when it appears.
-4. The extension starts a local Clarify dev server and opens the matching documentation page in a VS Code preview panel.
+4. The extension starts a local Clarify dev server and opens the matching documentation page in a VS Code webview panel.
 
 The preview opens beside the editor by default. When you switch to another Clarify content file, the preview can follow the active editor automatically.
 
 ## Features
 
-- Detects Clarify projects in your current workspace.
-- Recognizes Markdown, MDX, and OpenAPI source files.
+- Detects Clarify projects in the current workspace.
+- Recognizes Markdown, MDX, and OpenAPI source files inside a Clarify content root.
 - Starts and reuses a local Clarify preview server for the project.
-- Opens the matching route for the file you are editing.
-- Refreshes the preview when content or configuration changes.
+- Resolves the current file to its published route and opens that page in the preview.
+- Refreshes the preview after content, configuration, or dependency changes.
 - Lets you stop the dev server from VS Code when you are done.
 - Uses the project CLI when available, with an optional custom CLI path for advanced setups.
 
@@ -66,11 +66,11 @@ The extension is designed for Clarify projects that use these source files:
 - `.openapi.yaml`
 - `.openapi.yml`
 
-It also reads the running Clarify project information, so project-specific conventions stay aligned with the CLI version used by the workspace.
+The extension also reads live project information from the local Clarify server so the preview stays aligned with the CLI version used by the workspace.
 
 ## Troubleshooting
 
-- **The preview command is not visible**: make sure you opened a Clarify project folder, not only an individual file.
+- **The preview command is not visible**: make sure the active file is inside a Clarify project content root, not just an arbitrary file.
 - **The preview opens the wrong page**: save the file, then run `Clarify: Refresh Preview`.
 - **The dev server does not start**: confirm the project can run `clarify dev` from the terminal.
 - **A custom CLI should be used**: set `clarify.cliPath` to the absolute path of the desired `clarify` binary.

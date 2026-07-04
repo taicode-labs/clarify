@@ -198,7 +198,7 @@ Checks the documentation project without producing build files.
 pnpm exec clarify check
 ```
 
-`check` reports a missing content directory, duplicate routes, invalid OpenAPI spec files, broken local Markdown links, and i18n fallback pages.
+`check` validates the content directory, detects duplicate routes, flags i18n fallback routes, and verifies local Markdown links. It is useful in CI or before publishing a docs change.
 
 Common options:
 

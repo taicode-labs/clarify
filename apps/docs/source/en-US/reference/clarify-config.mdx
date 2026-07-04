@@ -114,8 +114,10 @@ export default defineConfig({
 | `source` | `{ repository: string; branch?: string; directory?: string }` | — | Source repository metadata. Used to generate “Edit this page” links from rendered pages back to source MDX or OpenAPI files. |
 | `logo` | `string \| { light?: string; dark?: string }` | — | Brand logo. Use a single asset for all modes, or provide separate light/dark assets. |
 | `favicon` | `string \| { light?: string; dark?: string }` | — | Browser tab icon. Supports a single path or light/dark variants. `.ico`, `.svg`, and complete `.png` icon sets work well. |
+| `homeUrl` | `string` | `"/"` | URL used when clicking the site branding/logo in the header. |
 | `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig; editor?: boolean }` | `{ preset: 'default', editor: false }` | Theme configuration. Select a preset, override selected design tokens or layout values, and optionally expose the live theme editor in built sites. |
 | `routePrefix` | `string` | `"/"` | Deployment subpath, such as `/docs/`. Affects internal links, asset paths, and generated routes. |
+| `assetPrefix` | `string` | `routePrefix` | Base path or URL for emitted static assets. Useful when assets are served from a different CDN or subpath. |
 | `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | Top navigation. Use it for a small number of global entries such as Docs, API, GitHub, or Dashboard. |
 | `banner` | `ClarifyBannerConfig` | — | Top announcement bar for releases, migrations, maintenance windows, or short notices. |
 | `footer` | `ClarifyFooterConfig` | — | Footer links, social/community links, copyright text, or a custom footer component path. Clarify branding remains required. |
@@ -124,6 +126,8 @@ export default defineConfig({
 | `tabs` | `ClarifyTabsConfig` | Generated automatically from the file tree | First-level site categories and each category’s sidebar structure. Omit it to generate navigation from the content directory. |
 | `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | Static generation policy. Controls whether a page prerendering error fails the entire build. |
 | `plugins` | `ClarifyPlugin[]` | `[]` | Build-time plugins. Available only in `clarify.ts` or `clarify.js`, not in `clarify.json`. |
+
+Theme overrides are also available through `theme.tokens.colors`, `theme.tokens.radius`, and `theme.layout.maxWidth`. The `theme.editor` flag controls whether the built-in theme editor is exposed in the site.
 
 ---
 

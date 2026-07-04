@@ -21,17 +21,17 @@ Clarify VS Code 扩展可以让你在 Visual Studio Code 里直接预览 Clarify
 1. 在 VS Code 中打开 Clarify 项目文件夹。
 2. 打开 `index.mdx`、`guide.mdx`、`api.openapi.json`、`api.openapi.yaml` 或 `api.openapi.yml` 等内容文件。
 3. 从命令面板运行 `Clarify: Preview`，也可以点击编辑器标题栏中出现的 Clarify 图标。
-4. 扩展会启动本地 Clarify dev server，并在 VS Code 预览面板中打开当前文件对应的文档页面。
+4. 扩展会启动本地 Clarify dev server，并在 VS Code webview 面板中打开当前文件对应的文档页面。
 
 预览默认会在当前编辑器旁边打开。切换到其他 Clarify 内容文件时，预览也可以自动跟随当前文件更新。
 
 ## 功能
 
 - 识别当前工作区中的 Clarify 项目。
-- 识别 Markdown、MDX 和 OpenAPI 源文件。
+- 识别内容根目录内的 Markdown、MDX 和 OpenAPI 源文件。
 - 为项目启动并复用本地 Clarify 预览服务。
-- 根据正在编辑的文件打开对应路由。
-- 在内容或配置变更后刷新预览。
+- 根据正在编辑的文件解析对应路由并在预览中打开。
+- 在内容、配置或依赖变更后刷新预览。
 - 可以从 VS Code 停止本地 dev server。
 - 优先使用项目中的 Clarify CLI，也支持通过配置指定自定义 CLI 路径。
 
@@ -66,11 +66,11 @@ Clarify VS Code 扩展可以让你在 Visual Studio Code 里直接预览 Clarify
 - `.openapi.yaml`
 - `.openapi.yml`
 
-扩展还会读取运行中的 Clarify 项目信息，因此项目文件约定会与当前工作区使用的 CLI 版本保持一致。
+扩展还会从本地 Clarify 服务读取项目信息，因此预览内容会与当前工作区使用的 CLI 版本保持一致。
 
 ## 常见问题
 
-- **看不到预览命令**：确认你打开的是 Clarify 项目文件夹，而不是单个文件。
+- **看不到预览命令**：确认当前编辑器中的文件位于 Clarify 内容根目录内，而不是任意文件。
 - **预览打开了错误页面**：先保存文件，再运行 `Clarify: Refresh Preview`。
 - **dev server 启动失败**：确认项目可以在终端中正常运行 `clarify dev`。
 - **需要使用自定义 CLI**：将 `clarify.cliPath` 设置为目标 `clarify` binary 的绝对路径。

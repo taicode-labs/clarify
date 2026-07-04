@@ -198,7 +198,7 @@ pnpm exec clarify build --output dist
 pnpm exec clarify check
 ```
 
-`check` 会报告缺失的内容目录、重复路由、无效 OpenAPI 描述文件、损坏的本地 Markdown 链接，以及 i18n fallback 页面。
+`check` 会验证内容目录、检测重复路由、标记 i18n fallback 路由，并检查本地 Markdown 链接。它适合在 CI 或发布前做一次快速质量门禁。
 
 常用选项：
 

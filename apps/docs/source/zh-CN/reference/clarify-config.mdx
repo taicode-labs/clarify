@@ -114,8 +114,10 @@ export default defineConfig({
 | `source` | `{ repository: string; branch?: string; directory?: string }` | — | 源码仓库信息。用于生成“编辑此页面”链接，帮助读者从页面跳转到 Git 仓库中的源 MDX 或 OpenAPI 文件。 |
 | `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo。可以使用单一路径，也可以按亮色/暗色主题分别提供资源。路径通常放在 `public/` 或内容目录可访问的位置。 |
 | `favicon` | `string \| { light?: string; dark?: string }` | — | 浏览器标签页图标。支持单一路径或亮暗主题变体。建议使用 `.ico`、`.svg` 或尺寸完整的 `.png`。 |
+| `homeUrl` | `string` | `"/"` | 点击站点品牌标识时跳转的地址。 |
 | `theme` | `{ preset?: 'default' \| 'base'; tokens?: ClarifyThemeTokensConfig; layout?: ClarifyThemeLayoutConfig; editor?: boolean }` | `{ preset: 'default', editor: false }` | 主题配置。通过 `preset` 选择基底，通过 `tokens` 和 `layout` 做局部覆盖，通过 `editor` 控制构建后站点是否暴露实时主题编辑器。 |
 | `routePrefix` | `string` | `"/"` | 部署子路径。用于 GitHub Pages、反向代理子目录或企业门户子路径部署，例如 `/docs/`。会影响内部链接、资源路径和路由生成。 |
+| `assetPrefix` | `string` | `routePrefix` | 静态资源的基础路径或 URL。适合资源托管在 CDN 或不同子路径时使用。 |
 | `navbar` | `{ links?: ClarifyNavbarLink[] }` | — | 顶部导航。适合放置“文档”“API”“GitHub”“控制台”等少量全局入口。复杂信息架构应放入 `tabs` 和侧边栏。 |
 | `banner` | `ClarifyBannerConfig` | — | 顶部公告条。适合展示版本发布、迁移提示、维护窗口、活动通知等短消息。 |
 | `footer` | `ClarifyFooterConfig` | — | 页脚。可放置常用链接、社区入口、版权声明、外部社交账号，或自定义页脚组件路径。Clarify 品牌标识始终保留。 |
@@ -124,6 +126,8 @@ export default defineConfig({
 | `tabs` | `ClarifyTabsConfig` | 按文件树自动生成 | 站点一级业务分类和每个分类下的侧边栏结构。省略时按内容目录自动生成导航。 |
 | `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | 静态生成策略。控制预渲染单个页面失败时是否中断整个构建。 |
 | `plugins` | `ClarifyPlugin[]` | `[]` | 构建期插件列表。只能在 `clarify.ts` 或 `clarify.js` 中使用，不能写入 `clarify.json`。 |
+
+主题覆盖能力还包括 `theme.tokens.colors`、`theme.tokens.radius` 和 `theme.layout.maxWidth`。`theme.editor` 则控制站点是否暴露内置主题编辑器。
 
 ---
 

@@ -1,263 +1,109 @@
-# 插件接口与 UI 插槽设计
+# 插件接口与运行时 UI 插槽
 
-本文档记录 Clarify 插件接口的整体扩展方向，并定义第一版运行时 UI 插槽的最小设计。该设计首先服务于基于 GitHub 的评论系统，同时避免把评论能力做成核心特例。
+Clarify 的插件目前分为两层：
 
-目标是让插件能够扩展 Clarify 的构建流水线、内容处理、运行时 UI 与产物生成能力，同时保持纯静态部署、SSR 与客户端 hydration 一致。
+1. 构建期 hook，用于内容处理、路由发现、模块生成、HTML 转换、开发服务设置和产物生成。
+2. 可选的运行时 UI 插槽，用于把 React 组件挂载到少量稳定的页面位置。
 
----
-
-## 背景
-
-Clarify 当前插件主要面向构建期扩展，例如路由调整、虚拟模块注入、HTML 转换和构建完成后的产物处理。
-
-但一些能力需要扩展页面运行时 UI，例如：
-
-- GitHub 评论与反馈入口
-- 页面底部 CTA
-- 相关阅读
-- 内容版权声明
-- AI 摘要或复制入口
-- 内部平台集成信息
-
-这些能力不适合通过 `html:transform` 注入脚本后再操作 DOM，因为这种方式会依赖内部 class 名，无法参与 SSR，且容易造成 hydration 不一致。
-
-因此需要一个更小、更稳定的 UI 扩展点。
-
----
-
-## 设计原则
-
-1. **核心只提供插槽，不内置业务逻辑**  
-   GitHub、评论、分析等能力都应由插件实现。
-
-2. **不修改 route 数据结构作为前提**  
-   插槽组件可以通过内置 slot hook 获取当前 route。评论系统可以基于 `route.path` / `route.basePath` 自行生成绑定 key。
-
-3. **上下文通过 hook 获取，而不是组件参数传递**  
-   RuntimeSlot 只负责挂载组件。组件需要的 route、locale、config、slot 静态配置等上下文统一通过内置虚拟模块导出的 hook 获取。
-
-4. **构建期注入数据仍然走 hooks**  
-   如果插件确实需要改路由、禁用某些页面、读取 frontmatter 或预生成数据，应继续使用 `routes:resolved` 等 hook。
-
-5. **纯静态兼容**  
-   插件 UI 通过虚拟模块进入客户端与 SSR bundle，不要求服务端运行时。
-
-6. **SSR 与 hydration 一致**  
-   插件组件必须作为 React 树的一部分渲染，而不是在客户端额外操作 DOM。
-
----
-
-## 非目标
-
-第一版不解决以下问题：
-
-- 不设计通用 route 扩展字段，例如 `route.extensions` / `route.data`
-- 不支持无限制布局扩展
-- 不支持插件动态新增任意页面区域
-- 不设计插件级 i18n 注册系统
-- 不设计 OAuth 或服务端代理机制
-- 不让插件直接接管核心页面布局
-
-这些能力可以在真实需求出现后再扩展。
-
----
-
-## 当前插件接口分层
-
-Clarify 现有插件接口已经覆盖了构建流水线的主要阶段：
+当前对外的插件入口是：
 
 ```ts
 export type ClarifyPlugin = {
   name: string
-  hooks: Partial<ClarifyHooks>
+  hooks?: Partial<ClarifyHooks>
+  slots?: UISlotRegistration[]
 }
 ```
 
-现有 hook 可以按职责分为几层：
+## 构建期 hook
 
-| 层级 | Hook | 适合能力 |
-|------|------|----------|
-| 内容层 | `pages:resolved`、`page:transform` | frontmatter 规范化、内容重写、自动补充页面元信息 |
-| 路由层 | `routes:discover`、`routes:discovered`、`routes:resolved` | 新增内容源、过滤页面、改导航、补全路由信息 |
-| 模块层 | `modules:before` | 注入虚拟模块、生成运行时配置、提供插件 runtime 入口 |
-| HTML 层 | `html:transform` | 注入 meta、script、link、preload 等 HTML shell 资源 |
-| 开发层 | `dev:configureServer` | 本地开发服务、调试接口、内容 artifact 预览 |
-| 产物层 | `build:done` | sitemap、搜索索引、SEO 文件、额外静态资源 |
+当前实现支持的 hook 名称如下：
 
-因此插件扩展不需要从一个“大而全”的新接口开始。更合理的方向是：
+| Hook | 作用 |
+| --- | --- |
+| `content:transform` | 在内容变成页面前重写或补充内容。 |
+| `pages:resolved` | 检查或改写页面列表。 |
+| `page:transform` | 修改单个页面再渲染。 |
+| `routes:discover` | 用额外内容源扩展路由发现。 |
+| `routes:discovered` | 调整已发现的路由列表。 |
+| `routes:resolved` | 在路由和导航解析完成后更新它们。 |
+| `modules:before` | 注入虚拟模块或运行时辅助代码。 |
+| `html:transform` | 调整最终 HTML shell 及其标签。 |
+| `dev:configureServer` | 钩入 Vite 开发服务器。 |
+| `build:assets` | 在构建期间生成额外资源。 |
+| `build:done` | 在构建完成后执行后处理，比如搜索索引或生成文件。 |
 
-1. 保留 hooks 作为构建期扩展主干。
-2. 增加少量声明式能力，解决 hooks 不适合表达的场景。
-3. 每个声明式能力都应能被编译成现有流水线里的虚拟模块、HTML 转换或产物生成。
+当插件需要修改内容、路由数据、导航、构建产物或 HTML 输出时，优先使用这些 hook。
 
-第一版 `slots` 就属于声明式能力：它不是新的业务系统，而是对 `modules:before` + renderer 固定挂载点的结构化封装。
+## 运行时 UI 插槽
 
----
-
-## 可插件化能力地图
-
-从当前系统看，后续可以开放给插件的能力大致分为以下几类。
-
-| 能力 | 当前状态 | 推荐扩展方式 | 示例插件 |
-|------|----------|--------------|----------|
-| 内容源 | 已有路由发现 hook | 继续增强 hooks | OpenAPI、远程 Markdown、CMS 同步 |
-| 页面转换 | 已有 `page:transform` | 保持 hook | 自动摘要、frontmatter 默认值、MDX 内容改写 |
-| 路由与导航 | 已有 `routes:*` hooks | 保持 hook，必要时补类型 | 自动分组、隐藏草稿、版本化文档 |
-| 运行时 UI | 当前缺少稳定入口 | 新增 `slots` | GitHub 评论、反馈、CTA、相关阅读 |
-| 运行时数据 | 可通过虚拟模块实现 | 继续使用 `modules:before`，后续可封装 `runtimeModules` | 评论 key 映射、推荐内容索引 |
-| HTML shell | 已有 `html:transform` | 保持 hook | 分析脚本、站点验证、preconnect |
-| 静态产物 | 已有 `build:done` | 保持 hook | 搜索索引、llms.txt、RSS、manifest |
-| 开发服务 | 已有 `dev:configureServer` | 保持 hook | 本地预览 API、调试面板数据 |
-| 主题 | 已有 CSS variables 和配置 | 暂不开放插件主题注册 | 品牌样式包可先通过 CSS/配置解决 |
-| i18n | 已有站点 locale | 暂不设计插件文案注册 | 插件内部根据 `locale` 管理文案 |
-| MDX 组件 | 当前由 renderer provider 控制 | 后续可考虑 `mdxComponents` 声明 | 自定义 callout、代码块增强 |
-| 搜索 | 当前内置插件实现 | 可逐步外置为插件配置 | Pagefind、远程搜索、Algolia |
-
-判断一项能力是否应该插件化，可以用以下规则：
-
-- 如果它改变内容、路由、导航或构建产物，优先用 hook。
-- 如果它只需要在页面固定位置渲染 UI，优先用 `slots`。
-- 如果它需要把构建期数据传给运行时，优先用虚拟模块。
-- 如果它需要影响最终 HTML shell，使用 `html:transform`。
-- 如果它需要新的公共 API，必须先证明现有 hook/virtual module 组合表达成本过高。
-
----
-
-## 第一版最小接口
-
-### 插槽名称
-
-`UISlotName` 不应围绕单个插件场景命名，而应反映 Clarify 页面结构中稳定、可长期维护的位置。
-
-命名规则是一个点分路径，不强制固定段数。它由三部分语义组成：
-
-```ts
-type UISlotName = `${Scope}.${Path}.${Position}`
-```
-
-其中 `Path` 可以是一层，也可以是多层，取决于实际 UI 结构深度。
-
-| 部分 | 说明 | 示例 |
-|------|------|------|
-| `Scope` | 插槽所属结构层级（第一段） | `layout`、`page`、`content` |
-| `Path` | 一层或多层稳定 UI 区域，反映真实嵌套结构 | `footer`、`sidebar.navigation`、`openapi.operation` |
-| `Position` | 末段，表示相对插入位置或语义位置 | `before`、`after`、`start`、`end`、`actions`、`replace` |
-
-为什么不强制三段：页面结构本身存在深浅不一的嵌套。强行压成三段会导致命名失真，例如侧栏导航底部、OpenAPI operation 标题操作区都需要更深的路径。命名应跟随结构，而不是反过来约束结构。
-
-示例：
-
-```ts
-'page.footer.before'            // 三段：页面页脚之前
-'layout.sidebar.navigation.after' // 四段：布局侧栏导航之后
-'page.openapi.operation.actions'// 四段：OpenAPI operation 标题操作区
-'content.mdx.heading.after'     // 四段：MDX 标题之后
-```
-
-命名约束：
-
-1. 第一段必须是已知 `Scope`。
-2. 最后一段必须是已知 `Position`。
-3. 中间段描述稳定的 UI 区域，按从外到内的嵌套顺序书写。
-4. 段名使用小写，多词用连字符，例如 `code-group`。
-
-建议的初始命名空间：
-
-```ts
-export type UISlotName =
-  | 'layout.header.before'
-  | 'layout.header.after'
-  | 'layout.sidebar.before'
-  | 'layout.sidebar.after'
-  | 'layout.sidebar.navigation.after'
-  | 'page.main.before'
-  | 'page.main.after'
-  | 'page.title.before'
-  | 'page.title.after'
-  | 'page.title.actions'
-  | 'page.body.before'
-  | 'page.body.after'
-  | 'page.navigation.before'
-  | 'page.navigation.after'
-  | 'page.footer.before'
-  | 'page.footer.after'
-```
-
-分层说明：
-
-| Scope | 用途 |
-|-------|------|
-| `layout` | 站点外壳级位置，例如 header、sidebar。适合全站公告、辅助入口、侧栏扩展。 |
-| `page` | 当前路由页面框架位置，例如 main、title、navigation、footer。适合评论、反馈、页面 CTA。 |
-| `content` | 具体内容渲染器内部位置，例如 MDX body 或 OpenAPI operation。只有当对应渲染器明确接入时才开放。 |
-
-第一批建议先实现 renderer 已稳定掌控的位置：
-
-```ts
-export type UIEExtensionSlotName =
-  | 'page.title.actions'
-  | 'page.navigation.before'
-  | 'page.navigation.after'
-  | 'page.footer.before'
-  | 'page.footer.after'
-```
-
-其中评论、页面反馈、底部 CTA 应使用：
-
-```ts
-'page.footer.before'
-```
-
-它位于 `PageNavigation` 之后、`PageFooter` 之前，命名遵循统一的点分路径规则，也方便未来增加 `page.footer.after`、`layout.header.after`、`layout.sidebar.navigation.after` 等更深层位置。
-
----
-
-### 插槽声明
-
-插件通过 `slots` 声明运行时 UI：
+运行时插槽通过 `slots` 字段声明。每个注册项包含插槽名称和组件模块路径：
 
 ```ts
 export type UISlotRegistration = {
   name: UISlotName
   component: string
-  config?: Record<string, unknown>
 }
 ```
 
-字段说明：
+### 当前支持的插槽名称
 
-| 字段 | 说明 |
-|------|------|
-| `name` | 插槽名称 |
-| `component` | React 组件模块路径，可以是普通模块，也可以是插件注入的 virtual module |
-| `config` | 静态配置，构建期序列化后放入 slot context，通过 `useSlot()` 读取 |
-
-第一版不加入 `order`、`clientOnly`、`enabled` 等字段。若同一插槽有多个组件，先按插件数组顺序渲染。
-
----
-
-### 插件接口
+渲染器当前支持以下插槽名称：
 
 ```ts
-export type ClarifyPlugin = {
-  name: string
-  hooks: Partial<ClarifyHooks>
-  slots?: UISlotRegistration[]
-}
+export type UISlotName =
+  | 'page.footer.before'
+  | 'page.banner.replace'
+  | 'page.footer.replace'
 ```
 
-`slots` 与 `hooks` 平级，表示运行时 UI 扩展声明。
+它们的语义是：
 
----
+- `page.footer.before`：在内置页脚前渲染插件组件。
+- `page.banner.replace`：用插件组件替换内置页面横幅。
+- `page.footer.replace`：用插件组件替换内置页脚。
 
-### 扩展型与替换型插槽
+### 插槽组件要求
 
-插槽分为两类，它们的语义、冲突规则和默认行为都不同，因此 slot 名称应明确区分：
+插槽组件是普通 React 组件。它们不会通过 props 接收 Clarify 上下文，而是通过 `virtual:clarify/slot` 提供的 `useSlot()` hook 获取上下文。
 
-| 类型 | 命名后缀 | 语义 | 多插件冲突 | 默认行为 |
-|------|----------|------|------------|----------|
-| 扩展型 | `before` / `after` / `actions` | 在固定位置追加 UI，不影响核心组件 | 允许多个，按顺序渲染 | 无插件时不渲染额外内容 |
-| 替换型 | `replace` | 用插件组件替换核心默认组件 | 只允许一个，多个视为冲突 | 无插件时渲染 Clarify 内置默认组件 |
+这个 hook 会暴露：
+
+- `name`：当前挂载到的插槽名
+- `plugin`：注册该组件的插件名
+- `route`：当前路由（如果存在）
+- `locale`：当前语言（如果存在）
+- `DefaultComponent`：替换型插槽里内置的默认组件
+
+### 注册规则
+
+- 组件路径必须以 `/` 开头，方便从项目根目录解析。
+- 组件应导出默认 React 组件。
+- 多个插件可以注册 `page.footer.before`，它们会按插件数组顺序渲染。
+- 替换型插槽如 `page.banner.replace` 和 `page.footer.replace` 会使用最后一个匹配注册项。
+
+### 示例
+
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  plugins: [
+    {
+      name: 'example-plugin',
+      hooks: {},
+      slots: [
+        {
+          name: 'page.footer.before',
+          component: '/source/plugins/footer-extra.tsx',
+        },
+      ],
+    },
+  ],
+})
+```
+
+当前实现没有暴露通用的 route extension 字段或完全动态的布局系统。如果某项能力会改变内容、路由或构建产物，优先使用 hook；如果只是需要在固定页面位置渲染 UI，优先使用 slots。
 
 替换型插槽让用户可以替换 Clarify 的内置组件，例如自定义页脚、自定义上一页/下一页导航、自定义内容操作栏。
 

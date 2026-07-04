@@ -1,263 +1,109 @@
-# Plugin API and UI Slots Design
+# Plugin API and Runtime UI Slots
 
-This document records the overall extension direction for Clarify plugins and defines the minimal first version of runtime UI slots. The first use case is GitHub-based comments, but the mechanism should not be specific to comments.
+Clarify plugins currently work in two layers:
 
-The goal is to let plugins extend Clarify's build pipeline, content processing, runtime UI, and artifact generation while preserving static deployment, SSR, and client hydration consistency.
+1. Build-time hooks that run during content processing, route discovery, module generation, HTML transforms, development server setup, and artifact generation.
+2. Optional runtime UI slots that mount React components into a small set of stable page positions.
 
----
-
-## Background
-
-Clarify plugins currently focus on build-time extension points, such as route adjustment, virtual module injection, HTML transforms, and post-build artifact generation.
-
-Some features need to extend runtime page UI, for example:
-
-- GitHub comments and feedback entry points
-- Page footer CTAs
-- Related content
-- Content copyright notices
-- AI summaries or copy actions
-- Internal platform integration metadata
-
-These features should not rely on `html:transform` plus DOM mutation, because that approach depends on internal class names, does not participate in SSR, and can easily cause hydration mismatches.
-
-Clarify needs a smaller and more stable UI extension point.
-
----
-
-## Design Principles
-
-1. **Core provides slots only, not business logic**  
-   GitHub, comments, analytics, and similar features should be implemented by plugins.
-
-2. **Do not require route data changes**  
-   Slot components can read the current route through the built-in slot hook. A comments plugin can derive its binding key from `route.path` or `route.basePath`.
-
-3. **Context is read through hooks, not component parameters**  
-   RuntimeSlot only mounts components. Context such as route, locale, config, and static slot config is read through a hook exported by a built-in virtual module.
-
-4. **Build-time data injection still uses hooks**  
-   If a plugin needs to modify routes, disable pages, read frontmatter, or precompute data, it should keep using hooks such as `routes:resolved`.
-
-5. **Static deployment compatible**  
-   Plugin UI enters both the client and SSR bundles through virtual modules. No server runtime is required.
-
-6. **SSR and hydration consistent**  
-   Plugin components must render as part of the React tree instead of mutating the DOM on the client.
-
----
-
-## Non-goals
-
-The first version does not solve the following:
-
-- No generic route extension field such as `route.extensions` or `route.data`
-- No unrestricted layout extension system
-- No arbitrary dynamic page regions
-- No plugin-level i18n registration system
-- No OAuth or server proxy mechanism
-- No plugin takeover of the core page layout
-
-These can be added later when real requirements appear.
-
----
-
-## Current Plugin API Layers
-
-The existing Clarify plugin API already covers the major build pipeline stages:
+The public plugin entry point is:
 
 ```ts
 export type ClarifyPlugin = {
   name: string
-  hooks: Partial<ClarifyHooks>
+  hooks?: Partial<ClarifyHooks>
+  slots?: UISlotRegistration[]
 }
 ```
 
-Existing hooks can be grouped by responsibility:
+## Build-time hooks
 
-| Layer | Hooks | Suitable capabilities |
-|------|-------|-----------------------|
-| Content | `pages:resolved`, `page:transform` | frontmatter normalization, content rewriting, automatic page metadata |
-| Routing | `routes:discover`, `routes:discovered`, `routes:resolved` | new content sources, page filtering, navigation updates, route enrichment |
-| Module | `modules:before` | virtual module injection, runtime config generation, plugin runtime entries |
-| HTML | `html:transform` | meta, script, link, preload, and HTML shell resources |
-| Development | `dev:configureServer` | local development services, debug APIs, content artifact previews |
-| Artifact | `build:done` | sitemap, search indexes, SEO files, extra static resources |
+The implemented hook names are:
 
-This means plugin extensibility should not start from a large new interface. A better direction is:
+| Hook | Purpose |
+| --- | --- |
+| `content:transform` | Rewrite or enrich content before it is turned into a page. |
+| `pages:resolved` | Inspect or reshape the final page list. |
+| `page:transform` | Modify a single page before it is rendered. |
+| `routes:discover` | Extend route discovery with additional content sources. |
+| `routes:discovered` | Adjust the list of discovered routes. |
+| `routes:resolved` | Update routes and navigation after they have been resolved. |
+| `modules:before` | Inject virtual modules or runtime helpers. |
+| `html:transform` | Update the final HTML shell and its tags. |
+| `dev:configureServer` | Hook into the Vite dev server. |
+| `build:assets` | Emit extra assets during the build. |
+| `build:done` | Run post-build work such as search indexes or generated files. |
 
-1. Keep hooks as the main build-time extension backbone.
-2. Add a small number of declarative capabilities for cases that hooks cannot express cleanly.
-3. Compile each declarative capability into the existing pipeline, such as virtual modules, HTML transforms, or artifact generation.
+Use hooks when a plugin needs to change content, route data, navigation, build artifacts, or HTML output.
 
-The first version of `slots` is one such declarative capability. It is not a new business system, but a structured wrapper around `modules:before` plus stable renderer mount points.
+## Runtime UI slots
 
----
-
-## Pluginizable Capability Map
-
-From the current system, future plugin capabilities can be grouped as follows.
-
-| Capability | Current state | Recommended extension path | Example plugins |
-|------------|---------------|----------------------------|-----------------|
-| Content sources | Route discovery hooks exist | Continue enhancing hooks | OpenAPI, remote Markdown, CMS sync |
-| Page transforms | `page:transform` exists | Keep hook-based | auto summaries, frontmatter defaults, MDX rewriting |
-| Routes and navigation | `routes:*` hooks exist | Keep hooks, improve types when needed | auto grouping, draft hiding, versioned docs |
-| Runtime UI | No stable entry yet | Add `slots` | GitHub comments, feedback, CTAs, related content |
-| Runtime data | Possible through virtual modules | Keep using `modules:before`, later wrap as `runtimeModules` if needed | comments key maps, related content indexes |
-| HTML shell | `html:transform` exists | Keep hook-based | analytics scripts, site verification, preconnect |
-| Static artifacts | `build:done` exists | Keep hook-based | search indexes, llms.txt, RSS, manifests |
-| Development services | `dev:configureServer` exists | Keep hook-based | local preview APIs, debug panel data |
-| Theme | CSS variables and config exist | Do not add plugin theme registration yet | brand style packages through CSS/config first |
-| i18n | Site locale exists | Do not add plugin message registration yet | plugins manage messages internally from `locale` |
-| MDX components | Controlled by renderer provider | Consider future `mdxComponents` declaration | custom callouts, code block enhancements |
-| Search | Implemented as a built-in plugin | Can be made configurable or externalized later | Pagefind, remote search, Algolia |
-
-Rules for deciding whether a capability should become plugin API:
-
-- If it changes content, routes, navigation, or build artifacts, prefer hooks.
-- If it only renders UI in a stable page position, prefer `slots`.
-- If it passes build-time data to runtime, prefer virtual modules.
-- If it affects the final HTML shell, use `html:transform`.
-- If it needs a new public API, first prove that the existing hook/virtual-module combination is too costly.
-
----
-
-## First Version Minimal API
-
-### Slot Names
-
-`UISlotName` should not be named around one plugin scenario. It should describe stable, long-lived positions in Clarify's page structure.
-
-The naming rule is a dot-separated path. It does not enforce a fixed number of segments. It is composed of three semantic parts:
-
-```ts
-type UISlotName = `${Scope}.${Path}.${Position}`
-```
-
-Here `Path` can be one level or several levels, depending on the real depth of the UI structure.
-
-| Part | Description | Examples |
-|------|-------------|----------|
-| `Scope` | Structural level that owns the slot (first segment) | `layout`, `page`, `content` |
-| `Path` | One or more stable UI regions reflecting real nesting | `footer`, `sidebar.navigation`, `openapi.operation` |
-| `Position` | Last segment: relative insertion point or semantic position | `before`, `after`, `start`, `end`, `actions`, `replace` |
-
-Why not enforce three segments: page structure has uneven nesting depth. Forcing everything into three segments distorts names, for example the bottom of sidebar navigation or the actions area of an OpenAPI operation title need a deeper path. Names should follow structure, not constrain it.
-
-Examples:
-
-```ts
-'page.footer.before'             // 3 segments: before the page footer
-'layout.sidebar.navigation.after' // 4 segments: after the sidebar navigation
-'page.openapi.operation.actions' // 4 segments: OpenAPI operation title actions
-'content.mdx.heading.after'      // 4 segments: after an MDX heading
-```
-
-Naming constraints:
-
-1. The first segment must be a known `Scope`.
-2. The last segment must be a known `Position`.
-3. Middle segments describe stable UI regions, written from outer to inner nesting.
-4. Segment names are lowercase, multi-word uses hyphens, for example `code-group`.
-
-Recommended initial namespace:
-
-```ts
-export type UISlotName =
-  | 'layout.header.before'
-  | 'layout.header.after'
-  | 'layout.sidebar.before'
-  | 'layout.sidebar.after'
-  | 'layout.sidebar.navigation.after'
-  | 'page.main.before'
-  | 'page.main.after'
-  | 'page.title.before'
-  | 'page.title.after'
-  | 'page.title.actions'
-  | 'page.body.before'
-  | 'page.body.after'
-  | 'page.navigation.before'
-  | 'page.navigation.after'
-  | 'page.footer.before'
-  | 'page.footer.after'
-```
-
-Scope meanings:
-
-| Scope | Purpose |
-|-------|---------|
-| `layout` | Site shell positions such as header and sidebar. Suitable for global announcements, utility entries, and sidebar extensions. |
-| `page` | Current route page frame positions such as main, title, navigation, and footer. Suitable for comments, feedback, and page CTAs. |
-| `content` | Positions owned by a specific content renderer, such as MDX body or OpenAPI operation. These should only be exposed when that renderer explicitly supports them. |
-
-The first implementation should start with renderer-owned stable positions:
-
-```ts
-export type UIEExtensionSlotName =
-  | 'page.title.actions'
-  | 'page.navigation.before'
-  | 'page.navigation.after'
-  | 'page.footer.before'
-  | 'page.footer.after'
-```
-
-Comments, page feedback, and bottom CTAs should use:
-
-```ts
-'page.footer.before'
-```
-
-It is rendered after `PageNavigation` and before `PageFooter`. Its name follows the unified dot-path rule and leaves room for future deeper names such as `page.footer.after`, `layout.header.after`, and `layout.sidebar.navigation.after`.
-
----
-
-### Slot Registration
-
-Plugins declare runtime UI through `slots`:
+Runtime slots are declared through the `slots` field. Each registration contains a slot name and a component module path:
 
 ```ts
 export type UISlotRegistration = {
   name: UISlotName
   component: string
-  config?: Record<string, unknown>
 }
 ```
 
-Fields:
+### Currently supported slot names
 
-| Field | Description |
-|------|-------------|
-| `name` | Slot name |
-| `component` | React component module path. It can be a normal module or a virtual module injected by the plugin |
-| `config` | Static configuration serialized at build time, stored in slot context, and read through `useSlot()` |
-
-The first version does not include `order`, `clientOnly`, or `enabled`. If multiple components target the same slot, they render in plugin array order.
-
----
-
-### Plugin Interface
+The renderer currently supports these runtime slot names:
 
 ```ts
-export type ClarifyPlugin = {
-  name: string
-  hooks: Partial<ClarifyHooks>
-  slots?: UISlotRegistration[]
-}
+export type UISlotName =
+  | 'page.footer.before'
+  | 'page.banner.replace'
+  | 'page.footer.replace'
 ```
 
-`slots` sits next to `hooks` and describes runtime UI extension declarations.
+Their behavior is:
 
----
+- `page.footer.before`: Render plugin components before the built-in footer block.
+- `page.banner.replace`: Replace the built-in page banner with a plugin component.
+- `page.footer.replace`: Replace the built-in page footer with a plugin component.
 
-### Extension Slots vs Replacement Slots
+### Slot component requirements
 
-Slots fall into two categories with different semantics, conflict rules, and defaults, so slot names should clearly distinguish them:
+Slot components are ordinary React components. They do not receive props from Clarify; instead, they read context via the `useSlot()` hook from `virtual:clarify/slot`.
 
-| Type | Name suffix | Semantics | Multi-plugin conflict | Default behavior |
-|------|-------------|-----------|-----------------------|------------------|
-| Extension | `before` / `after` / `actions` | Append UI at a fixed position without affecting the core component | Multiple allowed, rendered in order | Renders nothing extra when no plugin targets it |
-| Replacement | `replace` | Replace a core default component with a plugin component | Only one allowed, multiple is a conflict | Renders Clarify's built-in default component when no plugin targets it |
+The hook exposes:
+
+- `name`: the slot that mounted the component
+- `plugin`: the plugin that registered the component
+- `route`: the current route, when available
+- `locale`: the active locale, when available
+- `DefaultComponent`: the built-in default component for replacement slots
+
+### Registration rules
+
+- Component paths must start with `/` so they resolve from the project root.
+- The component should export a default React component.
+- Multiple plugins may register `page.footer.before`; they render in plugin-array order.
+- Replacement slots such as `page.banner.replace` and `page.footer.replace` use the last matching registration.
+
+### Example
+
+```ts
+import { defineConfig } from '@clarify-labs/cli'
+
+export default defineConfig({
+  plugins: [
+    {
+      name: 'example-plugin',
+      hooks: {},
+      slots: [
+        {
+          name: 'page.footer.before',
+          component: '/source/plugins/footer-extra.tsx',
+        },
+      ],
+    },
+  ],
+})
+```
+
+The implementation currently does not expose a general route-extension field or a fully dynamic layout system. If a feature changes content, routes, or build artifacts, prefer hooks. If it only needs to render UI in a stable page position, prefer slots.
 
 Replacement slots let users replace Clarify's built-in components, for example a custom footer, custom previous/next navigation, or a custom content action bar.
 
