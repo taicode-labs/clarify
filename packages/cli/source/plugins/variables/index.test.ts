@@ -28,6 +28,7 @@ const ctx: ClarifyHookContext = {
     outputDirectory: 'output',
     ssg: { failOnError: true },
   },
+  version: 'test',
   routes: [],
   navigation: [],
 }

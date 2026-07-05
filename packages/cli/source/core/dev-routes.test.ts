@@ -57,6 +57,7 @@ const mockContext: ClarifyProjectContext = {
     outputDirectory: undefined,
     ssg: { failOnError: true },
   },
+  version: 'test',
 }
 
 const mockI18nContext: ClarifyProjectContext = {

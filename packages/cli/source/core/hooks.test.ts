@@ -22,6 +22,7 @@ const mockCtx: ClarifyHookContext = {
     outputDirectory: 'dist',
     ssg: { failOnError: true },
   },
+  version: 'test',
   routes: [],
   navigation: [],
 }

@@ -33,6 +33,7 @@ function createContext(routes: ContentRoute[]): ClarifyHookContext {
     contentRoot: '/site/source',
     projectConfig,
     generateOptions,
+    version: 'test',
     routes,
     navigation: [],
   }
@@ -50,6 +51,7 @@ function createContextWithVariables(routes: ContentRoute[]): ClarifyHookContext 
       },
     },
     generateOptions,
+    version: 'test',
     routes,
     navigation: [],
   }
