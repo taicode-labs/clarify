@@ -7,7 +7,7 @@ import { slug } from 'github-slugger'
 
 import type { ContentProcessor } from '../../parsers/content.js'
 import { kebabToTitle, routePathFromRef, virtualModuleIdFromRef } from '../../parsers/routes.js'
-import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
+import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec, PreparedOpenAPIContent } from '../../types.js'
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
 
@@ -90,6 +90,31 @@ export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[])
     }
   }
   return sections
+}
+
+export function prepareOpenAPIContent(spec: OpenAPISpec): PreparedOpenAPIContent {
+  const operations: PreparedOpenAPIContent['operations'] = []
+  const paths = spec.paths ?? {}
+
+  for (const [path, pathItem] of Object.entries(paths)) {
+    if (!pathItem || typeof pathItem !== 'object') continue
+
+    for (const method of OPENAPI_HTTP_METHODS) {
+      const operation = (pathItem as Record<string, unknown>)[method]
+      if (!operation || typeof operation !== 'object') continue
+
+      const description = typeof (operation as { description?: unknown }).description === 'string'
+        ? (operation as { description: string }).description
+        : undefined
+
+      operations.push({ path, method, description })
+    }
+  }
+
+  return {
+    infoDescription: typeof spec.info?.description === 'string' ? spec.info.description : undefined,
+    operations,
+  }
 }
 
 export async function readOpenAPISpec(filePath: string, contentProcessor?: ContentProcessor): Promise<OpenAPIParseResult> {

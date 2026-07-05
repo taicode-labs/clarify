@@ -116,6 +116,47 @@ describe('createOpenAPIPlugin', () => {
     expect(modules?.get('virtual:clarify-page/api')).toContain('createOpenApiRouteComponent(routeData);')
   })
 
+  it('preprocesses OpenAPI descriptions into a renderable content payload', async () => {
+    const specPath = join(tempDir, 'api.openapi.json')
+    writeFileSync(specPath, JSON.stringify({
+      openapi: '3.0.0',
+      info: {
+        title: 'Plugin API',
+        version: '1.0.0',
+        description: 'Manage users and projects.',
+      },
+      paths: {
+        '/users': {
+          get: {
+            summary: 'List users',
+            description: 'Returns the list of users.',
+            tags: ['Users'],
+          },
+        },
+      },
+    }), 'utf-8')
+
+    const plugin = createOpenAPIPlugin()
+    const routes: ContentRoute[] = [{
+      path: '/api',
+      title: 'API',
+      filePath: specPath,
+      virtualModuleId: 'virtual:clarify-page/api',
+      kind: 'openapi',
+    }]
+
+    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
+
+    expect(discovered?.[0].preparedContent).toMatchObject({
+      infoDescription: 'Manage users and projects.',
+      operations: [{
+        path: '/users',
+        method: 'get',
+        description: 'Returns the list of users.',
+      }],
+    })
+  })
+
   it('keeps invalid OpenAPI routes renderable with diagnostics', async () => {
     const specPath = join(tempDir, 'broken.openapi.json')
     writeFileSync(specPath, '{ invalid json', 'utf-8')

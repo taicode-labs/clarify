@@ -287,6 +287,15 @@ export type ContentDiagnostic = {
   filePath?: string
 }
 
+export type PreparedOpenAPIContent = {
+  infoDescription?: string
+  operations: Array<{
+    path: string
+    method: string
+    description?: string
+  }>
+}
+
 export type ContentRoute = {
   path: string
   basePath?: string
@@ -309,6 +318,8 @@ export type ContentRoute = {
   frontmatter?: Record<string, unknown>
   /** Normalized source content captured during route discovery. */
   content?: string
+  /** Structured, renderer-friendly content preprocessed from OpenAPI specs. */
+  preparedContent?: PreparedOpenAPIContent
   diagnostic?: ContentDiagnostic
   sections?: ContentSection[]
   contentArtifactUrl?: string

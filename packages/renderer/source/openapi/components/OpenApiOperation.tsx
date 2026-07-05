@@ -17,11 +17,21 @@ import type { AuthOption } from './ExamplePanels'
 import { useOperationAuthState, useOperationRequestState, useOperationServerState } from './OpenApiOperation.state'
 
 
+export type OpenApiPreparedContent = {
+  infoDescription?: string
+  operations: Array<{
+    path: string
+    method: string
+    description?: string
+  }>
+}
+
 export type OpenApiOperationProps = {
   spec: OpenAPISpec
   path: string
   method: string
   operation: OpenAPIOperation
+  preparedContent?: OpenApiPreparedContent
 }
 
 const endpointMethodStyleVars: Record<string, string> = {
@@ -457,11 +467,12 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
 }
 
 export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
-  const { spec, path, method, operation } = arg0
+  const { spec, path, method, operation, preparedContent } = arg0
 
   const id = slug(`${method.toLowerCase()} ${path}`)
   const summary = operation.summary ?? `${method} ${path}`
-  const description = operation.description
+  const preparedOperation = preparedContent?.operations.find(({ path: preparedPath, method: preparedMethod }) => preparedPath === path && preparedMethod.toLowerCase() === method.toLowerCase())
+  const description = operation.description ?? preparedOperation?.description
   const requestState = useOperationRequestState(spec, path, operation)
   const serverState = useOperationServerState(spec, operation, path)
   const authState = useOperationAuthState(spec, operation)

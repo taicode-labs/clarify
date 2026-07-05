@@ -10,42 +10,56 @@ import { useOpenApiSpec } from './lib/spec-path'
 import { getOpenApiOperation, listOpenApiOperations } from './lib/utils'
 import type { OpenAPISpec } from './lib/utils'
 
-type OpenApiPathsProps = { spec: OpenAPISpec; tagFilter?: string[] }
+type OpenApiPathsProps = { spec: OpenAPISpec; tagFilter?: string[]; preparedContent?: OpenApiPreparedContent }
 
-type OpenApiHeaderProps = { spec: OpenAPISpec }
+type OpenApiHeaderProps = { spec: OpenAPISpec; preparedContent?: OpenApiPreparedContent }
 
 type WarningBoxProps = {
   children: ReactNode
   tone?: 'amber' | 'red'
 }
 
+export type OpenApiPreparedContent = {
+  infoDescription?: string
+  operations: Array<{
+    path: string
+    method: string
+    description?: string
+  }>
+}
+
 export type OpenApiDocumentProps = {
   spec?: OpenAPISpec
   specPath?: string
   tagFilter?: string[]
+  preparedContent?: OpenApiPreparedContent
 }
 
 export type OpenApiRouteData = {
   spec: OpenAPISpec
   tagFilter?: string[]
+  preparedContent?: OpenApiPreparedContent
 }
 
 type OpenApiOperationWithSpecProps = {
   spec: OpenAPISpec
   path: string
   method: string
+  preparedContent?: OpenApiPreparedContent
 }
 
 export type OpenApiOperationProps = {
   specPath: string
   path: string
   method: string
+  preparedContent?: OpenApiPreparedContent
 }
 
 function OpenApiHeader(arg0: OpenApiHeaderProps): ReactNode {
-  const { spec } = arg0
+  const { spec, preparedContent } = arg0
 
   const t = useBuiltInText()
+  const infoDescription = preparedContent?.infoDescription ?? spec.info?.description
   return (
     <header className="clarify-openapi-header mb-16 border-b border-(--clarify-theme-tokens-colors-border) pb-8">
       <p className="mb-3 text-xs/6 font-medium tracking-widest text-(--clarify-ui-accent-text) uppercase">
@@ -55,7 +69,7 @@ function OpenApiHeader(arg0: OpenApiHeaderProps): ReactNode {
         <h1 className="clarify-page-title min-w-0 flex-1">{spec.info?.title ?? t('openapi.apiDocumentation')}</h1>
         <PageTitleActions />
       </div>
-      {spec.info?.description ? <Markdown className="lead mt-4 *:first:mt-0 *:last:mb-0">{spec.info.description}</Markdown> : null}
+      {infoDescription ? <Markdown className="lead mt-4 *:first:mt-0 *:last:mb-0">{infoDescription}</Markdown> : null}
       {spec.info?.version ? <p className="mt-4 text-sm text-(--clarify-ui-text-faint)">{t('openapi.version', { version: spec.info.version })}</p> : null}
     </header>
   )
@@ -67,7 +81,7 @@ function operationMatchesTags(operationTags: string[] | undefined, filterTags: s
 }
 
 function OpenApiPaths(arg0: OpenApiPathsProps): ReactNode {
-  const { spec, tagFilter } = arg0
+  const { spec, tagFilter, preparedContent } = arg0
 
   const entries = listOpenApiOperations(spec)
     .filter(({ operation }) => operationMatchesTags(operation.tags, tagFilter))
@@ -80,7 +94,7 @@ function OpenApiPaths(arg0: OpenApiPathsProps): ReactNode {
   return (
     <div className="clarify-api-endpoints divide-y divide-zinc-200/70 dark:divide-white/10">
       {entries.map(({ path, method, operation }) => (
-        <OpenApiOperationComponent key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} />
+        <OpenApiOperationComponent key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} preparedContent={preparedContent} />
       ))}
     </div>
   )
@@ -97,7 +111,7 @@ function WarningBox(arg0: WarningBoxProps): ReactNode {
 }
 
 export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
-  const { spec, specPath, tagFilter } = arg0
+  const { spec, specPath, tagFilter, preparedContent } = arg0
   const t = useBuiltInText()
   const resolved = useOpenApiSpec(spec, specPath)
 
@@ -108,15 +122,15 @@ export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
   return (
     <article className="clarify-openapi-page flex h-full flex-col pt-16 pb-10">
       <Prose className="flex-auto">
-        <OpenApiHeader spec={resolved} />
-        <OpenApiPaths spec={resolved} tagFilter={tagFilter} />
+        <OpenApiHeader spec={resolved} preparedContent={preparedContent} />
+        <OpenApiPaths spec={resolved} tagFilter={tagFilter} preparedContent={preparedContent} />
       </Prose>
     </article>
   )
 }
 
 function OpenApiOperationWithSpec(arg0: OpenApiOperationWithSpecProps): ReactNode {
-  const { spec, path, method } = arg0
+  const { spec, path, method, preparedContent } = arg0
   const t = useBuiltInText()
   const op = getOpenApiOperation(spec, path, method)
 
@@ -125,11 +139,11 @@ function OpenApiOperationWithSpec(arg0: OpenApiOperationWithSpecProps): ReactNod
   }
 
   const normalizedMethod = method.toUpperCase()
-  return <OpenApiOperationComponent key={`${normalizedMethod}-${path}`} spec={spec} path={path} method={normalizedMethod} operation={op} />
+  return <OpenApiOperationComponent key={`${normalizedMethod}-${path}`} spec={spec} path={path} method={normalizedMethod} operation={op} preparedContent={preparedContent} />
 }
 
 export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
-  const { specPath, path, method } = arg0
+  const { specPath, path, method, preparedContent } = arg0
   const t = useBuiltInText()
   const spec = useOpenApiSpec(undefined, specPath)
 
@@ -137,11 +151,11 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
     return <WarningBox>{t('openapi.specNotFound', { specPath })}</WarningBox>
   }
 
-  return <OpenApiOperationWithSpec spec={spec} path={path} method={method} />
+  return <OpenApiOperationWithSpec spec={spec} path={path} method={method} preparedContent={preparedContent} />
 }
 
 export function createOpenApiRouteComponent(data: OpenApiRouteData) {
   return function OpenApiRoutePage() {
-    return <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} />
+    return <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} preparedContent={data.preparedContent} />
   }
 }

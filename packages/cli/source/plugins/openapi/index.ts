@@ -4,7 +4,7 @@ import { getProjectContentProcessor } from '../../core/content.js'
 import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/routes.js'
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedProjectConfig } from '../../types.js'
 
-import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
+import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, prepareOpenAPIContent, readOpenAPISpec } from './parser.js'
 import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 type OpenAPISpecEntry = {
@@ -118,6 +118,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
             ? filterSpecByTags(spec, route.openapiTagFilter)
             : spec
           route.content = JSON.stringify(pageSpec)
+          route.preparedContent = prepareOpenAPIContent(pageSpec)
         }
 
         return nextRoutes
@@ -164,6 +165,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
             modules.set(route.virtualModuleId, generateOpenAPIPageModule({
               spec: entry.spec,
               tagFilter: route.openapiTagFilter,
+              preparedContent: route.preparedContent,
             }))
           }
         }
