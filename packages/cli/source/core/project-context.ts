@@ -43,9 +43,9 @@ export async function resolveProjectContext(options: ClarifyBuildOptions = {}, e
   const projectContext: ClarifyProjectContext = {
     projectRoot,
     contentRoot,
+    version: cliPackageVersion,
     projectConfig: resolvedProjectConfig,
     generateOptions: resolvedBuildOptions,
-    version: cliPackageVersion,
   }
 
   const hookContext: ClarifyHookContext = {
