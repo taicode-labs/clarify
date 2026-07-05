@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import type { OpenAPISpec } from '../../types.js'
+import type { ContentDiagnostic as RendererDiagnostic } from '@clarify-labs/renderer'
+
+import type { ContentDiagnostic as CliDiagnostic, OpenAPISpec } from '../../types.js'
 
 import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
@@ -36,22 +38,39 @@ describe('openapi virtual modules', () => {
   })
 
   it('generates an OpenAPI route component module', () => {
-    const code = generateOpenAPIPageModule({ specKey: 'api', specRegistryKey: 'virtual:clarify-page/api', tagFilter: ['Users'] })
-    expect(code).toContain("import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';")
-    expect(code).toContain('function OpenApiRoutePage')
-    expect(code).toContain('SPEC_KEY = "virtual:clarify-page/api"')
-    expect(code).toContain('import("virtual:clarify/openapi-spec/api")')
-    expect(code).toContain('loadSpec()')
-    expect(code).toContain('const TAG_FILTER = ["Users"]')
+    const code = generateOpenAPIPageModule({ spec, tagFilter: ['Users'] })
+    expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
+    expect(code).toContain('routeData')
+    expect(code).toContain('"Example API"')
+    expect(code).toContain('"Users"')
   })
 
   it('generates an OpenAPI route component module without tag filter', () => {
-    const code = generateOpenAPIPageModule({ specKey: 'api', specRegistryKey: 'virtual:clarify-page/api' })
-    expect(code).toContain("import { OpenApiDocument, useOpenApis } from '@clarify-labs/renderer';")
-    expect(code).toContain('function OpenApiRoutePage')
-    expect(code).toContain('const SPEC_KEY = "virtual:clarify-page/api"')
-    expect(code).toContain('import("virtual:clarify/openapi-spec/api")')
-    expect(code).toContain('const TAG_FILTER = undefined')
+    const code = generateOpenAPIPageModule({ spec })
+    expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
+    expect(code).toContain('routeData')
+    expect(code).toContain('"Example API"')
+  })
+
+  it('shares the same diagnostic intent across CLI and renderer', () => {
+    const cliDiagnostic: CliDiagnostic = {
+      kind: 'mdx',
+      title: 'CLI diagnostic',
+      message: 'Something failed',
+      filePath: '/docs/example.md',
+      details: 'Root cause',
+    }
+    const rendererDiagnostic: RendererDiagnostic = {
+      kind: cliDiagnostic.kind,
+      title: cliDiagnostic.title,
+      message: cliDiagnostic.message,
+      filePath: cliDiagnostic.filePath,
+      details: cliDiagnostic.details,
+    }
+
+    expect(cliDiagnostic.title).toBe(rendererDiagnostic.title)
+    expect(cliDiagnostic.message).toBe(rendererDiagnostic.message)
+    expect(rendererDiagnostic.details).toBe(cliDiagnostic.details)
   })
 
   it('generates a per-spec virtual module', () => {
@@ -67,14 +86,15 @@ describe('openapi virtual modules', () => {
 
   it('generates an OpenAPI diagnostic route component module', () => {
     const code = generateOpenAPIErrorModule({
+      kind: 'openapi',
       title: 'OpenAPI spec parse failed',
       message: 'Clarify could not parse api.openapi.yaml.',
       filePath: '/docs/api.openapi.yaml',
-      cause: 'YAMLException: bad indentation',
+      details: 'YAMLException: bad indentation',
     })
-    expect(code).toContain('OpenApiErrorRoutePage')
+    expect(code).toContain('contentDiagnostic')
     expect(code).toContain('OpenAPI spec parse failed')
-    expect(code).toContain('Why it happened')
     expect(code).toContain('bad indentation')
+    expect(code).not.toContain('createElement')
   })
 })

@@ -280,10 +280,11 @@ export type ContentSection = {
 }
 
 export type ContentDiagnostic = {
+  kind: string
   title: string
   message: string
+  details?: string
   filePath?: string
-  cause?: string
 }
 
 export type ContentRoute = {
@@ -349,9 +350,14 @@ export type ClarifyNavigationNode = {
 // Hooks
 // ────────────────────────────────────────────────────────────────────────────────
 
-export type ClarifyHookContext = {
+export type ClarifyProjectContext = {
+  projectRoot: string
+  contentRoot: string
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
+}
+
+export type ClarifyHookContext = ClarifyProjectContext & {
   routes: ContentRoute[]
   navigation: NavigationTree
 }

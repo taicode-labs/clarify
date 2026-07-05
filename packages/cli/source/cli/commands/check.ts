@@ -1,9 +1,7 @@
-import { existsSync } from 'node:fs'
 import { lstat, stat } from 'node:fs/promises'
 import { dirname, extname, isAbsolute, join, normalize, relative, resolve } from 'node:path'
 
 import { resolveClarifySite } from '../../core/site.js'
-import { loadClarifyConfig } from '../../core/user-config.js'
 import type { ContentRoute } from '../../types.js'
 import type { CliOptions } from '../options.js'
 
@@ -180,9 +178,7 @@ function printTextResult(result: CheckResult, strict: boolean): void {
 
 export async function runCheck(options: CheckCommandOptions = {}): Promise<void> {
   const root = resolve(options.root ?? process.cwd())
-  const userConfig = existsSync(root) ? await loadClarifyConfig(root, { command: 'build', mode: 'production' }) : {}
   const site = await resolveClarifySite({
-    ...userConfig,
     projectRoot: root,
     rootDirectory: options.content,
     outputDirectory: options.output,

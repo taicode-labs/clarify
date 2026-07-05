@@ -3,7 +3,7 @@ import type { IncomingMessage } from 'node:http'
 
 import { describe, it, expect } from 'vitest'
 
-import type { ContentRoute, ResolvedProjectConfig } from '../types.js'
+import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../types.js'
 
 import {
   toDevRouteEntry,
@@ -46,6 +46,23 @@ const mockI18nProjectConfig: ResolvedProjectConfig = {
 }
 
 const CONTENT_ROOT = '/site/source'
+
+const mockContext: ClarifyProjectContext = {
+  projectRoot: '/site',
+  contentRoot: CONTENT_ROOT,
+  projectConfig: mockProjectConfig,
+  generateOptions: {
+    projectRoot: '/site',
+    rootDirectory: 'source',
+    outputDirectory: undefined,
+    ssg: { failOnError: true },
+  },
+}
+
+const mockI18nContext: ClarifyProjectContext = {
+  ...mockContext,
+  projectConfig: mockI18nProjectConfig,
+}
 
 function mockRes() {
   const chunks: Buffer[] = []
@@ -184,7 +201,7 @@ describe('handleDevRouteRequest', () => {
       makeRoute({ path: '/about', filePath: '/a/about.mdx', title: 'About' }),
     ]
     const { res, body, headers } = mockRes()
-    await handleDevRouteRequest(mockReq({}), res, routes, mockProjectConfig, CONTENT_ROOT)
+    await handleDevRouteRequest(mockReq({}), res, routes, mockContext)
 
     expect(headers['Content-Type']).toBe('application/json; charset=utf-8')
     expect(body()).toHaveLength(2)
@@ -194,7 +211,7 @@ describe('handleDevRouteRequest', () => {
   it('returns a single route when file matches', async () => {
     const routes = [makeRoute({ path: '/about', filePath: '/a/about.mdx', locale: 'en-US' })]
     const { res, body } = mockRes()
-    await handleDevRouteRequest(mockReq({ file: '/a/about.mdx' }), res, routes, mockI18nProjectConfig, CONTENT_ROOT)
+    await handleDevRouteRequest(mockReq({ file: '/a/about.mdx' }), res, routes, mockI18nContext)
 
     expect(body()).toMatchObject({ path: '/about', filePath: '/a/about.mdx', locale: 'en-US' })
   })
@@ -202,7 +219,7 @@ describe('handleDevRouteRequest', () => {
   it('returns an inferred route when file does not match any route', async () => {
     const routes = [makeRoute({ filePath: '/a/about.mdx' })]
     const { res, body } = mockRes()
-    await handleDevRouteRequest(mockReq({ file: '/site/source/zh-CN/drafts/new.mdx' }), res, routes, mockI18nProjectConfig, CONTENT_ROOT)
+    await handleDevRouteRequest(mockReq({ file: '/site/source/zh-CN/drafts/new.mdx' }), res, routes, mockI18nContext)
 
     expect(body()).toMatchObject({
       path: '/zh-CN/drafts/new',
@@ -214,7 +231,7 @@ describe('handleDevRouteRequest', () => {
   it('returns null when file is outside content root and not a route', async () => {
     const routes = [makeRoute({ filePath: '/a/about.mdx' })]
     const { res, body } = mockRes()
-    await handleDevRouteRequest(mockReq({ file: '/other/place/x.mdx' }), res, routes, mockProjectConfig, CONTENT_ROOT)
+    await handleDevRouteRequest(mockReq({ file: '/other/place/x.mdx' }), res, routes, mockContext)
 
     expect(body()).toBeNull()
   })
@@ -225,7 +242,7 @@ describe('handleDevRouteRequest', () => {
       makeRoute({ filePath: '/src/zh-CN/x.mdx', locale: 'zh-CN', path: '/zh-CN/x' }),
     ]
     const { res, body } = mockRes()
-    await handleDevRouteRequest(mockReq({ file: '/src/zh-CN/x.mdx' }), res, routes, mockI18nProjectConfig, CONTENT_ROOT)
+    await handleDevRouteRequest(mockReq({ file: '/src/zh-CN/x.mdx' }), res, routes, mockI18nContext)
 
     expect(body()).toMatchObject({ path: '/zh-CN/x', locale: 'zh-CN' })
   })
@@ -238,7 +255,7 @@ describe('handleDevRouteRequest', () => {
       emitter.emit('data', Buffer.from('not json'))
       emitter.emit('end')
     })
-    await handleDevRouteRequest(emitter, res, routes, mockProjectConfig, CONTENT_ROOT)
+    await handleDevRouteRequest(emitter, res, routes, mockContext)
 
     expect((res as unknown as { statusCode: number }).statusCode).toBe(400)
     expect(body()).toMatchObject({ error: 'Invalid JSON body' })

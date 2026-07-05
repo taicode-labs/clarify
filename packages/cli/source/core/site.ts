@@ -4,15 +4,15 @@ import { applyConfiguredPageRoutePaths, buildLocalizedNavigationFromTabsConfig, 
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../types.js'
 
 import { createBuiltinPlugins } from './builtin.js'
-import { resolveProjectConfig } from './config.js'
 import { createProjectContentProcessor, getProjectContentProcessor, setProjectContentProcessor } from './content.js'
 import { runHooks } from './hooks.js'
-import { resolveBuildOptions, type ClarifyBuildOptions, type ResolvedBuildOptions } from './options.js'
+import type { ClarifyBuildOptions, ResolvedBuildOptions } from './options.js'
+import { resolveProjectContext } from './project-context.js'
 
 export type ResolvedClarifySite = {
   root: string
   contentRoot: string
-  projectConfig: ReturnType<typeof resolveProjectConfig>
+  projectConfig: Awaited<ReturnType<typeof resolveProjectContext>>['projectConfig']
   generateOptions: ResolvedBuildOptions
   plugins: ClarifyPlugin[]
   ctx: ClarifyHookContext
@@ -90,12 +90,19 @@ async function discoverRoutes(root: string, contentRoot: string, plugins: Clarif
 }
 
 export async function resolveClarifySite(options: ClarifyBuildOptions = {}, resolveOptions: ResolveClarifySiteOptions = {}): Promise<ResolvedClarifySite> {
-  const root = options.projectRoot ?? process.cwd()
-  const projectConfig = resolveProjectConfig(options)
-  const generateOptions = resolveBuildOptions(options)
-  const contentRoot = join(root, generateOptions.rootDirectory)
+  const context = await resolveProjectContext(options)
+  const root = context.projectRoot
+  const projectConfig = context.projectConfig
+  const generateOptions = context.buildOptions
+  const contentRoot = context.contentRoot
   const plugins = [...createBuiltinPlugins({ htmlShell: resolveOptions.includeHtmlShellPlugin }), ...(options.plugins ?? [])]
-  const ctx: ClarifyHookContext = { projectConfig, generateOptions, routes: [], navigation: [] }
+  const ctx: ClarifyHookContext = {
+    ...context.hookContext,
+    projectRoot: root,
+    contentRoot,
+    projectConfig,
+    generateOptions,
+  }
   setProjectContentProcessor(ctx, createProjectContentProcessor(plugins, ctx))
 
   let routes = await discoverRoutes(root, contentRoot, plugins, ctx)

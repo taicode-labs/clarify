@@ -7,9 +7,9 @@ import type { ConfigEnv, InlineConfig, Plugin, LogLevel, Logger, LogOptions, Log
 import { logBuildErrorSync } from './log.js'
 import type { ClarifyBuildOptions } from './options.js'
 import { clarifyPlugin } from './plugin.js'
+import { resolveProjectContext } from './project-context.js'
 import { createClarifyRuntimeAliases } from './runtime-deps.js'
 import { createClarifyTempDir } from './temp-dir.js'
-import { loadClarifyConfig } from './user-config.js'
 
 export type ClarifyViteConfigOptions = {
   root: string
@@ -94,12 +94,16 @@ function createHtmlFallbackPlugin(): Plugin {
 
 export async function createViteConfig(options: ClarifyViteConfigOptions, env: ConfigEnv): Promise<InlineConfig> {
   const entryHtmlPath = ensureHtmlEntry(options.root)
-  const userConfig = await loadClarifyConfig(options.root, env)
-  const buildOptions: ClarifyBuildOptions = {
-    ...userConfig,
+  const context = await resolveProjectContext({
     projectRoot: options.root,
     rootDirectory: options.content,
     outputDirectory: options.output,
+  }, env)
+  const buildOptions: ClarifyBuildOptions = {
+    ...context.config,
+    projectRoot: context.projectRoot,
+    rootDirectory: context.buildOptions.rootDirectory,
+    outputDirectory: context.buildOptions.outputDirectory,
   }
 
   return {

@@ -129,6 +129,9 @@ importers:
       '@clarify-labs/templates':
         specifier: workspace:*
         version: link:../templates
+      '@mdx-js/mdx':
+        specifier: ^3.1.1
+        version: 3.1.1
       '@mdx-js/rollup':
         specifier: ^3.1.1
         version: 3.1.1(rollup@4.62.0)
@@ -196,9 +199,6 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
-      '@mdx-js/mdx':
-        specifier: ^3.1.1
-        version: 3.1.1
       '@types/react':
         specifier: ^19.1.8
         version: 19.2.17

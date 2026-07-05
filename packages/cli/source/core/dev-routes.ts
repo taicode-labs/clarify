@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import { relative } from 'node:path'
 
 import { basePathFromRef, localizedRoutePath, normalizePath } from '../parsers/routes.js'
-import type { ContentRoute, ResolvedProjectConfig } from '../types.js'
+import type { ClarifyProjectContext, ContentRoute } from '../types.js'
 
 /**
  * Dev-only HTTP endpoint that exposes the in-memory route manifest so external
@@ -149,7 +149,7 @@ function readJsonBody(req: IncomingMessage): Promise<unknown> {
  * Handle a request to the dev route endpoint. Pure function — does not touch
  * the network directly, only reads the request body and writes to `res`.
  */
-export async function handleDevRouteRequest(req: IncomingMessage, res: ServerResponse, routes: ContentRoute[], projectConfig: ResolvedProjectConfig, contentRoot: string): Promise<void> {
+export async function handleDevRouteRequest(req: IncomingMessage, res: ServerResponse, routes: ContentRoute[], context: ClarifyProjectContext): Promise<void> {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
 
   let body: unknown
@@ -164,12 +164,12 @@ export async function handleDevRouteRequest(req: IncomingMessage, res: ServerRes
   const file = typeof body === 'object' && body !== null ? (body as { file?: unknown }).file : undefined
 
   if (typeof file === 'string' && file.length > 0) {
-    const route = resolveRouteForFile(file, routes, projectConfig.i18n?.defaultLocale)
+    const route = resolveRouteForFile(file, routes, context.projectConfig.i18n?.defaultLocale)
     if (route) {
       res.end(JSON.stringify(toDevRouteEntry(route)))
       return
     }
-    const inferred = inferRouteForFile(file, contentRoot, projectConfig.i18n?.defaultLocale)
+    const inferred = inferRouteForFile(file, context.contentRoot, context.projectConfig.i18n?.defaultLocale)
     res.end(JSON.stringify(inferred))
     return
   }

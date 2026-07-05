@@ -158,13 +158,11 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           if (route.diagnostic) {
             modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.diagnostic))
           } else if (route.specFileKey) {
-            const base = (route.basePath ?? route.path).replace(/^\//, '')
-            const specRegistryKey = route.locale
-              ? `virtual:clarify-page/${route.locale}/${base}`
-              : `virtual:clarify-page/${base}`
+            const entry = specs.get(route.specFileKey)
+            if (!entry) continue
+
             modules.set(route.virtualModuleId, generateOpenAPIPageModule({
-              specKey: route.specFileKey,
-              specRegistryKey,
+              spec: entry.spec,
               tagFilter: route.openapiTagFilter,
             }))
           }

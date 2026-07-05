@@ -1,7 +1,7 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../parsers/routes.js'
-import type { ClarifyPlugin, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
+import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 // 新的虚拟模块命名 - 更清晰的职责划分
 export const VIRTUAL_CONFIG = 'virtual:clarify/config'
@@ -47,7 +47,7 @@ function moduleSpecifier(value: string): string {
 export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig, mode: 'client' | 'server' = 'client'): string {
   const imports = mode === 'server'
     ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.virtualModuleId)};`).join('\n')
-    : ''
+    : `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';`
   const routesArray = routes.map((r, i) => {
     const sections = r.sections && r.sections.length > 0
       ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags })))}`
@@ -61,7 +61,9 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
     const description = r.description ? `, description: ${JSON.stringify(r.description)}` : ''
     const keywords = r.keywords && r.keywords.length > 0 ? `, keywords: ${JSON.stringify(r.keywords)}` : ''
     const sourceUrl = r.sourceUrl ? `, sourceUrl: ${JSON.stringify(r.sourceUrl)}` : ''
-    const component = mode === 'server' ? `Page${i}` : `() => import(${moduleSpecifier(r.virtualModuleId)})`
+    const component = mode === 'server'
+      ? `Page${i}`
+      : `() => import(${moduleSpecifier(r.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
     const lazy = mode === 'client' ? ', lazy: true' : ''
     return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${isBareAlias}${alternates}${description}${keywords}${sections}${contentArtifactUrl}${sourceUrl} }`
   }).join(',\n')
@@ -149,6 +151,21 @@ export function createSlotModule(): string {
   return `export { useSlot } from '@clarify-labs/renderer';\n`
 }
 
+export function generateMdxErrorModule(diagnostic: ContentDiagnostic): string {
+  return `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';
+
+export const contentDiagnostic = ${JSON.stringify({
+    kind: diagnostic.kind ?? 'mdx',
+    title: diagnostic.title,
+    message: diagnostic.message,
+    filePath: diagnostic.filePath,
+    details: diagnostic.details,
+  })};
+
+export default createContentDiagnosticComponent(contentDiagnostic);
+`
+}
+
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
   const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
@@ -166,7 +183,10 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
 
   for (const route of args.routes) {
-    modules.set(route.virtualModuleId, `export { default } from ${moduleSpecifier(route.filePath)};`)
+    const moduleContent = route.diagnostic
+      ? generateMdxErrorModule(route.diagnostic)
+      : `export { default } from ${moduleSpecifier(route.filePath)};`
+    modules.set(route.virtualModuleId, moduleContent)
   }
 
   return modules

@@ -1,3 +1,4 @@
+import { compile, type CompileOptions } from '@mdx-js/mdx'
 import GithubSlugger from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
 import shiki, { type Highlighter } from 'shiki'
@@ -6,6 +7,7 @@ import { visit } from 'unist-util-visit'
 import { markdownRemarkPlugins } from '@clarify-labs/renderer'
 
 import { escapeHtml } from '../core/utils.js'
+import type { ContentDiagnostic } from '../types.js'
 
 type HastNode = {
   type: string
@@ -123,3 +125,36 @@ export function rehypeSlugSections() {
 
 export const remarkPlugins: unknown[] = markdownRemarkPlugins
 export const rehypePlugins = [rehypeSlugSections, rehypeParseCodeBlocks, rehypeShiki]
+
+function formatMdxDiagnostic(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return String(error)
+}
+
+export async function compileMdxContent(content: string, filePath?: string, projectRoot?: string): Promise<{ ok: true } | { ok: false; diagnostic: ContentDiagnostic }> {
+  try {
+    await compile(content, {
+      jsx: true,
+      providerImportSource: '@clarify-labs/renderer',
+      remarkPlugins: remarkPlugins as CompileOptions['remarkPlugins'],
+      rehypePlugins,
+    })
+    return { ok: true }
+  } catch (error) {
+    return {
+      ok: false,
+      diagnostic: {
+        kind: 'mdx',
+        title: 'MDX syntax error',
+        message: 'This page could not be compiled. Fix the MDX syntax or component usage above, then reload the route.',
+        filePath: filePath && projectRoot
+          ? filePath.replace(projectRoot + '/', '').replace(/^\/+/, '')
+          : filePath ? filePath.replace(/^[A-Za-z]:\//, '').replace(/^\/+/, '') : undefined,
+        details: formatMdxDiagnostic(error),
+      },
+    }
+  }
+}

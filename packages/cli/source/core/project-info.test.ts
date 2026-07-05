@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import type { ResolvedProjectConfig } from '../types.js'
+import type { ClarifyProjectContext, ResolvedProjectConfig } from '../types.js'
 
 import {
   buildProjectInfo,
@@ -30,6 +30,23 @@ const mockI18nProjectConfig: ResolvedProjectConfig = {
   },
 }
 
+const mockContext: ClarifyProjectContext = {
+  projectRoot: '/proj',
+  contentRoot: '/proj/source',
+  projectConfig: mockProjectConfig,
+  generateOptions: {
+    projectRoot: '/proj',
+    rootDirectory: 'source',
+    outputDirectory: undefined,
+    ssg: { failOnError: true },
+  },
+}
+
+const mockI18nContext: ClarifyProjectContext = {
+  ...mockContext,
+  projectConfig: mockI18nProjectConfig,
+}
+
 describe('CONTENT_FILE_EXTENSIONS', () => {
   it('includes md, mdx, and openapi variants', () => {
     expect(CONTENT_FILE_EXTENSIONS).toContain('.md')
@@ -42,7 +59,7 @@ describe('CONTENT_FILE_EXTENSIONS', () => {
 
 describe('buildProjectInfo', () => {
   it('exposes config filenames, content extensions, and content root name', () => {
-    const info = buildProjectInfo('/proj', '/proj/source', mockProjectConfig)
+    const info = buildProjectInfo(mockContext)
     expect(info.configFilenames).toEqual(['clarify.ts', 'clarify.js', 'clarify.json'])
     expect(info.contentFileExtensions).toBe(CONTENT_FILE_EXTENSIONS)
     expect(info.contentRoot).toBe('source')
@@ -51,17 +68,17 @@ describe('buildProjectInfo', () => {
   })
 
   it('derives the content root name from an absolute content root path', () => {
-    const info = buildProjectInfo('/proj', '/proj/docs-content', mockProjectConfig)
+    const info = buildProjectInfo({ ...mockContext, contentRoot: '/proj/docs-content' })
     expect(info.contentRoot).toBe('docs-content')
   })
 
   it('falls back to the raw path when content root is outside the project root', () => {
-    const info = buildProjectInfo('/proj', '/elsewhere/source', mockProjectConfig)
+    const info = buildProjectInfo({ ...mockContext, contentRoot: '/elsewhere/source' })
     expect(info.contentRoot).toBe('/elsewhere/source')
   })
 
   it('includes i18n locale info when configured', () => {
-    const info = buildProjectInfo('/proj', '/proj/source', mockI18nProjectConfig)
+    const info = buildProjectInfo(mockI18nContext)
     expect(info.i18n).toEqual({
       defaultLocale: 'en-US',
       locales: ['en-US', 'zh-CN'],
@@ -88,9 +105,7 @@ describe('handleProjectInfoRequest', () => {
     handleProjectInfoRequest(
       {} as import('node:http').IncomingMessage,
       res,
-      '/proj',
-      '/proj/source',
-      mockI18nProjectConfig,
+      mockI18nContext,
     )
     expect(headers['Content-Type']).toBe('application/json; charset=utf-8')
     expect(body()).toEqual({

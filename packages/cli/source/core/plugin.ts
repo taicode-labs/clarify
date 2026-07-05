@@ -15,16 +15,17 @@ import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from './dev-routes.
 import { writeClarifyEnvDts } from './env-types.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from './options.js'
+import { resolveProjectContext } from './project-context.js'
 import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from './project-info.js'
 import { resolveClarifySite } from './site.js'
-import { logStartupHints } from './startup.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
   buildSSRBundle,
   renderSSGRoutes,
 } from './ssg.js'
-import { findClarifyConfigFile, loadClarifyConfig } from './user-config.js'
+import { logStartupHints } from './startup.js'
+import { findClarifyConfigFile } from './user-config.js'
 import {
   RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
@@ -49,7 +50,8 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   const root = resolve(options.projectRoot ?? process.cwd())
   let projectConfig = resolveProjectConfig(options)
   let generateOptions = resolveBuildOptions(options)
-  const contentRoot = join(root, generateOptions.rootDirectory)
+  let contentRoot = join(root, generateOptions.rootDirectory)
+  let runtimeContext = { projectRoot: root, contentRoot, projectConfig, generateOptions }
   const configFilePath = findClarifyConfigFile(root)
   let routes: ContentRoute[] = []
 
@@ -63,6 +65,8 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     const site = await resolveClarifySite(overrides ?? options)
     projectConfig = site.projectConfig
     generateOptions = site.generateOptions
+    contentRoot = join(root, generateOptions.rootDirectory)
+    runtimeContext = { projectRoot: root, contentRoot, projectConfig, generateOptions }
     routes = site.routes
     resolvedNavigation = site.navigation
     clarifyPlugins = site.plugins
@@ -155,14 +159,21 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     async handleHotUpdate(ctx) {
       const changedFile = isAbsolute(ctx.file) ? ctx.file : join(root, ctx.file)
       if (configFilePath && changedFile === configFilePath) {
-        const userConfig = await loadClarifyConfig(root, { command: 'serve', mode: viteConfig.mode })
-        const newOptions: ClarifyBuildOptions = {
-          ...userConfig,
-          projectRoot: options.projectRoot,
+        const newContext = await resolveProjectContext({
+          ...options,
+          projectRoot: root,
           rootDirectory: options.rootDirectory,
           outputDirectory: options.outputDirectory,
-        }
-        await resolveRoutesAndSpecs(newOptions)
+        }, { command: 'serve', mode: viteConfig.mode })
+        projectConfig = newContext.projectConfig
+        generateOptions = newContext.buildOptions
+        contentRoot = newContext.contentRoot
+        await resolveRoutesAndSpecs({
+          ...newContext.config,
+          projectRoot: newContext.projectRoot,
+          rootDirectory: newContext.buildOptions.rootDirectory,
+          outputDirectory: newContext.buildOptions.outputDirectory,
+        })
         await rebuildVirtualModules()
         invalidateVirtualModules(ctx.server)
         ctx.server.ws.send({ type: 'full-reload' })
@@ -203,10 +214,10 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       // Need to match exact paths, so check req.url before handling.
       server.middlewares.use((req, res, next) => {
         if (req.url === CLARIFY_DEV_ROUTE_ENDPOINT && req.method === 'POST') {
-          return handleDevRouteRequest(req, res, routes, projectConfig, contentRoot)
+          return handleDevRouteRequest(req, res, routes, runtimeContext)
         }
         if (req.url === CLARIFY_DEV_PROJECT_INFO_ENDPOINT && (req.method === 'GET' || req.method === 'HEAD')) {
-          return handleProjectInfoRequest(req, res, root, contentRoot, projectConfig)
+          return handleProjectInfoRequest(req, res, runtimeContext)
         }
         next()
       })
@@ -293,7 +304,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
         ])
 
         const ssrBundlePath = join(ssrOutputDir, 'entry-server.js')
-        await renderSSGRoutes(routes, projectConfig, outputDir, ssrBundlePath, generateOptions.ssg.failOnError)
+        await renderSSGRoutes(routes, runtimeContext, outputDir, ssrBundlePath, generateOptions.ssg.failOnError)
       } catch (err) {
         console.error('[clarify] SSG failed:', err)
         if (generateOptions.ssg.failOnError) {

@@ -143,6 +143,20 @@ describe('findContentRoutes', () => {
     expect(result[0].description).toBe('Docs that stay in sync')
   })
 
+  it('records a diagnostic when MDX content cannot be compiled', async () => {
+    writeFileSync(join(tempDir, 'broken.mdx'), '# Hello\n\n<Thing', 'utf-8')
+
+    const result = await findContentRoutes(tempDir)
+
+    expect(result[0].diagnostic).toMatchObject({
+      kind: 'mdx',
+      title: 'MDX syntax error',
+      filePath: 'broken.mdx',
+      message: expect.stringContaining('could not be compiled'),
+      details: expect.stringContaining('Unexpected end of file'),
+    })
+  })
+
   it('falls back to filename stem for title', async () => {
     writeFileSync(join(tempDir, 'quick-start.mdx'), '# Hello', 'utf-8')
     const result = await findContentRoutes(tempDir)

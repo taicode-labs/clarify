@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-import type { ResolvedProjectConfig } from '../types.js'
+import type { ClarifyProjectContext } from '../types.js'
 
 import { CONFIG_FILENAMES } from './user-config.js'
 
@@ -47,7 +47,8 @@ export type ProjectInfoResponse = {
 /**
  * Build the project-info response payload from the resolved plugin state.
  */
-export function buildProjectInfo(projectRoot: string, contentRoot: string, projectConfig: ResolvedProjectConfig): ProjectInfoResponse {
+export function buildProjectInfo(context: ClarifyProjectContext): ProjectInfoResponse {
+  const { projectRoot, contentRoot, projectConfig } = context
   // `contentRoot` is an absolute path (join(root, rootDirectory)); expose the
   // relative directory name so tooling can reason about file locations
   // without assuming a specific absolute path.
@@ -76,7 +77,7 @@ export function buildProjectInfo(projectRoot: string, contentRoot: string, proje
  * Handle a request to the project-info endpoint. Responds to any method
  * (GET is typical) with the JSON payload — there is no request body to parse.
  */
-export function handleProjectInfoRequest(_req: IncomingMessage, res: ServerResponse, projectRoot: string, contentRoot: string, projectConfig: ResolvedProjectConfig): void {
+export function handleProjectInfoRequest(_req: IncomingMessage, res: ServerResponse, context: ClarifyProjectContext): void {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
-  res.end(JSON.stringify(buildProjectInfo(projectRoot, contentRoot, projectConfig)))
+  res.end(JSON.stringify(buildProjectInfo(context)))
 }

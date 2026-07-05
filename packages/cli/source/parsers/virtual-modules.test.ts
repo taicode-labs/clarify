@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { resolveThemeConfig } from '../core/theme.js'
-import { createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
+import { buildVirtualModules, createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from '../core/virtual-modules.js'
 import type { ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../types.js'
 
 describe('generateConfigModule', () => {
@@ -31,7 +31,7 @@ describe('generateRoutesModule', () => {
     const code = generateRoutesModule([])
     expect(code).toContain('export const routes = [')
     expect(code).toContain('export const navigation = []')
-    expect(code).not.toContain('import')
+    expect(code).toContain("import { createContentDiagnosticComponent } from '@clarify-labs/renderer';")
   })
 
   it('generates lazy imports and routes array', () => {
@@ -41,8 +41,12 @@ describe('generateRoutesModule', () => {
     ]
     const code = generateRoutesModule(routes)
     expect(code).not.toContain('import Page')
-    expect(code).toContain('{ path: "/", title: "Home", component: () => import("virtual:clarify-page/index"), lazy: true, kind: "mdx", sourceUrl: "https://github.com/acme/docs/edit/main/index.mdx" }')
-    expect(code).toContain('{ path: "/about", title: "About", component: () => import("virtual:clarify-page/about"), lazy: true, kind: "mdx" }')
+    expect(code).toContain("import { createContentDiagnosticComponent } from '@clarify-labs/renderer';")
+    expect(code).toContain('createContentDiagnosticComponent({ kind:')
+    expect(code).toContain('virtual:clarify-page/index')
+    expect(code).toContain('virtual:clarify-page/about')
+    expect(code).toContain('This page could not be loaded')
+    expect(code).toContain('lazy: true')
     expect(code).toContain('"title": "About"')
   })
 
@@ -62,6 +66,19 @@ describe('generateRoutesModule', () => {
     const serverCode = generateRoutesModule(routes, undefined, undefined, 'server')
     expect(clientCode).toContain('import("virtual:clarify-page/doc\'s/quote")')
     expect(serverCode).toContain('import Page0 from "virtual:clarify-page/doc\'s/quote";')
+  })
+
+  it('wraps client route imports with a fallback error module', () => {
+    const routes: ContentRoute[] = [
+      { path: '/broken', title: 'Broken', filePath: '/a/broken.mdx', virtualModuleId: 'virtual:clarify-page/broken', kind: 'mdx' },
+    ]
+
+    const code = generateRoutesModule(routes)
+
+    expect(code).toContain(`import("virtual:clarify-page/broken")`)
+    expect(code).toContain("import { createContentDiagnosticComponent } from '@clarify-labs/renderer';")
+    expect(code).toContain('.catch((error) =>')
+    expect(code).toContain('createContentDiagnosticComponent(')
   })
 
   it('uses tabbed navigation when tabs are provided', () => {
@@ -106,13 +123,53 @@ describe('generateRoutesModule', () => {
     const code = generateRoutesModule(routes)
     
     // The localized route should not have isBareAlias
-    expect(code).toContain('{ path: "/zh-CN/guide", title: "Guide", component: () => import("virtual:clarify-page/guide"), lazy: true, kind: "mdx", basePath: "/guide", locale: "zh-CN" }')
-    
-    // The bare alias route should have isBareAlias: true
-    expect(code).toContain('{ path: "/guide", title: "Guide", component: () => import("virtual:clarify-page/guide"), lazy: true, kind: "mdx", basePath: "/guide", isBareAlias: true }')
-    
-    // The other locale route should not have isBareAlias
-    expect(code).toContain('{ path: "/en-US/guide", title: "Guide", component: () => import("virtual:clarify-page/guide"), lazy: true, kind: "mdx", basePath: "/guide", locale: "en-US" }')
+    expect(code).toContain('createContentDiagnosticComponent({ kind:')
+    expect(code).toContain('virtual:clarify-page/guide')
+    expect(code).toContain('basePath: "/guide"')
+    expect(code).toContain('locale: "zh-CN"')
+    expect(code).toContain('isBareAlias: true')
+    expect(code).toContain('locale: "en-US"')
+  })
+})
+
+describe('buildVirtualModules', () => {
+  it('emits a diagnostic route module for MDX compile failures', () => {
+    const modules = buildVirtualModules({
+      projectConfig: {
+        title: 'Docs',
+        description: 'Docs',
+        routePrefix: '/',
+        assetPrefix: '/',
+        theme: resolveThemeConfig(),
+        variables: {},
+      },
+      generateOptions: {
+        projectRoot: '/site',
+        rootDirectory: 'source',
+        outputDirectory: 'dist',
+        ssg: { failOnError: true },
+      },
+      routes: [{
+        path: '/broken',
+        title: 'Broken',
+        filePath: '/site/source/broken.mdx',
+        virtualModuleId: 'virtual:clarify-page/broken',
+        kind: 'mdx',
+        diagnostic: {
+          kind: 'mdx',
+          title: 'MDX syntax error',
+          message: 'This page could not be compiled.',
+          filePath: '/site/source/broken.mdx',
+          details: 'Unexpected end of file',
+        },
+      }],
+    })
+
+    const moduleContent = modules.get('virtual:clarify-page/broken')
+    expect(moduleContent).toContain('contentDiagnostic')
+    expect(moduleContent).toContain('"kind":"mdx"')
+    expect(moduleContent).toContain('Unexpected end of file')
+    expect(moduleContent).not.toContain('createElement')
   })
 })
 

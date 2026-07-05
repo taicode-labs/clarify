@@ -9,6 +9,7 @@ import { visit } from 'unist-util-visit'
 import type { ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, ResolvedClarifyI18nConfig, TabbedNavigation } from '../types.js'
 
 import { createContentProcessor, type ContentProcessor } from './content.js'
+import { compileMdxContent } from './mdx.js'
 
 export type FindContentRoutesOptions = {
   contentProcessor?: ContentProcessor
@@ -123,6 +124,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
 
       const source = readFileSync(fullPath, 'utf-8')
       const { frontmatter, content } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
+      const mdxResult = await compileMdxContent(content, fullPath, base)
 
       let title = typeof frontmatter.title === 'string' ? frontmatter.title : ''
       if (!title) {
@@ -134,17 +136,18 @@ export async function findContentRoutes(dir: string, base: string = dir, options
       }
 
       routes.push({
+        kind: 'mdx',
+        title,
         path: cleanPath,
         basePath: cleanPath,
         filePath: fullPath,
         virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx?$/, '').replace(/\/+/g, '/'),
-        title,
         description: typeof frontmatter.description === 'string' ? frontmatter.description : undefined,
         keywords: frontmatterKeywords(frontmatter),
-        kind: 'mdx',
         frontmatter,
         content,
         sections: extractMdxSections(content),
+        diagnostic: mdxResult.ok ? undefined : mdxResult.diagnostic,
       })
     }
   }

@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { build } from 'vite'
 import type { Plugin } from 'vite'
 
-import type { ResolvedProjectConfig, ContentRoute } from '../types.js'
+import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../types.js'
 
 import { createClarifyRuntimeAliases } from './runtime-deps.js'
 import { createClarifyTempDir } from './temp-dir.js'
@@ -21,7 +21,12 @@ export function readIndexHtml(outputDirectory: string): string | undefined {
   }
 }
 
-function injectHtmlLocaleAttributes(html: string, projectConfig: ResolvedProjectConfig, route?: ContentRoute): string {
+function resolveProjectConfigFromContext(contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig): ResolvedProjectConfig {
+  return 'projectConfig' in contextOrConfig ? contextOrConfig.projectConfig : contextOrConfig
+}
+
+function injectHtmlLocaleAttributes(html: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
+  const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
   const localeCode = route?.locale ?? projectConfig.i18n?.defaultLocale
   if (!localeCode) return html
 
@@ -39,7 +44,8 @@ function injectHtmlLocaleAttributes(html: string, projectConfig: ResolvedProject
   })
 }
 
-function routeTitle(projectConfig: ResolvedProjectConfig, route?: ContentRoute): string {
+function routeTitle(contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
+  const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
   const title = route?.title?.trim()
   if (!title || title === projectConfig.title) return projectConfig.title
   return `${title} - ${projectConfig.title}`
@@ -54,7 +60,8 @@ function setNamedMeta(html: string, name: string, content: string | undefined): 
   return html.replace('</head>', `  ${meta}\n  </head>`)
 }
 
-function canonicalUrl(projectConfig: ResolvedProjectConfig, route: ContentRoute): string | undefined {
+function canonicalUrl(contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route: ContentRoute): string | undefined {
+  const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
   if (!projectConfig.siteUrl || !route.alternates || !route.locale) return undefined
   const prefixedPath = route.alternates[route.locale]
   if (!prefixedPath || prefixedPath === route.path) return undefined
@@ -66,23 +73,24 @@ function canonicalUrl(projectConfig: ResolvedProjectConfig, route: ContentRoute)
   return `${base}${prefix}${prefixedPath}`
 }
 
-function injectCanonicalUrl(html: string, projectConfig: ResolvedProjectConfig, route?: ContentRoute): string {
-  const url = route ? canonicalUrl(projectConfig, route) : undefined
+function injectCanonicalUrl(html: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
+  const url = route ? canonicalUrl(contextOrConfig, route) : undefined
   // Remove any existing canonical link
   html = html.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*\/?>\n?/gi, '')
   if (!url) return html
   return html.replace('</head>', `  <link rel="canonical" href="${escapeHtml(url)}" />\n  </head>`)
 }
 
-export function injectSSRIntoTemplate(template: string, appHtml: string, projectConfig: ResolvedProjectConfig, route?: ContentRoute): string {
-  let html = injectHtmlLocaleAttributes(template, projectConfig, route)
+export function injectSSRIntoTemplate(template: string, appHtml: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
+  const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
+  let html = injectHtmlLocaleAttributes(template, contextOrConfig, route)
 
   // Replace <title>...</title>
-  html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(routeTitle(projectConfig, route))}</title>`)
+  html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(routeTitle(contextOrConfig, route))}</title>`)
 
   html = setNamedMeta(html, 'description', route?.description ?? projectConfig.description)
   html = setNamedMeta(html, 'keywords', route?.keywords?.join(', '))
-  html = injectCanonicalUrl(html, projectConfig, route)
+  html = injectCanonicalUrl(html, contextOrConfig, route)
 
   // Replace <div id="root">...</div> with SSR rendered content
   // For bare alias routes (e.g., /path) in multilingual sites, mark the root div
@@ -154,7 +162,7 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
   })
 }
 
-export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string, failOnError: boolean = true): Promise<void> {
+export async function renderSSGRoutes(routes: ContentRoute[], contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string, failOnError: boolean = true): Promise<void> {
   const { render } = await import(pathToFileURL(ssrBundlePath).href)
 
   const template = readIndexHtml(outputDirectory)
@@ -167,7 +175,7 @@ export async function renderSSGRoutes(routes: ContentRoute[], projectConfig: Res
   for (const route of routes) {
     try {
       const appHtml = await render(route.path)
-      const finalHtml = injectSSRIntoTemplate(template, appHtml, projectConfig, route)
+      const finalHtml = injectSSRIntoTemplate(template, appHtml, contextOrConfig, route)
 
       for (const outFile of routeOutputFiles(outputDirectory, route)) {
         mkdirSync(dirname(outFile), { recursive: true })

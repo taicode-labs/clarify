@@ -1,7 +1,7 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
 import { describe, expect, it } from 'vitest'
 
-import { rehypeParseCodeBlocks, rehypePlugins, rehypeShiki, rehypeSlugSections, remarkPlugins } from './mdx.js'
+import { compileMdxContent, rehypeParseCodeBlocks, rehypePlugins, rehypeShiki, rehypeSlugSections, remarkPlugins } from './mdx.js'
 
 const testRemarkPlugins = remarkPlugins as CompileOptions['remarkPlugins']
 
@@ -194,6 +194,28 @@ describe('mdx rehype plugins', () => {
     expect(compiled).toContain('<_components.code className="language-ts" title="Full pipeline" label="clarify.ts"')
     expect(compiled).toContain('language="ts"')
     expect(compiled).toContain('code="export default {}')
+  })
+
+  it('deduplicates repeated MDX parser messages in diagnostics', async () => {
+    const result = await compileMdxContent('<BrokenComponent>\nThis tag never closes\n')
+
+    expect(result.ok).toBe(false)
+
+    if (!result.ok) {
+      const occurrences = (result.diagnostic.details.match(/Expected a closing tag for `<BrokenComponent>`/g) ?? []).length
+      expect(occurrences).toBe(1)
+      expect(result.diagnostic.details).not.toContain('Line undefined, column undefined')
+    }
+  })
+
+  it('uses the provided root directory when normalizing diagnostic file paths', async () => {
+    const result = await compileMdxContent('<BrokenComponent>\nThis tag never closes\n', '/tmp/project/source/broken.mdx', '/tmp/project')
+
+    expect(result.ok).toBe(false)
+
+    if (!result.ok) {
+      expect(result.diagnostic.filePath).toBe('source/broken.mdx')
+    }
   })
 
   it('enables GitHub Flavored Markdown syntax', async () => {

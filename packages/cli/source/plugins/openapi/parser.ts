@@ -116,10 +116,11 @@ export async function readOpenAPISpec(filePath: string, contentProcessor?: Conte
     return {
       ok: false,
       diagnostic: {
+        kind: 'openapi',
         title: 'OpenAPI spec parse failed',
         message: `Clarify could not parse ${filePath}.`,
         filePath,
-        cause: errorMessage(error),
+        details: errorMessage(error),
       },
     }
   }
