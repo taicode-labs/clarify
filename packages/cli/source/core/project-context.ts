@@ -3,9 +3,8 @@ import { join, resolve } from 'node:path'
 
 import type { ConfigEnv } from 'vite'
 
-import type { ClarifyHookContext, ClarifyProjectContext } from '../types.js'
-
 import { cliPackageVersion } from '../cli/package.js'
+import type { ClarifyHookContext, ClarifyProjectContext } from '../types.js'
 
 import { resolveProjectConfig } from './config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions, type ResolvedBuildOptions } from './options.js'
