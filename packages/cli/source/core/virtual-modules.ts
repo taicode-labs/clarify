@@ -16,11 +16,12 @@ export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 export type VirtualModules = Map<string, string>
 
 type BuildVirtualModulesArgs = {
-  projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
+  projectConfig: ResolvedProjectConfig
   routes: ContentRoute[]
-  navigation?: NavigationTree
+  version?: string
   plugins?: ClarifyPlugin[]
+  navigation?: NavigationTree
   themeEditor?: boolean
 }
 
@@ -36,8 +37,12 @@ export function stripVirtualPrefix(id: string): string {
   return id.startsWith('\0') ? id.slice(1) : id
 }
 
-export function generateConfigModule(projectConfig: ResolvedProjectConfig, buildOptions: ResolvedBuildOptions): string {
-  return `export const config = ${JSON.stringify({ ...projectConfig, ...buildOptions })};`
+export function generateConfigModule(projectConfig: ResolvedProjectConfig, buildOptions: ResolvedBuildOptions, version?: string): string {
+  const runtimeConfig: Record<string, unknown> = { ...projectConfig, ...buildOptions }
+  if (version) {
+    runtimeConfig.version = version
+  }
+  return `export const config = ${JSON.stringify(runtimeConfig)};`
 }
 
 function moduleSpecifier(value: string): string {
@@ -173,7 +178,7 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   // Collect all plugins
   const allPlugins: ClarifyPlugin[] = [...(args.plugins ?? [])]
   
-  modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions))
+  modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions, args.version))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
   modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))

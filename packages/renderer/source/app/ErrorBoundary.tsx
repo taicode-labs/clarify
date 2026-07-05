@@ -16,7 +16,6 @@ type PageErrorBoundaryProps = {
   messageLabel: string;
   stackLabel: string;
   componentStackLabel: string;
-  timestampLabel: string;
   copyLabel: string;
   copiedLabel: string;
   path: string;
@@ -25,7 +24,6 @@ type PageErrorBoundaryProps = {
 type PageErrorBoundaryState = {
   error?: Error;
   errorInfo?: ErrorInfo;
-  occurredAt?: string;
 }
 
 type PageErrorPanelProps = {
@@ -38,13 +36,11 @@ type PageErrorPanelProps = {
   messageLabel: string;
   stackLabel: string;
   componentStackLabel: string;
-  timestampLabel: string;
   copyLabel: string;
   copiedLabel: string;
   path: string;
   error: Error;
   errorInfo?: ErrorInfo;
-  occurredAt?: string;
 }
 
 function PageErrorPanel(props: PageErrorPanelProps) {
@@ -58,19 +54,16 @@ function PageErrorPanel(props: PageErrorPanelProps) {
     messageLabel,
     stackLabel,
     componentStackLabel,
-    timestampLabel,
     copyLabel,
     copiedLabel,
     path,
     error,
     errorInfo,
-    occurredAt,
   } = props
   const [copiedStack, setCopiedStack] = useState(false)
   const stack = error.stack ?? error.message
   const componentStack = errorInfo?.componentStack?.trim()
   const stackText = componentStack ? `${stack}\n\n${componentStackLabel}\n${componentStack}` : stack
-  const capturedAt = occurredAt ?? new Date().toISOString()
 
   async function copyStack() {
     if (!(await copyTextToClipboard(stackText))) return
@@ -82,19 +75,11 @@ function PageErrorPanel(props: PageErrorPanelProps) {
     <RenderErrorPanel
       title={title}
       description={description}
-      action={(
-        <button
-          type="button"
-          className="inline-flex shrink-0 items-center rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-theme-tokens-colors-primary) px-4 py-2 text-sm/5 font-semibold text-white shadow-xs transition hover:opacity-90"
-          onClick={() => window.location.reload()}
-        >
-          {reloadLabel}
-        </button>
-      )}
+      refreshLabel={reloadLabel}
+      onRefresh={() => window.location.reload()}
       metadata={[
         [pathLabel, path],
         [typeLabel, error.name],
-        [timestampLabel, capturedAt],
       ].map(([label, value]) => ({ label, value: String(value) }))}
       detailsLabel={detailsLabel}
       detailsHeaderAction={(
@@ -132,7 +117,7 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
   state: PageErrorBoundaryState = {}
 
   static getDerivedStateFromError(error: Error): PageErrorBoundaryState {
-    return { error, occurredAt: new Date().toISOString() }
+    return { error }
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -141,7 +126,7 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
   }
 
   render() {
-    const { error, errorInfo, occurredAt } = this.state
+    const { error, errorInfo } = this.state
     if (!error) return this.props.children
 
     return (
@@ -155,13 +140,11 @@ export class PageErrorBoundary extends Component<PageErrorBoundaryProps, PageErr
         messageLabel={this.props.messageLabel}
         stackLabel={this.props.stackLabel}
         componentStackLabel={this.props.componentStackLabel}
-        timestampLabel={this.props.timestampLabel}
         copyLabel={this.props.copyLabel}
         copiedLabel={this.props.copiedLabel}
         path={this.props.path}
         error={error}
         errorInfo={errorInfo}
-        occurredAt={occurredAt}
       />
     )
   }

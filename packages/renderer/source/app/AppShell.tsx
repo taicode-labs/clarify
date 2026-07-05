@@ -483,7 +483,6 @@ export function AppShell(arg0: AppShellProps) {
           messageLabel={text('renderError.message')}
           stackLabel={text('renderError.stack')}
           componentStackLabel={text('renderError.componentStack')}
-          timestampLabel={text('renderError.timestamp')}
           copyLabel={text('actions.copy')}
           copiedLabel={text('actions.copied')}
           path={pathname}

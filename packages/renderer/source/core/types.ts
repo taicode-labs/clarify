@@ -175,6 +175,7 @@ export type Config = {
   footer?: FooterConfig;
   i18n?: I18nConfig;
   tabs?: TabsConfig;
+  version?: string;
 };
 
 export type NavigationTab = {

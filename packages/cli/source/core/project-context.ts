@@ -5,6 +5,8 @@ import type { ConfigEnv } from 'vite'
 
 import type { ClarifyHookContext, ClarifyProjectContext } from '../types.js'
 
+import { cliPackageVersion } from '../cli/package.js'
+
 import { resolveProjectConfig } from './config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions, type ResolvedBuildOptions } from './options.js'
 import { findClarifyConfigFile, loadClarifyConfig, type ClarifyConfig } from './user-config.js'
@@ -44,6 +46,7 @@ export async function resolveProjectContext(options: ClarifyBuildOptions = {}, e
     contentRoot,
     projectConfig: resolvedProjectConfig,
     generateOptions: resolvedBuildOptions,
+    version: cliPackageVersion,
   }
 
   const hookContext: ClarifyHookContext = {

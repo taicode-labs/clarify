@@ -18,6 +18,10 @@ export function useConfig(): Config {
   return config
 }
 
+export function useConfigOptional(): Config | null {
+  return useContext(ConfigContext)
+}
+
 export function useLocale(): string | undefined {
   return useContext(LocaleContext)
 }

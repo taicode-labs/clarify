@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react'
 
+import { useConfigOptional } from '../core/context'
+import { useBuiltInText } from '../core/i18n'
+
 type RenderErrorPanelMetadataItem = {
   label: string
   value: string
@@ -15,6 +18,8 @@ type RenderErrorPanelProps = {
   detailsHeaderAction?: ReactNode
   detailsContent: ReactNode
   titleId?: string
+  refreshLabel?: string
+  onRefresh?: () => void
 }
 
 export function RenderErrorPanel(props: RenderErrorPanelProps) {
@@ -28,7 +33,28 @@ export function RenderErrorPanel(props: RenderErrorPanelProps) {
     detailsHeaderAction,
     detailsContent,
     titleId = 'clarify-render-error-title',
+    refreshLabel,
+    onRefresh,
   } = props
+
+  const t = useBuiltInText()
+  const config = useConfigOptional()
+  const resolvedRefreshLabel = refreshLabel ?? t('renderError.reload')
+  const resolvedVersion = config?.version ?? '0.0.0'
+  const resolvedMetadata = [
+    ...metadata,
+    { label: t('renderError.version'), value: resolvedVersion },
+  ]
+
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh()
+      return
+    }
+    if (typeof window !== 'undefined') {
+      window.location.reload()
+    }
+  }
 
   return (
     <section className="mx-auto flex min-h-(--clarify-error-page-min-height) w-full max-w-4xl flex-col justify-center py-16 text-(--clarify-theme-tokens-colors-foreground)" aria-labelledby={titleId} role="alert">
@@ -39,13 +65,22 @@ export function RenderErrorPanel(props: RenderErrorPanelProps) {
             <h1 id={titleId} className="mt-3 text-3xl/9 font-semibold tracking-tight text-(--clarify-theme-tokens-colors-foreground)">{title}</h1>
             <p className="mt-4 max-w-2xl text-sm/6 text-(--clarify-theme-tokens-colors-muted)">{description}</p>
           </div>
-          {action ? <div className="shrink-0">{action}</div> : null}
+          <div className="flex shrink-0 items-center gap-3">
+            <button
+              type="button"
+              className="rounded-(--clarify-theme-tokens-radius-sm) border border-(--clarify-theme-tokens-colors-border) px-3 py-2 text-sm/5 font-semibold text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong)"
+              onClick={handleRefresh}
+            >
+              {resolvedRefreshLabel}
+            </button>
+            {action ? <div className="shrink-0">{action}</div> : null}
+          </div>
         </div>
 
-        {metadata.length > 0 ? (
+        {resolvedMetadata.length > 0 ? (
           <dl className="mt-8 grid gap-px overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-border) sm:grid-cols-3">
-            {metadata.map(({ label, value }) => (
-              <div key={label} className="min-w-0 bg-(--clarify-theme-tokens-colors-surface) px-4 py-3">
+            {resolvedMetadata.map(({ label, value }, index) => (
+              <div key={`${label}-${index}`} className="min-w-0 bg-(--clarify-theme-tokens-colors-surface) px-4 py-3">
                 <dt className="text-xs/5 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">{label}</dt>
                 <dd className="mt-1 truncate font-mono text-sm/6 text-(--clarify-ui-text-strong)" title={value}>{value}</dd>
               </div>

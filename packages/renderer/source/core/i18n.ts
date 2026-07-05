@@ -90,8 +90,8 @@ export type BuiltInTextKey =
   | 'renderError.path'
   | 'renderError.reload'
   | 'renderError.stack'
-  | 'renderError.timestamp'
   | 'renderError.title'
+  | 'renderError.version'
   | 'renderError.type'
   | 'theme.switchToDark'
   | 'theme.switchToLight'
@@ -190,9 +190,9 @@ const builtInText = {
     'renderError.path': 'Route',
     'renderError.reload': 'Reload route',
     'renderError.stack': 'JavaScript stack trace',
-    'renderError.timestamp': 'Captured at',
     'renderError.title': 'Route render failed',
     'renderError.type': 'Error type',
+    'renderError.version': 'Clarify version',
     'theme.switchToDark': 'Switch to dark theme',
     'theme.switchToLight': 'Switch to light theme',
     'theme.switchToSystem': 'Follow system theme',
@@ -289,9 +289,9 @@ const builtInText = {
     'renderError.path': '路由',
     'renderError.reload': '重新加载路由',
     'renderError.stack': 'JavaScript 堆栈',
-    'renderError.timestamp': '捕获时间',
     'renderError.title': '路由渲染失败',
     'renderError.type': '错误类型',
+    'renderError.version': 'Clarify 版本',
     'theme.switchToDark': '切换到深色主题',
     'theme.switchToLight': '切换到浅色主题',
     'theme.switchToSystem': '跟随系统主题',

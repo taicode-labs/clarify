@@ -355,6 +355,7 @@ export type ClarifyProjectContext = {
   contentRoot: string
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
+  version: string
 }
 
 export type ClarifyHookContext = ClarifyProjectContext & {

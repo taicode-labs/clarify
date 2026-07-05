@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
+import { cliPackageVersion } from '../cli/package.js'
 import { rehypePlugins, remarkPlugins } from '../parsers/mdx.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../types.js'
 
@@ -51,7 +52,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   let projectConfig = resolveProjectConfig(options)
   let generateOptions = resolveBuildOptions(options)
   let contentRoot = join(root, generateOptions.rootDirectory)
-  let runtimeContext = { projectRoot: root, contentRoot, projectConfig, generateOptions }
+  let runtimeContext = { projectRoot: root, contentRoot, projectConfig, generateOptions, version: cliPackageVersion }
   const configFilePath = findClarifyConfigFile(root)
   let routes: ContentRoute[] = []
 
@@ -61,6 +62,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     contentRoot,
     projectConfig,
     generateOptions,
+    version: cliPackageVersion,
     routes,
     navigation: [],
   }
@@ -73,7 +75,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     projectConfig = site.projectConfig
     generateOptions = site.generateOptions
     contentRoot = join(root, generateOptions.rootDirectory)
-    runtimeContext = { projectRoot: root, contentRoot, projectConfig, generateOptions }
+    runtimeContext = { projectRoot: root, contentRoot, projectConfig, generateOptions, version: cliPackageVersion }
     routes = site.routes
     resolvedNavigation = site.navigation
     clarifyPlugins = site.plugins
@@ -81,6 +83,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     ctx.contentRoot = contentRoot
     ctx.projectConfig = projectConfig
     ctx.generateOptions = generateOptions
+    ctx.version = cliPackageVersion
     ctx.routes = routes
     ctx.navigation = resolvedNavigation
   }
@@ -93,6 +96,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       navigation: resolvedNavigation,
       plugins: clarifyPlugins,
       themeEditor: viteConfig.command === 'serve' || projectConfig.theme.editor,
+      version: ctx.version,
     })
     virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
   }
