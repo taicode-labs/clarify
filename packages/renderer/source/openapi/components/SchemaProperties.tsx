@@ -13,11 +13,32 @@ import type { OpenApiParameter, OpenApiResponse } from '../types'
 type SchemaTreeNode = {
   key: string
   name: string
+  kind: 'property' | 'enum'
   type?: string
   description?: string
   details?: string
   required: boolean
+  defaultExpanded?: boolean
   children: SchemaTreeNode[]
+}
+
+function getEnumDescriptions(schema: Record<string, unknown>): Array<string | undefined> {
+  const descriptions = schema['x-enumDescriptions']
+
+  if (Array.isArray(descriptions)) {
+    return descriptions.map((value) => (typeof value === 'string' ? value : undefined))
+  }
+
+  if (isRecord(descriptions)) {
+    return Array.isArray(schema.enum)
+      ? schema.enum.map((value) => {
+          const description = descriptions[String(value)]
+          return typeof description === 'string' ? description : undefined
+        })
+      : []
+  }
+
+  return []
 }
 
 type SchemaTreeBranch = {
@@ -49,9 +70,13 @@ function getSchemaNodeType(schema: unknown): string | undefined {
 function getEnumChildren(schema: Record<string, unknown>, path: string): SchemaTreeNode[] {
   if (!Array.isArray(schema.enum) || schema.enum.length === 0) return []
 
+  const descriptions = getEnumDescriptions(schema)
+
   return schema.enum.map((value, index) => ({
     key: `${path || 'root'}.enum[${index}]`,
     name: String(value),
+    kind: 'enum',
+    description: descriptions[index],
     required: false,
     children: [],
   }))
@@ -79,16 +104,18 @@ type GetSchemaChildrenArgs = {
   required?: string[]
   depth?: number
   seen?: Set<string>
+  defaultExpanded?: boolean
 }
 
 function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
   const {
     spec,
-    schema,
     path,
-    required = [],
+    schema,
     depth = 0,
+    required = [],
     seen = new Set<string>(),
+    defaultExpanded,
   } = arg0
 
   if (depth > 12) return []
@@ -102,13 +129,14 @@ function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
       required,
       depth,
       seen: new Set([...seen, schema.$ref]),
+      defaultExpanded,
     })
   }
 
   if (!isRecord(schema)) return []
 
   const arrayChildren = schemaHasType(schema, 'array')
-    ? getSchemaChildren({ spec, schema: schema.items, path: `${path}[]`, depth: depth + 1, seen })
+    ? getSchemaChildren({ spec, schema: schema.items, path: `${path}[]`, depth: depth + 1, seen, defaultExpanded })
     : []
 
   const objectRequired = Array.isArray(schema.required) ? schema.required.map(String) : required
@@ -125,15 +153,19 @@ function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
       path: isArray ? `${childPath}[]` : childPath,
       depth: depth + 1,
       seen,
+      defaultExpanded,
     })
+    const hasEnumValues = Array.isArray(property.enum) && property.enum.length > 0
 
     return {
       key: childPath,
       name,
+      kind: 'property' as const,
       type: getSchemaNodeType(property),
       description: getSchemaDescription(property),
       details: getSchemaDetails(property),
       required: objectRequired.includes(name),
+      defaultExpanded: hasEnumValues ? defaultExpanded === true : (defaultExpanded ?? depth < 1),
       children,
     }
   })
@@ -142,11 +174,13 @@ function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
     ? [{
       key: `${path || 'root'}.*`,
       name: '*',
+      kind: 'property' as const,
       type: getSchemaNodeType(schema.additionalProperties),
       description: getSchemaDescription(schema.additionalProperties),
       details: getSchemaDetails(schema.additionalProperties),
       required: false,
-      children: getSchemaChildren({ spec, schema: schema.additionalProperties, path: `${path || 'root'}.*`, depth: depth + 1, seen }),
+      defaultExpanded: defaultExpanded ?? depth < 1,
+      children: getSchemaChildren({ spec, schema: schema.additionalProperties, path: `${path || 'root'}.*`, depth: depth + 1, seen, defaultExpanded }),
     }]
     : []
 
@@ -157,18 +191,26 @@ function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
     return {
       key: `${path || 'root'}.${label}`,
       name: label,
+      kind: 'property' as const,
       type: getSchemaNodeType(branch),
       description: branch ? getSchemaDescription(branch) : undefined,
       details: branch ? getSchemaDetails(branch) : undefined,
       required: false,
-      children: getSchemaChildren({ spec, schema: branchSchema, path: `${path || 'root'}.${label}`, required: objectRequired, depth: depth + 1, seen }),
+      defaultExpanded: defaultExpanded ?? depth < 1,
+      children: getSchemaChildren({ spec, schema: branchSchema, path: `${path || 'root'}.${label}`, required: objectRequired, depth: depth + 1, seen, defaultExpanded }),
     }
   })
 
-  return [...arrayChildren, ...enumChildren, ...propertyChildren, ...additionalPropertyChildren, ...composedChildren]
+  return [
+    ...arrayChildren,
+    ...enumChildren,
+    ...propertyChildren,
+    ...additionalPropertyChildren,
+    ...composedChildren
+  ]
 }
 
-function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode | undefined {
+function getRootSchemaNode(spec: OpenAPISpec, schema: unknown, defaultExpanded?: boolean): SchemaTreeNode | undefined {
   if (isReference(schema)) {
     const resolvedSchema = resolveSchema(spec, schema)
     const resolved = isRecord(resolvedSchema) ? resolvedSchema : {}
@@ -176,11 +218,12 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode |
     return {
       key: schema.$ref,
       name: resolveReferenceName(schema.$ref),
+      kind: 'property',
       type: getSchemaNodeType(resolved),
       description: getSchemaDescription(resolved),
       details: getSchemaDetails(resolved),
       required: false,
-      children: getSchemaChildren({ spec, schema: resolvedSchema, path: resolveReferenceName(schema.$ref), seen: new Set([schema.$ref]) }),
+      children: getSchemaChildren({ spec, schema: resolvedSchema, path: resolveReferenceName(schema.$ref), seen: new Set([schema.$ref]), defaultExpanded }),
     }
   }
 
@@ -189,24 +232,60 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode |
   return {
     key: 'root',
     name: 'body',
+    kind: 'property',
     type: getSchemaNodeType(schema),
     description: getSchemaDescription(schema),
     details: getSchemaDetails(schema),
     required: false,
-    children: getSchemaChildren({ spec, schema, path: '' }),
+    children: getSchemaChildren({ spec, schema, path: '', defaultExpanded }),
   }
 }
 
-type SchemaNodeProps = { node: SchemaTreeNode; depth?: number }
+type SchemaNodeProps = { node: SchemaTreeNode; depth?: number; defaultExpanded?: boolean }
+
+function EnumValueNode(arg0: SchemaNodeProps): ReactNode {
+  const { node, depth = 0 } = arg0
+  const rowClassName = clsx(
+    'flex min-w-0 items-start rounded py-0.5 text-left',
+    depth > 0 ? '-mx-2 w-(--clarify-schema-row-nested-width) px-2' : 'w-full px-1',
+  )
+
+  return (
+    <li className="clarify-schema-node m-0 px-0 py-2 first:pt-0 last:pb-0">
+      <div className={rowClassName}>
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span className="text-sm/5 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{node.name}</span>
+          </div>
+          {node.description || node.details ? (
+            <div className="mt-0.5 text-sm/5 text-(--clarify-ui-text-soft) *:first:mt-0 *:last:mb-0">
+              {node.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{node.description}</Markdown> : null}
+              {node.details ? <p className="text-xs text-(--clarify-ui-text-faint)">{node.details}</p> : null}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </li>
+  )
+}
 
 function SchemaNode(arg0: SchemaNodeProps): ReactNode {
-  const { node, depth = 0 } = arg0
+  const { node, depth = 0, defaultExpanded } = arg0
 
   const t = useBuiltInText()
-  const [expanded, setExpanded] = useState(depth < 1)
+  const [expanded, setExpanded] = useState(defaultExpanded ?? depth < 1)
   const hasChildren = node.children.length > 0
+
+  if (node.kind === 'enum') {
+    return <EnumValueNode node={node} depth={depth} />
+  }
+
   const type = [node.type, node.required ? t('openapi.requiredBadge') : undefined].filter(Boolean).join(', ') || undefined
-  const fallbackDescription = node.required ? t('openapi.required') : t('openapi.optional')
+  const fallbackDescription = hasChildren
+    ? undefined
+    : node.required
+      ? t('openapi.required')
+      : t('openapi.optional')
   const rowClassName = clsx(
     'flex min-w-0 items-start rounded py-0.5 text-left',
     depth > 0 ? '-mx-2 w-(--clarify-schema-row-nested-width) px-2' : 'w-full px-1',
@@ -267,17 +346,17 @@ function SchemaTree(arg0: SchemaTreeProps): ReactNode {
         depth > 0 && 'mt-2 rounded-lg bg-(--clarify-ui-subtle-background) px-2 py-1',
       )}
     >
-      {nodes.map((node) => <SchemaNode key={node.key} node={node} depth={depth} />)}
+      {nodes.map((node) => <SchemaNode key={node.key} node={node} depth={depth} defaultExpanded={node.defaultExpanded} />)}
     </ul>
   )
 }
 
-type SchemaPropertiesProps = { title: string; schema: unknown; spec: OpenAPISpec }
+type SchemaPropertiesProps = { title: string; schema: unknown; spec: OpenAPISpec; defaultExpanded?: boolean }
 
 export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {
-  const { title, schema, spec } = arg0
+  const { title, schema, spec, defaultExpanded } = arg0
 
-  const root = getRootSchemaNode(spec, schema)
+  const root = getRootSchemaNode(spec, schema, defaultExpanded)
 
   if (!root || root.children.length === 0) return null
 

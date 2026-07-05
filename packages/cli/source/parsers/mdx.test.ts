@@ -202,7 +202,8 @@ describe('mdx rehype plugins', () => {
     expect(result.ok).toBe(false)
 
     if (!result.ok) {
-      const occurrences = (result.diagnostic.details.match(/Expected a closing tag for `<BrokenComponent>`/g) ?? []).length
+      const details = result.diagnostic.details ?? ''
+      const occurrences = (details.match(/Expected a closing tag for `<BrokenComponent>`/g) ?? []).length
       expect(occurrences).toBe(1)
       expect(result.diagnostic.details).not.toContain('Line undefined, column undefined')
     }

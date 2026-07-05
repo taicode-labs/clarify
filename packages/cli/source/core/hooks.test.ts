@@ -6,6 +6,8 @@ import { runHooks } from './hooks.js'
 import { resolveThemeConfig } from './theme.js'
 
 const mockCtx: ClarifyHookContext = {
+  projectRoot: '/site',
+  contentRoot: '/site/source',
   projectConfig: {
     title: 'Test',
     description: '',

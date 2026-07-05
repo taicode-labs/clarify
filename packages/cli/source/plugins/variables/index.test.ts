@@ -6,6 +6,8 @@ import type { ClarifyHookContext } from '../../types.js'
 import { createVariablesPlugin } from './index.js'
 
 const ctx: ClarifyHookContext = {
+  projectRoot: '/site',
+  contentRoot: '/site/source',
   projectConfig: {
     title: 'Docs',
     description: '',

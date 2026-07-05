@@ -56,7 +56,14 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   let routes: ContentRoute[] = []
 
   let clarifyPlugins: ClarifyPlugin[] = [...createBuiltinPlugins(), ...(options.plugins ?? [])]
-  const ctx: ClarifyHookContext = { projectConfig, generateOptions, routes, navigation: [] }
+  const ctx: ClarifyHookContext = {
+    projectRoot: root,
+    contentRoot,
+    projectConfig,
+    generateOptions,
+    routes,
+    navigation: [],
+  }
   let viteConfig: ResolvedConfig
   let resolvedNavigation: NavigationTree = []
   let virtualModules: VirtualModules = new Map()
@@ -70,6 +77,8 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     routes = site.routes
     resolvedNavigation = site.navigation
     clarifyPlugins = site.plugins
+    ctx.projectRoot = root
+    ctx.contentRoot = contentRoot
     ctx.projectConfig = projectConfig
     ctx.generateOptions = generateOptions
     ctx.routes = routes

@@ -81,7 +81,60 @@ describe('schemaToType', () => {
 })
 
 describe('SchemaProperties', () => {
-  it('renders enum values as expandable child entries instead of inline values', () => {
+  it('keeps enum branches collapsed by default even when x-enumDescriptions are present', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {},
+    }
+
+    const schema = {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['draft', 'published'],
+          'x-enumDescriptions': ['Draft content', 'Published content'],
+        },
+      },
+    }
+
+    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
+
+    expect(markup).toContain('status')
+    expect(markup).toContain('aria-expanded="false"')
+    expect(markup).not.toContain('Draft content')
+    expect(markup).not.toContain('Published content')
+  })
+
+  it('renders enum value descriptions from object-form x-enumDescriptions when present', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {},
+    }
+
+    const schema = {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['draft', 'published'],
+          'x-enumDescriptions': {
+            draft: 'Draft content',
+            published: 'Published content',
+          },
+        },
+      },
+    }
+
+    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} defaultExpanded={true} />)
+
+    expect(markup).toContain('Draft content')
+    expect(markup).toContain('Published content')
+  })
+
+  it('renders enum values as collapsible child entries instead of inline values', () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',
       info: { title: 'Test API', version: '1.0.0' },
@@ -101,10 +154,33 @@ describe('SchemaProperties', () => {
     const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
 
     expect(markup).toContain('status')
-    expect(markup).toContain('active')
-    expect(markup).toContain('archived')
-    expect(markup).toContain('aria-expanded')
+    expect(markup).toContain('aria-expanded="false"')
+    expect(markup).not.toContain('active')
+    expect(markup).not.toContain('archived')
     expect(markup).not.toContain('enum: active, archived')
+    expect(markup).not.toContain('Optional.')
+  })
+
+  it('collapses enum branches by default', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {},
+    }
+
+    const schema = {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['active', 'archived'],
+        },
+      },
+    }
+
+    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
+
+    expect(markup).toContain('aria-expanded="false"')
   })
 })
 

@@ -29,6 +29,8 @@ const generateOptions: ResolvedBuildOptions = {
 
 function createContext(routes: ContentRoute[]): ClarifyHookContext {
   return {
+    projectRoot: '/site',
+    contentRoot: '/site/source',
     projectConfig,
     generateOptions,
     routes,
@@ -38,6 +40,8 @@ function createContext(routes: ContentRoute[]): ClarifyHookContext {
 
 function createContextWithVariables(routes: ContentRoute[]): ClarifyHookContext {
   const ctx: ClarifyHookContext = {
+    projectRoot: '/site',
+    contentRoot: '/site/source',
     projectConfig: {
       ...projectConfig,
       variables: {
