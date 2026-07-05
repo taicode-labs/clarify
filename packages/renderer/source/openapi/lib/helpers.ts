@@ -135,15 +135,15 @@ export function schemaToType(schema: unknown): string | undefined {
   if (!isRecord(schema)) return undefined
   if (isReference(schema)) return resolveReferenceName(schema.$ref)
   if (typeof schema.const !== 'undefined') return JSON.stringify(schema.const)
-  if (Array.isArray(schema.enum)) return schema.enum.map(String).join(' | ')
+  if (Array.isArray(schema.enum)) return 'enum'
 
   const oneOf = schema.oneOf ?? schema.anyOf
   if (Array.isArray(oneOf)) {
-    return oneOf.map(schemaToType).filter(Boolean).join(' | ')
+    return oneOf.map((branch) => schemaToType(branch)).filter(Boolean).join(' | ')
   }
 
   if (Array.isArray(schema.allOf)) {
-    return schema.allOf.map(schemaToType).filter(Boolean).join(' & ')
+    return schema.allOf.map((branch) => schemaToType(branch)).filter(Boolean).join(' & ')
   }
 
   if (schemaHasType(schema, 'array')) {

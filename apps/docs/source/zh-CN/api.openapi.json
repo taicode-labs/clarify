@@ -769,6 +769,28 @@
         "description": "演示多个可选服务器，并且当前服务器暴露多个 URL 变量。服务器选择器应保持单行布局，其余变量自适应为响应式网格。"
       }
     },
+    "/examples/long-enum": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "operationId": "demoLongEnum",
+        "summary": "长枚举渲染示例",
+        "description": "这个接口使用多个较长的枚举值，方便在 API Reference 页面中检查展开式枚举列表的显示效果。",
+        "responses": {
+          "200": {
+            "description": "带有长枚举的示例响应。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumPreviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/examples/single-server": {
       "get": {
         "tags": [
@@ -863,6 +885,66 @@
           "archived"
         ],
         "description": "Clarify 会将字符串枚举渲染为受限取值，并在 Schema 表格中展示所有可选枚举值。"
+      },
+      "EnumPreviewResponse": {
+        "type": "object",
+        "required": [
+          "mode",
+          "status",
+          "channel"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "preview",
+              "review",
+              "publish",
+              "archive",
+              "delete",
+              "restore",
+              "duplicate",
+              "rollback",
+              "migrate",
+              "snapshot",
+              "compare",
+              "schedule"
+            ],
+            "description": "用于预览展开式枚举展示的长枚举值。"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "processing",
+              "ready",
+              "failed",
+              "canceled",
+              "retrying",
+              "timed_out",
+              "partial",
+              "complete"
+            ],
+            "description": "第二组长枚举，用于检查嵌套子项渲染。"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "email",
+              "slack",
+              "webhook",
+              "teams",
+              "sms",
+              "push",
+              "chat",
+              "rss",
+              "api",
+              "desktop"
+            ],
+            "description": "用于第二个展开示例的投递渠道枚举。"
+          }
+        },
+        "description": "带有多个长枚举的响应 schema，用于检查新的展开式枚举渲染。"
       },
       "Identifier": {
         "type": "string",

@@ -88,6 +88,28 @@
     "/examples/variable-server-matrix": {
       "$ref": "./api.openapi/paths/examples-variable-server-matrix.json"
     },
+    "/examples/long-enum": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "operationId": "demoLongEnum",
+        "summary": "Long enum rendering example",
+        "description": "This endpoint exposes a response schema with many enum values so the expandable enum list can be inspected in the API reference.",
+        "responses": {
+          "200": {
+            "description": "Example payload with long enums.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnumPreviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/examples/single-server": {
       "$ref": "./api.openapi/paths/examples-single-server.json"
     }
@@ -142,6 +164,66 @@
           "archived"
         ],
         "description": "Clarify renders string enums as constrained values and shows every option in schema tables."
+      },
+      "EnumPreviewResponse": {
+        "type": "object",
+        "required": [
+          "mode",
+          "status",
+          "channel"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "preview",
+              "review",
+              "publish",
+              "archive",
+              "delete",
+              "restore",
+              "duplicate",
+              "rollback",
+              "migrate",
+              "snapshot",
+              "compare",
+              "schedule"
+            ],
+            "description": "Long enum values used to preview expandable enum rendering."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "processing",
+              "ready",
+              "failed",
+              "canceled",
+              "retrying",
+              "timed_out",
+              "partial",
+              "complete"
+            ],
+            "description": "Another long enum list to inspect the nested child rendering."
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "email",
+              "slack",
+              "webhook",
+              "teams",
+              "sms",
+              "push",
+              "chat",
+              "rss",
+              "api",
+              "desktop"
+            ],
+            "description": "Delivery channel enum for a second expandable example."
+          }
+        },
+        "description": "Response schema with multiple long enums for inspecting the new expandable enum rendering."
       },
       "Identifier": {
         "type": "string",

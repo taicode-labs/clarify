@@ -27,7 +27,6 @@ type SchemaTreeBranch = {
 
 function getSchemaDetails(schema: Record<string, unknown>): string | undefined {
   const details = [
-    Array.isArray(schema.enum) ? `enum: ${schema.enum.map(String).join(', ')}` : undefined,
     typeof schema.const !== 'undefined' ? `const: ${String(schema.const)}` : undefined,
     typeof schema.default !== 'undefined' ? `default: ${String(schema.default)}` : undefined,
     typeof schema.pattern === 'string' ? `pattern: ${schema.pattern}` : undefined,
@@ -41,6 +40,21 @@ function getSchemaDetails(schema: Record<string, unknown>): string | undefined {
 
 function getSchemaDescription(schema: Record<string, unknown>): string | undefined {
   return typeof schema.description === 'string' ? schema.description : undefined
+}
+
+function getSchemaNodeType(schema: unknown): string | undefined {
+  return schemaToType(schema)
+}
+
+function getEnumChildren(schema: Record<string, unknown>, path: string): SchemaTreeNode[] {
+  if (!Array.isArray(schema.enum) || schema.enum.length === 0) return []
+
+  return schema.enum.map((value, index) => ({
+    key: `${path || 'root'}.enum[${index}]`,
+    name: String(value),
+    required: false,
+    children: [],
+  }))
 }
 
 function getComposedBranches(schema: Record<string, unknown>): SchemaTreeBranch[] {
@@ -98,6 +112,7 @@ function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
     : []
 
   const objectRequired = Array.isArray(schema.required) ? schema.required.map(String) : required
+  const enumChildren = getEnumChildren(schema, path)
   const properties = isRecord(schema.properties) ? schema.properties : {}
   const propertyChildren = Object.entries(properties).map(([name, propertySchema]) => {
     const resolvedProperty = resolveSchema(spec, propertySchema)
@@ -115,7 +130,7 @@ function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
     return {
       key: childPath,
       name,
-      type: schemaToType(propertySchema),
+      type: getSchemaNodeType(property),
       description: getSchemaDescription(property),
       details: getSchemaDetails(property),
       required: objectRequired.includes(name),
@@ -127,7 +142,7 @@ function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
     ? [{
       key: `${path || 'root'}.*`,
       name: '*',
-      type: schemaToType(schema.additionalProperties),
+      type: getSchemaNodeType(schema.additionalProperties),
       description: getSchemaDescription(schema.additionalProperties),
       details: getSchemaDetails(schema.additionalProperties),
       required: false,
@@ -142,7 +157,7 @@ function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
     return {
       key: `${path || 'root'}.${label}`,
       name: label,
-      type: schemaToType(branchSchema),
+      type: getSchemaNodeType(branch),
       description: branch ? getSchemaDescription(branch) : undefined,
       details: branch ? getSchemaDetails(branch) : undefined,
       required: false,
@@ -150,7 +165,7 @@ function getSchemaChildren(arg0: GetSchemaChildrenArgs): SchemaTreeNode[] {
     }
   })
 
-  return [...arrayChildren, ...propertyChildren, ...additionalPropertyChildren, ...composedChildren]
+  return [...arrayChildren, ...enumChildren, ...propertyChildren, ...additionalPropertyChildren, ...composedChildren]
 }
 
 function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode | undefined {
@@ -161,7 +176,7 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode |
     return {
       key: schema.$ref,
       name: resolveReferenceName(schema.$ref),
-      type: schemaToType(schema),
+      type: getSchemaNodeType(resolved),
       description: getSchemaDescription(resolved),
       details: getSchemaDetails(resolved),
       required: false,
@@ -174,7 +189,7 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown): SchemaTreeNode |
   return {
     key: 'root',
     name: 'body',
-    type: schemaToType(schema),
+    type: getSchemaNodeType(schema),
     description: getSchemaDescription(schema),
     details: getSchemaDetails(schema),
     required: false,
