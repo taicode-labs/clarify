@@ -1,13 +1,20 @@
 # Clarify VS Code Extension
 
-The Clarify VS Code extension provides a preview experience for Clarify documentation projects inside Visual Studio Code.
+The Clarify VS Code extension brings your documentation site directly into Visual Studio Code with a live preview experience. It detects Clarify projects, starts a local preview server, and keeps the preview synchronized with the active Markdown, MDX, or OpenAPI file.
 
-## What it does
+## Features
 
-- Detects Clarify documentation workspaces and content files (`.md`, `.mdx`, `.openapi.json`, `.openapi.yaml`, `.openapi.yml`).
+- Automatically detects Clarify documentation workspaces and supported content files (`.md`, `.mdx`, `.openapi.json`, `.openapi.yaml`, `.openapi.yml`).
 - Starts a local Clarify preview server for the current project.
-- Opens a preview panel in VS Code and keeps it in sync with the active editor.
-- Provides commands to open, refresh, and stop the preview.
+- Opens a preview panel in VS Code and refreshes it as you switch files or edit content.
+- Provides commands to open, refresh, and stop the preview from the command palette or editor toolbar.
+- Works well for authoring and reviewing documentation without leaving the editor.
+
+## Commands
+
+- Clarify: Preview
+- Clarify: Refresh Preview
+- Clarify: Stop Dev Server
 
 ## Install and build
 

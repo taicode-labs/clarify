@@ -1,8 +1,24 @@
 {
   "name": "clarify-vscode-extension",
   "displayName": "Clarify",
-  "description": "Live preview for Clarify documentation projects.",
+  "description": "Preview Clarify documentation sites directly in VS Code with a local live dev server.",
   "version": "0.9.4",
+  "icon": "assets/clarify.png",
+  "homepage": "https://clarify.dev",
+  "bugs": {
+    "url": "https://github.com/taicode-labs/clarify/issues"
+  },
+  "keywords": [
+    "clarify",
+    "documentation",
+    "markdown",
+    "openapi",
+    "preview"
+  ],
+  "galleryBanner": {
+    "color": "#0f172a",
+    "theme": "dark"
+  },
   "license": "AGPL-3.0-only",
   "publisher": "taicode-labs",
   "repository": {
@@ -26,8 +42,8 @@
         "command": "clarify.openPreview",
         "title": "Clarify: Preview",
         "icon": {
-          "light": "assets/clarify.svg",
-          "dark": "assets/clarify.svg"
+          "light": "assets/clarify.png",
+          "dark": "assets/clarify.png"
         }
       },
       {
