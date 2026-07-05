@@ -2,7 +2,7 @@
   "name": "clarify-vscode-extension",
   "displayName": "Clarify",
   "description": "Live preview for Clarify documentation projects.",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "license": "AGPL-3.0-only",
   "publisher": "taicode-labs",
   "repository": {

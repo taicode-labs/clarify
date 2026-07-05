@@ -19,18 +19,6 @@ declare module 'virtual:clarify/slot' {
 
   export function useSlot(): SlotContext
 }
-
-declare module 'virtual:clarify/slots' {
-  import type { ComponentType } from 'react'
-
-  export type RuntimeSlotEntry = {
-    plugin: string
-    /** Lazy import factory — yields the default-exported React component. */
-    component: () => Promise<{ default: ComponentType }>
-  }
-
-  export const runtimeSlots: Record<string, RuntimeSlotEntry[]>
-}
 `
 
 export function generateClarifyEnvDts(_plugins: ClarifyPlugin[]): string {

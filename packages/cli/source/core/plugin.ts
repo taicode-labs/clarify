@@ -1,4 +1,4 @@
-import { rmSync } from 'node:fs'
+import { existsSync, rmSync } from 'node:fs'
 import { isAbsolute, join, relative, resolve } from 'node:path'
 
 import mdxPlugin, { type Options as MdxPluginOptions } from '@mdx-js/rollup'
@@ -17,6 +17,7 @@ import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, run
 import { resolveBuildOptions, type ClarifyBuildOptions } from './options.js'
 import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from './project-info.js'
 import { resolveClarifySite } from './site.js'
+import { logStartupHints } from './startup.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
@@ -125,6 +126,12 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     name: 'clarify:core',
     async config() {
       await resolveRoutesAndSpecs()
+      logStartupHints({
+        projectRoot: root,
+        contentRoot,
+        contentDirExists: existsSync(contentRoot),
+        hasRoutes: routes.length > 0,
+      })
 
       return {
         base: projectConfig.assetPrefix,
