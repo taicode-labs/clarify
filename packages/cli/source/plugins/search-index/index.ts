@@ -26,9 +26,9 @@ function assertNoPagefindErrors(action: string, errors: string[] | undefined): v
   throw new Error(`[clarify] Pagefind ${action} failed:\n${errors.join('\n')}`)
 }
 
-async function generatePagefindIndex(options: GeneratePagefindIndexOptions): Promise<number> {
-  const pagefind = await import('pagefind') as PagefindModule
-  const { errors, index } = await pagefind.createIndex({
+async function generatePagefindIndex(options: GeneratePagefindIndexOptions, pagefind?: PagefindModule): Promise<number> {
+  const runtime = pagefind ?? (await import('pagefind') as PagefindModule)
+  const { errors, index } = await runtime.createIndex({
     excludeSelectors: [
       '[data-pagefind-ignore]',
       'script',
@@ -54,7 +54,9 @@ async function generatePagefindIndex(options: GeneratePagefindIndexOptions): Pro
     return addResult.page_count
   } finally {
     await index.deleteIndex()
-    await pagefind.close()
+    if (!pagefind) {
+      await runtime.close()
+    }
   }
 }
 
@@ -68,8 +70,7 @@ function routeSearchContent(route: ContentRoute): string {
   ].filter(Boolean).join('\n\n')
 }
 
-async function generateDevSearchIndex(ctx: ClarifyHookContext, root: string): Promise<void> {
-  const pagefind = await import('pagefind') as PagefindModule
+async function generateDevSearchIndex(ctx: ClarifyHookContext, root: string, pagefind: PagefindModule): Promise<void> {
   const { errors, index } = await pagefind.createIndex({
     includeCharacters: '._-/#:@',
     keepIndexUrl: false,
@@ -106,7 +107,6 @@ async function generateDevSearchIndex(ctx: ClarifyHookContext, root: string): Pr
     console.log(`[clarify] Dev search index generated for ${pageCount} pages.`)
   } finally {
     await index.deleteIndex()
-    await pagefind.close()
   }
 }
 
@@ -149,12 +149,13 @@ export function createSearchIndexPlugin(): ClarifyPlugin {
     name: 'clarify:search-index',
     hooks: {
       async 'dev:configureServer'(server, ctx) {
+        const pagefind = await import('pagefind') as PagefindModule
         let currentRoot: string | undefined
         const staleRoots = new Set<string>()
 
         const replaceDevIndex = async () => {
           const nextRoot = createClarifyTempDir('pagefind')
-          await generateDevSearchIndex(ctx, nextRoot)
+          await generateDevSearchIndex(ctx, nextRoot, pagefind)
           const previousRoot = currentRoot
           currentRoot = nextRoot
           if (previousRoot) {
@@ -188,6 +189,7 @@ export function createSearchIndexPlugin(): ClarifyPlugin {
           if (regenerateTimer) clearTimeout(regenerateTimer)
           removeClarifyTempDir(currentRoot)
           for (const staleRoot of staleRoots) removeClarifyTempDir(staleRoot)
+          void pagefind.close().catch(() => undefined)
         })
       },
       async 'build:done'(ctx) {
