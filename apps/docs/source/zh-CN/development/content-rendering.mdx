@@ -6,6 +6,32 @@ Clarify 目前接收的内容来源有多种：MDX 文档、Markdown 片段、Op
 
 ---
 
+## 当前实现状态
+
+目前仓库中已经把两条主要内容路径拆开处理：
+
+- MDX 与 Markdown 页面内容由 CLI 侧负责发现和编译，主要经过 [packages/cli/source/parsers/routes.ts](packages/cli/source/parsers/routes.ts)、[packages/cli/source/parsers/mdx.ts](packages/cli/source/parsers/mdx.ts) 和 [packages/cli/source/core/plugin.ts](packages/cli/source/core/plugin.ts)。
+- OpenAPI description 由 OpenAPI 插件解析，主要经过 [packages/cli/source/plugins/openapi/index.ts](packages/cli/source/plugins/openapi/index.ts) 和 [packages/cli/source/plugins/openapi/parser.ts](packages/cli/source/plugins/openapi/parser.ts)，再交给 Renderer 中的 [packages/renderer/source/openapi/entry.tsx](packages/renderer/source/openapi/entry.tsx) 和 [packages/renderer/source/openapi/components/EndpointSections.tsx](packages/renderer/source/openapi/components/EndpointSections.tsx) 渲染。
+
+因此，当前系统实际存在两个内容规范化入口：
+
+```mermaid
+flowchart TD
+  A[MDX / Markdown source] --> B[CLI 内容解析与 MDX 编译]
+  B --> C[虚拟页面模块]
+  C --> D[Renderer 页面组件]
+  D --> E[Markdown renderer]
+
+  F[OpenAPI spec source] --> G[OpenAPI 插件解析]
+  G --> H[结构化 OpenAPI 内容 bundle]
+  H --> I[OpenAPI renderer 组件]
+  I --> E
+```
+
+两条路径的共同点是：最终都会依赖 [packages/renderer/source/mdx/Markdown.tsx](packages/renderer/source/mdx/Markdown.tsx) 和 [packages/renderer/source/mdx/remark.ts](packages/renderer/source/mdx/remark.ts) 中的共享 Markdown 渲染能力。差异在于：MDX 内容更早在 CLI 管线中完成规范化，而 OpenAPI description 则先作为结构化 spec 的一部分准备，再在 Renderer 的 OpenAPI 组件路径中被消费。
+
+---
+
 ## 为什么需要这份设计
 
 现在系统里已经有两条不同的内容处理路径：

@@ -6,6 +6,32 @@ Clarify currently receives content from several different sources: MDX documents
 
 ---
 
+## Current implementation state
+
+At the moment, the repository already splits the two main content paths:
+
+- MDX and Markdown page content are discovered and compiled in the CLI pipeline through [packages/cli/source/parsers/routes.ts](packages/cli/source/parsers/routes.ts), [packages/cli/source/parsers/mdx.ts](packages/cli/source/parsers/mdx.ts), and [packages/cli/source/core/plugin.ts](packages/cli/source/core/plugin.ts).
+- OpenAPI descriptions are parsed by the OpenAPI plugin in [packages/cli/source/plugins/openapi/index.ts](packages/cli/source/plugins/openapi/index.ts) and [packages/cli/source/plugins/openapi/parser.ts](packages/cli/source/plugins/openapi/parser.ts), then rendered by the renderer entry points in [packages/renderer/source/openapi/entry.tsx](packages/renderer/source/openapi/entry.tsx) and [packages/renderer/source/openapi/components/EndpointSections.tsx](packages/renderer/source/openapi/components/EndpointSections.tsx).
+
+The current implementation therefore has two different entry points for content normalization:
+
+```mermaid
+flowchart TD
+    A[MDX / Markdown source] --> B[CLI content parsing and MDX compilation]
+    B --> C[Virtual page module]
+    C --> D[Renderer page component]
+    D --> E[Markdown renderer]
+
+    F[OpenAPI spec source] --> G[OpenAPI plugin parsing]
+    G --> H[Structured OpenAPI content bundle]
+    H --> I[OpenAPI renderer components]
+    I --> E
+```
+
+The common part is that both paths eventually rely on the shared markdown renderer in [packages/renderer/source/mdx/Markdown.tsx](packages/renderer/source/mdx/Markdown.tsx) and [packages/renderer/source/mdx/remark.ts](packages/renderer/source/mdx/remark.ts). The difference is that MDX content is normalized earlier in the CLI pipeline, while OpenAPI descriptions are prepared and consumed later in the renderer path.
+
+---
+
 ## Why this design exists
 
 Today, the system already has two different ways of handling text content:
