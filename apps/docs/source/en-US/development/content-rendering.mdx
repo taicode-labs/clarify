@@ -94,30 +94,75 @@ The implementation should migrate step by step, keeping existing behavior intact
 
 ---
 
+## CLI and renderer boundary
+
+The boundary between the CLI and the renderer should be cut at a typed content-block contract.
+
+The CLI focuses on content preparation and information extraction. It owns source discovery, route resolution, frontmatter parsing, OpenAPI spec loading, data parsing, diagnostics, metadata extraction, and artifact generation. It can parse source data to understand routes, titles, sections, headings, OpenAPI operations, and search/navigation facts. It should not perform any presentation rendering.
+
+The renderer owns all rendering behavior. It decides how Markdown becomes React UI, how an OpenAPI operation is displayed, how OpenAPI description Markdown is rendered in parameters and responses, how custom MDX components are resolved, and how theme, locale, hydration, and client-side interaction are applied.
+
+That means the data passed between the two layers should stay close to source content and extracted facts:
+
+| Category | Owned by | Shape | Purpose |
+|---|---|---|---|
+| Content blocks | CLI | `Content[]` with `kind` values such as `markdown` and `openapi` | Describe what should appear on the page without saying how it should be rendered |
+| Extracted metadata | CLI | route, title, sections, locale, source references, OpenAPI pointers | Support routing, navigation, search, diagnostics, and static artifacts |
+| Presentation implementation | Renderer | React components, Markdown renderer, OpenAPI renderer, hooks | Turn content blocks into final UI, theme, layout, and interaction |
+
+The important rule is: the CLI may parse data, but it must not render it. The renderer may render rich content, but it should not rediscover source files or rebuild route-level facts that the CLI already prepared.
+
+This split gives each side a clear responsibility:
+
+- The CLI prepares content blocks and facts about those blocks.
+- The renderer dispatches each block by `kind` and turns it into UI.
+- The bundler connects compiled modules when MDX execution is required, but presentation still belongs to the renderer.
+
+---
+
 ## Proposed intermediate representation
 
-A more direct approach is to make the body of the content document itself a JSX fragment. In other words, instead of forcing content into a predefined node union and then reconstructing it later, the pipeline can first normalize content into a composable JSX representation.
+The shared intermediate representation should be a document made of typed content blocks. It should not require a synthetic content AST, and it should not pre-render Markdown into HTML or JSX. The model describes what content exists; the renderer decides how each block appears.
 
 ```ts
 type ContentDocument = {
+  id: string
   title?: string
   source?: string
-  content: JSX.Element
-  metadata: {
-    sections?: Array<{ id?: string; title: string; level: number }>
-    language?: string
-  }
+  content: Content[]
+  metadata: ContentMetadata
+}
+
+type Content = MarkdownContent | OpenAPIContent
+
+type MarkdownContent = {
+  kind: 'markdown'
+  value: string
+  source?: ContentSource
+}
+
+type OpenAPIContent = {
+  kind: 'openapi'
+  spec: OpenAPISpecReference
+  operation?: OpenAPIOperationReference
+  source?: ContentSource
+}
+
+type ContentMetadata = {
+  sections?: Array<{ id?: string; title: string; level: number }>
+  language?: string
 }
 ```
 
 This has several advantages:
 
-- the structure is simpler and easier to read
-- title, source, content, and metadata are clearly separated
-- the main body and the auxiliary information are distinguished explicitly
-- future extensions can be added in metadata instead of turning the model into a large catch-all object
+- the document body is simple and ordered
+- each block clearly states what kind of content it contains
+- Markdown content stays as Markdown until the renderer renders it
+- OpenAPI content stays as OpenAPI data or references until the renderer renders it
+- future content types can add new `kind` values without turning the model into a large catch-all object
 
-In short, the body is not a collection of synthetic nodes; it is a renderable JSX fragment. The difference between MDX, Markdown, and OpenAPI lies in what the content contains and in the attached metadata, not in a separate kind field on the document itself.
+In short, `ContentDocument.content` is the cut between the CLI and the renderer. The CLI assembles typed blocks and extracts useful metadata. The renderer owns the Markdown renderer, OpenAPI renderer, and any React-specific presentation logic.
 
 ---
 
@@ -137,8 +182,8 @@ flowchart TD
 
 | Layer | Responsibility |
 |---|---|
-| Source adapters | Parse content from MDX, Markdown, or OpenAPI into a common document model |
-| Normalization | Convert source-specific syntax into shared JSX content fragments |
+| Source adapters | Load content from MDX, Markdown, or OpenAPI sources into typed content blocks |
+| Data parsing | Extract route, section, OpenAPI operation, source-reference, search, and diagnostic facts |
 | Enrichment | Add metadata used for routing, search, anchors, diagnostics, and content artifacts |
 | Renderer | Convert the normalized document into final UI using React components |
 
@@ -156,36 +201,35 @@ Embedded markdown fragments such as OpenAPI descriptions should use the same nor
 
 ### OpenAPI descriptions
 
-OpenAPI descriptions are source data, not UI components. Their Markdown content should be normalized through the shared pipeline, then handed to the renderer as content nodes. This guarantees that descriptions support the same formatting features as MDX content.
+OpenAPI descriptions are source data, not UI components. Their Markdown should remain Markdown strings in the OpenAPI data model or in extracted content blocks. The renderer should render those strings through the shared Markdown renderer wherever descriptions appear.
 
-### Preprocessing OpenAPI into JSX
+### Preparing OpenAPI content blocks
 
-For OpenAPI, the most practical approach is not to parse Markdown again at runtime, but to preprocess description fields in the CLI pipeline so they already become JSX content before the renderer sees them.
+For OpenAPI, the most practical approach is to let the CLI prepare spec references and extracted metadata, while leaving Markdown rendering to the renderer.
 
 The implementation path can be:
 
-1. During OpenAPI parsing in the CLI, walk the spec and identify content-bearing fields such as `info.description`, `paths.*.*.description`, `parameters.description`, `requestBody.description`, `responses.*.description`, and `schema.description`.
-2. For each string value, run the shared Markdown normalization pipeline and produce a JSX-compatible fragment instead of raw HTML.
-3. Keep the original OpenAPI spec intact and attach the preprocessed content to a parallel content bundle used by the route renderer.
-4. Let the renderer consume that preprocessed `content` directly, rather than reparsing the description text at runtime.
+1. During OpenAPI parsing in the CLI, load and validate the spec, resolve route-level operation targets, and collect metadata such as tags, operation ids, sections, and source pointers.
+2. Keep the original OpenAPI spec intact, including Markdown description strings in `info.description`, `paths.*.*.description`, `parameters.description`, `requestBody.description`, `responses.*.description`, and `schema.description`.
+3. Emit an `openapi` content block that points at the spec and, when needed, at a specific operation.
+4. Let the renderer render the OpenAPI block and call the shared Markdown renderer at every description display point.
 
 A minimal shape for that bundle can be:
 
 ```ts
 type OpenAPIContentBlock = {
-  content: JSX.Element
-  metadata: {
-    source: 'openapi-description'
-    language?: string
-  }
+  kind: 'openapi'
+  spec: OpenAPISpecReference
+  operation?: OpenAPIOperationReference
+  source?: ContentSource
 }
 ```
 
 This gives us several benefits:
 
 - OpenAPI descriptions can share the same “content is already normalized” model as MDX content
-- the renderer no longer needs to parse Markdown again at runtime
-- future components such as Callout, CodeGroup, or Mermaid can be attached directly to the preprocessed content
+- every OpenAPI description field is rendered through the same Markdown component at the point of display
+- future components such as Callout, CodeGroup, or Mermaid can be supported in one renderer-owned Markdown path
 - the original OpenAPI spec remains available for artifact generation and other tooling
 
 The natural implementation entry points are [packages/cli/source/plugins/openapi/parser.ts](packages/cli/source/plugins/openapi/parser.ts) and [packages/cli/source/plugins/openapi/index.ts](packages/cli/source/plugins/openapi/index.ts), followed by [packages/renderer/source/openapi/entry.tsx](packages/renderer/source/openapi/entry.tsx) as the consumer.
@@ -200,24 +244,80 @@ Any future content source can follow the same pattern:
 
 ---
 
+## Evaluation
+
+The proposal is directionally strong because it addresses a real architectural split: MDX content and OpenAPI Markdown descriptions currently enter the system through different normalization paths, even though both ultimately depend on the same Markdown rendering behavior.
+
+The main tradeoff is that this model keeps the CLI simpler and renderer-agnostic, but it also moves more rendering responsibility into the renderer. That is the right boundary for Clarify: the CLI can parse data and extract facts, while the renderer owns all Markdown and OpenAPI presentation behavior.
+
+### Strengths
+
+- It creates one conceptual content pipeline instead of maintaining separate Markdown behavior for MDX pages and OpenAPI descriptions.
+- It keeps the existing CLI / renderer boundary mostly intact: the CLI prepares content and metadata, while the renderer keeps control over UI, theme, hydration, and interaction.
+- It makes OpenAPI descriptions more capable. Today they are Markdown strings rendered inside OpenAPI components; the proposed path lets them share richer content behavior with MDX pages.
+- It improves future extensibility. New content sources can be added through source adapters instead of each source inventing its own parsing and rendering path.
+- It gives content-aware features a better home. Features such as section extraction, code metadata, search artifacts, and diagnostics can be computed from one normalized content model.
+- It naturally supports embedding OpenAPI content inside MDX pages because both Markdown and OpenAPI are just ordered content blocks.
+- It avoids coupling the CLI to React, JSX, or renderer-specific Markdown behavior.
+
+### Weaknesses
+
+- Runtime Markdown rendering may cost more than build-time preprocessing if large pages contain many Markdown fragments. The renderer may need caching if this becomes measurable.
+- Search, table of contents, and section extraction still need CLI-side parsing. That parsing is allowed, but it must remain information extraction rather than presentation rendering.
+- Some Markdown rendering errors will move from build time to renderer time unless the CLI also runs non-rendering validation checks.
+- The proposal may overstate how much MDX and OpenAPI can share. MDX is authored as executable component-rich content, while OpenAPI descriptions are data fields embedded in a schema. They should share Markdown semantics, but not necessarily the same full document contract.
+- Security and component scope need explicit rules. OpenAPI descriptions should probably support Markdown, Mermaid, and code formatting, but not arbitrary MDX component execution unless that is a deliberate product decision.
+
+### Architectural concern
+
+The largest concern is accidentally moving rendering back into the CLI under the name of “normalization.” The CLI can parse Markdown and OpenAPI data to extract headings, sections, operation ids, search text, diagnostics, and source references. It should not convert those inputs into UI-specific React trees, HTML, or renderer-owned component structures.
+
+A safer framing is to keep the document model block-based:
+
+```ts
+type ContentDocument = {
+  content: Content[]
+  metadata: ContentMetadata
+}
+
+type Content = MarkdownContent | OpenAPIContent
+```
+
+In that model, `markdown` blocks keep Markdown as source text, and `openapi` blocks keep OpenAPI data or references. The renderer then owns the mapping from each block kind to React UI.
+
+### Recommended adjustment
+
+The recommended version of this proposal is:
+
+1. Introduce `ContentDocument.content: Content[]` as the shared contract.
+2. Keep Markdown rendering in the renderer, including Markdown that currently gets partially handled in the CLI path.
+3. Let the CLI parse content for information extraction only: route data, headings, sections, search text, OpenAPI metadata, diagnostics, and source references.
+4. Render OpenAPI descriptions in the renderer at each display point using the shared Markdown renderer.
+5. Treat MDX pages and embedded OpenAPI blocks as ordered content blocks so the same OpenAPI renderer works in route pages and inside MDX pages.
+
+With that adjustment, the design keeps its main benefit: unified Markdown and OpenAPI rendering semantics. It also keeps the CLI focused on preparation and extraction instead of presentation.
+
+---
+
 ## Integration plan
 
 ### Phase 1: introduce the shared model
 
 - define the shared content document types
-- create a small shared parser module for markdown normalization
+- define the first `Content` kinds: `markdown` and `openapi`
 - keep the current renderer API working through a compatibility layer
 
 ### Phase 2: route OpenAPI descriptions through the shared model
 
-- parse OpenAPI descriptions through the shared markdown normalization path
 - keep the existing OpenAPI data structure intact
-- render descriptions through the unified renderer entry point
+- render OpenAPI description fields through the shared renderer-owned Markdown component
+- make sure `info.description`, operation descriptions, parameter descriptions, request body descriptions, response descriptions, and schema/property descriptions all use the same path
 
 ### Phase 3: unify MDX page content handling
 
-- make MDX page compilation produce the shared content document as part of the pipeline
-- let the renderer consume that document instead of relying on multiple ad-hoc paths
+- make MDX page discovery produce a shared content document with ordered content blocks
+- represent embedded OpenAPI operations as `openapi` blocks or renderer components that consume the same OpenAPI renderer
+- keep MDX compilation as a bundler/runtime concern, not as CLI-owned presentation rendering
 
 ### Phase 4: expand to future content types
 
@@ -236,11 +336,13 @@ function renderContentDocument(document: ContentDocument, context: RenderContext
 
 The renderer decides:
 
-- how the JSX body is mapped to the final UI structure
+- how each `Content.kind` is mapped to the final UI structure
+- how Markdown strings are parsed and rendered
+- how OpenAPI blocks are rendered
 - how components such as `Callout`, `CodeGroup`, or `Mermaid` are rendered
 - how theme, locale, and interactive behavior are applied
 
-This keeps the renderer flexible without forcing it to become a parser for every source format.
+This keeps the renderer flexible without forcing the CLI to own presentation rendering.
 
 ---
 
@@ -249,10 +351,10 @@ This keeps the renderer flexible without forcing it to become a parser for every
 A safe migration should avoid breaking existing content and UI behavior.
 
 1. Keep the current Markdown component as a compatibility wrapper.
-2. Introduce the shared content document types and parser behind the scenes.
-3. Update OpenAPI descriptions to use the shared path first.
-4. Move MDX content paths onto the same contract next.
-5. Remove duplicate parsing logic only after the new path is verified.
+2. Introduce the shared content document and `Content[]` block types behind the scenes.
+3. Update OpenAPI pages to render from `openapi` blocks first.
+4. Move MDX page content onto the same ordered block contract next.
+5. Remove duplicate rendering logic only after the renderer-owned path is verified.
 
 ---
 
@@ -260,23 +362,23 @@ A safe migration should avoid breaking existing content and UI behavior.
 
 ### Risk: over-normalizing too early
 
-If the shared model becomes too abstract, it can become hard to maintain. The model should stay close to the semantic structure of Markdown and MDX, not try to become a full UI abstraction.
+If the shared model becomes too abstract, it can become hard to maintain. The model should stay close to source content blocks, not try to become a full UI abstraction or synthetic Markdown AST.
 
 ### Risk: component support becomes ambiguous
 
-MDX pages can contain custom components. The solution is to keep component nodes in the content tree so that the renderer can resolve them explicitly.
+MDX pages can contain custom components. The solution is to keep MDX execution and component resolution in the renderer/bundler path, while representing structured embedded content such as OpenAPI operations as explicit content blocks.
 
 ### Risk: build-time and runtime responsibilities drift
 
-The CLI should prepare content and metadata. The renderer should render. If a feature needs browser context, it should stay in the renderer even if it originates from content data.
+The CLI should prepare content, parse data, and extract metadata. The renderer should render. If a feature creates UI, depends on browser context, or maps Markdown/OpenAPI data to React components, it should stay in the renderer even if it originates from content data.
 
 ---
 
 ## Decision summary
 
-The best long-term architecture is not to make the CLI render HTML and not to make the renderer parse every source format independently. The best architecture is:
+The best long-term architecture is not to make the CLI render HTML, JSX, or Markdown UI. The best architecture is:
 
-- CLI/content pipeline: normalize content into a shared document model
-- renderer: render that model into the final UI
+- CLI/content pipeline: prepare typed content blocks and extract route/search/navigation facts
+- renderer: render those content blocks into the final UI
 
-This approach keeps content semantics centralized, preserves flexibility for MDX and OpenAPI, and gives future content types a clear path forward.
+This approach keeps source parsing and information extraction centralized, preserves flexibility for MDX and OpenAPI, and gives future content types a clear path forward.
