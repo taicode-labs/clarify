@@ -301,6 +301,18 @@ With that adjustment, the design keeps its main benefit: unified Markdown and Op
 
 ## Integration plan
 
+### Implementation task breakdown
+
+The refactor can be tracked as a sequence of small compatibility-preserving tasks:
+
+1. Add the shared content document types and expose them from the renderer package.
+2. Attach the optional content document contract to CLI routes without changing existing rendering behavior.
+3. Make OpenAPI route generation emit an `openapi` content block alongside the current route data.
+4. Add a renderer-side content document dispatcher that maps block kinds to existing Markdown and OpenAPI components.
+5. Route OpenAPI pages through the dispatcher while keeping the current direct component API as a compatibility layer.
+6. Move MDX page route data onto the same document shape, preserving MDX compilation and component resolution in the renderer/bundler path.
+7. Remove duplicate route-specific rendering paths after both OpenAPI and MDX pages are covered by tests.
+
 ### Phase 1: introduce the shared model
 
 - define the shared content document types

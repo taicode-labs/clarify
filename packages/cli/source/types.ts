@@ -1,7 +1,7 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
-import type { UISlotRegistration } from '@clarify-labs/renderer'
+import type { ContentDocument, UISlotRegistration } from '@clarify-labs/renderer'
 
 import type { ResolvedBuildOptions } from './core/options.js'
 
@@ -318,6 +318,8 @@ export type ContentRoute = {
   frontmatter?: Record<string, unknown>
   /** Normalized source content captured during route discovery. */
   content?: string
+  /** Shared content document contract used by the renderer migration path. */
+  contentDocument?: ContentDocument
   /** Structured, renderer-friendly content preprocessed from OpenAPI specs. */
   preparedContent?: PreparedOpenAPIContent
   diagnostic?: ContentDiagnostic
