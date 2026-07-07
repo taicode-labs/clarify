@@ -28,7 +28,7 @@ type OpenAPIPageModuleOptions = {
 export function generateOpenAPIPageModule(opts: OpenAPIPageModuleOptions): string {
   return `import { createDocumentRouteComponent } from '@clarify-labs/renderer';
 
-export const routeData = ${JSON.stringify({ contentDocument: opts.contentDocument })};
+export const routeData = ${JSON.stringify({ contentDocument: opts.contentDocument, spec: opts.spec })};
 
 export default createDocumentRouteComponent(routeData);
 `

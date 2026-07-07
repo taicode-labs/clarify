@@ -36,9 +36,7 @@ export type MarkdownContentBlock = {
   source?: ContentSource
 }
 
-export type OpenAPISpecReference = {
-  path?: string
-}
+export type OpenAPISpecReference = import('../openapi/lib/utils').OpenAPISpec
 
 export type OpenAPIOperationReference = {
   path: string
@@ -57,7 +55,7 @@ export type ContentBlock = MarkdownContentBlock | OpenAPIContentBlock
 
 export type ContentRenderers = {
   markdown?: (block: MarkdownContentBlock) => ReactNode
-  openapi?: (block: OpenAPIContentBlock) => ReactNode
+  openapi?: (block: OpenAPIContentBlock, spec?: import('../openapi/lib/utils').OpenAPISpec) => ReactNode
 }
 
 export type ContentRenderContext = {

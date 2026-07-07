@@ -151,18 +151,19 @@ export function createOpenApiRouteComponent(data: OpenApiRouteData) {
       contentDocument: data.contentDocument,
       renderers: {
         openapi: (block: OpenAPIContentBlock) => {
+          const resolvedSpec = block.spec ?? data.spec
           if (!block.operation) {
-            return <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} />
+            return <OpenApiDocument spec={resolvedSpec} tagFilter={data.tagFilter} />
           }
 
-          const operation = getOpenApiOperation(data.spec, block.operation.path, block.operation.method)
+          const operation = getOpenApiOperation(resolvedSpec, block.operation.path, block.operation.method)
           if (!operation) {
-            return <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} />
+            return <OpenApiDocument spec={resolvedSpec} tagFilter={data.tagFilter} />
           }
 
           return (
             <OpenApiOperationComponent
-              spec={data.spec}
+              spec={resolvedSpec}
               path={block.operation.path}
               method={block.operation.method.toUpperCase()}
               operation={operation}

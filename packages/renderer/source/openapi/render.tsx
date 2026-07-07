@@ -1,31 +1,31 @@
 import type { ReactNode } from 'react'
 
 import type { OpenAPIContentBlock } from '../content/index'
+import type { OpenAPISpec } from '../openapi/lib/utils'
 
 import { OpenApiOperation as OpenApiOperationComponent } from './components/OpenApiOperation'
 import { OpenApiDocument } from './entry'
-import { useOpenApiSpec } from './lib/spec-path'
 import { getOpenApiOperation } from './lib/utils'
 
 type OpenApiContentBlockRendererProps = {
   block: OpenAPIContentBlock
+  spec?: OpenAPISpec
   tagFilter?: string[]
 }
 
 export function OpenApiContentBlockRenderer(arg0: OpenApiContentBlockRendererProps): ReactNode {
-  const { block, tagFilter } = arg0
-  const spec = useOpenApiSpec(undefined, block.spec.path)
+  const { block, spec, tagFilter } = arg0
 
   if (!spec) return null
 
   if (!block.operation) {
-    return <OpenApiDocument spec={spec} specPath={block.spec.path} tagFilter={tagFilter} />
+    return <OpenApiDocument spec={spec} tagFilter={tagFilter} />
   }
 
   const operation = getOpenApiOperation(spec, block.operation.path, block.operation.method)
-  
+
   if (!operation) {
-    return <OpenApiDocument spec={spec} specPath={block.spec.path} tagFilter={tagFilter} />
+    return <OpenApiDocument spec={spec} tagFilter={tagFilter} />
   }
 
   return (

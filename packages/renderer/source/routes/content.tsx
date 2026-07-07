@@ -44,7 +44,7 @@ function ContentDocumentShell(arg0: ContentDocumentShellProps) {
 }
 
 function defaultOpenApiRenderer(block: OpenAPIContentBlock): ReactNode {
-  return <OpenApiContentBlockRenderer block={block} />
+  return <OpenApiContentBlockRenderer block={block} spec={block.spec} />
 }
 
 export type DocumentRouteData = {

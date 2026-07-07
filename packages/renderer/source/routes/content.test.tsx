@@ -111,7 +111,7 @@ describe('renderContentDocument', () => {
         { kind: 'markdown', value: 'Hello world' },
         {
           kind: 'openapi',
-          spec: { path: '/api' },
+          spec: testOpenApiSpec,
           operation: { path: '/users', method: 'get' },
         },
       ],
@@ -146,20 +146,19 @@ describe('renderContentDocument', () => {
     expect(html).toContain('<li>Item</li>')
   })
 
-  it('renders default OpenAPI blocks through the shared OpenAPI document renderer', async () => {
+  it('renders default OpenAPI blocks with the page-level spec provided through route data', async () => {
     const document: ContentDocument = {
       id: 'doc',
       title: 'Doc',
       source: '/doc',
       content: [
-        { kind: 'openapi', spec: { path: '/api' } },
+        { kind: 'openapi', spec: testOpenApiSpec },
       ],
       metadata: {},
     }
 
     const html = await renderWithRuntimeProviders(
-      renderContentDocument(document),
-      { 'virtual:clarify-page/api': testOpenApiSpec }
+      createElement(createContentRouteComponent({ contentDocument: document }))
     )
 
     expect(html).toContain('clarify-openapi-page')
