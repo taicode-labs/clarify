@@ -3,8 +3,9 @@ import { extname, join, relative, resolve } from 'node:path'
 
 import type { ViteDevServer } from 'vite'
 
-import { toPagefindLanguage } from '../../core/search-language.js'
-import { createClarifyTempDir, removeClarifyTempDir } from '../../core/temp-dir.js'
+import { getContentRouteIsBareAlias, getContentRouteLocale, getContentRoutePath, getContentRouteTitle } from '../../parsers/content/content-document.js'
+import { toPagefindLanguage } from '../../core/runtime/search-language.js'
+import { createClarifyTempDir, removeClarifyTempDir } from '../../core/runtime/temp-dir.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute } from '../../types.js'
 
 type PagefindModule = typeof import('pagefind')
@@ -62,7 +63,7 @@ async function generatePagefindIndex(options: GeneratePagefindIndexOptions, page
 
 function routeSearchContent(route: ContentRoute): string {
   return [
-    route.title,
+    getContentRouteTitle(route) ?? route.title,
     route.document?.metadata.description,
     route.document?.metadata.keywords?.join(' '),
     route.document?.metadata.sections?.map(section => section.title).join(' '),
@@ -86,16 +87,16 @@ async function generateDevSearchIndex(ctx: ClarifyHookContext, root: string, pag
     for (const route of ctx.routes) {
       // Skip bare alias routes (e.g., /path) to avoid indexing duplicates in multilingual sites
       // Only index the full path with locale prefix (e.g., /locale/path)
-      if (route.isBareAlias) continue
+      if (getContentRouteIsBareAlias(route)) continue
       
       const content = routeSearchContent(route)
       if (!content.trim()) continue
       const result = await index.addCustomRecord({
-        url: route.path,
+        url: getContentRoutePath(route),
         content,
-        language: toPagefindLanguage(route.locale ?? ctx.projectConfig.i18n?.defaultLocale),
+        language: toPagefindLanguage(getContentRouteLocale(route) ?? ctx.projectConfig.i18n?.defaultLocale),
         meta: {
-          title: route.title,
+          title: getContentRouteTitle(route) ?? route.title,
         },
       })
       assertNoPagefindErrors(`addCustomRecord ${route.path}`, result.errors)

@@ -8,10 +8,10 @@ import { visit } from 'unist-util-visit'
 
 import type { ContentRoute, ContentSection } from '../../types.js'
 
-import { createContentProcessor, type ContentProcessor } from '../content.js'
+import { createContentProcessor, type ContentProcessor } from '../content/index.js'
 import { compileMdxContent } from './mdx.js'
 import { createMarkdownContentDocument } from './content-document.js'
-import { kebabToTitle, normalizePath } from '../routes.js'
+import { kebabToTitle, routePathFromFilePath, virtualModuleIdFromFilePath } from '../router/index.js'
 
 export type FindMarkdownRoutesOptions = {
   contentProcessor?: ContentProcessor
@@ -57,10 +57,9 @@ export async function findMarkdownRoutes(dir: string, base: string = dir, option
     }
     if (!entry.isFile() || !/\.mdx?$/.test(entry.name)) continue
 
+    const cleanPath = routePathFromFilePath(fullPath, base)
     const relativePath = relative(base, fullPath)
     const pathParts = relativePath.replace(/\.mdx?$/, '').split('/')
-    const path = '/' + pathParts.map(p => p === 'index' ? '' : p).filter(Boolean).join('/')
-    const cleanPath = normalizePath(path)
 
     const source = readFileSync(fullPath, 'utf-8')
     const { frontmatter, content } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
@@ -81,12 +80,12 @@ export async function findMarkdownRoutes(dir: string, base: string = dir, option
       path: cleanPath,
       basePath: cleanPath,
       filePath: fullPath,
-      virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx?$/, '').replace(/\/+/g, '/'),
+      virtualModuleId: virtualModuleIdFromFilePath(fullPath, base),
       source: {
         frontmatter,
         content,
       },
-      document: createMarkdownContentDocument({ path: cleanPath, title, filePath: fullPath }, content, {
+      document: createMarkdownContentDocument({ path: cleanPath, title, filePath: fullPath, kind: 'mdx', virtualModuleId: virtualModuleIdFromFilePath(fullPath, base) }, content, {
         description: typeof frontmatter.description === 'string' ? frontmatter.description : undefined,
         keywords: frontmatterKeywords(frontmatter),
         sections: extractMdxSections(content),

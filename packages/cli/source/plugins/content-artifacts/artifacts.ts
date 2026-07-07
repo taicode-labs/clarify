@@ -1,3 +1,4 @@
+import { getContentRouteBasePath, getContentRouteIsBareAlias, getContentRouteLocale, getContentRoutePath, getContentRouteTitle } from '../../parsers/content/content-document.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 const UTF8_SIGNATURE = '\uFEFF'
@@ -53,7 +54,7 @@ export function readRouteArtifactContent(route: ContentRoute): string {
 }
 
 function isLlmsTxtRoute(route: ContentRoute): boolean {
-  return !route.path.split('/').includes('404')
+  return !getContentRoutePath(route).split('/').includes('404')
 }
 
 function llmsTxtDescription(route: ContentRoute): string | undefined {
@@ -73,9 +74,10 @@ function llmsTxtListItem(route: ContentRoute, basePath: string): string | undefi
   if (!route.artifact?.contentArtifactUrl) return undefined
 
   const description = llmsTxtDescription(route)
+  const title = getContentRouteTitle(route) ?? route.title
   return description
-    ? `- [${route.title}](${basePath}${route.artifact.contentArtifactUrl}): ${description}`
-    : `- [${route.title}](${basePath}${route.artifact.contentArtifactUrl})`
+    ? `- [${title}](${basePath}${route.artifact.contentArtifactUrl}): ${description}`
+    : `- [${title}](${basePath}${route.artifact.contentArtifactUrl})`
 }
 
 function llmsTxtLocaleLabel(locale: string, projectConfig: ResolvedProjectConfig): string {
@@ -85,7 +87,7 @@ function llmsTxtLocaleLabel(locale: string, projectConfig: ResolvedProjectConfig
 function groupRoutesByLocale(routes: ContentRoute[]): Map<string, ContentRoute[]> {
   const groups = new Map<string, ContentRoute[]>()
   for (const route of routes) {
-    const key = route.locale ?? 'default'
+    const key = getContentRouteLocale(route) ?? 'default'
     groups.set(key, [...(groups.get(key) ?? []), route])
   }
   return groups
@@ -96,7 +98,7 @@ function groupLlmsTxtRoutesByLocale(routes: ContentRoute[], projectConfig: Resol
   const defaultLocale = projectConfig.i18n?.defaultLocale
 
   for (const route of routes) {
-    const sourceKey = `${route.locale ?? defaultLocale ?? 'default'}:${route.basePath ?? route.artifact?.contentArtifactUrl ?? route.path}`
+    const sourceKey = `${getContentRouteLocale(route) ?? defaultLocale ?? 'default'}:${getContentRouteBasePath(route) ?? route.artifact?.contentArtifactUrl ?? getContentRoutePath(route)}`
     const previousRoute = routesBySource.get(sourceKey)
 
     if (!previousRoute || (previousRoute.locale && !route.locale)) {
@@ -106,7 +108,7 @@ function groupLlmsTxtRoutesByLocale(routes: ContentRoute[], projectConfig: Resol
 
   return groupRoutesByLocale([...routesBySource.values()].map(route => ({
     ...route,
-    locale: route.locale ?? defaultLocale,
+    locale: getContentRouteLocale(route) ?? defaultLocale,
   })))
 }
 
@@ -129,7 +131,7 @@ export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedPro
   lines.push('This file lists the source-ready Markdown and OpenAPI artifacts for this documentation site.', '')
 
   // Exclude bare alias routes (e.g., /path without language prefix) in multilingual sites
-  const mdxRoutes = routes.filter(route => route.kind === 'mdx' && isLlmsTxtRoute(route) && !route.isBareAlias)
+  const mdxRoutes = routes.filter(route => route.kind === 'mdx' && isLlmsTxtRoute(route) && !getContentRouteIsBareAlias(route))
   if (mdxRoutes.length > 0) {
     const localizedGroups = groupLlmsTxtRoutesByLocale(mdxRoutes, projectConfig)
     for (const [locale, localeRoutes] of localizedGroups) {
@@ -145,7 +147,7 @@ export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedPro
   }
 
   // Exclude bare alias routes (e.g., /path without language prefix) in multilingual sites
-  const openApiRoutes = routes.filter(route => route.kind === 'openapi' && isLlmsTxtRoute(route) && !route.isBareAlias)
+  const openApiRoutes = routes.filter(route => route.kind === 'openapi' && isLlmsTxtRoute(route) && !getContentRouteIsBareAlias(route))
   if (openApiRoutes.length > 0) {
     if (lines.at(-1) !== '') lines.push('')
     lines.push('## OpenAPI')

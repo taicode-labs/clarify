@@ -4,9 +4,9 @@ import { join } from 'node:path'
 
 import { describe, expect, it, afterEach, beforeEach } from 'vitest'
 
-import { setProjectContentProcessor } from '../../core/content.js'
-import { resolveThemeConfig } from '../../core/theme.js'
-import { createContentProcessor } from '../../parsers/content.js'
+import { setProjectContentProcessor } from '../../core/content/index.js'
+import { resolveThemeConfig } from '../../core/config/theme.js'
+import { createContentProcessor } from '../../parsers/content/index.js'
 import type { ClarifyHookContext, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 import { createOpenAPIPlugin } from './index.js'
@@ -174,7 +174,7 @@ describe('createOpenAPIPlugin', () => {
       filePath: specPath,
       virtualModuleId: 'virtual:clarify-page/broken',
       kind: 'openapi',
-      content: '{ invalid json',
+      source: { content: '{ invalid json' },
     }]
     const plugin = createOpenAPIPlugin()
 

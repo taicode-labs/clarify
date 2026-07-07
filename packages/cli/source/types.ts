@@ -3,12 +3,12 @@ import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
 import type { ContentDocument, UISlotRegistration } from '@clarify-labs/renderer'
 
-import type { ResolvedBuildOptions } from './core/options.js'
+import type { ResolvedBuildOptions } from './core/config/options.js'
 
 export type {
   ClarifyBuildOptions,
   ResolvedBuildOptions,
-} from './core/options.js'
+} from './core/config/options.js'
 
 export type OpenAPISpec = OpenAPIV3.Document | OpenAPIV3_1.Document
 
@@ -285,6 +285,19 @@ export type ContentDiagnostic = {
   message: string
   details?: string
   filePath?: string
+}
+
+export type ContentRouteIdentity = {
+  path: string
+  kind?: string
+  title?: string
+  locale?: string
+  filePath?: string
+  basePath?: string
+  isFallback?: boolean
+  isBareAlias?: boolean
+  alternates?: Record<string, string>
+  virtualModuleId?: string
 }
 
 export type ContentRoute = {

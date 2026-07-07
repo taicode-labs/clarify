@@ -6,11 +6,11 @@ import type { ContentDocument } from '@clarify-labs/renderer'
 import SwaggerParser from '@apidevtools/swagger-parser'
 import GithubSlugger from 'github-slugger'
 
-import type { ContentProcessor } from '../content.js'
-import { kebabToTitle, routePathFromRef, virtualModuleIdFromRef } from '../routes.js'
+import type { ContentProcessor } from '../content/index.js'
+import { kebabToTitle, routePathFromFilePath, virtualModuleIdFromFilePath } from '../router/index.js'
 import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
 
-import { createContentDocument } from '../content-document.js'
+import { createContentDocument, syncContentDocumentRoute } from '../content/content-document.js'
 import { createOpenAPIContentDocument } from './content-document.js'
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
@@ -51,14 +51,13 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
     }
     if (!entry.isFile() || !/\.openapi\.(json|yaml|yml)$/.test(entry.name)) continue
 
-    const ref = relative(base, fullPath)
-    const cleanPath = routePathFromRef(ref)
+    const cleanPath = routePathFromFilePath(fullPath, base)
     const title = kebabToTitle(cleanPath.split('/').pop() ?? 'API')
     routes.push({
       path: cleanPath,
       basePath: cleanPath,
       filePath: fullPath,
-      virtualModuleId: virtualModuleIdFromRef(ref),
+      virtualModuleId: virtualModuleIdFromFilePath(fullPath, base),
       title,
       kind: 'openapi',
     })
@@ -142,8 +141,9 @@ export async function prepareOpenAPIRoutes(routes: ContentRoute[], contentProces
     const specFromCache = specs.get(route.filePath)
     const result = specFromCache ? { ok: true as const, spec: specFromCache } : await readOpenAPISpec(route.filePath, contentProcessor)
     if (!result.ok) {
-      route.document = createContentDocument({ path: route.path, title: route.title, filePath: route.filePath }, [], { diagnostic: result.diagnostic })
+      route.document = createContentDocument({ path: route.path, title: route.title, filePath: route.filePath, kind: route.kind, basePath: route.basePath, locale: route.locale, isFallback: route.isFallback, isBareAlias: route.isBareAlias, alternates: route.alternates, virtualModuleId: route.virtualModuleId }, [], { diagnostic: result.diagnostic })
       route.title = route.title || 'OpenAPI parse error'
+      route.document = syncContentDocumentRoute(route)
       continue
     }
 
@@ -159,6 +159,7 @@ export async function prepareOpenAPIRoutes(routes: ContentRoute[], contentProces
       description: spec.info?.description ?? undefined,
       sections,
     })
+    route.document = syncContentDocumentRoute(route)
     route.source = {
       ...route.source,
       content: JSON.stringify(pageSpec),

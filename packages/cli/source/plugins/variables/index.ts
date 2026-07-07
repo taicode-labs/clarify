@@ -1,4 +1,4 @@
-import { applyVariables } from '../../parsers/variables.js'
+import { applyVariables } from '../../parsers/variables/index.js'
 import type { ClarifyVariablesConfig, ClarifyPlugin } from '../../types.js'
 
 function applyVariablesToFrontmatter(frontmatter: Record<string, unknown>, variables: ClarifyVariablesConfig): Record<string, unknown> {

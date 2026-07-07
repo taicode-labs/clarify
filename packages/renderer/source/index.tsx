@@ -22,7 +22,7 @@ import { themePresets, themeBootstrapScript } from './theme/variables'
 import type { Config, RouteItem, RenderOptions, ServerRenderOptions } from './types'
 import { remToPx } from './utils/remToPx'
 
-export type { ContentBlock, ContentDocument, ContentMetadata, ContentRenderContext, ContentSectionMetadata, ContentSource, MarkdownContentBlock, MdxContentBlock, OpenAPIContentBlock, OpenAPIOperationReference, OpenAPISpecReference } from './content'
+export type { ContentBlock, ContentDocument, ContentDocumentRoute, ContentMetadata, ContentRenderContext, ContentSectionMetadata, ContentSource, MarkdownContentBlock, MdxContentBlock, OpenAPIContentBlock, OpenAPIOperationReference, OpenAPISpecReference } from './content'
 export type { OpenApiOperationProps, OpenApiDocumentProps, OpenAPIOperation, OpenAPISpec, OpenApiRouteData } from './openapi'
 export type { ThemeEditorProps } from './theme/ThemeEditor'
 export type { ContentDiagnostic }

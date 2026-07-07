@@ -1,6 +1,6 @@
 import type { ContentDocument } from '@clarify-labs/renderer'
 
-import { VIRTUAL_OPENAPI } from '../../core/virtual-modules.js'
+import { VIRTUAL_OPENAPI } from '../../core/site/virtual-modules.js'
 import type { ContentDiagnostic, OpenAPISpec } from '../../types.js'
 
 export const openApiRegistryModuleId = VIRTUAL_OPENAPI

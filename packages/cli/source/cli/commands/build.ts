@@ -1,6 +1,6 @@
 import { build as viteBuild } from 'vite'
 
-import { logBuildError } from '../../core/log.js'
+import { logBuildError } from '../../core/runtime/log.js'
 import { createViteConfig } from '../../core/vite-config.js'
 import type { ResolvedCliOptions } from '../options.js'
 

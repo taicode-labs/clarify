@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveProjectConfig } from '../../core/config.js'
+import { resolveProjectConfig } from '../../core/config/index.js'
 import type { ContentRoute } from '../../types.js'
 
 import { createRobotsTxt, createSitemapXml } from './artifacts.js'

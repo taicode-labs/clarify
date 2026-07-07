@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveThemeConfig } from '../../core/theme.js'
+import { resolveThemeConfig } from '../../core/config/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 import { resolveContentArtifactPath, resolveContentArtifactType } from './server.js'

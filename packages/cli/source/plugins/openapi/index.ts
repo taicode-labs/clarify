@@ -2,11 +2,11 @@ import { relative } from 'node:path'
 
 import type { ContentDocument } from '@clarify-labs/renderer'
 
-import { getProjectContentProcessor } from '../../core/content.js'
-import { createContentDocument } from '../../parsers/content-document.js'
+import { getProjectContentProcessor } from '../../core/content/index.js'
+import { createContentDocument, syncContentDocumentRoute } from '../../parsers/content/content-document.js'
 import { createOpenAPIContentDocument } from '../../parsers/openapi/content-document.js'
 import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from '../../parsers/openapi/index.js'
-import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/routes.js'
+import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/router/index.js'
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedProjectConfig } from '../../types.js'
 
 import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
@@ -106,8 +106,9 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           const specFromCache = specByFilePath.get(route.filePath)
           const result = specFromCache ? { ok: true as const, spec: specFromCache } : await readOpenAPISpec(route.filePath, getProjectContentProcessor(ctx))
           if (!result.ok) {
-            route.document = createContentDocument({ path: route.path, title: route.title, filePath: route.filePath }, [], { diagnostic: result.diagnostic })
+            route.document = createContentDocument({ path: route.path, title: route.title, filePath: route.filePath, kind: route.kind, basePath: route.basePath, locale: route.locale, isFallback: route.isFallback, isBareAlias: route.isBareAlias, alternates: route.alternates, virtualModuleId: route.virtualModuleId }, [], { diagnostic: result.diagnostic })
             route.title = route.title || 'OpenAPI parse error'
+            route.document = syncContentDocumentRoute(route)
             continue
           }
 
@@ -126,6 +127,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
 
           specs.set(specKey, { spec, filePath: route.filePath })
           route.title = spec.info?.title ?? route.title
+          route.document = syncContentDocumentRoute(route)
           route.source = {
             ...route.source,
             content: JSON.stringify(pageSpec),
@@ -134,6 +136,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
             description: spec.info?.description ?? undefined,
             sections,
           })
+          route.document = syncContentDocumentRoute(route)
           route.openapi = {
             ...route.openapi,
             tagFilter: route.openapi?.tagFilter,

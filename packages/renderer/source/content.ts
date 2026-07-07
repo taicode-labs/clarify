@@ -73,10 +73,24 @@ export type ContentRenderContext = {
   renderOpenApi?: (block: OpenAPIContentBlock) => ReactNode
 }
 
+export type ContentDocumentRoute = {
+  path: string
+  title?: string
+  filePath?: string
+  kind?: string
+  basePath?: string
+  locale?: string
+  isFallback?: boolean
+  isBareAlias?: boolean
+  alternates?: Record<string, string>
+  virtualModuleId?: string
+}
+
 export type ContentDocument = {
   id: string
   title?: string
   source?: string
   content: ContentBlock[]
   metadata: ContentMetadata
+  route?: ContentDocumentRoute
 }

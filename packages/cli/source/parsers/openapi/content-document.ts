@@ -1,8 +1,9 @@
 import type { ContentBlock, ContentDocument } from '@clarify-labs/renderer'
 
 import type { ContentRoute, OpenAPISpec } from '../../types.js'
+import { createContentDocument } from '../content/content-document.js'
 
-export function createOpenAPIContentDocument(route: Pick<ContentRoute, 'path' | 'title' | 'filePath'>, spec: OpenAPISpec, specFileKey: string, metadata: ContentDocument['metadata'] = {}): ContentDocument {
+export function createOpenAPIContentDocument(route: Pick<ContentRoute, 'path' | 'title' | 'filePath' | 'kind' | 'basePath' | 'locale' | 'isFallback' | 'isBareAlias' | 'alternates' | 'virtualModuleId'>, spec: OpenAPISpec, specFileKey: string, metadata: ContentDocument['metadata'] = {}): ContentDocument {
   const blocks: ContentBlock[] = []
   const infoDescription = typeof spec.info?.description === 'string' ? spec.info.description : ''
   blocks.push({ kind: 'markdown', value: infoDescription })
@@ -21,11 +22,5 @@ export function createOpenAPIContentDocument(route: Pick<ContentRoute, 'path' | 
     }
   }
 
-  return {
-    id: route.path,
-    title: route.title,
-    source: route.filePath,
-    content: blocks,
-    metadata,
-  }
+  return createContentDocument(route, blocks, metadata)
 }

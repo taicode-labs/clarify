@@ -4,12 +4,12 @@ import { resolve } from 'node:path'
 import { createLogger } from 'vite'
 import type { ConfigEnv, InlineConfig, Plugin, LogLevel, Logger, LogOptions, LogErrorOptions, LogType } from 'vite'
 
-import { logBuildErrorSync } from './log.js'
-import type { ClarifyBuildOptions } from './options.js'
-import { clarifyPlugin } from './plugin.js'
-import { resolveProjectContext } from './project-context.js'
-import { createClarifyRuntimeAliases } from './runtime-deps.js'
-import { createClarifyTempDir } from './temp-dir.js'
+import type { ClarifyBuildOptions } from './config/options.js'
+import { clarifyPlugin } from './plugin/index.js'
+import { resolveProjectContext } from './project/project-context.js'
+import { logBuildErrorSync } from './runtime/log.js'
+import { createClarifyRuntimeAliases } from './runtime/runtime-deps.js'
+import { createClarifyTempDir } from './runtime/temp-dir.js'
 
 export type ClarifyViteConfigOptions = {
   root: string
