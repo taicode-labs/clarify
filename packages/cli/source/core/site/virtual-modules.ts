@@ -194,6 +194,11 @@ export default createOpenApiRouteComponent(routeData);
 `
 }
 
+export function generateMdxRouteModule(route: ContentRoute): string {
+  return `export { default } from ${moduleSpecifier(route.filePath)};
+`
+}
+
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
   const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
@@ -215,6 +220,8 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
       ? generateMdxErrorModule(route.document.metadata.diagnostic)
       : route.kind === 'openapi' && route.openapi?.spec
         ? generateOpenApiRouteModule(route)
+        : route.kind === 'mdx'
+          ? generateMdxRouteModule(route)
         : route.document
           ? generateDocumentRouteModule(route)
           : `export { default } from ${moduleSpecifier(route.filePath)};`

@@ -1,12 +1,13 @@
 import type { ComponentType, ReactNode } from 'react'
 import { Fragment } from 'react'
 
+import { Prose } from './components/Prose'
 import { Markdown } from './mdx/Markdown'
 import type { ContentDocument, ContentRenderContext, MarkdownContentBlock, MdxContentBlock, OpenAPIContentBlock } from './content'
 
 function defaultMarkdownRenderer(block: MarkdownContentBlock): ReactNode {
   return (
-    <Markdown className="prose-p:mt-0 prose-p:mb-4">
+    <Markdown>
       {block.value}
     </Markdown>
   )
@@ -14,9 +15,19 @@ function defaultMarkdownRenderer(block: MarkdownContentBlock): ReactNode {
 
 function defaultMdxRenderer(block: MdxContentBlock): ReactNode {
   return (
-    <Markdown className="prose-p:mt-0 prose-p:mb-4">
+    <Markdown>
       {block.value}
     </Markdown>
+  )
+}
+
+function ContentDocumentShell(arg0: { children: ReactNode }) {
+  const { children } = arg0
+
+  return (
+    <article className="clarify-mdx-page flex h-full min-w-0 flex-col pt-14 pb-10">
+      <Prose className="flex-auto">{children}</Prose>
+    </article>
   )
 }
 
@@ -53,22 +64,22 @@ export function renderContentDocument(document: ContentDocument | undefined, con
   const renderOpenApi = context.renderOpenApi ?? defaultOpenApiRenderer
 
   return (
-    <Fragment>
+    <ContentDocumentShell>
       {document.content.map((block, index) => {
         if (block.kind === 'markdown') {
-          return <div key={`${block.kind}-${index}`}>{renderMarkdown(block)}</div>
+          return <Fragment key={`${block.kind}-${index}`}>{renderMarkdown(block)}</Fragment>
         }
 
         if (block.kind === 'mdx') {
-          return <div key={`${block.kind}-${index}`}>{renderMdx(block)}</div>
+          return <Fragment key={`${block.kind}-${index}`}>{renderMdx(block)}</Fragment>
         }
 
         if (block.kind === 'openapi') {
-          return <div key={`${block.kind}-${index}`}>{renderOpenApi(block)}</div>
+          return <Fragment key={`${block.kind}-${index}`}>{renderOpenApi(block)}</Fragment>
         }
 
         return null
       })}
-    </Fragment>
+    </ContentDocumentShell>
   )
 }
