@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ContentDiagnostic as RendererDiagnostic } from '@clarify-labs/renderer'
+import type { ContentDiagnosticMetadata as RendererDiagnostic } from '@clarify-labs/renderer'
 
 import type { ContentDiagnostic as CliDiagnostic, OpenAPISpec } from '../../types.js'
 

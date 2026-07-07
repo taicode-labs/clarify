@@ -1,7 +1,7 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
-import type { ContentDocument, UISlotRegistration } from '@clarify-labs/renderer'
+import type { UISlotRegistration, ContentDocument } from '@clarify-labs/renderer'
 
 import type { ResolvedBuildOptions } from './core/config/options.js'
 

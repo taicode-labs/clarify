@@ -18,9 +18,7 @@ const external = [
   ...Object.keys(pkg.peerDependencies ?? {}).map(name => new RegExp(`^${name}/`)),
 ]
 
-// Build @clarify-labs/renderer as a library with two entries:
-//   - source/index.tsx   → output/index.{js,cjs}   (public/client API)
-//   - source/server.tsx  → output/server.{js,cjs}  (SSR compatibility entry)
+// Build @clarify-labs/renderer as a library with a single controlled public entry.
 //
 // CSS is built together with JS via @tailwindcss/vite. The output
 // renderer.css contains only the utilities actually used by components.
@@ -44,10 +42,6 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, 'source/index.tsx'),
-        markdown: resolve(__dirname, 'source/markdown.ts'),
-        preview: resolve(__dirname, 'source/preview.tsx'),
-        client: resolve(__dirname, 'source/client.tsx'),
-        server: resolve(__dirname, 'source/server.tsx'),
       },
       formats: ['es', 'cjs'],
       fileName: (format, entryName) => {

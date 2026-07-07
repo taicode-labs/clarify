@@ -1,13 +1,13 @@
 import { evaluate } from '@mdx-js/mdx'
 import { Fragment, cache, isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
-import ReactMarkdown, { type Components } from 'react-markdown'
 import * as jsxRuntime from 'react/jsx-runtime'
+import type { Components } from 'react-markdown'
 
 import { Mermaid } from '../components/Mermaid'
 
 import { useMDXComponents } from './components'
 import { a as MarkdownLink, code as MarkdownCode, pre as MarkdownPre } from './primitives'
-import { markdownRemarkPlugins, mdxRemarkPlugins } from './remark'
+import { mdxRemarkPlugins } from './remark'
 
 function getMermaidChart(children: ReactNode): string | undefined {
   if (!isValidElement(children)) return undefined
@@ -49,18 +49,10 @@ const markdownComponents: Components = {
 
 type MarkdownProps = { children?: string; className?: string }
 
-export function Markdown(arg0: MarkdownProps): ReactNode {
+export async function Markdown(arg0: MarkdownProps): Promise<ReactNode> {
   const { children, className } = arg0
 
-  if (!children) return null
-
-  return (
-    <div className={className}>
-      <ReactMarkdown components={markdownComponents} remarkPlugins={markdownRemarkPlugins}>
-        {children}
-      </ReactMarkdown>
-    </div>
-  )
+  return MdxMarkdown({ children, className })
 }
 
 type MdxMarkdownProps = { children?: string; className?: string }
@@ -81,11 +73,22 @@ const evaluateMdxModule = cache(async (source: string): Promise<EvaluatedMdxModu
 
 export async function MdxMarkdown(arg0: MdxMarkdownProps): Promise<ReactNode> {
   const { children, className } = arg0
-  const components = useMDXComponents(markdownComponents) as Record<string, unknown>
 
   if (!children) return null
 
   const { default: Content } = await evaluateMdxModule(children)
+
+  return <MdxMarkdownContent className={className} Content={Content} />
+}
+
+type MdxMarkdownContentProps = {
+  className?: string
+  Content: (props: { components?: Record<string, unknown> }) => ReactNode
+}
+
+function MdxMarkdownContent(arg0: MdxMarkdownContentProps): ReactNode {
+  const { className, Content } = arg0
+  const components = useMDXComponents(markdownComponents) as Record<string, unknown>
 
   return (
     <div className={className}>

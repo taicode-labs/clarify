@@ -1,7 +1,7 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/router/index.js'
-import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, ContentSection, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 // 新的虚拟模块命名 - 更清晰的职责划分
 export const VIRTUAL_CONFIG = 'virtual:clarify/config'
@@ -66,7 +66,7 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
     const document = r.document?.metadata
       ? `, document: ${JSON.stringify({
           metadata: {
-            sections: r.document.metadata.sections?.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags })),
+            sections: r.document.metadata.sections?.map((s: ContentSection) => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags })),
             description: r.document.metadata.description,
             keywords: r.document.metadata.keywords,
             diagnostic: r.document.metadata.diagnostic,
@@ -99,7 +99,7 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
 export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {
   return `
 import '@clarify-labs/renderer/style.css';
-import { render } from '@clarify-labs/renderer/client';
+import { render } from '@clarify-labs/renderer';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
 import { openApis } from '${VIRTUAL_OPENAPI}';

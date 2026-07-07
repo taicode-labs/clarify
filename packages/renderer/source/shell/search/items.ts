@@ -1,4 +1,4 @@
-import type { NavigationNode, RouteItem } from '../../types'
+import type { NavigationNode, RouteItem } from '../../core/types'
 
 import type { SearchItem } from './types'
 

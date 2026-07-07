@@ -5,7 +5,6 @@ import type { ConfigEnv } from 'vite'
 
 import { cliPackageVersion } from '../../cli/package.js'
 import type { ClarifyHookContext, ClarifyProjectContext } from '../../types.js'
-
 import { resolveProjectConfig } from '../config/index.js'
 import { resolveBuildOptions, type ClarifyBuildOptions, type ResolvedBuildOptions } from '../config/options.js'
 import { findClarifyConfigFile, loadClarifyConfig, type ClarifyConfig } from '../config/user-config.js'

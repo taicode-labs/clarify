@@ -6,8 +6,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { getContentRouteIdentity } from '../content/content-document.js'
 import { createContentProcessor } from '../content/index.js'
-import { findContentRoutes, findLocalizedContentRoutes } from './index.js'
+
 import { testI18n } from './routes.test-utils.js'
+
+import { findContentRoutes, findLocalizedContentRoutes } from './index.js'
 
 describe('findContentRoutes', () => {
   let tempDir: string

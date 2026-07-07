@@ -3,9 +3,9 @@ import { extname, join, relative, resolve } from 'node:path'
 
 import type { ViteDevServer } from 'vite'
 
-import { getContentRouteIsBareAlias, getContentRouteLocale, getContentRoutePath, getContentRouteTitle } from '../../parsers/content/content-document.js'
 import { toPagefindLanguage } from '../../core/runtime/search-language.js'
 import { createClarifyTempDir, removeClarifyTempDir } from '../../core/runtime/temp-dir.js'
+import { getContentRouteIsBareAlias, getContentRouteLocale, getContentRoutePath, getContentRouteTitle } from '../../parsers/content/content-document.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute } from '../../types.js'
 import { readOpenAPIArtifactContent } from '../content-artifacts/artifacts.js'
 
@@ -71,7 +71,7 @@ function routeSearchContent(route: ContentRoute): string {
     getContentRouteTitle(route) ?? route.title,
     route.document?.metadata.description,
     route.document?.metadata.keywords?.join(' '),
-    route.document?.metadata.sections?.map(section => section.title).join(' '),
+    route.document?.metadata.sections?.map((section) => section.title).join(' '),
     primaryContent,
   ].filter(Boolean).join('\n\n')
 }

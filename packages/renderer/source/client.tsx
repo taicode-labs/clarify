@@ -1,6 +1,0 @@
-export { render } from './runtime/render'
-export { ThemeEditor, applyThemeVariables, themeEditorPresets } from './theme/ThemeEditor'
-export { getStoredLocalePreference, getStoredThemePreference, localeCookieName, readLocaleCookie, storeLocalePreference, storeThemePreference } from './theme/cookies'
-export { themeBootstrapScript, themeStorageKey, themeCookieName } from './theme/variables'
-export type { ThemePreference } from './theme/cookies'
-export type { ThemeEditorProps } from './theme/ThemeEditor'

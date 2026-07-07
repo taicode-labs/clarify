@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
 
-import { resolveThemeConfig } from '../config/theme.js'
-import { buildVirtualModules, createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from './virtual-modules.js'
 import type { ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
+import { resolveThemeConfig } from '../config/theme.js'
+
+import { buildVirtualModules, createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from './virtual-modules.js'
 
 describe('generateConfigModule', () => {
   it('generates a valid ES module export', () => {

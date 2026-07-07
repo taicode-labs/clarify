@@ -5,12 +5,19 @@ import { pathToFileURL } from 'node:url'
 import { build } from 'vite'
 import type { Plugin } from 'vite'
 
-import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
-
 import { getContentRouteAlternates, getContentRouteBasePath, getContentRouteIsBareAlias, getContentRouteLocale, getContentRoutePath } from '../../parsers/content/content-document.js'
+import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
 import { createClarifyRuntimeAliases } from '../runtime/runtime-deps.js'
 import { createClarifyTempDir } from '../runtime/temp-dir.js'
 import { escapeHtml } from '../runtime/utils.js'
+
+export type StaticPageRenderer = {
+  render: (url: string) => Promise<string>
+}
+
+export async function loadStaticPageRenderer(ssrBundlePath: string): Promise<StaticPageRenderer> {
+  return import(pathToFileURL(ssrBundlePath).href)
+}
 
 export function readIndexHtml(outputDirectory: string): string | undefined {
   const indexPath = join(outputDirectory, 'index.html')
@@ -78,7 +85,6 @@ function canonicalUrl(contextOrConfig: ClarifyProjectContext | ResolvedProjectCo
 
 function injectCanonicalUrl(html: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
   const url = route ? canonicalUrl(contextOrConfig, route) : undefined
-  // Remove any existing canonical link
   html = html.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*\/?>\n?/gi, '')
   if (!url) return html
   return html.replace('</head>', `  <link rel="canonical" href="${escapeHtml(url)}" />\n  </head>`)
@@ -88,16 +94,12 @@ export function injectSSRIntoTemplate(template: string, appHtml: string, context
   const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
   let html = injectHtmlLocaleAttributes(template, contextOrConfig, route)
 
-  // Replace <title>...</title>
   html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(routeTitle(contextOrConfig, route))}</title>`)
 
   html = setNamedMeta(html, 'description', route?.document?.metadata.description ?? projectConfig.description)
   html = setNamedMeta(html, 'keywords', route?.document?.metadata.keywords?.join(', '))
   html = injectCanonicalUrl(html, contextOrConfig, route)
 
-  // Replace <div id="root">...</div> with SSR rendered content
-  // For bare alias routes (e.g., /path) in multilingual sites, mark the root div
-  // with data-pagefind-ignore to prevent Pagefind from indexing duplicates
   const dataPagefindIgnore = route && getContentRouteIsBareAlias(route) ? ' data-pagefind-ignore' : ''
   html = html.replace(/<div id="root">([\s\S]*?)<\/div>/, `<div id="root"${dataPagefindIgnore}>${appHtml}</div>`)
 
@@ -116,22 +118,30 @@ export function routeOutputFiles(outputDirectory: string, route: ContentRoute): 
   return files
 }
 
-export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify-labs/renderer/server';
+export const STATIC_PAGE_ENTRY_CODE = `import { renderToHTML } from '@clarify-labs/renderer';
 import { routes, navigation } from 'virtual:clarify/routes/server';
 import { config } from 'virtual:clarify/config';
 import { openApis } from 'virtual:clarify/openapi';
 import { runtimeSlots } from 'virtual:clarify/slots';
 
 export async function render(url) {
-  // Pre-resolve every slot component factory so renderToString can use
-  // them synchronously (renderToString has no Suspense support).
+  // Clarify's default deployment model is build-time SSR plus static hosting.
+  // This render() function runs only during the build to materialize HTML files,
+  // not as a request-time production server entry.
   const entries = Object.values(runtimeSlots).flat()
   await Promise.all(entries.map(async (entry) => {
     const mod = await entry.component()
     entry._resolved = mod.default
   }))
-  return renderToHTML({ config, routes, navigation, openApis, runtimeSlots, url, themeEditor: config.theme.editor });
+  return await renderToHTML({ config, routes, navigation, openApis, runtimeSlots, url, themeEditor: config.theme.editor });
 }`
+
+export function isBuildTimeStaticPageEntry(code: string): boolean {
+  return code.includes('build-time SSR plus static hosting')
+    && code.includes('not as a request-time production server entry')
+    && code.includes("import { renderToHTML } from '@clarify-labs/renderer';")
+    && code.includes('return await renderToHTML')
+}
 
 export function createTempEntryFile(content: string): string {
   const tempDir = createClarifyTempDir('ssr')
@@ -165,8 +175,8 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
   })
 }
 
-export async function renderSSGRoutes(routes: ContentRoute[], contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string, failOnError: boolean = true): Promise<void> {
-  const { render } = await import(pathToFileURL(ssrBundlePath).href)
+export async function buildStaticPages(routes: ContentRoute[], contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string, failOnError: boolean = true): Promise<void> {
+  const { render } = await loadStaticPageRenderer(ssrBundlePath)
 
   const template = readIndexHtml(outputDirectory)
   if (!template) {

@@ -18,29 +18,11 @@
       "require": "./output/index.cjs",
       "default": "./output/index.js"
     },
-    "./markdown": {
-      "types": "./output/markdown.d.ts",
-      "import": "./output/markdown.js",
-      "require": "./output/markdown.cjs",
-      "default": "./output/markdown.js"
-    },
-    "./preview": {
-      "types": "./output/preview.d.ts",
-      "import": "./output/preview.js",
-      "require": "./output/preview.cjs",
-      "default": "./output/preview.js"
-    },
-    "./client": {
-      "types": "./output/client.d.ts",
-      "import": "./output/client.js",
-      "require": "./output/client.cjs",
-      "default": "./output/client.js"
-    },
-    "./server": {
-      "types": "./output/server.d.ts",
-      "import": "./output/server.js",
-      "require": "./output/server.cjs",
-      "default": "./output/server.js"
+    "./types": {
+      "types": "./output/types.d.ts",
+      "import": "./output/types.js",
+      "require": "./output/types.cjs",
+      "default": "./output/types.js"
     },
     "./style.css": "./output/renderer.css",
     "./package.json": "./package.json"

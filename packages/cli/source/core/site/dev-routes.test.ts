@@ -4,6 +4,7 @@ import type { IncomingMessage } from 'node:http'
 import { describe, it, expect } from 'vitest'
 
 import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
+import { resolveThemeConfig } from '../config/theme.js'
 
 import {
   toDevRouteEntry,
@@ -11,7 +12,6 @@ import {
   inferRouteForFile,
   handleDevRouteRequest,
 } from './dev-routes.js'
-import { resolveThemeConfig } from '../config/theme.js'
 
 function makeRoute(overrides: Partial<ContentRoute>): ContentRoute {
   return {

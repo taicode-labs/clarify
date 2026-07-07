@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Config } from '../types'
+import type { Config } from '../core/types'
 
 import { hasLocalePrefix, isExternalHref, localizeHref, prefixHref } from './href'
 

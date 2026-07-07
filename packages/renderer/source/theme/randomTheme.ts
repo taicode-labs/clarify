@@ -1,4 +1,4 @@
-import type { ThemeConfig, ThemeRadiusTokensConfig } from '../types'
+import type { ThemeConfig, ThemeRadiusTokensConfig } from '../core/types'
 
 type RandomThemeAccentPair = {
   primary: string;

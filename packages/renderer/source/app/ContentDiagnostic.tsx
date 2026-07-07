@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react'
 
-import { createRouteComponent } from '../route-factory'
+import { createRouteComponent } from '../routes/factory'
+
 import { RenderErrorPanel } from './RenderErrorPanel'
 
 export type ContentDiagnostic = {

@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { hydrateRoot, createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
-import type { RenderOptions } from '../types'
+import type { RenderOptions } from '../core/types'
 
 import { ClarifyShell } from './ClarifyShell'
 

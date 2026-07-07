@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react'
 
-import type { OpenAPIContentBlock } from '../content'
 import { PageTitleActions } from '../app/PageActions'
 import { Prose } from '../components/Prose'
-import { createComponentRouteComponent, createDocumentRouteComponent } from '../content-renderer'
-import { createRouteComponent } from '../route-factory'
+import type { OpenAPIContentBlock } from '../content/index'
 import { useBuiltInText } from '../core/i18n'
-import { Markdown } from '../mdx/Markdown'
+import { Markdown } from '../markdown/Markdown'
+import { createDocumentRouteComponent } from '../routes/content'
+import { createRouteComponent } from '../routes/factory'
 
 import { OpenApiOperation as OpenApiOperationComponent } from './components/OpenApiOperation'
 import { useOpenApiSpec } from './lib/spec-path'

@@ -74,7 +74,7 @@ function isLlmsTxtRoute(route: ContentRoute): boolean {
 function llmsTxtDescription(route: ContentRoute): string | undefined {
   if (route.document?.metadata.description) return route.document.metadata.description
 
-  const sections = route.document?.metadata.sections?.filter(section => section.level === 2).slice(0, 3).map(section => section.title)
+  const sections = route.document?.metadata.sections?.filter((section) => section.level === 2).slice(0, 3).map((section) => section.title)
   if (sections?.length) return `Covers ${sections.join(', ')}.`
 
   if (route.document?.metadata.keywords?.length) return `Related topics: ${route.document.metadata.keywords.join(', ')}.`

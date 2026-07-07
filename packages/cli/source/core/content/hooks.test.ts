@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 
 import type { ClarifyPlugin, ClarifyHookContext, ClarifyPage } from '../../types.js'
+import { resolveThemeConfig } from '../config/theme.js'
 
 import { runHooks } from './hooks.js'
-import { resolveThemeConfig } from '../config/theme.js'
 
 const mockCtx: ClarifyHookContext = {
   projectRoot: '/site',

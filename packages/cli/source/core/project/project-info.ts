@@ -1,7 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
 import type { ClarifyProjectContext } from '../../types.js'
-
 import { CONFIG_FILENAMES } from '../config/user-config.js'
 
 /**

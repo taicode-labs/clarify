@@ -2,7 +2,6 @@ import { existsSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 import type { ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, ResolvedClarifyI18nConfig, TabbedNavigation } from '../../types.js'
-
 import { syncContentDocumentRoute } from '../content/content-document.js'
 import { type ContentProcessor } from '../content/index.js'
 import { findMarkdownRoutes } from '../markdown/index.js'

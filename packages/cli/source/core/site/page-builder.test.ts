@@ -5,9 +5,9 @@ import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
-
-import { readIndexHtml, injectSSRIntoTemplate, isNotFoundRoute, routeOutputFiles } from './ssg.js'
 import { resolveThemeConfig } from '../config/theme.js'
+
+import { readIndexHtml, injectSSRIntoTemplate, isNotFoundRoute, routeOutputFiles } from './page-builder.js'
 
 describe('readIndexHtml', () => {
   let tempDir: string

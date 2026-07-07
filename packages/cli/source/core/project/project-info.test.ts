@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest'
 
 import type { ClarifyProjectContext, ResolvedProjectConfig } from '../../types.js'
+import { resolveThemeConfig } from '../config/theme.js'
 
 import {
   buildProjectInfo,
   CONTENT_FILE_EXTENSIONS,
   handleProjectInfoRequest,
 } from './project-info.js'
-import { resolveThemeConfig } from '../config/theme.js'
 
 const mockProjectConfig: ResolvedProjectConfig = {
   title: 'Test',

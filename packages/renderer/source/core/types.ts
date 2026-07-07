@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 
-import type { ContentDocument } from '../content'
+import type { ContentDocument } from '../content/index'
 import type { OpenAPISpec } from '../openapi/lib/utils'
 import type { RuntimeSlots } from '../slots'
 

@@ -1,12 +1,11 @@
 import { join, relative } from 'node:path'
 
-import { applyConfiguredPageRoutePaths, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef, withAlternates } from '../../parsers/router/index.js'
 import { getContentRouteBasePath, getContentRoutePath, getContentRouteVirtualModuleId } from '../../parsers/content/content-document.js'
+import { applyConfiguredPageRoutePaths, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef, withAlternates } from '../../parsers/router/index.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../../types.js'
-
 import type { ClarifyBuildOptions, ResolvedBuildOptions } from '../config/options.js'
-import { createProjectContentProcessor, getProjectContentProcessor, setProjectContentProcessor } from '../content/index.js'
 import { runHooks } from '../content/hooks.js'
+import { createProjectContentProcessor, getProjectContentProcessor, setProjectContentProcessor } from '../content/index.js'
 import { createBuiltinPlugins } from '../plugin/builtin.js'
 import { resolveProjectContext } from '../project/project-context.js'
 

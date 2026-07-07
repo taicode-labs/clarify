@@ -6,8 +6,9 @@ import type { ConfigEnv } from 'vite'
 
 import type { ClarifyProjectConfig } from '../../types.js'
 
-import { validateProjectConfig } from './index.js'
 import type { ClarifyBuildOptions } from './options.js'
+
+import { validateProjectConfig } from './index.js'
 
 export type ClarifyConfig = ClarifyProjectConfig & Pick<ClarifyBuildOptions, 'plugins' | 'ssg'>
 

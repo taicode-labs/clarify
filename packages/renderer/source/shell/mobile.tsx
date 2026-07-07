@@ -6,8 +6,8 @@ import { createContext, Suspense, useContext } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { create } from 'zustand'
 
-import { useBuiltInText } from '../i18n'
-import type { Config, NavigationNode, NavigationTab, RouteItem } from '../types'
+import { useBuiltInText } from '../core/i18n'
+import type { Config, NavigationNode, NavigationTab, RouteItem } from '../core/types'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { Header } from './Header'

@@ -5,8 +5,8 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { useSectionStore } from '../app/SectionProvider'
-import { useBuiltInText } from '../i18n'
-import type { NavigationNode } from '../types'
+import { useBuiltInText } from '../core/i18n'
+import type { NavigationNode } from '../core/types'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 import { remToPx } from '../utils/remToPx'
 

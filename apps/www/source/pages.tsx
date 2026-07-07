@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { MdxPreview, OpenApiPreview } from '@clarify-labs/renderer/preview'
+import { MdxPreview, OpenApiPreview } from '@clarify-labs/renderer'
 
 import { site } from './content'
 import { AnnouncementBadge } from './ui/elements/announcement-badge'

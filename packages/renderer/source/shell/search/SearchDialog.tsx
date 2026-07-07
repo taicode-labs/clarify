@@ -4,8 +4,8 @@ import { SearchX } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { useBuiltInText } from '../../i18n'
-import type { NavigationNode, RouteItem } from '../../types'
+import { useBuiltInText } from '../../core/i18n'
+import type { NavigationNode, RouteItem } from '../../core/types'
 
 import { buildSearchItems } from './items'
 import { loadPagefind, normalizePagefindUrl, pagefindCacheKey } from './pagefind'

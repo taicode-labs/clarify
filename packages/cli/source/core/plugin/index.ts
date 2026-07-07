@@ -7,10 +7,8 @@ import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { cliPackageVersion } from '../../cli/package.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../../types.js'
-
-import { createBuiltinPlugins } from './builtin.js'
-import { resolveProjectConfig } from '../config/index.js'
 import { writeClarifyEnvDts } from '../config/env-types.js'
+import { resolveProjectConfig } from '../config/index.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from '../config/options.js'
 import { findClarifyConfigFile } from '../config/user-config.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from '../content/hooks.js'
@@ -20,11 +18,11 @@ import { logStartupHints } from '../project/startup.js'
 import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../site/dev-routes.js'
 import { resolveClarifySite } from '../site/index.js'
 import {
-  SSR_ENTRY_CODE,
+  STATIC_PAGE_ENTRY_CODE,
   createTempEntryFile,
   buildSSRBundle,
-  renderSSGRoutes,
-} from '../site/ssg.js'
+  buildStaticPages,
+} from '../site/page-builder.js'
 import {
   RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
@@ -39,6 +37,8 @@ import {
   stripVirtualPrefix,
   type VirtualModules,
 } from '../site/virtual-modules.js'
+
+import { createBuiltinPlugins } from './builtin.js'
 
 function loadVirtualModule(id: string, modules: VirtualModules): string | null {
   const bareId = stripVirtualPrefix(id)
@@ -258,22 +258,24 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       }
     },
     async closeBundle() {
-      // ── Phase 1: Static HTML Generation ──
-      if (process.env.SKIP_CLARIFY_SSG) {
+      // ── Phase 1: Static page building ──
+      const skipStaticPageBuilder = process.env.SKIP_CLARIFY_PAGE_BUILDER === '1'
+        || process.env.SKIP_CLARIFY_PAGE_BUILDER === 'true'
+      if (skipStaticPageBuilder) {
         await runBuildDoneHooks(clarifyPlugins, ctx)
         return
       }
 
       const outputDir = viteConfig.build.outDir
-      const ssrOutputDir = join(outputDir, '.ssr')
+      const staticPageBuilderOutputDir = join(outputDir, '.ssr')
       let tempEntryPath: string | undefined
 
       try {
-        tempEntryPath = createTempEntryFile(SSR_ENTRY_CODE)
+        tempEntryPath = createTempEntryFile(STATIC_PAGE_ENTRY_CODE)
 
-        await buildSSRBundle(root, tempEntryPath, ssrOutputDir, [
+        await buildSSRBundle(root, tempEntryPath, staticPageBuilderOutputDir, [
           {
-            name: 'clarify:virtual-ssg',
+            name: 'clarify:virtual-page-builder',
             resolveId(id) {
               if (id === VIRTUAL_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
               if (id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
@@ -292,10 +294,10 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
           },
         ])
 
-        const ssrBundlePath = join(ssrOutputDir, 'entry-server.js')
-        await renderSSGRoutes(routes, runtimeContext, outputDir, ssrBundlePath, generateOptions.ssg.failOnError)
+        const staticPageRendererBundlePath = join(staticPageBuilderOutputDir, 'entry-server.js')
+        await buildStaticPages(routes, runtimeContext, outputDir, staticPageRendererBundlePath, generateOptions.ssg.failOnError)
       } catch (err) {
-        console.error('[clarify] SSG failed:', err)
+        console.error('[clarify] Page builder failed during build-time SSR/static output generation:', err)
         if (generateOptions.ssg.failOnError) {
           throw err
         }

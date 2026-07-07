@@ -1,11 +1,12 @@
 import type { ComponentType, ReactNode } from 'react'
 import { Fragment } from 'react'
 
-import { SectionProvider, type Section } from './app/SectionProvider'
-import { Prose } from './components/Prose'
-import type { ContentBlock, ContentDocument, ContentRenderers, MarkdownContentBlock, OpenAPIContentBlock } from './content'
-import { MdxMarkdown } from './mdx/Markdown'
-import { createRouteComponent } from './route-factory'
+import { SectionProvider, type Section } from '../app/SectionProvider'
+import { Prose } from '../components/Prose'
+import type { ContentBlock, ContentDocument, ContentRenderers, MarkdownContentBlock, OpenAPIContentBlock } from '../content/index'
+import { MdxMarkdown } from '../markdown/Markdown'
+
+import { createRouteComponent } from './factory'
 
 function defaultMarkdownRenderer(block: MarkdownContentBlock): ReactNode {
   return (

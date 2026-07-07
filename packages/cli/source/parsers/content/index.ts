@@ -1,5 +1,4 @@
 import type { ClarifyContentKind, ClarifyContentTransformInput } from '../../types.js'
-
 import { parseFrontmatter } from '../markdown/frontmatter.js'
 
 export type ProcessedMdxContent = {

@@ -2,15 +2,16 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import type { ContentDocument } from '@clarify-labs/renderer'
 import SwaggerParser from '@apidevtools/swagger-parser'
 import GithubSlugger from 'github-slugger'
 
+import type { ContentDocument } from '@clarify-labs/renderer'
+
+import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
+import { createContentDocument, syncContentDocumentRoute } from '../content/content-document.js'
 import type { ContentProcessor } from '../content/index.js'
 import { kebabToTitle, routePathFromFilePath, virtualModuleIdFromFilePath } from '../router/index.js'
-import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
 
-import { createContentDocument, syncContentDocumentRoute } from '../content/content-document.js'
 import { createOpenAPIContentDocument } from './content-document.js'
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
