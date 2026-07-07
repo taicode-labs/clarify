@@ -217,6 +217,9 @@ importers:
       '@headlessui/react':
         specifier: ^2.2.10
         version: 2.2.10(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@mdx-js/mdx':
+        specifier: ^3.1.1
+        version: 3.1.1
       '@scalar/snippetz':
         specifier: ^0.9.17
         version: 0.9.17
