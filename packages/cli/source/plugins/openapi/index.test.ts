@@ -157,7 +157,7 @@ describe('createOpenAPIPlugin', () => {
         },
         {
           kind: 'openapi',
-          spec: { specFileKey: expect.any(String) },
+          spec: { path: '/api' },
           operation: { path: '/users', method: 'get' },
         },
       ],

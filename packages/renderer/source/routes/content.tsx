@@ -5,6 +5,7 @@ import { SectionProvider, type Section } from '../app/SectionProvider'
 import { Prose } from '../components/Prose'
 import type { ContentBlock, ContentDocument, ContentRenderers, MarkdownContentBlock, OpenAPIContentBlock } from '../content/index'
 import { MdxMarkdown } from '../markdown/Markdown'
+import { OpenApiContentBlockRenderer } from '../openapi/render'
 
 import { createRouteComponent } from './factory'
 
@@ -42,8 +43,8 @@ function ContentDocumentShell(arg0: ContentDocumentShellProps) {
   )
 }
 
-function defaultOpenApiRenderer(_block: OpenAPIContentBlock): ReactNode {
-  return null
+function defaultOpenApiRenderer(block: OpenAPIContentBlock): ReactNode {
+  return <OpenApiContentBlockRenderer block={block} />
 }
 
 export type DocumentRouteData = {

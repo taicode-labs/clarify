@@ -111,7 +111,7 @@ describe('renderContentDocument', () => {
         { kind: 'markdown', value: 'Hello world' },
         {
           kind: 'openapi',
-          spec: { specFileKey: 'api', specPath: '/api' },
+          spec: { path: '/api' },
           operation: { path: '/users', method: 'get' },
         },
       ],
@@ -144,6 +144,27 @@ describe('renderContentDocument', () => {
     expect(html).toContain('clarify-heading')
     expect(html).toContain('Heading</a></h2>')
     expect(html).toContain('<li>Item</li>')
+  })
+
+  it('renders default OpenAPI blocks through the shared OpenAPI document renderer', async () => {
+    const document: ContentDocument = {
+      id: 'doc',
+      title: 'Doc',
+      source: '/doc',
+      content: [
+        { kind: 'openapi', spec: { path: '/api' } },
+      ],
+      metadata: {},
+    }
+
+    const html = await renderWithRuntimeProviders(
+      renderContentDocument(document),
+      { 'virtual:clarify-page/api': testOpenApiSpec }
+    )
+
+    expect(html).toContain('clarify-openapi-page')
+    expect(html).toContain('Projects API')
+    expect(html).toContain('List projects')
   })
 
   it('executes JSX-style MDX components through the MDX runtime', async () => {

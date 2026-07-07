@@ -37,8 +37,7 @@ export type MarkdownContentBlock = {
 }
 
 export type OpenAPISpecReference = {
-  specFileKey?: string
-  specPath?: string
+  path?: string
 }
 
 export type OpenAPIOperationReference = {

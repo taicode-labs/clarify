@@ -16,7 +16,7 @@ export function createOpenAPIContentDocument(route: Pick<ContentRoute, 'path' | 
       if (!operation || typeof operation !== 'object') continue
       blocks.push({
         kind: 'openapi',
-        spec: { specFileKey, specPath: route.path },
+        spec: { path: route.path },
         operation: { path, method },
       })
     }
