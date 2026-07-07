@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from 'react'
 import { Fragment } from 'react'
 
+import { SectionProvider, type Section } from './app/SectionProvider'
 import { Prose } from './components/Prose'
 import type { ContentBlock, ContentDocument, ContentRenderers, MarkdownContentBlock, OpenAPIContentBlock } from './content'
 import { MdxMarkdown } from './mdx/Markdown'
@@ -84,13 +85,23 @@ export function createContentRouteComponent(data: ContentRouteData) {
 export function renderContentDocument(document: ContentDocument | undefined, renderers?: ContentRenderers): ReactNode {
   if (!document?.content?.length) return null
 
+  const sections = (document.metadata.sections ?? []).map(section => ({
+    id: section.id,
+    title: section.title,
+    level: section.level,
+    badge: section.badge,
+    tags: section.tags,
+  })) satisfies Section[]
+
   return (
-    <ContentDocumentShell>
-      {document.content.map((block, index) => (
-        <Fragment key={`${block.kind}-${index}`}>
-          {renderBlock(block, renderers)}
-        </Fragment>
-      ))}
-    </ContentDocumentShell>
+    <SectionProvider sections={sections}>
+      <ContentDocumentShell>
+        {document.content.map((block, index) => (
+          <Fragment key={`${block.kind}-${index}`}>
+            {renderBlock(block, renderers)}
+          </Fragment>
+        ))}
+      </ContentDocumentShell>
+    </SectionProvider>
   )
 }

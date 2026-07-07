@@ -45,8 +45,38 @@ describe('renderContentDocument', () => {
 
     expect(html).toContain('clarify-mdx-page')
     expect(html).toContain('clarify-prose')
-    expect(html).toContain('<h2>Heading</h2>')
+    expect(html).toContain('clarify-heading')
+    expect(html).toContain('Heading</a></h2>')
     expect(html).toContain('<li>Item</li>')
+  })
+
+  it('does not execute JSX-style MDX components through the current react-markdown path', () => {
+    const document: ContentDocument = {
+      id: 'doc',
+      title: 'Doc',
+      source: '/doc',
+      content: [
+        {
+          kind: 'markdown',
+          value: [
+            '<Button href="/start">Start</Button>',
+            '<Card title="Card title">Card body</Card>',
+            '<CodeGroup title="Install"><code>pnpm install</code></CodeGroup>',
+            '<Callout>Body</Callout>',
+          ].join('\n\n'),
+        },
+      ],
+      metadata: {},
+    }
+
+    const html = renderToStaticMarkup(renderContentDocument(document))
+
+    expect(html).toContain('Start')
+    expect(html).toContain('Body')
+    expect(html).not.toContain('&lt;Callout')
+    expect(html).not.toContain('clarify-button')
+    expect(html).not.toContain('Card title')
+    expect(html).not.toContain('clarify-code-group')
   })
 
   it('renders component-only routes through an explicit component route helper', () => {

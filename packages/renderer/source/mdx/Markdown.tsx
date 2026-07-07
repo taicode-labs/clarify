@@ -1,8 +1,11 @@
-import { isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import { evaluate } from '@mdx-js/mdx'
+import { Fragment, cache, isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import ReactMarkdown, { type Components } from 'react-markdown'
+import * as jsxRuntime from 'react/jsx-runtime'
 
 import { Mermaid } from '../components/Mermaid'
 
+import { useMDXComponents } from './components'
 import { a as MarkdownLink, code as MarkdownCode, pre as MarkdownPre } from './primitives'
 import { markdownRemarkPlugins, mdxRemarkPlugins } from './remark'
 
@@ -62,16 +65,31 @@ export function Markdown(arg0: MarkdownProps): ReactNode {
 
 type MdxMarkdownProps = { children?: string; className?: string }
 
-export function MdxMarkdown(arg0: MdxMarkdownProps): ReactNode {
+type EvaluatedMdxModule = {
+  default: (props: { components?: Record<string, unknown> }) => ReactNode
+}
+
+const evaluateMdxModule = cache(async (source: string): Promise<EvaluatedMdxModule> => {
+  const evaluated = await evaluate(source, {
+    ...jsxRuntime,
+    Fragment,
+    remarkPlugins: mdxRemarkPlugins,
+  })
+
+  return evaluated as EvaluatedMdxModule
+})
+
+export async function MdxMarkdown(arg0: MdxMarkdownProps): Promise<ReactNode> {
   const { children, className } = arg0
+  const components = useMDXComponents(markdownComponents) as Record<string, unknown>
 
   if (!children) return null
 
+  const { default: Content } = await evaluateMdxModule(children)
+
   return (
     <div className={className}>
-      <ReactMarkdown components={markdownComponents} remarkPlugins={mdxRemarkPlugins}>
-        {children}
-      </ReactMarkdown>
+      <Content components={components} />
     </div>
   )
 }
