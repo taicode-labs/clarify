@@ -45,7 +45,7 @@ function Anchor(arg0: AnchorProps) {
 }
 
 type HeadingProps<Level extends 2 | 3> = ComponentPropsWithoutRef<`h${Level}`> & {
-  id: string
+  id?: string
   tag?: string
   label?: string
   level?: Level
@@ -66,6 +66,7 @@ export function Heading<Level extends 2 | 3>(arg0: HeadingProps<Level>) {
   })
 
   useEffect(() => {
+    if (!props.id) return
     registerHeading({
       id: props.id,
       ref,
@@ -77,7 +78,7 @@ export function Heading<Level extends 2 | 3>(arg0: HeadingProps<Level>) {
     <>
       <Eyebrow tag={tag} label={label} />
       <Component ref={ref} className={clsx('clarify-heading', tag || label ? 'mt-2 scroll-mt-32' : 'scroll-mt-24', className)} {...props}>
-        {anchor ? (
+        {anchor && props.id ? (
           <Anchor id={props.id} inView={inView}>
             {children}
           </Anchor>

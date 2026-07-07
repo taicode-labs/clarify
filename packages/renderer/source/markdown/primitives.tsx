@@ -1,12 +1,33 @@
 import clsx from 'clsx'
+import GithubSlugger, { slug } from 'github-slugger'
 import { Info } from 'lucide-react'
-import { createElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import { createContext, createElement, useContext, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 
 import { PageTitleActions } from '../app/PageActions'
 import { Button, Callout, Card, CardGroup, Heading, LocalizedLink, Prose, WebFrame } from '../components'
 import { Code, CodeGroup, Pre } from '../components/Code'
 
 type WrapperProps = { children: ReactNode }
+
+export const HeadingSluggerContext = createContext<GithubSlugger | null>(null)
+
+function getNodeText(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(getNodeText).join('')
+  if (node && typeof node === 'object' && 'props' in node) {
+    return getNodeText((node as { props?: { children?: ReactNode } }).props?.children)
+  }
+  return ''
+}
+
+function useHeadingId(children: ReactNode, explicitId?: string): string | undefined {
+  const slugger = useContext(HeadingSluggerContext)
+  if (explicitId) return explicitId
+
+  const text = getNodeText(children).trim()
+  if (!text) return undefined
+  return slugger?.slug(text) ?? slug(text)
+}
 
 export function wrapper(arg0: WrapperProps) {
   const { children } = arg0
@@ -48,12 +69,14 @@ export const code = Code
 export const pre = Pre
 export { Button, Callout, Card, CardGroup, CodeGroup, WebFrame }
 
-export function h2(props: Omit<ComponentPropsWithoutRef<typeof Heading>, 'level'>) {
-  return createElement(Heading, { level: 2, ...props })
+export function h2(props: Omit<ComponentPropsWithoutRef<'h2'>, 'ref'> & { tag?: string; label?: string; anchor?: boolean }) {
+  const { children, id, ...rest } = props
+  return createElement(Heading, { level: 2, id: useHeadingId(children, id), ...rest }, children)
 }
 
-export function h3(props: Omit<ComponentPropsWithoutRef<typeof Heading>, 'level'>) {
-  return createElement(Heading, { level: 3, ...props })
+export function h3(props: Omit<ComponentPropsWithoutRef<'h3'>, 'ref'> & { tag?: string; label?: string; anchor?: boolean }) {
+  const { children, id, ...rest } = props
+  return createElement(Heading, { level: 3, id: useHeadingId(children, id), ...rest }, children)
 }
 
 type NoteProps = { children: ReactNode }

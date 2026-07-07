@@ -317,12 +317,6 @@ type CodeProps = ComponentPropsWithoutRef<'code'> & { code?: string; language?: 
 
 export function Code(arg0: CodeProps) {  const { children, ...props } = arg0
 
-  const isGrouped = useContext(CodeGroupContext)
-
-  if (isGrouped && typeof children === 'string') {
-    return <code {...props} dangerouslySetInnerHTML={{ __html: children }} />
-  }
-
   return <code {...props}>{children}</code>
 }
 

@@ -1,4 +1,5 @@
 import { evaluate } from '@mdx-js/mdx'
+import GithubSlugger from 'github-slugger'
 import { Fragment, cache, isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import * as jsxRuntime from 'react/jsx-runtime'
 import type { Components } from 'react-markdown'
@@ -6,7 +7,7 @@ import type { Components } from 'react-markdown'
 import { Mermaid } from '../components/Mermaid'
 
 import { useMDXComponents } from './components'
-import { a as MarkdownLink, code as MarkdownCode, pre as MarkdownPre } from './primitives'
+import { HeadingSluggerContext, a as MarkdownLink, code as MarkdownCode, pre as MarkdownPre } from './primitives'
 import { mdxRemarkPlugins } from './remark'
 
 function getMermaidChart(children: ReactNode): string | undefined {
@@ -89,10 +90,13 @@ type MdxMarkdownContentProps = {
 function MdxMarkdownContent(arg0: MdxMarkdownContentProps): ReactNode {
   const { className, Content } = arg0
   const components = useMDXComponents(markdownComponents) as Record<string, unknown>
+  const headingSlugger = new GithubSlugger()
 
   return (
     <div className={className}>
-      <Content components={components} />
+      <HeadingSluggerContext.Provider value={headingSlugger}>
+        <Content components={components} />
+      </HeadingSluggerContext.Provider>
     </div>
   )
 }
