@@ -88,8 +88,8 @@ export function injectSSRIntoTemplate(template: string, appHtml: string, context
   // Replace <title>...</title>
   html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(routeTitle(contextOrConfig, route))}</title>`)
 
-  html = setNamedMeta(html, 'description', route?.description ?? projectConfig.description)
-  html = setNamedMeta(html, 'keywords', route?.keywords?.join(', '))
+  html = setNamedMeta(html, 'description', route?.document?.metadata.description ?? projectConfig.description)
+  html = setNamedMeta(html, 'keywords', route?.document?.metadata.keywords?.join(', '))
   html = injectCanonicalUrl(html, contextOrConfig, route)
 
   // Replace <div id="root">...</div> with SSR rendered content

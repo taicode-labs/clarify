@@ -107,7 +107,7 @@ describe('createOpenAPIPlugin', () => {
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
 
     expect(discovered?.[0].title).toBe('Plugin API')
-    expect(discovered?.[0].sections).toEqual([
+    expect(discovered?.[0].document?.metadata.sections).toEqual([
       { id: 'get-users', title: 'List users', badge: 'GET', level: 2, tags: ['Users'] },
     ])
 
@@ -116,7 +116,7 @@ describe('createOpenAPIPlugin', () => {
     expect(modules?.get('virtual:clarify-page/api')).toContain('createOpenApiRouteComponent(routeData);')
   })
 
-  it('preprocesses OpenAPI descriptions into a renderable content payload', async () => {
+  it('preprocesses OpenAPI routes into typed content blocks', async () => {
     const specPath = join(tempDir, 'api.openapi.json')
     writeFileSync(specPath, JSON.stringify({
       openapi: '3.0.0',
@@ -147,13 +147,20 @@ describe('createOpenAPIPlugin', () => {
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
 
-    expect(discovered?.[0].preparedContent).toMatchObject({
-      infoDescription: 'Manage users and projects.',
-      operations: [{
-        path: '/users',
-        method: 'get',
-        description: 'Returns the list of users.',
-      }],
+    expect(discovered?.[0].document).toMatchObject({
+      id: '/api',
+      title: 'Plugin API',
+      content: [
+        {
+          kind: 'markdown',
+          value: 'Manage users and projects.',
+        },
+        {
+          kind: 'openapi',
+          spec: { specFileKey: expect.any(String) },
+          operation: { path: '/users', method: 'get' },
+        },
+      ],
     })
   })
 
@@ -173,12 +180,12 @@ describe('createOpenAPIPlugin', () => {
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
 
-    expect(discovered?.[0].diagnostic).toMatchObject({
+    expect(discovered?.[0].document?.metadata.diagnostic).toMatchObject({
       kind: 'openapi',
       title: 'OpenAPI spec parse failed',
       filePath: specPath,
     })
-    expect(discovered?.[0].diagnostic?.details).toContain('Error parsing')
+    expect(discovered?.[0].document?.metadata.diagnostic?.details).toContain('Error parsing')
 
     const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(routes))
     expect(modules?.get('virtual:clarify-page/broken')).toContain('contentDiagnostic')
@@ -227,11 +234,11 @@ describe('createOpenAPIPlugin', () => {
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContextWithVariables(routes))
 
     expect(discovered?.[0].title).toBe('Clarify API')
-    expect(discovered?.[0].sections).toEqual([
+    expect(discovered?.[0].document?.metadata.sections).toEqual([
       { id: 'get-projects', title: 'List Clarify projects', badge: 'GET', level: 2, tags: ['Projects'] },
     ])
-    expect(discovered?.[0].content).toContain('"version":"1.0.0"')
-    expect(discovered?.[0].content).toContain('"properties":{"id":{"type":"string"}}')
+    expect(discovered?.[0].source?.content).toContain('"version":"1.0.0"')
+    expect(discovered?.[0].source?.content).toContain('"properties":{"id":{"type":"string"}}')
   })
 
   it('creates tag-filtered OpenAPI routes from navigation config', async () => {
@@ -262,9 +269,9 @@ describe('createOpenAPIPlugin', () => {
     expect(taggedRoute).toMatchObject({
       basePath: '/api/projects',
       virtualModuleId: 'virtual:clarify-page/api/projects',
-      openapiTagFilter: ['Projects'],
+      openapi: { tagFilter: ['Projects'] },
     })
-    expect(taggedRoute?.sections).toEqual([
+    expect(taggedRoute?.document?.metadata.sections).toEqual([
       { id: 'get-projects', title: 'List projects', badge: 'GET', level: 2, tags: ['Projects'] },
     ])
 
@@ -300,9 +307,9 @@ describe('createOpenAPIPlugin', () => {
     expect(taggedRoute).toMatchObject({
       basePath: '/reference/projects',
       virtualModuleId: 'virtual:clarify-page/reference/projects',
-      openapiTagFilter: ['Projects'],
+      openapi: { tagFilter: ['Projects'] },
     })
-    expect(taggedRoute?.sections).toEqual([
+    expect(taggedRoute?.document?.metadata.sections).toEqual([
       { id: 'get-projects', title: 'List projects', badge: 'GET', level: 2, tags: ['Projects'] },
     ])
 
@@ -337,9 +344,9 @@ describe('createOpenAPIPlugin', () => {
     expect(aliasRoute).toMatchObject({
       basePath: '/reference',
       virtualModuleId: 'virtual:clarify-page/reference',
-      openapiTagFilter: undefined,
+      openapi: { tagFilter: undefined },
     })
-    expect(aliasRoute?.sections).toEqual([
+    expect(aliasRoute?.document?.metadata.sections).toEqual([
       { id: 'get-projects', title: 'List projects', badge: 'GET', level: 2, tags: ['Projects'] },
     ])
   })

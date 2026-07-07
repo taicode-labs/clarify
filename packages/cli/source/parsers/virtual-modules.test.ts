@@ -36,7 +36,7 @@ describe('generateRoutesModule', () => {
 
   it('generates lazy imports and routes array', () => {
     const routes: ContentRoute[] = [
-      { path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index', kind: 'mdx', sourceUrl: 'https://github.com/acme/docs/edit/main/index.mdx' },
+      { path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index', kind: 'mdx', artifact: { sourceUrl: 'https://github.com/acme/docs/edit/main/index.mdx' } },
       { path: '/about', title: 'About', filePath: '/a/about.mdx', virtualModuleId: 'virtual:clarify-page/about', kind: 'mdx' },
     ]
     const code = generateRoutesModule(routes)
@@ -52,7 +52,7 @@ describe('generateRoutesModule', () => {
 
   it('omits plugin-specific route fields from the runtime route manifest', () => {
     const routes: ContentRoute[] = [
-      { path: '/api', title: 'API', filePath: '/a/api.openapi.json', virtualModuleId: 'virtual:clarify-page/api', kind: 'openapi', openapiTagFilter: ['Projects'] },
+      { path: '/api', title: 'API', filePath: '/a/api.openapi.json', virtualModuleId: 'virtual:clarify-page/api', kind: 'openapi', openapi: { tagFilter: ['Projects'] } },
     ]
     const code = generateRoutesModule(routes)
     expect(code).not.toContain('openapiTagFilter')
@@ -133,6 +133,44 @@ describe('generateRoutesModule', () => {
 })
 
 describe('buildVirtualModules', () => {
+  it('emits a renderer-backed route module for MDX content routes', () => {
+    const modules = buildVirtualModules({
+      projectConfig: {
+        title: 'Docs',
+        description: 'Docs',
+        routePrefix: '/',
+        assetPrefix: '/',
+        theme: resolveThemeConfig(),
+        variables: {},
+      },
+      generateOptions: {
+        projectRoot: '/site',
+        rootDirectory: 'source',
+        outputDirectory: 'dist',
+        ssg: { failOnError: true },
+      },
+      routes: [{
+        path: '/guide',
+        title: 'Guide',
+        filePath: '/site/source/guide.mdx',
+        virtualModuleId: 'virtual:clarify-page/guide',
+        kind: 'mdx',
+        source: { content: '# Guide' },
+        document: {
+          id: '/guide',
+          title: 'Guide',
+          source: '/site/source/guide.mdx',
+          content: [{ kind: 'markdown', value: '# Guide' }],
+          metadata: {},
+        },
+      }],
+    })
+
+    const moduleContent = modules.get('virtual:clarify-page/guide')
+    expect(moduleContent).toContain('createDocumentRouteComponent')
+    expect(moduleContent).toContain('contentDocument')
+  })
+
   it('emits a diagnostic route module for MDX compile failures', () => {
     const modules = buildVirtualModules({
       projectConfig: {
@@ -155,12 +193,20 @@ describe('buildVirtualModules', () => {
         filePath: '/site/source/broken.mdx',
         virtualModuleId: 'virtual:clarify-page/broken',
         kind: 'mdx',
-        diagnostic: {
-          kind: 'mdx',
-          title: 'MDX syntax error',
-          message: 'This page could not be compiled.',
-          filePath: '/site/source/broken.mdx',
-          details: 'Unexpected end of file',
+        document: {
+          id: '/broken',
+          title: 'Broken',
+          source: '/site/source/broken.mdx',
+          content: [],
+          metadata: {
+            diagnostic: {
+              kind: 'mdx',
+              title: 'MDX syntax error',
+              message: 'This page could not be compiled.',
+              filePath: '/site/source/broken.mdx',
+              details: 'Unexpected end of file',
+            },
+          },
         },
       }],
     })

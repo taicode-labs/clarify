@@ -18,10 +18,16 @@ describe('buildSearchItems', () => {
         title: 'Reference',
         component: () => Promise.resolve({ default: () => null }),
         kind: 'mdx',
-        sections: [
-          { id: 'api', title: 'API', level: 2 },
-          { id: 'config', title: 'Config', level: 2 },
-        ],
+        document: {
+          id: 'reference',
+          content: [],
+          metadata: {
+            sections: [
+              { id: 'api', title: 'API', level: 2 },
+              { id: 'config', title: 'Config', level: 2 },
+            ],
+          },
+        },
       },
     ]
     const navigation: NavigationNode[] = [
@@ -153,9 +159,15 @@ describe('buildSearchItems', () => {
         title: 'Documentation',
         component: () => Promise.resolve({ default: () => null }),
         kind: 'mdx',
-        sections: [
-          { id: 'intro', title: 'Introduction', level: 2 },
-        ],
+        document: {
+          id: 'docs',
+          content: [],
+          metadata: {
+            sections: [
+              { id: 'intro', title: 'Introduction', level: 2 },
+            ],
+          },
+        },
       },
     ]
     const navigation: NavigationNode[] = [
@@ -179,11 +191,17 @@ describe('buildSearchItems', () => {
         title: 'Getting Started',
         component: () => Promise.resolve({ default: () => null }),
         kind: 'mdx',
-        sections: [
-          { id: 'setup', title: 'Setup', level: 2 },
-          { id: 'install', title: 'Installation', level: 2 },
-          { id: 'config', title: 'Configuration', level: 2 },
-        ],
+        document: {
+          id: 'guide',
+          content: [],
+          metadata: {
+            sections: [
+              { id: 'setup', title: 'Setup', level: 2 },
+              { id: 'install', title: 'Installation', level: 2 },
+              { id: 'config', title: 'Configuration', level: 2 },
+            ],
+          },
+        },
       },
     ]
     const navigation: NavigationNode[] = []

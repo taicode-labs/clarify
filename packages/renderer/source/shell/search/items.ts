@@ -34,7 +34,7 @@ export function buildSearchItems(routes: RouteItem[], navigation: NavigationNode
       keywords: [groupTitle, route.title, route.path, route.kind].filter(Boolean).join(' ').toLowerCase(),
     }
 
-    const sectionItems = route.sections?.map((section) => ({
+    const sectionItems = route.document?.metadata.sections?.map((section) => ({
       title: section.title,
       pageTitle: route.title,
       sectionTitle: groupTitle,

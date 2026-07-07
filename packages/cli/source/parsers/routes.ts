@@ -1,15 +1,11 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { join, relative } from 'node:path'
-
-import GithubSlugger from 'github-slugger'
-import { toString } from 'mdast-util-to-string'
-import { remark } from 'remark'
-import { visit } from 'unist-util-visit'
 
 import type { ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, ResolvedClarifyI18nConfig, TabbedNavigation } from '../types.js'
 
-import { createContentProcessor, type ContentProcessor } from './content.js'
-import { compileMdxContent } from './mdx.js'
+import { type ContentProcessor } from './content.js'
+import { findMarkdownRoutes } from './markdown/index.js'
+import { findOpenAPIRoutes, prepareOpenAPIRoutes } from './openapi/index.js'
 
 export type FindContentRoutesOptions = {
   contentProcessor?: ContentProcessor
@@ -22,34 +18,7 @@ export function kebabToTitle(str: string): string {
     .join(' ')
 }
 
-function parseMdxTree(content: string) {
-  return remark.parse(content)
-}
-
-/** 从内容中提取第一个 H1 标题 */
-function extractH1(content: string): string {
-  const tree = parseMdxTree(content)
-  let title = ''
-  visit(tree, 'heading', (node) => {
-    if (!title && node.depth === 1) {
-      title = toString(node)
-    }
-  })
-  return title
-}
-
-/** 从 MDX/Markdown 内容中提取 H2/H3 章节 */
-export function extractMdxSections(content: string): ContentSection[] {
-  const sections: ContentSection[] = []
-  const slugger = new GithubSlugger()
-  const tree = parseMdxTree(content)
-  visit(tree, 'heading', (node) => {
-    if (node.depth !== 2 && node.depth !== 3) return
-    const title = toString(node)
-    sections.push({ id: slugger.slug(title), title, level: node.depth })
-  })
-  return sections
-}
+export { extractMdxSections } from './markdown/index.js'
 
 function navigationSections(sections: ContentSection[]) {
   return sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags }))
@@ -94,7 +63,9 @@ export function virtualModuleIdFromRef(ref: string): string {
     .replace(/\.openapi\.(json|yaml|yml)$/, '')
     .replace(/\/+/g, '/')
 }
-
+function virtualModuleIdFromPath(path: string): string {
+  return `virtual:clarify-page/${path.replace(/^\/+/, '').replace(/\/+/g, '/') || 'index'}`
+}
 export function localizedRoutePath(basePath: string, locale: string, _i18n: ResolvedClarifyI18nConfig): string {
   const normalizedBasePath = normalizePath(basePath)
   const prefix = normalizePath(locale)
@@ -108,50 +79,11 @@ export function resolveLocalizedText(text: ClarifyLocalizedText | undefined, loc
 }
 
 export async function findContentRoutes(dir: string, base: string = dir, options: FindContentRoutesOptions = {}): Promise<ContentRoute[]> {
-  const routes: ContentRoute[] = []
-  if (!existsSync(dir)) return routes
+  if (!existsSync(dir)) return []
 
-  const entries = readdirSync(dir, { withFileTypes: true })
-  for (const entry of entries) {
-    const fullPath = join(dir, entry.name)
-    if (entry.isDirectory()) {
-      routes.push(...await findContentRoutes(fullPath, base, options))
-    } else if (entry.isFile() && /\.mdx?$/.test(entry.name)) {
-      const relativePath = relative(base, fullPath)
-      const pathParts = relativePath.replace(/\.mdx?$/, '').split('/')
-      const path = '/' + pathParts.map(p => p === 'index' ? '' : p).filter(Boolean).join('/')
-      const cleanPath = path.replace(/\/+/g, '/').replace(/\/$/, '') || '/'
-
-      const source = readFileSync(fullPath, 'utf-8')
-      const { frontmatter, content } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
-      const mdxResult = await compileMdxContent(content, fullPath, base)
-
-      let title = typeof frontmatter.title === 'string' ? frontmatter.title : ''
-      if (!title) {
-        const lastPart = pathParts[pathParts.length - 1] ?? ''
-        const stem = lastPart === 'index'
-          ? (pathParts.length >= 2 ? pathParts[pathParts.length - 2]! : extractH1(content))
-          : lastPart
-        title = kebabToTitle(stem) || 'Untitled'
-      }
-
-      routes.push({
-        kind: 'mdx',
-        title,
-        path: cleanPath,
-        basePath: cleanPath,
-        filePath: fullPath,
-        virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx?$/, '').replace(/\/+/g, '/'),
-        description: typeof frontmatter.description === 'string' ? frontmatter.description : undefined,
-        keywords: frontmatterKeywords(frontmatter),
-        frontmatter,
-        content,
-        sections: extractMdxSections(content),
-        diagnostic: mdxResult.ok ? undefined : mdxResult.diagnostic,
-      })
-    }
-  }
-  return routes
+  const markdownRoutes = await findMarkdownRoutes(dir, base, options)
+  const openapiRoutes = findOpenAPIRoutes(dir, base)
+  return prepareOpenAPIRoutes([...markdownRoutes, ...openapiRoutes], options.contentProcessor)
 }
 
 function virtualModuleIdForLocalizedRoute(contentRoot: string, filePath: string): string {
@@ -159,17 +91,6 @@ function virtualModuleIdForLocalizedRoute(contentRoot: string, filePath: string)
     .replace(/\.mdx?$/, '')
     .replace(/\.openapi\.(json|yaml|yml)$/, '')
     .replace(/\/+/g, '/')
-}
-
-function frontmatterKeywords(frontmatter: Record<string, unknown>): string[] | undefined {
-  const value = frontmatter.keywords ?? frontmatter.keyword ?? frontmatter.tags
-  const keywords = Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === 'string')
-    : typeof value === 'string'
-      ? value.split(',').map(keyword => keyword.trim()).filter(Boolean)
-      : []
-
-  return keywords.length > 0 ? keywords : undefined
 }
 
 export function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute {
@@ -258,8 +179,8 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
         node = { path: pathSoFar, title: i === parts.length - 1 ? route.title : kebabToTitle(parts[i]), children: [] }
         current.push(node)
       }
-      if (i === parts.length - 1 && route.sections) {
-        node.sections = navigationSections(route.sections)
+      if (i === parts.length - 1 && route.document?.metadata.sections) {
+        node.sections = navigationSections(route.document.metadata.sections as ContentSection[])
       }
       if (i < parts.length - 1) {
         node.children = node.children ?? []
@@ -288,15 +209,18 @@ function firstNavigationPath(nodes: ClarifyNavigationNode[]): string {
   return '/'
 }
 
-function collectExplicitPagePathItems(tabs?: ClarifyTabsConfig): Array<{ pageRef: string; path: string }> {
-  const items: Array<{ pageRef: string; path: string }> = []
+function collectExplicitPagePathItems(tabs?: ClarifyTabsConfig): Array<{ pageRef?: string; openapiRef?: string; path?: string; filterTags?: string[] }> {
+  const items: Array<{ pageRef?: string; openapiRef?: string; path?: string; filterTags?: string[] }> = []
 
   for (const tab of tabs ?? []) {
     if (!tab.pages || tab.pages === 'FileTree') continue
     for (const group of tab.pages) {
       for (const item of group.pages) {
-        if (typeof item !== 'string' && 'page' in item && item.path) {
+        if (typeof item === 'string') continue
+        if ('page' in item && item.path) {
           items.push({ pageRef: item.page, path: item.path })
+        } else if ('openapi' in item && (item.path || item.filter?.tags?.length)) {
+          items.push({ openapiRef: item.openapi, path: item.path, filterTags: item.filter?.tags?.filter(Boolean) })
         }
       }
     }
@@ -313,12 +237,19 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
   const existingKeys = new Set(routes.map(route => `${route.locale ?? ''}:${route.basePath ?? route.path}`))
 
   for (const item of pageItems) {
-    const sourceBasePath = routePathFromRef(item.pageRef)
-    const targetBasePath = routePathFromRef(item.pageRef, item.path)
-    if (sourceBasePath === targetBasePath) continue
+    const sourceBasePath = item.pageRef ? routePathFromRef(item.pageRef) : item.openapiRef ? openAPIPagePathFromRef(item.openapiRef) : undefined
+    const targetBasePath = item.pageRef
+      ? routePathFromRef(item.pageRef, item.path)
+      : item.openapiRef
+        ? openAPIPagePathFromRef(item.openapiRef, item.filterTags, item.path)
+        : undefined
+    if (!sourceBasePath || !targetBasePath || sourceBasePath === targetBasePath) continue
 
     for (const route of routes) {
-      if (route.kind !== 'mdx' || (route.basePath ?? route.path) !== sourceBasePath) continue
+      const matches = item.pageRef
+        ? route.kind === 'mdx' && (route.basePath ?? route.path) === sourceBasePath
+        : route.kind === 'openapi' && (route.basePath ?? route.path) === sourceBasePath
+      if (!matches) continue
 
       const key = `${route.locale ?? ''}:${targetBasePath}`
       if (existingKeys.has(key)) continue
@@ -328,6 +259,11 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
         ...route,
         path: route.locale && i18n ? localizedRoutePath(targetBasePath, route.locale, i18n) : targetBasePath,
         basePath: targetBasePath,
+        virtualModuleId: route.virtualModuleId,
+        openapi: {
+          ...route.openapi,
+          tagFilter: item.openapiRef ? item.filterTags : route.openapi?.tagFilter,
+        },
       })
     }
   }
@@ -385,7 +321,7 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
           path,
           title: resolveLocalizedText(title, '', '') ?? route?.title ?? kebabToTitle(path.split('/').pop() ?? openapiRef),
           icon,
-          sections: route?.sections ? navigationSections(route.sections) : undefined,
+          sections: route?.document?.metadata.sections ? navigationSections(route.document.metadata.sections as ContentSection[]) : undefined,
         }
       }
 
@@ -396,7 +332,7 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
         path: redirect ? normalizePath(redirect) : path,
         title: resolveLocalizedText(title, '', '') ?? route?.title ?? kebabToTitle(path.split('/').pop() ?? ref),
         icon,
-        sections: route?.sections ? navigationSections(route.sections) : undefined,
+        sections: route?.document?.metadata.sections ? navigationSections(route.document.metadata.sections as ContentSection[]) : undefined,
       }
     })
 
@@ -449,7 +385,7 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
         path: redirectPath ?? path,
         title: resolveLocalizedText(title, locale, i18n.defaultLocale) ?? route?.title ?? kebabToTitle(basePath.split('/').pop() ?? ref),
         icon,
-        sections: route?.sections ? navigationSections(route.sections) : undefined,
+        sections: route?.document?.metadata.sections ? navigationSections(route.document.metadata.sections as ContentSection[]) : undefined,
       }
     })
 

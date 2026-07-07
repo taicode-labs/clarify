@@ -38,9 +38,9 @@ export function serveContentArtifacts(req: IncomingMessage, res: ServerResponse,
   // Handle YAML variant for OpenAPI routes: /api.openapi.yaml → serve YAML
   if (contentPath.endsWith('.openapi.yaml')) {
     const jsonPath = contentPath.replace(/\.yaml$/, '.json')
-    const route = routes.find(r => r.contentArtifactUrl === jsonPath)
-    if (route?.kind === 'openapi' && route.content) {
-      const spec = JSON.parse(route.content)
+    const route = routes.find(r => r.artifact?.contentArtifactUrl === jsonPath)
+    if (route?.kind === 'openapi' && route.source?.content) {
+      const spec = JSON.parse(route.source.content)
       res.statusCode = 200
       res.setHeader('Content-Type', 'text/yaml; charset=utf-8')
       res.end(yamlStringify(spec, { lineWidth: 0 }), 'utf8')
@@ -49,7 +49,7 @@ export function serveContentArtifacts(req: IncomingMessage, res: ServerResponse,
     return false
   }
 
-  const route = routes.find(route => route.contentArtifactUrl === contentPath)
+  const route = routes.find(route => route.artifact?.contentArtifactUrl === contentPath)
   if (!route) return false
 
   res.statusCode = 200

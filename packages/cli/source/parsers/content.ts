@@ -1,6 +1,6 @@
 import type { ClarifyContentKind, ClarifyContentTransformInput } from '../types.js'
 
-import { parseFrontmatter } from './frontmatter.js'
+import { parseFrontmatter } from './markdown/frontmatter.js'
 
 export type ProcessedMdxContent = {
   frontmatter: Record<string, unknown>

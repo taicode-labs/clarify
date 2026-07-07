@@ -59,6 +59,49 @@ describe('findContentRoutes', () => {
     expect(indexRoute?.title).toBe('Home')
   })
 
+  it('builds a renderer content document for markdown routes', async () => {
+    writeFileSync(join(tempDir, 'guide.mdx'), '# Guide\n\n## Intro\n\nHello world', 'utf-8')
+
+    const result = await findContentRoutes(tempDir)
+
+    expect(result[0].document).toMatchObject({
+      title: 'Guide',
+      content: [{ kind: 'markdown', value: '# Guide\n\n## Intro\n\nHello world' }],
+    })
+    expect(result[0].document?.metadata.sections).toEqual([{ id: 'intro', title: 'Intro', level: 2 }])
+    expect(result[0].source?.content).toBe('# Guide\n\n## Intro\n\nHello world')
+  })
+
+  it('discovers OpenAPI files and builds a content document for them', async () => {
+    writeFileSync(join(tempDir, 'api.openapi.json'), JSON.stringify({
+      openapi: '3.0.0',
+      info: { title: 'API', version: '1.0.0' },
+      paths: {
+        '/users': {
+          get: {
+            summary: 'List users',
+            tags: ['Users'],
+          },
+        },
+      },
+    }), 'utf-8')
+
+    const result = await findContentRoutes(tempDir)
+
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({
+      kind: 'openapi',
+      path: '/api',
+      title: 'API',
+      document: {
+        content: [
+          { kind: 'markdown' },
+          { kind: 'openapi' },
+        ],
+      },
+    })
+  })
+
   it('discovers markdown and ignores unrelated files', async () => {
     writeFileSync(join(tempDir, 'readme.txt'), 'text', 'utf-8')
     writeFileSync(join(tempDir, 'page.md'), '# MD', 'utf-8')
@@ -101,13 +144,13 @@ describe('findContentRoutes', () => {
     const result = await findContentRoutes(tempDir)
 
     expect(result[0].title).toBe('入门概览')
-    expect(result[0].frontmatter).toEqual({
+    expect(result[0].source?.frontmatter).toEqual({
       title: '入门概览',
       description: '用最短路径完成准备。',
       icon: 'lucide:rocket',
     })
-    expect(result[0].content).toBe('# 入门概览\n## 首次验证')
-    expect(result[0].sections).toEqual([{ id: '首次验证', title: '首次验证', level: 2 }])
+    expect(result[0].source?.content).toBe('# 入门概览\n## 首次验证')
+    expect(result[0].document?.metadata.sections).toEqual([{ id: '首次验证', title: '首次验证', level: 2 }])
   })
 
   it('runs content transforms before extracting metadata', async () => {
@@ -120,9 +163,9 @@ describe('findContentRoutes', () => {
       })),
     })
 
-    expect(result[0].content).toBe('# Clarify\n\n## Release Notes')
+    expect(result[0].source?.content).toBe('# Clarify\n\n## Release Notes')
     expect(result[0].title).toBe('Page')
-    expect(result[0].sections).toEqual([{ id: 'release-notes', title: 'Release Notes', level: 2 }])
+    expect(result[0].document?.metadata.sections).toEqual([{ id: 'release-notes', title: 'Release Notes', level: 2 }])
   })
 
   it('runs content transforms before reading frontmatter title', async () => {
@@ -140,7 +183,7 @@ describe('findContentRoutes', () => {
     })
 
     expect(result[0].title).toBe('Clarify')
-    expect(result[0].description).toBe('Docs that stay in sync')
+    expect(result[0].document?.metadata.description).toBe('Docs that stay in sync')
   })
 
   it('records a diagnostic when MDX content cannot be compiled', async () => {
@@ -148,7 +191,7 @@ describe('findContentRoutes', () => {
 
     const result = await findContentRoutes(tempDir)
 
-    expect(result[0].diagnostic).toMatchObject({
+    expect(result[0].document?.metadata.diagnostic).toMatchObject({
       kind: 'mdx',
       title: 'MDX syntax error',
       filePath: 'broken.mdx',

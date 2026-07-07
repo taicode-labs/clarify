@@ -1,10 +1,14 @@
 import { relative } from 'node:path'
 
+import type { ContentDocument } from '@clarify-labs/renderer'
+
 import { getProjectContentProcessor } from '../../core/content.js'
+import { createContentDocument } from '../../parsers/content-document.js'
+import { createOpenAPIContentDocument } from '../../parsers/openapi/content-document.js'
+import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from '../../parsers/openapi/index.js'
 import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/routes.js'
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedProjectConfig } from '../../types.js'
 
-import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, prepareOpenAPIContent, readOpenAPISpec } from './parser.js'
 import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 type OpenAPISpecEntry = {
@@ -60,7 +64,10 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
         basePath: targetBasePath,
         title: route.title,
         virtualModuleId: virtualModuleIdFromPath(targetBasePath),
-        openapiTagFilter: tagFilter?.length ? tagFilter : undefined,
+        openapi: {
+          ...route.openapi,
+          tagFilter: tagFilter?.length ? tagFilter : undefined,
+        },
       })
     }
   }
@@ -72,6 +79,10 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
 /** Derive a stable, deduplicated key from an absolute spec file path. */
 function specFileKeyFromPath(filePath: string, projectRoot: string): string {
   return relative(projectRoot, filePath).replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
+}
+
+function buildOpenAPIContentDocument(route: ContentRoute, spec: OpenAPISpec, specFileKey: string, metadata: ContentDocument['metadata'] = {}): ContentDocument {
+  return createOpenAPIContentDocument(route, spec, specFileKey, metadata)
 }
 
 export function createOpenAPIPlugin(): ClarifyPlugin {
@@ -95,30 +106,39 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           const specFromCache = specByFilePath.get(route.filePath)
           const result = specFromCache ? { ok: true as const, spec: specFromCache } : await readOpenAPISpec(route.filePath, getProjectContentProcessor(ctx))
           if (!result.ok) {
-            route.diagnostic = result.diagnostic
+            route.document = createContentDocument({ path: route.path, title: route.title, filePath: route.filePath }, [], { diagnostic: result.diagnostic })
             route.title = route.title || 'OpenAPI parse error'
-            route.sections = []
             continue
           }
 
           const spec = result.spec
+          const pageSpec = route.openapi?.tagFilter?.length ? filterSpecByTags(spec, route.openapi.tagFilter) : spec
+          const sections = extractOpenAPISections(pageSpec, route.openapi?.tagFilter)
           specByFilePath.set(route.filePath, spec)
 
           // Derive a stable dedup key from the spec file path
           const specKey = specFileKeyFromPath(route.filePath, ctx.generateOptions.projectRoot)
-          route.specFileKey = specKey
+          route.openapi = {
+            ...route.openapi,
+            specFileKey: specKey,
+            tagFilter: route.openapi?.tagFilter,
+          }
 
           specs.set(specKey, { spec, filePath: route.filePath })
           route.title = spec.info?.title ?? route.title
-          route.description = spec.info?.description ?? route.description
-          route.sections = extractOpenAPISections(spec, route.openapiTagFilter)
-
-          // Set route.content to filtered or full JSON for the content-artifacts plugin
-          const pageSpec = route.openapiTagFilter?.length
-            ? filterSpecByTags(spec, route.openapiTagFilter)
-            : spec
-          route.content = JSON.stringify(pageSpec)
-          route.preparedContent = prepareOpenAPIContent(pageSpec)
+          route.source = {
+            ...route.source,
+            content: JSON.stringify(pageSpec),
+          }
+          route.document = buildOpenAPIContentDocument(route, pageSpec, specKey, {
+            description: spec.info?.description ?? undefined,
+            sections,
+          })
+          route.openapi = {
+            ...route.openapi,
+            tagFilter: route.openapi?.tagFilter,
+            spec: pageSpec,
+          }
         }
 
         return nextRoutes
@@ -131,8 +151,8 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         const registryEntries: Record<string, OpenAPISpec> = {}
 
         for (const route of ctx.routes) {
-          if (route.kind !== 'openapi' || !route.specFileKey) continue
-          const spec = specs.get(route.specFileKey)?.spec
+          if (route.kind !== 'openapi' || !route.openapi?.specFileKey) continue
+          const spec = specs.get(route.openapi.specFileKey)?.spec
           if (!spec) continue
 
           const base = (route.basePath ?? route.path).replace(/^\//, '')
@@ -156,16 +176,16 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         // ── Per-route page modules ──
         for (const route of ctx.routes) {
           if (route.kind !== 'openapi') continue
-          if (route.diagnostic) {
-            modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.diagnostic))
-          } else if (route.specFileKey) {
-            const entry = specs.get(route.specFileKey)
+          if (route.document?.metadata.diagnostic) {
+            modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.document.metadata.diagnostic))
+          } else if (route.openapi?.specFileKey) {
+            const entry = specs.get(route.openapi.specFileKey)
             if (!entry) continue
 
             modules.set(route.virtualModuleId, generateOpenAPIPageModule({
               spec: entry.spec,
-              tagFilter: route.openapiTagFilter,
-              preparedContent: route.preparedContent,
+              tagFilter: route.openapi?.tagFilter,
+              contentDocument: route.document,
             }))
           }
         }

@@ -111,10 +111,14 @@ describe('injectSSRIntoTemplate', () => {
     const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, {
       path: '/guide',
       title: 'Guide',
-      description: 'Guide description',
       filePath: '/content/guide.mdx',
       kind: 'mdx',
       virtualModuleId: 'virtual:guide',
+      document: {
+        id: 'guide',
+        content: [],
+        metadata: { description: 'Guide description' },
+      },
     })
     expect(html).toContain('<meta name="description" content="Guide description" />')
   })
@@ -140,10 +144,14 @@ describe('injectSSRIntoTemplate', () => {
     const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, {
       path: '/guide',
       title: 'Guide',
-      keywords: ['docs', 'api'],
       filePath: '/content/guide.mdx',
       kind: 'mdx',
       virtualModuleId: 'virtual:guide',
+      document: {
+        id: 'guide',
+        content: [],
+        metadata: { keywords: ['docs', 'api'] },
+      },
     })
     expect(html).toContain('<meta name="keywords" content="docs, api" />')
   })

@@ -68,7 +68,7 @@ function notFoundRouteForPath(routes: RouteItem[], pathname: string, currentLoca
 
 function sectionsForRoute(route?: RouteItem): Section[] {
   return (
-    route?.sections?.map((section) => ({
+    route?.document?.metadata.sections?.map((section) => ({
       id: section.id,
       title: section.title,
       level: section.level,
@@ -181,8 +181,8 @@ function setNamedMeta(name: string, content: string | undefined) {
 
 function applyDocumentMetadata(config: Config, route?: RouteItem) {
   document.title = pageTitle(config, route)
-  setNamedMeta('description', route?.description ?? config.description)
-  setNamedMeta('keywords', route?.keywords?.join(', '))
+  setNamedMeta('description', route?.document?.metadata.description ?? config.description)
+  setNamedMeta('keywords', route?.document?.metadata.keywords?.join(', '))
 }
 
 function useRouteState(config: Config, routes: RouteItem[], navigation: NavigationTree, pathname: string) {

@@ -1,13 +1,17 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import type { ContentDocument } from '@clarify-labs/renderer'
 import SwaggerParser from '@apidevtools/swagger-parser'
-import { slug } from 'github-slugger'
+import GithubSlugger from 'github-slugger'
 
-import type { ContentProcessor } from '../../parsers/content.js'
-import { kebabToTitle, routePathFromRef, virtualModuleIdFromRef } from '../../parsers/routes.js'
+import type { ContentProcessor } from '../content.js'
+import { kebabToTitle, routePathFromRef, virtualModuleIdFromRef } from '../routes.js'
 import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
+
+import { createContentDocument } from '../content-document.js'
+import { createOpenAPIContentDocument } from './content-document.js'
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
 
@@ -29,6 +33,11 @@ function isSameOpenAPIFile(url: string, filePath: string): boolean {
   }
 }
 
+function operationMatchesTags(operationTags: string[] | undefined, filterTags: string[] | undefined): boolean {
+  if (!filterTags?.length) return true
+  return operationTags?.some(tag => filterTags.includes(tag)) ?? false
+}
+
 export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute[] {
   const routes: ContentRoute[] = []
   if (!existsSync(dir)) return routes
@@ -44,12 +53,13 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
 
     const ref = relative(base, fullPath)
     const cleanPath = routePathFromRef(ref)
+    const title = kebabToTitle(cleanPath.split('/').pop() ?? 'API')
     routes.push({
       path: cleanPath,
       basePath: cleanPath,
       filePath: fullPath,
       virtualModuleId: virtualModuleIdFromRef(ref),
-      title: kebabToTitle(cleanPath.split('/').pop() ?? 'API'),
+      title,
       kind: 'openapi',
     })
   }
@@ -57,26 +67,18 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
   return routes
 }
 
-function operationMatchesTags(operationTags: string[] | undefined, filterTags: string[] | undefined): boolean {
-  if (!filterTags?.length) return true
-  return operationTags?.some(tag => filterTags.includes(tag)) ?? false
-}
-
-/** Filter an OpenAPI spec to only include paths that have at least one operation matching the given tags. */
 export function filterSpecByTags(spec: OpenAPISpec, tags: string[]): OpenAPISpec {
   const filteredPaths: Record<string, unknown> = {}
   const paths = (spec.paths ?? {}) as Record<string, unknown>
   for (const path of Object.keys(paths)) {
     const pathItem = paths[path] as Record<string, unknown> | undefined
     if (!pathItem) continue
-    const ops = Object.values(pathItem)
-    const hasMatch = ops.some(op => op && typeof op === 'object' && operationMatchesTags((op as Record<string, unknown>).tags as string[] | undefined, tags))
+    const hasMatch = Object.values(pathItem).some(op => op && typeof op === 'object' && operationMatchesTags((op as Record<string, unknown>).tags as string[] | undefined, tags))
     if (hasMatch) filteredPaths[path] = pathItem
   }
   return { ...spec, paths: filteredPaths } as OpenAPISpec
 }
 
-/** Extract endpoint operations from an OpenAPI spec as page sections. */
 export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[]): ContentSection[] {
   const sections: ContentSection[] = []
   const paths = spec.paths ?? {}
@@ -86,10 +88,14 @@ export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[])
       const op = pathItem[method]
       if (!op || !operationMatchesTags(op.tags, filterTags)) continue
       const title = op.summary ?? `${method.toUpperCase()} ${path}`
-      sections.push({ id: slug(`${method} ${path}`), title, level: 2, badge: method.toUpperCase(), tags: op.tags })
+      sections.push({ id: new GithubSlugger().slug(`${method} ${path}`), title, level: 2, badge: method.toUpperCase(), tags: op.tags })
     }
   }
   return sections
+}
+
+function buildOpenAPIContentDocument(route: ContentRoute, spec: OpenAPISpec, specFileKey: string, metadata: ContentDocument['metadata'] = {}) {
+  return createOpenAPIContentDocument(route, spec, specFileKey, metadata)
 }
 
 export async function readOpenAPISpec(filePath: string, contentProcessor?: ContentProcessor): Promise<OpenAPIParseResult> {
@@ -124,4 +130,51 @@ export async function readOpenAPISpec(filePath: string, contentProcessor?: Conte
       },
     }
   }
+}
+
+
+export async function prepareOpenAPIRoutes(routes: ContentRoute[], contentProcessor?: ContentProcessor, projectRoot?: string): Promise<ContentRoute[]> {
+  const nextRoutes = routes.map(route => ({ ...route }))
+  const specs = new Map<string, OpenAPISpec>()
+  const specFileKeys = new Map<string, string>()
+
+  for (const route of nextRoutes.filter(route => route.kind === 'openapi')) {
+    const specFromCache = specs.get(route.filePath)
+    const result = specFromCache ? { ok: true as const, spec: specFromCache } : await readOpenAPISpec(route.filePath, contentProcessor)
+    if (!result.ok) {
+      route.document = createContentDocument({ path: route.path, title: route.title, filePath: route.filePath }, [], { diagnostic: result.diagnostic })
+      route.title = route.title || 'OpenAPI parse error'
+      continue
+    }
+
+    const spec = result.spec
+    specs.set(route.filePath, spec)
+
+    const specKey = specFileKeyFromPath(route.filePath, projectRoot)
+    specFileKeys.set(route.filePath, specKey)
+    const pageSpec = route.openapi?.tagFilter?.length ? filterSpecByTags(spec, route.openapi.tagFilter) : spec
+    const sections = extractOpenAPISections(pageSpec, route.openapi?.tagFilter)
+    route.title = spec.info?.title ?? route.title
+    route.document = buildOpenAPIContentDocument(route, pageSpec, specKey, {
+      description: spec.info?.description ?? undefined,
+      sections,
+    })
+    route.source = {
+      ...route.source,
+      content: JSON.stringify(pageSpec),
+    }
+    route.openapi = {
+      ...route.openapi,
+      specFileKey: specKey,
+      tagFilter: route.openapi?.tagFilter,
+      spec: pageSpec,
+    }
+  }
+
+  return nextRoutes
+}
+
+function specFileKeyFromPath(filePath: string, projectRoot?: string): string {
+  if (!projectRoot) return filePath.replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
+  return relative(projectRoot, filePath).replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
 }

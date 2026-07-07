@@ -54,23 +54,28 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
     ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.virtualModuleId)};`).join('\n')
     : `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';`
   const routesArray = routes.map((r, i) => {
-    const sections = r.sections && r.sections.length > 0
-      ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags })))}`
+    const document = r.document?.metadata
+      ? `, document: ${JSON.stringify({
+          metadata: {
+            sections: r.document.metadata.sections?.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags })),
+            description: r.document.metadata.description,
+            keywords: r.document.metadata.keywords,
+            diagnostic: r.document.metadata.diagnostic,
+          },
+        })}`
       : ''
-    const contentArtifactUrl = r.contentArtifactUrl ? `, contentArtifactUrl: ${JSON.stringify(r.contentArtifactUrl)}` : ''
+    const contentArtifactUrl = r.artifact?.contentArtifactUrl ? `, contentArtifactUrl: ${JSON.stringify(r.artifact.contentArtifactUrl)}` : ''
     const basePath = r.basePath ? `, basePath: ${JSON.stringify(r.basePath)}` : ''
     const locale = r.locale ? `, locale: ${JSON.stringify(r.locale)}` : ''
     const isFallback = r.isFallback ? ', isFallback: true' : ''
     const isBareAlias = r.isBareAlias ? ', isBareAlias: true' : ''
     const alternates = r.alternates ? `, alternates: ${JSON.stringify(r.alternates)}` : ''
-    const description = r.description ? `, description: ${JSON.stringify(r.description)}` : ''
-    const keywords = r.keywords && r.keywords.length > 0 ? `, keywords: ${JSON.stringify(r.keywords)}` : ''
-    const sourceUrl = r.sourceUrl ? `, sourceUrl: ${JSON.stringify(r.sourceUrl)}` : ''
+    const sourceUrl = r.artifact?.sourceUrl ? `, sourceUrl: ${JSON.stringify(r.artifact.sourceUrl)}` : ''
     const component = mode === 'server'
       ? `Page${i}`
       : `() => import(${moduleSpecifier(r.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
     const lazy = mode === 'client' ? ', lazy: true' : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${isBareAlias}${alternates}${description}${keywords}${sections}${contentArtifactUrl}${sourceUrl} }`
+    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${isBareAlias}${alternates}${document}${contentArtifactUrl}${sourceUrl} }`
   }).join(',\n')
 
   const navigation = resolvedNavigation ?? (projectConfig?.tabs
@@ -171,6 +176,24 @@ export default createContentDiagnosticComponent(contentDiagnostic);
 `
 }
 
+export function generateDocumentRouteModule(route: ContentRoute): string {
+  return `import { createDocumentRouteComponent } from '@clarify-labs/renderer';
+
+export const routeData = ${JSON.stringify({ contentDocument: route.document })};
+
+export default createDocumentRouteComponent(routeData);
+`
+}
+
+export function generateOpenApiRouteModule(route: ContentRoute): string {
+  return `import { createOpenApiRouteComponent } from '@clarify-labs/renderer';
+
+export const routeData = ${JSON.stringify({ spec: route.openapi?.spec, tagFilter: route.openapi?.tagFilter, contentDocument: route.document })};
+
+export default createOpenApiRouteComponent(routeData);
+`
+}
+
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
   const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
@@ -182,22 +205,29 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
   modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))
-  modules.set(VIRTUAL_OPENAPI, generateOpenApiModule())
+  modules.set(VIRTUAL_OPENAPI, generateOpenApiModule(args.routes))
   modules.set(VIRTUAL_SLOT, createSlotModule())
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
 
   for (const route of args.routes) {
-    const moduleContent = route.diagnostic
-      ? generateMdxErrorModule(route.diagnostic)
-      : `export { default } from ${moduleSpecifier(route.filePath)};`
+    const moduleContent = route.document?.metadata.diagnostic
+      ? generateMdxErrorModule(route.document.metadata.diagnostic)
+      : route.kind === 'openapi' && route.openapi?.spec
+        ? generateOpenApiRouteModule(route)
+        : route.document
+          ? generateDocumentRouteModule(route)
+          : `export { default } from ${moduleSpecifier(route.filePath)};`
     modules.set(route.virtualModuleId, moduleContent)
   }
 
   return modules
 }
 
-// 新的 OpenAPI 模块生成函数 - 独立出来
-export function generateOpenApiModule(): string {
-  return `export const openApis = {};`
+export function generateOpenApiModule(routes: ContentRoute[] = []): string {
+  const entries = routes
+    .filter(route => route.kind === 'openapi' && route.openapi?.spec)
+    .map(route => `${JSON.stringify(route.virtualModuleId)}: ${JSON.stringify(route.openapi?.spec)}`)
+
+  return `export const openApis = {${entries.join(',')}};`
 }

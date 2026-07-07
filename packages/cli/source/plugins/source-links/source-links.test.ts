@@ -26,6 +26,6 @@ describe('source links', () => {
 
     attachSourceUrls(routes, '/repo/source', { repository: 'https://github.com/acme/docs' })
 
-    expect(routes[0]?.sourceUrl).toBe('https://github.com/acme/docs/edit/main/index.mdx')
+    expect(routes[0]?.artifact?.sourceUrl).toBe('https://github.com/acme/docs/edit/main/index.mdx')
   })
 })

@@ -7,7 +7,7 @@ import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { cliPackageVersion } from '../cli/package.js'
-import { rehypePlugins, remarkPlugins } from '../parsers/mdx.js'
+import { rehypePlugins, remarkPlugins } from '../parsers/markdown/mdx.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../types.js'
 
 import { createBuiltinPlugins } from './builtin.js'
@@ -126,8 +126,8 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       if (!/\.mdx?(?:\?|$)/.test(id)) return null
       const filePath = id.replace(/\?.*$/, '')
       const route = routes.find(route => route.kind === 'mdx' && route.filePath === filePath)
-      if (!route || route.content === undefined) return null
-      return { code: route.content, map: null }
+      if (!route || route.source?.content === undefined) return null
+      return { code: route.source.content, map: null }
     },
   }
 

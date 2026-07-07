@@ -185,7 +185,7 @@ describe('buildNavigationFromConfig', () => {
         title: 'Getting Started',
         filePath: 'guide.mdx',
         virtualModuleId: 'virtual:clarify-page/guide',
-        sections: [{ id: 'intro', title: 'Intro', level: 2 }],
+        document: { id: '/docs/start', title: 'Getting Started', source: 'guide.mdx', content: [], metadata: { sections: [{ id: 'intro', title: 'Intro', level: 2 }] } },
       }),
     ]
     const config: ClarifyPagesGroup[] = [
@@ -209,7 +209,7 @@ describe('buildNavigationFromConfig', () => {
         filePath: 'api.openapi.json',
         virtualModuleId: 'virtual:clarify-page/reference/projects',
         kind: 'openapi',
-        sections: [{ id: 'get-projects', title: 'List projects', level: 2, badge: 'GET', tags: ['Projects'] }],
+        document: { id: '/reference/projects', title: 'Tagged API', source: 'api.openapi.json', content: [], metadata: { sections: [{ id: 'get-projects', title: 'List projects', level: 2, badge: 'GET', tags: ['Projects'] }] } },
       },
     ]
     const config: ClarifyPagesGroup[] = [
@@ -233,7 +233,7 @@ describe('buildNavigationFromConfig', () => {
         filePath: 'api.openapi.json',
         virtualModuleId: 'virtual:clarify-page/api/projects',
         kind: 'openapi',
-        sections: [{ id: 'get-projects', title: 'List projects', level: 2, badge: 'GET', tags: ['Projects'] }],
+        document: { id: '/api/projects', title: 'API', source: 'api.openapi.json', content: [], metadata: { sections: [{ id: 'get-projects', title: 'List projects', level: 2, badge: 'GET', tags: ['Projects'] }] } },
       },
     ]
     const config: ClarifyPagesGroup[] = [

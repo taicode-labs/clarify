@@ -63,10 +63,10 @@ async function generatePagefindIndex(options: GeneratePagefindIndexOptions, page
 function routeSearchContent(route: ContentRoute): string {
   return [
     route.title,
-    route.description,
-    route.keywords?.join(' '),
-    route.sections?.map(section => section.title).join(' '),
-    route.content,
+    route.document?.metadata.description,
+    route.document?.metadata.keywords?.join(' '),
+    route.document?.metadata.sections?.map(section => section.title).join(' '),
+    route.source?.content,
   ].filter(Boolean).join('\n\n')
 }
 
