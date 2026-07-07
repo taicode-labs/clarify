@@ -133,7 +133,7 @@ describe('generateRoutesModule', () => {
 })
 
 describe('buildVirtualModules', () => {
-  it('emits the compiled MDX component for MDX content routes', () => {
+  it('emits the unified document route module for content routes', () => {
     const modules = buildVirtualModules({
       projectConfig: {
         title: 'Docs',
@@ -167,12 +167,12 @@ describe('buildVirtualModules', () => {
     })
 
     const moduleContent = modules.get('virtual:clarify-page/guide')
-    expect(moduleContent).toBe('export { default } from "/site/source/guide.mdx";\n')
-    expect(moduleContent).not.toContain('createDocumentRouteComponent')
-    expect(moduleContent).not.toContain('contentDocument')
+    expect(moduleContent).toContain("import { createDocumentRouteComponent } from '@clarify-labs/renderer';")
+    expect(moduleContent).toContain('export default createDocumentRouteComponent(routeData);')
+    expect(moduleContent).toContain('"contentDocument"')
   })
 
-  it('emits a diagnostic route module for MDX compile failures', () => {
+  it('emits a diagnostic route module for content compile failures', () => {
     const modules = buildVirtualModules({
       projectConfig: {
         title: 'Docs',

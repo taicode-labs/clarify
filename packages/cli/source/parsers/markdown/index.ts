@@ -7,11 +7,10 @@ import { remark } from 'remark'
 import { visit } from 'unist-util-visit'
 
 import type { ContentRoute, ContentSection } from '../../types.js'
-
 import { createContentProcessor, type ContentProcessor } from '../content/index.js'
-import { compileMdxContent } from './mdx.js'
-import { createMarkdownContentDocument } from './content-document.js'
 import { kebabToTitle, routePathFromFilePath, virtualModuleIdFromFilePath } from '../router/index.js'
+
+import { createMarkdownContentDocument } from './content-document.js'
 
 export type FindMarkdownRoutesOptions = {
   contentProcessor?: ContentProcessor
@@ -63,7 +62,6 @@ export async function findMarkdownRoutes(dir: string, base: string = dir, option
 
     const source = readFileSync(fullPath, 'utf-8')
     const { frontmatter, content } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
-    const mdxResult = await compileMdxContent(content, fullPath, base)
 
     let title = typeof frontmatter.title === 'string' ? frontmatter.title : ''
     if (!title) {
@@ -89,7 +87,7 @@ export async function findMarkdownRoutes(dir: string, base: string = dir, option
         description: typeof frontmatter.description === 'string' ? frontmatter.description : undefined,
         keywords: frontmatterKeywords(frontmatter),
         sections: extractMdxSections(content),
-        diagnostic: mdxResult.ok ? undefined : mdxResult.diagnostic,
+        diagnostic: undefined
       }),
     })
   }

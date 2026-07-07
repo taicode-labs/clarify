@@ -1,13 +1,11 @@
 import { existsSync, rmSync } from 'node:fs'
 import { isAbsolute, join, relative, resolve } from 'node:path'
 
-import mdxPlugin, { type Options as MdxPluginOptions } from '@mdx-js/rollup'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { cliPackageVersion } from '../../cli/package.js'
-import { rehypePlugins, remarkPlugins } from '../../parsers/markdown/mdx.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../../types.js'
 
 import { createBuiltinPlugins } from './builtin.js'
@@ -118,26 +116,6 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   function hasContentRouteForFile(filePath: string): boolean {
     return routes.some(route => route.filePath === filePath)
   }
-
-  const normalizedMdxContentPlugin: Plugin = {
-    name: 'clarify:normalized-mdx-content',
-    enforce: 'pre',
-    transform(_code, id) {
-      if (!/\.mdx?(?:\?|$)/.test(id)) return null
-      const filePath = id.replace(/\?.*$/, '')
-      const route = routes.find(route => route.kind === 'mdx' && route.filePath === filePath)
-      if (!route || route.source?.content === undefined) return null
-      return { code: route.source.content, map: null }
-    },
-  }
-
-  const mdx = mdxPlugin({
-    include: ['**/*.{md,mdx}'],
-    jsxImportSource: 'react',
-    providerImportSource: '@clarify-labs/renderer',
-    remarkPlugins: remarkPlugins as MdxPluginOptions['remarkPlugins'],
-    rehypePlugins,
-  })
 
   const clarifyCorePlugin: Plugin = {
     name: 'clarify:core',
@@ -312,8 +290,6 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
             },
             load: id => loadVirtualModule(id, virtualModules),
           },
-          normalizedMdxContentPlugin,
-          mdx,
         ])
 
         const ssrBundlePath = join(ssrOutputDir, 'entry-server.js')
@@ -337,5 +313,5 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
     },
   }
 
-  return [react(), tailwindcss(), normalizedMdxContentPlugin, clarifyCorePlugin, mdx].flat().filter(Boolean) as Plugin[]
+  return [react(), tailwindcss(), clarifyCorePlugin].flat().filter(Boolean) as Plugin[]
 }

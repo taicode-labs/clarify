@@ -49,6 +49,15 @@ function moduleSpecifier(value: string): string {
   return JSON.stringify(value)
 }
 
+function createRendererRouteModule(routeData: string): string {
+  return `import { createDocumentRouteComponent } from '@clarify-labs/renderer';
+
+export const routeData = ${routeData};
+
+export default createDocumentRouteComponent(routeData);
+`
+}
+
 export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig, mode: 'client' | 'server' = 'client'): string {
   const imports = mode === 'server'
     ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.virtualModuleId)};`).join('\n')
@@ -177,26 +186,7 @@ export default createContentDiagnosticComponent(contentDiagnostic);
 }
 
 export function generateDocumentRouteModule(route: ContentRoute): string {
-  return `import { createDocumentRouteComponent } from '@clarify-labs/renderer';
-
-export const routeData = ${JSON.stringify({ contentDocument: route.document })};
-
-export default createDocumentRouteComponent(routeData);
-`
-}
-
-export function generateOpenApiRouteModule(route: ContentRoute): string {
-  return `import { createOpenApiRouteComponent } from '@clarify-labs/renderer';
-
-export const routeData = ${JSON.stringify({ spec: route.openapi?.spec, tagFilter: route.openapi?.tagFilter, contentDocument: route.document })};
-
-export default createOpenApiRouteComponent(routeData);
-`
-}
-
-export function generateMdxRouteModule(route: ContentRoute): string {
-  return `export { default } from ${moduleSpecifier(route.filePath)};
-`
+  return createRendererRouteModule(JSON.stringify({ contentDocument: route.document }))
 }
 
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
@@ -218,13 +208,9 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   for (const route of args.routes) {
     const moduleContent = route.document?.metadata.diagnostic
       ? generateMdxErrorModule(route.document.metadata.diagnostic)
-      : route.kind === 'openapi' && route.openapi?.spec
-        ? generateOpenApiRouteModule(route)
-        : route.kind === 'mdx'
-          ? generateMdxRouteModule(route)
-        : route.document
-          ? generateDocumentRouteModule(route)
-          : `export { default } from ${moduleSpecifier(route.filePath)};`
+      : route.document
+        ? generateDocumentRouteModule(route)
+        : `export { default } from ${moduleSpecifier(route.filePath)};`
     modules.set(route.virtualModuleId, moduleContent)
   }
 
@@ -233,8 +219,8 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
 
 export function generateOpenApiModule(routes: ContentRoute[] = []): string {
   const entries = routes
-    .filter(route => route.kind === 'openapi' && route.openapi?.spec)
-    .map(route => `${JSON.stringify(route.virtualModuleId)}: ${JSON.stringify(route.openapi?.spec)}`)
+    .filter(() => false)
+    .map(route => `${JSON.stringify(route.virtualModuleId)}: ${JSON.stringify(route)}`)
 
   return `export const openApis = {${entries.join(',')}};`
 }

@@ -266,7 +266,7 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
 
     for (const route of routes) {
       const matches = item.pageRef
-        ? route.kind === 'mdx' && (route.basePath ?? route.path) === sourceBasePath
+        ? route.kind !== 'openapi' && (route.basePath ?? route.path) === sourceBasePath
         : route.kind === 'openapi' && (route.basePath ?? route.path) === sourceBasePath
       if (!matches) continue
 

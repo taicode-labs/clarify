@@ -3,7 +3,8 @@ import type { ReactNode } from 'react'
 import type { OpenAPIContentBlock } from '../content'
 import { PageTitleActions } from '../app/PageActions'
 import { Prose } from '../components/Prose'
-import { createDocumentRouteComponent } from '../content-renderer'
+import { createComponentRouteComponent, createDocumentRouteComponent } from '../content-renderer'
+import { createRouteComponent } from '../route-factory'
 import { useBuiltInText } from '../core/i18n'
 import { Markdown } from '../mdx/Markdown'
 
@@ -145,33 +146,32 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
 }
 
 export function createOpenApiRouteComponent(data: OpenApiRouteData) {
-  return createDocumentRouteComponent({
-    contentDocument: data.contentDocument,
-    renderers: {
-      openApi: {
-        spec: data.spec,
-        tagFilter: data.tagFilter,
-      },
-      renderOpenApi: (block: OpenAPIContentBlock) => {
-        if (!block.operation) {
-          return <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} />
-        }
+  if (data.contentDocument?.content?.length) {
+    return createDocumentRouteComponent({
+      contentDocument: data.contentDocument,
+      renderers: {
+        openapi: (block: OpenAPIContentBlock) => {
+          if (!block.operation) {
+            return <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} />
+          }
 
-        const operation = getOpenApiOperation(data.spec, block.operation.path, block.operation.method)
-        if (!operation) {
-          return <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} />
-        }
+          const operation = getOpenApiOperation(data.spec, block.operation.path, block.operation.method)
+          if (!operation) {
+            return <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} />
+          }
 
-        return (
-          <OpenApiOperationComponent
-            spec={data.spec}
-            path={block.operation.path}
-            method={block.operation.method.toUpperCase()}
-            operation={operation}
-          />
-        )
+          return (
+            <OpenApiOperationComponent
+              spec={data.spec}
+              path={block.operation.path}
+              method={block.operation.method.toUpperCase()}
+              operation={operation}
+            />
+          )
+        },
       },
-    },
-    component: () => <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} />,
-  })
+    })
+  }
+
+  return createRouteComponent(() => <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} />)
 }

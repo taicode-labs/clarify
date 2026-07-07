@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { resolveThemeConfig } from '../../core/config/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, readRouteArtifactContent, readRouteContent } from './artifacts.js'
+import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, readOpenAPIArtifactContent, readOpenAPIArtifactSpec, readRouteArtifactContent, readRouteContent } from './artifacts.js'
 
 function route(overrides: Partial<ContentRoute>): ContentRoute {
   return {
@@ -47,6 +47,21 @@ describe('content artifact helpers', () => {
   it('reads artifact content without a UTF-8 signature for ASCII-only text', () => {
     const r = route({ path: '/guide', source: { content: '# Getting Started' } })
     expect(readRouteArtifactContent(r)).toBe('# Getting Started')
+  })
+
+  it('reads OpenAPI artifact content and spec through dedicated helpers', () => {
+    const r = route({
+      path: '/api',
+      filePath: '/tmp/api.openapi.json',
+      kind: 'openapi',
+      source: { content: '{"openapi":"3.0.0","info":{"title":"API","version":"1.0.0"}}' },
+    })
+
+    expect(readOpenAPIArtifactContent(r)).toBe('{"openapi":"3.0.0","info":{"title":"API","version":"1.0.0"}}')
+    expect(readOpenAPIArtifactSpec(r)).toEqual({
+      openapi: '3.0.0',
+      info: { title: 'API', version: '1.0.0' },
+    })
   })
 
   it('creates an llms.txt sitemap with described markdown and OpenAPI links', () => {

@@ -18,8 +18,7 @@ function withUtf8Signature(content: string): string {
 }
 
 function shouldUseUtf8Signature(route: ContentRoute): boolean {
-  if (route.kind === 'mdx') return true
-  return false
+  return route.kind !== 'openapi'
 }
 
 export function routeToMarkdownArtifactUrl(routePath: string): string {
@@ -48,8 +47,23 @@ export function readRouteContent(route: ContentRoute): string {
   throw new Error(`Route content is missing from route context: ${route.filePath}`)
 }
 
+export function readOpenAPIArtifactContent(route: ContentRoute): string {
+  if (route.kind !== 'openapi') {
+    throw new Error(`Expected an OpenAPI route but received ${route.kind}: ${route.filePath}`)
+  }
+
+  const content = route.source?.content
+  if (content !== undefined) return content
+
+  throw new Error(`OpenAPI artifact content is missing from route context: ${route.filePath}`)
+}
+
+export function readOpenAPIArtifactSpec(route: ContentRoute): Record<string, unknown> {
+  return JSON.parse(readOpenAPIArtifactContent(route)) as Record<string, unknown>
+}
+
 export function readRouteArtifactContent(route: ContentRoute): string {
-  const content = readRouteContent(route)
+  const content = route.kind === 'openapi' ? readOpenAPIArtifactContent(route) : readRouteContent(route)
   return shouldUseUtf8Signature(route) ? withUtf8Signature(content) : content
 }
 
@@ -131,9 +145,9 @@ export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedPro
   lines.push('This file lists the source-ready Markdown and OpenAPI artifacts for this documentation site.', '')
 
   // Exclude bare alias routes (e.g., /path without language prefix) in multilingual sites
-  const mdxRoutes = routes.filter(route => route.kind === 'mdx' && isLlmsTxtRoute(route) && !getContentRouteIsBareAlias(route))
-  if (mdxRoutes.length > 0) {
-    const localizedGroups = groupLlmsTxtRoutesByLocale(mdxRoutes, projectConfig)
+  const documentRoutes = routes.filter(route => route.kind !== 'openapi' && isLlmsTxtRoute(route) && !getContentRouteIsBareAlias(route))
+  if (documentRoutes.length > 0) {
+    const localizedGroups = groupLlmsTxtRoutesByLocale(documentRoutes, projectConfig)
     for (const [locale, localeRoutes] of localizedGroups) {
       lines.push(`## ${llmsTxtDocsSectionTitle(locale, localizedGroups.size, projectConfig)}`)
 

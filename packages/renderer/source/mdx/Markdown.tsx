@@ -4,7 +4,7 @@ import ReactMarkdown, { type Components } from 'react-markdown'
 import { Mermaid } from '../components/Mermaid'
 
 import { a as MarkdownLink, code as MarkdownCode, pre as MarkdownPre } from './primitives'
-import { markdownRemarkPlugins } from './remark'
+import { markdownRemarkPlugins, mdxRemarkPlugins } from './remark'
 
 function getMermaidChart(children: ReactNode): string | undefined {
   if (!isValidElement(children)) return undefined
@@ -54,6 +54,22 @@ export function Markdown(arg0: MarkdownProps): ReactNode {
   return (
     <div className={className}>
       <ReactMarkdown components={markdownComponents} remarkPlugins={markdownRemarkPlugins}>
+        {children}
+      </ReactMarkdown>
+    </div>
+  )
+}
+
+type MdxMarkdownProps = { children?: string; className?: string }
+
+export function MdxMarkdown(arg0: MdxMarkdownProps): ReactNode {
+  const { children, className } = arg0
+
+  if (!children) return null
+
+  return (
+    <div className={className}>
+      <ReactMarkdown components={markdownComponents} remarkPlugins={mdxRemarkPlugins}>
         {children}
       </ReactMarkdown>
     </div>

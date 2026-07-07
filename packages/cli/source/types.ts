@@ -326,10 +326,6 @@ export type ContentRoute = {
   openapi?: {
     /** OpenAPI operation tag filter applied to this route. Undefined means all operations. */
     tagFilter?: string[]
-    /** Parsed OpenAPI document prepared by the parser layer. */
-    spec?: OpenAPISpec
-    /** Deduplicated key derived from the source OpenAPI spec file path. */
-    specFileKey?: string
   }
 
   /** Output metadata emitted for downstream plugins. */

@@ -7,6 +7,7 @@ import { getContentRouteIsBareAlias, getContentRouteLocale, getContentRoutePath,
 import { toPagefindLanguage } from '../../core/runtime/search-language.js'
 import { createClarifyTempDir, removeClarifyTempDir } from '../../core/runtime/temp-dir.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute } from '../../types.js'
+import { readOpenAPIArtifactContent } from '../content-artifacts/artifacts.js'
 
 type PagefindModule = typeof import('pagefind')
 
@@ -62,12 +63,16 @@ async function generatePagefindIndex(options: GeneratePagefindIndexOptions, page
 }
 
 function routeSearchContent(route: ContentRoute): string {
+  const primaryContent = route.kind === 'openapi'
+    ? readOpenAPIArtifactContent(route)
+    : route.source?.content
+
   return [
     getContentRouteTitle(route) ?? route.title,
     route.document?.metadata.description,
     route.document?.metadata.keywords?.join(' '),
     route.document?.metadata.sections?.map(section => section.title).join(' '),
-    route.source?.content,
+    primaryContent,
   ].filter(Boolean).join('\n\n')
 }
 

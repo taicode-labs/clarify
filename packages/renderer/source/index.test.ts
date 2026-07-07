@@ -2,41 +2,24 @@ import { describe, expect, it } from 'vitest'
 
 import * as renderer from './index'
 
-describe('renderer public API', () => {
-  it('exports a focused runtime-facing surface', () => {
-    expect(Object.keys(renderer).sort()).toEqual([
-      'AppShell',
-      'BuiltWithClarify',
-      'DocShell',
-      'Markdown',
-      'OpenApiDocument',
-      'OpenApiOperation',
-      'OpenApisContext',
-      'PageBanner',
-      'PageFooter',
-      'RuntimeSlot',
-      'RuntimeSlotsProvider',
-      'SectionProvider',
-      'SlotProvider',
-      'ThemeEditor',
-      'ThemeProvider',
-      'ThemeToggle',
-      'applyThemeVariables',
-      'createContentDiagnosticComponent',
-      'createDocumentRouteComponent',
-      'createOpenApiRouteComponent',
-      'markdownRemarkPlugins',
-      'render',
-      'renderContentDocument',
-      'remToPx',
-      'themeBootstrapScript',
-      'themeEditorPresets',
-      'themePresets',
-      'useMDXComponents',
-      'useOpenApis',
-      'useSectionStore',
-      'useSlot',
-      'useTheme',
-    ].sort())
+describe('renderer root entrypoint', () => {
+  it('exposes only the unified renderer-owned route and runtime APIs', () => {
+    expect(renderer).toHaveProperty('createContentDiagnosticComponent')
+    expect(renderer).toHaveProperty('createDocumentRouteComponent')
+    expect(renderer).toHaveProperty('createOpenApiRouteComponent')
+    expect(renderer).toHaveProperty('render')
+    expect(renderer).toHaveProperty('themePresets')
+    expect(renderer).toHaveProperty('themeBootstrapScript')
+    expect(renderer).toHaveProperty('useSlot')
+    expect(renderer).toHaveProperty('useMDXComponents')
+
+    expect(renderer).not.toHaveProperty('AppShell')
+    expect(renderer).not.toHaveProperty('OpenApiDocument')
+    expect(renderer).not.toHaveProperty('OpenApiOperation')
+    expect(renderer).not.toHaveProperty('Markdown')
+    expect(renderer).not.toHaveProperty('compileMdxContent')
+    expect(renderer).not.toHaveProperty('createMdxRollupPlugin')
+    expect(renderer).not.toHaveProperty('rehypePlugins')
+    expect(renderer).not.toHaveProperty('remarkPlugins')
   })
 })

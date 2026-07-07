@@ -1,4 +1,5 @@
 import remarkGfm from 'remark-gfm'
+import remarkMdx from 'remark-mdx'
 
 export type MarkdownNode = {
   type?: string
@@ -45,3 +46,4 @@ function remarkCodeMeta() {
 }
 
 export const markdownRemarkPlugins = [remarkGfm, remarkCodeMeta]
+export const mdxRemarkPlugins = [remarkMdx, ...markdownRemarkPlugins]

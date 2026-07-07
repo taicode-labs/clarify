@@ -164,12 +164,6 @@ export async function prepareOpenAPIRoutes(routes: ContentRoute[], contentProces
       ...route.source,
       content: JSON.stringify(pageSpec),
     }
-    route.openapi = {
-      ...route.openapi,
-      specFileKey: specKey,
-      tagFilter: route.openapi?.tagFilter,
-      spec: pageSpec,
-    }
   }
 
   return nextRoutes

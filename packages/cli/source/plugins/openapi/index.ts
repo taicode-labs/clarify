@@ -119,11 +119,6 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
 
           // Derive a stable dedup key from the spec file path
           const specKey = specFileKeyFromPath(route.filePath, ctx.generateOptions.projectRoot)
-          route.openapi = {
-            ...route.openapi,
-            specFileKey: specKey,
-            tagFilter: route.openapi?.tagFilter,
-          }
 
           specs.set(specKey, { spec, filePath: route.filePath })
           route.title = spec.info?.title ?? route.title
@@ -137,11 +132,6 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
             sections,
           })
           route.document = syncContentDocumentRoute(route)
-          route.openapi = {
-            ...route.openapi,
-            tagFilter: route.openapi?.tagFilter,
-            spec: pageSpec,
-          }
         }
 
         return nextRoutes
@@ -154,8 +144,9 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         const registryEntries: Record<string, OpenAPISpec> = {}
 
         for (const route of ctx.routes) {
-          if (route.kind !== 'openapi' || !route.openapi?.specFileKey) continue
-          const spec = specs.get(route.openapi.specFileKey)?.spec
+          if (route.kind !== 'openapi') continue
+          const specKey = specFileKeyFromPath(route.filePath, ctx.generateOptions.projectRoot)
+          const spec = specs.get(specKey)?.spec
           if (!spec) continue
 
           const base = (route.basePath ?? route.path).replace(/^\//, '')
@@ -181,8 +172,9 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           if (route.kind !== 'openapi') continue
           if (route.document?.metadata.diagnostic) {
             modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.document.metadata.diagnostic))
-          } else if (route.openapi?.specFileKey) {
-            const entry = specs.get(route.openapi.specFileKey)
+          } else {
+            const specKey = specFileKeyFromPath(route.filePath, ctx.generateOptions.projectRoot)
+            const entry = specs.get(specKey)
             if (!entry) continue
 
             modules.set(route.virtualModuleId, generateOpenAPIPageModule({

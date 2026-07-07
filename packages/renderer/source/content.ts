@@ -36,12 +36,6 @@ export type MarkdownContentBlock = {
   source?: ContentSource
 }
 
-export type MdxContentBlock = {
-  kind: 'mdx'
-  value: string
-  source?: ContentSource
-}
-
 export type OpenAPISpecReference = {
   specFileKey?: string
   specPath?: string
@@ -60,17 +54,15 @@ export type OpenAPIContentBlock = {
   operation?: OpenAPIOperationReference
 }
 
-export type ContentBlock = MarkdownContentBlock | MdxContentBlock | OpenAPIContentBlock
+export type ContentBlock = MarkdownContentBlock | OpenAPIContentBlock
+
+export type ContentRenderers = {
+  markdown?: (block: MarkdownContentBlock) => ReactNode
+  openapi?: (block: OpenAPIContentBlock) => ReactNode
+}
 
 export type ContentRenderContext = {
-  openApi?: {
-    spec?: unknown
-    specPath?: string
-    tagFilter?: string[]
-  }
-  renderMarkdown?: (block: MarkdownContentBlock) => ReactNode
-  renderMdx?: (block: MdxContentBlock) => ReactNode
-  renderOpenApi?: (block: OpenAPIContentBlock) => ReactNode
+  renderers?: ContentRenderers
 }
 
 export type ContentDocumentRoute = {

@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 
+import { createRouteComponent } from '../route-factory'
 import { RenderErrorPanel } from './RenderErrorPanel'
 
 export type ContentDiagnostic = {
@@ -40,7 +41,5 @@ function ContentDiagnosticPanel(params: ContentDiagnosticPanelProps) {
 }
 
 export function createContentDiagnosticComponent(data: ContentDiagnostic): ComponentType {
-  return function ContentDiagnosticComponent() {
-    return <ContentDiagnosticPanel data={data} />
-  }
+  return createRouteComponent(() => <ContentDiagnosticPanel data={data} />)
 }

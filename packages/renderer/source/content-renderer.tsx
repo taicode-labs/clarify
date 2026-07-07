@@ -2,26 +2,35 @@ import type { ComponentType, ReactNode } from 'react'
 import { Fragment } from 'react'
 
 import { Prose } from './components/Prose'
-import { Markdown } from './mdx/Markdown'
-import type { ContentDocument, ContentRenderContext, MarkdownContentBlock, MdxContentBlock, OpenAPIContentBlock } from './content'
+import type { ContentBlock, ContentDocument, ContentRenderers, MarkdownContentBlock, OpenAPIContentBlock } from './content'
+import { MdxMarkdown } from './mdx/Markdown'
+import { createRouteComponent } from './route-factory'
 
 function defaultMarkdownRenderer(block: MarkdownContentBlock): ReactNode {
   return (
-    <Markdown>
+    <MdxMarkdown>
       {block.value}
-    </Markdown>
+    </MdxMarkdown>
   )
 }
 
-function defaultMdxRenderer(block: MdxContentBlock): ReactNode {
-  return (
-    <Markdown>
-      {block.value}
-    </Markdown>
-  )
+function renderBlock(block: ContentBlock, renderers?: ContentRenderers): ReactNode {
+  if (block.kind === 'markdown') {
+    return renderers?.markdown ? renderers.markdown(block) : defaultMarkdownRenderer(block)
+  }
+
+  if (block.kind === 'openapi') {
+    return renderers?.openapi ? renderers.openapi(block) : defaultOpenApiRenderer(block)
+  }
+
+  return null
 }
 
-function ContentDocumentShell(arg0: { children: ReactNode }) {
+type ContentDocumentShellProps = {
+  children: ReactNode
+}
+
+function ContentDocumentShell(arg0: ContentDocumentShellProps) {
   const { children } = arg0
 
   return (
@@ -37,49 +46,51 @@ function defaultOpenApiRenderer(_block: OpenAPIContentBlock): ReactNode {
 
 export type DocumentRouteData = {
   contentDocument?: ContentDocument
-  component?: ComponentType
-  renderers?: ContentRenderContext
+  renderers?: ContentRenderers
+}
+
+export type ComponentRouteData = {
+  component: ComponentType
+}
+
+export type ContentRouteData = DocumentRouteData | ComponentRouteData
+
+export function createComponentRouteComponent(data: ComponentRouteData) {
+  return createRouteComponent(() => {
+    const Component = data.component
+    return <Component />
+  })
 }
 
 export function createDocumentRouteComponent(data: DocumentRouteData) {
-  return function DocumentRoutePage(): ReactNode {
-    if (data.contentDocument?.content?.length) {
-      return renderContentDocument(data.contentDocument, data.renderers)
-    }
+  return createContentRouteComponent(data)
+}
 
-    if (data.component) {
+export function createContentRouteComponent(data: ContentRouteData) {
+  return createRouteComponent(() => {
+    if ('component' in data) {
       const Component = data.component
       return <Component />
     }
 
+    if (data.contentDocument?.content?.length) {
+      return renderContentDocument(data.contentDocument, data.renderers)
+    }
+
     return null
-  }
+  })
 }
 
-export function renderContentDocument(document: ContentDocument | undefined, context: ContentRenderContext = {}): ReactNode {
+export function renderContentDocument(document: ContentDocument | undefined, renderers?: ContentRenderers): ReactNode {
   if (!document?.content?.length) return null
-
-  const renderMarkdown = context.renderMarkdown ?? defaultMarkdownRenderer
-  const renderMdx = context.renderMdx ?? defaultMdxRenderer
-  const renderOpenApi = context.renderOpenApi ?? defaultOpenApiRenderer
 
   return (
     <ContentDocumentShell>
-      {document.content.map((block, index) => {
-        if (block.kind === 'markdown') {
-          return <Fragment key={`${block.kind}-${index}`}>{renderMarkdown(block)}</Fragment>
-        }
-
-        if (block.kind === 'mdx') {
-          return <Fragment key={`${block.kind}-${index}`}>{renderMdx(block)}</Fragment>
-        }
-
-        if (block.kind === 'openapi') {
-          return <Fragment key={`${block.kind}-${index}`}>{renderOpenApi(block)}</Fragment>
-        }
-
-        return null
-      })}
+      {document.content.map((block, index) => (
+        <Fragment key={`${block.kind}-${index}`}>
+          {renderBlock(block, renderers)}
+        </Fragment>
+      ))}
     </ContentDocumentShell>
   )
 }
