@@ -53,23 +53,39 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
   } = arg0
 
   const t = useBuiltInText()
+  const hasRequestBody = Boolean(requestBody && requestContents.length > 0)
+
+  const renderDescription = () => {
+    if (!description) return null
+    return <Markdown>{description}</Markdown>
+  }
+
+  const renderRequestBody = () => {
+    if (!hasRequestBody) {
+      return <p className="text-sm/5 text-(--clarify-ui-text-soft)">{t('openapi.requestBodyEmpty')}</p>
+    }
+
+    return (
+      <>
+        {typeof requestBody?.description === 'string' ? <Markdown>{requestBody.description}</Markdown> : null}
+        <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} />
+      </>
+    )
+  }
 
   return (
     <>
-      {description ? <Markdown>{description}</Markdown> : null}
+      {renderDescription()}
       <Row className="relative mt-6">
         <Col>
           <div className="w-full">
             <ParameterList title={t('openapi.pathParameters')} parameters={groupedParameters.path} />
             <ParameterList title={t('openapi.queryParameters')} parameters={groupedParameters.query} />
             <ParameterList title={t('openapi.headers')} parameters={groupedParameters.header} />
-            {requestBody && requestContents.length > 0 ? (
-              <>
-                <h3>{t('openapi.requestBody')}</h3>
-                {typeof requestBody.description === 'string' ? <Markdown>{requestBody.description}</Markdown> : null}
-                <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} />
-              </>
-            ) : null}
+            <div>
+              <h3>{t('openapi.requestBody')}</h3>
+              {renderRequestBody()}
+            </div>
           </div>
         </Col>
         <Col sticky>

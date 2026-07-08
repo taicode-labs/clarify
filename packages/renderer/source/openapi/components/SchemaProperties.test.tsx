@@ -5,15 +5,38 @@ import { schemaToType } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 
 
+import { EndpointRequest } from './EndpointSections'
 import { EndpointPath } from './OpenApiOperation'
 import { ParameterList, ResponseList, SchemaProperties } from './SchemaProperties'
 
 describe('ParameterList', () => {
-  it('renders a normalized empty state when there are no parameters', () => {
+  it('renders nothing when there are no parameters', () => {
     const markup = renderToStaticMarkup(<ParameterList title="Query parameters" parameters={[]} />)
 
-    expect(markup).toContain('Query parameters')
-    expect(markup).toContain('None')
+    expect(markup).not.toContain('Query parameters')
+    expect(markup).not.toContain('None')
+  })
+})
+
+describe('EndpointRequest', () => {
+  it('renders a friendly empty state when there is no request body', () => {
+    const markup = renderToStaticMarkup(
+      <EndpointRequest
+        spec={{ openapi: '3.1.0', info: { title: 'Test API', version: '1.0.0' }, paths: {} }}
+        path="/pets"
+        method="get"
+        groupedParameters={{ path: [], query: [], header: [] }}
+        parameters={[]}
+        requestContents={[]}
+        requestSchema={undefined}
+        selectedRequestMediaType=""
+        onSelectRequestMediaType={() => {}}
+        selectedServer={{ url: 'https://api.example.com' }}
+        serverVariables={{}}
+      />,
+    )
+
+    expect(markup).toContain('No request body')
   })
 })
 

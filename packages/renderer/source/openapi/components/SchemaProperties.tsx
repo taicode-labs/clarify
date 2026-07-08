@@ -373,25 +373,24 @@ export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {
 type ParameterListProps = { title: string; parameters: OpenApiParameter[] }
 
 export function ParameterList(arg0: ParameterListProps): ReactNode {
+  const t = useBuiltInText()
   const { title, parameters } = arg0
 
-  const t = useBuiltInText()
+  if (parameters.length === 0) return null
 
   return (
     <div>
       <h3>{title}</h3>
       <Properties>
-        {parameters.length > 0 ? (
-          parameters.map((parameter) => (
-            <Property
-              key={`${parameter.in}-${parameter.name}`}
-              name={parameter.name ?? t('openapi.parameter')}
-              type={[schemaToType(parameter.schema), parameter.required ? t('openapi.requiredBadge') : undefined].filter(Boolean).join(', ') || undefined}
-            >
-              {parameter.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{parameter.description}</Markdown> : t('openapi.operationParameter')}
-            </Property>
-          ))
-        ) : (<span className="text-sm/5 text-(--clarify-ui-text-soft)">{t('openapi.none')}</span>)}
+        {parameters.map((parameter) => (
+          <Property
+            key={`${parameter.in}-${parameter.name}`}
+            name={parameter.name ?? t('openapi.parameter')}
+            type={[schemaToType(parameter.schema), parameter.required ? t('openapi.requiredBadge') : undefined].filter(Boolean).join(', ') || undefined}
+          >
+            {parameter.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{parameter.description}</Markdown> : t('openapi.operationParameter')}
+          </Property>
+        ))}
       </Properties>
     </div>
   )

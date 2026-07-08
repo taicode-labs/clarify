@@ -67,6 +67,7 @@ export type BuiltInTextKey =
   | 'openapi.queryParameters'
   | 'openapi.request'
   | 'openapi.requestBody'
+  | 'openapi.requestBodyEmpty'
   | 'openapi.responseBodyProperties'
   | 'openapi.required'
   | 'openapi.requiredBadge'
@@ -167,6 +168,7 @@ const builtInText = {
     'openapi.queryParameters': 'Query parameters',
     'openapi.request': 'Request',
     'openapi.requestBody': 'Request body',
+    'openapi.requestBodyEmpty': 'No request body',
     'openapi.responseBodyProperties': 'Response body properties',
     'openapi.required': 'Required.',
     'openapi.requiredBadge': 'required',
@@ -266,6 +268,7 @@ const builtInText = {
     'openapi.queryParameters': '查询参数',
     'openapi.request': '请求',
     'openapi.requestBody': '请求体',
+    'openapi.requestBodyEmpty': '暂无请求体',
     'openapi.responseBodyProperties': '响应体属性',
     'openapi.required': '必填。',
     'openapi.requiredBadge': '必填',
