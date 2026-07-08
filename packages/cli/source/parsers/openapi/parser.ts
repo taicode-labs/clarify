@@ -5,9 +5,9 @@ import { fileURLToPath } from 'node:url'
 import SwaggerParser from '@apidevtools/swagger-parser'
 import { slug } from 'github-slugger'
 
+import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
 import type { ContentProcessor } from '../content/content.js'
 import { kebabToTitle, routePathFromRef, virtualModuleIdFromRef } from '../routes/routes.js'
-import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
 
