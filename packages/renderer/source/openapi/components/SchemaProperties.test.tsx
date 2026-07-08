@@ -1,12 +1,29 @@
-import { renderToStaticMarkup } from 'react-dom/server'
+import { renderToReadableStream, renderToStaticMarkup } from 'react-dom/server'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
+import { ConfigContext, LocaleContext, OpenApisContext } from '../../core'
 import { schemaToType } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 
-
 import { EndpointPath } from './OpenApiOperation'
 import { ParameterList, ResponseList, SchemaProperties } from './SchemaProperties'
+
+async function renderOpenApiMarkup(node: React.ReactNode): Promise<string> {
+  const stream = await renderToReadableStream(
+    <ConfigContext.Provider value={{ routePrefix: '', theme: {}, i18n: undefined } as never}>
+      <LocaleContext.Provider value={undefined}>
+        <OpenApisContext.Provider value={{}}>
+          <MemoryRouter>
+            {node}
+          </MemoryRouter>
+        </OpenApisContext.Provider>
+      </LocaleContext.Provider>
+    </ConfigContext.Provider>
+  )
+  await stream.allReady
+  return new Response(stream).text()
+}
 
 describe('ParameterList', () => {
   it('renders a normalized empty state when there are no parameters', () => {
@@ -81,7 +98,7 @@ describe('schemaToType', () => {
 })
 
 describe('SchemaProperties', () => {
-  it('keeps enum branches collapsed by default even when x-enumDescriptions are present', () => {
+  it('keeps enum branches collapsed by default even when x-enumDescriptions are present', async () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',
       info: { title: 'Test API', version: '1.0.0' },
@@ -99,7 +116,7 @@ describe('SchemaProperties', () => {
       },
     }
 
-    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
+    const markup = await renderOpenApiMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
 
     expect(markup).toContain('status')
     expect(markup).toContain('aria-expanded="false"')
@@ -107,7 +124,7 @@ describe('SchemaProperties', () => {
     expect(markup).not.toContain('Published content')
   })
 
-  it('renders enum value descriptions from object-form x-enumDescriptions when present', () => {
+  it('renders enum value descriptions from object-form x-enumDescriptions when present', async () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',
       info: { title: 'Test API', version: '1.0.0' },
@@ -128,13 +145,13 @@ describe('SchemaProperties', () => {
       },
     }
 
-    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} defaultExpanded={true} />)
+    const markup = await renderOpenApiMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} defaultExpanded={true} />)
 
     expect(markup).toContain('Draft content')
     expect(markup).toContain('Published content')
   })
 
-  it('renders enum values as collapsible child entries instead of inline values', () => {
+  it('renders enum values as collapsible child entries instead of inline values', async () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',
       info: { title: 'Test API', version: '1.0.0' },
@@ -151,7 +168,7 @@ describe('SchemaProperties', () => {
       },
     }
 
-    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
+    const markup = await renderOpenApiMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
 
     expect(markup).toContain('status')
     expect(markup).toContain('aria-expanded="false"')
@@ -161,7 +178,7 @@ describe('SchemaProperties', () => {
     expect(markup).not.toContain('Optional.')
   })
 
-  it('collapses enum branches by default', () => {
+  it('collapses enum branches by default', async () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',
       info: { title: 'Test API', version: '1.0.0' },
@@ -178,14 +195,14 @@ describe('SchemaProperties', () => {
       },
     }
 
-    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
+    const markup = await renderOpenApiMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
 
     expect(markup).toContain('aria-expanded="false"')
   })
 })
 
 describe('ResponseList', () => {
-  it('renders response body properties from the declared schema', () => {
+  it('renders response body properties from the declared schema', async () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',
       info: { title: 'Test API', version: '1.0.0' },
@@ -211,14 +228,14 @@ describe('ResponseList', () => {
       },
     }
 
-    const markup = renderToStaticMarkup(<ResponseList operation={operation} spec={spec} />)
+    const markup = await renderOpenApiMarkup(<ResponseList operation={operation} spec={spec} />)
 
     expect(markup).toContain('id')
     expect(markup).toContain('name')
     expect(markup).toContain('Response body properties')
   })
 
-  it('places default first and sorts the remaining response statuses ascending', () => {
+  it('places default first and sorts the remaining response statuses ascending', async () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',
       info: { title: 'Test API', version: '1.0.0' },
@@ -233,7 +250,7 @@ describe('ResponseList', () => {
       },
     }
 
-    const markup = renderToStaticMarkup(<ResponseList operation={operation} spec={spec} />)
+    const markup = await renderOpenApiMarkup(<ResponseList operation={operation} spec={spec} />)
 
     expect(markup.indexOf('default')).toBeLessThan(markup.indexOf('200'))
     expect(markup.indexOf('200')).toBeLessThan(markup.indexOf('400'))

@@ -8,17 +8,35 @@ import type { ContentDiagnosticMetadata, ContentDocument } from '../content/inde
 import { markdownRemarkPlugins } from '../markdown/remark'
 
 type ContentRouteLike = {
+  path?: string
   filePath?: string
 }
 
-type CompileContentDocumentPageOptions = {
+type RenderCompileMode = 'development' | 'production'
+
+type RenderCompileTarget = 'client' | 'ssr' | 'static'
+
+export type RendererCompileOptions = {
+  mode: RenderCompileMode
+  target: RenderCompileTarget
+}
+
+export type RendererRoutePayload = {
+  kind: 'document'
   document: ContentDocument
-  route?: ContentRouteLike
+}
+
+export type CompileRouteModuleInput = {
+  route: ContentRouteLike
+  payload: RendererRoutePayload
+  options: RendererCompileOptions
   projectRoot?: string
 }
 
-type CompileContentDocumentPageResult = {
+export type CompileRouteModuleResult = {
+  id: string
   code: string
+  dependencies: string[]
 }
 
 type CompiledMarkdownBlock = {
@@ -41,10 +59,6 @@ type HastParent = HastNode & {
 
 type ShikiRenderElementArgs = {
   children: string
-}
-
-function moduleSpecifier(value: string): string {
-  return JSON.stringify(value)
 }
 
 function getLanguage(className: unknown): string {
@@ -227,14 +241,24 @@ async function compileMarkdownBlock(value: string, index: number): Promise<Compi
   return createMarkdownBlockComponent(String(compiled), index)
 }
 
-export async function compileContentDocumentPage(options: CompileContentDocumentPageOptions): Promise<CompileContentDocumentPageResult> {
+export async function compileRouteModule(input: CompileRouteModuleInput): Promise<CompileRouteModuleResult> {
+  if (input.payload.kind !== 'document') {
+    throw new Error(`Unsupported renderer payload kind: ${input.payload.kind}`)
+  }
+
+  const moduleId = input.route.path ?? input.route.filePath ?? input.payload.document.source ?? input.payload.document.id
+
   try {
-    const compiledBlocks = await Promise.all(options.document.content
+    const compiledBlocks = await Promise.all(input.payload.document.content
       .map((block, index) => block.kind === 'markdown' ? compileMarkdownBlock(block.value, index) : undefined)
       .filter((block): block is Promise<CompiledMarkdownBlock> => Boolean(block)))
 
-    return { code: createPageModule(compiledBlocks, options.document) }
+    return {
+      id: moduleId,
+      code: createPageModule(compiledBlocks, input.payload.document),
+      dependencies: [input.route.filePath ?? input.payload.document.source].filter((value): value is string => Boolean(value)),
+    }
   } catch (error) {
-    throw createMdxDiagnostic(error, options.route?.filePath ?? options.document.source, options.projectRoot)
+    throw createMdxDiagnostic(error, input.route.filePath ?? input.payload.document.source, input.projectRoot)
   }
 }

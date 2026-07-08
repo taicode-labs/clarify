@@ -1,5 +1,5 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
-import { compileContentDocumentPage } from '@clarify-labs/renderer/server'
+import { compileRouteModule } from '@clarify-labs/renderer/server'
 
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/router/index.js'
 import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, ContentSection, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
@@ -48,15 +48,6 @@ export function generateConfigModule(projectConfig: ResolvedProjectConfig, build
 
 function moduleSpecifier(value: string): string {
   return JSON.stringify(value)
-}
-
-function createRendererRouteModule(routeData: string): string {
-  return `import { createDocumentRouteComponent } from '@clarify-labs/renderer';
-
-export const routeData = ${routeData};
-
-export default createDocumentRouteComponent(routeData);
-`
 }
 
 export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig, mode: 'client' | 'server' = 'client'): string {
@@ -186,10 +177,6 @@ export default createContentDiagnosticComponent(contentDiagnostic);
 `
 }
 
-export function generateDocumentRouteModule(route: ContentRoute): string {
-  return createRendererRouteModule(JSON.stringify({ contentDocument: route.document }))
-}
-
 export async function buildVirtualModules(args: BuildVirtualModulesArgs): Promise<VirtualModules> {
   const modules: VirtualModules = new Map()
   const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
@@ -201,7 +188,7 @@ export async function buildVirtualModules(args: BuildVirtualModulesArgs): Promis
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
   modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))
-  modules.set(VIRTUAL_OPENAPI, generateOpenApiModule(args.routes))
+  modules.set(VIRTUAL_OPENAPI, generateOpenApiModule())
   modules.set(VIRTUAL_SLOT, createSlotModule())
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
@@ -213,9 +200,16 @@ export async function buildVirtualModules(args: BuildVirtualModulesArgs): Promis
       moduleContent = generateMdxErrorModule(route.document.metadata.diagnostic)
     } else if (route.document) {
       try {
-        moduleContent = (await compileContentDocumentPage({
-          document: route.document,
+        moduleContent = (await compileRouteModule({
           route,
+          payload: {
+            kind: 'document',
+            document: route.document,
+          },
+          options: {
+            mode: args.generateOptions.ssg?.failOnError ? 'production' : 'development',
+            target: 'client',
+          },
           projectRoot: args.generateOptions.projectRoot,
         })).code
       } catch (error) {
@@ -237,10 +231,6 @@ export async function buildVirtualModules(args: BuildVirtualModulesArgs): Promis
   return modules
 }
 
-export function generateOpenApiModule(routes: ContentRoute[] = []): string {
-  const entries = routes
-    .filter(() => false)
-    .map(route => `${JSON.stringify(route.virtualModuleId)}: ${JSON.stringify(route)}`)
-
-  return `export const openApis = {${entries.join(',')}};`
+export function generateOpenApiModule(): string {
+  return 'export const openApis = {};'
 }

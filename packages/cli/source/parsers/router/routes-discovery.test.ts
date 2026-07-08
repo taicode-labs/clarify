@@ -138,7 +138,6 @@ describe('findContentRoutes', () => {
       title: 'API',
       document: {
         content: [
-          { kind: 'markdown' },
           { kind: 'openapi' },
         ],
       },

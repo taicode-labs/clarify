@@ -69,15 +69,24 @@ export const code = Code
 export const pre = Pre
 export { Button, Callout, Card, CardGroup, CodeGroup, WebFrame }
 
-export function h2(props: Omit<ComponentPropsWithoutRef<'h2'>, 'ref'> & { tag?: string; label?: string; anchor?: boolean }) {
+type HeadingRendererProps<Tag extends 'h2' | 'h3'> = Omit<ComponentPropsWithoutRef<Tag>, 'ref'> & {
+  tag?: string
+  label?: string
+  anchor?: boolean
+}
+
+function H2(props: HeadingRendererProps<'h2'>) {
   const { children, id, ...rest } = props
   return createElement(Heading, { level: 2, id: useHeadingId(children, id), ...rest }, children)
 }
 
-export function h3(props: Omit<ComponentPropsWithoutRef<'h3'>, 'ref'> & { tag?: string; label?: string; anchor?: boolean }) {
+function H3(props: HeadingRendererProps<'h3'>) {
   const { children, id, ...rest } = props
   return createElement(Heading, { level: 3, id: useHeadingId(children, id), ...rest }, children)
 }
+
+export const h2 = H2
+export const h3 = H3
 
 type NoteProps = { children: ReactNode }
 
