@@ -1,6 +1,5 @@
 import { createContentProcessor, type ContentProcessor } from '../../parsers/content/content.js'
 import type { ClarifyHookContext, ClarifyPlugin } from '../../types.js'
-
 import { runHooks } from '../plugin/hooks.js'
 
 const contentProcessors = new WeakMap<ClarifyHookContext, ContentProcessor>()

@@ -1,7 +1,7 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
 import { describe, expect, it } from 'vitest'
 
-import { compileMdxContent, rehypeParseCodeBlocks, rehypePlugins, rehypeShiki, rehypeSlugSections, remarkPlugins } from '../../../../mdx.js'
+import { compileMdxContent, rehypeParseCodeBlocks, rehypePlugins, rehypeShiki, rehypeSlugSections, remarkPlugins } from './mdx.js'
 
 const testRemarkPlugins = remarkPlugins as CompileOptions['remarkPlugins']
 

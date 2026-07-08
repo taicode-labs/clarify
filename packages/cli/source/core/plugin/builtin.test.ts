@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createBuiltinPlugins } from '../../../../builtin.js'
+import { createBuiltinPlugins } from './builtin.js'
 
 describe('createBuiltinPlugins', () => {
   it('runs project variables before OpenAPI processing', () => {

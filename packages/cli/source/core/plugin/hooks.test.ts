@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 
-import type { ClarifyPlugin, ClarifyHookContext, ClarifyPage } from '../../../../../types.js'
+import type { ClarifyPlugin, ClarifyHookContext, ClarifyPage } from '../../types.js'
+import { resolveThemeConfig } from '../site/theme.js'
 
-import { runHooks } from '../../../../hooks.js'
-import { resolveThemeConfig } from '../../../../theme.js'
+import { runHooks } from './hooks.js'
 
 const mockCtx: ClarifyHookContext = {
   projectRoot: '/site',

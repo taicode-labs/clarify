@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { defineConfig, findClarifyConfigFile, loadClarifyConfig } from '../../../../user-config.js'
+import { defineConfig, findClarifyConfigFile, loadClarifyConfig } from './user-config.js'
 
 describe('defineConfig', () => {
   it('returns the provided config', () => {

@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 
-import { clarifyProjectConfigSchema } from '../../../../config-schema.js'
-import { resolveProjectConfig } from '../../../../config.js'
-import { resolveBuildOptions } from '../../../../options.js'
-import { themePresets } from '../../../../theme.js'
+import { themePresets } from '../site/theme.js'
+
+import { clarifyProjectConfigSchema } from './config-schema.js'
+import { resolveProjectConfig } from './config.js'
+import { resolveBuildOptions } from './options.js'
 
 describe('clarifyProjectConfigSchema', () => {
   it('validates project config', () => {

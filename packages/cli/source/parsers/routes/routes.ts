@@ -6,13 +6,13 @@ import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
 import { visit } from 'unist-util-visit'
 
-import type { ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, ResolvedClarifyI18nConfig, TabbedNavigation } from '../../types.js'
-
+import type { ClarifyPage, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, ResolvedClarifyI18nConfig, TabbedNavigation } from '../../types.js'
 import { createContentProcessor, type ContentProcessor } from '../content/content.js'
 import { compileMdxContent } from '../markdown/mdx.js'
 
 export type FindContentRoutesOptions = {
   contentProcessor?: ContentProcessor
+  pageTransform?: (page: ClarifyPage) => Promise<ClarifyPage> | ClarifyPage
 }
 
 export function kebabToTitle(str: string): string {
@@ -124,13 +124,19 @@ export async function findContentRoutes(dir: string, base: string = dir, options
 
       const source = readFileSync(fullPath, 'utf-8')
       const { frontmatter, content } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
-      const mdxResult = await compileMdxContent(content, fullPath, base)
+      const transformedPage = await (options.pageTransform ?? (async (page: ClarifyPage) => page))({
+        path: cleanPath,
+        filePath: fullPath,
+        frontmatter,
+        content,
+      })
+      const mdxResult = await compileMdxContent(transformedPage.content, fullPath, base)
 
-      let title = typeof frontmatter.title === 'string' ? frontmatter.title : ''
+      let title = typeof transformedPage.frontmatter.title === 'string' ? transformedPage.frontmatter.title : ''
       if (!title) {
         const lastPart = pathParts[pathParts.length - 1] ?? ''
         const stem = lastPart === 'index'
-          ? (pathParts.length >= 2 ? pathParts[pathParts.length - 2]! : extractH1(content))
+          ? (pathParts.length >= 2 ? pathParts[pathParts.length - 2]! : extractH1(transformedPage.content))
           : lastPart
         title = kebabToTitle(stem) || 'Untitled'
       }
@@ -142,11 +148,11 @@ export async function findContentRoutes(dir: string, base: string = dir, options
         basePath: cleanPath,
         filePath: fullPath,
         virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx?$/, '').replace(/\/+/g, '/'),
-        description: typeof frontmatter.description === 'string' ? frontmatter.description : undefined,
-        keywords: frontmatterKeywords(frontmatter),
-        frontmatter,
-        content,
-        sections: extractMdxSections(content),
+        description: typeof transformedPage.frontmatter.description === 'string' ? transformedPage.frontmatter.description : undefined,
+        keywords: frontmatterKeywords(transformedPage.frontmatter),
+        frontmatter: transformedPage.frontmatter,
+        content: transformedPage.content,
+        sections: extractMdxSections(transformedPage.content),
         diagnostic: mdxResult.ok ? undefined : mdxResult.diagnostic,
       })
     }

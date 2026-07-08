@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { extractFrontmatter, parseFrontmatter, stripFrontmatter } from '../../../../frontmatter.js'
+import { extractFrontmatter, parseFrontmatter, stripFrontmatter } from './frontmatter.js'
 
 describe('extractFrontmatter', () => {
   it('extracts basic frontmatter', () => {

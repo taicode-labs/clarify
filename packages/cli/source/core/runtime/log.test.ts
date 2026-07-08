@@ -3,7 +3,7 @@ import { join } from 'node:path'
 
 import { describe, expect, it, beforeEach, afterEach } from 'vitest'
 
-import { logBuildError } from '../../../../log.js'
+import { logBuildError } from './log.js'
 
 const tempDir = join(process.cwd(), '.tmp-log-test')
 const logFile = join(tempDir, '.clarify.log')

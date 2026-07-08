@@ -8,17 +8,14 @@ import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { cliPackageVersion } from '../../cli/package.js'
 import { rehypePlugins, remarkPlugins } from '../../parsers/markdown/mdx.js'
-import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../../types.js'
-
-import { createBuiltinPlugins } from './builtin.js'
-import { resolveProjectConfig } from '../config/config.js'
 import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../../parsers/router/dev-routes.js'
-import { writeClarifyEnvDts } from '../runtime/env-types.js'
-import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
+import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../../types.js'
+import { resolveProjectConfig } from '../config/config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from '../config/options.js'
+import { findClarifyConfigFile } from '../config/user-config.js'
 import { resolveProjectContext } from '../project/project-context.js'
 import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from '../project/project-info.js'
-import { resolveClarifySite } from '../site/site.js'
+import { writeClarifyEnvDts } from '../runtime/env-types.js'
 import {
   SSR_ENTRY_CODE,
   createTempEntryFile,
@@ -26,7 +23,6 @@ import {
   renderSSGRoutes,
 } from '../runtime/ssg.js'
 import { logStartupHints } from '../runtime/startup.js'
-import { findClarifyConfigFile } from '../config/user-config.js'
 import {
   RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
@@ -41,6 +37,10 @@ import {
   stripVirtualPrefix,
   type VirtualModules,
 } from '../runtime/virtual-modules.js'
+import { resolveClarifySite } from '../site/site.js'
+
+import { createBuiltinPlugins } from './builtin.js'
+import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 
 function loadVirtualModule(id: string, modules: VirtualModules): string | null {
   const bareId = stripVirtualPrefix(id)

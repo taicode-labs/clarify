@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { escapeHtml } from '../../../../../core/utils.js'
+import { escapeHtml } from './utils.js'
 
 describe('escapeHtml', () => {
   it('returns plain text unchanged', () => {

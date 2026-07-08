@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { getStartupHints, logStartupHints } from '../../../../startup.js'
+import { getStartupHints, logStartupHints } from './startup.js'
 
 describe('getStartupHints', () => {
   it('only reports content-directory issues when no content root exists', () => {

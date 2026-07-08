@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { generateClarifyEnvDts } from '../../../../env-types.js'
+import { generateClarifyEnvDts } from './env-types.js'
 
 describe('generateClarifyEnvDts', () => {
   it('only exposes the public slot hook module', () => {

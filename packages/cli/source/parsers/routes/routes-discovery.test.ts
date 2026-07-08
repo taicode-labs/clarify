@@ -4,9 +4,10 @@ import { join } from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { createContentProcessor } from '../../../../content.js'
-import { findContentRoutes, findLocalizedContentRoutes } from '../../../../routes.js'
-import { testI18n } from '../../../../routes.test-utils.js'
+import { createContentProcessor } from '../content/content.js'
+
+import { findContentRoutes, findLocalizedContentRoutes } from './routes.js'
+import { testI18n } from './routes.test-utils.js'
 
 describe('findContentRoutes', () => {
   let tempDir: string
@@ -141,6 +142,20 @@ describe('findContentRoutes', () => {
 
     expect(result[0].title).toBe('Clarify')
     expect(result[0].description).toBe('Docs that stay in sync')
+  })
+
+  it('runs page transforms before compiling MDX content', async () => {
+    writeFileSync(join(tempDir, 'page.mdx'), '<Thing', 'utf-8')
+
+    const result = await findContentRoutes(tempDir, tempDir, {
+      pageTransform: page => ({
+        ...page,
+        content: page.content.replace('<Thing', '<Thing />'),
+      }),
+    })
+
+    expect(result[0].content).toBe('<Thing />')
+    expect(result[0].diagnostic).toBeUndefined()
   })
 
   it('records a diagnostic when MDX content cannot be compiled', async () => {

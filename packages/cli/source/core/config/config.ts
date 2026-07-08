@@ -1,9 +1,9 @@
 import type { ZodError } from 'zod'
 
 import type { ClarifyI18nConfig, ClarifyProjectConfig, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
+import { resolveThemeConfig } from '../site/theme.js'
 
 import { clarifyProjectConfigSchema } from './config-schema.js'
-import { resolveThemeConfig } from '../site/theme.js';
 
 function formatIssuePath(path: PropertyKey[]): string {
   return path.reduce<string>((result, segment) => {

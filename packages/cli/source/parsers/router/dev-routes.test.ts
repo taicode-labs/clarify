@@ -3,15 +3,15 @@ import type { IncomingMessage } from 'node:http'
 
 import { describe, it, expect } from 'vitest'
 
-import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../../../../types.js'
+import { resolveThemeConfig } from '../../core/site/theme.js'
+import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 import {
   toDevRouteEntry,
   resolveRouteForFile,
   inferRouteForFile,
   handleDevRouteRequest,
-} from '../../../../../core/dev-routes.js'
-import { resolveThemeConfig } from '../../../../../core/theme.js'
+} from './dev-routes.js'
 
 function makeRoute(overrides: Partial<ContentRoute>): ContentRoute {
   return {

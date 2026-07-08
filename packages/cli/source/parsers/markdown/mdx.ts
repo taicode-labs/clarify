@@ -6,8 +6,8 @@ import { visit } from 'unist-util-visit'
 
 import { markdownRemarkPlugins } from '@clarify-labs/renderer'
 
-import { escapeHtml } from '../markdown/utils.js'
 import type { ContentDiagnostic } from '../../types.js'
+import { escapeHtml } from '../markdown/utils.js'
 
 type HastNode = {
   type: string

@@ -1,8 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { relative } from 'node:path'
 
-import { basePathFromRef, localizedRoutePath, normalizePath } from '../routes/routes.js'
 import type { ClarifyProjectContext, ContentRoute } from '../../types.js'
+import { basePathFromRef, localizedRoutePath, normalizePath } from '../routes/routes.js'
 
 /**
  * Dev-only HTTP endpoint that exposes the in-memory route manifest so external

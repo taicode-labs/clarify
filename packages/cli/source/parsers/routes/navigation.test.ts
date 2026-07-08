@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 
-import type { ClarifyPagesGroup, ContentRoute } from '../../../../../types.js'
+import type { ClarifyPagesGroup, ContentRoute } from '../../types.js'
 
-import { applyConfiguredPageRoutePaths, buildLocalizedNavigation, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromConfig, buildNavigationFromTabsConfig } from '../../../../routes.js'
-import { mdxRoute, testI18n } from '../../../../routes.test-utils.js'
+import { applyConfiguredPageRoutePaths, buildLocalizedNavigation, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromConfig, buildNavigationFromTabsConfig } from './routes.js'
+import { mdxRoute, testI18n } from './routes.test-utils.js'
 
 describe('buildNavigation', () => {
   it('returns empty array for only home route', () => {

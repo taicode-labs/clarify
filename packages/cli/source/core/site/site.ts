@@ -2,11 +2,10 @@ import { join, relative } from 'node:path'
 
 import { applyConfiguredPageRoutePaths, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef, withAlternates } from '../../parsers/routes/routes.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../../types.js'
-
-import { createBuiltinPlugins } from '../plugin/builtin.js'
-import { createProjectContentProcessor, getProjectContentProcessor, setProjectContentProcessor } from '../content/content.js'
-import { runHooks } from '../plugin/hooks.js'
 import type { ClarifyBuildOptions, ResolvedBuildOptions } from '../config/options.js'
+import { createProjectContentProcessor, getProjectContentProcessor, setProjectContentProcessor } from '../content/content.js'
+import { createBuiltinPlugins } from '../plugin/builtin.js'
+import { runHooks } from '../plugin/hooks.js'
 import { resolveProjectContext } from '../project/project-context.js'
 
 export type ResolvedClarifySite = {
@@ -28,7 +27,10 @@ async function discoverRoutesForRoot(routeRoot: string, locale: string | undefin
   const discovered = await runHooks(plugins, 'routes:discover', {
     contentRoot: routeRoot,
     locale,
-    routes: await findContentRoutes(routeRoot, routeRoot, { contentProcessor: getProjectContentProcessor(ctx) }),
+    routes: await findContentRoutes(routeRoot, routeRoot, {
+      contentProcessor: getProjectContentProcessor(ctx),
+      pageTransform: page => runHooks(plugins, 'page:transform', page, ctx),
+    }),
   }, ctx)
   return discovered.routes
 }

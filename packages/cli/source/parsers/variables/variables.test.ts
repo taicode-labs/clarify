@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { applyVariables } from '../../../../variables.js'
+import { applyVariables } from './variables.js'
 
 describe('applyVariables', () => {
   it('replaces top-level and nested variables', () => {
