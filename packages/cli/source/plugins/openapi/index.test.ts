@@ -4,9 +4,9 @@ import { join } from 'node:path'
 
 import { describe, expect, it, afterEach, beforeEach } from 'vitest'
 
-import { setProjectContentProcessor } from '../../core/content.js'
-import { resolveThemeConfig } from '../../core/theme.js'
-import { createContentProcessor } from '../../parsers/content.js'
+import { setProjectContentProcessor } from '../../core/content/content.js'
+import { resolveThemeConfig } from '../../core/site/theme.js'
+import { createContentProcessor } from '../../parsers/content/content.js'
 import type { ClarifyHookContext, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 import { createOpenAPIPlugin } from './index.js'

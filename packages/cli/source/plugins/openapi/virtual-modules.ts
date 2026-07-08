@@ -1,4 +1,4 @@
-import { VIRTUAL_OPENAPI } from '../../core/virtual-modules.js'
+import { VIRTUAL_OPENAPI } from '../../core/runtime/virtual-modules.js'
 import type { ContentDiagnostic, OpenAPISpec } from '../../types.js'
 
 export const openApiRegistryModuleId = VIRTUAL_OPENAPI

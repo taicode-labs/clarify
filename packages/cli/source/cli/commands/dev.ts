@@ -1,6 +1,6 @@
 import { createServer } from 'vite'
 
-import { createViteConfig } from '../../core/vite-config.js'
+import { createViteConfig } from '../../core/runtime/vite-config.js'
 import type { ResolvedCliOptions } from '../options.js'
 
 export async function runDev(options: ResolvedCliOptions): Promise<void> {
