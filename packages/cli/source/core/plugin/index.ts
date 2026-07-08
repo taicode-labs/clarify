@@ -87,7 +87,7 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
   }
 
   async function rebuildVirtualModules() {
-    virtualModules = buildVirtualModules({
+    virtualModules = await buildVirtualModules({
       projectConfig,
       generateOptions,
       routes,

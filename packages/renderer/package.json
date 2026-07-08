@@ -18,6 +18,18 @@
       "require": "./output/index.cjs",
       "default": "./output/index.js"
     },
+    "./client": {
+      "types": "./output/client.d.ts",
+      "import": "./output/client.js",
+      "require": "./output/client.cjs",
+      "default": "./output/client.js"
+    },
+    "./server": {
+      "types": "./output/server.d.ts",
+      "import": "./output/server.js",
+      "require": "./output/server.cjs",
+      "default": "./output/server.js"
+    },
     "./types": {
       "types": "./output/types.d.ts",
       "import": "./output/types.js",

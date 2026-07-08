@@ -313,9 +313,14 @@ export function CodeGroup(arg0: CodeGroupProps) {  const {
   )
 }
 
-type CodeProps = ComponentPropsWithoutRef<'code'> & { code?: string; language?: string; title?: string }
+type CodeProps = ComponentPropsWithoutRef<'code'> & { code?: string; highlightedHtml?: string; language?: string; title?: string }
 
 export function Code(arg0: CodeProps) {  const { children, ...props } = arg0
+
+  if (props.highlightedHtml) {
+    const { highlightedHtml, ...codeProps } = props
+    return <code {...codeProps} dangerouslySetInnerHTML={{ __html: highlightedHtml }} />
+  }
 
   return <code {...props}>{children}</code>
 }

@@ -37,9 +37,13 @@ function resolvePackageExport(packageName: string, subpath: string, condition: '
 export function createClarifyRuntimeAliases(): AliasOptions {
   return [
     { find: /^@clarify-labs\/renderer\/style\.css$/, replacement: resolvePackageExport('@clarify-labs/renderer', 'style.css') },
+    { find: /^@clarify-labs\/renderer\/client$/, replacement: resolvePackageExport('@clarify-labs/renderer', 'client') },
+    { find: /^@clarify-labs\/renderer\/server$/, replacement: resolvePackageExport('@clarify-labs/renderer', 'server') },
     { find: /^@clarify-labs\/renderer$/, replacement: resolvePackageExport('@clarify-labs/renderer', '') },
     { find: /^react\/jsx-dev-runtime$/, replacement: resolveCliDependency('react/jsx-dev-runtime') },
     { find: /^react\/jsx-runtime$/, replacement: resolveCliDependency('react/jsx-runtime') },
+    { find: /^react-dom\/client$/, replacement: resolveCliDependency('react-dom/client') },
+    { find: /^react-dom$/, replacement: resolveCliDependency('react-dom') },
     { find: /^mermaid$/, replacement: resolveCliDependency('mermaid') },
     { find: /^react-zoom-pan-pinch$/, replacement: resolveCliDependency('react-zoom-pan-pinch') },
     { find: /^react$/, replacement: resolveCliDependency('react') },

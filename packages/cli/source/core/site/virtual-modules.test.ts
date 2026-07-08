@@ -134,8 +134,8 @@ describe('generateRoutesModule', () => {
 })
 
 describe('buildVirtualModules', () => {
-  it('emits the unified document route module for content routes', () => {
-    const modules = buildVirtualModules({
+  it('emits a compiled page route module for content routes', async () => {
+    const modules = await buildVirtualModules({
       projectConfig: {
         title: 'Docs',
         description: 'Docs',
@@ -168,13 +168,16 @@ describe('buildVirtualModules', () => {
     })
 
     const moduleContent = modules.get('virtual:clarify-page/guide')
-    expect(moduleContent).toContain("import { createDocumentRouteComponent } from '@clarify-labs/renderer';")
-    expect(moduleContent).toContain('export default createDocumentRouteComponent(routeData);')
+    expect(moduleContent).toContain("from '@clarify-labs/renderer/client';")
+    expect(moduleContent).toContain('createComponentRouteComponent')
+    expect(moduleContent).toContain('function PageContent()')
+    expect(moduleContent).toContain('function MarkdownBlock0')
+    expect(moduleContent).toContain('const MarkdownComponent = markdownComponents[markdownIndex++];')
     expect(moduleContent).toContain('"contentDocument"')
   })
 
-  it('emits a diagnostic route module for content compile failures', () => {
-    const modules = buildVirtualModules({
+  it('emits a diagnostic route module for content compile failures', async () => {
+    const modules = await buildVirtualModules({
       projectConfig: {
         title: 'Docs',
         description: 'Docs',

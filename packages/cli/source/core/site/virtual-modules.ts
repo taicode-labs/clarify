@@ -1,4 +1,5 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
+import { compileContentDocumentPage } from '@clarify-labs/renderer/server'
 
 import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/router/index.js'
 import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, ContentSection, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
@@ -189,7 +190,7 @@ export function generateDocumentRouteModule(route: ContentRoute): string {
   return createRendererRouteModule(JSON.stringify({ contentDocument: route.document }))
 }
 
-export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
+export async function buildVirtualModules(args: BuildVirtualModulesArgs): Promise<VirtualModules> {
   const modules: VirtualModules = new Map()
   const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
   
@@ -206,11 +207,30 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
 
   for (const route of args.routes) {
-    const moduleContent = route.document?.metadata.diagnostic
-      ? generateMdxErrorModule(route.document.metadata.diagnostic)
-      : route.document
-        ? generateDocumentRouteModule(route)
-        : `export { default } from ${moduleSpecifier(route.filePath)};`
+    let moduleContent: string
+
+    if (route.document?.metadata.diagnostic) {
+      moduleContent = generateMdxErrorModule(route.document.metadata.diagnostic)
+    } else if (route.document) {
+      try {
+        moduleContent = (await compileContentDocumentPage({
+          document: route.document,
+          route,
+          projectRoot: args.generateOptions.projectRoot,
+        })).code
+      } catch (error) {
+        moduleContent = generateMdxErrorModule(typeof error === 'object' && error !== null && 'kind' in error
+          ? error as ContentDiagnostic
+          : {
+              kind: 'mdx',
+              title: 'MDX syntax error',
+              message: 'This page could not be compiled.',
+              details: error instanceof Error ? error.message : String(error),
+            })
+      }
+    } else {
+      moduleContent = `export { default } from ${moduleSpecifier(route.filePath)};`
+    }
     modules.set(route.virtualModuleId, moduleContent)
   }
 

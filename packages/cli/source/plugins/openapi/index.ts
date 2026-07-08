@@ -81,8 +81,8 @@ function specFileKeyFromPath(filePath: string, projectRoot: string): string {
   return relative(projectRoot, filePath).replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
 }
 
-function buildOpenAPIContentDocument(route: ContentRoute, spec: OpenAPISpec, specFileKey: string, metadata: ContentDocument['metadata'] = {}): ContentDocument {
-  return createOpenAPIContentDocument(route, spec, specFileKey, metadata)
+function buildOpenAPIContentDocument(route: ContentRoute, spec: OpenAPISpec, _specFileKey: string, metadata: ContentDocument['metadata'] = {}): ContentDocument {
+  return createOpenAPIContentDocument(route, spec, metadata)
 }
 
 export function createOpenAPIPlugin(): ClarifyPlugin {

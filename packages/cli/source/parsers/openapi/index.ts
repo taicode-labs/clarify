@@ -94,8 +94,8 @@ export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[])
   return sections
 }
 
-function buildOpenAPIContentDocument(route: ContentRoute, spec: OpenAPISpec, specFileKey: string, metadata: ContentDocument['metadata'] = {}) {
-  return createOpenAPIContentDocument(route, spec, specFileKey, metadata)
+function buildOpenAPIContentDocument(route: ContentRoute, spec: OpenAPISpec, _specFileKey: string, metadata: ContentDocument['metadata'] = {}) {
+  return createOpenAPIContentDocument(route, spec, metadata)
 }
 
 export async function readOpenAPISpec(filePath: string, contentProcessor?: ContentProcessor): Promise<OpenAPIParseResult> {

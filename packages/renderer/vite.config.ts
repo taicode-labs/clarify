@@ -42,6 +42,8 @@ export default defineConfig({
     lib: {
       entry: {
         index: resolve(__dirname, 'source/index.tsx'),
+        server: resolve(__dirname, 'source/server.ts'),
+        client: resolve(__dirname, 'source/client.tsx'),
       },
       formats: ['es', 'cjs'],
       fileName: (format, entryName) => {
