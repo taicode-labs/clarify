@@ -1,10 +1,10 @@
 import { relative } from 'node:path'
 
-import { getProjectContentProcessor } from '../../core/content.js'
-import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/routes.js'
+import { getProjectContentProcessor } from '../../core/content/content.js'
+import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from '../../parsers/openapi/parser.js'
+import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/routes/routes.js'
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedProjectConfig } from '../../types.js'
 
-import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
 import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 type OpenAPISpecEntry = {

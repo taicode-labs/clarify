@@ -1,7 +1,7 @@
 import { lstat, stat } from 'node:fs/promises'
 import { dirname, extname, isAbsolute, join, normalize, relative, resolve } from 'node:path'
 
-import { resolveClarifySite } from '../../core/site.js'
+import { resolveClarifySite } from '../../core/site/site.js'
 import type { ContentRoute } from '../../types.js'
 import type { CliOptions } from '../options.js'
 

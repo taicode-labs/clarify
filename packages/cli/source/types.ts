@@ -3,12 +3,12 @@ import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
-import type { ResolvedBuildOptions } from './core/options.js'
+import type { ResolvedBuildOptions } from './core/config/options.js'
 
 export type {
   ClarifyBuildOptions,
   ResolvedBuildOptions,
-} from './core/options.js'
+} from './core/config/options.js'
 
 export type OpenAPISpec = OpenAPIV3.Document | OpenAPIV3_1.Document
 
