@@ -21,7 +21,7 @@ The CLI generates `virtual:clarify-entry-client` and injects that entry into the
 
 ```ts
 import '@clarify-labs/renderer/style.css'
-import { render } from '@clarify-labs/renderer'
+import { render } from '@clarify-labs/renderer/client'
 import { routes, navigation } from 'virtual:clarify-routes'
 import { config } from 'virtual:clarify-config'
 import { openApis } from 'virtual:clarify-openapi-registry'
@@ -36,7 +36,7 @@ User projects do not need to maintain `source/main.tsx` or a custom Vite entry.
 The static generation phase uses a temporary SSR entry to call `renderToHTML`:
 
 ```ts
-import { renderToHTML } from '@clarify-labs/renderer'
+import { renderToHTML } from '@clarify-labs/renderer/server'
 import { routes, navigation } from 'virtual:clarify-routes/server'
 import { config } from 'virtual:clarify-config'
 import { openApis } from 'virtual:clarify-openapi-registry'

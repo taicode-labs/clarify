@@ -3,12 +3,12 @@ import { Suspense, lazy, useEffect, useMemo, useRef, useState, useSyncExternalSt
 import type { ComponentType, CSSProperties } from 'react'
 import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
-import { LocaleContext } from '../core/context'
+import { LocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
-import type { RouteItem, Config, LocaleConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../core/types'
 import { Header, Navigation } from '../shell'
 import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots } from '../slots'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
+import type { RouteItem, Config, LocaleConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { resolveLocalizedText } from '../utils/localized-text'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
@@ -68,7 +68,7 @@ function notFoundRouteForPath(routes: RouteItem[], pathname: string, currentLoca
 
 function sectionsForRoute(route?: RouteItem): Section[] {
   return (
-    route?.document?.metadata.sections?.map((section) => ({
+    route?.sections?.map((section) => ({
       id: section.id,
       title: section.title,
       level: section.level,
@@ -181,8 +181,8 @@ function setNamedMeta(name: string, content: string | undefined) {
 
 function applyDocumentMetadata(config: Config, route?: RouteItem) {
   document.title = pageTitle(config, route)
-  setNamedMeta('description', route?.document?.metadata.description ?? config.description)
-  setNamedMeta('keywords', route?.document?.metadata.keywords?.join(', '))
+  setNamedMeta('description', route?.description ?? config.description)
+  setNamedMeta('keywords', route?.keywords?.join(', '))
 }
 
 function useRouteState(config: Config, routes: RouteItem[], navigation: NavigationTree, pathname: string) {

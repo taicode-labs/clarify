@@ -1,8 +1,8 @@
 import { Search as SearchIcon } from 'lucide-react'
 import { Suspense } from 'react'
 
-import { useBuiltInText } from '../core/i18n'
-import type { NavigationNode, RouteItem } from '../core/types'
+import { useBuiltInText } from '../i18n'
+import type { NavigationNode, RouteItem } from '../types'
 
 import { SearchDialog } from './search/SearchDialog'
 import { useSearchProps } from './search/useSearchProps'

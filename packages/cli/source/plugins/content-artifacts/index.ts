@@ -3,7 +3,7 @@ import { stringify as yamlStringify } from 'yaml'
 
 import type { ClarifyEmitAsset, ClarifyPlugin } from '../../types.js'
 
-import { attachContentArtifactUrls, createLlmsTxtArtifact, readOpenAPIArtifactSpec, readRouteArtifactContent } from './artifacts.js'
+import { attachContentArtifactUrls, createLlmsTxtArtifact, readRouteArtifactContent } from './artifacts.js'
 import { serveContentArtifacts } from './server.js'
 
 export function createContentArtifactsPlugin(): ClarifyPlugin {
@@ -24,17 +24,17 @@ export function createContentArtifactsPlugin(): ClarifyPlugin {
         const assets: ClarifyEmitAsset[] = []
 
         for (const route of ctx.routes) {
-          if (!route.artifact?.contentArtifactUrl) continue
+          if (!route.contentArtifactUrl) continue
 
           assets.push({
-            fileName: route.artifact.contentArtifactUrl.replace(/^\//, ''),
+            fileName: route.contentArtifactUrl.replace(/^\//, ''),
             source: readRouteArtifactContent(route),
           })
 
           // For OpenAPI routes, also emit a YAML variant
-          if (route.kind === 'openapi') {
-            const yamlFileName = route.artifact.contentArtifactUrl.replace(/\.json$/, '.yaml')
-            const spec = readOpenAPIArtifactSpec(route)
+          if (route.kind === 'openapi' && route.content) {
+            const yamlFileName = route.contentArtifactUrl.replace(/\.json$/, '.yaml')
+            const spec = JSON.parse(route.content)
             assets.push({
               fileName: yamlFileName.replace(/^\//, ''),
               source: yamlStringify(spec, { lineWidth: 0 }),

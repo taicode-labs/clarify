@@ -1,14 +1,14 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
-import type { UISlotRegistration, ContentDocument } from '@clarify-labs/renderer'
+import type { UISlotRegistration } from '@clarify-labs/renderer'
 
-import type { ResolvedBuildOptions } from './core/config/options.js'
+import type { ResolvedBuildOptions } from './core/options.js'
 
 export type {
   ClarifyBuildOptions,
   ResolvedBuildOptions,
-} from './core/config/options.js'
+} from './core/options.js'
 
 export type OpenAPISpec = OpenAPIV3.Document | OpenAPIV3_1.Document
 
@@ -287,52 +287,32 @@ export type ContentDiagnostic = {
   filePath?: string
 }
 
-export type ContentRouteIdentity = {
-  path: string
-  kind?: string
-  title?: string
-  locale?: string
-  filePath?: string
-  basePath?: string
-  isFallback?: boolean
-  isBareAlias?: boolean
-  alternates?: Record<string, string>
-  virtualModuleId?: string
-}
-
 export type ContentRoute = {
-  kind: string
   path: string
-  title: string
-  locale?: string
-  filePath: string
   basePath?: string
+  locale?: string
   isFallback?: boolean
   /** Indicates this route is a bare alias for the default locale (e.g., /path instead of /locale/path). Should not be indexed. */
   isBareAlias?: boolean
   alternates?: Record<string, string>
+  title: string
+  description?: string
+  keywords?: string[]
+  filePath: string
   virtualModuleId: string
-
-  /** Shared renderer document contract produced by the parser layer. */
-  document?: ContentDocument
-
-  /** Parsed source payload captured during route discovery. */
-  source?: {
-    content?: string
-    frontmatter?: Record<string, unknown>
-  }
-
-  /** OpenAPI-specific data prepared for renderer-backed route modules. */
-  openapi?: {
-    /** OpenAPI operation tag filter applied to this route. Undefined means all operations. */
-    tagFilter?: string[]
-  }
-
-  /** Output metadata emitted for downstream plugins. */
-  artifact?: {
-    contentArtifactUrl?: string
-    sourceUrl?: string
-  }
+  kind: string
+  /** OpenAPI operation tag filter applied to this route. Undefined means all operations. */
+  openapiTagFilter?: string[]
+  /** Deduplicated key derived from the source OpenAPI spec file path. Routes sharing
+   * the same spec file (e.g. filtered sub-routes) share the same key. */
+  specFileKey?: string
+  frontmatter?: Record<string, unknown>
+  /** Normalized source content captured during route discovery. */
+  content?: string
+  diagnostic?: ContentDiagnostic
+  sections?: ContentSection[]
+  contentArtifactUrl?: string
+  sourceUrl?: string
 }
 
 export type ClarifyNavigationTab = {

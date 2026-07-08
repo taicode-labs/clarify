@@ -3,11 +3,9 @@ import { extname, join, relative, resolve } from 'node:path'
 
 import type { ViteDevServer } from 'vite'
 
-import { toPagefindLanguage } from '../../core/runtime/search-language.js'
-import { createClarifyTempDir, removeClarifyTempDir } from '../../core/runtime/temp-dir.js'
-import { getContentRouteIsBareAlias, getContentRouteLocale, getContentRoutePath, getContentRouteTitle } from '../../parsers/content/content-document.js'
+import { toPagefindLanguage } from '../../core/search-language.js'
+import { createClarifyTempDir, removeClarifyTempDir } from '../../core/temp-dir.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute } from '../../types.js'
-import { readOpenAPIArtifactContent } from '../content-artifacts/artifacts.js'
 
 type PagefindModule = typeof import('pagefind')
 
@@ -63,16 +61,12 @@ async function generatePagefindIndex(options: GeneratePagefindIndexOptions, page
 }
 
 function routeSearchContent(route: ContentRoute): string {
-  const primaryContent = route.kind === 'openapi'
-    ? readOpenAPIArtifactContent(route)
-    : route.source?.content
-
   return [
-    getContentRouteTitle(route) ?? route.title,
-    route.document?.metadata.description,
-    route.document?.metadata.keywords?.join(' '),
-    route.document?.metadata.sections?.map((section) => section.title).join(' '),
-    primaryContent,
+    route.title,
+    route.description,
+    route.keywords?.join(' '),
+    route.sections?.map(section => section.title).join(' '),
+    route.content,
   ].filter(Boolean).join('\n\n')
 }
 
@@ -92,16 +86,16 @@ async function generateDevSearchIndex(ctx: ClarifyHookContext, root: string, pag
     for (const route of ctx.routes) {
       // Skip bare alias routes (e.g., /path) to avoid indexing duplicates in multilingual sites
       // Only index the full path with locale prefix (e.g., /locale/path)
-      if (getContentRouteIsBareAlias(route)) continue
+      if (route.isBareAlias) continue
       
       const content = routeSearchContent(route)
       if (!content.trim()) continue
       const result = await index.addCustomRecord({
-        url: getContentRoutePath(route),
+        url: route.path,
         content,
-        language: toPagefindLanguage(getContentRouteLocale(route) ?? ctx.projectConfig.i18n?.defaultLocale),
+        language: toPagefindLanguage(route.locale ?? ctx.projectConfig.i18n?.defaultLocale),
         meta: {
-          title: getContentRouteTitle(route) ?? route.title,
+          title: route.title,
         },
       })
       assertNoPagefindErrors(`addCustomRecord ${route.path}`, result.errors)

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveThemeConfig } from '../../core/config/theme.js'
+import { resolveThemeConfig } from '../../core/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 import { resolveContentArtifactPath, resolveContentArtifactType } from './server.js'
@@ -21,7 +21,7 @@ function createRoute(kind: 'mdx' | 'openapi', contentArtifactUrl: string): Conte
     filePath: '/tmp/api.openapi.yaml',
     virtualModuleId: 'virtual:clarify-page/api',
     kind,
-    artifact: { contentArtifactUrl },
+    contentArtifactUrl,
   }
 }
 

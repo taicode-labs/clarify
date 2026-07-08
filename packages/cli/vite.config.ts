@@ -17,8 +17,6 @@ const pkg = cliPackageJson as {
 const external = [
   ...Object.keys(pkg.dependencies ?? {}),
   ...Object.keys(pkg.peerDependencies ?? {}),
-  ...Object.keys(pkg.dependencies ?? {}).map(name => new RegExp(`^${name}/`)),
-  ...Object.keys(pkg.peerDependencies ?? {}).map(name => new RegExp(`^${name}/`)),
   // Node built-ins (both `node:` prefixed and bare forms)
   ...builtinModules,
   ...builtinModules.map(m => `node:${m}`),

@@ -1,8 +1,8 @@
 import { type ReactNode } from 'react'
 
 import { useBuiltInText } from '../../core/i18n'
-import { Markdown } from '../../markdown/Markdown'
-import { Col, Row } from '../../markdown/primitives'
+import { Markdown } from '../../mdx/Markdown'
+import { Col, Row } from '../../mdx/primitives'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 import type { MediaTypeEntry, OpenApiParameter, OpenApiRecord, OpenApiServer, RequestAuthInput } from '../types'
 

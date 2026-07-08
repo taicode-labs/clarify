@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 
-import type { ThemeColorTokensConfig, ThemeColorValue, ThemeConfig, ThemePreset } from '../core/types'
+import type { ThemeColorTokensConfig, ThemeColorValue, ThemeConfig, ThemePreset } from '../types'
 
 import { themeCookieName } from './cookies'
 

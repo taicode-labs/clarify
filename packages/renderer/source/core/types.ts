@@ -1,6 +1,5 @@
 import type { ComponentType } from 'react'
 
-import type { ContentDocument } from '../content/index'
 import type { OpenAPISpec } from '../openapi/lib/utils'
 import type { RuntimeSlots } from '../slots'
 
@@ -30,10 +29,12 @@ export type RouteItem = {
   isBareAlias?: boolean;
   alternates?: Record<string, string>;
   title: string;
+  description?: string;
+  keywords?: string[];
   component: RouteComponent;
   lazy?: boolean;
   kind?: string;
-  document?: ContentDocument;
+  sections?: RouteSection[];
   contentArtifactUrl?: string;
   sourceUrl?: string;
 };

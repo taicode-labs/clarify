@@ -1,7 +1,7 @@
 import { lstat, stat } from 'node:fs/promises'
 import { dirname, extname, isAbsolute, join, normalize, relative, resolve } from 'node:path'
 
-import { resolveClarifySite } from '../../core/site/index.js'
+import { resolveClarifySite } from '../../core/site.js'
 import type { ContentRoute } from '../../types.js'
 import type { CliOptions } from '../options.js'
 
@@ -139,8 +139,8 @@ async function checkLocalLinks(routes: ContentRoute[], contentRoot: string, resu
   const routePaths = new Set(routes.map(route => route.path))
 
   for (const route of routes) {
-    if (route.kind !== 'mdx' || !route.source?.content) continue
-    for (const match of route.source.content.matchAll(LOCAL_LINK_PATTERN)) {
+    if (route.kind !== 'mdx' || !route.content) continue
+    for (const match of route.content.matchAll(LOCAL_LINK_PATTERN)) {
       const href = match[1] ?? match[2]
       if (!href || !isLocalHref(href)) continue
       const candidates = routePathCandidates(href, route)

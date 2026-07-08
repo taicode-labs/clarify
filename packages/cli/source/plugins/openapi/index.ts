@@ -1,14 +1,10 @@
 import { relative } from 'node:path'
 
-import type { ContentDocument } from '@clarify-labs/renderer'
-
-import { getProjectContentProcessor } from '../../core/content/index.js'
-import { createContentDocument, syncContentDocumentRoute } from '../../parsers/content/content-document.js'
-import { createOpenAPIContentDocument } from '../../parsers/openapi/content-document.js'
-import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from '../../parsers/openapi/index.js'
-import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/router/index.js'
+import { getProjectContentProcessor } from '../../core/content.js'
+import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/routes.js'
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedProjectConfig } from '../../types.js'
 
+import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
 import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 type OpenAPISpecEntry = {
@@ -64,10 +60,7 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
         basePath: targetBasePath,
         title: route.title,
         virtualModuleId: virtualModuleIdFromPath(targetBasePath),
-        openapi: {
-          ...route.openapi,
-          tagFilter: tagFilter?.length ? tagFilter : undefined,
-        },
+        openapiTagFilter: tagFilter?.length ? tagFilter : undefined,
       })
     }
   }
@@ -79,10 +72,6 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
 /** Derive a stable, deduplicated key from an absolute spec file path. */
 function specFileKeyFromPath(filePath: string, projectRoot: string): string {
   return relative(projectRoot, filePath).replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
-}
-
-function buildOpenAPIContentDocument(route: ContentRoute, spec: OpenAPISpec, _specFileKey: string, metadata: ContentDocument['metadata'] = {}): ContentDocument {
-  return createOpenAPIContentDocument(route, spec, metadata)
 }
 
 export function createOpenAPIPlugin(): ClarifyPlugin {
@@ -106,32 +95,29 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           const specFromCache = specByFilePath.get(route.filePath)
           const result = specFromCache ? { ok: true as const, spec: specFromCache } : await readOpenAPISpec(route.filePath, getProjectContentProcessor(ctx))
           if (!result.ok) {
-            route.document = createContentDocument({ path: route.path, title: route.title, filePath: route.filePath, kind: route.kind, basePath: route.basePath, locale: route.locale, isFallback: route.isFallback, isBareAlias: route.isBareAlias, alternates: route.alternates, virtualModuleId: route.virtualModuleId }, [], { diagnostic: result.diagnostic })
+            route.diagnostic = result.diagnostic
             route.title = route.title || 'OpenAPI parse error'
-            route.document = syncContentDocumentRoute(route)
+            route.sections = []
             continue
           }
 
           const spec = result.spec
-          const pageSpec = route.openapi?.tagFilter?.length ? filterSpecByTags(spec, route.openapi.tagFilter) : spec
-          const sections = extractOpenAPISections(pageSpec, route.openapi?.tagFilter)
           specByFilePath.set(route.filePath, spec)
 
           // Derive a stable dedup key from the spec file path
           const specKey = specFileKeyFromPath(route.filePath, ctx.generateOptions.projectRoot)
+          route.specFileKey = specKey
 
           specs.set(specKey, { spec, filePath: route.filePath })
           route.title = spec.info?.title ?? route.title
-          route.document = syncContentDocumentRoute(route)
-          route.source = {
-            ...route.source,
-            content: JSON.stringify(pageSpec),
-          }
-          route.document = buildOpenAPIContentDocument(route, pageSpec, specKey, {
-            description: spec.info?.description ?? undefined,
-            sections,
-          })
-          route.document = syncContentDocumentRoute(route)
+          route.description = spec.info?.description ?? route.description
+          route.sections = extractOpenAPISections(spec, route.openapiTagFilter)
+
+          // Set route.content to filtered or full JSON for the content-artifacts plugin
+          const pageSpec = route.openapiTagFilter?.length
+            ? filterSpecByTags(spec, route.openapiTagFilter)
+            : spec
+          route.content = JSON.stringify(pageSpec)
         }
 
         return nextRoutes
@@ -144,9 +130,8 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         const registryEntries: Record<string, OpenAPISpec> = {}
 
         for (const route of ctx.routes) {
-          if (route.kind !== 'openapi') continue
-          const specKey = specFileKeyFromPath(route.filePath, ctx.generateOptions.projectRoot)
-          const spec = specs.get(specKey)?.spec
+          if (route.kind !== 'openapi' || !route.specFileKey) continue
+          const spec = specs.get(route.specFileKey)?.spec
           if (!spec) continue
 
           const base = (route.basePath ?? route.path).replace(/^\//, '')
@@ -170,17 +155,15 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         // ── Per-route page modules ──
         for (const route of ctx.routes) {
           if (route.kind !== 'openapi') continue
-          if (route.document?.metadata.diagnostic) {
-            modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.document.metadata.diagnostic))
-          } else {
-            const specKey = specFileKeyFromPath(route.filePath, ctx.generateOptions.projectRoot)
-            const entry = specs.get(specKey)
+          if (route.diagnostic) {
+            modules.set(route.virtualModuleId, generateOpenAPIErrorModule(route.diagnostic))
+          } else if (route.specFileKey) {
+            const entry = specs.get(route.specFileKey)
             if (!entry) continue
 
             modules.set(route.virtualModuleId, generateOpenAPIPageModule({
               spec: entry.spec,
-              tagFilter: route.openapi?.tagFilter,
-              contentDocument: route.document,
+              tagFilter: route.openapiTagFilter,
             }))
           }
         }

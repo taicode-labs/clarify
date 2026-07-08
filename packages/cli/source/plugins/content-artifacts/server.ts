@@ -4,7 +4,7 @@ import { stringify as yamlStringify } from 'yaml'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { createLlmsTxtArtifact, readOpenAPIArtifactSpec, readRouteArtifactContent } from './artifacts.js'
+import { createLlmsTxtArtifact, readRouteArtifactContent } from './artifacts.js'
 
 function normalizeRoutePrefix(routePrefix: string): string {
   if (!routePrefix || routePrefix === '/') return ''
@@ -38,9 +38,9 @@ export function serveContentArtifacts(req: IncomingMessage, res: ServerResponse,
   // Handle YAML variant for OpenAPI routes: /api.openapi.yaml → serve YAML
   if (contentPath.endsWith('.openapi.yaml')) {
     const jsonPath = contentPath.replace(/\.yaml$/, '.json')
-    const route = routes.find(r => r.artifact?.contentArtifactUrl === jsonPath)
-    if (route?.kind === 'openapi') {
-      const spec = readOpenAPIArtifactSpec(route)
+    const route = routes.find(r => r.contentArtifactUrl === jsonPath)
+    if (route?.kind === 'openapi' && route.content) {
+      const spec = JSON.parse(route.content)
       res.statusCode = 200
       res.setHeader('Content-Type', 'text/yaml; charset=utf-8')
       res.end(yamlStringify(spec, { lineWidth: 0 }), 'utf8')
@@ -49,7 +49,7 @@ export function serveContentArtifacts(req: IncomingMessage, res: ServerResponse,
     return false
   }
 
-  const route = routes.find(route => route.artifact?.contentArtifactUrl === contentPath)
+  const route = routes.find(route => route.contentArtifactUrl === contentPath)
   if (!route) return false
 
   res.statusCode = 200

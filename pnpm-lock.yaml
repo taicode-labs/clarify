@@ -217,9 +217,6 @@ importers:
       '@headlessui/react':
         specifier: ^2.2.10
         version: 2.2.10(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@mdx-js/mdx':
-        specifier: ^3.1.1
-        version: 3.1.1
       '@scalar/snippetz':
         specifier: ^0.9.17
         version: 0.9.17
@@ -238,9 +235,6 @@ importers:
       lucide-react:
         specifier: ^1.20.0
         version: 1.20.0(react@19.2.7)
-      mdast-util-to-string:
-        specifier: ^4.0.0
-        version: 4.0.0
       mermaid:
         specifier: ^11.4.0
         version: 11.15.0
@@ -256,15 +250,6 @@ importers:
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1
-      remark-mdx:
-        specifier: ^3.1.1
-        version: 3.1.1
-      shiki:
-        specifier: 0.14.7
-        version: 0.14.7
-      unist-util-visit:
-        specifier: ^5.1.0
-        version: 5.1.0
       zustand:
         specifier: ^5.0.14
         version: 5.0.14(@types/react@19.2.17)(react@19.2.7)(use-sync-external-store@1.6.0(react@19.2.7))

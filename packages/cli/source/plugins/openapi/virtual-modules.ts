@@ -1,6 +1,4 @@
-import type { ContentDocument } from '@clarify-labs/renderer'
-
-import { VIRTUAL_OPENAPI } from '../../core/site/virtual-modules.js'
+import { VIRTUAL_OPENAPI } from '../../core/virtual-modules.js'
 import type { ContentDiagnostic, OpenAPISpec } from '../../types.js'
 
 export const openApiRegistryModuleId = VIRTUAL_OPENAPI
@@ -22,15 +20,14 @@ export function generateOpenAPISpecModule(spec: OpenAPISpec): string {
 type OpenAPIPageModuleOptions = {
   spec: OpenAPISpec
   tagFilter?: string[]
-  contentDocument?: ContentDocument
 }
 
 export function generateOpenAPIPageModule(opts: OpenAPIPageModuleOptions): string {
-  return `import { createDocumentRouteComponent } from '@clarify-labs/renderer';
+  return `import { createOpenApiRouteComponent } from '@clarify-labs/renderer';
 
-export const routeData = ${JSON.stringify({ contentDocument: opts.contentDocument, spec: opts.spec })};
+export const routeData = ${JSON.stringify({ spec: opts.spec, tagFilter: opts.tagFilter })};
 
-export default createDocumentRouteComponent(routeData);
+export default createOpenApiRouteComponent(routeData);
 `
 }
 

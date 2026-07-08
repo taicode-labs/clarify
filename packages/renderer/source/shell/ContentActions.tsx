@@ -2,8 +2,8 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Check, ChevronDown, Copy, ExternalLink, FileText, Link2, PencilLine } from 'lucide-react'
 import { useState } from 'react'
 
-import { useBuiltInText } from '../core/i18n'
-import type { RouteItem } from '../core/types'
+import { useBuiltInText } from '../i18n'
+import type { RouteItem } from '../types'
 import { copyTextToClipboard } from '../utils/clipboard'
 import { prefixHref } from '../utils/href'
 

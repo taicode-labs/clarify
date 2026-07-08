@@ -1,17 +1,17 @@
 declare module 'virtual:clarify/routes' {
-  import type { RouteItem, NavigationTree } from './core/types';
+  import type { RouteItem, NavigationTree } from './types';
   export const routes: RouteItem[];
   export const navigation: NavigationTree;
 }
 
 declare module 'virtual:clarify/routes/server' {
-  import type { ServerRouteItem, NavigationTree } from './core/types';
+  import type { ServerRouteItem, NavigationTree } from './types';
   export const routes: ServerRouteItem[];
   export const navigation: NavigationTree;
 }
 
 declare module 'virtual:clarify/config' {
-  import type { ThemeConfig } from './core/types';
+  import type { ThemeConfig } from './types';
 
   export const config: {
     title: string;

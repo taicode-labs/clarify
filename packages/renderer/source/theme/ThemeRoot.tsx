@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
 
-import type { ThemeConfig } from '../core/types'
+import type { ThemeConfig } from '../types'
 
 import { ThemeEditor } from './ThemeEditor'
 import { useTheme } from './ThemeProvider'

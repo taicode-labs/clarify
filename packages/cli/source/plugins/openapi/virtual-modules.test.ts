@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { ContentDiagnosticMetadata as RendererDiagnostic } from '@clarify-labs/renderer'
+import type { ContentDiagnostic as RendererDiagnostic } from '@clarify-labs/renderer'
 
 import type { ContentDiagnostic as CliDiagnostic, OpenAPISpec } from '../../types.js'
 
@@ -39,16 +39,17 @@ describe('openapi virtual modules', () => {
 
   it('generates an OpenAPI route component module', () => {
     const code = generateOpenAPIPageModule({ spec, tagFilter: ['Users'] })
-    expect(code).toContain("import { createDocumentRouteComponent } from '@clarify-labs/renderer';")
+    expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
     expect(code).toContain('routeData')
-    expect(code).toContain('createDocumentRouteComponent(routeData);')
+    expect(code).toContain('"Example API"')
+    expect(code).toContain('"Users"')
   })
 
   it('generates an OpenAPI route component module without tag filter', () => {
     const code = generateOpenAPIPageModule({ spec })
-    expect(code).toContain("import { createDocumentRouteComponent } from '@clarify-labs/renderer';")
+    expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
     expect(code).toContain('routeData')
-    expect(code).toContain('createDocumentRouteComponent(routeData);')
+    expect(code).toContain('"Example API"')
   })
 
   it('shares the same diagnostic intent across CLI and renderer', () => {

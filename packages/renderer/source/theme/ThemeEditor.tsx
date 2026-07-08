@@ -10,7 +10,7 @@ import type {
   ThemeLayoutConfig,
   ThemePreset,
   ThemeRadiusTokensConfig,
-} from '../core/types'
+} from '../types'
 
 import { createRandomTheme } from './randomTheme'
 import { useTheme } from './ThemeProvider'

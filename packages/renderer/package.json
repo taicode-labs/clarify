@@ -18,6 +18,18 @@
       "require": "./output/index.cjs",
       "default": "./output/index.js"
     },
+    "./markdown": {
+      "types": "./output/markdown.d.ts",
+      "import": "./output/markdown.js",
+      "require": "./output/markdown.cjs",
+      "default": "./output/markdown.js"
+    },
+    "./preview": {
+      "types": "./output/preview.d.ts",
+      "import": "./output/preview.js",
+      "require": "./output/preview.cjs",
+      "default": "./output/preview.js"
+    },
     "./client": {
       "types": "./output/client.d.ts",
       "import": "./output/client.js",
@@ -29,12 +41,6 @@
       "import": "./output/server.js",
       "require": "./output/server.cjs",
       "default": "./output/server.js"
-    },
-    "./types": {
-      "types": "./output/types.d.ts",
-      "import": "./output/types.js",
-      "require": "./output/types.cjs",
-      "default": "./output/types.js"
     },
     "./style.css": "./output/renderer.css",
     "./package.json": "./package.json"
@@ -73,22 +79,17 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
-    "@mdx-js/mdx": "^3.1.1",
     "@scalar/snippetz": "^0.9.17",
     "@tailwindcss/typography": "^0.5.20",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
     "github-slugger": "^2.0.0",
     "lucide-react": "^1.20.0",
-    "mdast-util-to-string": "^4.0.0",
     "mermaid": "^11.4.0",
-    "remark-mdx": "^3.1.1",
     "openapi-types": "^12.1.3",
     "react-markdown": "^10.1.0",
     "react-zoom-pan-pinch": "^4.0.3",
     "remark-gfm": "^4.0.1",
-    "shiki": "0.14.7",
-    "unist-util-visit": "^5.1.0",
     "zustand": "^5.0.14"
   }
 }

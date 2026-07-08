@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react'
 
-import type { RouteItem } from '../core/types'
 import { ContentActions } from '../shell/ContentActions'
+import type { RouteItem } from '../types'
 
 type PageActionsContextValue = {
   route?: RouteItem

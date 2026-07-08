@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { LoaderCircle, Search as SearchIcon } from 'lucide-react'
 import { forwardRef } from 'react'
 
-import { useBuiltInText } from '../../core/i18n'
+import { useBuiltInText } from '../../i18n'
 
 export const SearchInput = forwardRef<
   React.ElementRef<'input'>,

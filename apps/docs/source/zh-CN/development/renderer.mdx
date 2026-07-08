@@ -21,7 +21,7 @@ CLI 生成 `virtual:clarify-entry-client`，并在 HTML 中注入该入口。入
 
 ```ts
 import '@clarify-labs/renderer/style.css'
-import { render } from '@clarify-labs/renderer'
+import { render } from '@clarify-labs/renderer/client'
 import { routes, navigation } from 'virtual:clarify-routes'
 import { config } from 'virtual:clarify-config'
 import { openApis } from 'virtual:clarify-openapi-registry'
@@ -36,7 +36,7 @@ render({ config, routes, navigation, openApis })
 静态生成阶段使用临时 SSR 入口调用 `renderToHTML`：
 
 ```ts
-import { renderToHTML } from '@clarify-labs/renderer'
+import { renderToHTML } from '@clarify-labs/renderer/server'
 import { routes, navigation } from 'virtual:clarify-routes/server'
 import { config } from 'virtual:clarify-config'
 import { openApis } from 'virtual:clarify-openapi-registry'

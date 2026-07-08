@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveThemeConfig } from '../../core/config/theme.js'
+import { resolveThemeConfig } from '../../core/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, readOpenAPIArtifactContent, readOpenAPIArtifactSpec, readRouteArtifactContent, readRouteContent } from './artifacts.js'
+import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, readRouteArtifactContent, readRouteContent } from './artifacts.js'
 
 function route(overrides: Partial<ContentRoute>): ContentRoute {
   return {
@@ -26,7 +26,7 @@ describe('content artifact helpers', () => {
 
     attachContentArtifactUrls(routes)
 
-    expect(routes.map(route => route.artifact?.contentArtifactUrl)).toEqual([
+    expect(routes.map(route => route.contentArtifactUrl)).toEqual([
       '/index.md',
       '/guide/start.md',
       '/api.openapi.json',
@@ -34,34 +34,19 @@ describe('content artifact helpers', () => {
   })
 
   it('returns route-normalized content via readRouteContent', () => {
-    const r = route({ path: '/guide', source: { content: '# Guide' } })
+    const r = route({ path: '/guide', content: '# Guide' })
     expect(readRouteContent(r)).toBe('# Guide')
   })
 
   it('reads artifact content with a UTF-8 signature for non-ASCII text', () => {
-    const r = route({ path: '/guide', source: { content: '# 快速开始\n\n中文内容' } })
+    const r = route({ path: '/guide', content: '# 快速开始\n\n中文内容' })
     expect(readRouteContent(r)).toBe('# 快速开始\n\n中文内容')
     expect(readRouteArtifactContent(r)).toBe('\uFEFF# 快速开始\n\n中文内容')
   })
 
   it('reads artifact content without a UTF-8 signature for ASCII-only text', () => {
-    const r = route({ path: '/guide', source: { content: '# Getting Started' } })
+    const r = route({ path: '/guide', content: '# Getting Started' })
     expect(readRouteArtifactContent(r)).toBe('# Getting Started')
-  })
-
-  it('reads OpenAPI artifact content and spec through dedicated helpers', () => {
-    const r = route({
-      path: '/api',
-      filePath: '/tmp/api.openapi.json',
-      kind: 'openapi',
-      source: { content: '{"openapi":"3.0.0","info":{"title":"API","version":"1.0.0"}}' },
-    })
-
-    expect(readOpenAPIArtifactContent(r)).toBe('{"openapi":"3.0.0","info":{"title":"API","version":"1.0.0"}}')
-    expect(readOpenAPIArtifactSpec(r)).toEqual({
-      openapi: '3.0.0',
-      info: { title: 'API', version: '1.0.0' },
-    })
   })
 
   it('creates an llms.txt sitemap with described markdown and OpenAPI links', () => {
@@ -79,10 +64,10 @@ describe('content artifact helpers', () => {
       variables: {},
     }
     const routes = [
-      route({ path: '/guide', locale: 'en-US', title: 'Guide', document: { id: '/guide', title: 'Guide', source: '/tmp/guide.mdx', content: [], metadata: { description: 'Start here.' } }, artifact: { contentArtifactUrl: '/guide.md' } }),
-      route({ path: '/reference', locale: 'en-US', title: 'Reference', document: { id: '/reference', title: 'Reference', source: '/tmp/reference.mdx', content: [], metadata: { sections: [{ id: 'config', title: 'Config', level: 2 }] } }, artifact: { contentArtifactUrl: '/reference.md' } }),
-      route({ path: '/404', locale: 'en-US', title: '404', artifact: { contentArtifactUrl: '/404.md' } }),
-      route({ path: '/api', title: 'API', kind: 'openapi', artifact: { contentArtifactUrl: '/api.openapi.json' } }),
+      route({ path: '/guide', locale: 'en-US', title: 'Guide', description: 'Start here.', contentArtifactUrl: '/guide.md' }),
+      route({ path: '/reference', locale: 'en-US', title: 'Reference', sections: [{ id: 'config', title: 'Config', level: 2 }], contentArtifactUrl: '/reference.md' }),
+      route({ path: '/404', locale: 'en-US', title: '404', contentArtifactUrl: '/404.md' }),
+      route({ path: '/api', title: 'API', kind: 'openapi', contentArtifactUrl: '/api.openapi.json' }),
     ]
 
     expect(createLlmsTxt(routes, config)).toContain('## Docs')
@@ -110,9 +95,9 @@ describe('content artifact helpers', () => {
       variables: {},
     }
     const routes = [
-      route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', artifact: { contentArtifactUrl: '/zh-CN/guide.md' } }),
-      route({ path: '/guide', basePath: '/guide', title: '指南', artifact: { contentArtifactUrl: '/guide.md' } }),
-      route({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', artifact: { contentArtifactUrl: '/en-US/guide.md' } }),
+      route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', contentArtifactUrl: '/zh-CN/guide.md' }),
+      route({ path: '/guide', basePath: '/guide', title: '指南', contentArtifactUrl: '/guide.md' }),
+      route({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', contentArtifactUrl: '/en-US/guide.md' }),
     ]
     const llmsTxt = createLlmsTxt(routes, config)
 
@@ -132,7 +117,7 @@ describe('content artifact helpers', () => {
       theme: resolveThemeConfig(),
       variables: {},
     }
-    const routes = [route({ path: '/guide', title: '快速开始', artifact: { contentArtifactUrl: '/guide.md' } })]
+    const routes = [route({ path: '/guide', title: '快速开始', contentArtifactUrl: '/guide.md' })]
 
     expect(createLlmsTxtArtifact(routes, config).startsWith('\uFEFF# 文档')).toBe(true)
   })
@@ -155,9 +140,9 @@ describe('content artifact helpers', () => {
       variables: {},
     }
     const routes = [
-      route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: 'Guide', artifact: { contentArtifactUrl: '/zh-CN/guide.md' } }),
-      route({ path: '/guide', basePath: '/guide', isBareAlias: true, title: 'Guide', artifact: { contentArtifactUrl: '/guide.md' } }),
-      route({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', artifact: { contentArtifactUrl: '/en-US/guide.md' } }),
+      route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: 'Guide', contentArtifactUrl: '/zh-CN/guide.md' }),
+      route({ path: '/guide', basePath: '/guide', isBareAlias: true, title: 'Guide', contentArtifactUrl: '/guide.md' }),
+      route({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', contentArtifactUrl: '/en-US/guide.md' }),
     ]
     const llmsTxt = createLlmsTxt(routes, config)
 

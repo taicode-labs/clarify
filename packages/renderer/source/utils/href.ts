@@ -1,4 +1,4 @@
-import type { Config } from '../core/types'
+import type { Config } from '../types'
 
 export function isExternalHref(href: string): boolean {
   return /^[a-z][a-z\d+.-]*:/i.test(href) || href.startsWith('//')
