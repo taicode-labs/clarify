@@ -36,37 +36,9 @@ import { loadBuildPlugins, loadBuildPluginsForContext } from '../plugin/manager.
 
 import { ClarifyContext } from './context.js'
 import { runInterceptHooks, runPhase, runTapHooks } from './phases.js'
+import type { ClarifyEngineMode, ClarifyEngineRuntime, ClarifyEngineState } from './types.js'
 
-export type ClarifyEngineMode = 'development' | 'production'
-
-export type BuildSSRBundleOptions = {
-  root: string
-  ssrEntry: string
-  ssrOutDir: string
-  plugins: Plugin[]
-}
-
-export type ClarifyEngineRuntime = {
-  command: 'build' | 'serve'
-  mode: ClarifyEngineMode | string
-  themeEditor?: boolean
-  outputDirectory?: string
-  ssrPlugins?: Plugin[]
-  buildSSRBundle?: (options: BuildSSRBundleOptions) => Promise<void>
-}
-
-export type ClarifyEngineState = {
-  projectRoot: string
-  contentRoot: string
-  configFilePath?: string
-  projectConfig: ClarifyContext['projectConfig']
-  generateOptions: ClarifyContext['generateOptions']
-  routes: ContentRoute[]
-  navigation: NavigationTree
-  plugins: ClarifyPlugin[]
-  virtualModules: VirtualModules
-  ctx: ClarifyContext
-}
+export type { ClarifyEngineMode, ClarifyEngineRuntime, ClarifyEngineState } from './types.js'
 
 export function loadVirtualModule(id: string, modules: VirtualModules): string | null {
   const bareId = stripVirtualPrefix(id)

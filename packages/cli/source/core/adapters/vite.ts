@@ -143,6 +143,15 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, options: ClarifyBuil
       server.watcher.add(engine.contentRoot)
       if (engine.configFilePath) server.watcher.add(engine.configFilePath)
 
+      // Register Context change listeners to automatically invalidate virtual
+      // modules and trigger full-reload when routes or navigation change.
+      const invalidateAndReload = () => {
+        invalidateVirtualModules(engine, server)
+        server.ws.send({ type: 'full-reload' })
+      }
+      engine.ctx.onRoutesChange(invalidateAndReload)
+      engine.ctx.onNavigationChange(invalidateAndReload)
+
       server.middlewares.use((req, res, next) => {
         if (req.url === CLARIFY_DEV_ROUTE_ENDPOINT && req.method === 'POST') {
           return handleDevRouteRequest(req, res, engine.routes, engine.runtimeContext())

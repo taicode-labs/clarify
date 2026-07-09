@@ -85,8 +85,8 @@ describe('resolveClarifySite', () => {
     })
 
     expect(calls).toEqual([
-      'before:content:process',
       'content:transform',
+      'before:content:process',
       'after:content:process',
     ])
   })
