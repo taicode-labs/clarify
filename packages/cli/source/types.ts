@@ -393,6 +393,10 @@ export type ClarifyEmitAsset = {
   source: string | Uint8Array
 }
 
+export type ClarifyTapHook = (ctx: ClarifyHookContext) => Promise<void> | void
+
+export type ClarifyInterceptHook = (ctx: ClarifyHookContext) => Promise<boolean> | boolean
+
 export type ClarifyHooks = {
   'content:transform'?: (
     input: ClarifyContentTransformInput,
@@ -432,6 +436,26 @@ export type ClarifyHooks = {
   ) => Promise<void> | void
   'build:assets'?: (ctx: ClarifyHookContext) => Promise<ClarifyEmitAsset[]> | ClarifyEmitAsset[]
   'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void
+  'before:config:load'?: ClarifyTapHook
+  'after:config:load'?: ClarifyTapHook
+  'before:config:resolve'?: ClarifyTapHook
+  'after:config:resolve'?: ClarifyTapHook
+  'before:plugins:load'?: ClarifyTapHook
+  'after:plugins:load'?: ClarifyTapHook
+  'before:site:discover'?: ClarifyTapHook
+  'after:site:discover'?: ClarifyTapHook
+  'before:content:process'?: ClarifyTapHook
+  'after:content:process'?: ClarifyTapHook
+  'before:modules:build'?: ClarifyTapHook
+  'after:modules:build'?: ClarifyTapHook
+  'before:build'?: ClarifyTapHook
+  'after:build'?: ClarifyTapHook
+  'before:ssg'?: ClarifyTapHook
+  'after:ssg'?: ClarifyTapHook
+  'before:dev:server'?: ClarifyTapHook
+  'after:dev:server'?: ClarifyTapHook
+  'build:shouldRun'?: ClarifyInterceptHook
+  'ssg:shouldRun'?: ClarifyInterceptHook
 }
 
 export type ClarifyPlugin = {

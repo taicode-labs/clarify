@@ -4,8 +4,8 @@ import { resolve } from 'node:path'
 import { createLogger } from 'vite'
 import type { ConfigEnv, InlineConfig, Plugin, LogLevel, Logger, LogOptions, LogErrorOptions, LogType } from 'vite'
 
+import { createViteAdapter } from '../adapters/vite.js'
 import type { ClarifyBuildOptions } from '../config/options.js'
-import { clarifyPlugin } from '../plugin/plugin.js'
 import { resolveProjectContext } from '../project/project-context.js'
 import { createClarifyTempDir } from '../project/temp-dir.js'
 
@@ -116,7 +116,7 @@ export async function createViteConfig(options: ClarifyViteConfigOptions, env: C
     },
     customLogger: createClarifyLogger(options.root, env, 'info'),
     plugins: [
-      clarifyPlugin(buildOptions),
+      createViteAdapter(buildOptions),
       createHtmlFallbackPlugin(),
     ],
     server: {

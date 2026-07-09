@@ -20,18 +20,9 @@ export type InterceptHook = (ctx: ClarifyHookContext) => Promise<boolean> | bool
 export type PipelineHook<Input> = (input: Input, ctx: ClarifyHookContext) => Promise<Input> | Input
 export type CollectorHook<Result> = (ctx: ClarifyHookContext) => Promise<Result> | Result
 
-type RuntimeHookMap = Partial<ClarifyHooks> & Partial<Record<TapPhaseName, TapHook>> & {
-  'build:shouldRun'?: InterceptHook
-  'ssg:shouldRun'?: InterceptHook
-}
-
-function getRuntimeHooks(plugin: ClarifyPlugin): RuntimeHookMap {
-  return (plugin.hooks ?? {}) as RuntimeHookMap
-}
-
 export async function runTapHooks(plugins: ClarifyPlugin[], hookName: TapPhaseName, ctx: ClarifyHookContext): Promise<void> {
   for (const plugin of plugins) {
-    const hook = getRuntimeHooks(plugin)[hookName]
+    const hook = plugin.hooks?.[hookName]
     if (!hook) continue
     try {
       await hook(ctx)
@@ -43,7 +34,7 @@ export async function runTapHooks(plugins: ClarifyPlugin[], hookName: TapPhaseNa
 
 export async function runInterceptHooks(plugins: ClarifyPlugin[], hookName: 'build:shouldRun' | 'ssg:shouldRun', ctx: ClarifyHookContext): Promise<boolean> {
   for (const plugin of plugins) {
-    const hook = getRuntimeHooks(plugin)[hookName]
+    const hook = plugin.hooks?.[hookName]
     if (!hook) continue
     try {
       if (await hook(ctx) === false) return false

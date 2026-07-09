@@ -401,14 +401,14 @@ packages/cli/source/
     runtime/                # 运行时支持
       virtual-modules.ts    # 虚拟模块生成
       ssg.ts                # SSG 引擎（保留，但由 engine 调用）
-      vite-config.ts        # Vite 配置工厂（逐步迁移到 adapter）
+      vite-config.ts        # Vite 配置工厂（装配 Vite adapter）
       runtime-deps.ts
       env-types.ts
       log.ts
       startup.ts
 
-    adapters/               # 宿主运行时桥接（可选目录）
-      vite.ts               # Vite bridge（从 plugin/plugin.ts 进一步拆分）
+    adapters/               # 宿主运行时桥接
+      vite.ts               # Vite bridge / adapter
 
   cli/                      # 命令行入口
     commands/
@@ -434,14 +434,14 @@ packages/cli/source/
 
 - 新建 `core/engine/engine.ts`，提取 `resolveRoutesAndSpecs` / `rebuildVirtualModules` / `refreshDevServer`。
 - 新建 `core/engine/context.ts`，统一 `ClarifyContext`。
-- `plugin/plugin.ts` 只保留 Vite 生命周期桥接，所有状态读写委托给 `ClarifyEngine`。
+- `plugin/plugin.ts` 只保留公共 facade，Vite 生命周期桥接在 `core/adapters/vite.ts` 中委托给 `ClarifyEngine`。
 
 ### Phase 2：分离 Vite Adapter（P0）
 
 目标：降低 Vite 耦合，`clarifyPlugin` 只负责桥接。
 
-- 可选新建 `core/adapters/vite.ts`，将 Vite hook 实现从 `plugin/plugin.ts` 进一步移到 bridge。
-- `clarifyPlugin()` 瘦身为 `createViteBridge(engine)`。
+- `core/adapters/vite.ts` 承接 Vite hook 实现。
+- `clarifyPlugin()` 瘦身为对 `createViteAdapter()` 的公共 facade。
 
 ### Phase 3：增强 Hook 系统（P1）
 
@@ -474,7 +474,7 @@ packages/cli/source/
 |------------------------|----------------|
 | CLI owns the project pipeline | `core/engine/` 负责工作流调度 |
 | CLI 负责发现文件、加载配置、执行插件 | `core/config/` + `core/plugin/` |
-| CLI 负责管理 Vite | Vite bridge；当前在 `core/plugin/plugin.ts`，可进一步迁到 `core/adapters/vite.ts` |
+| CLI 负责管理 Vite | `core/adapters/vite.ts`；`core/plugin/plugin.ts` 仅保留公共 facade |
 | CLI 负责注册虚拟模块 | `core/runtime/virtual-modules.ts`（由 engine 调用） |
 | renderer/server 负责编译 route module | Core 通过 Hook 调用 renderer/server API |
 | route virtual module 是编译边界 | `core/engine/` 生成 route payload，renderer/server 编译为 module |
