@@ -97,7 +97,7 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
       if (engine.configFilePath && changedFile === engine.configFilePath) {
         // Config file changed: force re-prepare (initialize + discoverSite +
         // buildModules) with the current runtime mode, then reload.
-        await engine.prepare({ command: 'serve', mode: viteConfig.mode }, engine.options, true)
+        await engine.prepare({ command: 'serve', mode: viteConfig.mode }, engine.options, { force: true })
         invalidateVirtualModules(engine, ctx.server)
         ctx.server.ws.send({ type: 'full-reload' })
         return []

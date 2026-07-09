@@ -35,9 +35,9 @@ import {
 
 import { ClarifyContext } from './context.js'
 import { runInterceptHooks, runPhase, runTapHooks } from './phases.js'
-import type { BuildSSRBundleOptions, ClarifyEngineRuntime, ClarifyEngineState } from './types.js'
+import type { BuildSSRBundleOptions, ClarifyEngineRuntime, ClarifyEngineState, PrepareOptions } from './types.js'
 
-export type { ClarifyEngineMode, ClarifyEngineRuntime, ClarifyEngineState } from './types.js'
+export type { ClarifyEngineMode, ClarifyEngineRuntime, ClarifyEngineState, PrepareOptions } from './types.js'
 
 export function loadVirtualModule(id: string, modules: VirtualModules): string | null {
   const bareId = stripVirtualPrefix(id)
@@ -109,18 +109,24 @@ export class ClarifyEngine {
    * Runs the full pre-build/pre-dev preparation: initialize (config load +
    * resolve + plugins:load), site discovery (routes + navigation), and module
    * building. This is the single entry point that prepares the engine before
-   * handing it to a Vite adapter, so adapters never need to initialize or
-   * discover the site themselves.
+   * handing it to a Vite adapter or running a check, so callers never need to
+   * call initialize/discoverSite separately.
+   *
+   * Options:
+   * - `force`: re-run even if already prepared (config-file hot reload).
+   * - `htmlShell`: toggle the HTML shell builtin plugin (default true).
+   * - `skipModules`: skip `buildModules()` (check command).
+   * - `skipHints`: skip `logStartupHints()` (check command).
    *
    * Idempotent: calling prepare() again with the same env is a no-op unless
-   * `force` is set (used by config-file hot reload).
+   * `force` is set.
    */
-  async prepare(env: ConfigEnv = { command: this.runtime.command, mode: this.runtime.mode }, options: ClarifyBuildOptions = this.options, force = false): Promise<ClarifyBuildOptions> {
+  async prepare(env: ConfigEnv = { command: this.runtime.command, mode: this.runtime.mode }, options: ClarifyBuildOptions = this.options, prepareOptions: PrepareOptions = {}): Promise<ClarifyBuildOptions> {
     this.configureRuntime({ command: env.command, mode: env.mode })
-    const resolvedOptions = await this.initialize(env, options, force)
-    await this.discoverSite(resolvedOptions)
-    await this.buildModules()
-    this.logStartupHints()
+    const resolvedOptions = await this.initialize(env, options, prepareOptions.force ?? false)
+    await this.discoverSite(resolvedOptions, { htmlShell: prepareOptions.htmlShell })
+    if (!prepareOptions.skipModules) await this.buildModules()
+    if (!prepareOptions.skipHints) this.logStartupHints()
     return resolvedOptions
   }
 

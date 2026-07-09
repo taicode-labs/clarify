@@ -183,7 +183,7 @@ export async function runCheck(options: CheckCommandOptions = {}): Promise<void>
     rootDirectory: options.content,
     outputDirectory: options.output,
   })
-  await engine.discoverSite(undefined, { htmlShell: false })
+  await engine.prepare(undefined, undefined, { htmlShell: false, skipModules: true, skipHints: true })
 
   const result: CheckResult = { errors: [], warnings: [] }
   await checkContentDirectory(engine.contentRoot, result)

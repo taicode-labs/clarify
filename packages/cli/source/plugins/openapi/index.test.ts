@@ -40,8 +40,7 @@ function createContext(routes: ContentRoute[]): ClarifyHookContext {
 
 /**
  * Plugin that mirrors the variables plugin's content:transform behavior for
- * the two test variables used below. Replaces the old WeakMap-based
- * setProjectContentProcessor test mock.
+ * the two test variables used below.
  */
 const variableReplacementTestPlugin: ClarifyPlugin = {
   name: 'test:variable-replacement',

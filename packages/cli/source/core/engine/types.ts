@@ -7,6 +7,17 @@ import type { ClarifyContext } from './context.js'
 
 export type ClarifyEngineMode = 'development' | 'production'
 
+export type PrepareOptions = {
+  /** Force re-initialization even if already prepared (used by config-file hot reload). */
+  force?: boolean
+  /** Toggle the HTML shell builtin plugin (default: true). */
+  htmlShell?: boolean
+  /** Skip building virtual modules (used by check command). */
+  skipModules?: boolean
+  /** Skip startup hints logging (used by check command). */
+  skipHints?: boolean
+}
+
 export type BuildSSRBundleOptions = {
   root: string
   ssrEntry: string

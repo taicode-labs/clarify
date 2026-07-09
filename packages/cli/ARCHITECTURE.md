@@ -477,7 +477,7 @@ packages/cli/source/
 目标：降低 Vite 耦合，adapter 只负责桥接。
 
 - `core/adapters/vite.ts` 承接 Vite hook 实现。
-- `clarifyPlugin()` 瘦身为对 `createViteAdapter()` 的公共 facade。
+- `createViteAdapter()` 直接作为 Vite 桥接入口，通过 `index.ts` 公共导出。
 
 ### Phase 3：增强 Hook 系统（P1）
 
@@ -510,7 +510,7 @@ packages/cli/source/
 |------------------------|----------------|
 | CLI owns the project pipeline | `core/engine/` 负责工作流调度 |
 | CLI 负责发现文件、加载配置、执行插件 | `core/config/` + `core/plugin/` |
-| CLI 负责管理 Vite | `core/adapters/vite.ts`；`core/plugin/plugin.ts` 仅保留公共 facade |
+| CLI 负责管理 Vite | `core/adapters/vite.ts`（通过 `index.ts` 导出 `createViteAdapter`） |
 | CLI 负责注册虚拟模块 | `core/runtime/virtual-modules.ts`（由 engine 调用） |
 | renderer/server 负责编译 route module | Core 通过 Hook 调用 renderer/server API |
 | route virtual module 是编译边界 | `core/engine/` 生成 route payload，renderer/server 编译为 module |

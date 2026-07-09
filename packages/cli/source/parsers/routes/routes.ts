@@ -12,7 +12,6 @@ import { compileMdxContent } from '../markdown/mdx.js'
 
 export type FindContentRoutesOptions = {
   contentProcessor?: ContentProcessor
-  pageTransform?: (page: ClarifyPage) => Promise<ClarifyPage> | ClarifyPage
 }
 
 export function kebabToTitle(str: string): string {
@@ -124,19 +123,19 @@ export async function findContentRoutes(dir: string, base: string = dir, options
 
       const source = readFileSync(fullPath, 'utf-8')
       const { frontmatter, content } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
-      const transformedPage = await (options.pageTransform ?? (async (page: ClarifyPage) => page))({
+      const page: ClarifyPage = {
         path: cleanPath,
         filePath: fullPath,
         frontmatter,
         content,
-      })
-      const mdxResult = await compileMdxContent(transformedPage.content, fullPath, base)
+      }
+      const mdxResult = await compileMdxContent(page.content, fullPath, base)
 
-      let title = typeof transformedPage.frontmatter.title === 'string' ? transformedPage.frontmatter.title : ''
+      let title = typeof page.frontmatter.title === 'string' ? page.frontmatter.title : ''
       if (!title) {
         const lastPart = pathParts[pathParts.length - 1] ?? ''
         const stem = lastPart === 'index'
-          ? (pathParts.length >= 2 ? pathParts[pathParts.length - 2]! : extractH1(transformedPage.content))
+          ? (pathParts.length >= 2 ? pathParts[pathParts.length - 2]! : extractH1(page.content))
           : lastPart
         title = kebabToTitle(stem) || 'Untitled'
       }
@@ -148,11 +147,11 @@ export async function findContentRoutes(dir: string, base: string = dir, options
         basePath: cleanPath,
         filePath: fullPath,
         virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx?$/, '').replace(/\/+/g, '/'),
-        description: typeof transformedPage.frontmatter.description === 'string' ? transformedPage.frontmatter.description : undefined,
-        keywords: frontmatterKeywords(transformedPage.frontmatter),
-        frontmatter: transformedPage.frontmatter,
-        content: transformedPage.content,
-        sections: extractMdxSections(transformedPage.content),
+        description: typeof page.frontmatter.description === 'string' ? page.frontmatter.description : undefined,
+        keywords: frontmatterKeywords(page.frontmatter),
+        frontmatter: page.frontmatter,
+        content: page.content,
+        sections: extractMdxSections(page.content),
         diagnostic: mdxResult.ok ? undefined : mdxResult.diagnostic,
       })
     }

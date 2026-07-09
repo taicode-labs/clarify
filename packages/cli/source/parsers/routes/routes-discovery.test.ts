@@ -144,20 +144,6 @@ describe('findContentRoutes', () => {
     expect(result[0].description).toBe('Docs that stay in sync')
   })
 
-  it('runs page transforms before compiling MDX content', async () => {
-    writeFileSync(join(tempDir, 'page.mdx'), '<Thing', 'utf-8')
-
-    const result = await findContentRoutes(tempDir, tempDir, {
-      pageTransform: page => ({
-        ...page,
-        content: page.content.replace('<Thing', '<Thing />'),
-      }),
-    })
-
-    expect(result[0].content).toBe('<Thing />')
-    expect(result[0].diagnostic).toBeUndefined()
-  })
-
   it('records a diagnostic when MDX content cannot be compiled', async () => {
     writeFileSync(join(tempDir, 'broken.mdx'), '# Hello\n\n<Thing', 'utf-8')
 
