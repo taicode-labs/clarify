@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { createClarifyEngine } from '../engine/engine.js'
+import { createClarifyEngine } from './engine.js'
 
 const tempRoots: string[] = []
 

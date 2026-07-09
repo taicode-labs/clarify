@@ -89,15 +89,17 @@ build(options)
   ├─ Phase 3: 站点发现（Site Discovery）
   │   ├─ hook: before:site:discover
   │   ├─ hook: routes:discover -> site-discovery 插件扫描内容目录（含 i18n/fallback/bare alias）
-  │   ├─ hook: routes:discovered
+  │   │   └─ 各 plugin 通过 ctx.plugins 自建 content processor，触发 content:transform
+  │   ├─ hook: routes:discovered -> openapi 插件读取 OpenAPI spec（同样触发 content:transform）
   │   └─ hook: after:site:discover
   │
   ├─ Phase 4: 内容处理
   │   ├─ hook: before:content:process
-  │   ├─ hook: content:transform（在 site:discover 阶段由 content processor 触发）
   │   ├─ hook: pages:resolved  -> 页面级 frontmatter/content 回写到 routes
-  │   ├─ hook: routes:resolved -> navigation 插件构建导航树 + applyConfiguredPageRoutePaths
   │   └─ hook: after:content:process
+  │
+  ├─ 路由收尾（content:process 之后）
+  │   └─ hook: routes:resolved -> navigation 插件构建导航树 + applyConfiguredPageRoutePaths
   │
   ├─ Phase 5: 模块构建
   │   ├─ hook: before:modules:build
@@ -405,12 +407,11 @@ packages/cli/source/
       options.ts
       user-config.ts
 
-    site/                   # 站点结构（不变）
-      site.ts
+    site/                   # 站点结构（主题、搜索语言等纯工具）
       theme.ts
       search-language.ts
 
-    content/                # 内容处理（不变）
+    content/                # 内容处理（content processor 工厂，无全局状态）
       content.ts
 
     runtime/                # 运行时支持
@@ -424,6 +425,17 @@ packages/cli/source/
 
     adapters/               # 宿主运行时桥接
       vite.ts               # Vite bridge / adapter
+
+  plugins/                  # 内置业务插件（按功能/职责拆分）
+    site-discovery/         # 路由发现（routes:discover，i18n/fallback/bare alias）
+    navigation/             # 导航构建 + 配置页路径（routes:resolved）
+    variables/              # 变量替换（content:transform）
+    openapi/                # OpenAPI 路由发现与模块生成
+    content-artifacts/      # 内容产物（content-artifacts）
+    seo/                    # SEO 元数据
+    search-index/           # 搜索索引
+    source-links/           # 源码链接
+    html-shell/             # HTML 外壳注入
 
   cli/                      # 命令行入口
     commands/

@@ -97,7 +97,9 @@ export class ClarifyEngine {
       version: context.projectContext.version,
     })
     await runPhase(seedPlugins, 'config:resolve', this.ctx, () => undefined)
-    const plugins = await loadBuildPluginsForContext(this.ctx, context.resolvedOptions)
+    // loadBuildPluginsForContext has side effects: it sets ctx.plugins and
+    // runs the plugins:load phase. The returned array is ctx.plugins itself.
+    await loadBuildPluginsForContext(this.ctx, context.resolvedOptions)
     this.initializedOptions = context.resolvedOptions
 
     return context.resolvedOptions
@@ -213,12 +215,8 @@ export class ClarifyEngine {
     // Build navigation and apply configured page route paths via the navigation
     // builtin plugin (runs as enforce:'post').
     const resolved = await runHooks(plugins, 'routes:resolved', { routes, navigation: {} as NavigationTree }, this.ctx)
-    routes = resolved.routes
-    const navigation = resolved.navigation
-
-    this.ctx.plugins = plugins
-    this.ctx.routes = routes
-    this.ctx.navigation = navigation
+    this.ctx.routes = resolved.routes
+    this.ctx.navigation = resolved.navigation
   }
 
   logStartupHints(): void {
