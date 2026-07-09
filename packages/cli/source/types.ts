@@ -460,6 +460,9 @@ export type ClarifyHooks = {
 
 export type ClarifyPlugin = {
   name: string
+  enforce?: 'pre' | 'post'
+  priority?: number
+  dependsOn?: string[]
   hooks?: Partial<ClarifyHooks>
   slots?: UISlotRegistration[]
 }

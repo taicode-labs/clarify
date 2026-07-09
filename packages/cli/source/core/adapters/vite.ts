@@ -9,7 +9,6 @@ import { rehypePlugins, remarkPlugins } from '../../parsers/markdown/mdx.js'
 import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../../parsers/router/dev-routes.js'
 import type { ClarifyBuildOptions } from '../config/options.js'
 import { type ClarifyEngine, createClarifyEngine } from '../engine/engine.js'
-import { resolveProjectContext } from '../project/project-context.js'
 import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from '../project/project-info.js'
 import {
   RESOLVED_CLIENT_ENTRY,
@@ -71,9 +70,10 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, options: ClarifyBuil
 
   return {
     name: 'clarify:core',
-    async config() {
+    async config(_config, env) {
       engine.configureRuntime({ command: 'build', mode: 'production' })
-      await engine.discoverSite()
+      const resolvedOptions = await engine.initialize(env)
+      await engine.discoverSite(resolvedOptions)
       engine.logStartupHints()
 
       return {
@@ -103,18 +103,13 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, options: ClarifyBuil
     async handleHotUpdate(ctx) {
       const changedFile = isAbsolute(ctx.file) ? ctx.file : join(engine.root, ctx.file)
       if (engine.configFilePath && changedFile === engine.configFilePath) {
-        const newContext = await resolveProjectContext({
+        const resolvedOptions = await engine.initialize({ command: 'serve', mode: viteConfig.mode }, {
           ...options,
           projectRoot: engine.root,
           rootDirectory: options.rootDirectory,
           outputDirectory: options.outputDirectory,
-        }, { command: 'serve', mode: viteConfig.mode })
-        await engine.refresh({
-          ...newContext.config,
-          projectRoot: newContext.projectRoot,
-          rootDirectory: newContext.buildOptions.rootDirectory,
-          outputDirectory: newContext.buildOptions.outputDirectory,
-        })
+        }, true)
+        await engine.refresh(resolvedOptions)
         invalidateVirtualModules(engine, ctx.server)
         ctx.server.ws.send({ type: 'full-reload' })
         return []

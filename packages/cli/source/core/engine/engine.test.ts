@@ -31,6 +31,45 @@ function createEngineWithHooks(calls: string[]): ClarifyEngine {
 }
 
 describe('ClarifyEngine phase hooks', () => {
+  it('wraps project config initialization with config phase hooks', async () => {
+    const calls: string[] = []
+    const engine = new ClarifyEngine({
+      projectRoot: '/site',
+      plugins: [
+        {
+          name: 'config-phase',
+          hooks: {
+            'before:config:load': () => {
+              calls.push('before:config:load')
+            },
+            'after:config:load': () => {
+              calls.push('after:config:load')
+            },
+            'before:config:resolve': () => {
+              calls.push('before:config:resolve')
+            },
+            'after:config:resolve': () => {
+              calls.push('after:config:resolve')
+            },
+            'before:plugins:load': () => {
+              calls.push('before:plugins:load')
+            },
+          },
+        },
+      ],
+    })
+
+    await engine.initialize()
+
+    expect(calls).toEqual([
+      'before:config:load',
+      'after:config:load',
+      'before:config:resolve',
+      'after:config:resolve',
+      'before:plugins:load',
+    ])
+  })
+
   it('runs build phase tap hooks through explicit build boundaries', async () => {
     const calls: string[] = []
     const engine = createEngineWithHooks(calls)

@@ -12,12 +12,13 @@ import { findClarifyConfigFile, loadClarifyConfig, type ClarifyConfig } from '..
 export type ResolvedProjectContext = {
   projectRoot: string
   contentRoot: string
-  configFilePath?: string
-  projectConfig: ReturnType<typeof resolveProjectConfig>
-  buildOptions: ResolvedBuildOptions
   config: ClarifyConfig
+  configFilePath?: string
   hookContext: ClarifyHookContext
+  buildOptions: ResolvedBuildOptions
+  resolvedOptions: ClarifyBuildOptions
   projectContext: ClarifyProjectContext
+  projectConfig: ReturnType<typeof resolveProjectConfig>
 }
 
 export async function resolveProjectContext(options: ClarifyBuildOptions = {}, env: ConfigEnv = { command: 'build', mode: 'production' }): Promise<ResolvedProjectContext> {
@@ -59,6 +60,7 @@ export async function resolveProjectContext(options: ClarifyBuildOptions = {}, e
     configFilePath,
     projectConfig: resolvedProjectConfig,
     buildOptions: resolvedBuildOptions,
+    resolvedOptions: mergedOptions,
     config,
     hookContext,
     projectContext,

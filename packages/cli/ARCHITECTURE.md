@@ -72,15 +72,19 @@ Core 只负责"编排"，Renderer 只负责"渲染"。
 build(options)
   │
   ├─ Phase 1: 初始化
+  │   ├─ hook: before:config:load
   │   ├─ loadConfig()          → 加载 clarify.ts/js/json
+  │   ├─ hook: after:config:load
+  │   ├─ hook: before:config:resolve
   │   ├─ validateConfig()      → Zod 校验
-  │   └─ resolveConfig()       → 合并默认值
+  │   ├─ resolveConfig()       → 合并默认值
+  │   └─ hook: after:config:resolve
   │
   ├─ Phase 2: 插件
   │   ├─ loadPlugins()         → 内置插件 + 用户插件
   │   ├─ hook: before:plugins:load
   │   ├─ hook: after:plugins:load
-  │   └─ sortPlugins()         → 按优先级/依赖排序（待实现）
+  │   └─ sortPlugins()         → 按 enforce / priority / dependsOn 排序
   │
   ├─ Phase 3: 站点发现（Site Discovery）
   │   ├─ hook: before:site:discover
@@ -232,7 +236,7 @@ type ClarifyHooks = {
 7. clarify:html-shell     → HTML 外壳注入（可通过配置关闭）
 ```
 
-插件集合通过 `core/plugin/manager.ts` 统一加载。当前 manager 已集中处理内置插件和用户插件的合并，并在 Site Discovery 路径中触发 `plugins:load` phase；按优先级或显式依赖排序仍是后续目标。
+插件集合通过 `core/plugin/manager.ts` 统一加载。manager 负责合并内置插件和用户插件、按 `enforce` / `priority` / `dependsOn` 稳定排序，并在初始化和 Site Discovery 路径中触发 `plugins:load` phase。`config:*` phase 只能由初始化前已知的插件监听，例如直接通过 build options 传入的插件；配置文件内声明的插件会在配置加载完成后进入后续 phase。
 
 ### 4.4 Slot 机制（UI 扩展）
 

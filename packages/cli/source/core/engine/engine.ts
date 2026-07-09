@@ -1,13 +1,14 @@
 import { existsSync, rmSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-import type { Plugin } from 'vite'
+import type { ConfigEnv, Plugin } from 'vite'
 
 import { cliPackageVersion } from '../../cli/package.js'
 import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../../types.js'
 import { resolveProjectConfig } from '../config/config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from '../config/options.js'
 import { findClarifyConfigFile } from '../config/user-config.js'
+import { resolveProjectContext } from '../project/project-context.js'
 import { writeClarifyEnvDts } from '../runtime/env-types.js'
 import {
   SSR_ENTRY_CODE,
@@ -31,7 +32,7 @@ import {
 } from '../runtime/virtual-modules.js'
 import { resolveClarifySite } from '../site/site.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from '../plugin/hooks.js'
-import { loadBuildPlugins } from '../plugin/manager.js'
+import { loadBuildPlugins, loadBuildPluginsForContext } from '../plugin/manager.js'
 
 import { ClarifyContext } from './context.js'
 import { runInterceptHooks, runPhase, runTapHooks } from './phases.js'
@@ -75,12 +76,13 @@ export function loadVirtualModule(id: string, modules: VirtualModules): string |
 export class ClarifyEngine {
   readonly options: ClarifyBuildOptions
   readonly root: string
-  readonly configFilePath?: string
+  configFilePath?: string
   readonly ctx: ClarifyContext
 
   private runtime: ClarifyEngineRuntime = { command: 'build', mode: 'production' }
   private virtualModules: VirtualModules = new Map()
   private buildEnabled = true
+  private initializedOptions?: ClarifyBuildOptions
 
   constructor(options: ClarifyBuildOptions = {}) {
     this.options = options
@@ -106,6 +108,28 @@ export class ClarifyEngine {
 
   configureRuntime(runtime: Partial<ClarifyEngineRuntime>): void {
     this.runtime = { ...this.runtime, ...runtime }
+  }
+
+  async initialize(env: ConfigEnv = { command: this.runtime.command, mode: this.runtime.mode }, options: ClarifyBuildOptions = this.options, force = false): Promise<ClarifyBuildOptions> {
+    if (this.initializedOptions && !force) return this.initializedOptions
+
+    const seedPlugins = loadBuildPlugins(options)
+    this.ctx.plugins = seedPlugins
+    const context = await runPhase(seedPlugins, 'config:load', this.ctx, () => resolveProjectContext(options, env))
+
+    this.configFilePath = context.configFilePath
+    this.ctx.updateProjectState({
+      projectRoot: context.projectRoot,
+      contentRoot: context.contentRoot,
+      projectConfig: context.projectConfig,
+      generateOptions: context.buildOptions,
+      version: context.projectContext.version,
+    })
+    await runPhase(seedPlugins, 'config:resolve', this.ctx, () => undefined)
+    await loadBuildPluginsForContext(this.ctx, context.resolvedOptions)
+    this.initializedOptions = context.resolvedOptions
+
+    return context.resolvedOptions
   }
 
   get state(): ClarifyEngineState {
@@ -161,7 +185,7 @@ export class ClarifyEngine {
 
   async discoverSite(overrides?: ClarifyBuildOptions): Promise<void> {
     await runPhase(this.plugins, 'site:discover', this.ctx, async () => {
-      const site = await resolveClarifySite(overrides ?? this.options)
+      const site = await resolveClarifySite(overrides ?? this.initializedOptions ?? this.options)
       this.ctx.updateProjectState({
         projectRoot: site.root,
         contentRoot: site.contentRoot,
