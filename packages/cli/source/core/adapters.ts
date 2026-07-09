@@ -89,7 +89,6 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
     },
     async buildStart() {
       if (!(await engine.beginBuild())) return
-      await engine.buildModules()
       engine.writeEnvTypes()
     },
     async handleHotUpdate(ctx) {

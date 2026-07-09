@@ -48,7 +48,7 @@ describe('Engine.discoverSite', () => {
         },
       ],
     })
-    await engine.discoverSite()
+    await engine.prepare(undefined, undefined, { skipModules: true, skipHints: true })
 
     expect(calls).toEqual([
       'before:plugins:load',
@@ -84,7 +84,7 @@ describe('Engine.discoverSite', () => {
         },
       ],
     })
-    await engine.discoverSite()
+    await engine.prepare(undefined, undefined, { skipModules: true, skipHints: true })
 
     expect(calls).toEqual([
       'content:transform',

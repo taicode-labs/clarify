@@ -90,8 +90,8 @@ build(options)
   │
   ├─ Phase 3: 站点发现（Site Discovery）
   │   ├─ hook: before:site:discover
-  │   ├─ hook: routes:discover -> site-discovery 插件扫描内容目录（含 i18n/fallback/bare alias）
-  │   │   └─ 各 plugin 通过 ctx.plugins 自建 content processor，触发 content:transform
+  │   ├─ Engine 直接扫描内容目录（含 i18n/fallback/bare alias），通过 ctx.plugins 自建 content processor，触发 content:transform
+  │   ├─ hook: routes:discover -> 用户插件可扩展发现的路由
   │   ├─ hook: routes:discovered -> openapi 插件读取 OpenAPI spec（同样触发 content:transform）
   │   └─ hook: after:site:discover
   │
@@ -416,13 +416,6 @@ packages/cli/source/
       options.ts
       user-config.ts
 
-    site/                   # 站点结构（主题、搜索语言等纯工具）
-      theme.ts
-      search-language.ts
-
-    content/                # 内容处理（content processor 工厂，无全局状态）
-      content.ts
-
     runtime/                # 运行时支持
       virtual-modules.ts    # 虚拟模块生成
       ssg.ts                # SSG 引擎（保留，但由 engine 调用）
@@ -432,12 +425,9 @@ packages/cli/source/
       log.ts
       startup.ts
 
-    adapters/               # 宿主运行时桥接
-      vite.ts               # Vite bridge / adapter
+    adapters.ts             # Vite bridge / adapter（单文件，无需子目录）
 
   plugins/                  # 内置业务插件（按功能/职责拆分）
-    site-discovery/         # 路由发现（routes:discover，i18n/fallback/bare alias）
-    navigation/             # 导航构建 + 配置页路径（routes:resolved）
     variables/              # 变量替换（content:transform）
     openapi/                # OpenAPI 路由发现与模块生成
     content-artifacts/      # 内容产物（content-artifacts）

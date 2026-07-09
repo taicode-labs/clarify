@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { build } from 'vite'
 import type { Plugin } from 'vite'
 
-import { escapeHtml } from '../..//parsers/markdown/utils.js'
+import { escapeHtml } from '../../parsers/markdown/utils.js'
 import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
 import { createClarifyTempDir } from '../project/temp-dir.js'
 

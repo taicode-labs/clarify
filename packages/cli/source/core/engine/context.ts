@@ -113,11 +113,11 @@ export class ClarifyContext implements ClarifyHookContext {
     generateOptions?: ResolvedBuildOptions
     version?: string
   }): void {
-    if (update.projectRoot) this.projectRoot = update.projectRoot
-    if (update.contentRoot) this.contentRoot = update.contentRoot
-    if (update.projectConfig) this.projectConfig = update.projectConfig
-    if (update.generateOptions) this.generateOptions = update.generateOptions
-    if (update.version) this.version = update.version
+    if (update.projectRoot !== undefined) this.projectRoot = update.projectRoot
+    if (update.contentRoot !== undefined) this.contentRoot = update.contentRoot
+    if (update.projectConfig !== undefined) this.projectConfig = update.projectConfig
+    if (update.generateOptions !== undefined) this.generateOptions = update.generateOptions
+    if (update.version !== undefined) this.version = update.version
   }
 
   private notify(listeners: Set<ContextListener>): void {

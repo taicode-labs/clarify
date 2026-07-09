@@ -4,13 +4,15 @@ import { join, resolve } from 'node:path'
 import type { ConfigEnv, Plugin } from 'vite'
 
 import { cliPackageVersion } from '../../cli/package.js'
-import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyHtmlTransformInput, ClarifyPlugin, ContentRoute, NavigationTree, ClarifyPage  } from '../../types.js'
+import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyHtmlTransformInput, ClarifyPlugin, ContentRoute, NavigationTree, ClarifyPage, ClarifyProjectContext  } from '../../types.js'
 import { resolveProjectConfig } from '../config/config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from '../config/options.js'
 import { findClarifyConfigFile } from '../config/user-config.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from '../plugin/hooks.js'
 import { loadBuildPlugins, loadBuildPluginsForContext } from '../plugin/manager.js'
 import { resolveProjectContext } from '../project/project-context.js'
+import { createProjectContentProcessor } from '../../parsers/content/content.js'
+import { findContentRoutes, findLocalizedContentRoutes, applyConfiguredPageRoutePaths, buildNavigation, buildNavigationFromTabsConfig, buildLocalizedNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
 import { writeClarifyEnvDts } from '../runtime/env-types.js'
 import {
   SSR_ENTRY_CODE,
@@ -60,20 +62,21 @@ export class ClarifyEngine {
     this.root = resolve(options.projectRoot ?? process.cwd())
     this.configFilePath = findClarifyConfigFile(this.root) ?? undefined
 
-    const projectConfig = resolveProjectConfig(options)
-    const generateOptions = resolveBuildOptions(options)
-    const contentRoot = join(this.root, generateOptions.rootDirectory)
-    const plugins = loadBuildPlugins(options)
-
+    // Create a minimal context with placeholder values. The real config
+    // resolution and plugin loading happen in initialize(), which is always
+    // called before any real work. This avoids redundant work in the
+    // constructor and keeps Engine construction cheap.
+    const placeholderConfig = resolveProjectConfig({})
+    const placeholderOptions = resolveBuildOptions(options)
     this.ctx = new ClarifyContext({
       projectRoot: this.root,
-      contentRoot,
-      projectConfig,
-      generateOptions,
+      contentRoot: join(this.root, placeholderOptions.rootDirectory),
+      projectConfig: placeholderConfig,
+      generateOptions: placeholderOptions,
       version: cliPackageVersion,
       routes: [],
       navigation: [],
-      plugins,
+      plugins: [],
     })
   }
 
@@ -81,10 +84,10 @@ export class ClarifyEngine {
     this.runtime = { ...this.runtime, ...runtime }
   }
 
-  async initialize(env: ConfigEnv = { command: this.runtime.command, mode: this.runtime.mode }, options: ClarifyBuildOptions = this.options, force = false): Promise<ClarifyBuildOptions> {
-    if (this.initializedOptions && !force) return this.initializedOptions
+  async initialize(env: ConfigEnv = { command: this.runtime.command, mode: this.runtime.mode }, options: ClarifyBuildOptions = this.options, prepareOptions: PrepareOptions = {}): Promise<ClarifyBuildOptions> {
+    if (this.initializedOptions && !prepareOptions.force) return this.initializedOptions
 
-    const seedPlugins = loadBuildPlugins(options)
+    const seedPlugins = loadBuildPlugins(options, { htmlShell: prepareOptions.htmlShell })
     this.ctx.plugins = seedPlugins
     const context = await runPhase(seedPlugins, 'config:load', this.ctx, () => resolveProjectContext(options, env))
 
@@ -99,7 +102,7 @@ export class ClarifyEngine {
     await runPhase(seedPlugins, 'config:resolve', this.ctx, () => undefined)
     // loadBuildPluginsForContext has side effects: it sets ctx.plugins and
     // runs the plugins:load phase. The returned array is ctx.plugins itself.
-    await loadBuildPluginsForContext(this.ctx, context.resolvedOptions)
+    await loadBuildPluginsForContext(this.ctx, context.resolvedOptions, { htmlShell: prepareOptions.htmlShell })
     this.initializedOptions = context.resolvedOptions
 
     return context.resolvedOptions
@@ -123,8 +126,8 @@ export class ClarifyEngine {
    */
   async prepare(env: ConfigEnv = { command: this.runtime.command, mode: this.runtime.mode }, options: ClarifyBuildOptions = this.options, prepareOptions: PrepareOptions = {}): Promise<ClarifyBuildOptions> {
     this.configureRuntime({ command: env.command, mode: env.mode })
-    const resolvedOptions = await this.initialize(env, options, prepareOptions.force ?? false)
-    await this.discoverSite(resolvedOptions, { htmlShell: prepareOptions.htmlShell })
+    const resolvedOptions = await this.initialize(env, options, prepareOptions)
+    await this.discoverSite(resolvedOptions)
     if (!prepareOptions.skipModules) await this.buildModules()
     if (!prepareOptions.skipHints) this.logStartupHints()
     return resolvedOptions
@@ -181,42 +184,31 @@ export class ClarifyEngine {
     return loadVirtualModule(id, this.virtualModules)
   }
 
-  async discoverSite(overrides?: ClarifyBuildOptions, siteOptions?: { htmlShell?: boolean }): Promise<void> {
-    const options = overrides ?? this.initializedOptions ?? this.options
-    const context = await resolveProjectContext(options)
-    const root = context.projectRoot
-    const projectConfig = context.projectConfig
-    const generateOptions = context.buildOptions
-    const contentRoot = context.contentRoot
+  async discoverSite(overrides?: ClarifyBuildOptions): Promise<void> {
+    const plugins = this.ctx.plugins
+    const contentRoot = this.ctx.contentRoot
+    const { i18n, tabs } = this.ctx.projectConfig
 
-    this.ctx.updateProjectState({
-      projectRoot: root,
-      contentRoot,
-      projectConfig,
-      generateOptions,
-      version: context.projectContext.version,
-    })
-
-    // Phase 2: plugins:load - register builtin + user plugins. This runs
-    // even when initialize() was called earlier, because discoverSite() may be
-    // invoked with different overrides (e.g. htmlShell toggled off).
-    const plugins = await loadBuildPluginsForContext(this.ctx, context.resolvedOptions, { htmlShell: siteOptions?.htmlShell ?? true })
-
-    // Phase 3: site:discover - scan content directory via routes:discover pipeline.
-    // The actual discovery logic (i18n handling, fallback routes, bare aliases)
-    // lives in the site-discovery builtin plugin, keeping the Engine as a pure
-    // orchestrator.
+    // Phase 3: site:discover - scan content directory. The Engine provides the
+    // default discovery logic (i18n-aware content scanning) directly; user
+    // plugins can extend or replace it via the routes:discover pipeline hook.
     let routes = await runPhase(plugins, 'site:discover', this.ctx, async () => {
-      const discovered = await runHooks(plugins, 'routes:discover', { contentRoot, routes: [] }, this.ctx)
-      return discovered.routes
+      const processor = createProjectContentProcessor(plugins, this.ctx)
+      const options = { contentProcessor: processor }
+
+      const discovered = i18n
+        ? await findLocalizedContentRoutes(contentRoot, i18n, options)
+        : await findContentRoutes(contentRoot, contentRoot, options)
+
+      // Run routes:discover hook so plugins can augment the discovered routes.
+      const result = await runHooks(plugins, 'routes:discover', { contentRoot, routes: discovered }, this.ctx)
+      return result.routes
     })
     routes = await runHooks(plugins, 'routes:discovered', routes, this.ctx)
 
     // Phase 4: content:process - post-discovery adjustments. Map routes to
     // pages, run pages:resolved pipeline, then write back any page-level
-    // changes (frontmatter/content) onto the routes. applyConfiguredPageRoutePaths
-    // and navigation building are handled by the navigation builtin plugin in
-    // routes:resolved below.
+    // changes (frontmatter/content) onto the routes.
     routes = await runPhase(plugins, 'content:process', this.ctx, async () => {
       const pages = routes.map<ClarifyPage>(route => ({
         path: route.path,
@@ -237,9 +229,16 @@ export class ClarifyEngine {
       })
     })
 
-    // Build navigation and apply configured page route paths via the navigation
-    // builtin plugin (runs as enforce:'post').
-    const resolved = await runHooks(plugins, 'routes:resolved', { routes, navigation: {} as NavigationTree }, this.ctx)
+    // Build navigation directly. The Engine applies configured page route
+    // paths and builds the navigation tree (tabs-based or auto-generated).
+    // User plugins can intercept via the routes:resolved hook.
+    routes = applyConfiguredPageRoutePaths(routes, tabs, i18n)
+    const navigation = tabs
+      ? i18n
+        ? (buildLocalizedNavigationFromTabsConfig(routes, tabs, i18n) ?? {})
+        : buildNavigationFromTabsConfig(routes, tabs)
+      : buildNavigation(routes)
+    const resolved = await runHooks(plugins, 'routes:resolved', { routes, navigation }, this.ctx)
     this.ctx.routes = resolved.routes
     this.ctx.navigation = resolved.navigation
   }
@@ -371,14 +370,13 @@ export class ClarifyEngine {
     return runHooks(this.plugins, 'html:transform', input, this.ctx)
   }
 
-  runtimeContext(): Omit<ClarifyHookContext, 'routes' | 'navigation'> {
+  runtimeContext(): ClarifyProjectContext {
     return {
       projectRoot: this.root,
       contentRoot: this.contentRoot,
       projectConfig: this.projectConfig,
       generateOptions: this.generateOptions,
       version: this.ctx.version,
-      plugins: this.ctx.plugins,
     }
   }
 
