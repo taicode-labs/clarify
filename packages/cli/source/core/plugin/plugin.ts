@@ -1,203 +1,126 @@
-import { existsSync, rmSync } from 'node:fs'
-import { isAbsolute, join, relative, resolve } from 'node:path'
+import { isAbsolute, join, relative } from 'node:path'
 
 import mdxPlugin, { type Options as MdxPluginOptions } from '@mdx-js/rollup'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
-import { cliPackageVersion } from '../../cli/package.js'
 import { rehypePlugins, remarkPlugins } from '../../parsers/markdown/mdx.js'
 import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../../parsers/router/dev-routes.js'
-import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../../types.js'
-import { resolveProjectConfig } from '../config/config.js'
-import { resolveBuildOptions, type ClarifyBuildOptions } from '../config/options.js'
-import { findClarifyConfigFile } from '../config/user-config.js'
+import type { ClarifyBuildOptions } from '../config/options.js'
 import { resolveProjectContext } from '../project/project-context.js'
 import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from '../project/project-info.js'
-import { writeClarifyEnvDts } from '../runtime/env-types.js'
-import {
-  SSR_ENTRY_CODE,
-  createTempEntryFile,
-  buildSSRBundle,
-  renderSSGRoutes,
-} from '../runtime/ssg.js'
-import { logStartupHints } from '../runtime/startup.js'
 import {
   RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
   VIRTUAL_CONFIG,
+  VIRTUAL_OPENAPI,
   VIRTUAL_ROUTES,
   VIRTUAL_SERVER_ROUTES,
-  VIRTUAL_OPENAPI,
-  VIRTUAL_SLOTS,
   VIRTUAL_SLOT,
-  buildVirtualModules,
+  VIRTUAL_SLOTS,
   resolveVirtualId,
   stripVirtualPrefix,
-  type VirtualModules,
 } from '../runtime/virtual-modules.js'
-import { resolveClarifySite } from '../site/site.js'
+import { createClarifyEngine, type ClarifyEngine } from '../engine/engine.js'
 
-import { createBuiltinPlugins } from './builtin.js'
-import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
+import { runHooks } from './hooks.js'
 
-function loadVirtualModule(id: string, modules: VirtualModules): string | null {
-  const bareId = stripVirtualPrefix(id)
-  return modules.get(bareId) ?? modules.get(id) ?? null
+function invalidateVirtualModules(engine: ClarifyEngine, server: ViteDevServer): void {
+  for (const id of engine.modules.keys()) {
+    const moduleNode = server.moduleGraph.getModuleById(resolveVirtualId(id))
+    if (moduleNode) server.moduleGraph.invalidateModule(moduleNode)
+  }
 }
 
-export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
-  const root = resolve(options.projectRoot ?? process.cwd())
-  let projectConfig = resolveProjectConfig(options)
-  let generateOptions = resolveBuildOptions(options)
-  let contentRoot = join(root, generateOptions.rootDirectory)
-  let runtimeContext = { projectRoot: root, contentRoot, projectConfig, generateOptions, version: cliPackageVersion }
-  const configFilePath = findClarifyConfigFile(root)
-  let routes: ContentRoute[] = []
+async function refreshDevServer(engine: ClarifyEngine, server: ViteDevServer): Promise<void> {
+  await engine.refresh()
+  invalidateVirtualModules(engine, server)
+  server.ws.send({ type: 'full-reload' })
+}
 
-  let clarifyPlugins: ClarifyPlugin[] = [...createBuiltinPlugins(), ...(options.plugins ?? [])]
-  const ctx: ClarifyHookContext = {
-    projectRoot: root,
-    contentRoot,
-    projectConfig,
-    generateOptions,
-    version: cliPackageVersion,
-    routes,
-    navigation: [],
-  }
-  let viteConfig: ResolvedConfig
-  let resolvedNavigation: NavigationTree = []
-  let virtualModules: VirtualModules = new Map()
-
-  async function resolveRoutesAndSpecs(overrides?: ClarifyBuildOptions) {
-    const site = await resolveClarifySite(overrides ?? options)
-    projectConfig = site.projectConfig
-    generateOptions = site.generateOptions
-    contentRoot = join(root, generateOptions.rootDirectory)
-    runtimeContext = { projectRoot: root, contentRoot, projectConfig, generateOptions, version: cliPackageVersion }
-    routes = site.routes
-    resolvedNavigation = site.navigation
-    clarifyPlugins = site.plugins
-    ctx.projectRoot = root
-    ctx.contentRoot = contentRoot
-    ctx.projectConfig = projectConfig
-    ctx.generateOptions = generateOptions
-    ctx.version = cliPackageVersion
-    ctx.routes = routes
-    ctx.navigation = resolvedNavigation
-  }
-
-  async function rebuildVirtualModules() {
-    virtualModules = buildVirtualModules({
-      projectConfig,
-      generateOptions,
-      routes,
-      navigation: resolvedNavigation,
-      plugins: clarifyPlugins,
-      themeEditor: viteConfig.command === 'serve' || projectConfig.theme.editor,
-      version: ctx.version,
-    })
-    virtualModules = await runHooks(clarifyPlugins, 'modules:before', virtualModules, ctx)
-  }
-
-  function invalidateVirtualModules(server: ViteDevServer) {
-    for (const id of virtualModules.keys()) {
-      const moduleNode = server.moduleGraph.getModuleById(resolveVirtualId(id))
-      if (moduleNode) server.moduleGraph.invalidateModule(moduleNode)
-    }
-  }
-
-  async function refreshDevServer(server: ViteDevServer) {
-    await resolveRoutesAndSpecs()
-    await rebuildVirtualModules()
-    invalidateVirtualModules(server)
-    server.ws.send({ type: 'full-reload' })
-  }
-
-  function hasContentRouteForFile(filePath: string): boolean {
-    return routes.some(route => route.filePath === filePath)
-  }
-
-  const normalizedMdxContentPlugin: Plugin = {
+function createNormalizedMdxContentPlugin(engine: ClarifyEngine): Plugin {
+  return {
     name: 'clarify:normalized-mdx-content',
     enforce: 'pre',
     transform(_code, id) {
       if (!/\.mdx?(?:\?|$)/.test(id)) return null
       const filePath = id.replace(/\?.*$/, '')
-      const route = routes.find(route => route.kind === 'mdx' && route.filePath === filePath)
+      const route = engine.routes.find(route => route.kind === 'mdx' && route.filePath === filePath)
       if (!route || route.content === undefined) return null
       return { code: route.content, map: null }
     },
   }
+}
 
-  const mdx = mdxPlugin({
+function createMdxPlugin(): Plugin {
+  return mdxPlugin({
     include: ['**/*.{md,mdx}'],
     jsxImportSource: 'react',
     providerImportSource: '@clarify-labs/renderer',
     remarkPlugins: remarkPlugins as MdxPluginOptions['remarkPlugins'],
     rehypePlugins,
-  })
+  }) as Plugin
+}
 
-  const clarifyCorePlugin: Plugin = {
+function createClarifyViteBridge(engine: ClarifyEngine, options: ClarifyBuildOptions, normalizedMdxContentPlugin: Plugin, mdx: Plugin): Plugin {
+  let viteConfig: ResolvedConfig
+
+  return {
     name: 'clarify:core',
     async config() {
-      await resolveRoutesAndSpecs()
-      logStartupHints({
-        projectRoot: root,
-        contentRoot,
-        contentDirExists: existsSync(contentRoot),
-        hasRoutes: routes.length > 0,
-      })
+      engine.configureRuntime({ command: 'build', mode: 'production' })
+      await engine.discoverSite()
+      engine.logStartupHints()
 
       return {
-        base: projectConfig.assetPrefix,
+        base: engine.projectConfig.assetPrefix,
         build: {
-          ...(generateOptions.outputDirectory ? { outDir: generateOptions.outputDirectory } : {}),
+          ...(engine.generateOptions.outputDirectory ? { outDir: engine.generateOptions.outputDirectory } : {}),
           manifest: true,
         },
       }
     },
     configResolved(config) {
       viteConfig = config
-      // If user didn't specify outputDirectory, read it from Vite's resolved config
-      if (!generateOptions.outputDirectory) {
-        generateOptions.outputDirectory = config.build.outDir
+      engine.configureRuntime({
+        command: config.command,
+        mode: config.mode,
+        outputDirectory: config.build.outDir,
+      })
+      if (!engine.generateOptions.outputDirectory) {
+        engine.generateOptions.outputDirectory = config.build.outDir
       }
     },
     async buildStart() {
-      await rebuildVirtualModules()
-      writeClarifyEnvDts(root, clarifyPlugins)
+      await engine.buildModules()
+      engine.writeEnvTypes()
     },
     async handleHotUpdate(ctx) {
-      const changedFile = isAbsolute(ctx.file) ? ctx.file : join(root, ctx.file)
-      if (configFilePath && changedFile === configFilePath) {
+      const changedFile = isAbsolute(ctx.file) ? ctx.file : join(engine.root, ctx.file)
+      if (engine.configFilePath && changedFile === engine.configFilePath) {
         const newContext = await resolveProjectContext({
           ...options,
-          projectRoot: root,
+          projectRoot: engine.root,
           rootDirectory: options.rootDirectory,
           outputDirectory: options.outputDirectory,
         }, { command: 'serve', mode: viteConfig.mode })
-        projectConfig = newContext.projectConfig
-        generateOptions = newContext.buildOptions
-        contentRoot = newContext.contentRoot
-        await resolveRoutesAndSpecs({
+        await engine.refresh({
           ...newContext.config,
           projectRoot: newContext.projectRoot,
           rootDirectory: newContext.buildOptions.rootDirectory,
           outputDirectory: newContext.buildOptions.outputDirectory,
         })
-        await rebuildVirtualModules()
-        invalidateVirtualModules(ctx.server)
+        invalidateVirtualModules(engine, ctx.server)
         ctx.server.ws.send({ type: 'full-reload' })
         return []
       }
 
-      const relativeContentFile = relative(contentRoot, changedFile)
+      const relativeContentFile = relative(engine.contentRoot, changedFile)
       const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
-      if (!isContentFile || !hasContentRouteForFile(changedFile)) return
+      if (!isContentFile || !engine.hasContentRouteForFile(changedFile)) return
 
-      await refreshDevServer(ctx.server)
+      await refreshDevServer(engine, ctx.server)
       return []
     },
     resolveId(id) {
@@ -209,68 +132,60 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       if (id === VIRTUAL_SLOTS || id === resolveVirtualId(VIRTUAL_SLOTS)) return resolveVirtualId(VIRTUAL_SLOTS)
       if (id === VIRTUAL_SLOT || id === resolveVirtualId(VIRTUAL_SLOT)) return resolveVirtualId(VIRTUAL_SLOT)
       const moduleId = stripVirtualPrefix(id)
-      if (virtualModules.has(moduleId)) return resolveVirtualId(moduleId)
-      const route = routes.find(r => r.virtualModuleId === id || r.virtualModuleId === moduleId)
+      if (engine.modules.has(moduleId)) return resolveVirtualId(moduleId)
+      const route = engine.routes.find(route => route.virtualModuleId === id || route.virtualModuleId === moduleId)
       if (route) return resolveVirtualId(route.virtualModuleId)
       return null
     },
     load(id) {
-      return loadVirtualModule(id, virtualModules)
+      return engine.loadModule(id)
     },
     async configureServer(server) {
-      server.watcher.add(contentRoot)
-      if (configFilePath) {
-        server.watcher.add(configFilePath)
-      }
+      server.watcher.add(engine.contentRoot)
+      if (engine.configFilePath) server.watcher.add(engine.configFilePath)
 
-      // Dev-only endpoints for external tooling (e.g. VS Code extension).
-      // Need to match exact paths, so check req.url before handling.
       server.middlewares.use((req, res, next) => {
         if (req.url === CLARIFY_DEV_ROUTE_ENDPOINT && req.method === 'POST') {
-          return handleDevRouteRequest(req, res, routes, runtimeContext)
+          return handleDevRouteRequest(req, res, engine.routes, engine.runtimeContext())
         }
         if (req.url === CLARIFY_DEV_PROJECT_INFO_ENDPOINT && (req.method === 'GET' || req.method === 'HEAD')) {
-          return handleProjectInfoRequest(req, res, runtimeContext)
+          return handleProjectInfoRequest(req, res, engine.runtimeContext())
         }
         next()
       })
 
       const handleContentTreeChange = async (filePath: string) => {
-        const changedFile = isAbsolute(filePath) ? filePath : join(root, filePath)
-        const relativeContentFile = relative(contentRoot, changedFile)
+        const changedFile = isAbsolute(filePath) ? filePath : join(engine.root, filePath)
+        const relativeContentFile = relative(engine.contentRoot, changedFile)
         const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
         if (!isContentFile) return
-        await refreshDevServer(server)
+        await refreshDevServer(engine, server)
       }
 
       server.watcher.on('add', handleContentTreeChange)
       server.watcher.on('unlink', handleContentTreeChange)
-      await runDevConfigureServerHooks(clarifyPlugins, server, ctx)
+      await engine.configureDevServer(server)
     },
     transformIndexHtml: {
       order: 'pre',
       async handler(html, transformCtx) {
-        // In dev mode, use /@id/ prefix so Vite dev server can resolve the virtual module.
-        // In build mode, use the bare virtual: ID so Vite's HTML build pipeline resolves it via resolveId.
         const clientEntryId = transformCtx.server
           ? `/@id/${VIRTUAL_CLIENT_ENTRY}`
           : VIRTUAL_CLIENT_ENTRY
-        const result = await runHooks(clarifyPlugins, 'html:transform', {
+        const result = await runHooks(engine.plugins, 'html:transform', {
           html,
           tags: [],
           clientEntryId,
           dev: Boolean(transformCtx.server),
-        }, ctx)
+        }, engine.hookContext)
         return {
           html: result.html,
           tags: result.tags,
         }
-      }
+      },
     },
-    async generateBundle(_opts, _bundle) {
-      // Collect assets from all plugins and emit them through Rollup so they
-      // appear in the Vite manifest and build log.
-      const assets = await runBuildAssetsHooks(clarifyPlugins, ctx)
+    async generateBundle() {
+      const assets = await engine.collectBuildAssets()
       for (const asset of assets) {
         this.emitFile({
           type: 'asset',
@@ -280,62 +195,24 @@ export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
       }
     },
     async closeBundle() {
-      // ── Phase 1: Static HTML Generation ──
-      if (process.env.SKIP_CLARIFY_SSG) {
-        await runBuildDoneHooks(clarifyPlugins, ctx)
-        return
-      }
-
-      const outputDir = viteConfig.build.outDir
-      const ssrOutputDir = join(outputDir, '.ssr')
-      let tempEntryPath: string | undefined
-
-      try {
-        tempEntryPath = createTempEntryFile(SSR_ENTRY_CODE)
-
-        await buildSSRBundle(root, tempEntryPath, ssrOutputDir, [
-          {
-            name: 'clarify:virtual-ssg',
-            resolveId(id) {
-              if (id === VIRTUAL_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
-              if (id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
-              if (id === VIRTUAL_SERVER_ROUTES) return id
-              if (id === VIRTUAL_OPENAPI) return id
-              if (id === VIRTUAL_CONFIG) return id
-              if (id === VIRTUAL_ROUTES) return id
-              if (id === VIRTUAL_SLOTS) return id
-              if (id === VIRTUAL_SLOT) return id
-              if (virtualModules.has(stripVirtualPrefix(id))) return stripVirtualPrefix(id)
-              const route = routes.find(r => r.virtualModuleId === id)
-              if (route) return id
-              return null
-            },
-            load: id => loadVirtualModule(id, virtualModules),
-          },
-          normalizedMdxContentPlugin,
-          mdx,
-        ])
-
-        const ssrBundlePath = join(ssrOutputDir, 'entry-server.js')
-        await renderSSGRoutes(routes, runtimeContext, outputDir, ssrBundlePath, generateOptions.ssg.failOnError)
-      } catch (err) {
-        console.error('[clarify] SSG failed:', err)
-        if (generateOptions.ssg.failOnError) {
-          throw err
-        }
-      } finally {
-        if (tempEntryPath) {
-          try {
-            rmSync(tempEntryPath, { force: true })
-          } catch {
-            // ignore cleanup errors
-          }
-        }
-      }
-
-      await runBuildDoneHooks(clarifyPlugins, ctx)
+      engine.configureRuntime({
+        outputDirectory: viteConfig.build.outDir,
+        ssrPlugins: [engine.createSSGVirtualPlugin(), normalizedMdxContentPlugin, mdx],
+      })
+      await engine.runSSG()
     },
   }
+}
 
-  return [react(), tailwindcss(), normalizedMdxContentPlugin, clarifyCorePlugin, mdx].flat().filter(Boolean) as Plugin[]
+export function clarifyPlugin(options: ClarifyBuildOptions = {}): Plugin[] {
+  const engine = createClarifyEngine(options)
+  const normalizedMdxContentPlugin = createNormalizedMdxContentPlugin(engine)
+  const mdx = createMdxPlugin()
+  return [
+    react(),
+    tailwindcss(),
+    normalizedMdxContentPlugin,
+    createClarifyViteBridge(engine, options, normalizedMdxContentPlugin, mdx),
+    mdx,
+  ].flat().filter(Boolean) as Plugin[]
 }
