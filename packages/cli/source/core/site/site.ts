@@ -1,11 +1,13 @@
 import { join, relative } from 'node:path'
 
 import { applyConfiguredPageRoutePaths, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig, findContentRoutes, localizedRoutePath, virtualModuleIdFromRef, withAlternates } from '../../parsers/routes/routes.js'
-import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree } from '../../types.js'
+import type { ClarifyPlugin, ContentRoute, NavigationTree } from '../../types.js'
 import type { ClarifyBuildOptions, ResolvedBuildOptions } from '../config/options.js'
 import { createProjectContentProcessor, getProjectContentProcessor, setProjectContentProcessor } from '../content/content.js'
-import { createBuiltinPlugins } from '../plugin/builtin.js'
+import { ClarifyContext } from '../engine/context.js'
+import { runPhase } from '../engine/phases.js'
 import { runHooks } from '../plugin/hooks.js'
+import { loadBuildPluginsForContext } from '../plugin/manager.js'
 import { resolveProjectContext } from '../project/project-context.js'
 
 export type ResolvedClarifySite = {
@@ -14,7 +16,7 @@ export type ResolvedClarifySite = {
   projectConfig: Awaited<ReturnType<typeof resolveProjectContext>>['projectConfig']
   generateOptions: ResolvedBuildOptions
   plugins: ClarifyPlugin[]
-  ctx: ClarifyHookContext
+  ctx: ClarifyContext
   routes: ContentRoute[]
   navigation: NavigationTree
 }
@@ -23,7 +25,7 @@ export type ResolveClarifySiteOptions = {
   includeHtmlShellPlugin?: boolean
 }
 
-async function discoverRoutesForRoot(routeRoot: string, locale: string | undefined, plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<ContentRoute[]> {
+async function discoverRoutesForRoot(routeRoot: string, locale: string | undefined, plugins: ClarifyPlugin[], ctx: ClarifyContext): Promise<ContentRoute[]> {
   const discovered = await runHooks(plugins, 'routes:discover', {
     contentRoot: routeRoot,
     locale,
@@ -35,7 +37,7 @@ async function discoverRoutesForRoot(routeRoot: string, locale: string | undefin
   return discovered.routes
 }
 
-async function discoverRoutes(root: string, contentRoot: string, plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<ContentRoute[]> {
+async function discoverRoutes(root: string, contentRoot: string, plugins: ClarifyPlugin[], ctx: ClarifyContext): Promise<ContentRoute[]> {
   const i18n = ctx.projectConfig.i18n
   if (!i18n) return discoverRoutesForRoot(contentRoot, undefined, plugins, ctx)
 
@@ -97,17 +99,17 @@ export async function resolveClarifySite(options: ClarifyBuildOptions = {}, reso
   const projectConfig = context.projectConfig
   const generateOptions = context.buildOptions
   const contentRoot = context.contentRoot
-  const plugins = [...createBuiltinPlugins({ htmlShell: resolveOptions.includeHtmlShellPlugin }), ...(options.plugins ?? [])]
-  const ctx: ClarifyHookContext = {
-    ...context.hookContext,
+  const ctx = new ClarifyContext({
     projectRoot: root,
     contentRoot,
     projectConfig,
     generateOptions,
-  }
+    version: context.projectContext.version,
+  })
+  const plugins = await loadBuildPluginsForContext(ctx, options, { htmlShell: resolveOptions.includeHtmlShellPlugin })
   setProjectContentProcessor(ctx, createProjectContentProcessor(plugins, ctx))
 
-  let routes = await discoverRoutes(root, contentRoot, plugins, ctx)
+  let routes = await runPhase(plugins, 'content:process', ctx, () => discoverRoutes(root, contentRoot, plugins, ctx))
   routes = await runHooks(plugins, 'routes:discovered', routes, ctx)
   routes = applyConfiguredPageRoutePaths(routes, projectConfig.tabs, projectConfig.i18n)
 

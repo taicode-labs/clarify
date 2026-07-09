@@ -78,7 +78,9 @@ build(options)
   │
   ├─ Phase 2: 插件
   │   ├─ loadPlugins()         → 内置插件 + 用户插件
-  │   └─ sortPlugins()         → 按优先级/依赖排序
+  │   ├─ hook: before:plugins:load
+  │   ├─ hook: after:plugins:load
+  │   └─ sortPlugins()         → 按优先级/依赖排序（待实现）
   │
   ├─ Phase 3: 站点发现（Site Discovery）
   │   ├─ hook: before:site:discover
@@ -90,7 +92,10 @@ build(options)
   │   └─ hook: after:site:discover
   │
   ├─ Phase 4: 内容处理
-  │   └─ 当前由 Site Discovery 内的内容处理器完成；长期目标是拆成显式 phase
+  │   ├─ hook: before:content:process
+  │   ├─ createProjectContentProcessor()
+  │   ├─ hook: content:transform
+  │   └─ hook: after:content:process
   │
   ├─ Phase 5: 模块构建
   │   ├─ hook: before:modules:build
@@ -226,6 +231,8 @@ type ClarifyHooks = {
 6. clarify:search-index   → 搜索索引（Pagefind，必须在内容最终确定后）
 7. clarify:html-shell     → HTML 外壳注入（可通过配置关闭）
 ```
+
+插件集合通过 `core/plugin/manager.ts` 统一加载。当前 manager 已集中处理内置插件和用户插件的合并，并在 Site Discovery 路径中触发 `plugins:load` phase；按优先级或显式依赖排序仍是后续目标。
 
 ### 4.4 Slot 机制（UI 扩展）
 

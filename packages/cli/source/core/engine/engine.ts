@@ -30,8 +30,8 @@ import {
   type VirtualModules,
 } from '../runtime/virtual-modules.js'
 import { resolveClarifySite } from '../site/site.js'
-import { createBuiltinPlugins } from '../plugin/builtin.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from '../plugin/hooks.js'
+import { loadBuildPlugins } from '../plugin/manager.js'
 
 import { ClarifyContext } from './context.js'
 import { runInterceptHooks, runPhase, runTapHooks } from './phases.js'
@@ -90,7 +90,7 @@ export class ClarifyEngine {
     const projectConfig = resolveProjectConfig(options)
     const generateOptions = resolveBuildOptions(options)
     const contentRoot = join(this.root, generateOptions.rootDirectory)
-    const plugins = [...createBuiltinPlugins(), ...(options.plugins ?? [])]
+    const plugins = loadBuildPlugins(options)
 
     this.ctx = new ClarifyContext({
       projectRoot: this.root,
