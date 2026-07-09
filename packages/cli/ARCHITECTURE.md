@@ -155,20 +155,24 @@ type PhaseName =
   // 插件
   | 'plugins:load'
   // 站点发现
-  | 'before:site:discover' | 'site:discover' | 'after:site:discover'
+  | 'site:discover'
   // 内容处理
-  | 'before:content:process' | 'content:process' | 'after:content:process'
+  | 'content:process'
   // 模块构建
-  | 'before:modules:build' | 'modules:build' | 'after:modules:build'
+  | 'modules:build'
   // 构建执行
-  | 'before:build' | 'build' | 'after:build'
+  | 'build'
   // 静态生成
-  | 'before:ssg' | 'ssg' | 'after:ssg'
-  // 完成
-  | 'build:done'
+  | 'ssg'
   // 开发
-  | 'before:dev:server' | 'dev:server' | 'after:dev:server'
+  | 'dev:server'
+
+// 每个 Phase 自动触发前缀 Tap hook：
+//   before:<phase>  -> task()  -> after:<phase>
+type TapPhaseName = `before:${PhaseName}` | `after:${PhaseName}`
 ```
+
+`build:done` 是独立的 Tap hook（不属于任何 Phase，在构建完成后由 Engine 直接触发）。
 
 ---
 
@@ -192,7 +196,7 @@ Core 提供三种 Hook 执行模式：
 type ClarifyHooks = {
   // ── Pipeline Hooks ──
   'content:transform'?: PipelineHook<ClarifyContentTransformInput>
-  'page:transform'?: PipelineHook<ClarifyPage>
+  'pages:resolved'?: PipelineHook<ClarifyPage[]>
   'routes:discover'?: PipelineHook<ClarifyRouteDiscoveryInput>
   'routes:discovered'?: PipelineHook<ContentRoute[]>
   'routes:resolved'?: PipelineHook<{ routes: ContentRoute[]; navigation: NavigationTree }>

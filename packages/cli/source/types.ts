@@ -407,10 +407,6 @@ export type ClarifyHooks = {
     pages: ClarifyPage[],
     ctx: ClarifyHookContext
   ) => Promise<ClarifyPage[]> | ClarifyPage[]
-  'page:transform'?: (
-    page: ClarifyPage,
-    ctx: ClarifyHookContext
-  ) => Promise<ClarifyPage> | ClarifyPage
   'routes:discover'?: (
     input: ClarifyRouteDiscoveryInput,
     ctx: ClarifyHookContext
