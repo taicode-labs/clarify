@@ -1,0 +1,90 @@
+import { describe, expect, it } from 'vitest'
+import type { ViteDevServer } from 'vite'
+
+import { ClarifyEngine } from './engine.js'
+
+function createEngineWithHooks(calls: string[]): ClarifyEngine {
+  const engine = new ClarifyEngine({ projectRoot: '/site' })
+  engine.ctx.plugins = [
+    {
+      name: 'phase-test',
+      hooks: {
+        'before:build': () => {
+          calls.push('before:build')
+        },
+        'after:build': () => {
+          calls.push('after:build')
+        },
+        'before:dev:server': () => {
+          calls.push('before:dev:server')
+        },
+        'dev:configureServer': () => {
+          calls.push('dev:configureServer')
+        },
+        'after:dev:server': () => {
+          calls.push('after:dev:server')
+        },
+      },
+    },
+  ]
+  return engine
+}
+
+describe('ClarifyEngine phase hooks', () => {
+  it('runs build phase tap hooks through explicit build boundaries', async () => {
+    const calls: string[] = []
+    const engine = createEngineWithHooks(calls)
+
+    await expect(engine.beginBuild()).resolves.toBe(true)
+    calls.push('build')
+    await engine.endBuild()
+
+    expect(calls).toEqual(['before:build', 'build', 'after:build'])
+  })
+
+  it('skips core build work when build:shouldRun vetoes', async () => {
+    const calls: string[] = []
+    const engine = new ClarifyEngine({ projectRoot: '/site' })
+    engine.ctx.plugins = [
+      {
+        name: 'build-veto',
+        hooks: {
+          'build:shouldRun': () => {
+            calls.push('build:shouldRun')
+            return false
+          },
+          'before:build': () => {
+            calls.push('before:build')
+          },
+          'after:build': () => {
+            calls.push('after:build')
+          },
+          'build:assets': () => {
+            calls.push('build:assets')
+            return [{ fileName: 'asset.txt', source: 'asset' }]
+          },
+          'build:done': () => {
+            calls.push('build:done')
+          },
+        },
+      },
+    ]
+
+    await expect(engine.beginBuild()).resolves.toBe(false)
+    expect(engine.shouldRunBuild()).toBe(false)
+    await engine.endBuild()
+    await expect(engine.collectBuildAssets()).resolves.toEqual([])
+    await engine.runBuildDone()
+
+    expect(calls).toEqual(['build:shouldRun'])
+  })
+
+  it('wraps dev server configuration with dev server phase hooks', async () => {
+    const calls: string[] = []
+    const engine = createEngineWithHooks(calls)
+
+    await engine.configureDevServer({} as ViteDevServer)
+
+    expect(calls).toEqual(['before:dev:server', 'dev:configureServer', 'after:dev:server'])
+  })
+})

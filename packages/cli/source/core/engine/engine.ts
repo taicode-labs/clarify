@@ -34,7 +34,7 @@ import { createBuiltinPlugins } from '../plugin/builtin.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from '../plugin/hooks.js'
 
 import { ClarifyContext } from './context.js'
-import { runInterceptHooks, runPhase } from './phases.js'
+import { runInterceptHooks, runPhase, runTapHooks } from './phases.js'
 
 export type ClarifyEngineMode = 'development' | 'production'
 
@@ -80,6 +80,7 @@ export class ClarifyEngine {
 
   private runtime: ClarifyEngineRuntime = { command: 'build', mode: 'production' }
   private virtualModules: VirtualModules = new Map()
+  private buildEnabled = true
 
   constructor(options: ClarifyBuildOptions = {}) {
     this.options = options
@@ -207,18 +208,39 @@ export class ClarifyEngine {
   }
 
   async collectBuildAssets(): Promise<ClarifyEmitAsset[]> {
+    if (!this.buildEnabled) return []
     return runBuildAssetsHooks(this.plugins, this.ctx)
   }
 
+  async beginBuild(): Promise<boolean> {
+    this.buildEnabled = await runInterceptHooks(this.plugins, 'build:shouldRun', this.ctx)
+    if (!this.buildEnabled) return false
+    await runTapHooks(this.plugins, 'before:build', this.ctx)
+    return true
+  }
+
+  async endBuild(): Promise<void> {
+    if (!this.buildEnabled) return
+    await runTapHooks(this.plugins, 'after:build', this.ctx)
+  }
+
+  shouldRunBuild(): boolean {
+    return this.buildEnabled
+  }
+
   async configureDevServer(server: Parameters<typeof runDevConfigureServerHooks>[1]): Promise<void> {
-    await runDevConfigureServerHooks(this.plugins, server, this.ctx)
+    await runPhase(this.plugins, 'dev:server', this.ctx, async () => {
+      await runDevConfigureServerHooks(this.plugins, server, this.ctx)
+    })
   }
 
   async runBuildDone(): Promise<void> {
+    if (!this.buildEnabled) return
     await runBuildDoneHooks(this.plugins, this.ctx)
   }
 
   async runSSG(): Promise<void> {
+    if (!this.buildEnabled) return
     await runPhase(this.plugins, 'ssg', this.ctx, async () => {
       if (process.env.SKIP_CLARIFY_SSG) {
         await this.runBuildDone()

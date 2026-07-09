@@ -96,6 +96,7 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, options: ClarifyBuil
       }
     },
     async buildStart() {
+      if (!(await engine.beginBuild())) return
       await engine.buildModules()
       engine.writeEnvTypes()
     },
@@ -196,8 +197,10 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, options: ClarifyBuil
           source: asset.source,
         })
       }
+      await engine.endBuild()
     },
     async closeBundle() {
+      if (!engine.shouldRunBuild()) return
       engine.configureRuntime({
         outputDirectory: viteConfig.build.outDir,
         ssrPlugins: [engine.createSSGVirtualPlugin(), normalizedMdxContentPlugin, mdx],

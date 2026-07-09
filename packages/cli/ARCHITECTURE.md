@@ -99,6 +99,7 @@ build(options)
   │   └─ hook: after:modules:build
   │
   ├─ Phase 6: 构建执行（Host Build Phase）
+  │   ├─ hook: build:shouldRun → 可跳过 Core 管理的 build 子流程
   │   ├─ hook: before:build
   │   ├─ vite.build()          → Vite 执行模块图构建，Core 不接管 bundler
   │   ├─ hook: build:assets    → 插件产出静态资源
@@ -155,7 +156,7 @@ type PhaseName =
   // 完成
   | 'build:done'
   // 开发
-  | 'dev:configureServer' | 'dev:serverReady'
+  | 'before:dev:server' | 'dev:server' | 'after:dev:server'
 ```
 
 ---
@@ -201,9 +202,10 @@ type ClarifyHooks = {
   'after:build'?: TapHook
   'before:ssg'?: TapHook
   'after:ssg'?: TapHook
+  'before:dev:server'?: TapHook
+  'after:dev:server'?: TapHook
   'build:done'?: TapHook
   'dev:configureServer'?: (server: ViteDevServer, ctx: ClarifyContext) => void | Promise<void>
-  'dev:serverReady'?: TapHook
 
   // ── Intercept Hooks ──
   'build:shouldRun'?: InterceptHook
@@ -344,16 +346,20 @@ ctx.onRoutesChange(() => {
 
 Bridge 负责把 Vite 生命周期转接到 Core Engine。它不是第二套构建编排器，也不重新定义 build/dev 的阶段。以 Vite bridge 为例：
 
+`build:shouldRun` 只拦截 Core 管理的 build 子流程，例如 virtual modules、插件 assets、SSG、`build:done`。Vite 本身仍是 host runtime，adapter 不尝试阻止宿主的 Rollup/Vite 生命周期。
+
 | Core 抽象 | ViteAdapter 实现 |
 |-----------|------------------|
 | `engine.discoverSite()` | Vite `config` / dev reload 时调用 |
+| `engine.beginBuild()` | Vite `buildStart` 时调用，并执行 `build:shouldRun` / `before:build` |
 | `engine.buildModules()` | Vite `buildStart` 时调用 |
 | `engine.collectBuildAssets()` | Rollup `generateBundle` 中 `emitFile` |
+| `engine.endBuild()` | Rollup `generateBundle` 后调用 `after:build` |
 | `engine.runSSG()` | Vite `closeBundle` 后调用 |
 | 虚拟模块注册 | Vite 插件的 `resolveId` + `load` |
 | HMR 失效 | Vite 的 `moduleGraph.invalidateModule` |
 | HTML 转换 | Vite 的 `transformIndexHtml` |
-| Dev server 扩展 | Vite `configureServer` + `dev:configureServer(server, ctx)` |
+| Dev server 扩展 | Vite `configureServer` + `before:dev:server` / `dev:configureServer(server, ctx)` / `after:dev:server` |
 
 ### 7.2 接口
 
