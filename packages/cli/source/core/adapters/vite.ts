@@ -7,8 +7,7 @@ import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { rehypePlugins, remarkPlugins } from '../../parsers/markdown/mdx.js'
 import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../../parsers/router/dev-routes.js'
-import type { ClarifyBuildOptions } from '../config/options.js'
-import { type ClarifyEngine, createClarifyEngine } from '../engine/engine.js'
+import { type ClarifyEngine } from '../engine/engine.js'
 import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from '../project/project-info.js'
 import {
   RESOLVED_CLIENT_ENTRY,
@@ -22,11 +21,6 @@ import {
   resolveVirtualId,
   stripVirtualPrefix,
 } from '../runtime/virtual-modules.js'
-import { runHooks } from '../plugin/hooks.js'
-
-export type ClarifyViteBridgeOptions = {
-  engine?: ClarifyEngine
-}
 
 function invalidateVirtualModules(engine: ClarifyEngine, server: ViteDevServer): void {
   for (const id of engine.modules.keys()) {
@@ -65,17 +59,15 @@ function createMdxPlugin(): Plugin {
   }) as Plugin
 }
 
-function createClarifyViteCorePlugin(engine: ClarifyEngine, options: ClarifyBuildOptions, normalizedMdxContentPlugin: Plugin, mdx: Plugin): Plugin {
+function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContentPlugin: Plugin, mdx: Plugin): Plugin {
   let viteConfig: ResolvedConfig
 
   return {
     name: 'clarify:core',
-    async config(_config, env) {
-      engine.configureRuntime({ command: 'build', mode: 'production' })
-      const resolvedOptions = await engine.initialize(env)
-      await engine.discoverSite(resolvedOptions)
-      engine.logStartupHints()
-
+    async config() {
+      // The engine is already prepared (initialize + discoverSite + buildModules)
+      // by the caller before constructing the Vite config. The adapter only
+      // contributes Vite-level settings derived from the prepared engine state.
       return {
         base: engine.projectConfig.assetPrefix,
         build: {
@@ -103,13 +95,9 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, options: ClarifyBuil
     async handleHotUpdate(ctx) {
       const changedFile = isAbsolute(ctx.file) ? ctx.file : join(engine.root, ctx.file)
       if (engine.configFilePath && changedFile === engine.configFilePath) {
-        const resolvedOptions = await engine.initialize({ command: 'serve', mode: viteConfig.mode }, {
-          ...options,
-          projectRoot: engine.root,
-          rootDirectory: options.rootDirectory,
-          outputDirectory: options.outputDirectory,
-        }, true)
-        await engine.refresh(resolvedOptions)
+        // Config file changed: force re-prepare (initialize + discoverSite +
+        // buildModules) with the current runtime mode, then reload.
+        await engine.prepare({ command: 'serve', mode: viteConfig.mode }, engine.options, true)
         invalidateVirtualModules(engine, ctx.server)
         ctx.server.ws.send({ type: 'full-reload' })
         return []
@@ -180,12 +168,12 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, options: ClarifyBuil
         const clientEntryId = transformCtx.server
           ? `/@id/${VIRTUAL_CLIENT_ENTRY}`
           : VIRTUAL_CLIENT_ENTRY
-        const result = await runHooks(engine.plugins, 'html:transform', {
+        const result = await engine.transformHtml({
           html,
           tags: [],
           clientEntryId,
           dev: Boolean(transformCtx.server),
-        }, engine.hookContext)
+        })
         return {
           html: result.html,
           tags: result.tags,
@@ -214,15 +202,22 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, options: ClarifyBuil
   }
 }
 
-export function createViteAdapter(options: ClarifyBuildOptions = {}, bridgeOptions: ClarifyViteBridgeOptions = {}): Plugin[] {
-  const engine = bridgeOptions.engine ?? createClarifyEngine(options)
+/**
+ * Creates the Clarify Vite plugins bound to an already-prepared engine.
+ *
+ * The caller is responsible for running `engine.prepare()` (initialize +
+ * discoverSite + buildModules) before constructing the Vite config that
+ * includes these plugins. The adapter never initializes or discovers the
+ * site itself - it only bridges Vite lifecycle hooks to the engine.
+ */
+export function createViteAdapter(engine: ClarifyEngine): Plugin[] {
   const normalizedMdxContentPlugin = createNormalizedMdxContentPlugin(engine)
   const mdx = createMdxPlugin()
   return [
     react(),
     tailwindcss(),
     normalizedMdxContentPlugin,
-    createClarifyViteCorePlugin(engine, options, normalizedMdxContentPlugin, mdx),
+    createClarifyViteCorePlugin(engine, normalizedMdxContentPlugin, mdx),
     mdx,
   ].flat().filter(Boolean) as Plugin[]
 }

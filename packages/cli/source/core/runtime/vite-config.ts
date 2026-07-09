@@ -5,7 +5,7 @@ import { createLogger } from 'vite'
 import type { ConfigEnv, InlineConfig, Plugin, LogLevel, Logger, LogOptions, LogErrorOptions, LogType } from 'vite'
 
 import { createViteAdapter } from '../adapters/vite.js'
-import { createClarifyEngine } from '../engine/engine.js'
+import type { ClarifyEngine } from '../engine/engine.js'
 import { createClarifyTempDir } from '../project/temp-dir.js'
 
 import { logBuildErrorSync } from './log.js'
@@ -92,14 +92,8 @@ function createHtmlFallbackPlugin(): Plugin {
   }
 }
 
-export async function createViteConfig(options: ClarifyViteConfigOptions, env: ConfigEnv): Promise<InlineConfig> {
+export async function createViteConfig(options: ClarifyViteConfigOptions, env: ConfigEnv, engine: ClarifyEngine): Promise<InlineConfig> {
   const entryHtmlPath = ensureHtmlEntry(options.root)
-  const engine = createClarifyEngine({
-    projectRoot: options.root,
-    rootDirectory: options.content,
-    outputDirectory: options.output,
-  })
-  const buildOptions = await engine.initialize(env)
 
   return {
     root: options.root,
@@ -110,7 +104,7 @@ export async function createViteConfig(options: ClarifyViteConfigOptions, env: C
     },
     customLogger: createClarifyLogger(options.root, env, 'info'),
     plugins: [
-      createViteAdapter(buildOptions, { engine }),
+      createViteAdapter(engine),
       createHtmlFallbackPlugin(),
     ],
     server: {

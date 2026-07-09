@@ -1,4 +1,4 @@
-export { clarifyPlugin } from './core/plugin/plugin.js'
+export { createViteAdapter } from './core/plugin/plugin.js'
 export { ClarifyEngine, createClarifyEngine } from './core/engine/engine.js'
 export { ClarifyContext } from './core/engine/context.js'
 export { loadBuildPlugins, loadPlugins } from './core/plugin/manager.js'

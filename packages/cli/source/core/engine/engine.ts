@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path'
 import type { ConfigEnv, Plugin } from 'vite'
 
 import { cliPackageVersion } from '../../cli/package.js'
-import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree, ClarifyPage  } from '../../types.js'
+import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyHtmlTransformInput, ClarifyPlugin, ContentRoute, NavigationTree, ClarifyPage  } from '../../types.js'
 import { resolveProjectConfig } from '../config/config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from '../config/options.js'
 import { findClarifyConfigFile } from '../config/user-config.js'
@@ -103,6 +103,25 @@ export class ClarifyEngine {
     this.initializedOptions = context.resolvedOptions
 
     return context.resolvedOptions
+  }
+
+  /**
+   * Runs the full pre-build/pre-dev preparation: initialize (config load +
+   * resolve + plugins:load), site discovery (routes + navigation), and module
+   * building. This is the single entry point that prepares the engine before
+   * handing it to a Vite adapter, so adapters never need to initialize or
+   * discover the site themselves.
+   *
+   * Idempotent: calling prepare() again with the same env is a no-op unless
+   * `force` is set (used by config-file hot reload).
+   */
+  async prepare(env: ConfigEnv = { command: this.runtime.command, mode: this.runtime.mode }, options: ClarifyBuildOptions = this.options, force = false): Promise<ClarifyBuildOptions> {
+    this.configureRuntime({ command: env.command, mode: env.mode })
+    const resolvedOptions = await this.initialize(env, options, force)
+    await this.discoverSite(resolvedOptions)
+    await this.buildModules()
+    this.logStartupHints()
+    return resolvedOptions
   }
 
   get state(): ClarifyEngineState {
@@ -335,6 +354,15 @@ export class ClarifyEngine {
   async refresh(overrides?: ClarifyBuildOptions): Promise<void> {
     await this.discoverSite(overrides)
     await this.buildModules()
+  }
+
+  /**
+   * Runs the `html:transform` pipeline hook and returns the transformed
+   * input. Adapters call this from their `transformIndexHtml` hook instead
+   * of invoking `runHooks` directly, keeping hook execution inside Engine.
+   */
+  async transformHtml(input: ClarifyHtmlTransformInput): Promise<ClarifyHtmlTransformInput> {
+    return runHooks(this.plugins, 'html:transform', input, this.ctx)
   }
 
   runtimeContext(): Omit<ClarifyHookContext, 'routes' | 'navigation'> {

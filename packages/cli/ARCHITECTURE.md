@@ -68,6 +68,8 @@ Core 只负责"编排"，Renderer 只负责"渲染"。
 
 ### 3.1 Build 工作流
 
+> CLI 入口：`build.ts` 创建 Engine，调用 `engine.prepare(env)` 统一执行 Phase 1-5（initialize + discoverSite + buildModules + logStartupHints），然后把 prepared Engine 交给 `createViteConfig` 驱动 Vite 构建。Adapter 不参与初始化。
+
 ```
 build(options)
   │
@@ -357,20 +359,23 @@ ctx.onRoutesChange(() => {
 
 Bridge 负责把 Vite 生命周期转接到 Core Engine。它不是第二套构建编排器，也不重新定义 build/dev 的阶段。以 Vite bridge 为例：
 
+**初始化职责在 CLI 层，不在 adapter。** CLI 命令（`build.ts` / `dev.ts`）创建 Engine 并调用 `engine.prepare(env)`（= initialize + discoverSite + buildModules + logStartupHints），然后把已 prepared 的 Engine 传给 `createViteConfig` / adapter。Adapter 的 `config` hook 只贡献从 prepared engine 派生的 Vite 配置（base / outDir / manifest），不调用 `initialize` / `discoverSite`。
+
 `build:shouldRun` 只拦截 Core 管理的 build 子流程，例如 virtual modules、插件 assets、SSG、`build:done`。Vite 本身仍是 host runtime，adapter 不尝试阻止宿主的 Rollup/Vite 生命周期。
 
 | Core 抽象 | ViteAdapter 实现 |
 |-----------|------------------|
-| `engine.discoverSite()` | Vite `config` / dev reload 时调用 |
+| `engine.prepare()` | CLI 层调用（adapter 之前），adapter 不参与 |
 | `engine.beginBuild()` | Vite `buildStart` 时调用，并执行 `build:shouldRun` / `before:build` |
-| `engine.buildModules()` | Vite `buildStart` 时调用 |
+| `engine.buildModules()` | CLI `prepare()` 阶段调用（adapter 之前） |
 | `engine.collectBuildAssets()` | Rollup `generateBundle` 中 `emitFile` |
 | `engine.endBuild()` | Rollup `generateBundle` 后调用 `after:build` |
 | `engine.runSSG()` | Vite `closeBundle` 后调用 |
 | 虚拟模块注册 | Vite 插件的 `resolveId` + `load` |
 | HMR 失效 | Vite 的 `moduleGraph.invalidateModule` |
-| HTML 转换 | Vite 的 `transformIndexHtml` |
+| HTML 转换 | Vite 的 `transformIndexHtml` 委托 `engine.transformHtml()` |
 | Dev server 扩展 | Vite `configureServer` + `before:dev:server` / `dev:configureServer(server, ctx)` / `after:dev:server` |
+| 配置文件热重载 | Vite `handleHotUpdate` 检测配置变更 -> `engine.prepare(env, options, true)` 强制重新 prepare |
 
 ### 7.2 接口
 
@@ -455,17 +460,17 @@ packages/cli/source/
 
 ## 9. 演进路线
 
-### Phase 1：提取 Engine（P0）
+### Phase 1：提取 Engine（P0）✅
 
 目标：让核心状态和阶段可独立测试，不再被 Vite 插件闭包持有。
 
 - 新建 `core/engine/engine.ts`，提取 `resolveRoutesAndSpecs` / `rebuildVirtualModules` / `refreshDevServer`。
 - 新建 `core/engine/context.ts`，统一 `ClarifyContext`。
-- `plugin/plugin.ts` 只保留公共 facade，Vite 生命周期桥接在 `core/adapters/vite.ts` 中委托给 `ClarifyEngine`。
+- Vite 生命周期桥接在 `core/adapters/vite.ts` 中委托给 `ClarifyEngine`。
 
-### Phase 2：分离 Vite Adapter（P0）
+### Phase 2：分离 Vite Adapter（P0）✅
 
-目标：降低 Vite 耦合，`clarifyPlugin` 只负责桥接。
+目标：降低 Vite 耦合，adapter 只负责桥接。
 
 - `core/adapters/vite.ts` 承接 Vite hook 实现。
 - `clarifyPlugin()` 瘦身为对 `createViteAdapter()` 的公共 facade。
