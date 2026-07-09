@@ -5,10 +5,10 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
-import { rehypePlugins, remarkPlugins } from '../../parsers/markdown/mdx.js'
-import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../../parsers/router/dev-routes.js'
-import { type ClarifyEngine } from '../engine/engine.js'
-import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from '../project/project-info.js'
+import { rehypePlugins, remarkPlugins } from '../parsers/markdown/mdx.js'
+import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../parsers/router/dev-routes.js'
+import { type ClarifyEngine } from './engine/engine.js'
+import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from './project/project-info.js'
 import {
   RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
@@ -20,7 +20,7 @@ import {
   VIRTUAL_SLOTS,
   resolveVirtualId,
   stripVirtualPrefix,
-} from '../runtime/virtual-modules.js'
+} from './runtime/virtual-modules.js'
 
 function invalidateVirtualModules(engine: ClarifyEngine, server: ViteDevServer): void {
   for (const id of engine.modules.keys()) {

@@ -1,7 +1,7 @@
 import type { ZodError } from 'zod'
 
 import type { ClarifyI18nConfig, ClarifyProjectConfig, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
-import { resolveThemeConfig } from '../site/theme.js'
+import { resolveThemeConfig } from '../../parsers/theme.js'
 
 import { clarifyProjectConfigSchema } from './config-schema.js'
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { themePresets } from '../site/theme.js'
+import { themePresets } from '../../parsers/theme.js'
 
 import { clarifyProjectConfigSchema } from './config-schema.js'
 import { resolveProjectConfig } from './config.js'

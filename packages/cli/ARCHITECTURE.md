@@ -470,13 +470,13 @@ packages/cli/source/
 
 - 新建 `core/engine/engine.ts`，提取 `resolveRoutesAndSpecs` / `rebuildVirtualModules` / `refreshDevServer`。
 - 新建 `core/engine/context.ts`，统一 `ClarifyContext`。
-- Vite 生命周期桥接在 `core/adapters/vite.ts` 中委托给 `ClarifyEngine`。
+- Vite 生命周期桥接在 `core/adapters.ts` 中委托给 `ClarifyEngine`。
 
 ### Phase 2：分离 Vite Adapter（P0）✅
 
 目标：降低 Vite 耦合，adapter 只负责桥接。
 
-- `core/adapters/vite.ts` 承接 Vite hook 实现。
+- `core/adapters.ts` 承接 Vite hook 实现。
 - `createViteAdapter()` 直接作为 Vite 桥接入口，通过 `index.ts` 公共导出。
 
 ### Phase 3：增强 Hook 系统（P1）
@@ -493,12 +493,13 @@ packages/cli/source/
 - 实现 `ClarifyContext` 的 `get/set` 状态 API。
 - 状态变更自动通知监听器。
 
-### Phase 5：目录重组（P2）
+### Phase 5：目录重组（P2）✅
 
 目标：代码结构更清晰。
 
-- 新建 `core/engine/` 和 `core/adapters/` 目录。
-- 迁移相关文件。
+- `core/engine/` 负责工作流调度。
+- `core/adapters.ts` 负责 Vite 桥接（单文件，无需子目录）。
+- 业务逻辑（变量替换、OpenAPI 解析、主题解析等）移入 `plugins/` 或 `parsers/`。
 
 ---
 
@@ -510,7 +511,7 @@ packages/cli/source/
 |------------------------|----------------|
 | CLI owns the project pipeline | `core/engine/` 负责工作流调度 |
 | CLI 负责发现文件、加载配置、执行插件 | `core/config/` + `core/plugin/` |
-| CLI 负责管理 Vite | `core/adapters/vite.ts`（通过 `index.ts` 导出 `createViteAdapter`） |
+| CLI 负责管理 Vite | `core/adapters.ts`（通过 `index.ts` 导出 `createViteAdapter`） |
 | CLI 负责注册虚拟模块 | `core/runtime/virtual-modules.ts`（由 engine 调用） |
 | renderer/server 负责编译 route module | Core 通过 Hook 调用 renderer/server API |
 | route virtual module 是编译边界 | `core/engine/` 生成 route payload，renderer/server 编译为 module |

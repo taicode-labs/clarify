@@ -1,7 +1,7 @@
 import { relative } from 'node:path'
 
-import { createProjectContentProcessor } from '../../core/content/content.js'
-import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from '../../parsers/openapi/parser.js'
+import { createProjectContentProcessor } from '../../parsers/content/content.js'
+import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
 import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/routes/routes.js'
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedProjectConfig } from '../../types.js'
 

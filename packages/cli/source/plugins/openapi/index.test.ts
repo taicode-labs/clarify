@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import { describe, expect, it, afterEach, beforeEach } from 'vitest'
 
-import { resolveThemeConfig } from '../../core/site/theme.js'
+import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 import { createOpenAPIPlugin } from './index.js'

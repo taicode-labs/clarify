@@ -1,5 +1,5 @@
 import { findContentRoutes, findLocalizedContentRoutes } from '../../parsers/routes/routes.js'
-import { createProjectContentProcessor } from '../../core/content/content.js'
+import { createProjectContentProcessor } from '../../parsers/content/content.js'
 import type { ClarifyPlugin } from '../../types.js'
 
 /**

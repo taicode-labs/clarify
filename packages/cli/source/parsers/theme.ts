@@ -1,6 +1,6 @@
 import { themePresets } from '@clarify-labs/renderer'
 
-import type { ClarifyThemeConfig, ResolvedClarifyThemeConfig } from '../../types.js'
+import type { ClarifyThemeConfig, ResolvedClarifyThemeConfig } from '../types.js'
 
 export { themePresets }
 

@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import { createLogger } from 'vite'
 import type { ConfigEnv, InlineConfig, Plugin, LogLevel, Logger, LogOptions, LogErrorOptions, LogType } from 'vite'
 
-import { createViteAdapter } from '../adapters/vite.js'
+import { createViteAdapter } from '../adapters.js'
 import type { ClarifyEngine } from '../engine/engine.js'
 import { createClarifyTempDir } from '../project/temp-dir.js'
 

@@ -1,4 +1,4 @@
-export { createViteAdapter } from './core/adapters/vite.js'
+export { createViteAdapter } from './core/adapters.js'
 export { ClarifyEngine, createClarifyEngine } from './core/engine/engine.js'
 export { defineConfig } from './core/config/user-config.js'
 export type { ClarifyEngineRuntime, ClarifyEngineState, PrepareOptions } from './core/engine/engine.js'

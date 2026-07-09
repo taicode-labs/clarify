@@ -4,7 +4,7 @@ import { extname, join, relative, resolve } from 'node:path'
 import type { ViteDevServer } from 'vite'
 
 import { createClarifyTempDir, removeClarifyTempDir } from '../../core/project/temp-dir.js'
-import { toPagefindLanguage } from '../../core/site/search-language.js'
+import { toPagefindLanguage } from './search-language.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute } from '../../types.js'
 
 type PagefindModule = typeof import('pagefind')

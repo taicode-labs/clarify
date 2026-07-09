@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import type { ClarifyPlugin, ClarifyHookContext, ClarifyPage } from '../../types.js'
-import { resolveThemeConfig } from '../site/theme.js'
+import { resolveThemeConfig } from '../../parsers/theme.js'
 
 import { runHooks } from './hooks.js'
 
