@@ -31,6 +31,7 @@ const ctx: ClarifyHookContext = {
   version: 'test',
   routes: [],
   navigation: [],
+  plugins: [],
 }
 
 describe('createVariablesPlugin', () => {

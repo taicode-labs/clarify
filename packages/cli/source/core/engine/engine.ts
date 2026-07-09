@@ -4,12 +4,10 @@ import { join, resolve } from 'node:path'
 import type { ConfigEnv, Plugin } from 'vite'
 
 import { cliPackageVersion } from '../../cli/package.js'
-import { applyConfiguredPageRoutePaths, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
 import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyPlugin, ContentRoute, NavigationTree, ClarifyPage  } from '../../types.js'
 import { resolveProjectConfig } from '../config/config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from '../config/options.js'
 import { findClarifyConfigFile } from '../config/user-config.js'
-import { createProjectContentProcessor, setProjectContentProcessor } from '../content/content.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from '../plugin/hooks.js'
 import { loadBuildPlugins, loadBuildPluginsForContext } from '../plugin/manager.js'
 import { resolveProjectContext } from '../project/project-context.js'
@@ -34,11 +32,10 @@ import {
   stripVirtualPrefix,
   type VirtualModules,
 } from '../runtime/virtual-modules.js'
-import { discoverRoutes } from '../site/site.js'
 
 import { ClarifyContext } from './context.js'
 import { runInterceptHooks, runPhase, runTapHooks } from './phases.js'
-import type { ClarifyEngineRuntime, ClarifyEngineState } from './types.js'
+import type { BuildSSRBundleOptions, ClarifyEngineRuntime, ClarifyEngineState } from './types.js'
 
 export type { ClarifyEngineMode, ClarifyEngineRuntime, ClarifyEngineState } from './types.js'
 
@@ -101,7 +98,6 @@ export class ClarifyEngine {
     })
     await runPhase(seedPlugins, 'config:resolve', this.ctx, () => undefined)
     const plugins = await loadBuildPluginsForContext(this.ctx, context.resolvedOptions)
-    setProjectContentProcessor(this.ctx, createProjectContentProcessor(plugins, this.ctx))
     this.initializedOptions = context.resolvedOptions
 
     return context.resolvedOptions
@@ -174,13 +170,26 @@ export class ClarifyEngine {
       version: context.projectContext.version,
     })
 
-    const plugins = this.ctx.plugins
+    // Phase 2: plugins:load - register builtin + user plugins. This runs
+    // even when initialize() was called earlier, because discoverSite() may be
+    // invoked with different overrides (e.g. htmlShell toggled off).
+    const plugins = await loadBuildPluginsForContext(this.ctx, context.resolvedOptions, { htmlShell: siteOptions?.htmlShell ?? true })
 
-    // Phase 3: site:discover — scan content directory
-    let routes = await runPhase(plugins, 'site:discover', this.ctx, () => discoverRoutes(root, contentRoot, plugins, this.ctx))
+    // Phase 3: site:discover - scan content directory via routes:discover pipeline.
+    // The actual discovery logic (i18n handling, fallback routes, bare aliases)
+    // lives in the site-discovery builtin plugin, keeping the Engine as a pure
+    // orchestrator.
+    let routes = await runPhase(plugins, 'site:discover', this.ctx, async () => {
+      const discovered = await runHooks(plugins, 'routes:discover', { contentRoot, routes: [] }, this.ctx)
+      return discovered.routes
+    })
     routes = await runHooks(plugins, 'routes:discovered', routes, this.ctx)
 
-    // Phase 4: content:process — post-discovery adjustments
+    // Phase 4: content:process - post-discovery adjustments. Map routes to
+    // pages, run pages:resolved pipeline, then write back any page-level
+    // changes (frontmatter/content) onto the routes. applyConfiguredPageRoutePaths
+    // and navigation building are handled by the navigation builtin plugin in
+    // routes:resolved below.
     routes = await runPhase(plugins, 'content:process', this.ctx, async () => {
       const pages = routes.map<ClarifyPage>(route => ({
         path: route.path,
@@ -190,7 +199,7 @@ export class ClarifyEngine {
       }))
       const resolvedPages = await runHooks(plugins, 'pages:resolved', pages, this.ctx)
       const pageByPath = new Map(resolvedPages.map(p => [p.path, p]))
-      routes = routes.map(route => {
+      return routes.map(route => {
         const page = pageByPath.get(route.path)
         if (!page) return route
         return {
@@ -199,16 +208,11 @@ export class ClarifyEngine {
           content: page.content,
         }
       })
-
-      return applyConfiguredPageRoutePaths(routes, projectConfig.tabs, projectConfig.i18n)
     })
 
-    const defaultNavigation = projectConfig.tabs
-      ? projectConfig.i18n
-        ? (buildLocalizedNavigationFromTabsConfig(routes, projectConfig.tabs, projectConfig.i18n) ?? {})
-        : buildNavigationFromTabsConfig(routes, projectConfig.tabs)
-      : buildNavigation(routes)
-    const resolved = await runHooks(plugins, 'routes:resolved', { routes, navigation: defaultNavigation }, this.ctx)
+    // Build navigation and apply configured page route paths via the navigation
+    // builtin plugin (runs as enforce:'post').
+    const resolved = await runHooks(plugins, 'routes:resolved', { routes, navigation: {} as NavigationTree }, this.ctx)
     routes = resolved.routes
     const navigation = resolved.navigation
 
@@ -342,6 +346,7 @@ export class ClarifyEngine {
       projectConfig: this.projectConfig,
       generateOptions: this.generateOptions,
       version: this.ctx.version,
+      plugins: this.ctx.plugins,
     }
   }
 

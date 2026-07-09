@@ -10,6 +10,7 @@ describe('plugin manager', () => {
     })
 
     expect(plugins.map(plugin => plugin.name)).toEqual([
+      'clarify:site-discovery',
       'clarify:variables',
       'clarify:openapi',
       'clarify:source-links',
@@ -17,6 +18,7 @@ describe('plugin manager', () => {
       'clarify:seo',
       'clarify:search-index',
       'user-plugin',
+      'clarify:navigation',
     ])
   })
 
@@ -25,7 +27,8 @@ describe('plugin manager', () => {
       plugins: [{ name: 'user-plugin' }],
     })
 
-    expect(plugins.at(-1)?.name).toBe('user-plugin')
+    // navigation is the only enforce:'post' builtin so it sorts last.
+    expect(plugins.at(-1)?.name).toBe('clarify:navigation')
     expect(plugins.some(plugin => plugin.name === 'clarify:html-shell')).toBe(true)
   })
 

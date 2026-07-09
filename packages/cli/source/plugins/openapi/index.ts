@@ -1,6 +1,6 @@
 import { relative } from 'node:path'
 
-import { getProjectContentProcessor } from '../../core/content/content.js'
+import { createProjectContentProcessor } from '../../core/content/content.js'
 import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from '../../parsers/openapi/parser.js'
 import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../../parsers/routes/routes.js'
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedProjectConfig } from '../../types.js'
@@ -93,7 +93,8 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
 
         for (const route of nextRoutes.filter(route => route.kind === 'openapi')) {
           const specFromCache = specByFilePath.get(route.filePath)
-          const result = specFromCache ? { ok: true as const, spec: specFromCache } : await readOpenAPISpec(route.filePath, getProjectContentProcessor(ctx))
+          const processor = createProjectContentProcessor(ctx.plugins, ctx)
+          const result = specFromCache ? { ok: true as const, spec: specFromCache } : await readOpenAPISpec(route.filePath, processor)
           if (!result.ok) {
             route.diagnostic = result.diagnostic
             route.title = route.title || 'OpenAPI parse error'

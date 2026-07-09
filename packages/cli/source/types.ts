@@ -361,6 +361,7 @@ export type ClarifyProjectContext = {
 export type ClarifyHookContext = ClarifyProjectContext & {
   routes: ContentRoute[]
   navigation: NavigationTree
+  plugins: ClarifyPlugin[]
 }
 
 export type ClarifyRouteDiscoveryInput = {

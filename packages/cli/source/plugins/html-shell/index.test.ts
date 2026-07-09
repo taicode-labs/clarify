@@ -25,6 +25,7 @@ const ctx: ClarifyHookContext = {
   version: 'test',
   routes: [],
   navigation: [],
+  plugins: [],
 }
 
 describe('createHtmlShellPlugin', () => {

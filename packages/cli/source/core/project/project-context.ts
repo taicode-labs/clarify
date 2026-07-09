@@ -52,6 +52,7 @@ export async function resolveProjectContext(options: ClarifyBuildOptions = {}, e
     ...projectContext,
     routes: [],
     navigation: [],
+    plugins: [],
   }
 
   return {

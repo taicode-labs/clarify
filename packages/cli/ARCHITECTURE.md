@@ -88,17 +88,15 @@ build(options)
   │
   ├─ Phase 3: 站点发现（Site Discovery）
   │   ├─ hook: before:site:discover
-  │   ├─ discoverRoutes()      → 扫描内容目录
-  │   ├─ hook: routes:discover → 插件可修改发现输入
+  │   ├─ hook: routes:discover -> site-discovery 插件扫描内容目录（含 i18n/fallback/bare alias）
   │   ├─ hook: routes:discovered
-  │   ├─ buildNavigation()     → 构建导航树
-  │   ├─ hook: routes:resolved
   │   └─ hook: after:site:discover
   │
   ├─ Phase 4: 内容处理
   │   ├─ hook: before:content:process
-  │   ├─ createProjectContentProcessor()
-  │   ├─ hook: content:transform
+  │   ├─ hook: content:transform（在 site:discover 阶段由 content processor 触发）
+  │   ├─ hook: pages:resolved  -> 页面级 frontmatter/content 回写到 routes
+  │   ├─ hook: routes:resolved -> navigation 插件构建导航树 + applyConfiguredPageRoutePaths
   │   └─ hook: after:content:process
   │
   ├─ Phase 5: 模块构建

@@ -4,10 +4,8 @@ import { join } from 'node:path'
 
 import { describe, expect, it, afterEach, beforeEach } from 'vitest'
 
-import { setProjectContentProcessor } from '../../core/content/content.js'
 import { resolveThemeConfig } from '../../core/site/theme.js'
-import { createContentProcessor } from '../../parsers/content/content.js'
-import type { ClarifyHookContext, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 import { createOpenAPIPlugin } from './index.js'
 
@@ -36,11 +34,29 @@ function createContext(routes: ContentRoute[]): ClarifyHookContext {
     version: 'test',
     routes,
     navigation: [],
+    plugins: [],
   }
 }
 
+/**
+ * Plugin that mirrors the variables plugin's content:transform behavior for
+ * the two test variables used below. Replaces the old WeakMap-based
+ * setProjectContentProcessor test mock.
+ */
+const variableReplacementTestPlugin: ClarifyPlugin = {
+  name: 'test:variable-replacement',
+  hooks: {
+    'content:transform': input => ({
+      ...input,
+      content: input.content
+        .replaceAll('{{ product.name }}', 'Clarify')
+        .replaceAll('{{ apiVersion }}', '1.0.0'),
+    }),
+  },
+}
+
 function createContextWithVariables(routes: ContentRoute[]): ClarifyHookContext {
-  const ctx: ClarifyHookContext = {
+  return {
     projectRoot: '/site',
     contentRoot: '/site/source',
     projectConfig: {
@@ -54,14 +70,8 @@ function createContextWithVariables(routes: ContentRoute[]): ClarifyHookContext 
     version: 'test',
     routes,
     navigation: [],
+    plugins: [variableReplacementTestPlugin],
   }
-  setProjectContentProcessor(ctx, createContentProcessor(input => ({
-    ...input,
-    content: input.content
-      .replaceAll('{{ product.name }}', 'Clarify')
-      .replaceAll('{{ apiVersion }}', '1.0.0'),
-  })))
-  return ctx
 }
 
 describe('createOpenAPIPlugin', () => {

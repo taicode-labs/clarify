@@ -25,6 +25,7 @@ const mockCtx: ClarifyHookContext = {
   version: 'test',
   routes: [],
   navigation: [],
+  plugins: [],
 }
 
 describe('runHooks', () => {

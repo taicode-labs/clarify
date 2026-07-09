@@ -235,6 +235,7 @@ export async function findLocalizedContentRoutes(contentRoot: string, i18n?: Res
   const routesWithAlternates = localizedRoutes.map(route => withAlternates(route, localizedRoutes, i18n))
 
   // 为默认语言生成无前缀的裸路径别名，方便不带语言前缀的 URL 也能访问
+  // 标记这些别名路由，以便搜索索引生成时过滤它们，避免重复索引
   const bareRoutes: ContentRoute[] = []
   const seenBare = new Set(routesWithAlternates.map(r => r.path))
   for (const route of routesWithAlternates) {
@@ -242,7 +243,7 @@ export async function findLocalizedContentRoutes(contentRoot: string, i18n?: Res
     const bp = route.basePath ?? route.path
     if (bp === route.path || seenBare.has(bp)) continue
     seenBare.add(bp)
-    bareRoutes.push({ ...route, path: bp })
+    bareRoutes.push({ ...route, path: bp, isBareAlias: true })
   }
 
   return [...routesWithAlternates, ...bareRoutes]
@@ -344,6 +345,7 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
   if (!i18n) return routesWithAlternates
 
   // 为默认语言生成无前缀的裸路径别名，方便不带语言前缀的 URL 也能访问
+  // 标记这些别名路由，以便搜索索引生成时过滤它们，避免重复索引
   const bareRoutes: ContentRoute[] = []
   const seenBare = new Set(routesWithAlternates.map(r => r.path))
   for (const route of routesWithAlternates) {
@@ -351,7 +353,7 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
     const bp = route.basePath ?? route.path
     if (bp === route.path || seenBare.has(bp)) continue
     seenBare.add(bp)
-    bareRoutes.push({ ...route, path: bp })
+    bareRoutes.push({ ...route, path: bp, isBareAlias: true })
   }
 
   return [...routesWithAlternates, ...bareRoutes]
