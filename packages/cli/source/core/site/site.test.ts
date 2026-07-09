@@ -4,7 +4,7 @@ import { join } from 'node:path'
 
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { resolveClarifySite } from './site.js'
+import { createClarifyEngine } from '../engine/engine.js'
 
 const tempRoots: string[] = []
 
@@ -21,7 +21,7 @@ afterEach(() => {
   }
 })
 
-describe('resolveClarifySite', () => {
+describe('Engine.discoverSite', () => {
   it('runs plugin load phase before content processing', async () => {
     const root = createSiteRoot()
     const source = join(root, 'source')
@@ -29,7 +29,7 @@ describe('resolveClarifySite', () => {
     writeFileSync(join(source, 'index.md'), '# Home\n', { flag: 'wx' })
     const calls: string[] = []
 
-    await resolveClarifySite({
+    const engine = createClarifyEngine({
       projectRoot: root,
       plugins: [
         {
@@ -48,6 +48,7 @@ describe('resolveClarifySite', () => {
         },
       ],
     })
+    await engine.discoverSite()
 
     expect(calls).toEqual([
       'before:plugins:load',
@@ -63,7 +64,7 @@ describe('resolveClarifySite', () => {
     writeFileSync(join(source, 'index.md'), '# Home\n', { flag: 'wx' })
     const calls: string[] = []
 
-    await resolveClarifySite({
+    const engine = createClarifyEngine({
       projectRoot: root,
       plugins: [
         {
@@ -83,6 +84,7 @@ describe('resolveClarifySite', () => {
         },
       ],
     })
+    await engine.discoverSite()
 
     expect(calls).toEqual([
       'content:transform',
