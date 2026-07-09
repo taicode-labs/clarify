@@ -10,16 +10,9 @@ import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../parsers/ro
 import { type ClarifyEngine } from './engine/engine.js'
 import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from './project/project-info.js'
 import {
-  RESOLVED_CLIENT_ENTRY,
   VIRTUAL_CLIENT_ENTRY,
-  VIRTUAL_CONFIG,
-  VIRTUAL_OPENAPI,
-  VIRTUAL_ROUTES,
-  VIRTUAL_SERVER_ROUTES,
-  VIRTUAL_SLOT,
-  VIRTUAL_SLOTS,
   resolveVirtualId,
-  stripVirtualPrefix,
+  resolveVirtualModuleId,
 } from './runtime/virtual-modules.js'
 
 function invalidateVirtualModules(engine: ClarifyEngine, server: ViteDevServer): void {
@@ -110,18 +103,7 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
       return []
     },
     resolveId(id) {
-      if (id === VIRTUAL_CLIENT_ENTRY || id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
-      if (id === VIRTUAL_CONFIG || id === resolveVirtualId(VIRTUAL_CONFIG)) return resolveVirtualId(VIRTUAL_CONFIG)
-      if (id === VIRTUAL_ROUTES || id === resolveVirtualId(VIRTUAL_ROUTES)) return resolveVirtualId(VIRTUAL_ROUTES)
-      if (id === VIRTUAL_SERVER_ROUTES || id === resolveVirtualId(VIRTUAL_SERVER_ROUTES)) return resolveVirtualId(VIRTUAL_SERVER_ROUTES)
-      if (id === VIRTUAL_OPENAPI || id === resolveVirtualId(VIRTUAL_OPENAPI)) return resolveVirtualId(VIRTUAL_OPENAPI)
-      if (id === VIRTUAL_SLOTS || id === resolveVirtualId(VIRTUAL_SLOTS)) return resolveVirtualId(VIRTUAL_SLOTS)
-      if (id === VIRTUAL_SLOT || id === resolveVirtualId(VIRTUAL_SLOT)) return resolveVirtualId(VIRTUAL_SLOT)
-      const moduleId = stripVirtualPrefix(id)
-      if (engine.modules.has(moduleId)) return resolveVirtualId(moduleId)
-      const route = engine.routes.find(route => route.virtualModuleId === id || route.virtualModuleId === moduleId)
-      if (route) return resolveVirtualId(route.virtualModuleId)
-      return null
+      return resolveVirtualModuleId(id, engine.modules, engine.routes)
     },
     load(id) {
       return engine.loadModule(id)

@@ -9,7 +9,7 @@ import { resolveProjectConfig } from '../config/config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from '../config/options.js'
 import { findClarifyConfigFile } from '../config/user-config.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from '../plugin/hooks.js'
-import { loadBuildPlugins, loadBuildPluginsForContext } from '../plugin/manager.js'
+import { loadBuildPlugins } from '../plugin/manager.js'
 import { resolveProjectContext } from '../project/project-context.js'
 import { createProjectContentProcessor } from '../../parsers/content/content.js'
 import { findContentRoutes, findLocalizedContentRoutes, applyConfiguredPageRoutePaths, buildNavigation, buildNavigationFromTabsConfig, buildLocalizedNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
@@ -22,15 +22,8 @@ import {
 } from '../runtime/ssg.js'
 import { logStartupHints } from '../runtime/startup.js'
 import {
-  RESOLVED_CLIENT_ENTRY,
-  VIRTUAL_CLIENT_ENTRY,
-  VIRTUAL_CONFIG,
-  VIRTUAL_OPENAPI,
-  VIRTUAL_ROUTES,
-  VIRTUAL_SERVER_ROUTES,
-  VIRTUAL_SLOT,
-  VIRTUAL_SLOTS,
   buildVirtualModules,
+  resolveVirtualModuleId,
   stripVirtualPrefix,
   type VirtualModules,
 } from '../runtime/virtual-modules.js'
@@ -41,7 +34,7 @@ import type { BuildSSRBundleOptions, ClarifyEngineRuntime, ClarifyEngineState, P
 
 export type { ClarifyEngineMode, ClarifyEngineRuntime, ClarifyEngineState, PrepareOptions } from './types.js'
 
-export function loadVirtualModule(id: string, modules: VirtualModules): string | null {
+function loadVirtualModule(id: string, modules: VirtualModules): string | null {
   const bareId = stripVirtualPrefix(id)
   return modules.get(bareId) ?? modules.get(id) ?? null
 }
@@ -100,9 +93,15 @@ export class ClarifyEngine {
       version: context.projectContext.version,
     })
     await runPhase(seedPlugins, 'config:resolve', this.ctx, () => undefined)
-    // loadBuildPluginsForContext has side effects: it sets ctx.plugins and
-    // runs the plugins:load phase. The returned array is ctx.plugins itself.
-    await loadBuildPluginsForContext(this.ctx, context.resolvedOptions, { htmlShell: prepareOptions.htmlShell })
+
+    // Reload plugins with the fully resolved options (which now include
+    // plugins declared in the config file) and run the plugins:load phase.
+    // The seed plugins above only carried user-supplied options.plugins so
+    // that config:load/config:resolve hooks could fire before the config
+    // file was read; the final plugin set replaces them here.
+    const finalPlugins = loadBuildPlugins(context.resolvedOptions, { htmlShell: prepareOptions.htmlShell })
+    this.ctx.plugins = finalPlugins
+    await runPhase(finalPlugins, 'plugins:load', this.ctx, () => undefined)
     this.initializedOptions = context.resolvedOptions
 
     return context.resolvedOptions
@@ -127,7 +126,7 @@ export class ClarifyEngine {
   async prepare(env: ConfigEnv = { command: this.runtime.command, mode: this.runtime.mode }, options: ClarifyBuildOptions = this.options, prepareOptions: PrepareOptions = {}): Promise<ClarifyBuildOptions> {
     this.configureRuntime({ command: env.command, mode: env.mode })
     const resolvedOptions = await this.initialize(env, options, prepareOptions)
-    await this.discoverSite(resolvedOptions)
+    await this.discoverSite()
     if (!prepareOptions.skipModules) await this.buildModules()
     if (!prepareOptions.skipHints) this.logStartupHints()
     return resolvedOptions
@@ -184,7 +183,7 @@ export class ClarifyEngine {
     return loadVirtualModule(id, this.virtualModules)
   }
 
-  async discoverSite(overrides?: ClarifyBuildOptions): Promise<void> {
+  async discoverSite(): Promise<void> {
     const plugins = this.ctx.plugins
     const contentRoot = this.ctx.contentRoot
     const { i18n, tabs } = this.ctx.projectConfig
@@ -356,8 +355,8 @@ export class ClarifyEngine {
     })
   }
 
-  async refresh(overrides?: ClarifyBuildOptions): Promise<void> {
-    await this.discoverSite(overrides)
+  async refresh(): Promise<void> {
+    await this.discoverSite()
     await this.buildModules()
   }
 
@@ -383,20 +382,7 @@ export class ClarifyEngine {
   createSSGVirtualPlugin(): Plugin {
     return {
       name: 'clarify:virtual-ssg',
-      resolveId: id => {
-        if (id === VIRTUAL_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
-        if (id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
-        if (id === VIRTUAL_SERVER_ROUTES) return id
-        if (id === VIRTUAL_OPENAPI) return id
-        if (id === VIRTUAL_CONFIG) return id
-        if (id === VIRTUAL_ROUTES) return id
-        if (id === VIRTUAL_SLOTS) return id
-        if (id === VIRTUAL_SLOT) return id
-        if (this.virtualModules.has(stripVirtualPrefix(id))) return stripVirtualPrefix(id)
-        const route = this.routes.find(route => route.virtualModuleId === id)
-        if (route) return id
-        return null
-      },
+      resolveId: id => resolveVirtualModuleId(id, this.virtualModules, this.routes),
       load: id => this.loadModule(id),
     }
   }

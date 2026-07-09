@@ -37,6 +37,44 @@ export function stripVirtualPrefix(id: string): string {
   return id.startsWith('\0') ? id.slice(1) : id
 }
 
+/**
+ * Fixed virtual module IDs (excluding the client entry, which has a special
+ * resolved form). Used to avoid hardcoding the constant list in every
+ * `resolveId` implementation.
+ */
+const FIXED_VIRTUAL_IDS = [
+  VIRTUAL_CONFIG,
+  VIRTUAL_ROUTES,
+  VIRTUAL_SERVER_ROUTES,
+  VIRTUAL_OPENAPI,
+  VIRTUAL_SLOTS,
+  VIRTUAL_SLOT,
+] as const
+
+/**
+ * Shared `resolveId` logic for all Clarify virtual modules. Used by both the
+ * Vite core plugin (dev + build) and the SSG virtual plugin so the ID-to-
+ * resolved-ID mapping has a single source of truth.
+ *
+ * Returns the resolved ID (with `\0` prefix per Vite convention) or `null`
+ * if the ID is not a Clarify virtual module.
+ */
+export function resolveVirtualModuleId(id: string, modules: VirtualModules, routes: readonly ContentRoute[]): string | null {
+  if (id === VIRTUAL_CLIENT_ENTRY || id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
+
+  for (const virtualId of FIXED_VIRTUAL_IDS) {
+    if (id === virtualId || id === resolveVirtualId(virtualId)) return resolveVirtualId(virtualId)
+  }
+
+  const moduleId = stripVirtualPrefix(id)
+  if (modules.has(moduleId)) return resolveVirtualId(moduleId)
+
+  const route = routes.find(route => route.virtualModuleId === id || route.virtualModuleId === moduleId)
+  if (route) return resolveVirtualId(route.virtualModuleId)
+
+  return null
+}
+
 export function generateConfigModule(projectConfig: ResolvedProjectConfig, buildOptions: ResolvedBuildOptions, version?: string): string {
   const runtimeConfig: Record<string, unknown> = { ...projectConfig, ...buildOptions }
   if (version) {
