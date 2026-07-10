@@ -1,11 +1,12 @@
 import { Search as SearchIcon } from 'lucide-react'
-import { Suspense } from 'react'
+import { lazy, Suspense } from 'react'
 
 import { useBuiltInText } from '../i18n'
 import type { NavigationNode, RouteItem } from '../types'
 
-import { SearchDialog } from './search/SearchDialog'
 import { useSearchProps } from './search/useSearchProps'
+
+const SearchDialog = lazy(() => import('./search/SearchDialog'))
 
 function getModifierKey() {
   if (typeof navigator === 'undefined') return 'Ctrl '

@@ -254,3 +254,5 @@ export function SearchDialog(arg0: SearchDialogProps) {
     </Dialog>
   )
 }
+
+export default SearchDialog
