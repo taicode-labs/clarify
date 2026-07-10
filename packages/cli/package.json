@@ -1,6 +1,6 @@
 {
   "name": "@clarify-labs/cli",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "license": "AGPL-3.0-only",
   "type": "module",
   "repository": {
