@@ -119,8 +119,8 @@ build(options)
   ├─ Phase 7: 静态生成（SSG Phase）
   │   ├─ hook: before:ssg
   │   ├─ renderSSG()           → SSR Bundle + 渲染 HTML
-  │   ├─ hook: after:ssg
-  │   └─ writeOutput()         → 写入输出目录
+  │   ├─ writeOutput()         → 写入输出目录
+  │   └─ hook: after:ssg
   │
   └─ Phase 8: 完成
       ├─ hook: build:done
@@ -173,6 +173,8 @@ type TapPhaseName = `before:${PhaseName}` | `after:${PhaseName}`
 ```
 
 `build:done` 是独立的 Tap hook（不属于任何 Phase，在构建完成后由 Engine 直接触发）。
+
+阶段边界必须包含该阶段声明的业务 Pipeline hook：`routes:discovered` 属于 `site:discover` phase，必须在 `after:site:discover` 之前完成。`build:done` 必须在 `after:ssg` 之后触发，确保依赖最终输出目录的插件（如搜索索引）看到完整 SSG 结果。
 
 ---
 
@@ -288,6 +290,7 @@ class ClarifyContext {
   get<T>(key: string): T | undefined
   set<T>(key: string, value: T): void
   has(key: string): boolean
+  delete(key: string): boolean
 
   // ── 核心对象（setter 触发更新通知）──
   get routes(): ContentRoute[]
@@ -317,7 +320,7 @@ ctx.onRoutesChange(() => {
 })
 ```
 
-这在 Dev 模式下用于自动触发 HMR 刷新。
+这在 Dev 模式下用于自动触发 HMR 刷新。Adapter 不应在同一次 `engine.refresh()` 后再手动发送第二次 full reload；routes/navigation 的 Context 通知是路由状态变更的唯一刷新来源。
 
 ---
 
@@ -418,6 +421,7 @@ packages/cli/source/
 
     runtime/                # 运行时支持
       virtual-modules.ts    # 虚拟模块生成
+      html-template.ts      # SSG HTML 模板注入（title/meta/canonical/root div）
       ssg.ts                # SSG 引擎（保留，但由 engine 调用）
       vite-config.ts        # Vite 配置工厂（装配 Vite adapter）
       runtime-deps.ts
@@ -449,6 +453,49 @@ packages/cli/source/
 
   types.ts                  # 公共类型
 ```
+
+---
+
+## 8.1 代码质量约定
+
+本节记录 Core 内部已落地的实现规范，避免回归到脆弱写法。
+
+### 虚拟模块生成（`runtime/virtual-modules.ts`）
+
+`generateRoutesModule` 生成运行时路由清单。约定：
+
+- **不要用三元字符串拼接构造 route 对象。** 每个 route 有 ~10 个可选字段，逐字段 `${cond ? `key: ${JSON.stringify(v)},` : ''}` 拼接既难读又易漏字段。
+- 使用 `routeToRuntimeObject(route, component, mode)` 返回普通对象，字段用条件赋值（`if (route.basePath) obj.basePath = route.basePath`）。
+- `component` 是裸 JS 表达式（`Page{i}` 或懒加载箭头函数），不能被 `JSON.stringify`。用唯一占位符 `__COMPONENT_${i}__` 作为 component 值，`JSON.stringify` 后再 `replace` 回实际表达式。
+- 序列化后用 `/("([A-Za-z_$][\w$]*)":)/g` 反引号键名、补冒号空格，输出符合 JS 对象字面量习惯的 `key: value` 格式。
+
+### HTML 模板注入（`runtime/html-template.ts`）
+
+SSG 阶段对 `index.html` 的所有字符串操作集中在 `html-template.ts`，包括：
+
+- `<html lang/dir>` 注入（`injectHtmlLocaleAttributes`）
+- `<meta name="description|keywords">` 设置/移除（`setNamedMeta`）
+- `<link rel="canonical">` 注入（`injectCanonicalUrl`）
+- `<title>` 与 `<div id="root">` 替换（`injectSSRIntoTemplate`）
+
+`ssg.ts` 通过 re-export 暴露 `injectSSRIntoTemplate`，但实现不分散在 SSG 管线里。新增 HTML 注入点应加到 `html-template.ts`，不要在 `ssg.ts` 内联正则。
+
+### 路由发现（`parsers/routes/routes.ts`）
+
+- **裸路径别名生成只允许一处实现。** `generateBareAliases(routes, i18n)` 负责为默认语言的 locale-prefixed 路由生成无前缀别名并标记 `isBareAlias`。`findLocalizedContentRoutes` 与 `applyConfiguredPageRoutePaths` 都复用它，不要重新内联这段逻辑。
+- **文件系统访问用 async API。** `findContentRoutes` 用 `node:fs/promises` 的 `readdir` / `readFile` / `stat`，不用同步的 `*Sync` 系列，避免在大量内容文件时阻塞事件循环。目录不存在时 `stat` 会 reject，捕获后返回空数组即可。
+
+### Vite Adapter（`core/adapters.ts`）
+
+- `createViteAdapter` 返回 `Plugin[]`。`react()` 返回 `Plugin[]`、`tailwindcss()` 返回 `Plugin | Plugin[]`，用 `Array.isArray` 收敛后展开，**不要用 `.flat().filter(Boolean) as Plugin[]`** 这种类型逃生舱。
+
+### 项目上下文（`core/project/project-context.ts`）
+
+- `ResolvedProjectContext` 不持有 `hookContext`。Hook 执行用的 `ClarifyHookContext` 由 `core/engine/context.ts` 的 `ClarifyContext` 实现，`ResolvedProjectContext` 只负责解析配置/路径/options。不要在 `resolveProjectContext` 里重建 hook 状态容器。
+
+### 配置 Schema（`core/config/config-schema.ts`）
+
+- 不要为 schema 创建无消费者的别名（如 `clarifyBannerConfigSchema = clarifyBannerConfigOptionsSchema`）。直接使用带 `Options` 后缀的规范名，与文件内其它 schema 命名一致。
 
 ---
 

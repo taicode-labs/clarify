@@ -86,31 +86,80 @@ function moduleSpecifier(value: string): string {
   return JSON.stringify(value)
 }
 
+/** Fields from ContentRoute that the runtime route object exposes. */
+type RuntimeRouteObject = {
+  path: string
+  title: string
+  component: string
+  lazy?: true
+  kind: string
+  basePath?: string
+  locale?: string
+  isFallback?: true
+  isBareAlias?: true
+  alternates?: Record<string, string>
+  description?: string
+  keywords?: string[]
+  sections?: Array<{ id: string; title: string; level: number; badge?: string; tags?: string[] }>
+  contentArtifactUrl?: string
+  sourceUrl?: string
+}
+
+function routeToRuntimeObject(route: ContentRoute, component: string, mode: 'client' | 'server'): RuntimeRouteObject {
+  const obj: RuntimeRouteObject = {
+    path: route.path,
+    title: route.title,
+    component,
+    kind: route.kind,
+  }
+
+  if (mode === 'client') obj.lazy = true
+  if (route.basePath) obj.basePath = route.basePath
+  if (route.locale) obj.locale = route.locale
+  if (route.isFallback) obj.isFallback = true
+  if (route.isBareAlias) obj.isBareAlias = true
+  if (route.alternates) obj.alternates = route.alternates
+  if (route.description) obj.description = route.description
+  if (route.keywords?.length) obj.keywords = route.keywords
+  if (route.contentArtifactUrl) obj.contentArtifactUrl = route.contentArtifactUrl
+  if (route.sourceUrl) obj.sourceUrl = route.sourceUrl
+  if (route.sections?.length) {
+    obj.sections = route.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags }))
+  }
+
+  return obj
+}
+
 export function generateRoutesModule(routes: ContentRoute[], navigation: NavigationTree, mode: 'client' | 'server' = 'client'): string {
   const imports = mode === 'server'
     ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.virtualModuleId)};`).join('\n')
     : `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';`
-  const routesArray = routes.map((r, i) => {
-    const sections = r.sections && r.sections.length > 0
-      ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags })))}`
-      : ''
-    const contentArtifactUrl = r.contentArtifactUrl ? `, contentArtifactUrl: ${JSON.stringify(r.contentArtifactUrl)}` : ''
-    const basePath = r.basePath ? `, basePath: ${JSON.stringify(r.basePath)}` : ''
-    const locale = r.locale ? `, locale: ${JSON.stringify(r.locale)}` : ''
-    const isFallback = r.isFallback ? ', isFallback: true' : ''
-    const isBareAlias = r.isBareAlias ? ', isBareAlias: true' : ''
-    const alternates = r.alternates ? `, alternates: ${JSON.stringify(r.alternates)}` : ''
-    const description = r.description ? `, description: ${JSON.stringify(r.description)}` : ''
-    const keywords = r.keywords && r.keywords.length > 0 ? `, keywords: ${JSON.stringify(r.keywords)}` : ''
-    const sourceUrl = r.sourceUrl ? `, sourceUrl: ${JSON.stringify(r.sourceUrl)}` : ''
+
+  // `component` is a raw JS expression (an identifier or arrow function),
+  // not a JSON string. We serialize each route object with a unique placeholder
+  // for the component, then replace it with the actual expression source.
+  // This keeps the rest of the object fully type-checked via JSON.stringify
+  // while avoiding fragile string concatenation for every field.
+  const routeEntries = routes.map((r, i) => {
     const component = mode === 'server'
       ? `Page${i}`
       : `() => import(${moduleSpecifier(r.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
-    const lazy = mode === 'client' ? ', lazy: true' : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${isBareAlias}${alternates}${description}${keywords}${sections}${contentArtifactUrl}${sourceUrl} }`
+    const placeholder = `__COMPONENT_${i}__`
+    const obj = routeToRuntimeObject(r, placeholder, mode)
+    const json = JSON.stringify(obj, null, 0)
+    // JSON.stringify quotes all keys and omits spaces after colons. Convert to
+    // idiomatic JS object-literal syntax: unquote identifier keys, pad colons
+    // with a single space. Non-identifier keys (none currently, but defensive)
+    // keep their quotes. Replace the component placeholder first, before the
+    // key-unquoting regex runs, so the placeholder (an identifier) is not
+    // turned into a bare key.
+    const jsObject = json
+      .replace(`"${placeholder}"`, component)
+      .replace(/"([A-Za-z_$][\w$]*)":/g, '$1: ')
+    return `  ${jsObject}`
   }).join(',\n')
 
-  return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
+  return `${imports}\n\nexport const routes = [\n${routeEntries}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
 export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {

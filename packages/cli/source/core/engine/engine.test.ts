@@ -126,4 +126,34 @@ describe('ClarifyEngine phase hooks', () => {
 
     expect(calls).toEqual(['before:dev:server', 'dev:configureServer', 'after:dev:server'])
   })
+
+  it('runs build:done after the ssg phase completes', async () => {
+    const calls: string[] = []
+    const engine = new ClarifyEngine({ projectRoot: '/site' })
+    engine.ctx.plugins = [
+      {
+        name: 'ssg-phase',
+        hooks: {
+          'before:ssg': () => {
+            calls.push('before:ssg')
+          },
+          'after:ssg': () => {
+            calls.push('after:ssg')
+          },
+          'build:done': () => {
+            calls.push('build:done')
+          },
+        },
+      },
+    ]
+
+    process.env.SKIP_CLARIFY_SSG = '1'
+    try {
+      await engine.runSSG()
+    } finally {
+      delete process.env.SKIP_CLARIFY_SSG
+    }
+
+    expect(calls).toEqual(['before:ssg', 'after:ssg', 'build:done'])
+  })
 })

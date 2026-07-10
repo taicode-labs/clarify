@@ -182,9 +182,8 @@ export class ClarifyEngine {
 
       // Run routes:discover hook so plugins can augment the discovered routes.
       const result = await runHooks(plugins, 'routes:discover', { contentRoot, routes: discovered }, this.ctx)
-      return result.routes
+      return runHooks(plugins, 'routes:discovered', result.routes, this.ctx)
     })
-    routes = await runHooks(plugins, 'routes:discovered', routes, this.ctx)
 
     // Phase 4: content:process - post-discovery adjustments. Map routes to
     // pages, run pages:resolved pipeline, then write back any page-level
@@ -290,15 +289,9 @@ export class ClarifyEngine {
   async runSSG(): Promise<void> {
     if (!this.buildEnabled) return
     await runPhase(this.plugins, 'ssg', this.ctx, async () => {
-      if (process.env.SKIP_CLARIFY_SSG) {
-        await this.runBuildDone()
-        return
-      }
+      if (process.env.SKIP_CLARIFY_SSG) return
 
-      if (!(await runInterceptHooks(this.plugins, 'ssg:shouldRun', this.ctx))) {
-        await this.runBuildDone()
-        return
-      }
+      if (!(await runInterceptHooks(this.plugins, 'ssg:shouldRun', this.ctx))) return
 
       const outputDir = this.runtime.outputDirectory ?? this.generateOptions.outputDirectory
       if (!outputDir) throw new Error('[clarify] outputDirectory is required before SSG runs')
@@ -332,8 +325,8 @@ export class ClarifyEngine {
         }
       }
 
-      await this.runBuildDone()
     })
+    await this.runBuildDone()
   }
 
   async refresh(): Promise<void> {

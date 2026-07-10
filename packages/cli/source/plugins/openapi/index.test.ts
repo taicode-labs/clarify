@@ -35,6 +35,10 @@ function createContext(routes: ContentRoute[]): ClarifyHookContext {
     routes,
     navigation: [],
     plugins: [],
+    get: () => undefined,
+    set: () => undefined,
+    has: () => false,
+    delete: () => false,
   }
 }
 
@@ -70,6 +74,10 @@ function createContextWithVariables(routes: ContentRoute[]): ClarifyHookContext 
     routes,
     navigation: [],
     plugins: [variableReplacementTestPlugin],
+    get: () => undefined,
+    set: () => undefined,
+    has: () => false,
+    delete: () => false,
   }
 }
 

@@ -26,7 +26,6 @@ function invalidateVirtualModules(engine: ClarifyEngine, server: ViteDevServer):
 async function refreshDevServer(engine: ClarifyEngine, server: ViteDevServer): Promise<void> {
   await engine.refresh()
   invalidateVirtualModules(engine, server)
-  server.ws.send({ type: 'full-reload' })
 }
 
 function createNormalizedMdxContentPlugin(engine: ClarifyEngine): Plugin {
@@ -115,9 +114,15 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
 
       // Register Context change listeners to automatically invalidate virtual
       // modules and trigger full-reload when routes or navigation change.
+      let reloadQueued = false
       const invalidateAndReload = () => {
-        invalidateVirtualModules(engine, server)
-        server.ws.send({ type: 'full-reload' })
+        if (reloadQueued) return
+        reloadQueued = true
+        queueMicrotask(() => {
+          reloadQueued = false
+          invalidateVirtualModules(engine, server)
+          server.ws.send({ type: 'full-reload' })
+        })
       }
       engine.ctx.onRoutesChange(invalidateAndReload)
       engine.ctx.onNavigationChange(invalidateAndReload)
@@ -195,11 +200,16 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
 export function createViteAdapter(engine: ClarifyEngine): Plugin[] {
   const normalizedMdxContentPlugin = createNormalizedMdxContentPlugin(engine)
   const mdx = createMdxPlugin()
+  // `react()` returns `Plugin[]`; `tailwindcss()` returns `Plugin | Plugin[]`;
+  // the rest return a single `Plugin`. Spread the array-returning results so
+  // every element is a `Plugin`, avoiding the `.flat().filter(Boolean) as
+  // Plugin[]` escape hatch.
+  const tailwind = tailwindcss()
   return [
-    react(),
-    tailwindcss(),
+    ...react(),
+    ...(Array.isArray(tailwind) ? tailwind : [tailwind]),
     normalizedMdxContentPlugin,
     createClarifyViteCorePlugin(engine, normalizedMdxContentPlugin, mdx),
     mdx,
-  ].flat().filter(Boolean) as Plugin[]
+  ]
 }

@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { readdir, readFile, stat } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 
 import GithubSlugger from 'github-slugger'
@@ -108,9 +108,17 @@ export function resolveLocalizedText(text: ClarifyLocalizedText | undefined, loc
 
 export async function findContentRoutes(dir: string, base: string = dir, options: FindContentRoutesOptions = {}): Promise<ContentRoute[]> {
   const routes: ContentRoute[] = []
-  if (!existsSync(dir)) return routes
+  // Skip directories that do not exist instead of throwing; `stat` rejects for
+  // missing paths, so treat that as an empty result.
+  let dirStat
+  try {
+    dirStat = await stat(dir)
+  } catch {
+    return routes
+  }
+  if (!dirStat.isDirectory()) return routes
 
-  const entries = readdirSync(dir, { withFileTypes: true })
+  const entries = await readdir(dir, { withFileTypes: true })
   for (const entry of entries) {
     const fullPath = join(dir, entry.name)
     if (entry.isDirectory()) {
@@ -121,7 +129,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
       const path = '/' + pathParts.map(p => p === 'index' ? '' : p).filter(Boolean).join('/')
       const cleanPath = path.replace(/\/+/g, '/').replace(/\/$/, '') || '/'
 
-      const source = readFileSync(fullPath, 'utf-8')
+      const source = await readFile(fullPath, 'utf-8')
       const { frontmatter, content } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
       const page: ClarifyPage = {
         path: cleanPath,
@@ -194,6 +202,23 @@ export function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n
   return { ...route, alternates }
 }
 
+/**
+ * 为默认语言的 locale-prefixed 路由生成无前缀的"裸路径别名"，方便不带语言
+ * 前缀的 URL 也能访问。标记 `isBareAlias` 以便搜索索引生成时过滤重复索引。
+ */
+function generateBareAliases(routes: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute[] {
+  const bareRoutes: ContentRoute[] = []
+  const seenBare = new Set(routes.map(r => r.path))
+  for (const route of routes) {
+    if (route.locale !== i18n.defaultLocale) continue
+    const bp = route.basePath ?? route.path
+    if (bp === route.path || seenBare.has(bp)) continue
+    seenBare.add(bp)
+    bareRoutes.push({ ...route, path: bp, isBareAlias: true })
+  }
+  return bareRoutes
+}
+
 export async function findLocalizedContentRoutes(contentRoot: string, i18n?: ResolvedClarifyI18nConfig, options: FindContentRoutesOptions = {}): Promise<ContentRoute[]> {
   if (!i18n) return findContentRoutes(contentRoot, contentRoot, options)
 
@@ -233,19 +258,7 @@ export async function findLocalizedContentRoutes(contentRoot: string, i18n?: Res
 
   const routesWithAlternates = localizedRoutes.map(route => withAlternates(route, localizedRoutes, i18n))
 
-  // 为默认语言生成无前缀的裸路径别名，方便不带语言前缀的 URL 也能访问
-  // 标记这些别名路由，以便搜索索引生成时过滤它们，避免重复索引
-  const bareRoutes: ContentRoute[] = []
-  const seenBare = new Set(routesWithAlternates.map(r => r.path))
-  for (const route of routesWithAlternates) {
-    if (route.locale !== i18n.defaultLocale) continue
-    const bp = route.basePath ?? route.path
-    if (bp === route.path || seenBare.has(bp)) continue
-    seenBare.add(bp)
-    bareRoutes.push({ ...route, path: bp, isBareAlias: true })
-  }
-
-  return [...routesWithAlternates, ...bareRoutes]
+  return [...routesWithAlternates, ...generateBareAliases(routesWithAlternates, i18n)]
 }
 
 export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[] {
@@ -343,19 +356,7 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
 
   if (!i18n) return routesWithAlternates
 
-  // 为默认语言生成无前缀的裸路径别名，方便不带语言前缀的 URL 也能访问
-  // 标记这些别名路由，以便搜索索引生成时过滤它们，避免重复索引
-  const bareRoutes: ContentRoute[] = []
-  const seenBare = new Set(routesWithAlternates.map(r => r.path))
-  for (const route of routesWithAlternates) {
-    if (route.locale !== i18n.defaultLocale) continue
-    const bp = route.basePath ?? route.path
-    if (bp === route.path || seenBare.has(bp)) continue
-    seenBare.add(bp)
-    bareRoutes.push({ ...route, path: bp, isBareAlias: true })
-  }
-
-  return [...routesWithAlternates, ...bareRoutes]
+  return [...routesWithAlternates, ...generateBareAliases(routesWithAlternates, i18n)]
 }
 
 function buildNavigationFromPagesConfig(routes: ContentRoute[], config?: ClarifyPagesConfig): ClarifyNavigationNode[] {

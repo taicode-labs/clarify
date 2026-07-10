@@ -5,11 +5,15 @@ import { pathToFileURL } from 'node:url'
 import { build } from 'vite'
 import type { Plugin } from 'vite'
 
-import { escapeHtml } from '../../parsers/markdown/utils.js'
 import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
 import { createClarifyTempDir } from '../project/temp-dir.js'
 
+import { injectSSRIntoTemplate } from './html-template.js'
 import { createClarifyRuntimeAliases } from './runtime-deps.js'
+
+// Re-export the template helpers so existing callers that imported them from
+// `ssg.ts` keep working. The implementations live in `html-template.ts`.
+export { injectSSRIntoTemplate } from './html-template.js'
 
 export function readIndexHtml(outputDirectory: string): string | undefined {
   const indexPath = join(outputDirectory, 'index.html')
@@ -19,86 +23,6 @@ export function readIndexHtml(outputDirectory: string): string | undefined {
   } catch {
     return undefined
   }
-}
-
-function resolveProjectConfigFromContext(contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig): ResolvedProjectConfig {
-  return 'projectConfig' in contextOrConfig ? contextOrConfig.projectConfig : contextOrConfig
-}
-
-function injectHtmlLocaleAttributes(html: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
-  const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
-  const localeCode = route?.locale ?? projectConfig.i18n?.defaultLocale
-  if (!localeCode) return html
-
-  const localeConfig = projectConfig.i18n?.locales.find(locale => locale.code === localeCode)
-  const dir = localeConfig?.dir
-
-  return html.replace(/<html\b([^>]*)>/i, (_match, attributes: string) => {
-    let nextAttributes = attributes
-      .replace(/\s+lang=("[^"]*"|'[^']*'|[^\s>]*)/i, '')
-      .replace(/\s+dir=("[^"]*"|'[^']*'|[^\s>]*)/i, '')
-
-    nextAttributes = `${nextAttributes} lang="${escapeHtml(localeCode)}"`
-    if (dir) nextAttributes = `${nextAttributes} dir="${escapeHtml(dir)}"`
-    return `<html${nextAttributes}>`
-  })
-}
-
-function routeTitle(contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
-  const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
-  const title = route?.title?.trim()
-  if (!title || title === projectConfig.title) return projectConfig.title
-  return `${title} - ${projectConfig.title}`
-}
-
-function setNamedMeta(html: string, name: string, content: string | undefined): string {
-  const metaPattern = new RegExp(`<meta\\b(?=[^>]*\\bname=["']${name}["'])[^>]*>\\n?`, 'i')
-  if (!content) return html.replace(metaPattern, '')
-
-  const meta = `<meta name="${name}" content="${escapeHtml(content)}" />`
-  if (metaPattern.test(html)) return html.replace(metaPattern, meta)
-  return html.replace('</head>', `  ${meta}\n  </head>`)
-}
-
-function canonicalUrl(contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route: ContentRoute): string | undefined {
-  const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
-  if (!projectConfig.siteUrl || !route.alternates || !route.locale) return undefined
-  const prefixedPath = route.alternates[route.locale]
-  if (!prefixedPath || prefixedPath === route.path) return undefined
-
-  const base = projectConfig.siteUrl.replace(/\/+$/, '')
-  const prefix = (!projectConfig.routePrefix || projectConfig.routePrefix === '/')
-    ? ''
-    : `/${projectConfig.routePrefix.replace(/^\/+|\/+$/g, '')}`
-  return `${base}${prefix}${prefixedPath}`
-}
-
-function injectCanonicalUrl(html: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
-  const url = route ? canonicalUrl(contextOrConfig, route) : undefined
-  // Remove any existing canonical link
-  html = html.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*\/?>\n?/gi, '')
-  if (!url) return html
-  return html.replace('</head>', `  <link rel="canonical" href="${escapeHtml(url)}" />\n  </head>`)
-}
-
-export function injectSSRIntoTemplate(template: string, appHtml: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
-  const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
-  let html = injectHtmlLocaleAttributes(template, contextOrConfig, route)
-
-  // Replace <title>...</title>
-  html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(routeTitle(contextOrConfig, route))}</title>`)
-
-  html = setNamedMeta(html, 'description', route?.description ?? projectConfig.description)
-  html = setNamedMeta(html, 'keywords', route?.keywords?.join(', '))
-  html = injectCanonicalUrl(html, contextOrConfig, route)
-
-  // Replace <div id="root">...</div> with SSR rendered content
-  // For bare alias routes (e.g., /path) in multilingual sites, mark the root div
-  // with data-pagefind-ignore to prevent Pagefind from indexing duplicates
-  const dataPagefindIgnore = route?.isBareAlias ? ' data-pagefind-ignore' : ''
-  html = html.replace(/<div id="root">([\s\S]*?)<\/div>/, `<div id="root"${dataPagefindIgnore}>${appHtml}</div>`)
-
-  return html
 }
 
 export function isNotFoundRoute(route: ContentRoute): boolean {

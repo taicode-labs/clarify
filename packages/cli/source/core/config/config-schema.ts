@@ -67,8 +67,6 @@ export const clarifyBannerConfigOptionsSchema = z.object({
   link: clarifyNavbarLinkSchema.optional(),
 }).strict()
 
-export const clarifyBannerConfigSchema = clarifyBannerConfigOptionsSchema
-
 export const clarifyFooterConfigSchema = z.object({
   links: z.array(clarifyNavbarLinkSchema).optional(),
   socials: z.record(z.string(), z.string()).optional(),
@@ -186,7 +184,7 @@ export const clarifyProjectConfigSchema = z.object({
   navbar: z.object({
     links: z.array(clarifyNavbarLinkSchema).optional(),
   }).optional(),
-  banner: clarifyBannerConfigSchema.optional(),
+  banner: clarifyBannerConfigOptionsSchema.optional(),
   footer: clarifyFooterConfigSchema.optional(),
   variables: clarifyVariablesConfigSchema.optional(),
   i18n: clarifyI18nConfigSchema.optional(),

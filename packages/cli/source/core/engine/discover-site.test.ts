@@ -92,4 +92,40 @@ describe('Engine.discoverSite', () => {
       'after:content:process',
     ])
   })
+
+  it('runs routes:discovered before after:site:discover', async () => {
+    const root = createSiteRoot()
+    const source = join(root, 'source')
+    mkdirSync(source)
+    writeFileSync(join(source, 'index.md'), '# Home\n', { flag: 'wx' })
+    const calls: string[] = []
+
+    const engine = createClarifyEngine({
+      projectRoot: root,
+      plugins: [
+        {
+          name: 'site-discovery-order',
+          hooks: {
+            'before:site:discover': () => {
+              calls.push('before:site:discover')
+            },
+            'routes:discovered': routes => {
+              calls.push('routes:discovered')
+              return routes
+            },
+            'after:site:discover': () => {
+              calls.push('after:site:discover')
+            },
+          },
+        },
+      ],
+    })
+    await engine.prepare(undefined, undefined, { skipModules: true, skipHints: true })
+
+    expect(calls).toEqual([
+      'before:site:discover',
+      'routes:discovered',
+      'after:site:discover',
+    ])
+  })
 })
