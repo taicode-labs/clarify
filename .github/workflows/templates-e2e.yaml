@@ -42,11 +42,9 @@ jobs:
           echo "$HOME/.local/share/pnpm" >> $GITHUB_PATH
           pnpm config set global-bin-dir "$HOME/.local/share/pnpm" --location global
 
-      - name: Link local clarify globally
-        run: pnpm --dir packages/cli link --global
-
-      - name: Add pnpm global binaries to PATH
-        run: echo "PATH=$(pnpm bin -g):$PATH" >> $GITHUB_ENV
+      - name: Install local clarify globally
+        working-directory: packages/cli
+        run: pnpm add --global .
 
       - name: Verify global clarify
         run: clarify --help
