@@ -6,7 +6,7 @@ import type { ConfigEnv, Plugin } from 'vite'
 import { cliPackageVersion } from '../../cli/package.js'
 import { createProjectContentProcessor } from '../../parsers/content/content.js'
 import { findContentRoutes, findLocalizedContentRoutes, applyConfiguredPageRoutePaths, buildNavigation, buildNavigationFromTabsConfig, buildLocalizedNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
-import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyHtmlTransformInput, ClarifyPlugin, ContentRoute, NavigationTree, ClarifyPage, ClarifyProjectContext  } from '../../types.js'
+import type { ClarifyEmitAsset, ClarifyHtmlTransformInput, ClarifyPlugin, ContentRoute, NavigationTree, ClarifyPage, ClarifyProjectContext  } from '../../types.js'
 import { resolveProjectConfig } from '../config/config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from '../config/options.js'
 import { findClarifyConfigFile } from '../config/user-config.js'
@@ -30,9 +30,9 @@ import {
 
 import { ClarifyContext } from './context.js'
 import { runInterceptHooks, runPhase, runTapHooks } from './phases.js'
-import type { BuildSSRBundleOptions, ClarifyEngineRuntime, ClarifyEngineState, PrepareOptions } from './types.js'
+import type { BuildSSRBundleOptions, ClarifyEngineRuntime, PrepareOptions } from './types.js'
 
-export type { ClarifyEngineMode, ClarifyEngineRuntime, ClarifyEngineState, PrepareOptions } from './types.js'
+export type { ClarifyEngineMode, ClarifyEngineRuntime, PrepareOptions } from './types.js'
 
 function loadVirtualModule(id: string, modules: VirtualModules): string | null {
   const bareId = stripVirtualPrefix(id)
@@ -130,25 +130,6 @@ export class ClarifyEngine {
     if (!prepareOptions.skipModules) await this.buildModules()
     if (!prepareOptions.skipHints) this.logStartupHints()
     return resolvedOptions
-  }
-
-  get state(): ClarifyEngineState {
-    return {
-      projectRoot: this.root,
-      contentRoot: this.ctx.contentRoot,
-      configFilePath: this.configFilePath,
-      projectConfig: this.ctx.projectConfig,
-      generateOptions: this.ctx.generateOptions,
-      routes: this.ctx.routes,
-      navigation: this.ctx.navigation,
-      plugins: this.ctx.plugins,
-      virtualModules: this.virtualModules,
-      ctx: this.ctx,
-    }
-  }
-
-  get hookContext(): ClarifyHookContext {
-    return this.ctx
   }
 
   get projectConfig(): ClarifyContext['projectConfig'] {

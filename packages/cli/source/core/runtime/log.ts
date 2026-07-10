@@ -47,7 +47,22 @@ function formatLogEntry(root: string, error: unknown): string {
     .join('\n')
 }
 
-export async function logBuildError(root: string, error: unknown, maxEntries?: number): Promise<void> {
+type LogEntryReader = (logPath: string) => Promise<string> | string
+type LogEntryWriter = (logPath: string, content: string) => Promise<void> | void
+
+function collectLogEntries(entries: string[], entry: string, max: number): string[] {
+  const next = [...entries, entry]
+  return next.length > max ? next.slice(-max) : next
+}
+
+function readExistingEntries(content: string): string[] {
+  return content
+    .split(ENTRY_SEPARATOR)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+async function writeLogEntry(root: string, error: unknown, maxEntries: number | undefined, read: LogEntryReader, write: LogEntryWriter): Promise<void> {
   const logPath = join(root, LOG_FILE_NAME)
   const entry = formatLogEntry(root, error)
   const max = maxEntries ?? getMaxLogEntries()
@@ -55,48 +70,22 @@ export async function logBuildError(root: string, error: unknown, maxEntries?: n
   let entries: string[] = []
   if (existsSync(logPath)) {
     try {
-      const content = await readFile(logPath, 'utf8')
-      entries = content
-        .split(ENTRY_SEPARATOR)
-        .map((item) => item.trim())
-        .filter(Boolean)
+      entries = readExistingEntries(await read(logPath))
     } catch {
       entries = []
     }
   }
 
-  entries.push(entry)
-  if (entries.length > max) {
-    entries = entries.slice(-max)
-  }
+  entries = collectLogEntries(entries, entry, max)
 
   mkdirSync(dirname(logPath), { recursive: true })
-  await writeFile(logPath, entries.join(ENTRY_SEPARATOR) + '\n', 'utf8')
+  await write(logPath, entries.join(ENTRY_SEPARATOR) + '\n')
+}
+
+export async function logBuildError(root: string, error: unknown, maxEntries?: number): Promise<void> {
+  await writeLogEntry(root, error, maxEntries, (path) => readFile(path, 'utf8'), (path, content) => writeFile(path, content, 'utf8'))
 }
 
 export function logBuildErrorSync(root: string, error: unknown, maxEntries?: number): void {
-  const logPath = join(root, LOG_FILE_NAME)
-  const entry = formatLogEntry(root, error)
-  const max = maxEntries ?? getMaxLogEntries()
-
-  let entries: string[] = []
-  if (existsSync(logPath)) {
-    try {
-      const content = readFileSync(logPath, 'utf8')
-      entries = content
-        .split(ENTRY_SEPARATOR)
-        .map((item) => item.trim())
-        .filter(Boolean)
-    } catch {
-      entries = []
-    }
-  }
-
-  entries.push(entry)
-  if (entries.length > max) {
-    entries = entries.slice(-max)
-  }
-
-  mkdirSync(dirname(logPath), { recursive: true })
-  writeFileSync(logPath, entries.join(ENTRY_SEPARATOR) + '\n', 'utf8')
+  void writeLogEntry(root, error, maxEntries, (path) => readFileSync(path, 'utf8'), (path, content) => writeFileSync(path, content, 'utf8'))
 }

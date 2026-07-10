@@ -32,7 +32,6 @@ export class ClarifyContext implements ClarifyHookContext {
   private values = new Map<string, unknown>()
   private routeListeners = new Set<ContextListener>()
   private navigationListeners = new Set<ContextListener>()
-  private pluginListeners = new Set<ContextListener>()
   private currentRoutes: ContentRoute[]
   private currentNavigation: NavigationTree
   private currentPlugins: ClarifyPlugin[]
@@ -72,7 +71,6 @@ export class ClarifyContext implements ClarifyHookContext {
 
   set plugins(plugins: ClarifyPlugin[]) {
     this.currentPlugins = plugins
-    this.notify(this.pluginListeners)
   }
 
   get isI18n(): boolean {
@@ -107,11 +105,6 @@ export class ClarifyContext implements ClarifyHookContext {
   onNavigationChange(listener: ContextListener): () => void {
     this.navigationListeners.add(listener)
     return () => this.navigationListeners.delete(listener)
-  }
-
-  onPluginsChange(listener: ContextListener): () => void {
-    this.pluginListeners.add(listener)
-    return () => this.pluginListeners.delete(listener)
   }
 
   updateProjectState(update: ProjectStateUpdate): void {

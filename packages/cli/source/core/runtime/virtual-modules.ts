@@ -1,6 +1,5 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
-import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
 import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 // 新的虚拟模块命名 - 更清晰的职责划分
@@ -11,7 +10,7 @@ export const VIRTUAL_OPENAPI = 'virtual:clarify/openapi'
 export const VIRTUAL_SLOTS = 'virtual:clarify/slots'
 export const VIRTUAL_SLOT = 'virtual:clarify/slot'
 export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify/entry-client'
-export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
+const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 
 export type VirtualModules = Map<string, string>
 
@@ -21,7 +20,7 @@ type BuildVirtualModulesArgs = {
   routes: ContentRoute[]
   version?: string
   plugins?: ClarifyPlugin[]
-  navigation?: NavigationTree
+  navigation: NavigationTree
   themeEditor?: boolean
 }
 
@@ -87,7 +86,7 @@ function moduleSpecifier(value: string): string {
   return JSON.stringify(value)
 }
 
-export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig, mode: 'client' | 'server' = 'client'): string {
+export function generateRoutesModule(routes: ContentRoute[], navigation: NavigationTree, mode: 'client' | 'server' = 'client'): string {
   const imports = mode === 'server'
     ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.virtualModuleId)};`).join('\n')
     : `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';`
@@ -110,12 +109,6 @@ export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?
     const lazy = mode === 'client' ? ', lazy: true' : ''
     return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${isBareAlias}${alternates}${description}${keywords}${sections}${contentArtifactUrl}${sourceUrl} }`
   }).join(',\n')
-
-  const navigation = resolvedNavigation ?? (projectConfig?.tabs
-    ? projectConfig.i18n
-      ? (buildLocalizedNavigationFromTabsConfig(routes, projectConfig.tabs, projectConfig.i18n) ?? {})
-      : buildNavigationFromTabsConfig(routes, projectConfig.tabs)
-    : buildNavigation(routes))
 
   return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
@@ -185,15 +178,6 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = [], root: st
   return `export const runtimeSlots = {\n${entries}\n};\n`
 }
 
-/**
- * Re-exports the slot context hook from the renderer so plugin components can
- * `import { useSlot } from 'virtual:clarify/slot'` without depending on
- * renderer internals directly.
- */
-export function createSlotModule(): string {
-  return `export { useSlot } from '@clarify-labs/renderer';\n`
-}
-
 export function generateMdxErrorModule(diagnostic: ContentDiagnostic): string {
   return `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';
 
@@ -217,11 +201,11 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   const allPlugins: ClarifyPlugin[] = [...(args.plugins ?? [])]
   
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions, args.version))
-  modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
-  modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
+  modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, 'client'))
+  modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, 'server'))
   modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))
-  modules.set(VIRTUAL_OPENAPI, generateOpenApiModule())
-  modules.set(VIRTUAL_SLOT, createSlotModule())
+  modules.set(VIRTUAL_OPENAPI, 'export const openApis = {};')
+  modules.set(VIRTUAL_SLOT, "export { useSlot } from '@clarify-labs/renderer';\n")
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
 
@@ -233,9 +217,4 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   }
 
   return modules
-}
-
-// 新的 OpenAPI 模块生成函数 - 独立出来
-export function generateOpenApiModule(): string {
-  return `export const openApis = {};`
 }

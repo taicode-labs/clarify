@@ -27,13 +27,12 @@ describe('ClarifyContext', () => {
     expect(ctx.has('answer')).toBe(false)
   })
 
-  it('notifies route, navigation, and plugin listeners on replacement', () => {
+  it('notifies route and navigation listeners on replacement', () => {
     const ctx = createContext()
     const events: string[] = []
 
     ctx.onRoutesChange(() => events.push('routes'))
     ctx.onNavigationChange(() => events.push('navigation'))
-    ctx.onPluginsChange(() => events.push('plugins'))
 
     ctx.routes = [{
       path: '/',
@@ -45,7 +44,7 @@ describe('ClarifyContext', () => {
     ctx.navigation = [{ path: '/', title: 'Home' }]
     ctx.plugins = [{ name: 'test' }]
 
-    expect(events).toEqual(['routes', 'navigation', 'plugins'])
+    expect(events).toEqual(['routes', 'navigation'])
   })
 
   it('allows listeners to unsubscribe', () => {

@@ -13,8 +13,7 @@ function contentDirectoryLabel(projectRoot: string, contentRoot: string): string
 }
 
 function contentFileExampleLabel(projectRoot: string, contentRoot: string): string {
-  const label = contentDirectoryLabel(projectRoot, contentRoot)
-  return label === '.' ? 'index.mdx' : `${label}/index.mdx`
+  return `${contentDirectoryLabel(projectRoot, contentRoot)}/index.mdx`
 }
 
 export function getStartupHints(options: StartupHintOptions): string[] {
