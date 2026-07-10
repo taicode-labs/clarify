@@ -3,7 +3,7 @@ packages:
   - 'packages/*'
   - 'extensions/*'
 
-onlyBuiltDependencies:
-  - '@vscode/vsce-sign'
-  - 'keytar'
-  - 'unrs-resolver'
+allowBuilds:
+  '@vscode/vsce-sign': true
+  keytar: true
+  unrs-resolver: true
