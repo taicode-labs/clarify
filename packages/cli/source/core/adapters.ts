@@ -7,6 +7,7 @@ import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { rehypePlugins, remarkPlugins } from '../parsers/markdown/mdx.js'
 import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../parsers/router/dev-routes.js'
+import type { ContentRoute, NavigationTree } from '../types.js'
 
 import { type ClarifyEngine } from './engine/engine.js'
 import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from './project/project-info.js'
@@ -16,6 +17,27 @@ import {
   resolveVirtualModuleId,
 } from './runtime/virtual-modules.js'
 
+type DevStructureSnapshot = {
+  routes: string
+  navigation: string
+}
+
+function routeStructure(route: ContentRoute): Omit<ContentRoute, 'content'> {
+  const { content: _content, ...structure } = route
+  return structure
+}
+
+function createDevStructureSnapshot(routes: ContentRoute[], navigation: NavigationTree): DevStructureSnapshot {
+  return {
+    routes: JSON.stringify(routes.map(routeStructure)),
+    navigation: JSON.stringify(navigation),
+  }
+}
+
+function hasDevStructureChanged(before: DevStructureSnapshot, after: DevStructureSnapshot): boolean {
+  return before.routes !== after.routes || before.navigation !== after.navigation
+}
+
 function invalidateVirtualModules(engine: ClarifyEngine, server: ViteDevServer): void {
   for (const id of engine.modules.keys()) {
     const moduleNode = server.moduleGraph.getModuleById(resolveVirtualId(id))
@@ -23,9 +45,12 @@ function invalidateVirtualModules(engine: ClarifyEngine, server: ViteDevServer):
   }
 }
 
-async function refreshDevServer(engine: ClarifyEngine, server: ViteDevServer): Promise<void> {
+async function refreshDevServer(engine: ClarifyEngine, server: ViteDevServer): Promise<boolean> {
+  const before = createDevStructureSnapshot(engine.routes, engine.navigation)
   await engine.refresh()
   invalidateVirtualModules(engine, server)
+  const after = createDevStructureSnapshot(engine.routes, engine.navigation)
+  return hasDevStructureChanged(before, after)
 }
 
 function createNormalizedMdxContentPlugin(engine: ClarifyEngine): Plugin {
@@ -54,6 +79,7 @@ function createMdxPlugin(): Plugin {
 
 function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContentPlugin: Plugin, mdx: Plugin): Plugin {
   let viteConfig: ResolvedConfig
+  let suppressContextReloads = false
 
   return {
     name: 'clarify:core',
@@ -99,8 +125,17 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
       const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
       if (!isContentFile || !engine.hasContentRouteForFile(changedFile)) return
 
-      await refreshDevServer(engine, ctx.server)
-      return []
+      suppressContextReloads = true
+      let shouldReload: boolean
+      try {
+        shouldReload = await refreshDevServer(engine, ctx.server)
+      } finally {
+        suppressContextReloads = false
+      }
+      if (shouldReload) {
+        ctx.server.ws.send({ type: 'full-reload' })
+        return []
+      }
     },
     resolveId(id) {
       return resolveVirtualModuleId(id, engine.modules, engine.routes)
@@ -116,6 +151,7 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
       // modules and trigger full-reload when routes or navigation change.
       let reloadQueued = false
       const invalidateAndReload = () => {
+        if (suppressContextReloads) return
         if (reloadQueued) return
         reloadQueued = true
         queueMicrotask(() => {
@@ -142,7 +178,14 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
         const relativeContentFile = relative(engine.contentRoot, changedFile)
         const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
         if (!isContentFile) return
-        await refreshDevServer(engine, server)
+        suppressContextReloads = true
+        let shouldReload: boolean
+        try {
+          shouldReload = await refreshDevServer(engine, server)
+        } finally {
+          suppressContextReloads = false
+        }
+        if (shouldReload) server.ws.send({ type: 'full-reload' })
       }
 
       server.watcher.on('add', handleContentTreeChange)
