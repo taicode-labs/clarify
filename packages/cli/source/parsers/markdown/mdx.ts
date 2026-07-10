@@ -1,7 +1,7 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
 import GithubSlugger from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
-import shiki, { type Highlighter } from 'shiki'
+import { bundledLanguages, createCssVariablesTheme, createHighlighter, type Highlighter } from 'shiki'
 import { visit } from 'unist-util-visit'
 
 import { markdownRemarkPlugins } from '@clarify-labs/renderer'
@@ -19,10 +19,6 @@ type HastNode = {
 
 type HastParent = HastNode & {
   children: HastNode[]
-}
-
-type ShikiRenderElementArgs = {
-  children: string
 }
 
 function getLanguage(className: unknown): string {
@@ -45,10 +41,20 @@ function renderPlainCode(code: string): string {
 }
 
 let highlighter: Highlighter | undefined
+const cssVariablesTheme = createCssVariablesTheme()
 
 async function getHighlighter(): Promise<Highlighter> {
-  highlighter = highlighter ?? await shiki.getHighlighter({ theme: 'css-variables' })
+  highlighter = highlighter ?? await createHighlighter({ themes: [cssVariablesTheme], langs: Object.keys(bundledLanguages) })
   return highlighter
+}
+
+function renderHighlightedCode(html: string): string {
+  const codeMatch = /<code[^>]*>([\s\S]*?)<\/code>/.exec(html)
+  const codeHtml = codeMatch?.[1] ?? html
+  return codeHtml
+    .split('\n')
+    .map(line => line.trimStart().startsWith('<span') ? line : `<span>${line}</span>`)
+    .join('\n')
 }
 
 export function rehypeParseCodeBlocks() {
@@ -90,14 +96,8 @@ export function rehypeShiki() {
 
       if (language && language !== 'txt') {
         try {
-          const tokens = shikiHighlighter.codeToThemedTokens(code, language)
-          highlighted = shiki.renderToHtml(tokens, {
-            elements: {
-              pre: ({ children }: ShikiRenderElementArgs) => children,
-              code: ({ children }: ShikiRenderElementArgs) => children,
-              line: ({ children }: ShikiRenderElementArgs) => `<span>${children}</span>`,
-            },
-          })
+          const html = shikiHighlighter.codeToHtml(code, { lang: language, theme: cssVariablesTheme })
+          highlighted = renderHighlightedCode(html)
         } catch {
           highlighted = renderPlainCode(code)
         }

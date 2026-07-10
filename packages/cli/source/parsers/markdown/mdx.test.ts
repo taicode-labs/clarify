@@ -231,6 +231,12 @@ describe('mdx rehype plugins', () => {
     // because it is not hoisted and can be scoped to this test.
     const getHighlighterCalls: number[] = []
     vi.doMock('shiki', () => ({
+      bundledLanguages: {},
+      createCssVariablesTheme: () => ({ name: 'css-variables' }),
+      createHighlighter: () => {
+        getHighlighterCalls.push(1)
+        return Promise.resolve({ codeToHtml: () => '' })
+      },
       default: {
         getHighlighter: () => {
           getHighlighterCalls.push(1)
