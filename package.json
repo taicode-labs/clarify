@@ -19,13 +19,6 @@
     "pnpm": ">=9.0.0"
   },
   "packageManager": "pnpm@11.11.0",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@vscode/vsce-sign",
-      "unrs-resolver",
-      "keytar"
-    ]
-  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/eslint": "^9.6.1",
