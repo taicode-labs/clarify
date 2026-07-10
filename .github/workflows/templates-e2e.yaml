@@ -60,7 +60,7 @@ jobs:
 
       - name: Link local @clarify-labs/cli into template project
         working-directory: .github/.template-test
-        run: pnpm link @clarify-labs/cli
+        run: pnpm link ../../packages/cli
 
       - name: Install template project dependencies
         working-directory: .github/.template-test
