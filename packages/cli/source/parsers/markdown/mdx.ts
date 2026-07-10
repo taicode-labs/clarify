@@ -1,7 +1,7 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
 import GithubSlugger from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
-import { bundledLanguages, createCssVariablesTheme, createHighlighter, type Highlighter } from 'shiki'
+import { bundledLanguages, createCssVariablesTheme, createHighlighter, type BundledLanguage, type Highlighter } from 'shiki'
 import { visit } from 'unist-util-visit'
 
 import { markdownRemarkPlugins } from '@clarify-labs/renderer'
@@ -40,11 +40,15 @@ function renderPlainCode(code: string): string {
     .join('\n')
 }
 
+function isBundledLanguage(language: string): language is BundledLanguage {
+  return language in bundledLanguages
+}
+
 let highlighter: Highlighter | undefined
 const cssVariablesTheme = createCssVariablesTheme()
 
 async function getHighlighter(): Promise<Highlighter> {
-  highlighter = highlighter ?? await createHighlighter({ themes: [cssVariablesTheme], langs: Object.keys(bundledLanguages) })
+  highlighter = highlighter ?? await createHighlighter({ themes: [cssVariablesTheme], langs: [] })
   return highlighter
 }
 
@@ -77,6 +81,17 @@ export function rehypeParseCodeBlocks() {
 export function rehypeShiki() {
   return async (tree: HastNode) => {
     const shikiHighlighter = await getHighlighter()
+    const languages = new Set<BundledLanguage>()
+
+    visit(tree, 'element', (node: HastNode) => {
+      if (node.tagName !== 'pre') return
+      const codeNode = node.children?.[0]
+      if (codeNode?.tagName !== 'code') return
+      const language = typeof node.properties?.language === 'string' ? node.properties.language : getLanguage(codeNode.properties?.className)
+      if (language && language !== 'txt' && isBundledLanguage(language)) languages.add(language)
+    })
+
+    if (languages.size > 0) await shikiHighlighter.loadLanguage(...languages)
 
     visit(tree, 'element', (node: HastNode) => {
       if (node.tagName !== 'pre') return
