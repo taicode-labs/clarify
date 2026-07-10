@@ -135,6 +135,8 @@ describe('createOpenAPIPlugin', () => {
     expect(modules?.get('virtual:clarify/openapi/server')).toContain('Plugin API')
     expect([...modules!.keys()].some(key => key.startsWith('virtual:clarify/openapi-spec/'))).toBe(true)
     expect(modules?.get('virtual:clarify-page/api')).toContain('createOpenApiRouteComponent(routeData);')
+    expect(modules?.get('virtual:clarify-page/api')).toContain('"specPath":"virtual:clarify-page/api"')
+    expect(modules?.get('virtual:clarify-page/api')).not.toContain('Plugin API')
   })
 
   it('keeps invalid OpenAPI routes renderable with diagnostics', async () => {

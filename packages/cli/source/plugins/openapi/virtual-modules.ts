@@ -26,14 +26,14 @@ export function generateOpenAPISpecModule(spec: OpenAPISpec): string {
 }
 
 type OpenAPIPageModuleOptions = {
-  spec: OpenAPISpec
+  specPath: string
   tagFilter?: string[]
 }
 
 export function generateOpenAPIPageModule(opts: OpenAPIPageModuleOptions): string {
   return `import { createOpenApiRouteComponent } from '@clarify-labs/renderer';
 
-export const routeData = ${JSON.stringify({ spec: opts.spec, tagFilter: opts.tagFilter })};
+export const routeData = ${JSON.stringify({ specPath: opts.specPath, tagFilter: opts.tagFilter })};
 
 export default createOpenApiRouteComponent(routeData);
 `

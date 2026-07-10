@@ -46,18 +46,20 @@ describe('openapi virtual modules', () => {
   })
 
   it('generates an OpenAPI route component module', () => {
-    const code = generateOpenAPIPageModule({ spec, tagFilter: ['Users'] })
+    const code = generateOpenAPIPageModule({ specPath: 'virtual:clarify-page/api', tagFilter: ['Users'] })
     expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
     expect(code).toContain('routeData')
-    expect(code).toContain('"Example API"')
+    expect(code).toContain('"specPath":"virtual:clarify-page/api"')
+    expect(code).not.toContain('"Example API"')
     expect(code).toContain('"Users"')
   })
 
   it('generates an OpenAPI route component module without tag filter', () => {
-    const code = generateOpenAPIPageModule({ spec })
+    const code = generateOpenAPIPageModule({ specPath: 'virtual:clarify-page/api' })
     expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
     expect(code).toContain('routeData')
-    expect(code).toContain('"Example API"')
+    expect(code).toContain('"specPath":"virtual:clarify-page/api"')
+    expect(code).not.toContain('"Example API"')
   })
 
   it('shares the same diagnostic intent across CLI and renderer', () => {
