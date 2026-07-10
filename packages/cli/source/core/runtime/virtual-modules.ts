@@ -1,6 +1,5 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
-import { buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
 import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 // 新的虚拟模块命名 - 更清晰的职责划分
@@ -11,7 +10,7 @@ export const VIRTUAL_OPENAPI = 'virtual:clarify/openapi'
 export const VIRTUAL_SLOTS = 'virtual:clarify/slots'
 export const VIRTUAL_SLOT = 'virtual:clarify/slot'
 export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify/entry-client'
-export const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
+const RESOLVED_CLIENT_ENTRY = '\0' + VIRTUAL_CLIENT_ENTRY
 
 export type VirtualModules = Map<string, string>
 
@@ -21,7 +20,7 @@ type BuildVirtualModulesArgs = {
   routes: ContentRoute[]
   version?: string
   plugins?: ClarifyPlugin[]
-  navigation?: NavigationTree
+  navigation: NavigationTree
   themeEditor?: boolean
 }
 
@@ -37,6 +36,44 @@ export function stripVirtualPrefix(id: string): string {
   return id.startsWith('\0') ? id.slice(1) : id
 }
 
+/**
+ * Fixed virtual module IDs (excluding the client entry, which has a special
+ * resolved form). Used to avoid hardcoding the constant list in every
+ * `resolveId` implementation.
+ */
+const FIXED_VIRTUAL_IDS = [
+  VIRTUAL_CONFIG,
+  VIRTUAL_ROUTES,
+  VIRTUAL_SERVER_ROUTES,
+  VIRTUAL_OPENAPI,
+  VIRTUAL_SLOTS,
+  VIRTUAL_SLOT,
+] as const
+
+/**
+ * Shared `resolveId` logic for all Clarify virtual modules. Used by both the
+ * Vite core plugin (dev + build) and the SSG virtual plugin so the ID-to-
+ * resolved-ID mapping has a single source of truth.
+ *
+ * Returns the resolved ID (with `\0` prefix per Vite convention) or `null`
+ * if the ID is not a Clarify virtual module.
+ */
+export function resolveVirtualModuleId(id: string, modules: VirtualModules, routes: readonly ContentRoute[]): string | null {
+  if (id === VIRTUAL_CLIENT_ENTRY || id === RESOLVED_CLIENT_ENTRY) return RESOLVED_CLIENT_ENTRY
+
+  for (const virtualId of FIXED_VIRTUAL_IDS) {
+    if (id === virtualId || id === resolveVirtualId(virtualId)) return resolveVirtualId(virtualId)
+  }
+
+  const moduleId = stripVirtualPrefix(id)
+  if (modules.has(moduleId)) return resolveVirtualId(moduleId)
+
+  const route = routes.find(route => route.virtualModuleId === id || route.virtualModuleId === moduleId)
+  if (route) return resolveVirtualId(route.virtualModuleId)
+
+  return null
+}
+
 export function generateConfigModule(projectConfig: ResolvedProjectConfig, buildOptions: ResolvedBuildOptions, version?: string): string {
   const runtimeConfig: Record<string, unknown> = { ...projectConfig, ...buildOptions }
   if (version) {
@@ -49,37 +86,80 @@ function moduleSpecifier(value: string): string {
   return JSON.stringify(value)
 }
 
-export function generateRoutesModule(routes: ContentRoute[], resolvedNavigation?: NavigationTree, projectConfig?: ResolvedProjectConfig, mode: 'client' | 'server' = 'client'): string {
+/** Fields from ContentRoute that the runtime route object exposes. */
+type RuntimeRouteObject = {
+  path: string
+  title: string
+  component: string
+  lazy?: true
+  kind: string
+  basePath?: string
+  locale?: string
+  isFallback?: true
+  isBareAlias?: true
+  alternates?: Record<string, string>
+  description?: string
+  keywords?: string[]
+  sections?: Array<{ id: string; title: string; level: number; badge?: string; tags?: string[] }>
+  contentArtifactUrl?: string
+  sourceUrl?: string
+}
+
+function routeToRuntimeObject(route: ContentRoute, component: string, mode: 'client' | 'server'): RuntimeRouteObject {
+  const obj: RuntimeRouteObject = {
+    path: route.path,
+    title: route.title,
+    component,
+    kind: route.kind,
+  }
+
+  if (mode === 'client') obj.lazy = true
+  if (route.basePath) obj.basePath = route.basePath
+  if (route.locale) obj.locale = route.locale
+  if (route.isFallback) obj.isFallback = true
+  if (route.isBareAlias) obj.isBareAlias = true
+  if (route.alternates) obj.alternates = route.alternates
+  if (route.description) obj.description = route.description
+  if (route.keywords?.length) obj.keywords = route.keywords
+  if (route.contentArtifactUrl) obj.contentArtifactUrl = route.contentArtifactUrl
+  if (route.sourceUrl) obj.sourceUrl = route.sourceUrl
+  if (route.sections?.length) {
+    obj.sections = route.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags }))
+  }
+
+  return obj
+}
+
+export function generateRoutesModule(routes: ContentRoute[], navigation: NavigationTree, mode: 'client' | 'server' = 'client'): string {
   const imports = mode === 'server'
     ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.virtualModuleId)};`).join('\n')
     : `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';`
-  const routesArray = routes.map((r, i) => {
-    const sections = r.sections && r.sections.length > 0
-      ? `, sections: ${JSON.stringify(r.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags })))}`
-      : ''
-    const contentArtifactUrl = r.contentArtifactUrl ? `, contentArtifactUrl: ${JSON.stringify(r.contentArtifactUrl)}` : ''
-    const basePath = r.basePath ? `, basePath: ${JSON.stringify(r.basePath)}` : ''
-    const locale = r.locale ? `, locale: ${JSON.stringify(r.locale)}` : ''
-    const isFallback = r.isFallback ? ', isFallback: true' : ''
-    const isBareAlias = r.isBareAlias ? ', isBareAlias: true' : ''
-    const alternates = r.alternates ? `, alternates: ${JSON.stringify(r.alternates)}` : ''
-    const description = r.description ? `, description: ${JSON.stringify(r.description)}` : ''
-    const keywords = r.keywords && r.keywords.length > 0 ? `, keywords: ${JSON.stringify(r.keywords)}` : ''
-    const sourceUrl = r.sourceUrl ? `, sourceUrl: ${JSON.stringify(r.sourceUrl)}` : ''
+
+  // `component` is a raw JS expression (an identifier or arrow function),
+  // not a JSON string. We serialize each route object with a unique placeholder
+  // for the component, then replace it with the actual expression source.
+  // This keeps the rest of the object fully type-checked via JSON.stringify
+  // while avoiding fragile string concatenation for every field.
+  const routeEntries = routes.map((r, i) => {
     const component = mode === 'server'
       ? `Page${i}`
       : `() => import(${moduleSpecifier(r.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
-    const lazy = mode === 'client' ? ', lazy: true' : ''
-    return `  { path: ${JSON.stringify(r.path)}, title: ${JSON.stringify(r.title)}, component: ${component}${lazy}, kind: ${JSON.stringify(r.kind)}${basePath}${locale}${isFallback}${isBareAlias}${alternates}${description}${keywords}${sections}${contentArtifactUrl}${sourceUrl} }`
+    const placeholder = `__COMPONENT_${i}__`
+    const obj = routeToRuntimeObject(r, placeholder, mode)
+    const json = JSON.stringify(obj, null, 0)
+    // JSON.stringify quotes all keys and omits spaces after colons. Convert to
+    // idiomatic JS object-literal syntax: unquote identifier keys, pad colons
+    // with a single space. Non-identifier keys (none currently, but defensive)
+    // keep their quotes. Replace the component placeholder first, before the
+    // key-unquoting regex runs, so the placeholder (an identifier) is not
+    // turned into a bare key.
+    const jsObject = json
+      .replace(`"${placeholder}"`, component)
+      .replace(/"([A-Za-z_$][\w$]*)":/g, '$1: ')
+    return `  ${jsObject}`
   }).join(',\n')
 
-  const navigation = resolvedNavigation ?? (projectConfig?.tabs
-    ? projectConfig.i18n
-      ? (buildLocalizedNavigationFromTabsConfig(routes, projectConfig.tabs, projectConfig.i18n) ?? {})
-      : buildNavigationFromTabsConfig(routes, projectConfig.tabs)
-    : buildNavigation(routes))
-
-  return `${imports}\n\nexport const routes = [\n${routesArray}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
+  return `${imports}\n\nexport const routes = [\n${routeEntries}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
 export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {
@@ -147,15 +227,6 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = [], root: st
   return `export const runtimeSlots = {\n${entries}\n};\n`
 }
 
-/**
- * Re-exports the slot context hook from the renderer so plugin components can
- * `import { useSlot } from 'virtual:clarify/slot'` without depending on
- * renderer internals directly.
- */
-export function createSlotModule(): string {
-  return `export { useSlot } from '@clarify-labs/renderer';\n`
-}
-
 export function generateMdxErrorModule(diagnostic: ContentDiagnostic): string {
   return `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';
 
@@ -179,11 +250,11 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   const allPlugins: ClarifyPlugin[] = [...(args.plugins ?? [])]
   
   modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions, args.version))
-  modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'client'))
-  modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, args.projectConfig, 'server'))
+  modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, 'client'))
+  modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, 'server'))
   modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))
-  modules.set(VIRTUAL_OPENAPI, generateOpenApiModule())
-  modules.set(VIRTUAL_SLOT, createSlotModule())
+  modules.set(VIRTUAL_OPENAPI, 'export const openApis = {};')
+  modules.set(VIRTUAL_SLOT, "export { useSlot } from '@clarify-labs/renderer';\n")
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
 
@@ -195,9 +266,4 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   }
 
   return modules
-}
-
-// 新的 OpenAPI 模块生成函数 - 独立出来
-export function generateOpenApiModule(): string {
-  return `export const openApis = {};`
 }

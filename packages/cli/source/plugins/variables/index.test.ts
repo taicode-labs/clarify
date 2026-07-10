@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveThemeConfig } from '../../core/site/theme.js'
+import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyHookContext } from '../../types.js'
 
 import { createVariablesPlugin } from './index.js'
@@ -31,6 +31,11 @@ const ctx: ClarifyHookContext = {
   version: 'test',
   routes: [],
   navigation: [],
+  plugins: [],
+  get: () => undefined,
+  set: () => undefined,
+  has: () => false,
+  delete: () => false,
 }
 
 describe('createVariablesPlugin', () => {

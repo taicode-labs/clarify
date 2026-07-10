@@ -12,7 +12,18 @@ export type BuiltinPluginOptions = {
 }
 
 export function createBuiltinPlugins(options: BuiltinPluginOptions = {}): ClarifyPlugin[] {
-  const plugins = [createVariablesPlugin(), createOpenAPIPlugin(), createSourceLinksPlugin(), createContentArtifactsPlugin(), createSeoPlugin(), createSearchIndexPlugin()]
+  // Core site discovery (content scanning, i18n fallback routes) and
+  // navigation building are handled directly by the Engine, not as plugins.
+  // The remaining plugins provide optional functionality (variables, OpenAPI,
+  // SEO, search, etc.) and can be augmented or replaced by user plugins.
+  const plugins = [
+    createVariablesPlugin(),
+    createOpenAPIPlugin(),
+    createSourceLinksPlugin(),
+    createContentArtifactsPlugin(),
+    createSeoPlugin(),
+    createSearchIndexPlugin(),
+  ]
   if (options.htmlShell ?? true) plugins.push(createHtmlShellPlugin())
   return plugins
 }

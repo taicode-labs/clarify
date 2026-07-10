@@ -2,3 +2,8 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'extensions/*'
+
+allowBuilds:
+  '@vscode/vsce-sign': true
+  keytar: true
+  unrs-resolver: true

@@ -1,7 +1,7 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
 import GithubSlugger from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
-import shiki, { type Highlighter } from 'shiki'
+import { bundledLanguages, createCssVariablesTheme, createHighlighter, type BundledLanguage, type Highlighter } from 'shiki'
 import { visit } from 'unist-util-visit'
 
 import { markdownRemarkPlugins } from '@clarify-labs/renderer'
@@ -19,10 +19,6 @@ type HastNode = {
 
 type HastParent = HastNode & {
   children: HastNode[]
-}
-
-type ShikiRenderElementArgs = {
-  children: string
 }
 
 function getLanguage(className: unknown): string {
@@ -44,11 +40,25 @@ function renderPlainCode(code: string): string {
     .join('\n')
 }
 
+function isBundledLanguage(language: string): language is BundledLanguage {
+  return language in bundledLanguages
+}
+
 let highlighter: Highlighter | undefined
+const cssVariablesTheme = createCssVariablesTheme()
 
 async function getHighlighter(): Promise<Highlighter> {
-  highlighter = highlighter ?? await shiki.getHighlighter({ theme: 'css-variables' })
+  highlighter = highlighter ?? await createHighlighter({ themes: [cssVariablesTheme], langs: [] })
   return highlighter
+}
+
+function renderHighlightedCode(html: string): string {
+  const codeMatch = /<code[^>]*>([\s\S]*?)<\/code>/.exec(html)
+  const codeHtml = codeMatch?.[1] ?? html
+  return codeHtml
+    .split('\n')
+    .map(line => line.trimStart().startsWith('<span') ? line : `<span>${line}</span>`)
+    .join('\n')
 }
 
 export function rehypeParseCodeBlocks() {
@@ -71,6 +81,17 @@ export function rehypeParseCodeBlocks() {
 export function rehypeShiki() {
   return async (tree: HastNode) => {
     const shikiHighlighter = await getHighlighter()
+    const languages = new Set<BundledLanguage>()
+
+    visit(tree, 'element', (node: HastNode) => {
+      if (node.tagName !== 'pre') return
+      const codeNode = node.children?.[0]
+      if (codeNode?.tagName !== 'code') return
+      const language = typeof node.properties?.language === 'string' ? node.properties.language : getLanguage(codeNode.properties?.className)
+      if (language && language !== 'txt' && isBundledLanguage(language)) languages.add(language)
+    })
+
+    if (languages.size > 0) await shikiHighlighter.loadLanguage(...languages)
 
     visit(tree, 'element', (node: HastNode) => {
       if (node.tagName !== 'pre') return
@@ -90,14 +111,8 @@ export function rehypeShiki() {
 
       if (language && language !== 'txt') {
         try {
-          const tokens = shikiHighlighter.codeToThemedTokens(code, language)
-          highlighted = shiki.renderToHtml(tokens, {
-            elements: {
-              pre: ({ children }: ShikiRenderElementArgs) => children,
-              code: ({ children }: ShikiRenderElementArgs) => children,
-              line: ({ children }: ShikiRenderElementArgs) => `<span>${children}</span>`,
-            },
-          })
+          const html = shikiHighlighter.codeToHtml(code, { lang: language, theme: cssVariablesTheme })
+          highlighted = renderHighlightedCode(html)
         } catch {
           highlighted = renderPlainCode(code)
         }
@@ -134,13 +149,30 @@ function formatMdxDiagnostic(error: unknown): string {
   return String(error)
 }
 
+/**
+ * Validate MDX content for diagnostics WITHOUT running the build-time rehype
+ * pipeline (Shiki highlighting, slug injection, code-block parsing).
+ *
+ * `rehypePlugins` includes `rehypeShiki`, which loads grammar/WASM assets and
+ * is expensive. The real highlighting happens at Vite build time via the
+ * `@mdx-js/rollup` plugin (see `createMdxPlugin` in `core/adapters.ts`), which
+ * runs the full remark + rehype pipeline. Re-running it here, during route
+ * discovery (Phase 3), would compile every `.mdx` file twice and invoke Shiki
+ * once per file per `engine.refresh()` — see ARCHITECTURE.md §2.2 which states
+ * "不应在 core 中执行代码高亮".
+ *
+ * The remark pipeline still runs (shared with the Vite plugin via
+ * `remarkPlugins`), so MDX/JSX syntax errors — the only class of error this
+ * diagnostic is meant to surface ahead of the Vite build — are caught. The
+ * output is discarded; only the thrown error is used.
+ */
 export async function compileMdxContent(content: string, filePath?: string, projectRoot?: string): Promise<{ ok: true } | { ok: false; diagnostic: ContentDiagnostic }> {
   try {
     await compile(content, {
       jsx: true,
       providerImportSource: '@clarify-labs/renderer',
       remarkPlugins: remarkPlugins as CompileOptions['remarkPlugins'],
-      rehypePlugins,
+      // NOTE: `rehypePlugins` intentionally omitted. See JSDoc above.
     })
     return { ok: true }
   } catch (error) {

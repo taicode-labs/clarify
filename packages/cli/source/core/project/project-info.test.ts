@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
+import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyProjectContext, ResolvedProjectConfig } from '../../types.js'
-import { resolveThemeConfig } from '../site/theme.js'
 
 import {
   buildProjectInfo,

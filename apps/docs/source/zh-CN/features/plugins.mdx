@@ -62,6 +62,7 @@ Clarify 当前构建流程会调用以下 Hook：
 | `content:transform` | Clarify 从 MDX、OpenAPI 规范等内容源提取元数据前 | 展开项目变量、规范化 frontmatter、注入生成内容或校验原始内容 |
 | `routes:discover` | 从内容根目录发现路由时 | 添加 OpenAPI 等非 MDX 路由，或替换发现结果 |
 | `routes:discovered` | 路由发现后、应用配置路径和导航前 | 丰富已发现路由、添加源文件链接或挂载产物 URL |
+| `pages:resolved` | 路由映射为页面后、回写路由前 | 改写页面级 frontmatter 或内容 |
 | `routes:resolved` | 路由和导航生成后 | 调整路由、导航、分组和可见页面 |
 | `modules:before` | 虚拟模块生成后、交给 Vite 前 | 注入或修改运行时虚拟模块 |
 | `html:transform` | HTML 输出或开发服务返回前 | 注入 HTML 标签、主题启动脚本或客户端入口脚本 |
@@ -72,8 +73,6 @@ Clarify 当前构建流程会调用以下 Hook：
 插件按照 `plugins` 数组顺序依次执行。前一个插件返回的结果会作为下一个插件的输入。
 
 Clarify 内置的项目变量就是通过 `content:transform` 插件实现的。用户插件也运行在同一个生命周期中，并且会在内置插件之后执行。
-
-> 类型中还预留了 `pages:resolved` 和 `page:transform`，但当前 CLI 构建流程尚未触发它们。插件作者应优先使用上表中的 Hook。
 
 ---
 

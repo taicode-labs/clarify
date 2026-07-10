@@ -1,6 +1,6 @@
 {
   "name": "@clarify-labs/renderer",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "license": "AGPL-3.0-only",
   "type": "module",
   "repository": {
@@ -64,18 +64,18 @@
     "react-router-dom": "^7.0.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.11",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react": "^5.0.5",
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.0.0",
-    "tailwindcss": "^4.1.11",
-    "typescript": "^5.8.3",
-    "vite": "^8.0.15",
-    "vite-plugin-dts": "^4.5.4",
-    "vitest": "^4.1.9"
+    "tailwindcss": "^4.3.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.4",
+    "vite-plugin-dts": "^5.0.3",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",

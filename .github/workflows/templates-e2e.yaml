@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20]
+        node-version: [24]
         template: [minimal, standard, complete]
     steps:
       - name: Checkout
@@ -36,11 +36,15 @@ jobs:
       - name: Build local clarify CLI
         run: pnpm run build
 
-      - name: Link local clarify globally
-        run: pnpm --dir packages/cli link --global
+      - name: Configure pnpm global binaries
+        run: |
+          echo "PNPM_HOME=$HOME/.local/share/pnpm" >> $GITHUB_ENV
+          echo "$HOME/.local/share/pnpm" >> $GITHUB_PATH
+          pnpm config set global-bin-dir "$HOME/.local/share/pnpm" --location global
 
-      - name: Add pnpm global binaries to PATH
-        run: echo "PATH=$(pnpm bin -g):$PATH" >> $GITHUB_ENV
+      - name: Install local clarify globally
+        working-directory: packages/cli
+        run: pnpm add --global .
 
       - name: Verify global clarify
         run: clarify --help
@@ -56,7 +60,7 @@ jobs:
 
       - name: Link local @clarify-labs/cli into template project
         working-directory: .github/.template-test
-        run: pnpm link @clarify-labs/cli
+        run: pnpm link ../../packages/cli
 
       - name: Install template project dependencies
         working-directory: .github/.template-test

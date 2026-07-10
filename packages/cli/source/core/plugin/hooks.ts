@@ -28,19 +28,23 @@ export async function runDevConfigureServerHooks(plugins: ClarifyPlugin[], serve
   }
 }
 
-export async function runBuildAssetsHooks(plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<ClarifyEmitAsset[]> {
-  const assets: ClarifyEmitAsset[] = []
+export async function runCollectorHooks<T>(plugins: ClarifyPlugin[], hookName: string, ctx: ClarifyHookContext): Promise<T[]> {
+  const results: T[] = []
   for (const plugin of plugins) {
-    const hook = plugin.hooks?.['build:assets']
+    const hook = plugin.hooks?.[hookName as keyof ClarifyHooks]
     if (!hook) continue
     try {
-      const pluginAssets = await hook(ctx)
-      assets.push(...pluginAssets)
+      const pluginResults = await (hook as (ctx: ClarifyHookContext) => Promise<T[]> | T[])(ctx)
+      results.push(...pluginResults)
     } catch (err) {
-      throw new Error(`[clarify] plugin "${plugin.name}" hook "build:assets" failed: ${err}`, { cause: err })
+      throw new Error(`[clarify] plugin "${plugin.name}" hook "${hookName}" failed: ${err}`, { cause: err })
     }
   }
-  return assets
+  return results
+}
+
+export async function runBuildAssetsHooks(plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<ClarifyEmitAsset[]> {
+  return runCollectorHooks<ClarifyEmitAsset>(plugins, 'build:assets', ctx)
 }
 
 export async function runBuildDoneHooks(plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<void> {

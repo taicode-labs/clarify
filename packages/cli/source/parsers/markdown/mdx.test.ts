@@ -1,5 +1,5 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { compileMdxContent, rehypeParseCodeBlocks, rehypePlugins, rehypeShiki, rehypeSlugSections, remarkPlugins } from './mdx.js'
 
@@ -216,6 +216,59 @@ describe('mdx rehype plugins', () => {
 
     if (!result.ok) {
       expect(result.diagnostic.filePath).toBe('source/broken.mdx')
+    }
+  })
+
+  it('does not invoke Shiki during the diagnostic compile', async () => {
+    // Content with a fenced code block that WOULD trigger Shiki if the rehype
+    // pipeline ran. The diagnostic path must skip rehypePlugins entirely so
+    // code highlighting only happens once, at Vite build time.
+    //
+    // We use a fresh module instance (`vi.resetModules` + dynamic import) so the
+    // module-level `highlighter` singleton in `mdx.ts` is unset - otherwise an
+    // earlier `rehypeShiki()` test could have cached it and masked whether the
+    // diagnostic path reaches Shiki at all. `vi.doMock` (not `vi.mock`) is used
+    // because it is not hoisted and can be scoped to this test.
+    const getHighlighterCalls: number[] = []
+    vi.doMock('shiki', () => ({
+      bundledLanguages: {},
+      createCssVariablesTheme: () => ({ name: 'css-variables' }),
+      createHighlighter: () => {
+        getHighlighterCalls.push(1)
+        return Promise.resolve({ codeToHtml: () => '' })
+      },
+      default: {
+        getHighlighter: () => {
+          getHighlighterCalls.push(1)
+          return Promise.resolve({ codeToThemedTokens: () => [] })
+        },
+      },
+      getHighlighter: () => {
+        getHighlighterCalls.push(1)
+        return Promise.resolve({ codeToThemedTokens: () => [] })
+      },
+    }))
+
+    vi.resetModules()
+    const { compileMdxContent: freshCompileMdxContent } = await import('./mdx.js')
+
+    const result = await freshCompileMdxContent('```ts\nconst x = 1\n```\n\n# ok')
+
+    expect(result.ok).toBe(true)
+    expect(getHighlighterCalls).toHaveLength(0)
+
+    vi.doUnmock('shiki')
+    vi.resetModules()
+  })
+
+  it('still surfaces MDX/JSX syntax errors without the rehype pipeline', async () => {
+    // A JSX-level error that remark.parse() alone cannot catch - this proves
+    // the diagnostic path still runs the MDX compiler (just without rehype).
+    const result = await compileMdxContent('<BrokenComponent>\nThis tag never closes\n')
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.diagnostic.details).toContain('Expected a closing tag for `<BrokenComponent>`')
     }
   })
 

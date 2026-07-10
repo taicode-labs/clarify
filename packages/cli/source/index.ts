@@ -1,6 +1,8 @@
-export { clarifyPlugin } from './core/plugin/plugin.js'
+export { createViteAdapter } from './core/adapters.js'
+export { ClarifyEngine, createClarifyEngine } from './core/engine/engine.js'
 export { defineConfig } from './core/config/user-config.js'
-export type { Plugin } from 'vite'
+export type { ClarifyEngineRuntime, PrepareOptions } from './core/engine/engine.js'
+export type { PhaseName, TapPhaseName, TapHook, InterceptHook, PipelineHook, CollectorHook } from './core/engine/phases.js'
 
 export * from './types.js'
 export type { ClarifyConfig } from './core/config/user-config.js'

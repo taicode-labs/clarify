@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path'
 import type { ConfigEnv } from 'vite'
 
 import { cliPackageVersion } from '../../cli/package.js'
-import type { ClarifyHookContext, ClarifyProjectContext } from '../../types.js'
+import type { ClarifyProjectContext } from '../../types.js'
 import { resolveProjectConfig } from '../config/config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions, type ResolvedBuildOptions } from '../config/options.js'
 import { findClarifyConfigFile, loadClarifyConfig, type ClarifyConfig } from '../config/user-config.js'
@@ -12,12 +12,12 @@ import { findClarifyConfigFile, loadClarifyConfig, type ClarifyConfig } from '..
 export type ResolvedProjectContext = {
   projectRoot: string
   contentRoot: string
-  configFilePath?: string
-  projectConfig: ReturnType<typeof resolveProjectConfig>
-  buildOptions: ResolvedBuildOptions
   config: ClarifyConfig
-  hookContext: ClarifyHookContext
+  configFilePath?: string
+  buildOptions: ResolvedBuildOptions
+  resolvedOptions: ClarifyBuildOptions
   projectContext: ClarifyProjectContext
+  projectConfig: ReturnType<typeof resolveProjectConfig>
 }
 
 export async function resolveProjectContext(options: ClarifyBuildOptions = {}, env: ConfigEnv = { command: 'build', mode: 'production' }): Promise<ResolvedProjectContext> {
@@ -47,20 +47,14 @@ export async function resolveProjectContext(options: ClarifyBuildOptions = {}, e
     generateOptions: resolvedBuildOptions,
   }
 
-  const hookContext: ClarifyHookContext = {
-    ...projectContext,
-    routes: [],
-    navigation: [],
-  }
-
   return {
     projectRoot,
     contentRoot,
     configFilePath,
     projectConfig: resolvedProjectConfig,
     buildOptions: resolvedBuildOptions,
+    resolvedOptions: mergedOptions,
     config,
-    hookContext,
     projectContext,
   }
 }

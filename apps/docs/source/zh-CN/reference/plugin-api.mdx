@@ -123,6 +123,11 @@ export default function CustomBanner() {
 
 ```ts
 type ClarifyHooks = {
+  'pages:resolved'?: (
+    pages: ClarifyPage[],
+    ctx: ClarifyHookContext,
+  ) => Promise<ClarifyPage[]> | ClarifyPage[]
+
   'routes:resolved'?: (
     input: { routes: ContentRoute[]; navigation: NavigationTree },
     ctx: ClarifyHookContext,
@@ -139,7 +144,7 @@ type ClarifyHooks = {
 }
 ```
 
-Hook 可以同步或异步返回。`routes:resolved` 和 `modules:before` 需要返回与输入同类型的结果，`build:done` 无需返回值。
+Hook 可以同步或异步返回。`pages:resolved`、`routes:resolved` 和 `modules:before` 需要返回与输入同类型的结果，`build:done` 无需返回值。
 
 ---
 

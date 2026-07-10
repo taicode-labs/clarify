@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
+import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyPlugin, ClarifyHookContext, ClarifyPage } from '../../types.js'
-import { resolveThemeConfig } from '../site/theme.js'
 
 import { runHooks } from './hooks.js'
 
@@ -25,6 +25,11 @@ const mockCtx: ClarifyHookContext = {
   version: 'test',
   routes: [],
   navigation: [],
+  plugins: [],
+  get: () => undefined,
+  set: () => undefined,
+  has: () => false,
+  delete: () => false,
 }
 
 describe('runHooks', () => {

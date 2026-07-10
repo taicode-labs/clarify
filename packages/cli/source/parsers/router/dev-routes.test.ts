@@ -3,7 +3,7 @@ import type { IncomingMessage } from 'node:http'
 
 import { describe, it, expect } from 'vitest'
 
-import { resolveThemeConfig } from '../../core/site/theme.js'
+import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 import {

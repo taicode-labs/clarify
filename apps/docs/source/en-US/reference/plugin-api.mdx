@@ -24,6 +24,11 @@ type ClarifyPlugin = {
 
 ```ts
 type ClarifyHooks = {
+  'pages:resolved'?: (
+    pages: ClarifyPage[],
+    ctx: ClarifyHookContext,
+  ) => Promise<ClarifyPage[]> | ClarifyPage[]
+
   'routes:resolved'?: (
     input: { routes: ContentRoute[]; navigation: NavigationTree },
     ctx: ClarifyHookContext,
@@ -41,8 +46,6 @@ type ClarifyHooks = {
 ```
 
 All hooks can return synchronously or asynchronously. Except for `build:done`, hooks must return a result of the same type.
-
-> The type definitions also include the reserved `pages:resolved` and `page:transform`, but the current CLI build flow does not call them. This page only lists the hooks the current flow actually triggers.
 
 ---
 

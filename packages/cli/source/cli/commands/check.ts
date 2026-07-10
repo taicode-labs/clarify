@@ -1,7 +1,7 @@
 import { lstat, stat } from 'node:fs/promises'
 import { dirname, extname, isAbsolute, join, normalize, relative, resolve } from 'node:path'
 
-import { resolveClarifySite } from '../../core/site/site.js'
+import { createClarifyEngine } from '../../core/engine/engine.js'
 import type { ContentRoute } from '../../types.js'
 import type { CliOptions } from '../options.js'
 
@@ -178,17 +178,18 @@ function printTextResult(result: CheckResult, strict: boolean): void {
 
 export async function runCheck(options: CheckCommandOptions = {}): Promise<void> {
   const root = resolve(options.root ?? process.cwd())
-  const site = await resolveClarifySite({
+  const engine = createClarifyEngine({
     projectRoot: root,
     rootDirectory: options.content,
     outputDirectory: options.output,
-  }, { includeHtmlShellPlugin: false })
+  })
+  await engine.prepare(undefined, undefined, { htmlShell: false, skipModules: true, skipHints: true })
 
   const result: CheckResult = { errors: [], warnings: [] }
-  await checkContentDirectory(site.contentRoot, result)
-  checkDuplicateRoutes(site.routes, result)
-  checkFallbackRoutes(site.routes, result)
-  await checkLocalLinks(site.routes, site.contentRoot, result)
+  await checkContentDirectory(engine.contentRoot, result)
+  checkDuplicateRoutes(engine.routes, result)
+  checkFallbackRoutes(engine.routes, result)
+  await checkLocalLinks(engine.routes, engine.contentRoot, result)
 
   if (options.format === 'json') {
     console.log(JSON.stringify(result, null, 2))

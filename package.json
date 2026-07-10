@@ -1,6 +1,6 @@
 {
   "name": "clarify",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "private": true,
   "license": "AGPL-3.0-only",
   "description": "An open-source documentation publishing tool built for MDX and OpenAPI.",
@@ -15,21 +15,21 @@
     "test": "turbo run test"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=22.13.0",
     "pnpm": ">=9.0.0"
   },
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@11.11.0",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/eslint": "^9.6.1",
     "@yinxulai/eslint-plugin-peculiar": "^1.0.6",
-    "eslint": "^10.5.0",
-    "eslint-plugin-import-x": "^4.16.2",
+    "eslint": "^10.6.0",
+    "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-mdx": "^3.8.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
-    "globals": "^17.6.0",
-    "turbo": "^2.9.18",
-    "typescript-eslint": "^8.61.1"
+    "globals": "^17.7.0",
+    "turbo": "^2.10.4",
+    "typescript-eslint": "^8.63.0"
   }
 }
