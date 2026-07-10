@@ -36,6 +36,12 @@ jobs:
       - name: Build local clarify CLI
         run: pnpm run build
 
+      - name: Configure pnpm global binaries
+        run: |
+          echo "PNPM_HOME=$HOME/.local/share/pnpm" >> $GITHUB_ENV
+          echo "$HOME/.local/share/pnpm" >> $GITHUB_PATH
+          pnpm config set global-bin-dir "$HOME/.local/share/pnpm" --location global
+
       - name: Link local clarify globally
         run: pnpm --dir packages/cli link --global
 
