@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
 import type { ViteDevServer } from 'vite'
+import { describe, expect, it } from 'vitest'
 
 import { ClarifyEngine } from './engine.js'
 

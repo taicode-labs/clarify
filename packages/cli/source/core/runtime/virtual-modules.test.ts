@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
-import type { ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
+import type { ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 import { buildVirtualModules, createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from './virtual-modules.js'
 

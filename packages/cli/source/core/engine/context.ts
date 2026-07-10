@@ -14,6 +14,14 @@ export type ClarifyContextInit = {
 
 type ContextListener = () => void
 
+export type ProjectStateUpdate = {
+  projectRoot?: string
+  contentRoot?: string
+  projectConfig?: ResolvedProjectConfig
+  generateOptions?: ResolvedBuildOptions
+  version?: string
+}
+
 export class ClarifyContext implements ClarifyHookContext {
   projectRoot: string
   contentRoot: string
@@ -106,13 +114,7 @@ export class ClarifyContext implements ClarifyHookContext {
     return () => this.pluginListeners.delete(listener)
   }
 
-  updateProjectState(update: {
-    projectRoot?: string
-    contentRoot?: string
-    projectConfig?: ResolvedProjectConfig
-    generateOptions?: ResolvedBuildOptions
-    version?: string
-  }): void {
+  updateProjectState(update: ProjectStateUpdate): void {
     if (update.projectRoot !== undefined) this.projectRoot = update.projectRoot
     if (update.contentRoot !== undefined) this.contentRoot = update.contentRoot
     if (update.projectConfig !== undefined) this.projectConfig = update.projectConfig

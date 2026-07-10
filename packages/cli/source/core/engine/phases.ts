@@ -1,4 +1,4 @@
-import type { ClarifyHookContext, ClarifyHooks, ClarifyPlugin } from '../../types.js'
+import type { ClarifyHookContext, ClarifyPlugin } from '../../types.js'
 
 export type PhaseName =
   | 'config:load'

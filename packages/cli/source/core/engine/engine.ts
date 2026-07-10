@@ -4,6 +4,8 @@ import { join, resolve } from 'node:path'
 import type { ConfigEnv, Plugin } from 'vite'
 
 import { cliPackageVersion } from '../../cli/package.js'
+import { createProjectContentProcessor } from '../../parsers/content/content.js'
+import { findContentRoutes, findLocalizedContentRoutes, applyConfiguredPageRoutePaths, buildNavigation, buildNavigationFromTabsConfig, buildLocalizedNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
 import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyHtmlTransformInput, ClarifyPlugin, ContentRoute, NavigationTree, ClarifyPage, ClarifyProjectContext  } from '../../types.js'
 import { resolveProjectConfig } from '../config/config.js'
 import { resolveBuildOptions, type ClarifyBuildOptions } from '../config/options.js'
@@ -11,8 +13,6 @@ import { findClarifyConfigFile } from '../config/user-config.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from '../plugin/hooks.js'
 import { loadBuildPlugins } from '../plugin/manager.js'
 import { resolveProjectContext } from '../project/project-context.js'
-import { createProjectContentProcessor } from '../../parsers/content/content.js'
-import { findContentRoutes, findLocalizedContentRoutes, applyConfiguredPageRoutePaths, buildNavigation, buildNavigationFromTabsConfig, buildLocalizedNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
 import { writeClarifyEnvDts } from '../runtime/env-types.js'
 import {
   SSR_ENTRY_CODE,

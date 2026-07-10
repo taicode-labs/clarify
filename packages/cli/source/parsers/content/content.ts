@@ -1,5 +1,5 @@
-import type { ClarifyContentKind, ClarifyContentTransformInput, ClarifyHookContext, ClarifyPlugin } from '../../types.js'
 import { runHooks } from '../../core/plugin/hooks.js'
+import type { ClarifyContentKind, ClarifyContentTransformInput, ClarifyHookContext, ClarifyPlugin } from '../../types.js'
 import { parseFrontmatter } from '../markdown/frontmatter.js'
 
 export type ProcessedMdxContent = {
