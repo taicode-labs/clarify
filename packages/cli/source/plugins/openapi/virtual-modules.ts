@@ -1,14 +1,22 @@
-import { VIRTUAL_OPENAPI } from '../../core/runtime/virtual-modules.js'
+import { VIRTUAL_OPENAPI, VIRTUAL_OPENAPI_SERVER } from '../../core/runtime/virtual-modules.js'
 import type { ContentDiagnostic, OpenAPISpec } from '../../types.js'
 
 export const openApiRegistryModuleId = VIRTUAL_OPENAPI
+export const openApiServerRegistryModuleId = VIRTUAL_OPENAPI_SERVER
 export const OPENAPI_SPEC_PREFIX = 'virtual:clarify/openapi-spec/'
 
 export function specVirtualModuleId(specKey: string): string {
   return `${OPENAPI_SPEC_PREFIX}${specKey}`
 }
 
-export function generateOpenAPIRegistryModule(openApis: Record<string, OpenAPISpec>): string {
+export function generateOpenAPIRegistryModule(openApis: Record<string, string>): string {
+  const entries = Object.entries(openApis)
+    .map(([key, moduleId]) => `  ${JSON.stringify(key)}: () => import(${JSON.stringify(moduleId)}),`)
+    .join('\n')
+  return `export const openApis = {\n${entries}\n};`
+}
+
+export function generateOpenAPIServerRegistryModule(openApis: Record<string, OpenAPISpec>): string {
   return `export const openApis = ${JSON.stringify(openApis)};`
 }
 

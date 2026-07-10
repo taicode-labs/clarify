@@ -7,6 +7,7 @@ export const VIRTUAL_CONFIG = 'virtual:clarify/config'
 export const VIRTUAL_ROUTES = 'virtual:clarify/routes'
 export const VIRTUAL_SERVER_ROUTES = 'virtual:clarify/routes/server'
 export const VIRTUAL_OPENAPI = 'virtual:clarify/openapi'
+export const VIRTUAL_OPENAPI_SERVER = 'virtual:clarify/openapi/server'
 export const VIRTUAL_SLOTS = 'virtual:clarify/slots'
 export const VIRTUAL_SLOT = 'virtual:clarify/slot'
 export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify/entry-client'
@@ -46,6 +47,7 @@ const FIXED_VIRTUAL_IDS = [
   VIRTUAL_ROUTES,
   VIRTUAL_SERVER_ROUTES,
   VIRTUAL_OPENAPI,
+  VIRTUAL_OPENAPI_SERVER,
   VIRTUAL_SLOTS,
   VIRTUAL_SLOT,
 ] as const

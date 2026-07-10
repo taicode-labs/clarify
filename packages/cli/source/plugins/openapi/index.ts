@@ -5,7 +5,7 @@ import { localizedRoutePath, openAPIPagePathFromRef, withAlternates } from '../.
 import type { ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedProjectConfig } from '../../types.js'
 
 import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
-import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
+import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPIServerRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, openApiServerRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 type OpenAPISpecEntry = {
   spec: OpenAPISpec
@@ -128,7 +128,8 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         // Keys are unified in namespace 3 (virtual:clarify-page/…)
         // so both page modules and embedded components (useOpenApiSpec)
         // look up specs the same way.
-        const registryEntries: Record<string, OpenAPISpec> = {}
+        const registryEntries: Record<string, string> = {}
+        const serverRegistryEntries: Record<string, OpenAPISpec> = {}
 
         for (const route of ctx.routes) {
           if (route.kind !== 'openapi' || !route.specFileKey) continue
@@ -143,10 +144,12 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           const registryKey = route.locale
             ? `virtual:clarify-page/${route.locale}/${base}`
             : `virtual:clarify-page/${base}`
-          registryEntries[registryKey] = spec
+          registryEntries[registryKey] = specVirtualModuleId(route.specFileKey)
+          serverRegistryEntries[registryKey] = spec
         }
 
         modules.set(openApiRegistryModuleId, generateOpenAPIRegistryModule(registryEntries))
+        modules.set(openApiServerRegistryModuleId, generateOpenAPIServerRegistryModule(serverRegistryEntries))
 
         // ── Per-spec virtual modules (lazy-loaded by page modules at runtime) ──
         for (const [specKey, entry] of specs) {

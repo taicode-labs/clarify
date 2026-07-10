@@ -129,7 +129,11 @@ describe('createOpenAPIPlugin', () => {
     ])
 
     const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(discovered ?? []))
-    expect(modules?.get('virtual:clarify/openapi')).toContain('Plugin API')
+    const clientRegistry = modules?.get('virtual:clarify/openapi')
+    expect(clientRegistry).toContain('() => import("virtual:clarify/openapi-spec/')
+    expect(clientRegistry).not.toContain('Plugin API')
+    expect(modules?.get('virtual:clarify/openapi/server')).toContain('Plugin API')
+    expect([...modules!.keys()].some(key => key.startsWith('virtual:clarify/openapi-spec/'))).toBe(true)
     expect(modules?.get('virtual:clarify-page/api')).toContain('createOpenApiRouteComponent(routeData);')
   })
 

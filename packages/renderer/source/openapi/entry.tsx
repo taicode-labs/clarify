@@ -99,8 +99,11 @@ function WarningBox(arg0: WarningBoxProps): ReactNode {
 export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
   const { spec, specPath, tagFilter } = arg0
   const t = useBuiltInText()
-  const resolved = useOpenApiSpec(spec, specPath)
+  const { spec: resolved, loading } = useOpenApiSpec(spec, specPath)
 
+  if (loading) {
+    return <WarningBox>{t('openapi.loading')}</WarningBox>
+  }
   if (!resolved) {
     return <WarningBox>{t('openapi.specNotFound', { specPath: specPath ?? t('openapi.specPathMissing') })}</WarningBox>
   }
@@ -131,8 +134,11 @@ function OpenApiOperationWithSpec(arg0: OpenApiOperationWithSpecProps): ReactNod
 export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const { specPath, path, method } = arg0
   const t = useBuiltInText()
-  const spec = useOpenApiSpec(undefined, specPath)
+  const { spec, loading } = useOpenApiSpec(undefined, specPath)
 
+  if (loading) {
+    return <WarningBox>{t('openapi.loading')}</WarningBox>
+  }
   if (!spec) {
     return <WarningBox>{t('openapi.specNotFound', { specPath })}</WarningBox>
   }

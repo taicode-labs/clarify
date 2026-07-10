@@ -3,6 +3,9 @@ import type { ComponentType } from 'react'
 import type { OpenAPISpec } from '../openapi/lib/utils'
 import type { RuntimeSlots } from '../slots'
 
+export type OpenApiRegistry = Record<string, OpenAPISpec | OpenApiSpecLoader>
+export type OpenApiSpecLoader = () => Promise<{ default: OpenAPISpec } | OpenAPISpec>
+
 export type RouteComponent = ComponentType | (() => Promise<{ default: ComponentType }>)
 
 export type RouteSection = {
@@ -202,7 +205,7 @@ export type RenderOptions = {
   /** 从 virtual:clarify-routes 导入的导航树；启用 i18n 时为按 locale 分组的导航树 */
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
-  openApis?: Record<string, OpenAPISpec>;
+  openApis?: OpenApiRegistry;
   /** Plugin runtime UI slots imported from virtual:clarify-runtime-slots. */
   runtimeSlots?: RuntimeSlots;
   /** Whether to render the live theme editor inside the app tree. */
@@ -223,7 +226,7 @@ export type ServerRenderOptions = {
   /** 从 virtual:clarify-routes 导入的导航树；启用 i18n 时为按 locale 分组的导航树 */
   navigation?: NavigationTree;
   /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
-  openApis?: Record<string, OpenAPISpec>;
+  openApis?: OpenApiRegistry;
   /** Plugin runtime UI slots imported from virtual:clarify-runtime-slots. */
   runtimeSlots?: RuntimeSlots;
   /** Whether to render the live theme editor inside the app tree. */

@@ -26,6 +26,12 @@ declare module 'virtual:clarify/config' {
 }
 
 declare module 'virtual:clarify/openapi' {
+  import type { OpenApiRegistry } from './core/types';
+
+  export const openApis: OpenApiRegistry;
+}
+
+declare module 'virtual:clarify/openapi/server' {
   import type { OpenAPISpec } from './openapi/lib/utils';
 
   export const openApis: Record<string, OpenAPISpec>;

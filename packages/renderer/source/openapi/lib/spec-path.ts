@@ -1,8 +1,30 @@
+import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { useConfig, useLocale, useOpenApis } from '../../core/context'
 
 import type { OpenAPISpec } from './utils'
+
+type OpenApiSpecResult = {
+  spec: OpenAPISpec | null
+  loading: boolean
+}
+
+type OpenApiSpecModule = { default: OpenAPISpec } | OpenAPISpec
+type LoadedOpenApiSpec = {
+  loader: () => Promise<OpenApiSpecModule>
+  spec: OpenAPISpec | null
+}
+
+function isOpenApiSpecLoader(value: unknown): value is () => Promise<OpenApiSpecModule> {
+  return typeof value === 'function'
+}
+
+function getLoadedSpec(value: OpenApiSpecModule): OpenAPISpec {
+  return value && typeof value === 'object' && 'default' in value
+    ? value.default
+    : value
+}
 
 const VIRTUAL_PREFIX = 'virtual:clarify-page/'
 
@@ -53,18 +75,39 @@ function localizeSpecModuleId(moduleId: string, specPath: string, locale: string
   return `${VIRTUAL_PREFIX}${locale}/${rest}`
 }
 
-export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenAPISpec | null {
+export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenApiSpecResult {
   const config = useConfig()
   const locale = useLocale()
   const specs = useOpenApis()
   const location = useLocation()
+  const [loadedSpec, setLoadedSpec] = useState<LoadedOpenApiSpec | null>(null)
+  const normalized = specPath ? normalizeSpecPath(specPath, location.pathname, config.routePrefix) : undefined
+  const localized = specPath && normalized ? localizeSpecModuleId(normalized, specPath, locale, config.i18n?.defaultLocale) : undefined
+  const registryValue = normalized ? (localized && specs[localized] ? specs[localized] : specs[normalized]) : undefined
 
-  if (spec) return spec
-  if (!specPath) return null
+  useEffect(() => {
+    let cancelled = false
 
-  const normalized = normalizeSpecPath(specPath, location.pathname, config.routePrefix)
-  const localized = localizeSpecModuleId(normalized, specPath, locale, config.i18n?.defaultLocale)
+    if (!isOpenApiSpecLoader(registryValue)) return
 
-  if (localized && specs[localized]) return specs[localized]
-  return specs[normalized] ?? null
+    registryValue()
+      .then(module => {
+        if (!cancelled) setLoadedSpec({ loader: registryValue, spec: getLoadedSpec(module) })
+      })
+      .catch(() => {
+        if (!cancelled) setLoadedSpec({ loader: registryValue, spec: null })
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [registryValue])
+
+  if (spec) return { spec, loading: false }
+  if (!specPath) return { spec: null, loading: false }
+  if (isOpenApiSpecLoader(registryValue)) {
+    const currentSpec = loadedSpec?.loader === registryValue ? loadedSpec.spec : null
+    return { spec: currentSpec, loading: loadedSpec?.loader !== registryValue }
+  }
+  return { spec: registryValue ?? null, loading: false }
 }

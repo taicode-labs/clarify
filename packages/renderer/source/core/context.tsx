@@ -1,12 +1,10 @@
 import { createContext, useContext } from 'react'
 
-import type { OpenAPISpec } from '../openapi/lib/utils'
-
-import type { Config } from './types'
+import type { Config, OpenApiRegistry } from './types'
 
 export const ConfigContext = createContext<Config | null>(null)
 export const LocaleContext = createContext<string | undefined>(undefined)
-export const OpenApisContext = createContext<Record<string, OpenAPISpec>>({})
+export const OpenApisContext = createContext<OpenApiRegistry>({})
 
 export function useConfig(): Config {
   const config = useContext(ConfigContext)
@@ -26,6 +24,6 @@ export function useLocale(): string | undefined {
   return useContext(LocaleContext)
 }
 
-export function useOpenApis(): Record<string, OpenAPISpec> {
+export function useOpenApis(): OpenApiRegistry {
   return useContext(OpenApisContext)
 }

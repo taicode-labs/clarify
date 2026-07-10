@@ -40,7 +40,7 @@ export function routeOutputFiles(outputDirectory: string, route: ContentRoute): 
 export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify-labs/renderer/server';
 import { routes, navigation } from 'virtual:clarify/routes/server';
 import { config } from 'virtual:clarify/config';
-import { openApis } from 'virtual:clarify/openapi';
+import { openApis } from 'virtual:clarify/openapi/server';
 import { runtimeSlots } from 'virtual:clarify/slots';
 
 export async function render(url) {

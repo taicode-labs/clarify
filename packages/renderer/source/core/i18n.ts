@@ -57,6 +57,7 @@ export type BuiltInTextKey =
   | 'openapi.headers'
   | 'openapi.language'
   | 'openapi.client'
+  | 'openapi.loading'
   | 'openapi.mediaType'
   | 'openapi.none'
   | 'openapi.openApiReference'
@@ -158,6 +159,7 @@ const builtInText = {
     'openapi.headers': 'Headers',
     'openapi.language': 'Language',
     'openapi.client': 'Client',
+    'openapi.loading': 'Loading OpenAPI spec...',
     'openapi.mediaType': 'Media type',
     'openapi.none': 'None',
     'openapi.openApiReference': 'OpenAPI Reference',
@@ -258,6 +260,7 @@ const builtInText = {
     'openapi.headers': '请求头',
     'openapi.language': '语言',
     'openapi.client': '客户端',
+    'openapi.loading': '正在加载 OpenAPI 描述文件...',
     'openapi.mediaType': '媒体类型',
     'openapi.none': '无',
     'openapi.openApiReference': 'OpenAPI 参考',
