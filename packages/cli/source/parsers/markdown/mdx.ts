@@ -134,13 +134,30 @@ function formatMdxDiagnostic(error: unknown): string {
   return String(error)
 }
 
+/**
+ * Validate MDX content for diagnostics WITHOUT running the build-time rehype
+ * pipeline (Shiki highlighting, slug injection, code-block parsing).
+ *
+ * `rehypePlugins` includes `rehypeShiki`, which loads grammar/WASM assets and
+ * is expensive. The real highlighting happens at Vite build time via the
+ * `@mdx-js/rollup` plugin (see `createMdxPlugin` in `core/adapters.ts`), which
+ * runs the full remark + rehype pipeline. Re-running it here, during route
+ * discovery (Phase 3), would compile every `.mdx` file twice and invoke Shiki
+ * once per file per `engine.refresh()` — see ARCHITECTURE.md §2.2 which states
+ * "不应在 core 中执行代码高亮".
+ *
+ * The remark pipeline still runs (shared with the Vite plugin via
+ * `remarkPlugins`), so MDX/JSX syntax errors — the only class of error this
+ * diagnostic is meant to surface ahead of the Vite build — are caught. The
+ * output is discarded; only the thrown error is used.
+ */
 export async function compileMdxContent(content: string, filePath?: string, projectRoot?: string): Promise<{ ok: true } | { ok: false; diagnostic: ContentDiagnostic }> {
   try {
     await compile(content, {
       jsx: true,
       providerImportSource: '@clarify-labs/renderer',
       remarkPlugins: remarkPlugins as CompileOptions['remarkPlugins'],
-      rehypePlugins,
+      // NOTE: `rehypePlugins` intentionally omitted. See JSDoc above.
     })
     return { ok: true }
   } catch (error) {
