@@ -172,7 +172,13 @@ import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
 import { openApis } from '${VIRTUAL_OPENAPI}';
 import { runtimeSlots } from '${VIRTUAL_SLOTS}';
-render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
+const renderOptions = { config, routes, navigation, openApis, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} };
+render(renderOptions);
+if (import.meta.hot) {
+  import.meta.hot.accept('${VIRTUAL_ROUTES}', (mod) => {
+    render({ ...renderOptions, routes: mod.routes, navigation: mod.navigation });
+  });
+}`
 }
 
 /**

@@ -1,19 +1,20 @@
-import type { ViteDevServer } from 'vite'
+import type { HmrContext, ModuleNode, Plugin, ViteDevServer } from 'vite'
 import { describe, expect, it } from 'vitest'
 
-import type { ContentRoute } from '../../types.js'
+import type { ContentRoute } from '../types.js'
 
 import { createViteAdapter } from './adapters.js'
 import { ClarifyEngine } from './engine/engine.js'
+import { resolveVirtualId, VIRTUAL_ROUTES } from './runtime/virtual-modules.js'
 
-function createServer(sends: unknown[] = []): ViteDevServer {
+function createServer(sends: unknown[] = [], modules = new Map<string, ModuleNode>()): ViteDevServer {
   return {
     watcher: {
       add: () => undefined,
       on: () => undefined,
     },
     moduleGraph: {
-      getModuleById: () => undefined,
+      getModuleById: (id: string) => modules.get(id),
       invalidateModule: () => undefined,
     },
     ws: {
@@ -45,8 +46,14 @@ async function getCorePlugin(engine: ClarifyEngine): Promise<ReturnType<typeof c
   return corePlugin
 }
 
+async function handleHotUpdate(plugin: Plugin, ctx: HmrContext) {
+  const hook = plugin.handleHotUpdate
+  if (typeof hook !== 'function') throw new Error('handleHotUpdate hook not found')
+  return hook.call({} as never, ctx)
+}
+
 describe('createViteAdapter', () => {
-  it('uses context route updates as the single dev full-reload signal', async () => {
+  it('does not send reloads directly from context route updates', async () => {
     const engine = new ClarifyEngine({ projectRoot: '/site' })
     const sends: unknown[] = []
     const server = createServer(sends)
@@ -59,7 +66,7 @@ describe('createViteAdapter', () => {
     await engine.refresh()
     await new Promise<void>(resolve => queueMicrotask(resolve))
 
-    expect(sends).toEqual([{ type: 'full-reload' }])
+    expect(sends).toEqual([])
   })
 
   it('keeps content-only updates on Vite HMR instead of full reload', async () => {
@@ -79,16 +86,45 @@ describe('createViteAdapter', () => {
     if (typeof configureServer !== 'function') throw new Error('configureServer hook not found')
     await configureServer.call({} as never, server)
 
-    const result = await corePlugin.handleHotUpdate?.({
+    const result = await handleHotUpdate(corePlugin, {
       file: '/site/source/guide.md',
       server,
+      modules: ['mdx-module'],
     } as never)
 
-    expect(result).toBeUndefined()
+    expect(result).toEqual(['mdx-module'])
     expect(sends).toEqual([])
   })
 
-  it('full reloads when a content update changes route structure', async () => {
+  it('updates the routes module when a content update changes route structure', async () => {
+    const engine = new ClarifyEngine({ projectRoot: '/site' })
+    const sends: unknown[] = []
+    const routesModule = { id: resolveVirtualId(VIRTUAL_ROUTES) } as ModuleNode
+    const server = createServer(sends, new Map([[resolveVirtualId(VIRTUAL_ROUTES), routesModule]]))
+    engine.ctx.updateProjectState({ contentRoot: '/site/source' })
+    engine.ctx.routes = [createRoute()]
+    engine.ctx.navigation = [{ path: '/guide', title: 'Guide' }]
+    engine.refresh = async () => {
+      engine.ctx.routes = [createRoute({ title: 'Updated Guide', content: '# Guide\n\nUpdated' })]
+      engine.ctx.navigation = [{ path: '/guide', title: 'Updated Guide' }]
+    }
+
+    const corePlugin = await getCorePlugin(engine)
+    const configureServer = corePlugin.configureServer
+    if (typeof configureServer !== 'function') throw new Error('configureServer hook not found')
+    await configureServer.call({} as never, server)
+
+    const result = await handleHotUpdate(corePlugin, {
+      file: '/site/source/guide.md',
+      server,
+      modules: ['mdx-module'],
+    } as never)
+
+    expect(result).toEqual(['mdx-module', routesModule])
+    expect(sends).toEqual([])
+  })
+
+  it('full reloads route structure changes when the routes module is not in the graph', async () => {
     const engine = new ClarifyEngine({ projectRoot: '/site' })
     const sends: unknown[] = []
     const server = createServer(sends)
@@ -105,9 +141,10 @@ describe('createViteAdapter', () => {
     if (typeof configureServer !== 'function') throw new Error('configureServer hook not found')
     await configureServer.call({} as never, server)
 
-    const result = await corePlugin.handleHotUpdate?.({
+    const result = await handleHotUpdate(corePlugin, {
       file: '/site/source/guide.md',
       server,
+      modules: ['mdx-module'],
     } as never)
 
     expect(result).toEqual([])

@@ -13,6 +13,7 @@ import { type ClarifyEngine } from './engine/engine.js'
 import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from './project/project-info.js'
 import {
   VIRTUAL_CLIENT_ENTRY,
+  VIRTUAL_ROUTES,
   resolveVirtualId,
   resolveVirtualModuleId,
 } from './runtime/virtual-modules.js'
@@ -79,7 +80,6 @@ function createMdxPlugin(): Plugin {
 
 function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContentPlugin: Plugin, mdx: Plugin): Plugin {
   let viteConfig: ResolvedConfig
-  let suppressContextReloads = false
 
   return {
     name: 'clarify:core',
@@ -125,17 +125,14 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
       const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
       if (!isContentFile || !engine.hasContentRouteForFile(changedFile)) return
 
-      suppressContextReloads = true
-      let shouldReload: boolean
-      try {
-        shouldReload = await refreshDevServer(engine, ctx.server)
-      } finally {
-        suppressContextReloads = false
-      }
-      if (shouldReload) {
+      const structureChanged = await refreshDevServer(engine, ctx.server)
+      if (structureChanged) {
+        const routesModule = ctx.server.moduleGraph.getModuleById(resolveVirtualId(VIRTUAL_ROUTES))
+        if (routesModule) return [...ctx.modules, routesModule]
         ctx.server.ws.send({ type: 'full-reload' })
         return []
       }
+      return ctx.modules
     },
     resolveId(id) {
       return resolveVirtualModuleId(id, engine.modules, engine.routes)
@@ -146,22 +143,6 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
     async configureServer(server) {
       server.watcher.add(engine.contentRoot)
       if (engine.configFilePath) server.watcher.add(engine.configFilePath)
-
-      // Register Context change listeners to automatically invalidate virtual
-      // modules and trigger full-reload when routes or navigation change.
-      let reloadQueued = false
-      const invalidateAndReload = () => {
-        if (suppressContextReloads) return
-        if (reloadQueued) return
-        reloadQueued = true
-        queueMicrotask(() => {
-          reloadQueued = false
-          invalidateVirtualModules(engine, server)
-          server.ws.send({ type: 'full-reload' })
-        })
-      }
-      engine.ctx.onRoutesChange(invalidateAndReload)
-      engine.ctx.onNavigationChange(invalidateAndReload)
 
       server.middlewares.use((req, res, next) => {
         if (req.url === CLARIFY_DEV_ROUTE_ENDPOINT && req.method === 'POST') {
@@ -178,13 +159,7 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
         const relativeContentFile = relative(engine.contentRoot, changedFile)
         const isContentFile = relativeContentFile && !relativeContentFile.startsWith('..') && !isAbsolute(relativeContentFile)
         if (!isContentFile) return
-        suppressContextReloads = true
-        let shouldReload: boolean
-        try {
-          shouldReload = await refreshDevServer(engine, server)
-        } finally {
-          suppressContextReloads = false
-        }
+        const shouldReload = await refreshDevServer(engine, server)
         if (shouldReload) server.ws.send({ type: 'full-reload' })
       }
 

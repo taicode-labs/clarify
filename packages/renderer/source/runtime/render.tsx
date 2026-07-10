@@ -1,10 +1,12 @@
 import { StrictMode } from 'react'
-import { hydrateRoot, createRoot } from 'react-dom/client'
+import { hydrateRoot, createRoot, type Root } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import type { RenderOptions } from '../types'
 
 import { ClarifyShell } from './ClarifyShell'
+
+let root: Root | undefined
 
 /**
  * Clarify 客户端 Hydration 入口。
@@ -50,8 +52,13 @@ export function render(options: RenderOptions) {
 
   const hydrationDebug = isHydrationDebugEnabled()
 
+  if (root) {
+    root.render(app)
+    return
+  }
+
   try {
-    hydrateRoot(target as Element, app, {
+    root = hydrateRoot(target as Element, app, {
       onRecoverableError(error, errorInfo) {
         // Phase 1: suppress hydration mismatch noise by default. React 19
         // recovers automatically, but diagnostics can be enabled explicitly.
@@ -62,6 +69,7 @@ export function render(options: RenderOptions) {
     })
   } catch (err) {
     console.warn('[clarify] Hydration failed, falling back to client render:', err)
-    createRoot(target as Element).render(app)
+    root = createRoot(target as Element)
+    root.render(app)
   }
 }
