@@ -1,4 +1,5 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
+import { slug } from 'github-slugger'
 
 import type { OpenApiRecord } from '../types'
 
@@ -10,6 +11,26 @@ export const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 
 export type OpenAPIHttpMethod = typeof OPENAPI_HTTP_METHODS[number]
 export type OpenAPIOperationSource = 'path' | 'webhook'
 export type OpenAPIOperationEntry = { path: string; method: OpenAPIHttpMethod; operation: OpenAPIOperation; source: OpenAPIOperationSource }
+
+export const CLARIFY_OPENAPI_SECTION_ID_EXTENSION = 'x-clarify-section-id'
+
+export function getOpenApiOperationSectionId(operation: OpenAPIOperation): string {
+  const sectionId = (operation as OpenApiRecord)[CLARIFY_OPENAPI_SECTION_ID_EXTENSION]
+  return typeof sectionId === 'string' ? sectionId : ''
+}
+
+function createOpenApiOperationSectionId(operation: OpenApiRecord, method: string, path: string, source: OpenAPIOperationSource): string {
+  const operationId = typeof operation.operationId === 'string' ? operation.operationId.trim() : ''
+  return slug(operationId || `${source === 'webhook' ? 'webhook ' : ''}${method.toLowerCase()} ${path}`)
+}
+
+function normalizeOpenApiOperationSectionId(operation: OpenApiRecord, method: string, path: string, source: OpenAPIOperationSource): OpenAPIOperation {
+  const sectionId = operation[CLARIFY_OPENAPI_SECTION_ID_EXTENSION]
+  if (typeof sectionId !== 'string' || !sectionId) {
+    operation[CLARIFY_OPENAPI_SECTION_ID_EXTENSION] = createOpenApiOperationSectionId(operation, method, path, source)
+  }
+  return operation as OpenAPIOperation
+}
 
 export function isOpenAPIHttpMethod(method: string): method is OpenAPIHttpMethod {
   return (OPENAPI_HTTP_METHODS as readonly string[]).includes(method.toLowerCase())
@@ -50,7 +71,7 @@ function listOperationsFromPathItems(items: Record<string, unknown>, source: Ope
     if (!pathItem) continue
     for (const method of OPENAPI_HTTP_METHODS) {
       const operation = pathItem[method]
-      if (operation) operations.push({ path, method, operation: operation as OpenAPIOperation, source })
+      if (isRecord(operation)) operations.push({ path, method, operation: normalizeOpenApiOperationSectionId(operation, method, path, source), source })
     }
   }
 
@@ -58,8 +79,28 @@ function listOperationsFromPathItems(items: Record<string, unknown>, source: Ope
 }
 
 export function getOpenApiOperation(spec: OpenAPISpec, path: string, method: string): OpenAPIOperation | undefined {
+  return getOpenApiOperationEntry(spec, path, method)?.operation
+}
+
+export function getOpenApiOperationEntry(spec: OpenAPISpec, path: string, method: string, source?: OpenAPIOperationSource): OpenAPIOperationEntry | undefined {
   if (!isOpenAPIHttpMethod(method)) return undefined
-  return getPathItem(spec, path)?.[method.toLowerCase() as OpenAPIHttpMethod] as OpenAPIOperation | undefined
+
+  const normalizedMethod = method.toLowerCase() as OpenAPIHttpMethod
+  const sources: OpenAPIOperationSource[] = source ? [source] : ['path', 'webhook']
+  for (const currentSource of sources) {
+    const pathItem = currentSource === 'webhook' ? getWebhookItem(spec, path) : getPathItem(spec, path)
+    const operation = pathItem?.[normalizedMethod]
+    if (isRecord(operation)) {
+      return {
+        path,
+        method: normalizedMethod,
+        operation: normalizeOpenApiOperationSectionId(operation, normalizedMethod, path, currentSource),
+        source: currentSource,
+      }
+    }
+  }
+
+  return undefined
 }
 
 export function listOpenApiOperations(spec: OpenAPISpec): OpenAPIOperationEntry[] {

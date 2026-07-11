@@ -20,6 +20,7 @@ import { PageBanner } from './PageBanner'
 import { PageFooter } from './PageFooter'
 import { PageNavigation } from './PageNavigation'
 import { PageSkeleton } from './PageSkeleton'
+import { SectionHashSync } from './SectionHashSync'
 import { SectionProvider, type Section } from './SectionProvider'
 
 export type AppShellProps = {
@@ -254,18 +255,19 @@ function useBannerState(config: Config, currentLocale: string | undefined) {
 
 type StoredLocaleRedirectOptions = {
   config: Config
+  pathname: string
   currentRoute?: RouteItem
+  storedLocale: string | null
   explicitLocale?: string
   location: ReturnType<typeof useLocation>
   navigate: ReturnType<typeof useNavigate>
-  pathname: string
-  storedLocale: string | null
+  hashScrollSuppressedUntilRef: React.RefObject<number>
 }
 
 type AppShellNavigationEffectsArgs = StoredLocaleRedirectOptions
 
 function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
-  const { config, currentRoute, explicitLocale, location, navigate, pathname, storedLocale } = arg0
+  const { config, currentRoute, explicitLocale, hashScrollSuppressedUntilRef, location, navigate, pathname, storedLocale } = arg0
 
   useEffect(() => {
     if (explicitLocale) storeLocalePreference(explicitLocale)
@@ -280,6 +282,7 @@ function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
 
   useEffect(() => {
     if (location.hash) {
+      hashScrollSuppressedUntilRef.current = Date.now() + 1200
       scrollToHash(location.hash)
       return
     }
@@ -288,7 +291,7 @@ function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
     window.requestAnimationFrame(() => {
       window.dispatchEvent(new Event('scroll'))
     })
-  }, [location.hash, location.pathname])
+  }, [hashScrollSuppressedUntilRef, location.hash, location.pathname])
 }
 
 type AppShellDocumentEffectsArgs = {
@@ -392,6 +395,7 @@ export function AppShell(arg0: AppShellProps) {
   const pathname = normalizeRoutePath(location.pathname)
   const headerRef = useRef<HTMLElement>(null)
   const headerTopAreaRef = useRef<HTMLDivElement>(null)
+  const hashScrollSuppressedUntilRef = useRef(0)
   const {
     currentRoute,
     explicitLocale,
@@ -408,7 +412,7 @@ export function AppShell(arg0: AppShellProps) {
   const layoutConfig = getAppShellLayoutConfig(hasTabs, hasBanner)
   const { renderRoutes, NotFoundRouteComponent } = useRenderedRoutes(routes, notFoundRoute)
 
-  useAppShellNavigationEffects({ config, currentRoute, explicitLocale, location, navigate, pathname, storedLocale })
+  useAppShellNavigationEffects({ config, currentRoute, explicitLocale, hashScrollSuppressedUntilRef, location, navigate, pathname, storedLocale })
   useAppShellDocumentEffects({ currentLocale, currentLocaleConfig, config, route: currentRoute ?? notFoundRoute })
 
   const layoutStyle = {
@@ -534,6 +538,7 @@ export function AppShell(arg0: AppShellProps) {
     <LocaleContext.Provider value={currentLocale}>
       <RuntimeSlotsProvider slots={runtimeSlots} route={currentRoute}>
         <SectionProvider sections={sections} headerTopAreaRef={headerTopAreaRef}>
+          <SectionHashSync hashScrollSuppressedUntilRef={hashScrollSuppressedUntilRef} />
           {renderHeader()}
           {renderLayout()}
         </SectionProvider>

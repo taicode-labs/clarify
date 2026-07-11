@@ -4,7 +4,7 @@ import { createProjectContentProcessor } from '../../parsers/content/content.js'
 import { localizedRoutePath, openAPIPagePathFromRef, routeIntentFromPagesItem, withAlternates } from '../../parsers/routes/routes.js'
 import type { ClarifyOpenAPIRouteIntent, ClarifyPagesConfig, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
 
-import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, readOpenAPISpec } from './parser.js'
+import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, normalizeOpenAPISpecSectionIds, readOpenAPISpec } from './parser.js'
 import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPIServerRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, openApiServerRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 type OpenAPISpecEntry = {
@@ -198,7 +198,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
             continue
           }
 
-          const spec = result.spec
+          const spec = normalizeOpenAPISpecSectionIds(result.spec)
           specByFilePath.set(route.source.filePath, spec)
 
           // Derive a stable dedup id from the spec file path

@@ -7,7 +7,7 @@ import { Markdown } from '../mdx/Markdown'
 
 import { OpenApiOperation as OpenApiOperationComponent } from './components/OpenApiOperation'
 import { useOpenApiSpec } from './lib/spec-path'
-import { getOpenApiOperation, listOpenApiOperations } from './lib/utils'
+import { getOpenApiOperationEntry, listOpenApiOperations } from './lib/utils'
 import type { OpenAPISpec } from './lib/utils'
 
 type OpenApiPathsProps = { spec: OpenAPISpec; tagFilter?: string[] }
@@ -121,14 +121,14 @@ export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
 function OpenApiOperationWithSpec(arg0: OpenApiOperationWithSpecProps): ReactNode {
   const { spec, path, method } = arg0
   const t = useBuiltInText()
-  const op = getOpenApiOperation(spec, path, method)
+  const entry = getOpenApiOperationEntry(spec, path, method)
 
-  if (!op) {
+  if (!entry) {
     return <WarningBox tone="red">{t('openapi.endpointNotFound', { endpoint: `${method.toUpperCase()} ${path}` })}</WarningBox>
   }
 
-  const normalizedMethod = method.toUpperCase()
-  return <OpenApiOperationComponent key={`${normalizedMethod}-${path}`} spec={spec} path={path} method={normalizedMethod} operation={op} />
+  const normalizedMethod = entry.method.toUpperCase()
+  return <OpenApiOperationComponent key={`${entry.source}-${normalizedMethod}-${path}`} spec={spec} path={path} method={normalizedMethod} operation={entry.operation} operationSource={entry.source} />
 }
 
 export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {

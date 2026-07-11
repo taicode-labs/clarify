@@ -9,6 +9,8 @@ import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, ResolvedBuildOpti
 
 import { createOpenAPIPlugin } from './index.js'
 
+const sectionIdExtension = 'x-clarify-section-id'
+
 const projectConfig: ResolvedProjectConfig = {
   title: 'Test',
   description: 'Test docs',
@@ -126,7 +128,14 @@ describe('createOpenAPIPlugin', () => {
       paths: {
         '/users': {
           get: {
+            operationId: ' listUsers ',
             summary: 'List users',
+            tags: ['Users'],
+          },
+        },
+        '/users/{id}': {
+          patch: {
+            summary: 'Update user',
             tags: ['Users'],
           },
         },
@@ -151,7 +160,8 @@ describe('createOpenAPIPlugin', () => {
 
     expect(discovered?.[0].meta.title).toBe('Plugin API')
     expect(discovered?.[0].meta.sections).toEqual([
-      { id: 'get-users', title: 'List users', badge: 'GET', level: 2, tags: ['Users'] },
+      { id: 'listusers', title: 'List users', badge: 'GET', level: 2, tags: ['Users'] },
+      { id: 'patch-usersid', title: 'Update user', badge: 'PATCH', level: 2, tags: ['Users'] },
     ])
 
     const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(discovered ?? []))
@@ -159,7 +169,9 @@ describe('createOpenAPIPlugin', () => {
     expect(clientRegistry).toContain('() => import("virtual:clarify/openapi-spec/')
     expect(clientRegistry).not.toContain('Plugin API')
     expect(modules?.get('virtual:clarify/openapi/server')).toContain('Plugin API')
-    expect([...modules!.keys()].some(key => key.startsWith('virtual:clarify/openapi-spec/'))).toBe(true)
+    const specModule = [...modules!.entries()].find(([key]) => key.startsWith('virtual:clarify/openapi-spec/'))?.[1]
+    expect(specModule).toContain(`"${sectionIdExtension}":"listusers"`)
+    expect(specModule).toContain(`"${sectionIdExtension}":"patch-usersid"`)
     expect(modules?.get('virtual:clarify-page/api')).toContain('import spec from "virtual:clarify/openapi-spec/')
     expect(modules?.get('virtual:clarify-page/api')).toContain('createOpenApiRouteComponent({ ...routeData, spec });')
     expect(modules?.get('virtual:clarify-page/api')).not.toContain('"specPath"')

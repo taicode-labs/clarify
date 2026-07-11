@@ -399,6 +399,7 @@ export type ClarifyPage = {
 export type NavigationSection = {
   id: string
   title: string
+  level?: number
   badge?: string
   tags?: string[]
 }

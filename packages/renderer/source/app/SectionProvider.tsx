@@ -114,7 +114,7 @@ function computeVisibleSections(sections: Section[], scrollY: number, viewportTo
   return visibleSections
 }
 
-function useSectionVisibilityDebug(headerTopAreaRef?: RefObject<HTMLDivElement | null>) {
+function useSectionVisibilityDebug(_headerTopAreaRef?: RefObject<HTMLDivElement | null>) {
   const lastDebugSignatureRef = useRef('')
 
   return (snapshot: VisibilitySnapshot) => {
@@ -128,11 +128,6 @@ function useSectionVisibilityDebug(headerTopAreaRef?: RefObject<HTMLDivElement |
 
     if (lastDebugSignatureRef.current === debugSignature) return
     lastDebugSignatureRef.current = debugSignature
-
-    console.info('[clarify][section-visibility]', {
-      ...snapshot,
-      topAreaHeight: headerTopAreaRef?.current?.offsetHeight ?? 0,
-    })
   }
 }
 

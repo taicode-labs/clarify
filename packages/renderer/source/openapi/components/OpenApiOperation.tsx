@@ -1,6 +1,5 @@
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import clsx from 'clsx'
-import { slug } from 'github-slugger'
 import { CheckIcon, ChevronDownIcon, CopyIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 
@@ -8,7 +7,7 @@ import { Heading } from '../../components/Heading'
 import { useBuiltInText } from '../../core/i18n'
 import { copyTextToClipboard } from '../../utils/clipboard'
 import { getMediaTypeEntries, getResponseEntries, joinPath } from '../lib/helpers'
-import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
+import { getOpenApiOperationSectionId, type OpenAPIOperation, type OpenAPIOperationSource, type OpenAPISpec } from '../lib/utils'
 import type { OpenApiServer, OpenApiServerVariable } from '../types'
 
 import { EndpointRequest, EndpointResponse } from './EndpointSections'
@@ -469,7 +468,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
 export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const { spec, path, method, operation, operationSource = 'path' } = arg0
 
-  const id = slug(`${operationSource === 'webhook' ? 'webhook ' : ''}${method.toLowerCase()} ${path}`)
+  const id = getOpenApiOperationSectionId(operation)
   const summary = operation.summary ?? `${method} ${path}`
   const description = operation.description
   const requestState = useOperationRequestState(spec, path, operation, operationSource)

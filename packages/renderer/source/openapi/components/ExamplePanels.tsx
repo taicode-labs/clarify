@@ -338,7 +338,7 @@ type ResponseSelectionState = {
 
 function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
   const { operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
-  const responses = getResponseEntries(operation, spec).filter(({ response }) => getMediaTypeEntries(response.content, spec).length > 0)
+  const responses = getResponseEntries(operation, spec)
   const orderedResponses = [...responses].sort((left, right) => {
     if (left.status === 'default') return -1
     if (right.status === 'default') return 1
@@ -370,12 +370,14 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
           exampleKey: firstExampleKeyForResponseContent(responseContents[0], spec),
       }
   const selectedContent = responseContents.find((content) => content.mediaType === resolvedSelection.mediaType) ?? responseContents[0]
-        const examples = getExampleEntries(selectedContent?.value, spec)
+  const examples = getExampleEntries(selectedContent?.value, spec)
   const selectedExampleKey = examples.some((example) => example.key === resolvedSelection.exampleKey) ? resolvedSelection.exampleKey : examples[0]?.key ?? ''
   const linkedExampleKey = sharedExampleKey && examples.some((example) => example.key === sharedExampleKey) ? sharedExampleKey : undefined
   const currentExampleKey = linkedExampleKey ?? selectedExampleKey
   const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
-  const responseCode = stringifyExample(selectedExample?.value)
+  const responseCode = selectedContent
+    ? stringifyExample(selectedExample?.value)
+    : `HTTP/1.1 ${selectedResponse?.status ?? defaultStatus}${selectedResponse?.status === '204' ? ' No Content' : ''}`
 
   return {
     responses: orderedResponses,
@@ -420,7 +422,7 @@ export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNo
   const t = useBuiltInText()
   const state = useResponseExamplesState({ operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus })
 
-  if (!state.selectedResponse || !state.selectedContent || !state.responseCode) return null
+  if (!state.selectedResponse || !state.responseCode) return null
 
   return (
     <ApiExampleCodeGroup
@@ -428,12 +430,12 @@ export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNo
       tag={state.selectedResponse.status}
       tagOptions={state.responses.map(({ status }) => status)}
       onSelectTag={state.onSelectStatus}
-      label={state.selectedContent.mediaType}
+      label={state.selectedContent?.mediaType}
       labelOptions={state.responseContents.map((content) => content.mediaType)}
-      onSelectLabel={state.onSelectMediaType}
+      onSelectLabel={state.responseContents.length > 0 ? state.onSelectMediaType : undefined}
       comfortableMeta
       code={state.responseCode}
-      language={codeLanguageForMediaType(state.selectedContent.mediaType)}
+      language={state.selectedContent ? codeLanguageForMediaType(state.selectedContent.mediaType) : 'http'}
       examples={state.examples}
       selectedExampleKey={state.selectedExample?.key}
       onSelectExample={state.onSelectExample}
