@@ -44,12 +44,12 @@ function isBundledLanguage(language: string): language is BundledLanguage {
   return language in bundledLanguages
 }
 
-let highlighter: Highlighter | undefined
+let highlighterPromise: Promise<Highlighter> | undefined
 const cssVariablesTheme = createCssVariablesTheme()
 
 async function getHighlighter(): Promise<Highlighter> {
-  highlighter = highlighter ?? await createHighlighter({ themes: [cssVariablesTheme], langs: [] })
-  return highlighter
+  highlighterPromise = highlighterPromise ?? createHighlighter({ themes: [cssVariablesTheme], langs: [] })
+  return highlighterPromise
 }
 
 function renderHighlightedCode(html: string): string {
