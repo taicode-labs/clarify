@@ -41,7 +41,7 @@ describe('ClarifyContext', () => {
       module: { virtualModuleId: 'virtual:clarify/routes/index' },
       source: { filePath: '/site/source/index.md' },
     }]
-    ctx.navigation = [{ path: '/', title: 'Home' }]
+    ctx.navigation = { kind: 'flat', nodes: [{ path: '/', title: 'Home' }] }
     ctx.plugins = [{ name: 'test' }]
 
     expect(events).toEqual(['routes', 'navigation'])

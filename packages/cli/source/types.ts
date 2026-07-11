@@ -367,13 +367,27 @@ export type ClarifyNavigationTab = {
   children: ClarifyNavigationNode[]
 }
 
-export type TabbedNavigation = { tabs: ClarifyNavigationTab[] }
+export type FlatNavigationTree = {
+  kind: 'flat'
+  nodes: ClarifyNavigationNode[]
+}
 
-export type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
+export type TabbedNavigation = {
+  kind: 'tabbed'
+  tabs: ClarifyNavigationTab[]
+}
 
-export type LocalizedTabbedNavigation = Record<string, TabbedNavigation>
+export type LocalizedNavigation = {
+  kind: 'localized'
+  locales: Record<string, ClarifyNavigationNode[]>
+}
 
-export type NavigationTree = ClarifyNavigationNode[] | LocalizedNavigation | TabbedNavigation | LocalizedTabbedNavigation
+export type LocalizedTabbedNavigation = {
+  kind: 'localized-tabbed'
+  locales: Record<string, Omit<TabbedNavigation, 'kind'>>
+}
+
+export type NavigationTree = FlatNavigationTree | LocalizedNavigation | TabbedNavigation | LocalizedTabbedNavigation
 
 export type ClarifyPage = {
   path: string

@@ -24,7 +24,7 @@ const ctx: ClarifyHookContext = {
   },
   version: 'test',
   routes: [],
-  navigation: [],
+  navigation: { kind: 'flat', nodes: [] },
   plugins: [],
   get: () => undefined,
   set: () => undefined,

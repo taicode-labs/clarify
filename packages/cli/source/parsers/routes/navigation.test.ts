@@ -52,12 +52,12 @@ describe('buildLocalizedNavigation', () => {
     ]
 
     const navigation = buildLocalizedNavigation(routes, pages, testI18n)
-    expect(navigation?.['zh-CN']?.[0].title).toBe('指南')
-    expect(navigation?.['zh-CN']?.[0].children?.map(node => node.path)).toEqual(['/zh-CN', '/zh-CN/guide'])
-    expect(navigation?.['zh-CN']?.[0].children?.[1].title).toBe('开始')
-    expect(navigation?.['en-US']?.[0].title).toBe('Guide')
-    expect(navigation?.['en-US']?.[0].children?.map(node => node.path)).toEqual(['/en-US', '/en-US/guide'])
-    expect(navigation?.['en-US']?.[0].children?.[1].title).toBe('Start')
+    expect(navigation?.locales['zh-CN']?.[0].title).toBe('指南')
+    expect(navigation?.locales['zh-CN']?.[0].children?.map(node => node.path)).toEqual(['/zh-CN', '/zh-CN/guide'])
+    expect(navigation?.locales['zh-CN']?.[0].children?.[1].title).toBe('开始')
+    expect(navigation?.locales['en-US']?.[0].title).toBe('Guide')
+    expect(navigation?.locales['en-US']?.[0].children?.map(node => node.path)).toEqual(['/en-US', '/en-US/guide'])
+    expect(navigation?.locales['en-US']?.[0].children?.[1].title).toBe('Start')
   })
 })
 
@@ -90,10 +90,10 @@ describe('buildNavigationFromTabsConfig', () => {
       { tab: { 'zh-CN': '文档', 'en-US': 'Docs' }, pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['guide'] }] },
     ], testI18n)
 
-    expect(navigation?.['zh-CN'].tabs[0].title).toBe('文档')
-    expect(navigation?.['zh-CN'].tabs[0].path).toBe('/zh-CN/guide')
-    expect(navigation?.['en-US'].tabs[0].title).toBe('Docs')
-    expect(navigation?.['en-US'].tabs[0].path).toBe('/en-US/guide')
+    expect(navigation?.locales['zh-CN'].tabs[0].title).toBe('文档')
+    expect(navigation?.locales['zh-CN'].tabs[0].path).toBe('/zh-CN/guide')
+    expect(navigation?.locales['en-US'].tabs[0].title).toBe('Docs')
+    expect(navigation?.locales['en-US'].tabs[0].path).toBe('/en-US/guide')
   })
 
   it('builds localized tabbed navigation with explicit page paths', () => {
@@ -106,10 +106,10 @@ describe('buildNavigationFromTabsConfig', () => {
       { tab: { 'zh-CN': '文档', 'en-US': 'Docs' }, pages: [{ group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: [{ page: 'guide', path: 'docs/start' }] }] },
     ], testI18n)
 
-    expect(navigation?.['zh-CN'].tabs[0].path).toBe('/zh-CN/docs/start')
-    expect(navigation?.['zh-CN'].tabs[0].children[0].children?.[0].path).toBe('/zh-CN/docs/start')
-    expect(navigation?.['en-US'].tabs[0].path).toBe('/en-US/docs/start')
-    expect(navigation?.['en-US'].tabs[0].children[0].children?.[0].path).toBe('/en-US/docs/start')
+    expect(navigation?.locales['zh-CN'].tabs[0].path).toBe('/zh-CN/docs/start')
+    expect(navigation?.locales['zh-CN'].tabs[0].children[0].children?.[0].path).toBe('/zh-CN/docs/start')
+    expect(navigation?.locales['en-US'].tabs[0].path).toBe('/en-US/docs/start')
+    expect(navigation?.locales['en-US'].tabs[0].children[0].children?.[0].path).toBe('/en-US/docs/start')
   })
 })
 

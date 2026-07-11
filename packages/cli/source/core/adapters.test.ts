@@ -85,10 +85,10 @@ describe('createViteAdapter', () => {
     const server = createServer(sends)
     engine.ctx.updateProjectState({ contentRoot: '/site/source' })
     engine.ctx.routes = [createRoute()]
-    engine.ctx.navigation = [{ path: '/guide', title: 'Guide' }]
+    engine.ctx.navigation = { kind: 'flat', nodes: [{ path: '/guide', title: 'Guide' }] }
     engine.refresh = async () => {
       engine.ctx.routes = [createRoute({ content: '# Guide\n\nUpdated' })]
-      engine.ctx.navigation = [{ path: '/guide', title: 'Guide' }]
+      engine.ctx.navigation = { kind: 'flat', nodes: [{ path: '/guide', title: 'Guide' }] }
     }
 
     const corePlugin = await getCorePlugin(engine)
@@ -113,10 +113,10 @@ describe('createViteAdapter', () => {
     const server = createServer(sends, new Map([[resolveVirtualId(VIRTUAL_ROUTES), routesModule]]))
     engine.ctx.updateProjectState({ contentRoot: '/site/source' })
     engine.ctx.routes = [createRoute()]
-    engine.ctx.navigation = [{ path: '/guide', title: 'Guide' }]
+    engine.ctx.navigation = { kind: 'flat', nodes: [{ path: '/guide', title: 'Guide' }] }
     engine.refresh = async () => {
       engine.ctx.routes = [createRoute({ title: 'Updated Guide', content: '# Guide\n\nUpdated' })]
-      engine.ctx.navigation = [{ path: '/guide', title: 'Updated Guide' }]
+      engine.ctx.navigation = { kind: 'flat', nodes: [{ path: '/guide', title: 'Updated Guide' }] }
     }
 
     const corePlugin = await getCorePlugin(engine)
@@ -140,10 +140,10 @@ describe('createViteAdapter', () => {
     const server = createServer(sends)
     engine.ctx.updateProjectState({ contentRoot: '/site/source' })
     engine.ctx.routes = [createRoute()]
-    engine.ctx.navigation = [{ path: '/guide', title: 'Guide' }]
+    engine.ctx.navigation = { kind: 'flat', nodes: [{ path: '/guide', title: 'Guide' }] }
     engine.refresh = async () => {
       engine.ctx.routes = [createRoute({ title: 'Updated Guide', content: '# Guide\n\nUpdated' })]
-      engine.ctx.navigation = [{ path: '/guide', title: 'Updated Guide' }]
+      engine.ctx.navigation = { kind: 'flat', nodes: [{ path: '/guide', title: 'Updated Guide' }] }
     }
 
     const corePlugin = await getCorePlugin(engine)

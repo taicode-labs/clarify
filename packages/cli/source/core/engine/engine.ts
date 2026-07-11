@@ -68,7 +68,7 @@ export class ClarifyEngine {
       generateOptions: placeholderOptions,
       version: cliPackageVersion,
       routes: [],
-      navigation: [],
+      navigation: { kind: 'flat', nodes: [] },
       plugins: [],
     })
   }
@@ -217,9 +217,9 @@ export class ClarifyEngine {
     routes = applyConfiguredPageRoutePaths(routes, tabs, i18n)
     const navigation = tabs
       ? i18n
-        ? (buildLocalizedNavigationFromTabsConfig(routes, tabs, i18n) ?? {})
+        ? (buildLocalizedNavigationFromTabsConfig(routes, tabs, i18n) ?? { kind: 'localized-tabbed', locales: {} })
         : buildNavigationFromTabsConfig(routes, tabs)
-      : buildNavigation(routes)
+      : { kind: 'flat' as const, nodes: buildNavigation(routes) }
     const resolved = await runHooks(plugins, 'routes:resolved', { routes, navigation }, this.ctx)
     this.ctx.routes = resolved.routes
     this.ctx.navigation = resolved.navigation

@@ -1,6 +1,6 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
-import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyNavigationNode, ClarifyNavigationTab, ClarifyPlugin, ContentDiagnostic, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 // 新的虚拟模块命名 - 更清晰的职责划分
 export const VIRTUAL_CONFIG = 'virtual:clarify/config'
@@ -107,6 +107,25 @@ type RuntimeRouteObject = {
   sourceUrl?: string
 }
 
+type RuntimeNavigationObject =
+  | ClarifyNavigationNode[]
+  | Record<string, ClarifyNavigationNode[]>
+  | { tabs: ClarifyNavigationTab[] }
+  | Record<string, { tabs: ClarifyNavigationTab[] }>
+
+export function navigationToRuntimeObject(navigation: NavigationTree): RuntimeNavigationObject {
+  switch (navigation.kind) {
+    case 'flat':
+      return navigation.nodes
+    case 'tabbed':
+      return { tabs: navigation.tabs }
+    case 'localized':
+      return navigation.locales
+    case 'localized-tabbed':
+      return navigation.locales
+  }
+}
+
 function routeToRuntimeObject(route: ContentRoute, component: string, mode: 'client' | 'server'): RuntimeRouteObject {
   const obj: RuntimeRouteObject = {
     path: route.path,
@@ -161,7 +180,7 @@ export function generateRoutesModule(routes: ContentRoute[], navigation: Navigat
     return `  ${jsObject}`
   }).join(',\n')
 
-  return `${imports}\n\nexport const routes = [\n${routeEntries}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
+  return `${imports}\n\nexport const routes = [\n${routeEntries}\n];\n\nexport const navigation = ${JSON.stringify(navigationToRuntimeObject(navigation), null, 2)};\n`
 }
 
 export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {

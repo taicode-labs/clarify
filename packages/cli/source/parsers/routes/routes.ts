@@ -373,6 +373,7 @@ function buildNavigationFromPagesConfig(routes: ContentRoute[], config?: Clarify
 
 export function buildNavigationFromTabsConfig(routes: ContentRoute[], tabs: ClarifyTabsConfig): TabbedNavigation {
   return {
+    kind: 'tabbed',
     tabs: tabs.map(tab => {
       const children = buildNavigationFromPagesConfig(routes, tab.pages)
       return {
@@ -434,13 +435,13 @@ function localizeNavigationPaths(nodes: ClarifyNavigationNode[], locale: string,
 export function buildLocalizedNavigation(routes: ContentRoute[], config: ClarifyPagesConfig | undefined, i18n?: ResolvedClarifyI18nConfig): LocalizedNavigation | undefined {
   if (!i18n) return undefined
 
-  const result: LocalizedNavigation = {}
+  const locales: LocalizedNavigation['locales'] = {}
   for (const locale of i18n.locales) {
     const localeRoutes = routes.filter(route => route.locale === locale.code)
-    result[locale.code] = buildLocalizedNavigationForLocale(localeRoutes, config, locale.code, i18n)
+    locales[locale.code] = buildLocalizedNavigationForLocale(localeRoutes, config, locale.code, i18n)
   }
 
-  return result
+  return { kind: 'localized', locales }
 }
 
 function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: ClarifyPagesConfig | undefined, locale: string, i18n: ResolvedClarifyI18nConfig): ClarifyNavigationNode[] {
@@ -480,10 +481,10 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
 export function buildLocalizedNavigationFromTabsConfig(routes: ContentRoute[], tabs: ClarifyTabsConfig, i18n?: ResolvedClarifyI18nConfig): LocalizedTabbedNavigation | undefined {
   if (!i18n) return undefined
 
-  const result: LocalizedTabbedNavigation = {}
+  const locales: LocalizedTabbedNavigation['locales'] = {}
   for (const locale of i18n.locales) {
     const localeRoutes = routes.filter(route => route.locale === locale.code)
-    result[locale.code] = {
+    locales[locale.code] = {
       tabs: tabs.map(tab => {
         const children = buildLocalizedNavigationForLocale(localeRoutes, tab.pages, locale.code, i18n)
         return {
@@ -497,5 +498,5 @@ export function buildLocalizedNavigationFromTabsConfig(routes: ContentRoute[], t
     }
   }
 
-  return result
+  return { kind: 'localized-tabbed', locales }
 }
