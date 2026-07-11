@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { RefObject } from 'react'
 import { useLocation } from 'react-router-dom'
 
@@ -9,6 +9,8 @@ import { useSectionStore } from './SectionProvider'
 type SectionHashSyncProps = {
   hashScrollSuppressedUntilRef: RefObject<number>
 }
+
+const HASH_UPDATE_DEBOUNCE_MS = 120
 
 function replaceHash(sectionId?: string) {
   const nextHash = sectionId ? `#${encodeURIComponent(sectionId)}` : ''
@@ -39,6 +41,7 @@ function useReleaseHashSyncOnManualScroll(hashScrollSuppressedUntilRef: RefObjec
 export function SectionHashSync(arg0: SectionHashSyncProps) {
   const { hashScrollSuppressedUntilRef } = arg0
   const location = useLocation()
+  const hashUpdateTimeoutRef = useRef<number | undefined>(undefined)
   const sections = useSectionStore((state) => state.sections)
   const visibleSections = useSectionStore((state) => state.visibleSections)
 
@@ -52,7 +55,16 @@ export function SectionHashSync(arg0: SectionHashSyncProps) {
 
     if (hashSectionId && Date.now() < hashScrollSuppressedUntilRef.current && !visibleSections.includes(hashSectionId)) return
 
-    replaceHash(visibleSections[0] === '_top' ? undefined : visibleSectionId)
+    hashUpdateTimeoutRef.current = window.setTimeout(() => {
+      replaceHash(visibleSections[0] === '_top' ? undefined : visibleSectionId)
+    }, HASH_UPDATE_DEBOUNCE_MS)
+
+    return () => {
+      if (hashUpdateTimeoutRef.current !== undefined) {
+        window.clearTimeout(hashUpdateTimeoutRef.current)
+        hashUpdateTimeoutRef.current = undefined
+      }
+    }
   }, [hashScrollSuppressedUntilRef, location.hash, sections, visibleSections])
 
   return null
