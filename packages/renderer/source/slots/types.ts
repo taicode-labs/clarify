@@ -26,7 +26,7 @@ export type UISlotName =
  * everything they need from this hook, which keeps slot components as ordinary
  * React components and lets the slot context grow without changing signatures.
  */
-export type SlotContext = {
+export type UISlotContext = {
   /** The slot the current component is mounted into. */
   name: UISlotName
   /** Name of the plugin that registered the current slot component. */

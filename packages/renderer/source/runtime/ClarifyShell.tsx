@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { AppShell } from '../app/AppShell'
 import { ConfigContext, OpenApiSpecsContext } from '../core/context'
 import type { Config, NavigationTree, OpenApiRegistry, RouteItem } from '../core/types'
-import type { RuntimeSlots } from '../slots'
+import type { RuntimeSlotRegistry } from '../slots'
 import { ThemeProvider } from '../theme/ThemeProvider'
 import { ThemeRoot } from '../theme/ThemeRoot'
 
@@ -12,7 +12,7 @@ export type ClarifyShellProps = {
   routes: RouteItem[]
   navigation?: NavigationTree
   openApiSpecs: OpenApiRegistry
-  runtimeSlots?: RuntimeSlots
+  runtimeSlots?: RuntimeSlotRegistry
   themeEditor?: boolean
   children?: ReactNode
 }

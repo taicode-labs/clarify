@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 
 import type { OpenAPISpec } from '../openapi/lib/utils'
-import type { RuntimeSlots } from '../slots'
+import type { RuntimeSlotRegistry } from '../slots'
 
 export type OpenApiRegistry = Record<string, OpenAPISpec | OpenApiSpecLoader>
 export type OpenApiSpecLoader = () => Promise<{ default: OpenAPISpec } | OpenAPISpec>
@@ -221,7 +221,7 @@ export type RenderOptions = {
   /** 从 virtual:clarify/openapi 导入的 OpenAPI 规范表 */
   openApiSpecs?: OpenApiRegistry;
   /** Plugin runtime UI slots imported from virtual:clarify/slots. */
-  runtimeSlots?: RuntimeSlots;
+  runtimeSlots?: RuntimeSlotRegistry;
   /** Whether to render the live theme editor inside the app tree. */
   themeEditor?: boolean;
   /** 挂载节点，默认 document.getElementById('root') */
@@ -242,7 +242,7 @@ export type ServerRenderOptions = {
   /** 从 virtual:clarify/openapi/server 导入的 OpenAPI 规范表 */
   openApiSpecs?: OpenApiRegistry;
   /** Plugin runtime UI slots imported from virtual:clarify/slots. */
-  runtimeSlots?: RuntimeSlots;
+  runtimeSlots?: RuntimeSlotRegistry;
   /** Whether to render the live theme editor inside the app tree. */
   themeEditor?: boolean;
   /** 当前请求的 URL */

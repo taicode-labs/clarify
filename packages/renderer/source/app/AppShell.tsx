@@ -6,7 +6,7 @@ import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { LocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
 import { Header, Navigation } from '../shell'
-import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots } from '../slots'
+import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlotRegistry } from '../slots'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
 import type { RouteItem, Config, LocaleConfig, NavigationNode, NavigationTab, NavigationTree } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
@@ -26,7 +26,7 @@ export type AppShellProps = {
   config: Config
   routes: RouteItem[]
   navigation: NavigationTree
-  runtimeSlots?: RuntimeSlots
+  runtimeSlots?: RuntimeSlotRegistry
 }
 
 type BannerSlotProps = {

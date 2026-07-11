@@ -25,17 +25,17 @@ export type RuntimeSlotEntry = {
 }
 
 /** Registry keyed by slot name. */
-export type RuntimeSlots = Partial<Record<UISlotName, RuntimeSlotEntry[]>>
+export type RuntimeSlotRegistry = Partial<Record<UISlotName, RuntimeSlotEntry[]>>
 
 type RuntimeSlotsContextValue = {
-  slots: RuntimeSlots
+  slots: RuntimeSlotRegistry
   route?: RouteItem
 }
 
 export const RuntimeSlotsContext = createContext<RuntimeSlotsContextValue>({ slots: {} })
 
 type RuntimeSlotsProviderProps = {
-  slots?: RuntimeSlots
+  slots?: RuntimeSlotRegistry
   route?: RouteItem
   children: ReactNode
 }

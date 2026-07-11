@@ -38,21 +38,15 @@ declare module 'virtual:clarify/openapi/server' {
 }
 
 declare module 'virtual:clarify/slot' {
-  import type { SlotContext } from '@clarify-labs/cli'
+  import type { UISlotContext } from '@clarify-labs/cli'
 
-  export function useSlot(): SlotContext
+  export function useSlot(): UISlotContext
 }
 
 declare module 'virtual:clarify/slots' {
-  import type { ComponentType } from 'react'
+  import type { RuntimeSlotRegistry } from './slots'
 
-  export type RuntimeSlotEntry = {
-    plugin: string;
-    /** Lazy import factory — yields the default-exported React component. */
-    component: () => Promise<{ default: ComponentType }>;
-  };
-
-  export const runtimeSlots: Record<string, RuntimeSlotEntry[]>;
+  export const runtimeSlots: RuntimeSlotRegistry;
 }
 
 

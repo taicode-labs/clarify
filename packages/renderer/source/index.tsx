@@ -26,7 +26,7 @@ export type { OpenApiOperationProps, OpenApiDocumentProps, OpenAPIOperation, Ope
 export type { ThemeEditorProps } from './theme/ThemeEditor'
 export type { ContentDiagnostic }
 export type { Config, RouteItem, RouteSection, RenderOptions, ServerRenderOptions, Section }
-export type { RuntimeSlotEntry, RuntimeSlots, UISlotRegistration, UISlotName, SlotContext } from './slots'
+export type { RuntimeSlotEntry, RuntimeSlotRegistry, UISlotRegistration, UISlotName, UISlotContext } from './slots'
 
 // App and runtime exports
 export { AppShell, render, OpenApiSpecsContext, useOpenApiSpecs, BuiltWithClarify, PageBanner, PageFooter, ThemeProvider, ThemeToggle, ThemeEditor, useTheme, SectionProvider, useSectionStore, remToPx, applyThemeVariables, themeEditorPresets, themePresets, themeBootstrapScript, createContentDiagnosticComponent, createOpenApiRouteComponent }

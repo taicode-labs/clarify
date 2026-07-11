@@ -1,5 +1,5 @@
 export { SlotProvider, useSlot } from './context'
-export type { SlotContext, UISlotName } from './context'
+export type { UISlotContext, UISlotName } from './context'
 export { RuntimeSlot, RuntimeSlotsProvider, RuntimeSlotsContext } from './RuntimeSlot'
-export type { RuntimeSlotEntry, RuntimeSlots } from './RuntimeSlot'
+export type { RuntimeSlotEntry, RuntimeSlotRegistry } from './RuntimeSlot'
 export type { UISlotRegistration } from './types'
