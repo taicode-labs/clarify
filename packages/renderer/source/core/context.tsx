@@ -4,7 +4,7 @@ import type { Config, OpenApiRegistry } from './types'
 
 export const ConfigContext = createContext<Config | null>(null)
 export const LocaleContext = createContext<string | undefined>(undefined)
-export const OpenApisContext = createContext<OpenApiRegistry>({})
+export const OpenApiSpecsContext = createContext<OpenApiRegistry>({})
 
 export function useConfig(): Config {
   const config = useContext(ConfigContext)
@@ -24,6 +24,6 @@ export function useLocale(): string | undefined {
   return useContext(LocaleContext)
 }
 
-export function useOpenApis(): OpenApiRegistry {
-  return useContext(OpenApisContext)
+export function useOpenApiSpecs(): OpenApiRegistry {
+  return useContext(OpenApiSpecsContext)
 }

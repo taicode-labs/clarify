@@ -180,9 +180,9 @@ import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
-import { openApis } from '${VIRTUAL_OPENAPI}';
+import { openApiSpecs } from '${VIRTUAL_OPENAPI}';
 import { runtimeSlots } from '${VIRTUAL_SLOTS}';
-const renderOptions = { config, routes, navigation, openApis, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} };
+const renderOptions = { config, routes, navigation, openApiSpecs, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} };
 render(renderOptions);
 if (import.meta.hot) {
   import.meta.hot.accept('${VIRTUAL_ROUTES}', (mod) => {
@@ -271,7 +271,7 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, 'server'))
   modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))
-  modules.set(VIRTUAL_OPENAPI, 'export const openApis = {};')
+  modules.set(VIRTUAL_OPENAPI, 'export const openApiSpecs = {};')
   modules.set(VIRTUAL_SLOT, "export { useSlot } from '@clarify-labs/renderer';\n")
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)

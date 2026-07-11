@@ -9,15 +9,15 @@ export function specVirtualModuleId(specKey: string): string {
   return `${OPENAPI_SPEC_PREFIX}${specKey}`
 }
 
-export function generateOpenAPIRegistryModule(openApis: Record<string, string>): string {
-  const entries = Object.entries(openApis)
+export function generateOpenAPIRegistryModule(openApiSpecs: Record<string, string>): string {
+  const entries = Object.entries(openApiSpecs)
     .map(([key, moduleId]) => `  ${JSON.stringify(key)}: () => import(${JSON.stringify(moduleId)}),`)
     .join('\n')
-  return `export const openApis = {\n${entries}\n};`
+  return `export const openApiSpecs = {\n${entries}\n};`
 }
 
-export function generateOpenAPIServerRegistryModule(openApis: Record<string, OpenAPISpec>): string {
-  return `export const openApis = ${JSON.stringify(openApis)};`
+export function generateOpenAPIServerRegistryModule(openApiSpecs: Record<string, OpenAPISpec>): string {
+  return `export const openApiSpecs = ${JSON.stringify(openApiSpecs)};`
 }
 
 /** Generate a virtual module that exports a single spec as default. */

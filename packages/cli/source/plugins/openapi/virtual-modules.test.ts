@@ -34,14 +34,14 @@ describe('openapi virtual modules', () => {
 
   it('generates the lazy OpenAPI registry module', () => {
     const code = generateOpenAPIRegistryModule({ 'virtual:clarify-page/api': 'virtual:clarify/openapi-spec/api' })
-    expect(code).toContain('export const openApis =')
+    expect(code).toContain('export const openApiSpecs =')
     expect(code).toContain("() => import(\"virtual:clarify/openapi-spec/api\")")
     expect(code).not.toContain('Example API')
   })
 
   it('generates the synchronous OpenAPI server registry module', () => {
     const code = generateOpenAPIServerRegistryModule({ 'virtual:clarify-page/api': spec })
-    expect(code).toContain('export const openApis =')
+    expect(code).toContain('export const openApiSpecs =')
     expect(code).toContain('Example API')
   })
 

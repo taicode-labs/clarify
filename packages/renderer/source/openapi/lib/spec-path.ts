@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { useConfig, useLocale, useOpenApis } from '../../core/context'
+import { useConfig, useLocale, useOpenApiSpecs } from '../../core/context'
 
 import type { OpenAPISpec } from './utils'
 
@@ -78,7 +78,7 @@ function specModuleCandidates(moduleId: string, specPath: string, locale: string
 export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenApiSpecResult {
   const config = useConfig()
   const locale = useLocale()
-  const specs = useOpenApis()
+  const specs = useOpenApiSpecs()
   const location = useLocation()
   const [loadedSpec, setLoadedSpec] = useState<LoadedSpecState>({ spec: null, loading: false })
   const normalized = specPath ? normalizeSpecPath(specPath, location.pathname, config.routePrefix) : undefined

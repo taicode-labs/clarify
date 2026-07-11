@@ -7,7 +7,7 @@ import { PageBanner } from './app/PageBanner'
 import { PageFooter } from './app/PageFooter'
 import { SectionProvider, useSectionStore, type Section } from './app/SectionProvider'
 import { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Feedback, GridPattern, Heading, HeroPattern, Logo, Mermaid, Pre, Prose, Tag, WebFrame } from './components'
-import { OpenApisContext, useOpenApis } from './context'
+import { OpenApiSpecsContext, useOpenApiSpecs } from './context'
 import { useMDXComponents } from './mdx/components'
 import { DocShell } from './mdx/DocShell'
 import { Markdown } from './mdx/Markdown'
@@ -29,7 +29,7 @@ export type { Config, RouteItem, RouteSection, RenderOptions, ServerRenderOption
 export type { RuntimeSlotEntry, RuntimeSlots, UISlotRegistration, UISlotName, SlotContext } from './slots'
 
 // App and runtime exports
-export { AppShell, render, OpenApisContext, useOpenApis, BuiltWithClarify, PageBanner, PageFooter, ThemeProvider, ThemeToggle, ThemeEditor, useTheme, SectionProvider, useSectionStore, remToPx, applyThemeVariables, themeEditorPresets, themePresets, themeBootstrapScript, createContentDiagnosticComponent, createOpenApiRouteComponent }
+export { AppShell, render, OpenApiSpecsContext, useOpenApiSpecs, BuiltWithClarify, PageBanner, PageFooter, ThemeProvider, ThemeToggle, ThemeEditor, useTheme, SectionProvider, useSectionStore, remToPx, applyThemeVariables, themeEditorPresets, themePresets, themeBootstrapScript, createContentDiagnosticComponent, createOpenApiRouteComponent }
 
 // Built-in MDX and UI components
 export { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Pre, Prose, Heading, Logo, Mermaid, GridPattern, HeroPattern, Feedback, Tag, WebFrame }

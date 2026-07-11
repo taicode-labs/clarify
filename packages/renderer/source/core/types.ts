@@ -219,7 +219,7 @@ export type RenderOptions = {
   /** 从 virtual:clarify/routes 导入的导航树 */
   navigation?: NavigationTree;
   /** 从 virtual:clarify/openapi 导入的 OpenAPI 规范表 */
-  openApis?: OpenApiRegistry;
+  openApiSpecs?: OpenApiRegistry;
   /** Plugin runtime UI slots imported from virtual:clarify/slots. */
   runtimeSlots?: RuntimeSlots;
   /** Whether to render the live theme editor inside the app tree. */
@@ -240,7 +240,7 @@ export type ServerRenderOptions = {
   /** 从 virtual:clarify/routes/server 导入的导航树 */
   navigation?: NavigationTree;
   /** 从 virtual:clarify/openapi/server 导入的 OpenAPI 规范表 */
-  openApis?: OpenApiRegistry;
+  openApiSpecs?: OpenApiRegistry;
   /** Plugin runtime UI slots imported from virtual:clarify/slots. */
   runtimeSlots?: RuntimeSlots;
   /** Whether to render the live theme editor inside the app tree. */
