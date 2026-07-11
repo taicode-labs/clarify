@@ -175,17 +175,17 @@ function MobileNavbarMenu(arg0: MobileNavbarMenuProps) {
   )
 }
 
-function hasPath(nodes: NavigationNode[], pathname: string): boolean {
-  return nodes.some((node) => isSameRoutePath(node.path, pathname) || hasPath(node.children ?? [], pathname))
+function hasPath(nodes: NavigationNode[], pathname: string, currentLocale?: string): boolean {
+  return nodes.some((node) => isSameRoutePath(node.path, pathname, currentLocale) || hasPath(node.children ?? [], pathname, currentLocale))
 }
 
-function isActiveTab(tab: NavigationTab, pathname: string): boolean {
-  return isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname)
+function isActiveTab(tab: NavigationTab, pathname: string, currentLocale?: string): boolean {
+  return isSameRoutePath(tab.path, pathname, currentLocale) || hasPath(tab.children, pathname, currentLocale)
 }
 
-type ProductTabsProps = { tabs?: NavigationTab[] }
+type ProductTabsProps = { tabs?: NavigationTab[]; currentLocale?: string }
 
-function ProductTabs(arg0: ProductTabsProps) {  const { tabs } = arg0
+function ProductTabs(arg0: ProductTabsProps) {  const { tabs, currentLocale } = arg0
 
   const t = useBuiltInText()
   const pathname = normalizeRoutePath(useLocation().pathname)
@@ -195,7 +195,7 @@ function ProductTabs(arg0: ProductTabsProps) {  const { tabs } = arg0
     <div data-clarify-header-tabs className="clarify-product-tabs hidden h-14 border-t border-(--clarify-theme-tokens-colors-border) lg:block dark:border-white/10">
       <nav className="clarify-product-tabs-nav mx-auto flex h-full w-full max-w-(--clarify-theme-layout-max-width) items-stretch gap-6 overflow-x-auto px-5" aria-label={t('navbar.sections')}>
         {tabs.map((tab) => {
-          const active = isActiveTab(tab, pathname)
+          const active = isActiveTab(tab, pathname, currentLocale)
           return (
             <Link
               key={`${tab.title}-${tab.path}`}
@@ -323,7 +323,7 @@ export const Header = forwardRef<
       <div ref={topAreaRef}>
         {renderHeaderMain()}
         <div data-clarify-header-banner>{banner}</div>
-        <ProductTabs tabs={tabs} />
+        <ProductTabs tabs={tabs} currentLocale={currentLocale} />
       </div>
     )
   }

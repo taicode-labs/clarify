@@ -4,7 +4,18 @@ export function normalizeRoutePath(path: string): string {
   return `${normalizedPathname}${suffix}`
 }
 
-export function isSameRoutePath(a: string | undefined, b: string | undefined): boolean {
+function stripLocalePathPrefix(path: string, locale?: string): string {
+  if (!locale) return normalizeRoutePath(path)
+  const [pathname, suffix = ''] = normalizeRoutePath(path).split(/([?#].*)/, 2)
+  const localePrefix = `/${locale}`
+  if (pathname === localePrefix) return `/${suffix}`.replace(/^\/$/, '/')
+  if (!pathname.startsWith(`${localePrefix}/`)) return `${pathname}${suffix}`
+  return `${pathname.slice(localePrefix.length) || '/'}${suffix}`
+}
+
+export function isSameRoutePath(a: string | undefined, b: string | undefined, locale?: string): boolean {
   if (!a || !b) return false
-  return normalizeRoutePath(a) === normalizeRoutePath(b)
+  const normalizedA = normalizeRoutePath(a)
+  const normalizedB = normalizeRoutePath(b)
+  return normalizedA === normalizedB || stripLocalePathPrefix(normalizedA, locale) === normalizedB || normalizedA === stripLocalePathPrefix(normalizedB, locale)
 }

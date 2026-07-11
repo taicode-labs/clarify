@@ -117,9 +117,9 @@ function NavLink(arg0: NavLinkProps) {  const {
   )
 }
 
-type VisibleSectionHighlightProps = { group: NavGroup; pathname: string }
+type VisibleSectionHighlightProps = { group: NavGroup; pathname: string; currentLocale?: string }
 
-function VisibleSectionHighlight(arg0: VisibleSectionHighlightProps) {  const { group, pathname } = arg0
+function VisibleSectionHighlight(arg0: VisibleSectionHighlightProps) {  const { group, pathname, currentLocale } = arg0
 
   const [sections, visibleSections] = useInitialValue(
     [useSectionStore((s) => s.sections), useSectionStore((s) => s.visibleSections)],
@@ -133,7 +133,7 @@ function VisibleSectionHighlight(arg0: VisibleSectionHighlightProps) {  const { 
   )
   const itemHeight = remToPx(2)
   const height = isPresent ? Math.max(1, visibleSections.length) * itemHeight : itemHeight
-  const top = group.links.findIndex((link) => isSameRoutePath(link.href, pathname)) * itemHeight + firstVisibleSectionIndex * itemHeight
+  const top = group.links.findIndex((link) => isSameRoutePath(link.href, pathname, currentLocale)) * itemHeight + firstVisibleSectionIndex * itemHeight
 
   return (
     <motion.div
@@ -146,13 +146,13 @@ function VisibleSectionHighlight(arg0: VisibleSectionHighlightProps) {  const { 
   )
 }
 
-type ActivePageMarkerProps = { group: NavGroup; pathname: string }
+type ActivePageMarkerProps = { group: NavGroup; pathname: string; currentLocale?: string }
 
-function ActivePageMarker(arg0: ActivePageMarkerProps) {  const { group, pathname } = arg0
+function ActivePageMarker(arg0: ActivePageMarkerProps) {  const { group, pathname, currentLocale } = arg0
 
   const itemHeight = remToPx(2)
   const offset = remToPx(0.25)
-  const activePageIndex = group.links.findIndex((link) => isSameRoutePath(link.href, pathname))
+  const activePageIndex = group.links.findIndex((link) => isSameRoutePath(link.href, pathname, currentLocale))
   const top = offset + activePageIndex * itemHeight
 
   return (
@@ -166,16 +166,16 @@ function ActivePageMarker(arg0: ActivePageMarkerProps) {  const { group, pathnam
   )
 }
 
-type NavigationGroupProps = { group: NavGroup; className?: string }
+type NavigationGroupProps = { group: NavGroup; className?: string; currentLocale?: string }
 
-function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className } = arg0
+function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className, currentLocale } = arg0
 
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const [pathname, sections] = useInitialValue(
     [normalizeRoutePath(useLocation().pathname), useSectionStore((s) => s.sections)],
     isInsideMobileNavigation,
   )
-  const isActiveGroup = group.links.findIndex((link) => isSameRoutePath(link.href, pathname)) !== -1
+  const isActiveGroup = group.links.findIndex((link) => isSameRoutePath(link.href, pathname, currentLocale)) !== -1
 
   return (
     <li className={clsx('clarify-navigation-group relative mb-6', className)}>
@@ -185,15 +185,15 @@ function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className
       </h2>
       <div className="relative mt-3 pl-2">
         <AnimatePresence initial={!isInsideMobileNavigation}>
-          {isActiveGroup ? <VisibleSectionHighlight group={group} pathname={pathname} /> : null}
+          {isActiveGroup ? <VisibleSectionHighlight group={group} pathname={pathname} currentLocale={currentLocale} /> : null}
         </AnimatePresence>
         <div className="absolute inset-y-0 left-2 w-px bg-(--clarify-theme-tokens-colors-border) dark:bg-white/5" />
         <AnimatePresence initial={false}>
-          {isActiveGroup ? <ActivePageMarker group={group} pathname={pathname} /> : null}
+          {isActiveGroup ? <ActivePageMarker group={group} pathname={pathname} currentLocale={currentLocale} /> : null}
         </AnimatePresence>
         <ul role="list" className="border-l border-transparent">
           {group.links.map((link) => {
-            const active = isSameRoutePath(link.href, pathname)
+            const active = isSameRoutePath(link.href, pathname, currentLocale)
             return (
               <li key={link.href} className="relative">
                 <NavLink href={link.href} icon={link.icon} active={active}>
@@ -226,9 +226,9 @@ function NavigationGroup(arg0: NavigationGroupProps) {  const { group, className
   )
 }
 
-export type NavigationProps = { navigation: NavigationNode[]; className?: string }
+export type NavigationProps = { navigation: NavigationNode[]; className?: string; currentLocale?: string }
 
-export function Navigation(arg0: NavigationProps) {  const { navigation, className } = arg0
+export function Navigation(arg0: NavigationProps) {  const { navigation, className, currentLocale } = arg0
 
   const t = useBuiltInText()
   const groups = navigationToGroups(navigation, t('navigation.documentation'))
@@ -237,7 +237,7 @@ export function Navigation(arg0: NavigationProps) {  const { navigation, classNa
     <nav className={clsx('clarify-navigation', className)}>
       <ul role="list" className="clarify-navigation-list">
         {groups.map((group, groupIndex) => (
-          <NavigationGroup key={group.title} group={group} className={groupIndex === 0 ? 'mt-0' : ''} />
+          <NavigationGroup key={group.title} group={group} className={groupIndex === 0 ? 'mt-0' : ''} currentLocale={currentLocale} />
         ))}
       </ul>
     </nav>

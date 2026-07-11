@@ -130,8 +130,8 @@ function isDefaultLocale(config: Config, locale: string | undefined): boolean {
   return Boolean(locale && config.i18n?.defaultLocale === locale)
 }
 
-function hasPath(nodes: NavigationNode[], pathname: string): boolean {
-  return nodes.some((node) => isSameRoutePath(node.path, pathname) || hasPath(node.children ?? [], pathname))
+function hasPath(nodes: NavigationNode[], pathname: string, locale?: string): boolean {
+  return nodes.some((node) => isSameRoutePath(node.path, pathname, locale) || hasPath(node.children ?? [], pathname, locale))
 }
 
 type NavigationState = {
@@ -139,8 +139,8 @@ type NavigationState = {
   tabs?: NavigationTab[]
 }
 
-function navigationFromTabs(tabs: NavigationTab[], pathname: string): NavigationState {
-  const currentTab = tabs.find((tab) => isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname))
+function navigationFromTabs(tabs: NavigationTab[], pathname: string, locale?: string): NavigationState {
+  const currentTab = tabs.find((tab) => isSameRoutePath(tab.path, pathname, locale) || hasPath(tab.children, pathname, locale))
   return {
     items: currentTab?.children ?? tabs[0]?.children ?? [],
     tabs,
@@ -152,11 +152,11 @@ function navigationForLocale(navigation: NavigationTree, locale: string | undefi
     case 'flat':
       return { items: navigation.nodes }
     case 'tabbed':
-      return navigationFromTabs(navigation.tabs, pathname)
+      return navigationFromTabs(navigation.tabs, pathname, locale)
     case 'localized':
       return { items: locale ? navigation.locales[locale] ?? [] : [] }
     case 'localized-tabbed':
-      return locale && navigation.locales[locale] ? navigationFromTabs(navigation.locales[locale].tabs, pathname) : { items: [] }
+      return locale && navigation.locales[locale] ? navigationFromTabs(navigation.locales[locale].tabs, pathname, locale) : { items: [] }
   }
 }
 
@@ -455,7 +455,7 @@ export function AppShell(arg0: AppShellProps) {
         className="clarify-sidebar hidden lg:block lg:self-stretch lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 xl:px-6"
       >
         <div className={clsx('clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8', layoutConfig.sidebarScrollClassName)}>
-          <Navigation navigation={currentNavigation.items} />
+          <Navigation navigation={currentNavigation.items} currentLocale={currentLocale} />
         </div>
       </aside>
     )

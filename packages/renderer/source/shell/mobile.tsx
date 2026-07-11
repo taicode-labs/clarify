@@ -16,22 +16,22 @@ import { Navigation } from './Navigation'
 
 const IsInsideMobileNavigationContext = createContext(false)
 
-function hasPath(nodes: NavigationNode[], pathname: string): boolean {
-  return nodes.some((node) => isSameRoutePath(node.path, pathname) || hasPath(node.children ?? [], pathname))
+function hasPath(nodes: NavigationNode[], pathname: string, currentLocale?: string): boolean {
+  return nodes.some((node) => isSameRoutePath(node.path, pathname, currentLocale) || hasPath(node.children ?? [], pathname, currentLocale))
 }
 
-function isActiveTab(tab: NavigationTab, pathname: string): boolean {
-  return isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname)
+function isActiveTab(tab: NavigationTab, pathname: string, currentLocale?: string): boolean {
+  return isSameRoutePath(tab.path, pathname, currentLocale) || hasPath(tab.children, pathname, currentLocale)
 }
 
-type MobileTabsSelectProps = { tabs?: NavigationTab[] }
+type MobileTabsSelectProps = { tabs?: NavigationTab[]; currentLocale?: string }
 
 function MobileTabsSelect(arg0: MobileTabsSelectProps) {
-  const { tabs } = arg0
+  const { tabs, currentLocale } = arg0
   const pathname = normalizeRoutePath(useLocation().pathname)
   if (!tabs?.length) return null
 
-  const activeTab = tabs.find((tab) => isActiveTab(tab, pathname)) ?? tabs[0]
+  const activeTab = tabs.find((tab) => isActiveTab(tab, pathname, currentLocale)) ?? tabs[0]
 
   return (
     <Menu as="div" className="clarify-mobile-tabs-select mb-6">
@@ -44,7 +44,7 @@ function MobileTabsSelect(arg0: MobileTabsSelectProps) {
       </MenuButton>
       <MenuItems className="clarify-mobile-tabs-select-list clarify-ui-menu mt-2 flex flex-col gap-1 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg shadow-zinc-900/5 focus:outline-none dark:border-white/10 dark:bg-zinc-900 dark:shadow-none">
         {tabs.map((tab) => {
-          const active = isActiveTab(tab, pathname)
+          const active = isActiveTab(tab, pathname, currentLocale)
 
           return (
             <MenuItem key={`${tab.title}-${tab.path}`}>
@@ -117,8 +117,8 @@ function MobileNavigationDialog(arg0: MobileNavigationDialogProps) {  const {
             layoutScroll
             className="clarify-mobile-navigation-panel fixed top-14 bottom-0 left-0 w-full max-w-sm overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-4 pt-6 pb-4 shadow-lg ring-1 shadow-zinc-900/10 ring-(--clarify-theme-tokens-colors-border) duration-500 ease-in-out data-closed:-translate-x-full sm:px-6 sm:pb-10 dark:bg-zinc-950 dark:ring-zinc-800"
           >
-            <MobileTabsSelect tabs={tabs} />
-            <Navigation navigation={navigation} />
+            <MobileTabsSelect tabs={tabs} currentLocale={currentLocale} />
+            <Navigation navigation={navigation} currentLocale={currentLocale} />
           </motion.div>
         </TransitionChild>
       </DialogPanel>
