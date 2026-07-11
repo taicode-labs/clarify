@@ -19,13 +19,13 @@ import { applyThemeVariables, themeEditorPresets, ThemeEditor } from './theme/Th
 import { ThemeProvider, useTheme } from './theme/ThemeProvider'
 import { ThemeToggle } from './theme/ThemeToggle'
 import { themePresets, themeBootstrapScript } from './theme/variables'
-import type { Config, RouteItem, RenderOptions, ServerRenderOptions } from './types'
+import type { Config, RouteItem, RouteSection, RenderOptions, ServerRenderOptions } from './types'
 import { remToPx } from './utils/remToPx'
 
 export type { OpenApiOperationProps, OpenApiDocumentProps, OpenAPIOperation, OpenAPISpec, OpenApiRouteData } from './openapi'
 export type { ThemeEditorProps } from './theme/ThemeEditor'
 export type { ContentDiagnostic }
-export type { Config, RouteItem, RenderOptions, ServerRenderOptions, Section }
+export type { Config, RouteItem, RouteSection, RenderOptions, ServerRenderOptions, Section }
 export type { RuntimeSlotEntry, RuntimeSlots, UISlotRegistration, UISlotName, SlotContext } from './slots'
 
 // App and runtime exports

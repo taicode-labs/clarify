@@ -1,6 +1,6 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
-import type { ClarifyNavigationNode, ClarifyNavigationTab, ClarifyPlugin, ContentDiagnostic, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyNavigationNode, ClarifyNavigationTab, ClarifyPlugin, ContentDiagnostic, ContentRoute, ContentSection, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 // 新的虚拟模块命名 - 更清晰的职责划分
 export const VIRTUAL_CONFIG = 'virtual:clarify/config'
@@ -88,23 +88,33 @@ function moduleSpecifier(value: string): string {
   return JSON.stringify(value)
 }
 
-/** Fields from ContentRoute that the runtime route object exposes. */
-type RuntimeRouteObject = {
+type RuntimeRouteComponentExpression = string
+
+type RuntimeRouteIdentity = {
   path: string
-  title: string
-  component: string
-  lazy?: true
-  kind: string
   basePath?: string
   locale?: string
+  alternates?: Record<string, string>
   isFallback?: true
   isBareAlias?: true
-  alternates?: Record<string, string>
+}
+
+type RuntimeRouteMetadata = {
+  title: string
   description?: string
   keywords?: string[]
-  sections?: Array<{ id: string; title: string; level: number; badge?: string; tags?: string[] }>
+  sections?: ContentSection[]
+}
+
+type RuntimeRouteContentLinks = {
   contentArtifactUrl?: string
   sourceUrl?: string
+}
+
+type RuntimeRouteManifestEntry = RuntimeRouteIdentity & RuntimeRouteMetadata & RuntimeRouteContentLinks & {
+  component: RuntimeRouteComponentExpression
+  lazy?: true
+  kind: ContentRoute['kind']
 }
 
 type RuntimeNavigationObject =
@@ -126,29 +136,29 @@ export function navigationToRuntimeObject(navigation: NavigationTree): RuntimeNa
   }
 }
 
-function routeToRuntimeObject(route: ContentRoute, component: string, mode: 'client' | 'server'): RuntimeRouteObject {
-  const obj: RuntimeRouteObject = {
+function routeToRuntimeManifestEntry(route: ContentRoute, component: RuntimeRouteComponentExpression, mode: 'client' | 'server'): RuntimeRouteManifestEntry {
+  const entry: RuntimeRouteManifestEntry = {
     path: route.path,
-      title: route.meta.title,
+    title: route.meta.title,
     component,
     kind: route.kind,
   }
 
-  if (mode === 'client') obj.lazy = true
-  if (route.basePath) obj.basePath = route.basePath
-  if (route.locale) obj.locale = route.locale
-  if (route.isFallback) obj.isFallback = true
-  if (route.isBareAlias) obj.isBareAlias = true
-  if (route.alternates) obj.alternates = route.alternates
-  if (route.meta.description) obj.description = route.meta.description
-  if (route.meta.keywords?.length) obj.keywords = route.meta.keywords
-  if (route.artifacts?.contentUrl) obj.contentArtifactUrl = route.artifacts.contentUrl
-  if (route.source?.editUrl) obj.sourceUrl = route.source.editUrl
+  if (mode === 'client') entry.lazy = true
+  if (route.basePath) entry.basePath = route.basePath
+  if (route.locale) entry.locale = route.locale
+  if (route.isFallback) entry.isFallback = true
+  if (route.isBareAlias) entry.isBareAlias = true
+  if (route.alternates) entry.alternates = route.alternates
+  if (route.meta.description) entry.description = route.meta.description
+  if (route.meta.keywords?.length) entry.keywords = route.meta.keywords
+  if (route.artifacts?.contentUrl) entry.contentArtifactUrl = route.artifacts.contentUrl
+  if (route.source?.editUrl) entry.sourceUrl = route.source.editUrl
   if (route.meta.sections?.length) {
-    obj.sections = route.meta.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags }))
+    entry.sections = route.meta.sections.map(section => ({ id: section.id, title: section.title, level: section.level, badge: section.badge, tags: section.tags }))
   }
 
-  return obj
+  return entry
 }
 
 export function generateRoutesModule(routes: ContentRoute[], navigation: NavigationTree, mode: 'client' | 'server' = 'client'): string {
@@ -166,7 +176,7 @@ export function generateRoutesModule(routes: ContentRoute[], navigation: Navigat
       ? `Page${i}`
       : `() => import(${moduleSpecifier(r.module.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
     const placeholder = `__COMPONENT_${i}__`
-    const obj = routeToRuntimeObject(r, placeholder, mode)
+    const obj = routeToRuntimeManifestEntry(r, placeholder, mode)
     const json = JSON.stringify(obj, null, 0)
     // JSON.stringify quotes all keys and omits spaces after colons. Convert to
     // idiomatic JS object-literal syntax: unquote identifier keys, pad colons

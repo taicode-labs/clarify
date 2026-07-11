@@ -409,11 +409,11 @@ export type ClarifyNavigationNode = {
 // ────────────────────────────────────────────────────────────────────────────────
 
 export type ClarifyProjectContext = {
+  version: string
   projectRoot: string
   contentRoot: string
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
-  version: string
 }
 
 export type ClarifyRouteState = {
