@@ -7,7 +7,7 @@ describe('generateClarifyEnvDts', () => {
     const dts = generateClarifyEnvDts([])
 
     expect(dts).toContain("declare module 'virtual:clarify/slot'")
-    expect(dts).toContain('export function useSlot(): SlotContext')
+    expect(dts).toContain('export function useSlot(): UISlotContext')
     expect(dts).not.toContain("declare module 'virtual:clarify/slots'")
   })
 })

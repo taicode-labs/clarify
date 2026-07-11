@@ -13,7 +13,7 @@ const mockCtx: ClarifyHookContext = {
   generateOptions: resolveBuildOptions({ projectRoot: '/site' }),
   version: 'test',
   routes: [],
-  navigation: [],
+  navigation: { kind: 'flat', nodes: [] },
   plugins: [],
   get: () => undefined,
   set: () => undefined,

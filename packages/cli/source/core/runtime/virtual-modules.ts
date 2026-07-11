@@ -1,12 +1,13 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
-import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, ContentSection, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 // 新的虚拟模块命名 - 更清晰的职责划分
 export const VIRTUAL_CONFIG = 'virtual:clarify/config'
 export const VIRTUAL_ROUTES = 'virtual:clarify/routes'
 export const VIRTUAL_SERVER_ROUTES = 'virtual:clarify/routes/server'
 export const VIRTUAL_OPENAPI = 'virtual:clarify/openapi'
+export const VIRTUAL_OPENAPI_SERVER = 'virtual:clarify/openapi/server'
 export const VIRTUAL_SLOTS = 'virtual:clarify/slots'
 export const VIRTUAL_SLOT = 'virtual:clarify/slot'
 export const VIRTUAL_CLIENT_ENTRY = 'virtual:clarify/entry-client'
@@ -46,6 +47,7 @@ const FIXED_VIRTUAL_IDS = [
   VIRTUAL_ROUTES,
   VIRTUAL_SERVER_ROUTES,
   VIRTUAL_OPENAPI,
+  VIRTUAL_OPENAPI_SERVER,
   VIRTUAL_SLOTS,
   VIRTUAL_SLOT,
 ] as const
@@ -68,8 +70,8 @@ export function resolveVirtualModuleId(id: string, modules: VirtualModules, rout
   const moduleId = stripVirtualPrefix(id)
   if (modules.has(moduleId)) return resolveVirtualId(moduleId)
 
-  const route = routes.find(route => route.virtualModuleId === id || route.virtualModuleId === moduleId)
-  if (route) return resolveVirtualId(route.virtualModuleId)
+  const route = routes.find(route => route.module.virtualModuleId === id || route.module.virtualModuleId === moduleId)
+  if (route) return resolveVirtualId(route.module.virtualModuleId)
 
   return null
 }
@@ -86,53 +88,63 @@ function moduleSpecifier(value: string): string {
   return JSON.stringify(value)
 }
 
-/** Fields from ContentRoute that the runtime route object exposes. */
-type RuntimeRouteObject = {
+type RuntimeRouteComponentExpression = string
+
+type RuntimeRouteIdentity = {
   path: string
-  title: string
-  component: string
-  lazy?: true
-  kind: string
   basePath?: string
   locale?: string
+  alternates?: Record<string, string>
   isFallback?: true
   isBareAlias?: true
-  alternates?: Record<string, string>
-  description?: string
-  keywords?: string[]
-  sections?: Array<{ id: string; title: string; level: number; badge?: string; tags?: string[] }>
-  contentArtifactUrl?: string
-  sourceUrl?: string
 }
 
-function routeToRuntimeObject(route: ContentRoute, component: string, mode: 'client' | 'server'): RuntimeRouteObject {
-  const obj: RuntimeRouteObject = {
+type RuntimeRouteMetadata = {
+  title: string
+  description?: string
+  keywords?: string[]
+  sections?: ContentSection[]
+}
+
+type RuntimeRouteContentLinks = {
+  contentArtifactUrl?: string
+  sourceEditUrl?: string
+}
+
+type RuntimeRouteManifestEntry = RuntimeRouteIdentity & RuntimeRouteMetadata & RuntimeRouteContentLinks & {
+  component: RuntimeRouteComponentExpression
+  lazy?: true
+  kind: ContentRoute['kind']
+}
+
+function routeToRuntimeManifestEntry(route: ContentRoute, component: RuntimeRouteComponentExpression, mode: 'client' | 'server'): RuntimeRouteManifestEntry {
+  const entry: RuntimeRouteManifestEntry = {
     path: route.path,
-    title: route.title,
+    title: route.meta.title,
     component,
     kind: route.kind,
   }
 
-  if (mode === 'client') obj.lazy = true
-  if (route.basePath) obj.basePath = route.basePath
-  if (route.locale) obj.locale = route.locale
-  if (route.isFallback) obj.isFallback = true
-  if (route.isBareAlias) obj.isBareAlias = true
-  if (route.alternates) obj.alternates = route.alternates
-  if (route.description) obj.description = route.description
-  if (route.keywords?.length) obj.keywords = route.keywords
-  if (route.contentArtifactUrl) obj.contentArtifactUrl = route.contentArtifactUrl
-  if (route.sourceUrl) obj.sourceUrl = route.sourceUrl
-  if (route.sections?.length) {
-    obj.sections = route.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags }))
+  if (mode === 'client') entry.lazy = true
+  if (route.basePath) entry.basePath = route.basePath
+  if (route.locale) entry.locale = route.locale
+  if (route.isFallback) entry.isFallback = true
+  if (route.isBareAlias) entry.isBareAlias = true
+  if (route.alternates) entry.alternates = route.alternates
+  if (route.meta.description) entry.description = route.meta.description
+  if (route.meta.keywords?.length) entry.keywords = route.meta.keywords
+  if (route.artifacts?.contentArtifactUrl) entry.contentArtifactUrl = route.artifacts.contentArtifactUrl
+  if (route.source?.sourceEditUrl) entry.sourceEditUrl = route.source.sourceEditUrl
+  if (route.meta.sections?.length) {
+    entry.sections = route.meta.sections.map(section => ({ id: section.id, title: section.title, level: section.level, badge: section.badge, tags: section.tags }))
   }
 
-  return obj
+  return entry
 }
 
 export function generateRoutesModule(routes: ContentRoute[], navigation: NavigationTree, mode: 'client' | 'server' = 'client'): string {
   const imports = mode === 'server'
-    ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.virtualModuleId)};`).join('\n')
+    ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.module.virtualModuleId)};`).join('\n')
     : `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';`
 
   // `component` is a raw JS expression (an identifier or arrow function),
@@ -143,10 +155,10 @@ export function generateRoutesModule(routes: ContentRoute[], navigation: Navigat
   const routeEntries = routes.map((r, i) => {
     const component = mode === 'server'
       ? `Page${i}`
-      : `() => import(${moduleSpecifier(r.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
+      : `() => import(${moduleSpecifier(r.module.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
     const placeholder = `__COMPONENT_${i}__`
-    const obj = routeToRuntimeObject(r, placeholder, mode)
-    const json = JSON.stringify(obj, null, 0)
+    const manifestEntry = routeToRuntimeManifestEntry(r, placeholder, mode)
+    const json = JSON.stringify(manifestEntry, null, 0)
     // JSON.stringify quotes all keys and omits spaces after colons. Convert to
     // idiomatic JS object-literal syntax: unquote identifier keys, pad colons
     // with a single space. Non-identifier keys (none currently, but defensive)
@@ -168,9 +180,15 @@ import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
 import { config } from '${VIRTUAL_CONFIG}';
-import { openApis } from '${VIRTUAL_OPENAPI}';
+import { openApiSpecs } from '${VIRTUAL_OPENAPI}';
 import { runtimeSlots } from '${VIRTUAL_SLOTS}';
-render({ config, routes, navigation, openApis, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} });`
+const renderOptions = { config, routes, navigation, openApiSpecs, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} };
+render(renderOptions);
+if (import.meta.hot) {
+  import.meta.hot.accept('${VIRTUAL_ROUTES}', (mod) => {
+    render({ ...renderOptions, routes: mod.routes, navigation: mod.navigation });
+  });
+}`
 }
 
 /**
@@ -214,7 +232,7 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = [], root: st
       throw new Error(`[clarify] Plugin "${plugin}" slot "${slot.name}" has an invalid component path "${slot.component}". Component paths must start with "/" to reference the project root.`)
     }
     const componentPath = root + slot.component
-    const entry = `{ plugin: ${JSON.stringify(plugin)}, component: () => import(${moduleSpecifier(componentPath)}) }`
+    const entry = `{ plugin: ${JSON.stringify(plugin)}, loadComponent: () => import(${moduleSpecifier(componentPath)}) }`
     const list = grouped.get(slot.name) ?? []
     list.push(entry)
     grouped.set(slot.name, list)
@@ -253,7 +271,7 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, 'server'))
   modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))
-  modules.set(VIRTUAL_OPENAPI, 'export const openApis = {};')
+  modules.set(VIRTUAL_OPENAPI, 'export const openApiSpecs = {};')
   modules.set(VIRTUAL_SLOT, "export { useSlot } from '@clarify-labs/renderer';\n")
   modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
@@ -261,8 +279,8 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   for (const route of args.routes) {
     const moduleContent = route.diagnostic
       ? generateMdxErrorModule(route.diagnostic)
-      : `export { default } from ${moduleSpecifier(route.filePath)};`
-    modules.set(route.virtualModuleId, moduleContent)
+      : `export { default } from ${moduleSpecifier(route.source.filePath)};`
+    modules.set(route.module.virtualModuleId, moduleContent)
   }
 
   return modules

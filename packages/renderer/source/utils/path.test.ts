@@ -37,6 +37,24 @@ describe('isSameRoutePath', () => {
     expect(isSameRoutePath('/docs/', '/docs')).toBe(true)
   })
 
+  it('returns true when one path has an explicit locale prefix', () => {
+    expect(isSameRoutePath('/api', '/zh-CN/api', 'zh-CN')).toBe(true)
+    expect(isSameRoutePath('/en/api', '/api', 'en')).toBe(true)
+  })
+
+  it('preserves query and hash matching with locale prefixes', () => {
+    expect(isSameRoutePath('/api?group=pet', '/zh-CN/api?group=pet', 'zh-CN')).toBe(true)
+    expect(isSameRoutePath('/api#pets', '/zh-CN/api#pets', 'zh-CN')).toBe(true)
+  })
+
+  it('returns false for different explicit locale prefixes', () => {
+    expect(isSameRoutePath('/zh-CN/api', '/en-US/api', 'zh-CN')).toBe(false)
+  })
+
+  it('returns false when locale prefix is not provided', () => {
+    expect(isSameRoutePath('/api', '/zh-CN/api')).toBe(false)
+  })
+
   it('returns false for different paths', () => {
     expect(isSameRoutePath('/docs', '/api')).toBe(false)
   })

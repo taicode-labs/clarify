@@ -140,6 +140,11 @@ export async function createViteConfig(options: ClarifyViteConfigOptions, env: C
                 priority: 30,
               },
               {
+                name: 'mermaid-viewer-vendor',
+                test: /node_modules[\\/]react-zoom-pan-pinch[\\/]/,
+                priority: 25,
+              },
+              {
                 // Keep mermaid and its heavy diagram/render dependencies out of
                 // the eager `vendor` chunk so they stay lazily loaded only on
                 // pages that actually render a diagram.

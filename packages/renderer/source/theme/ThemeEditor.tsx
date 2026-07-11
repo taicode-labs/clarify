@@ -254,10 +254,10 @@ function useThemeEditorState(arg0: UseThemeEditorStateArgs) {
     try {
       await navigator.clipboard.writeText(configSource)
       setCopyState('copied')
-      window.setTimeout(() => setCopyState('idle'), 1400)
+      setTimeout(() => setCopyState('idle'), 1400)
     } catch {
       setCopyState('failed')
-      window.setTimeout(() => setCopyState('idle'), 1400)
+      setTimeout(() => setCopyState('idle'), 1400)
     }
   }
 

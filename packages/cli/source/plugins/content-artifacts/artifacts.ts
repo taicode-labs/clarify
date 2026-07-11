@@ -33,15 +33,18 @@ export function routeToOpenAPIArtifactUrl(routePath: string): string {
 
 export function attachContentArtifactUrls(routes: ContentRoute[]): void {
   for (const route of routes) {
-    route.contentArtifactUrl = route.kind === 'openapi'
-      ? routeToOpenAPIArtifactUrl(route.path)
-      : routeToMarkdownArtifactUrl(route.path)
+    route.artifacts = {
+      ...route.artifacts,
+      contentArtifactUrl: route.kind === 'openapi'
+        ? routeToOpenAPIArtifactUrl(route.path)
+        : routeToMarkdownArtifactUrl(route.path),
+    }
   }
 }
 
 export function readRouteContent(route: ContentRoute): string {
-  if (route.content !== undefined) return route.content
-  throw new Error(`Route content is missing from route context: ${route.filePath}`)
+  if (route.source.content !== undefined) return route.source.content
+  throw new Error(`Route content is missing from route context: ${route.source.filePath}`)
 }
 
 export function readRouteArtifactContent(route: ContentRoute): string {
@@ -54,12 +57,12 @@ function isLlmsTxtRoute(route: ContentRoute): boolean {
 }
 
 function llmsTxtDescription(route: ContentRoute): string | undefined {
-  if (route.description) return route.description
+  if (route.meta.description) return route.meta.description
 
-  const sections = route.sections?.filter(section => section.level === 2).slice(0, 3).map(section => section.title)
+  const sections = route.meta.sections?.filter(section => section.level === 2).slice(0, 3).map(section => section.title)
   if (sections?.length) return `Covers ${sections.join(', ')}.`
 
-  if (route.keywords?.length) return `Related topics: ${route.keywords.join(', ')}.`
+  if (route.meta.keywords?.length) return `Related topics: ${route.meta.keywords.join(', ')}.`
 
   if (route.kind === 'openapi') return 'OpenAPI artifact for machine-readable API reference data.'
 
@@ -67,12 +70,13 @@ function llmsTxtDescription(route: ContentRoute): string | undefined {
 }
 
 function llmsTxtListItem(route: ContentRoute, basePath: string): string | undefined {
-  if (!route.contentArtifactUrl) return undefined
+  const contentArtifactUrl = route.artifacts?.contentArtifactUrl
+  if (!contentArtifactUrl) return undefined
 
   const description = llmsTxtDescription(route)
   return description
-    ? `- [${route.title}](${basePath}${route.contentArtifactUrl}): ${description}`
-    : `- [${route.title}](${basePath}${route.contentArtifactUrl})`
+    ? `- [${route.meta.title}](${basePath}${contentArtifactUrl}): ${description}`
+    : `- [${route.meta.title}](${basePath}${contentArtifactUrl})`
 }
 
 function llmsTxtLocaleLabel(locale: string, projectConfig: ResolvedProjectConfig): string {
@@ -93,7 +97,7 @@ function groupLlmsTxtRoutesByLocale(routes: ContentRoute[], projectConfig: Resol
   const defaultLocale = projectConfig.i18n?.defaultLocale
 
   for (const route of routes) {
-    const sourceKey = `${route.locale ?? defaultLocale ?? 'default'}:${route.basePath ?? route.contentArtifactUrl ?? route.path}`
+    const sourceKey = `${route.locale ?? defaultLocale ?? 'default'}:${route.basePath ?? route.artifacts?.contentArtifactUrl ?? route.path}`
     const previousRoute = routesBySource.get(sourceKey)
 
     if (!previousRoute || (previousRoute.locale && !route.locale)) {

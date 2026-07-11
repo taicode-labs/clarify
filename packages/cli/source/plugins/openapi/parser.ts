@@ -10,6 +10,7 @@ import { kebabToTitle, routePathFromRef, virtualModuleIdFromRef } from '../../pa
 import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
+const CLARIFY_OPENAPI_SECTION_ID_EXTENSION = 'x-clarify-section-id'
 
 type ResolverFileInfo = { url: string }
 
@@ -47,10 +48,16 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
     routes.push({
       path: cleanPath,
       basePath: cleanPath,
-      filePath: fullPath,
-      virtualModuleId: virtualModuleIdFromRef(ref),
-      title: kebabToTitle(cleanPath.split('/').pop() ?? 'API'),
       kind: 'openapi',
+      meta: {
+        title: kebabToTitle(cleanPath.split('/').pop() ?? 'API'),
+      },
+      module: {
+        virtualModuleId: virtualModuleIdFromRef(ref),
+      },
+      source: {
+        filePath: fullPath,
+      },
     })
   }
 
@@ -62,31 +69,72 @@ function operationMatchesTags(operationTags: string[] | undefined, filterTags: s
   return operationTags?.some(tag => filterTags.includes(tag)) ?? false
 }
 
+function filterPathItemsByTags(items: Record<string, unknown>, tags: string[]): Record<string, unknown> {
+  const filteredItems: Record<string, unknown> = {}
+  for (const path of Object.keys(items)) {
+    const pathItem = items[path] as Record<string, unknown> | undefined
+    if (!pathItem) continue
+    const ops = OPENAPI_HTTP_METHODS.map(method => pathItem[method])
+    const hasMatch = ops.some(op => op && typeof op === 'object' && operationMatchesTags((op as Record<string, unknown>).tags as string[] | undefined, tags))
+    if (hasMatch) filteredItems[path] = pathItem
+  }
+  return filteredItems
+}
+
+function createOperationSectionId(operation: Record<string, unknown>, method: string, path: string, kind: 'path' | 'webhook'): string {
+  const operationId = typeof operation.operationId === 'string' ? operation.operationId.trim() : ''
+  return operationId || slug(`${kind === 'webhook' ? 'webhook ' : ''}${method.toLowerCase()} ${path}`)
+}
+
+function operationSectionId(operation: Record<string, unknown>): string {
+  const sectionId = operation[CLARIFY_OPENAPI_SECTION_ID_EXTENSION]
+  return typeof sectionId === 'string' ? sectionId : ''
+}
+
+export function normalizeOpenAPISpecSectionIds(spec: OpenAPISpec): OpenAPISpec {
+  const items = [
+    ...Object.entries(spec.paths ?? {}).map(([path, pathItem]) => ({ path, pathItem, kind: 'path' as const })),
+    ...Object.entries(((spec as Record<string, unknown>).webhooks ?? {}) as Record<string, unknown>).map(([path, pathItem]) => ({ path, pathItem, kind: 'webhook' as const })),
+  ]
+
+  for (const { path, pathItem, kind } of items) {
+    if (!pathItem || typeof pathItem !== 'object') continue
+    const operations = pathItem as Record<string, unknown>
+    for (const method of OPENAPI_HTTP_METHODS) {
+      const op = operations[method] as Record<string, unknown> | undefined
+      if (!op || typeof op !== 'object') continue
+      op[CLARIFY_OPENAPI_SECTION_ID_EXTENSION] = createOperationSectionId(op, method, path, kind)
+    }
+  }
+
+  return spec
+}
+
 /** Filter an OpenAPI spec to only include paths that have at least one operation matching the given tags. */
 export function filterSpecByTags(spec: OpenAPISpec, tags: string[]): OpenAPISpec {
-  const filteredPaths: Record<string, unknown> = {}
   const paths = (spec.paths ?? {}) as Record<string, unknown>
-  for (const path of Object.keys(paths)) {
-    const pathItem = paths[path] as Record<string, unknown> | undefined
-    if (!pathItem) continue
-    const ops = Object.values(pathItem)
-    const hasMatch = ops.some(op => op && typeof op === 'object' && operationMatchesTags((op as Record<string, unknown>).tags as string[] | undefined, tags))
-    if (hasMatch) filteredPaths[path] = pathItem
-  }
-  return { ...spec, paths: filteredPaths } as OpenAPISpec
+  const webhooks = ((spec as Record<string, unknown>).webhooks ?? {}) as Record<string, unknown>
+  return { ...spec, paths: filterPathItemsByTags(paths, tags), webhooks: filterPathItemsByTags(webhooks, tags) } as OpenAPISpec
 }
 
 /** Extract endpoint operations from an OpenAPI spec as page sections. */
 export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[]): ContentSection[] {
+  normalizeOpenAPISpecSectionIds(spec)
+
   const sections: ContentSection[] = []
-  const paths = spec.paths ?? {}
-  for (const [path, pathItem] of Object.entries(paths)) {
+  const items = [
+    ...Object.entries(spec.paths ?? {}).map(([path, pathItem]) => ({ path, pathItem, kind: 'path' })),
+    ...Object.entries(((spec as Record<string, unknown>).webhooks ?? {}) as Record<string, unknown>).map(([path, pathItem]) => ({ path, pathItem, kind: 'webhook' })),
+  ]
+  for (const { path, pathItem, kind } of items) {
     if (!pathItem) continue
+    const operations = pathItem as Record<string, unknown>
     for (const method of OPENAPI_HTTP_METHODS) {
-      const op = pathItem[method]
-      if (!op || !operationMatchesTags(op.tags, filterTags)) continue
-      const title = op.summary ?? `${method.toUpperCase()} ${path}`
-      sections.push({ id: slug(`${method} ${path}`), title, level: 2, badge: method.toUpperCase(), tags: op.tags })
+      const op = operations[method] as Record<string, unknown> | undefined
+      const tags = Array.isArray(op?.tags) ? op.tags as string[] : undefined
+      if (!op || !operationMatchesTags(tags, filterTags)) continue
+      const title = typeof op.summary === 'string' ? op.summary : `${method.toUpperCase()} ${path}`
+      sections.push({ id: operationSectionId(op), title, level: 2, badge: kind === 'webhook' ? 'WEBHOOK' : method.toUpperCase(), tags })
     }
   }
   return sections

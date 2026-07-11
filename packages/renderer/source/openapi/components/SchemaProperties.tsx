@@ -396,7 +396,7 @@ export function ParameterList(arg0: ParameterListProps): ReactNode {
   )
 }
 
-type ResponseListProps = { operation: OpenAPIOperation; spec?: OpenAPISpec; selectedStatus?: string; onSelectStatus?: (value: string) => void }
+type ResponseListProps = { title?: string; operation: OpenAPIOperation; spec?: OpenAPISpec; selectedStatus?: string; onSelectStatus?: (value: string) => void }
 
 type RenderResponsePanelArgs = {
   status: string
@@ -404,7 +404,7 @@ type RenderResponsePanelArgs = {
 }
 
 export function ResponseList(arg0: ResponseListProps): ReactNode {
-  const { operation, spec, selectedStatus, onSelectStatus } = arg0
+  const { title, operation, spec, selectedStatus, onSelectStatus } = arg0
 
   const t = useBuiltInText()
   const responses = getResponseEntries(operation, spec)
@@ -450,7 +450,7 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
     const [{ status, response }] = orderedResponses
     return (
       <div>
-        <h3>{t('openapi.responses')}</h3>
+        <h3>{title ?? t('openapi.responses')}</h3>
         {renderResponsePanel({ status, response })}
       </div>
     )
@@ -458,7 +458,7 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
 
   return (
     <div>
-      <h3>{t('openapi.responses')}</h3>
+      <h3>{title ?? t('openapi.responses')}</h3>
       <Tabs
         selectedIndex={selectedIndex}
         onChange={(index) => {

@@ -9,4 +9,4 @@ export type { ClarifyConfig } from './core/config/user-config.js'
 
 // Re-export slot types from renderer so plugin authors can import them
 // from '@clarify-labs/cli' without depending on renderer directly.
-export type { UISlotName, SlotContext, UISlotRegistration } from '@clarify-labs/renderer'
+export type { UISlotName, UISlotContext, UISlotRegistration } from '@clarify-labs/renderer'

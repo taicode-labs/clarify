@@ -1,10 +1,9 @@
 import type { ReactNode } from 'react'
 
 import { AppShell } from '../app/AppShell'
-import { ConfigContext, OpenApisContext } from '../core/context'
-import type { Config, NavigationTree, RouteItem } from '../core/types'
-import type { OpenAPISpec } from '../openapi/lib/utils'
-import type { RuntimeSlots } from '../slots'
+import { ConfigContext, OpenApiSpecsContext } from '../core/context'
+import type { Config, NavigationTree, OpenApiRegistry, RouteItem } from '../core/types'
+import type { RuntimeSlotRegistry } from '../slots'
 import { ThemeProvider } from '../theme/ThemeProvider'
 import { ThemeRoot } from '../theme/ThemeRoot'
 
@@ -12,15 +11,15 @@ export type ClarifyShellProps = {
   config: Config
   routes: RouteItem[]
   navigation?: NavigationTree
-  openApis: Record<string, OpenAPISpec>
-  runtimeSlots?: RuntimeSlots
+  openApiSpecs: OpenApiRegistry
+  runtimeSlots?: RuntimeSlotRegistry
   themeEditor?: boolean
   children?: ReactNode
 }
 
 /**
  * Shared provider chain used by both client-side render and server-side
- * renderToHTML.  Wraps AppShell with ConfigContext → OpenApisContext →
+ * renderToHTML.  Wraps AppShell with ConfigContext → OpenApiSpecsContext →
  * ThemeProvider → ThemeRoot.
  *
  * The outer Router (BrowserRouter / StaticRouter) is left to the caller
@@ -31,24 +30,24 @@ export function ClarifyShell(props: ClarifyShellProps) {
     config,
     routes,
     navigation,
-    openApis,
+    openApiSpecs,
     runtimeSlots,
     themeEditor = false,
   } = props
   return (
     <ConfigContext.Provider value={config}>
-      <OpenApisContext.Provider value={openApis}>
+      <OpenApiSpecsContext.Provider value={openApiSpecs}>
         <ThemeProvider>
           <ThemeRoot theme={config.theme} themeEditor={themeEditor}>
             <AppShell
               config={config}
               routes={routes}
-              navigation={navigation ?? []}
+              navigation={navigation ?? { kind: 'flat', nodes: [] }}
               runtimeSlots={runtimeSlots}
             />
           </ThemeRoot>
         </ThemeProvider>
-      </OpenApisContext.Provider>
+      </OpenApiSpecsContext.Provider>
     </ConfigContext.Provider>
   )
 }

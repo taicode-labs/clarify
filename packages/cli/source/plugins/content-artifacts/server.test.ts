@@ -17,11 +17,11 @@ const projectConfig: ResolvedProjectConfig = {
 function createRoute(kind: 'mdx' | 'openapi', contentArtifactUrl: string): ContentRoute {
   return {
     path: '/api',
-    title: 'API',
-    filePath: '/tmp/api.openapi.yaml',
-    virtualModuleId: 'virtual:clarify-page/api',
     kind,
-    contentArtifactUrl,
+    meta: { title: 'API' },
+    module: { virtualModuleId: 'virtual:clarify-page/api' },
+    source: { filePath: '/tmp/api.openapi.yaml' },
+    artifacts: { contentArtifactUrl },
   }
 }
 

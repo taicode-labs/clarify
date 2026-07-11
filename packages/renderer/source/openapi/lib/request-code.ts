@@ -3,8 +3,8 @@ import type { ClientId, HarRequest, TargetId } from '@scalar/snippetz'
 
 import type { OpenApiMediaType, OpenApiParameter, OpenApiServer, RequestAuthInput, RequestCodeExample } from '../types'
 
-import { getContentExample, isRecord, stringifyExample } from './helpers'
-import type { OpenAPISpec } from './utils'
+import { getContentExample, isRecord, joinPath, stringifyExample } from './helpers'
+import type { OpenAPIOperationSource, OpenAPISpec } from './utils'
 
 type RequestContent = { mediaType: string; value: OpenApiMediaType }
 
@@ -17,6 +17,7 @@ export type RequestCodeInput = {
   server?: OpenApiServer
   serverVariables?: Record<string, string>
   auth?: RequestAuthInput
+  operationSource?: OpenAPIOperationSource
 }
 
 type RequestBody = {
@@ -41,6 +42,10 @@ function getDefaultServer(spec: OpenAPISpec): OpenApiServer {
   return firstServer && typeof firstServer.url === 'string' ? firstServer : { url: 'https://api.example.com' }
 }
 
+function getDefaultWebhookServer(): OpenApiServer {
+  return { url: 'https://webhook.example.com' }
+}
+
 function expandServerUrl(server: OpenApiServer, serverVariables: Record<string, string> = {}): string {
   return (server.url ?? 'https://api.example.com').replace(/\{([^}]+)\}/g, (_, name: string) => {
     const fallback = server.variables?.[name]?.default ?? name
@@ -49,8 +54,9 @@ function expandServerUrl(server: OpenApiServer, serverVariables: Record<string, 
 }
 
 function buildOperationUrl(input: RequestCodeInput): string {
-  const serverUrl = expandServerUrl(input.server ?? getDefaultServer(input.spec), input.serverVariables).replace(/\/$/, '')
-  return `${serverUrl}${input.path}`
+  const defaultServer = input.operationSource === 'webhook' ? getDefaultWebhookServer() : getDefaultServer(input.spec)
+  const serverUrl = expandServerUrl(input.server ?? defaultServer, input.serverVariables)
+  return joinPath(serverUrl, input.path)
 }
 
 function getQueryString(parameters: OpenApiParameter[], auth?: RequestAuthInput): HarRequest['queryString'] {

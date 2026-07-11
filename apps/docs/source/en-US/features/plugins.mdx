@@ -13,7 +13,7 @@ Scenarios well suited to plugins:
 | Scenario | What you can do |
 |------|------------|
 | Content governance | Uniformly inject disclaimers, validate heading structure, fill in metadata |
-| Navigation enhancement | Reorder routes by team rules, filter internal pages, supplement navigation groups |
+| Navigation enhancement | Reorder routes by team rules, filter internal pages, supplement navigation nodes |
 | Search integration | Generate a Pagefind, Algolia, or custom search index during the build |
 | Internationalization workflow | Sync translation artifacts before and after the build, or check for missing translations |
 | Site integration | Output a sitemap, RSS, analytics config, or an internal platform manifest |
@@ -63,7 +63,7 @@ Clarify's current build flow calls the following hooks:
 | `routes:discover` | While discovering routes from a content root | Add non-MDX routes such as OpenAPI routes, or replace discovery results |
 | `routes:discovered` | After route discovery, before configured page paths and navigation are applied | Enrich discovered routes, add source links, or attach artifact URLs |
 | `pages:resolved` | After routes are mapped to pages, before writing back to routes | Rewrite page-level frontmatter or content |
-| `routes:resolved` | After routes and navigation are generated | Adjust routes, navigation, groups, and visible pages |
+| `routes:resolved` | After routes and navigation are generated | Adjust routes, navigation nodes, tabs, and visible pages |
 | `modules:before` | After virtual modules are generated, before handing them to Vite | Inject or modify runtime virtual modules |
 | `html:transform` | Before HTML is emitted or served | Inject HTML tags, theme bootstrapping scripts, or client entry scripts |
 | `dev:configureServer` | When the Vite dev server is configured | Register local middleware or dev-only endpoints |
@@ -82,13 +82,27 @@ Each hook receives a unified context object:
 
 ```ts
 type ClarifyHookContext = {
+  version: string
+  projectRoot: string
+  contentRoot: string
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
+  routes: ContentRoute[]
+  navigation: NavigationTree
+  plugins: ClarifyPlugin[]
+  get<T>(key: string): T | undefined
+  set<T>(key: string, value: T): void
+  has(key: string): boolean
+  delete(key: string): boolean
 }
 ```
 
+- `projectRoot` and `contentRoot`: absolute paths for resolving project and content files.
 - `projectConfig`: the site config after defaults have been applied, e.g. `title`, `routePrefix`, `i18n`.
 - `generateOptions`: the build run parameters, e.g. the content directory, output directory, and SSG error strategy.
+- `routes` and `navigation`: the current route and navigation state at the hook execution point.
+- `plugins`: the ordered plugin list.
+- `get`, `set`, `has`, and `delete`: a small shared store for coordination between hooks.
 
 ---
 

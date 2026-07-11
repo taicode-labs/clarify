@@ -104,30 +104,30 @@ export default defineConfig({
 
 当前实现没有暴露通用的 route extension 字段或完全动态的布局系统。如果某项能力会改变内容、路由或构建产物，优先使用 hook；如果只是需要在固定页面位置渲染 UI，优先使用 slots。
 
-替换型插槽让用户可以替换 Clarify 的内置组件，例如自定义页脚、自定义上一页/下一页导航、自定义内容操作栏。
+替换型插槽让用户可以替换 Clarify 的内置组件。当前运行时开放了横幅和页脚替换插槽。
 
-建议的替换型插槽：
+当前 slot 名称拆分：
 
 ```ts
-export type UIReplaceableSlotName =
+export type UIExtensionSlotName =
+  | 'page.footer.before'
+
+export type UIReplacementSlotName =
   | 'page.banner.replace'
   | 'page.footer.replace'
-  | 'page.navigation.replace'
-  | 'layout.header.replace'
-  | 'layout.sidebar.replace'
 ```
 
 完整 slot 名称类型由两部分组成：
 
 ```ts
 export type UISlotName =
-  | UIEExtensionSlotName
-  | UIReplaceableSlotName
+  | UIExtensionSlotName
+  | UIReplacementSlotName
 ```
 
 替换型插槽的关键规则：
 
-1. **独占**：同一个 `*.replace` 插槽只能被一个插件占用。如果多个插件声明同一替换插槽，应在构建期报错，而不是静默覆盖。
+1. **最后注册项生效**：如果多个插件声明同一替换插槽，Clarify 会输出 warning，并使用最后一个匹配注册项。
 2. **有默认回退**：替换型插槽必须对应一个 Clarify 内置默认组件。无插件占用时，渲染默认组件，行为与现在完全一致。
 3. **接收默认组件引用**：替换组件可以选择包裹或完全替换默认实现。默认组件通过 slot context 暴露：
 
@@ -217,7 +217,7 @@ export default function MySlot() {
 
 ### 项目级虚拟模块类型声明
 
-由于 `virtual:clarify/slot`、`virtual:clarify-runtime-slots` 这类模块只在 Clarify/Vite 构建期间存在，用户项目中的 TypeScript 语言服务默认无法识别它们。
+由于 `virtual:clarify/slot`、`virtual:clarify/slots` 这类模块只在 Clarify/Vite 构建期间存在，用户项目中的 TypeScript 语言服务默认无法识别它们。
 
 为了避免插件作者或站点作者手动编写 `declare module`，Clarify dev 应根据当前项目与启用插件自动生成项目级类型声明文件，例如：
 
@@ -269,7 +269,7 @@ declare module 'virtual:clarify/slot' {
 CLI 根据所有插件的 `slots` 生成虚拟模块，例如：
 
 ```ts
-// virtual:clarify-runtime-slots
+// virtual:clarify/slots
 
 import Slot0 from 'virtual:clarify-github-comments-slot'
 
@@ -483,7 +483,7 @@ const commentsKey = `pathname:${route.basePath ?? route.path}`
 - `ClarifyPlugin.slots`
 - `page.footer.before`
 - `RuntimeSlot`
-- `virtual:clarify-runtime-slots`
+- `virtual:clarify/slots`
 - `virtual:clarify/slot` 与 `useSlot()`
 - dev/build 自动生成项目级 `clarify-env.d.ts`
 
@@ -518,16 +518,16 @@ runtimeModules?: {
 
 ### 第四阶段：替换型插槽
 
-在扩展型插槽稳定后，再开放替换型插槽（`*.replace`），允许插件替换 Clarify 内置默认组件，例如：
+在第一批替换型插槽稳定后，再考虑继续开放更多替换型插槽（`*.replace`），用于替换 Clarify 内置默认组件，例如：
 
-- `page.footer.replace`
 - `page.navigation.replace`
 - `layout.header.replace`
+- `layout.sidebar.replace`
 
 替换型插槽必须满足：
 
 1. 对应一个稳定的内置默认组件，且默认组件通过 slot context 暴露。
-2. 同一替换插槽独占，多插件冲突时构建期报错。
+2. 明确定义多插件冲突时的确定性行为。
 3. 替换组件可访问与默认组件相同的上下文，保证 SSR 与 hydration 一致。
 
 ### 第五阶段：MDX 与搜索等专项能力

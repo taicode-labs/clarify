@@ -1,24 +1,24 @@
 import { createContext, useContext, type ReactNode } from 'react'
 
-import type { UISlotName, SlotContext } from './types'
+import type { UISlotName, UISlotContext } from './types'
 
 // Re-export slot types so internal modules can import from './context'.
-export type { UISlotName, SlotContext }
+export type { UISlotName, UISlotContext }
 
-const SlotContextValue = createContext<SlotContext | null>(null)
+const UISlotContextValue = createContext<UISlotContext | null>(null)
 
 type SlotProviderProps = {
-  value: SlotContext
+  value: UISlotContext
   children: ReactNode
 }
 
 /**
- * Provides an isolated {@link SlotContext} for a single slot component.
+ * Provides an isolated {@link UISlotContext} for a single slot component.
  * `RuntimeSlot` wraps every rendered slot component with this provider.
  */
 export function SlotProvider(arg0: SlotProviderProps): ReactNode {
   const { value, children } = arg0
-  return <SlotContextValue.Provider value={value}>{children}</SlotContextValue.Provider>
+  return <UISlotContextValue.Provider value={value}>{children}</UISlotContextValue.Provider>
 }
 
 /**
@@ -28,8 +28,8 @@ export function SlotProvider(arg0: SlotProviderProps): ReactNode {
  * slot provider throws, which helps plugin authors notice that the component was
  * not mounted through a Clarify slot.
  */
-export function useSlot(): SlotContext {
-  const context = useContext(SlotContextValue)
+export function useSlot(): UISlotContext {
+  const context = useContext(UISlotContextValue)
   if (!context) {
     throw new Error('[clarify] useSlot must be called inside a slot component')
   }

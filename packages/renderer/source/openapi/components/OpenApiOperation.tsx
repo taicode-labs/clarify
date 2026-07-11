@@ -1,14 +1,13 @@
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import clsx from 'clsx'
-import { slug } from 'github-slugger'
 import { CheckIcon, ChevronDownIcon, CopyIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 
 import { Heading } from '../../components/Heading'
 import { useBuiltInText } from '../../core/i18n'
 import { copyTextToClipboard } from '../../utils/clipboard'
-import { getMediaTypeEntries, getResponseEntries } from '../lib/helpers'
-import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
+import { getMediaTypeEntries, getResponseEntries, joinPath } from '../lib/helpers'
+import { getOpenApiOperationSectionId, type OpenAPIOperation, type OpenAPIOperationSource, type OpenAPISpec } from '../lib/utils'
 import type { OpenApiServer, OpenApiServerVariable } from '../types'
 
 import { EndpointRequest, EndpointResponse } from './EndpointSections'
@@ -22,6 +21,7 @@ export type OpenApiOperationProps = {
   path: string
   method: string
   operation: OpenAPIOperation
+  operationSource?: OpenAPIOperationSource
 }
 
 const endpointMethodStyleVars: Record<string, string> = {
@@ -30,6 +30,7 @@ const endpointMethodStyleVars: Record<string, string> = {
   PUT: 'bg-(--clarify-http-method-put-background) text-(--clarify-http-method-put-text)',
   PATCH: 'bg-(--clarify-http-method-patch-background) text-(--clarify-http-method-patch-text)',
   DELETE: 'bg-(--clarify-http-method-delete-background) text-(--clarify-http-method-delete-text)',
+  WEBHOOK: 'bg-(--clarify-http-method-webhook-background) text-(--clarify-http-method-webhook-text)',
 }
 
 type EndpointMethodBadgeProps = { method: string }
@@ -132,12 +133,14 @@ function getServerPreviewUrl(server: OpenApiServer, variables: Record<string, st
 
 function getFullEndpointUrl(server: OpenApiServer, variables: Record<string, string>, path: string): string {
   const base = getServerPreviewUrl(server, variables)
-  if (!base) return path
+  return joinPath(base, path)
+}
 
-  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`
-
-  return `${normalizedBase}${normalizedPath}`
+function getServerProtocolLabel(server: OpenApiServer, variables: Record<string, string>): string | undefined {
+  const url = getServerPreviewUrl(server, variables)
+  const match = /^([a-z][a-z0-9+.-]*):/i.exec(url)
+  const protocol = match?.[1]?.toUpperCase()
+  return protocol === 'WS' || protocol === 'WSS' ? protocol : undefined
 }
 
 function getDefaultResponseStatus(operation: OpenAPIOperation, spec?: OpenAPISpec): string {
@@ -171,6 +174,7 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
   const { server, variables, open, interactive, onToggle } = arg0
 
   const url = getServerPreviewUrl(server, variables)
+  const protocolLabel = getServerProtocolLabel(server, variables)
 
   if (!interactive) {
     return (
@@ -179,7 +183,8 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text-foreground) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5"
       >
         <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
-        <span className="hidden min-w-0 items-center overflow-hidden sm:flex">
+        <span className="hidden min-w-0 items-center gap-1.5 overflow-hidden sm:flex">
+          {protocolLabel ? <span className="shrink-0 rounded bg-sky-100 px-1.5 py-0.5 text-2xs font-black text-sky-700 dark:bg-sky-400/15 dark:text-sky-200">{protocolLabel}</span> : null}
           <span className="truncate font-semibold text-xs">{url}</span>
         </span>
       </span>
@@ -198,7 +203,8 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
       )}
     >
       <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
-      <span className="hidden min-w-0 items-center gap-1 overflow-hidden sm:flex">
+        <span className="hidden min-w-0 items-center gap-1 overflow-hidden sm:flex">
+          {protocolLabel ? <span className="shrink-0 rounded bg-sky-100 px-1.5 py-0.5 text-2xs font-black text-sky-700 dark:bg-sky-400/15 dark:text-sky-200">{protocolLabel}</span> : null}
         <span className="truncate font-semibold text-xs">{url}</span>
         <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
       </span>
@@ -347,6 +353,7 @@ function AuthPanel(arg0: AuthPanelProps): ReactNode {
 
 type EndpointIdentityProps = {
   method: string
+  operationSource: OpenAPIOperationSource
   path: string
   servers: OpenApiServer[]
   selectedServerKey: string
@@ -369,6 +376,7 @@ type EndpointIdentityProps = {
 export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
   const {
     method,
+    operationSource,
     path,
     servers,
     selectedServerKey,
@@ -395,8 +403,8 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
   useEffect(() => {
     if (!copiedUrl) return undefined
 
-    const timeout = window.setTimeout(() => setCopiedUrl(false), 1200)
-    return () => window.clearTimeout(timeout)
+    const timeout = setTimeout(() => setCopiedUrl(false), 1200)
+    return () => clearTimeout(timeout)
   }, [copiedUrl])
 
   async function handleCopyUrl() {
@@ -409,6 +417,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
     <div className="not-prose flex w-full flex-col overflow-hidden rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs">
       <div className="flex min-w-0 items-center gap-1.5 overflow-hidden px-2.5 py-2">
         <EndpointMethodBadge method={method} />
+        {operationSource === 'webhook' ? <EndpointMethodBadge method="WEBHOOK" /> : null}
         <ServerUrlValue
           server={selectedServer}
           variables={serverVariables}
@@ -457,13 +466,13 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
 }
 
 export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
-  const { spec, path, method, operation } = arg0
+  const { spec, path, method, operation, operationSource = 'path' } = arg0
 
-  const id = slug(`${method.toLowerCase()} ${path}`)
+  const id = getOpenApiOperationSectionId(operation)
   const summary = operation.summary ?? `${method} ${path}`
   const description = operation.description
-  const requestState = useOperationRequestState(spec, path, operation)
-  const serverState = useOperationServerState(spec, operation, path)
+  const requestState = useOperationRequestState(spec, path, operation, operationSource)
+  const serverState = useOperationServerState(spec, operation, path, operationSource)
   const authState = useOperationAuthState(spec, operation)
   const [linkedExampleKey, setLinkedExampleKey] = useState('')
   const [selectedResponseStatus, setSelectedResponseStatus] = useState(() => getDefaultResponseStatus(operation, spec))
@@ -475,6 +484,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
       </Heading>
       <EndpointIdentity
         method={method}
+        operationSource={operationSource}
         path={path}
         servers={serverState.servers}
         selectedServerKey={serverState.selectedServerKey}
@@ -503,6 +513,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
         spec={spec}
         path={path}
         method={method}
+        operationSource={operationSource}
         description={description}
         groupedParameters={requestState.groupedParameters}
         parameters={requestState.parameters}
@@ -520,6 +531,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
       <EndpointResponse
         spec={spec}
         operation={operation}
+        operationSource={operationSource}
         sharedExampleKey={linkedExampleKey}
         onSelectExampleKey={setLinkedExampleKey}
         selectedStatus={selectedResponseStatus}

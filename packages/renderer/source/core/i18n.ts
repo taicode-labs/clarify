@@ -57,6 +57,7 @@ export type BuiltInTextKey =
   | 'openapi.headers'
   | 'openapi.language'
   | 'openapi.client'
+  | 'openapi.loading'
   | 'openapi.mediaType'
   | 'openapi.none'
   | 'openapi.openApiReference'
@@ -80,6 +81,8 @@ export type BuiltInTextKey =
   | 'openapi.specPathMissing'
   | 'openapi.status'
   | 'openapi.version'
+  | 'openapi.webhookResponse'
+  | 'openapi.webhookResponses'
   | 'search.button'
   | 'search.noResults'
   | 'search.placeholder'
@@ -158,6 +161,7 @@ const builtInText = {
     'openapi.headers': 'Headers',
     'openapi.language': 'Language',
     'openapi.client': 'Client',
+    'openapi.loading': 'Loading OpenAPI spec...',
     'openapi.mediaType': 'Media type',
     'openapi.none': 'None',
     'openapi.openApiReference': 'OpenAPI Reference',
@@ -181,6 +185,8 @@ const builtInText = {
     'openapi.specPathMissing': 'spec or specPath was not provided',
     'openapi.status': 'Status',
     'openapi.version': 'Version {version}',
+    'openapi.webhookResponse': 'Webhook response',
+    'openapi.webhookResponses': 'Webhook responses',
     'search.button': 'Search...',
     'search.noResults': 'Nothing found for {query}.',
     'search.placeholder': 'Find something...',
@@ -258,6 +264,7 @@ const builtInText = {
     'openapi.headers': '请求头',
     'openapi.language': '语言',
     'openapi.client': '客户端',
+    'openapi.loading': '正在加载 OpenAPI 描述文件...',
     'openapi.mediaType': '媒体类型',
     'openapi.none': '无',
     'openapi.openApiReference': 'OpenAPI 参考',
@@ -281,6 +288,8 @@ const builtInText = {
     'openapi.specPathMissing': '未提供 spec 或 specPath',
     'openapi.status': '状态',
     'openapi.version': '版本 {version}',
+    'openapi.webhookResponse': 'Webhook 响应',
+    'openapi.webhookResponses': 'Webhook 响应',
     'search.button': '搜索...',
     'search.noResults': '没有找到与 {query} 相关的结果。',
     'search.placeholder': '搜索内容...',

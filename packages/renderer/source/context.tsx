@@ -1,1 +1,1 @@
-export { LocaleContext, OpenApisContext, useLocale, useOpenApis } from './core/context'
+export { LocaleContext, OpenApiSpecsContext, useLocale, useOpenApiSpecs } from './core/context'

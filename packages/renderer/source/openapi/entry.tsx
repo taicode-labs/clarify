@@ -7,7 +7,7 @@ import { Markdown } from '../mdx/Markdown'
 
 import { OpenApiOperation as OpenApiOperationComponent } from './components/OpenApiOperation'
 import { useOpenApiSpec } from './lib/spec-path'
-import { getOpenApiOperation, listOpenApiOperations } from './lib/utils'
+import { getOpenApiOperationEntry, listOpenApiOperations } from './lib/utils'
 import type { OpenAPISpec } from './lib/utils'
 
 type OpenApiPathsProps = { spec: OpenAPISpec; tagFilter?: string[] }
@@ -27,7 +27,6 @@ export type OpenApiDocumentProps = {
 
 export type OpenApiRouteData = {
   spec: OpenAPISpec
-  tagFilter?: string[]
 }
 
 type OpenApiOperationWithSpecProps = {
@@ -71,16 +70,17 @@ function OpenApiPaths(arg0: OpenApiPathsProps): ReactNode {
 
   const entries = listOpenApiOperations(spec)
     .filter(({ operation }) => operationMatchesTags(operation.tags, tagFilter))
-    .map(({ path, method, operation }) => ({
+    .map(({ path, method, operation, source }) => ({
       path,
       method: method.toUpperCase(),
       operation,
+      source,
     }))
 
   return (
     <div className="clarify-api-endpoints divide-y divide-zinc-200/70 dark:divide-white/10">
-      {entries.map(({ path, method, operation }) => (
-        <OpenApiOperationComponent key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} />
+      {entries.map(({ path, method, operation, source }) => (
+        <OpenApiOperationComponent key={`${source}-${method}-${path}`} spec={spec} path={path} method={method} operation={operation} operationSource={source} />
       ))}
     </div>
   )
@@ -99,8 +99,11 @@ function WarningBox(arg0: WarningBoxProps): ReactNode {
 export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
   const { spec, specPath, tagFilter } = arg0
   const t = useBuiltInText()
-  const resolved = useOpenApiSpec(spec, specPath)
+  const { spec: resolved, loading } = useOpenApiSpec(spec, specPath)
 
+  if (loading) {
+    return <WarningBox>{t('openapi.loading')}</WarningBox>
+  }
   if (!resolved) {
     return <WarningBox>{t('openapi.specNotFound', { specPath: specPath ?? t('openapi.specPathMissing') })}</WarningBox>
   }
@@ -118,21 +121,24 @@ export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
 function OpenApiOperationWithSpec(arg0: OpenApiOperationWithSpecProps): ReactNode {
   const { spec, path, method } = arg0
   const t = useBuiltInText()
-  const op = getOpenApiOperation(spec, path, method)
+  const entry = getOpenApiOperationEntry(spec, path, method)
 
-  if (!op) {
+  if (!entry) {
     return <WarningBox tone="red">{t('openapi.endpointNotFound', { endpoint: `${method.toUpperCase()} ${path}` })}</WarningBox>
   }
 
-  const normalizedMethod = method.toUpperCase()
-  return <OpenApiOperationComponent key={`${normalizedMethod}-${path}`} spec={spec} path={path} method={normalizedMethod} operation={op} />
+  const normalizedMethod = entry.method.toUpperCase()
+  return <OpenApiOperationComponent key={`${entry.source}-${normalizedMethod}-${path}`} spec={spec} path={path} method={normalizedMethod} operation={entry.operation} operationSource={entry.source} />
 }
 
 export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const { specPath, path, method } = arg0
   const t = useBuiltInText()
-  const spec = useOpenApiSpec(undefined, specPath)
+  const { spec, loading } = useOpenApiSpec(undefined, specPath)
 
+  if (loading) {
+    return <WarningBox>{t('openapi.loading')}</WarningBox>
+  }
   if (!spec) {
     return <WarningBox>{t('openapi.specNotFound', { specPath })}</WarningBox>
   }
@@ -142,6 +148,6 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
 
 export function createOpenApiRouteComponent(data: OpenApiRouteData) {
   return function OpenApiRoutePage() {
-    return <OpenApiDocument spec={data.spec} tagFilter={data.tagFilter} />
+    return <OpenApiDocument spec={data.spec} />
   }
 }

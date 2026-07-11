@@ -1,7 +1,10 @@
 import type { ComponentType } from 'react'
 
 import type { OpenAPISpec } from '../openapi/lib/utils'
-import type { RuntimeSlots } from '../slots'
+import type { RuntimeSlotRegistry } from '../slots'
+
+export type OpenApiRegistry = Record<string, OpenAPISpec | OpenApiSpecLoader>
+export type OpenApiSpecLoader = () => Promise<{ default: OpenAPISpec } | OpenAPISpec>
 
 export type RouteComponent = ComponentType | (() => Promise<{ default: ComponentType }>)
 
@@ -36,7 +39,7 @@ export type RouteItem = {
   kind?: string;
   sections?: RouteSection[];
   contentArtifactUrl?: string;
-  sourceUrl?: string;
+  sourceEditUrl?: string;
 };
 
 export type LogoConfig = string | { light?: string; dark?: string };
@@ -186,25 +189,39 @@ export type NavigationTab = {
   children: NavigationNode[];
 };
 
-export type TabbedNavigation = { tabs: NavigationTab[] };
+export type FlatNavigationTree = {
+  kind: 'flat';
+  nodes: NavigationNode[];
+};
 
-export type LocalizedNavigation = Record<string, NavigationNode[]>;
+export type TabbedNavigation = {
+  kind: 'tabbed';
+  tabs: NavigationTab[];
+};
 
-export type LocalizedTabbedNavigation = Record<string, TabbedNavigation>;
+export type LocalizedNavigation = {
+  kind: 'localized';
+  locales: Record<string, NavigationNode[]>;
+};
 
-export type NavigationTree = NavigationNode[] | LocalizedNavigation | TabbedNavigation | LocalizedTabbedNavigation;
+export type LocalizedTabbedNavigation = {
+  kind: 'localized-tabbed';
+  locales: Record<string, { tabs: NavigationTab[] }>;
+};
+
+export type NavigationTree = FlatNavigationTree | LocalizedNavigation | TabbedNavigation | LocalizedTabbedNavigation;
 
 export type RenderOptions = {
-  /** 从 virtual:clarify-config 导入的 config */
+  /** 从 virtual:clarify/config 导入的 config */
   config: Config;
-  /** 从 virtual:clarify-routes 导入的路由数组 */
+  /** 从 virtual:clarify/routes 导入的路由数组 */
   routes: RouteItem[];
-  /** 从 virtual:clarify-routes 导入的导航树；启用 i18n 时为按 locale 分组的导航树 */
+  /** 从 virtual:clarify/routes 导入的导航树 */
   navigation?: NavigationTree;
-  /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
-  openApis?: Record<string, OpenAPISpec>;
-  /** Plugin runtime UI slots imported from virtual:clarify-runtime-slots. */
-  runtimeSlots?: RuntimeSlots;
+  /** 从 virtual:clarify/openapi 导入的 OpenAPI 规范表 */
+  openApiSpecs?: OpenApiRegistry;
+  /** Plugin runtime UI slots imported from virtual:clarify/slots. */
+  runtimeSlots?: RuntimeSlotRegistry;
   /** Whether to render the live theme editor inside the app tree. */
   themeEditor?: boolean;
   /** 挂载节点，默认 document.getElementById('root') */
@@ -216,16 +233,16 @@ export type ServerRouteItem = Omit<RouteItem, 'component'> & {
 };
 
 export type ServerRenderOptions = {
-  /** 从 virtual:clarify-config 导入的 config */
+  /** 从 virtual:clarify/config 导入的 config */
   config: Config;
-  /** 从 virtual:clarify-routes 导入的服务端路由数组 */
+  /** 从 virtual:clarify/routes/server 导入的服务端路由数组 */
   routes: ServerRouteItem[];
-  /** 从 virtual:clarify-routes 导入的导航树；启用 i18n 时为按 locale 分组的导航树 */
+  /** 从 virtual:clarify/routes/server 导入的导航树 */
   navigation?: NavigationTree;
-  /** 从 virtual:clarify-openapi-registry 导入的 OpenAPI 规范表 */
-  openApis?: Record<string, OpenAPISpec>;
-  /** Plugin runtime UI slots imported from virtual:clarify-runtime-slots. */
-  runtimeSlots?: RuntimeSlots;
+  /** 从 virtual:clarify/openapi/server 导入的 OpenAPI 规范表 */
+  openApiSpecs?: OpenApiRegistry;
+  /** Plugin runtime UI slots imported from virtual:clarify/slots. */
+  runtimeSlots?: RuntimeSlotRegistry;
   /** Whether to render the live theme editor inside the app tree. */
   themeEditor?: boolean;
   /** 当前请求的 URL */

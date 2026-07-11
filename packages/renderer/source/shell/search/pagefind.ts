@@ -43,7 +43,7 @@ export function loadPagefind(routePrefix: string, locale: string | undefined): P
 }
 
 export function normalizePagefindUrl(url: string, routePrefix: string): string {
-  const parsedUrl = new URL(url, window.location.origin)
+  const parsedUrl = new URL(url, typeof window === 'undefined' ? 'http://localhost' : window.location.origin)
   let pathname = parsedUrl.pathname
   const prefix = routePrefix && routePrefix !== '/' ? `/${routePrefix.replace(/^\/+|\/+$/g, '')}` : ''
 

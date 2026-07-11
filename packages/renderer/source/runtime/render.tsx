@@ -1,22 +1,26 @@
 import { StrictMode } from 'react'
-import { hydrateRoot, createRoot } from 'react-dom/client'
+import { hydrateRoot, createRoot, type Root } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import type { RenderOptions } from '../types'
 
 import { ClarifyShell } from './ClarifyShell'
 
+let root: Root | undefined
+
 /**
  * Clarify 客户端 Hydration 入口。
  * 在文档项目的 main.tsx 中调用：
  * ```ts
  * import { render } from '@clarify-labs/renderer';
- * import { routes } from 'virtual:clarify-routes';
- * import { config } from 'virtual:clarify-config';
+ * import { routes } from 'virtual:clarify/routes';
+ * import { config } from 'virtual:clarify/config';
  * render({ config, routes });
  * ```
  */
 function isHydrationDebugEnabled(): boolean {
+  if (typeof window === 'undefined') return false
+
   try {
     const params = new URLSearchParams(window.location.search)
     return params.get('clarifyHydrationDebug') === '1' || window.localStorage.getItem('clarify:hydration-debug') === '1'
@@ -26,7 +30,7 @@ function isHydrationDebugEnabled(): boolean {
 }
 
 export function render(options: RenderOptions) {
-  const { config, routes, navigation, openApis = {}, runtimeSlots, container, themeEditor = false } = options
+  const { config, routes, navigation, openApiSpecs = {}, runtimeSlots, container, themeEditor = false } = options
 
   const target = container ?? document.getElementById('root')
   if (!target) {
@@ -40,7 +44,7 @@ export function render(options: RenderOptions) {
           config={config}
           routes={routes}
           navigation={navigation}
-          openApis={openApis}
+          openApiSpecs={openApiSpecs}
           runtimeSlots={runtimeSlots}
           themeEditor={themeEditor}
         />
@@ -50,8 +54,13 @@ export function render(options: RenderOptions) {
 
   const hydrationDebug = isHydrationDebugEnabled()
 
+  if (root) {
+    root.render(app)
+    return
+  }
+
   try {
-    hydrateRoot(target as Element, app, {
+    root = hydrateRoot(target as Element, app, {
       onRecoverableError(error, errorInfo) {
         // Phase 1: suppress hydration mismatch noise by default. React 19
         // recovers automatically, but diagnostics can be enabled explicitly.
@@ -62,6 +71,7 @@ export function render(options: RenderOptions) {
     })
   } catch (err) {
     console.warn('[clarify] Hydration failed, falling back to client render:', err)
-    createRoot(target as Element).render(app)
+    root = createRoot(target as Element)
+    root.render(app)
   }
 }

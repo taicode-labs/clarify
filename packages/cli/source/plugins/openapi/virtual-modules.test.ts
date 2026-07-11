@@ -4,7 +4,7 @@ import type { ContentDiagnostic as RendererDiagnostic } from '@clarify-labs/rend
 
 import type { ContentDiagnostic as CliDiagnostic, OpenAPISpec } from '../../types.js'
 
-import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
+import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPIServerRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, openApiServerRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 const spec: OpenAPISpec = {
   openapi: '3.0.0',
@@ -29,27 +29,39 @@ const spec: OpenAPISpec = {
 describe('openapi virtual modules', () => {
   it('uses the shared Clarify runtime virtual module id', () => {
     expect(openApiRegistryModuleId).toBe('virtual:clarify/openapi')
+    expect(openApiServerRegistryModuleId).toBe('virtual:clarify/openapi/server')
   })
 
-  it('generates the OpenAPI registry module', () => {
-    const code = generateOpenAPIRegistryModule({ 'virtual:clarify-page/api': spec })
-    expect(code).toContain('export const openApis =')
+  it('generates the lazy OpenAPI registry module', () => {
+    const code = generateOpenAPIRegistryModule({ 'virtual:clarify-page/api': 'virtual:clarify/openapi-spec/api' })
+    expect(code).toContain('export const openApiSpecs =')
+    expect(code).toContain("() => import(\"virtual:clarify/openapi-spec/api\")")
+    expect(code).not.toContain('Example API')
+  })
+
+  it('generates the synchronous OpenAPI server registry module', () => {
+    const code = generateOpenAPIServerRegistryModule({ 'virtual:clarify-page/api': spec })
+    expect(code).toContain('export const openApiSpecs =')
     expect(code).toContain('Example API')
   })
 
   it('generates an OpenAPI route component module', () => {
-    const code = generateOpenAPIPageModule({ spec, tagFilter: ['Users'] })
+    const code = generateOpenAPIPageModule({ specModuleId: 'virtual:clarify/openapi-spec/api' })
     expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
+    expect(code).toContain('import spec from "virtual:clarify/openapi-spec/api";')
     expect(code).toContain('routeData')
-    expect(code).toContain('"Example API"')
-    expect(code).toContain('"Users"')
+    expect(code).not.toContain('"specPath"')
+    expect(code).not.toContain('"Example API"')
+    expect(code).not.toContain('"tagFilter"')
   })
 
   it('generates an OpenAPI route component module without tag filter', () => {
-    const code = generateOpenAPIPageModule({ spec })
+    const code = generateOpenAPIPageModule({ specModuleId: 'virtual:clarify/openapi-spec/api' })
     expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
+    expect(code).toContain('import spec from "virtual:clarify/openapi-spec/api";')
     expect(code).toContain('routeData')
-    expect(code).toContain('"Example API"')
+    expect(code).not.toContain('"specPath"')
+    expect(code).not.toContain('"Example API"')
   })
 
   it('shares the same diagnostic intent across CLI and renderer', () => {

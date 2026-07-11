@@ -40,7 +40,7 @@ export function routeOutputFiles(outputDirectory: string, route: ContentRoute): 
 export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify-labs/renderer/server';
 import { routes, navigation } from 'virtual:clarify/routes/server';
 import { config } from 'virtual:clarify/config';
-import { openApis } from 'virtual:clarify/openapi';
+import { openApiSpecs } from 'virtual:clarify/openapi/server';
 import { runtimeSlots } from 'virtual:clarify/slots';
 
 export async function render(url) {
@@ -48,10 +48,10 @@ export async function render(url) {
   // them synchronously (renderToString has no Suspense support).
   const entries = Object.values(runtimeSlots).flat()
   await Promise.all(entries.map(async (entry) => {
-    const mod = await entry.component()
+    const mod = await entry.loadComponent()
     entry._resolved = mod.default
   }))
-  return renderToHTML({ config, routes, navigation, openApis, runtimeSlots, url, themeEditor: config.theme.editor });
+  return renderToHTML({ config, routes, navigation, openApiSpecs, runtimeSlots, url, themeEditor: config.theme.editor });
 }`
 
 export function createTempEntryFile(content: string): string {

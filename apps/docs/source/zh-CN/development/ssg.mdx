@@ -23,7 +23,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │  构建阶段（vite build）                                      │
 │                                                             │
-│  1. Vite 打包客户端入口（virtual:clarify-entry-client）       │
+│  1. Vite 打包客户端入口（virtual:clarify/entry-client）       │
 │       → output/assets/                                      │
 │                                                             │
 │  2. clarifyPlugin closeBundle()：                           │
@@ -73,10 +73,10 @@ Clarify 采用虚拟模块模式实现更清晰的分离：
 
 | 虚拟模块 | 用途 |
 |---------|------|
-| `virtual:clarify-config` | 合并项目配置与构建选项，作为运行时配置暴露 |
-| `virtual:clarify-routes` | 路由清单、导航树和页面章节数据 |
-| `virtual:clarify-openapi-registry` | 解析后的 OpenAPI 规范注册表 |
-| `virtual:clarify-entry-client` | CLI 注入的客户端入口 |
+| `virtual:clarify/config` | 合并项目配置与构建选项，作为运行时配置暴露 |
+| `virtual:clarify/routes` | 路由清单、导航树和页面章节数据 |
+| `virtual:clarify/openapi` | 解析后的 OpenAPI 规范注册表 |
+| `virtual:clarify/entry-client` | CLI 注入的客户端入口 |
 | `virtual:clarify-page/*` | 每个内容页面对应的虚拟模块 |
 
 这些模块由 `clarifyPlugin.resolveId()` 解析，由 `clarifyPlugin.load()` 生成。
@@ -128,9 +128,9 @@ Clarify 会根据当前路由语言修正 `<html lang>` / `dir`，并在缺少 d
 ### 步骤 1：客户端包构建
 
 Vite 运行正常构建：
-- 入口：`virtual:clarify-entry-client`
+- 入口：`virtual:clarify/entry-client`
 - 输出：`output/assets/index-{hash}.js`、`output/assets/index-{hash}.css` 等（或 `--output` 指定目录）
-- 客户端入口导入 `virtual:clarify-routes`、`virtual:clarify-config` 和 OpenAPI 注册表，并对应用进行注水
+- 客户端入口导入 `virtual:clarify/routes`、`virtual:clarify/config` 和 OpenAPI 注册表，并对应用进行注水
 
 ### 步骤 2：路由清单生成
 
@@ -155,7 +155,7 @@ Vite 运行正常构建：
    }
    ```
 
-5. 注册虚拟模块，以便 `virtual:clarify-routes` 可以提供路由清单和导航树
+5. 注册虚拟模块，以便 `virtual:clarify/routes` 可以提供路由清单和导航树
 
 ### 步骤 3：SSR bundle 构建
 
@@ -166,7 +166,7 @@ Vite 运行正常构建：
 3. 导入 SSR bundle；
 4. 对每条 `ContentRoute` 调用 `render(url)`。
 
-SSR 使用 `virtual:clarify-routes/server`，页面组件为 eager import，保证构建阶段可以同步渲染。
+SSR 使用 `virtual:clarify/routes/server`，页面组件为 eager import，保证构建阶段可以同步渲染。
 
 ### 步骤 4：HTML 写入
 

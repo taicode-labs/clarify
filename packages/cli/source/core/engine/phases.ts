@@ -1,4 +1,4 @@
-import type { ClarifyHookContext, ClarifyPlugin } from '../../types.js'
+import type { ClarifyCollectorHook, ClarifyHookContext, ClarifyInterceptHook, ClarifyPipelineHook, ClarifyPlugin, ClarifyTapHook } from '../../types.js'
 
 export type PhaseName =
   | 'config:load'
@@ -15,10 +15,10 @@ export type TapPhaseName =
   | `before:${PhaseName}`
   | `after:${PhaseName}`
 
-export type TapHook = (ctx: ClarifyHookContext) => Promise<void> | void
-export type InterceptHook = (ctx: ClarifyHookContext) => Promise<boolean> | boolean
-export type PipelineHook<Input> = (input: Input, ctx: ClarifyHookContext) => Promise<Input> | Input
-export type CollectorHook<Result> = (ctx: ClarifyHookContext) => Promise<Result> | Result
+export type TapHook = ClarifyTapHook
+export type InterceptHook = ClarifyInterceptHook
+export type PipelineHook<Input> = ClarifyPipelineHook<Input>
+export type CollectorHook<Result> = ClarifyCollectorHook<Result>
 
 export async function runTapHooks(plugins: ClarifyPlugin[], hookName: TapPhaseName, ctx: ClarifyHookContext): Promise<void> {
   for (const plugin of plugins) {

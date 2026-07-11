@@ -122,6 +122,34 @@ describe('mdx rehype plugins', () => {
     expect(highlighted).toBe('<span>first line</span>\n<span>second line</span>\n<span>third line</span>')
   })
 
+  it('shares one Shiki highlighter across concurrent transforms', async () => {
+    const createHighlighterCalls: number[] = []
+    vi.doMock('shiki', () => ({
+      bundledLanguages: { ts: true },
+      createCssVariablesTheme: () => ({ name: 'css-variables' }),
+      createHighlighter: async () => {
+        createHighlighterCalls.push(1)
+        await Promise.resolve()
+        return {
+          codeToHtml: (code: string) => `<pre><code><span>${code}</span></code></pre>`,
+          loadLanguage: () => Promise.resolve(),
+        }
+      },
+    }))
+
+    vi.resetModules()
+    const { rehypeParseCodeBlocks: freshRehypeParseCodeBlocks, rehypeShiki: freshRehypeShiki } = await import('./mdx.js')
+    const trees = [codeTree('ts'), codeTree('ts'), codeTree('ts')]
+
+    for (const tree of trees) freshRehypeParseCodeBlocks()(tree)
+    await Promise.all(trees.map(tree => freshRehypeShiki()(tree)))
+
+    expect(createHighlighterCalls).toHaveLength(1)
+
+    vi.doUnmock('shiki')
+    vi.resetModules()
+  })
+
   it('passes double-quoted fenced code meta attributes to the code component', async () => {
     const compiled = String(await compile('```ts title="Base preset" label="clarify.ts"\nexport default {}\n```', {
       jsx: true,

@@ -49,6 +49,7 @@ function useSearchDialogLifecycle(arg0: UseSearchDialogLifecycleArgs) {
   }, [location.pathname, location.search, location.hash, setOpen])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return undefined
     if (open) return undefined
 
     function onKeyDown(event: KeyboardEvent) {
@@ -254,3 +255,5 @@ export function SearchDialog(arg0: SearchDialogProps) {
     </Dialog>
   )
 }
+
+export default SearchDialog

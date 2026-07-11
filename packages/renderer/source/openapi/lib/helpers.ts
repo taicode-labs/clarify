@@ -1,6 +1,6 @@
 import type { ExampleEntry, MediaTypeEntry, OpenApiMediaType, OpenApiParameter, OpenApiPathItem, OpenApiRecord, OpenApiResponse } from '../types'
 
-import type { OpenAPIOperation, OpenAPISpec } from './utils'
+import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from './utils'
 
 export function isRecord(value: unknown): value is OpenApiRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -36,6 +36,22 @@ export function getPathItem(spec: OpenAPISpec, path: string): OpenApiPathItem | 
   return resolveObjectRef<OpenApiPathItem>(spec, spec.paths?.[path])
 }
 
+export function getOperationPathItem(spec: OpenAPISpec, path: string, source: OpenAPIOperationSource = 'path'): OpenApiPathItem | undefined {
+  if (source === 'path') return getPathItem(spec, path)
+
+  const webhooks = (spec as OpenApiRecord).webhooks
+  return resolveObjectRef<OpenApiPathItem>(spec, isRecord(webhooks) ? webhooks[path] : undefined)
+}
+
+export function joinPath(base: string, path: string): string {
+  if (!base) return path || '/'
+  if (!path) return base
+
+  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  return `${normalizedBase}${normalizedPath}`
+}
+
 function resolveObjectRef<T extends OpenApiRecord>(spec: OpenAPISpec | undefined, value: unknown): T | undefined {
   const resolved = spec && isReference(value) ? resolveOpenApiRef(spec, value.$ref) : value
   return isRecord(resolved) && !isReference(resolved) ? resolved as T : undefined
@@ -46,8 +62,8 @@ export function schemaHasType(schema: unknown, type: string): boolean {
   return schema.type === type || (Array.isArray(schema.type) && schema.type.includes(type))
 }
 
-export function getOperationParameters(spec: OpenAPISpec, path: string, operation: OpenAPIOperation): OpenApiParameter[] {
-  const pathParameters = getPathItem(spec, path)?.parameters
+export function getOperationParameters(spec: OpenAPISpec, path: string, operation: OpenAPIOperation, source: OpenAPIOperationSource = 'path'): OpenApiParameter[] {
+  const pathParameters = getOperationPathItem(spec, path, source)?.parameters
   const operationParameters = (operation as OpenApiRecord).parameters
   const parameters = [...(Array.isArray(pathParameters) ? pathParameters : []), ...(Array.isArray(operationParameters) ? operationParameters : [])]
     .map((parameter) => resolveObjectRef<OpenApiParameter>(spec, parameter))
@@ -102,7 +118,7 @@ function getExampleTitle(key: string, example: unknown): { title: string; summar
   return { title: key }
 }
 
-export function getExampleEntries(mediaType?: OpenApiMediaType): ExampleEntry[] {
+export function getExampleEntries(mediaType?: OpenApiMediaType, spec?: OpenAPISpec): ExampleEntry[] {
   if (!mediaType) return []
 
   if (isRecord(mediaType.examples)) {
@@ -123,7 +139,7 @@ export function getExampleEntries(mediaType?: OpenApiMediaType): ExampleEntry[] 
     return [{ key: 'default', title: 'Example', value: mediaType.example }]
   }
 
-  const generated = schemaToExample(mediaType.schema)
+  const generated = schemaToExample(spec ? resolveSchema(spec, mediaType.schema) : mediaType.schema)
   return typeof generated === 'undefined' ? [] : [{ key: 'schema', title: 'schema', value: generated, generated: true }]
 }
 

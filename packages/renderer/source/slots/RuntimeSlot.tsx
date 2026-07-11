@@ -10,7 +10,7 @@ import type { UISlotName } from './types'
  * One registered slot component, as compiled by the CLI into
  * `virtual:clarify/slots`.
  *
- * `component` is a lazy import factory `() => import('path')`. On the client
+ * `loadComponent` is a lazy import factory `() => import('path')`. On the client
  * it is passed to `React.lazy`. During SSR the factory is pre-resolved and
  * the resulting component is stored in `_resolved`, which the renderer uses
  * directly (no Suspense needed for `renderToString`).
@@ -19,23 +19,23 @@ export type RuntimeSlotEntry = {
   /** Plugin that registered this component, used as a stable render key. */
   plugin: string
   /** Lazy import factory — `() => import('path')`. Set by CLI virtual module. */
-  component: () => Promise<{ default: ComponentType }>
+  loadComponent: () => Promise<{ default: ComponentType }>
   /** @internal Pre-resolved component set by SSR before {@link renderToHTML}. */
   _resolved?: ComponentType
 }
 
 /** Registry keyed by slot name. */
-export type RuntimeSlots = Partial<Record<UISlotName, RuntimeSlotEntry[]>>
+export type RuntimeSlotRegistry = Partial<Record<UISlotName, RuntimeSlotEntry[]>>
 
 type RuntimeSlotsContextValue = {
-  slots: RuntimeSlots
+  slots: RuntimeSlotRegistry
   route?: RouteItem
 }
 
 export const RuntimeSlotsContext = createContext<RuntimeSlotsContextValue>({ slots: {} })
 
 type RuntimeSlotsProviderProps = {
-  slots?: RuntimeSlots
+  slots?: RuntimeSlotRegistry
   route?: RouteItem
   children: ReactNode
 }
@@ -44,8 +44,8 @@ type RuntimeSlotsProviderProps = {
  * Makes the compiled slot registry and the current route available to every
  * {@link RuntimeSlot} in the tree. Mounted once near the top of `AppShell`.
  */
-export function RuntimeSlotsProvider(arg0: RuntimeSlotsProviderProps): ReactNode {
-  const { slots, route, children } = arg0
+export function RuntimeSlotsProvider(props: RuntimeSlotsProviderProps): ReactNode {
+  const { slots, route, children } = props
   return (
     <RuntimeSlotsContext.Provider value={{ slots: slots ?? {}, route }}>
       {children}
@@ -71,8 +71,8 @@ type RuntimeSlotProps = {
  * compatibility with `renderToString`. Otherwise, `React.lazy` + `Suspense`
  * is used for client-side code-splitting.
  */
-export function RuntimeSlot(arg0: RuntimeSlotProps): ReactNode {
-  const { name, default: DefaultComponent } = arg0
+export function RuntimeSlot(props: RuntimeSlotProps): ReactNode {
+  const { name, default: DefaultComponent } = props
   const { slots, route } = useContext(RuntimeSlotsContext)
   const locale = useLocale()
 
@@ -122,7 +122,7 @@ function SlotEntryRenderer(props: SlotEntryRendererProps): ReactNode {
   }
 
   // Client: lazy-load with code-splitting
-  return <LazySlotComponent loader={entry.component} />
+  return <LazySlotComponent loader={entry.loadComponent} />
 }
 
 type LazySlotComponentProps = {

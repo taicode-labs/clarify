@@ -124,11 +124,11 @@ JSON 配置会被校验并应用默认值，但不能表达可执行插件。
 
 内部引擎通过虚拟模块把构建时数据传递给运行时：
 
-- `virtual:clarify-config` — 解析后的站点配置和构建选项
-- `virtual:clarify-routes` — 客户端路由清单、lazy 页面导入和导航树
-- `virtual:clarify-routes/server` — SSR 使用的服务端路由清单，页面为 eager import
-- `virtual:clarify-openapi-registry` — 已解析的 OpenAPI 规范集合
-- `virtual:clarify-entry-client` — CLI 注入的客户端入口
+- `virtual:clarify/config` — 解析后的站点配置和构建选项
+- `virtual:clarify/routes` — 客户端路由清单、lazy 页面导入和导航树
+- `virtual:clarify/routes/server` — SSR 使用的服务端路由清单，页面为 eager import
+- `virtual:clarify/openapi` — 已解析的 OpenAPI 规范集合
+- `virtual:clarify/entry-client` — CLI 注入的客户端入口
 - `virtual:clarify-page/*` — 每个 MDX/OpenAPI 页面对应的虚拟模块
 
 这些模块由 CLI 内部装配，普通用户无需直接导入。

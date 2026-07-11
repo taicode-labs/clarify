@@ -68,7 +68,7 @@ export class ClarifyEngine {
       generateOptions: placeholderOptions,
       version: cliPackageVersion,
       routes: [],
-      navigation: [],
+      navigation: { kind: 'flat', nodes: [] },
       plugins: [],
     })
   }
@@ -191,9 +191,9 @@ export class ClarifyEngine {
     routes = await runPhase(plugins, 'content:process', this.ctx, async () => {
       const pages = routes.map<ClarifyPage>(route => ({
         path: route.path,
-        filePath: route.filePath,
-        frontmatter: route.frontmatter ?? {},
-        content: route.content ?? '',
+        filePath: route.source.filePath,
+        frontmatter: route.source.frontmatter ?? {},
+        content: route.source.content ?? '',
       }))
       const resolvedPages = await runHooks(plugins, 'pages:resolved', pages, this.ctx)
       const pageByPath = new Map(resolvedPages.map(p => [p.path, p]))
@@ -202,8 +202,11 @@ export class ClarifyEngine {
         if (!page) return route
         return {
           ...route,
-          frontmatter: page.frontmatter,
-          content: page.content,
+          source: {
+            ...route.source,
+            frontmatter: page.frontmatter,
+            content: page.content,
+          },
         }
       })
     })
@@ -214,9 +217,9 @@ export class ClarifyEngine {
     routes = applyConfiguredPageRoutePaths(routes, tabs, i18n)
     const navigation = tabs
       ? i18n
-        ? (buildLocalizedNavigationFromTabsConfig(routes, tabs, i18n) ?? {})
+        ? (buildLocalizedNavigationFromTabsConfig(routes, tabs, i18n) ?? { kind: 'localized-tabbed', locales: {} })
         : buildNavigationFromTabsConfig(routes, tabs)
-      : buildNavigation(routes)
+      : { kind: 'flat' as const, nodes: buildNavigation(routes) }
     const resolved = await runHooks(plugins, 'routes:resolved', { routes, navigation }, this.ctx)
     this.ctx.routes = resolved.routes
     this.ctx.navigation = resolved.navigation
@@ -251,7 +254,7 @@ export class ClarifyEngine {
   }
 
   hasContentRouteForFile(filePath: string): boolean {
-    return this.routes.some(route => route.filePath === filePath)
+    return this.routes.some(route => route.source.filePath === filePath)
   }
 
   async collectBuildAssets(): Promise<ClarifyEmitAsset[]> {

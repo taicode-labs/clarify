@@ -33,8 +33,8 @@ describe('findContentRoutes', () => {
     expect(result).toHaveLength(2)
     expect(result.map(r => r.path)).toContain('/')
     expect(result.map(r => r.path)).toContain('/about')
-    expect(result.map(r => r.title)).toContain('Home')
-    expect(result.map(r => r.title)).toContain('About')
+    expect(result.map(r => r.meta.title)).toContain('Home')
+    expect(result.map(r => r.meta.title)).toContain('About')
   })
 
   it('handles nested directories', async () => {
@@ -47,8 +47,8 @@ describe('findContentRoutes', () => {
     expect(result).toHaveLength(2)
     expect(result.map(r => r.path)).toContain('/')
     expect(result.map(r => r.path)).toContain('/guide/getting-started')
-    expect(result.map(r => r.title)).toContain('Home')
-    expect(result.map(r => r.title)).toContain('Getting Started')
+    expect(result.map(r => r.meta.title)).toContain('Home')
+    expect(result.map(r => r.meta.title)).toContain('Getting Started')
   })
 
   it('maps index.mdx to root path', async () => {
@@ -56,8 +56,8 @@ describe('findContentRoutes', () => {
     const result = await findContentRoutes(tempDir)
     const indexRoute = result.find(r => r.path === '/')
     expect(indexRoute).toBeDefined()
-    expect(indexRoute?.virtualModuleId).toBe('virtual:clarify-page/index')
-    expect(indexRoute?.title).toBe('Home')
+    expect(indexRoute?.module.virtualModuleId).toBe('virtual:clarify-page/index')
+    expect(indexRoute?.meta.title).toBe('Home')
   })
 
   it('discovers markdown and ignores unrelated files', async () => {
@@ -66,7 +66,7 @@ describe('findContentRoutes', () => {
     const result = await findContentRoutes(tempDir)
     expect(result).toHaveLength(1)
     expect(result[0].path).toBe('/page')
-    expect(result[0].title).toBe('Page')
+    expect(result[0].meta.title).toBe('Page')
   })
 
   it('generates correct virtualModuleId', async () => {
@@ -76,14 +76,14 @@ describe('findContentRoutes', () => {
 
     const result = await findContentRoutes(tempDir)
     expect(result).toHaveLength(1)
-    expect(result[0].virtualModuleId).toBe('virtual:clarify-page/api/auth/login')
+    expect(result[0].module.virtualModuleId).toBe('virtual:clarify-page/api/auth/login')
   })
 
   it('extracts frontmatter title', async () => {
     const content = '---\ntitle: My Page\n---\n\n# Hello'
     writeFileSync(join(tempDir, 'page.mdx'), content, 'utf-8')
     const result = await findContentRoutes(tempDir)
-    expect(result[0].title).toBe('My Page')
+    expect(result[0].meta.title).toBe('My Page')
   })
 
   it('ignores frontmatter when extracting sections', async () => {
@@ -101,14 +101,14 @@ describe('findContentRoutes', () => {
 
     const result = await findContentRoutes(tempDir)
 
-    expect(result[0].title).toBe('入门概览')
-    expect(result[0].frontmatter).toEqual({
+    expect(result[0].meta.title).toBe('入门概览')
+    expect(result[0].source.frontmatter).toEqual({
       title: '入门概览',
       description: '用最短路径完成准备。',
       icon: 'lucide:rocket',
     })
-    expect(result[0].content).toBe('# 入门概览\n## 首次验证')
-    expect(result[0].sections).toEqual([{ id: '首次验证', title: '首次验证', level: 2 }])
+    expect(result[0].source.content).toBe('# 入门概览\n## 首次验证')
+    expect(result[0].meta.sections).toEqual([{ id: '首次验证', title: '首次验证', level: 2 }])
   })
 
   it('runs content transforms before extracting metadata', async () => {
@@ -121,9 +121,9 @@ describe('findContentRoutes', () => {
       })),
     })
 
-    expect(result[0].content).toBe('# Clarify\n\n## Release Notes')
-    expect(result[0].title).toBe('Page')
-    expect(result[0].sections).toEqual([{ id: 'release-notes', title: 'Release Notes', level: 2 }])
+    expect(result[0].source.content).toBe('# Clarify\n\n## Release Notes')
+    expect(result[0].meta.title).toBe('Page')
+    expect(result[0].meta.sections).toEqual([{ id: 'release-notes', title: 'Release Notes', level: 2 }])
   })
 
   it('runs content transforms before reading frontmatter title', async () => {
@@ -140,8 +140,8 @@ describe('findContentRoutes', () => {
       })),
     })
 
-    expect(result[0].title).toBe('Clarify')
-    expect(result[0].description).toBe('Docs that stay in sync')
+    expect(result[0].meta.title).toBe('Clarify')
+    expect(result[0].meta.description).toBe('Docs that stay in sync')
   })
 
   it('records a diagnostic when MDX content cannot be compiled', async () => {
@@ -161,7 +161,7 @@ describe('findContentRoutes', () => {
   it('falls back to filename stem for title', async () => {
     writeFileSync(join(tempDir, 'quick-start.mdx'), '# Hello', 'utf-8')
     const result = await findContentRoutes(tempDir)
-    expect(result[0].title).toBe('Quick Start')
+    expect(result[0].meta.title).toBe('Quick Start')
   })
 })
 
@@ -205,7 +205,7 @@ describe('findLocalizedContentRoutes', () => {
       basePath: '/guide',
       locale: 'en-US',
       isFallback: true,
-      title: 'Guide',
+      meta: { title: 'Guide' },
     })
   })
 

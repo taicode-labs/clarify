@@ -36,7 +36,7 @@ export function ContentActions(arg0: ContentActionsProps) {
   const t = useBuiltInText()
   const [copied, setCopied] = useState<CopyState>('idle')
 
-  if (!route?.contentArtifactUrl && !route?.sourceUrl) return null
+  if (!route?.contentArtifactUrl && !route?.sourceEditUrl) return null
 
   const contentArtifactUrl = route.contentArtifactUrl ? resolveContentArtifactUrl(route.contentArtifactUrl, routePrefix) : undefined
   const isOpenApi = route.kind === 'openapi'
@@ -47,7 +47,7 @@ export function ContentActions(arg0: ContentActionsProps) {
 
   function markCopied(state: Exclude<CopyState, 'idle'>) {
     setCopied(state)
-    window.setTimeout(() => setCopied('idle'), 1600)
+    setTimeout(() => setCopied('idle'), 1600)
   }
 
   async function handleCopyContent() {
@@ -115,7 +115,7 @@ export function ContentActions(arg0: ContentActionsProps) {
             </button>
           ) : (
             <a
-              href={route.sourceUrl}
+              href={route.sourceEditUrl}
               target="_blank"
               rel="noreferrer"
               className="clarify-content-actions-primary clarify-ui-control inline-flex h-8 min-w-0 items-center gap-1.5 px-2.5 no-underline transition sm:px-3"
@@ -133,10 +133,10 @@ export function ContentActions(arg0: ContentActionsProps) {
           anchor="bottom end"
           className="clarify-content-actions-list clarify-ui-menu z-30 mt-2 w-(--clarify-ui-action-menu-width) origin-top-right rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1.5 shadow-xl shadow-zinc-900/5 transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
         >
-          {route.sourceUrl ? (
+          {route.sourceEditUrl ? (
             <MenuItem>
               <a
-                href={route.sourceUrl}
+                href={route.sourceEditUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="clarify-content-actions-item clarify-ui-menu-item group flex w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) px-1.5 py-1.5 text-left no-underline transition"

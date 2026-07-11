@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react'
 import { useBuiltInText } from '../../core/i18n'
 import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getResponseEntries, stringifyExample } from '../lib/helpers'
 import { buildRequestCodeExamples } from '../lib/request-code'
-import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
+import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
 import type {
   ExampleEntry,
   MediaTypeEntry,
@@ -155,6 +155,7 @@ type RequestExamplesPanelProps = {
   selectedServer: Parameters<typeof buildRequestCodeExamples>[0]['server']
   serverVariables: Record<string, string>
   auth?: RequestAuthInput
+  operationSource?: OpenAPIOperationSource
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
 }
@@ -170,12 +171,13 @@ type UseRequestExamplesStateArgs = {
   selectedServer: Parameters<typeof buildRequestCodeExamples>[0]['server']
   serverVariables: Record<string, string>
   auth?: RequestAuthInput
+  operationSource?: OpenAPIOperationSource
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
 }
 
-function firstExampleKeyForMediaType(requestContents: MediaTypeEntry[], mediaType: string): string {
-  return getExampleEntries(requestContents.find((content) => content.mediaType === mediaType)?.value)[0]?.key ?? ''
+function firstExampleKeyForMediaType(requestContents: MediaTypeEntry[], mediaType: string, spec?: OpenAPISpec): string {
+  return getExampleEntries(requestContents.find((content) => content.mediaType === mediaType)?.value, spec)[0]?.key ?? ''
 }
 
 function useRequestExamplesState(arg0: UseRequestExamplesStateArgs) {
@@ -190,12 +192,13 @@ function useRequestExamplesState(arg0: UseRequestExamplesStateArgs) {
     selectedServer,
     serverVariables,
     auth,
+    operationSource,
     sharedExampleKey,
     onSelectExampleKey,
   } = arg0
 
   const selectedContent = requestContents.find((content) => content.mediaType === selectedMediaType) ?? requestContents[0]
-  const examples = getExampleEntries(selectedContent?.value)
+  const examples = getExampleEntries(selectedContent?.value, spec)
   const [selectedExampleKey, setSelectedExampleKey] = useState(examples[0]?.key ?? '')
   const [selectedLanguageKey, setSelectedLanguageKey] = useState('shell')
   const [selectedClientKey, setSelectedClientKey] = useState('curl')
@@ -214,6 +217,7 @@ function useRequestExamplesState(arg0: UseRequestExamplesStateArgs) {
     server: selectedServer,
     serverVariables,
     auth,
+    operationSource,
   })
   const selectedLanguage = codeOptions.find((option) => option.languageKey === selectedLanguageKey) ?? codeOptions[0]
   const selectedCode =
@@ -231,7 +235,7 @@ function useRequestExamplesState(arg0: UseRequestExamplesStateArgs) {
     examples,
     onSelectMediaType: (value: string) => {
       onSelectMediaType(value)
-      setSelectedExampleKey(firstExampleKeyForMediaType(requestContents, value))
+      setSelectedExampleKey(firstExampleKeyForMediaType(requestContents, value, spec))
     },
     onSelectExample: (value: string) => {
       setSelectedExampleKey(value)
@@ -258,6 +262,7 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
     selectedServer,
     serverVariables,
     auth,
+    operationSource,
     sharedExampleKey,
     onSelectExampleKey,
   } = arg0
@@ -274,6 +279,7 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
     selectedServer,
     serverVariables,
     auth,
+    operationSource,
     sharedExampleKey,
     onSelectExampleKey,
   })
@@ -304,6 +310,7 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
 type ResponseExamplesPanelProps = {
   operation: OpenAPIOperation
   spec?: OpenAPISpec
+  title?: string
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
   selectedStatus?: string
@@ -319,8 +326,8 @@ type UseResponseExamplesStateArgs = {
   onSelectStatus?: (value: string) => void
 }
 
-function firstExampleKeyForResponseContent(content?: MediaTypeEntry): string {
-  return getExampleEntries(content?.value)[0]?.key ?? ''
+function firstExampleKeyForResponseContent(content?: MediaTypeEntry, spec?: OpenAPISpec): string {
+  return getExampleEntries(content?.value, spec)[0]?.key ?? ''
 }
 
 type ResponseSelectionState = {
@@ -331,7 +338,7 @@ type ResponseSelectionState = {
 
 function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
   const { operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
-  const responses = getResponseEntries(operation, spec).filter(({ response }) => getMediaTypeEntries(response.content, spec).length > 0)
+  const responses = getResponseEntries(operation, spec)
   const orderedResponses = [...responses].sort((left, right) => {
     if (left.status === 'default') return -1
     if (right.status === 'default') return 1
@@ -353,22 +360,24 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
   const [selection, setSelection] = useState<ResponseSelectionState>(() => ({
     status: activeStatus,
     mediaType: responseContents[0]?.mediaType ?? '',
-    exampleKey: firstExampleKeyForResponseContent(responseContents[0]),
+    exampleKey: firstExampleKeyForResponseContent(responseContents[0], spec),
   }))
   const resolvedSelection = selection.status === activeStatus
     ? selection
     : {
         status: activeStatus,
         mediaType: responseContents[0]?.mediaType ?? '',
-        exampleKey: firstExampleKeyForResponseContent(responseContents[0]),
+          exampleKey: firstExampleKeyForResponseContent(responseContents[0], spec),
       }
   const selectedContent = responseContents.find((content) => content.mediaType === resolvedSelection.mediaType) ?? responseContents[0]
-  const examples = getExampleEntries(selectedContent?.value)
+  const examples = getExampleEntries(selectedContent?.value, spec)
   const selectedExampleKey = examples.some((example) => example.key === resolvedSelection.exampleKey) ? resolvedSelection.exampleKey : examples[0]?.key ?? ''
   const linkedExampleKey = sharedExampleKey && examples.some((example) => example.key === sharedExampleKey) ? sharedExampleKey : undefined
   const currentExampleKey = linkedExampleKey ?? selectedExampleKey
   const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
-  const responseCode = stringifyExample(selectedExample?.value)
+  const responseCode = selectedContent
+    ? stringifyExample(selectedExample?.value)
+    : `HTTP/1.1 ${selectedResponse?.status ?? defaultStatus}${selectedResponse?.status === '204' ? ' No Content' : ''}`
 
   return {
     responses: orderedResponses,
@@ -386,7 +395,7 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
       setSelection({
         status: value,
         mediaType: nextContents[0]?.mediaType ?? '',
-        exampleKey: firstExampleKeyForResponseContent(nextContents[0]),
+        exampleKey: firstExampleKeyForResponseContent(nextContents[0], spec),
       })
     },
     onSelectMediaType: (value: string) => {
@@ -394,7 +403,7 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
       setSelection((current) => ({
         ...current,
         mediaType: value,
-        exampleKey: firstExampleKeyForResponseContent(nextContent),
+        exampleKey: firstExampleKeyForResponseContent(nextContent, spec),
       }))
     },
     onSelectExample: (value: string) => {
@@ -408,25 +417,25 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
 }
 
 export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNode {
-  const { operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
+  const { operation, spec, title, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
 
   const t = useBuiltInText()
   const state = useResponseExamplesState({ operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus })
 
-  if (!state.selectedResponse || !state.selectedContent || !state.responseCode) return null
+  if (!state.selectedResponse || !state.responseCode) return null
 
   return (
     <ApiExampleCodeGroup
-      title={t('openapi.response')}
+      title={title ?? t('openapi.response')}
       tag={state.selectedResponse.status}
       tagOptions={state.responses.map(({ status }) => status)}
       onSelectTag={state.onSelectStatus}
-      label={state.selectedContent.mediaType}
+      label={state.selectedContent?.mediaType}
       labelOptions={state.responseContents.map((content) => content.mediaType)}
-      onSelectLabel={state.onSelectMediaType}
+      onSelectLabel={state.responseContents.length > 0 ? state.onSelectMediaType : undefined}
       comfortableMeta
       code={state.responseCode}
-      language={codeLanguageForMediaType(state.selectedContent.mediaType)}
+      language={state.selectedContent ? codeLanguageForMediaType(state.selectedContent.mediaType) : 'http'}
       examples={state.examples}
       selectedExampleKey={state.selectedExample?.key}
       onSelectExample={state.onSelectExample}

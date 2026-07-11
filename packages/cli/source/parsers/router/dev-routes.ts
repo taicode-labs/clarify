@@ -39,11 +39,11 @@ export type DevRouteResponse = DevRouteEntry | DevRouteEntry[] | null
 export function toDevRouteEntry(route: ContentRoute): DevRouteEntry {
   return {
     path: route.path,
-    filePath: route.filePath,
+    filePath: route.source.filePath,
     locale: route.locale,
     basePath: route.basePath,
     kind: route.kind,
-    title: route.title,
+    title: route.meta.title,
   }
 }
 
@@ -58,7 +58,7 @@ export function toDevRouteEntry(route: ContentRoute): DevRouteEntry {
  *     or the first match.
  */
 export function resolveRouteForFile(filePath: string, routes: ContentRoute[], defaultLocale?: string): ContentRoute | undefined {
-  const matches = routes.filter(r => r.filePath === filePath)
+  const matches = routes.filter(r => r.source.filePath === filePath)
   if (matches.length === 0) return undefined
   if (matches.length === 1) return matches[0]
 

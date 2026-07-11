@@ -76,7 +76,7 @@ export function PageBanner(props: PageBannerProps) {
           className="clarify-banner-dismiss absolute right-3 inline-flex size-8 items-center justify-center rounded-full text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong)"
           aria-label="Dismiss announcement"
           onClick={() => {
-            if (storageKey) window.localStorage.setItem(storageKey, '1')
+            if (storageKey && typeof window !== 'undefined') window.localStorage.setItem(storageKey, '1')
             setDismissed(true)
           }}
         >

@@ -62,8 +62,8 @@ function CopyButton(arg0: CopyButtonProps) {  const { code } = arg0
 
   useEffect(() => {
     if (copyCount === 0) return undefined
-    const timeout = window.setTimeout(() => setCopyCount(0), 1000)
-    return () => window.clearTimeout(timeout)
+    const timeout = setTimeout(() => setCopyCount(0), 1000)
+    return () => clearTimeout(timeout)
   }, [copyCount])
 
   if (!code) return null

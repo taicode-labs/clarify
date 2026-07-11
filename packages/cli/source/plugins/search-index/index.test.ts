@@ -64,7 +64,14 @@ describe('createSearchIndexPlugin', () => {
         routePrefix: '/',
         i18n: { defaultLocale: 'en-US' },
       },
-      routes: [{ path: '/docs', title: 'Docs', content: 'Docs content', locale: 'en-US' }],
+      routes: [{
+        path: '/docs',
+        locale: 'en-US',
+        kind: 'mdx',
+        meta: { title: 'Docs' },
+        module: { virtualModuleId: 'virtual:clarify-page/docs' },
+        source: { filePath: '/site/source/docs.mdx', content: 'Docs content' },
+      }],
     } as never
 
     const configureServer = plugin.hooks?.['dev:configureServer']

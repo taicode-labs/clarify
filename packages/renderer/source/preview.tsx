@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 
 import { SectionProvider } from './app/SectionProvider'
 import type { Section } from './app/SectionProvider'
-import { ConfigContext, LocaleContext, OpenApisContext } from './core/context'
+import { ConfigContext, LocaleContext, OpenApiSpecsContext } from './core/context'
 import { OpenApiExamplesPreview } from './preview/openapi'
 import type { PreviewEndpoint } from './preview/openapi'
 import { Navigation } from './shell'
@@ -181,11 +181,11 @@ function PreviewEnvironment(arg0: PreviewEnvironmentProps) {
     <MemoryRouter initialEntries={[initialEntry]}>
       <ConfigContext.Provider value={previewConfig}>
         <LocaleContext.Provider value={previewConfig.i18n.defaultLocale}>
-          <OpenApisContext.Provider value={{}}>
+          <OpenApiSpecsContext.Provider value={{}}>
             <SectionProvider sections={sections}>
               {children}
             </SectionProvider>
-          </OpenApisContext.Provider>
+          </OpenApiSpecsContext.Provider>
         </LocaleContext.Provider>
       </ConfigContext.Provider>
     </MemoryRouter>

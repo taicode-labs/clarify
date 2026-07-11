@@ -124,11 +124,11 @@ JSON configuration is validated and defaults are applied, but executable plugins
 
 The internal engine passes build-time data to runtime through virtual modules:
 
-- `virtual:clarify-config` — resolved site configuration and build options
-- `virtual:clarify-routes` — client route manifest, lazy page imports, and navigation tree
-- `virtual:clarify-routes/server` — server route manifest for SSR, with eager page imports
-- `virtual:clarify-openapi-registry` — collection of parsed OpenAPI specs
-- `virtual:clarify-entry-client` — client entry injected by the CLI
+- `virtual:clarify/config` — resolved site configuration and build options
+- `virtual:clarify/routes` — client route manifest, lazy page imports, and navigation tree
+- `virtual:clarify/routes/server` — server route manifest for SSR, with eager page imports
+- `virtual:clarify/openapi` — collection of parsed OpenAPI specs
+- `virtual:clarify/entry-client` — client entry injected by the CLI
 - `virtual:clarify-page/*` — virtual module for each MDX/OpenAPI page
 
 These modules are assembled internally by the CLI. Regular users do not need to import them directly.

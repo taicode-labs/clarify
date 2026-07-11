@@ -9,7 +9,10 @@
 ```ts
 type ClarifyPlugin = {
   name: string
-  hooks: Partial<ClarifyHooks>
+  enforce?: 'pre' | 'post'
+  priority?: number
+  dependsOn?: string[]
+  hooks?: Partial<ClarifyHooks>
   slots?: UISlotRegistration[]
 }
 ```
@@ -17,7 +20,10 @@ type ClarifyPlugin = {
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `name` | `string` | 是 | 插件名称，用于错误提示和调试 |
-| `hooks` | `Partial<ClarifyHooks>` | 是 | 插件实现的生命周期 Hook |
+| `enforce` | `'pre' \| 'post'` | 否 | 将插件排在默认优先级插件之前或之后 |
+| `priority` | `number` | 否 | 同一 enforce 分组内的数字排序 |
+| `dependsOn` | `string[]` | 否 | 必须先于当前插件运行的插件名称 |
+| `hooks` | `Partial<ClarifyHooks>` | 否 | 插件实现的生命周期 Hook |
 | `slots` | `UISlotRegistration[]` | 否 | 注册的 UI 插槽组件 |
 
 ---
@@ -43,10 +49,12 @@ type UISlotName =
 
 ```ts
 type UISlotRegistration = {
-  name: UISlotName      // 目标插槽位置
-  component: string            // React 组件模块路径（使用 / 前缀指向项目根目录，如 /source/plugins/MyFooter.tsx）
+  name: UISlotName
+  component: string
 }
 ```
+
+`component` 是默认导出 React 组件的模块路径。使用 `/` 前缀表示从项目根目录解析，例如 `/source/plugins/MyFooter.tsx`。
 
 ### `useSlot`
 
@@ -123,10 +131,34 @@ export default function CustomBanner() {
 
 ```ts
 type ClarifyHooks = {
+  'before:config:load'?: ClarifyTapHook
+  'after:config:load'?: ClarifyTapHook
+  'before:config:resolve'?: ClarifyTapHook
+  'after:config:resolve'?: ClarifyTapHook
+  'before:plugins:load'?: ClarifyTapHook
+  'after:plugins:load'?: ClarifyTapHook
+  'before:site:discover'?: ClarifyTapHook
+  'after:site:discover'?: ClarifyTapHook
+  'before:content:process'?: ClarifyTapHook
+  'after:content:process'?: ClarifyTapHook
+  'before:modules:build'?: ClarifyTapHook
+  'after:modules:build'?: ClarifyTapHook
+  'before:build'?: ClarifyTapHook
+  'after:build'?: ClarifyTapHook
+  'before:ssg'?: ClarifyTapHook
+  'after:ssg'?: ClarifyTapHook
+  'before:dev:server'?: ClarifyTapHook
+  'after:dev:server'?: ClarifyTapHook
+
+  'content:transform'?: ClarifyPipelineHook<ClarifyContentTransformInput>
+
   'pages:resolved'?: (
     pages: ClarifyPage[],
     ctx: ClarifyHookContext,
   ) => Promise<ClarifyPage[]> | ClarifyPage[]
+
+  'routes:discover'?: ClarifyPipelineHook<ClarifyRouteDiscoveryInput>
+  'routes:discovered'?: ClarifyPipelineHook<ContentRoute[]>
 
   'routes:resolved'?: (
     input: { routes: ContentRoute[]; navigation: NavigationTree },
@@ -140,11 +172,16 @@ type ClarifyHooks = {
     ctx: ClarifyHookContext,
   ) => Promise<Map<string, string>> | Map<string, string>
 
+  'html:transform'?: ClarifyPipelineHook<ClarifyHtmlTransformInput>
+  'build:assets'?: ClarifyCollectorHook<ClarifyEmitAsset>
   'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void
+  'build:shouldRun'?: ClarifyInterceptHook
+  'ssg:shouldRun'?: ClarifyInterceptHook
+  'dev:configureServer'?: (server: ViteDevServer, ctx: ClarifyHookContext) => Promise<void> | void
 }
 ```
 
-Hook 可以同步或异步返回。`pages:resolved`、`routes:resolved` 和 `modules:before` 需要返回与输入同类型的结果，`build:done` 无需返回值。
+Pipeline hook 可以同步或异步返回，并且需要返回与输入相同形状的结果。Collector hook 返回额外生成项，tap hook 用于执行副作用，intercept hook 可以阻止某个构建阶段继续执行。
 
 ---
 
@@ -152,10 +189,34 @@ Hook 可以同步或异步返回。`pages:resolved`、`routes:resolved` 和 `mod
 
 ```ts
 type ClarifyHookContext = {
+  version: string
+  projectRoot: string
+  contentRoot: string
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
+  routes: ContentRoute[]
+  navigation: NavigationTree
+  plugins: ClarifyPlugin[]
+  get<T>(key: string): T | undefined
+  set<T>(key: string, value: T): void
+  has(key: string): boolean
+  delete(key: string): boolean
 }
 ```
+
+该上下文合并了项目路径、解析后的配置、当前路由/导航状态、已加载插件，以及可在 hook 间共享数据的小型插件 store。
+
+| 字段 | 说明 |
+|------|------|
+| `version` | 当前构建使用的 Clarify 运行时版本 |
+| `projectRoot` | 用户项目根目录的绝对路径 |
+| `contentRoot` | 解析后的内容根目录绝对路径 |
+| `projectConfig` | 已应用默认值后的站点配置 |
+| `generateOptions` | 解析后的构建选项 |
+| `routes` | 当前 hook 执行点的路由列表 |
+| `navigation` | 当前 hook 执行点的导航树 |
+| `plugins` | 排序完成后的已加载插件 |
+| `get` / `set` / `has` / `delete` | 共享插件 store 辅助方法 |
 
 ### `projectConfig`
 
@@ -223,13 +284,43 @@ type ContentRoute = {
   basePath?: string
   locale?: string
   isFallback?: boolean
+  isBareAlias?: boolean
   alternates?: Record<string, string>
+  kind: string
+  meta: ContentRouteMeta
+  module: ContentRouteModule
+  source: ContentRouteSource
+  openapi?: OpenAPIContentRouteState
+  diagnostic?: ContentDiagnostic
+  artifacts?: ContentRouteArtifacts
+}
+
+type ContentRouteMeta = {
   title: string
-  filePath: string
-  virtualModuleId: string
-  kind: 'mdx' | 'openapi'
+  description?: string
+  keywords?: string[]
   sections?: ContentSection[]
-  rawContentUrl?: string
+}
+
+type ContentRouteModule = {
+  virtualModuleId: string
+}
+
+type ContentRouteSource = {
+  filePath: string
+  frontmatter?: Record<string, unknown>
+  content?: string
+  sourceEditUrl?: string
+}
+
+type ContentRouteArtifacts = {
+  contentArtifactUrl?: string
+}
+
+type OpenAPIContentRouteState = {
+  tagFilter?: string[]
+  sourceSpecId?: string
+  routeSpecModuleId?: string
 }
 ```
 
@@ -239,13 +330,15 @@ type ContentRoute = {
 | `basePath` | 不带 locale 的基础路径 |
 | `locale` | 当前路由所属语言 |
 | `isFallback` | 是否由默认语言回退生成 |
+| `isBareAlias` | 是否是默认语言的非索引别名路由 |
 | `alternates` | 同一页面在其他语言下的路径 |
-| `title` | 导航和搜索展示标题 |
-| `filePath` | 源文件绝对路径 |
-| `virtualModuleId` | Clarify 内部虚拟模块 ID |
-| `kind` | 页面类型：`mdx` 或 `openapi` |
-| `sections` | 从 H2/H3 或 OpenAPI operation 中提取的页面目录 |
-| `rawContentUrl` | 原始内容文件输出 URL |
+| `kind` | 路由类型，例如 `mdx` 或 `openapi` |
+| `meta` | 标题、描述、关键词和页面目录等展示元数据 |
+| `module` | 当前路由的运行时模块信息 |
+| `source` | 源文件、frontmatter、标准化内容和编辑链接信息 |
+| `openapi` | OpenAPI 专属状态，仅 OpenAPI 路由存在 |
+| `diagnostic` | 诊断路由的可选诊断信息 |
+| `artifacts` | 当前路由生成的内容产物 URL |
 
 ---
 
@@ -253,16 +346,30 @@ type ContentRoute = {
 
 ```ts
 type NavigationTree =
-  | ClarifyNavigationNode[]
+  | FlatNavigationTree
   | LocalizedNavigation
   | TabbedNavigation
   | LocalizedTabbedNavigation
 
-type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
+type FlatNavigationTree = {
+  kind: 'flat'
+  nodes: ClarifyNavigationNode[]
+}
 
-type TabbedNavigation = { tabs: ClarifyNavigationTab[] }
+type LocalizedNavigation = {
+  kind: 'localized'
+  locales: Record<string, ClarifyNavigationNode[]>
+}
 
-type LocalizedTabbedNavigation = Record<string, TabbedNavigation>
+type TabbedNavigation = {
+  kind: 'tabbed'
+  tabs: ClarifyNavigationTab[]
+}
+
+type LocalizedTabbedNavigation = {
+  kind: 'localized-tabbed'
+  locales: Record<string, { tabs: ClarifyNavigationTab[] }>
+}
 
 type ClarifyNavigationTab = {
   type: 'tab'
@@ -277,16 +384,18 @@ type ClarifyNavigationNode = {
   title: string
   icon?: string
   children?: ClarifyNavigationNode[]
-  sections?: Pick<ContentSection, 'id' | 'title' | 'badge' | 'tags'>[]
+  sections?: NavigationSection[]
+}
+
+type NavigationSection = {
+  id: string
+  title: string
+  badge?: string
+  tags?: string[]
 }
 ```
 
-Clarify 始终基于 `tabs` 配置构建导航，因此 Hook 收到的 `navigation` 是：
-
-- 默认是 `TabbedNavigation`（`{ tabs }` 结构）。
-- 启用 i18n 时按 locale 分组，为 `LocalizedTabbedNavigation`（`Record<string, { tabs }>`）。
-
-`NavigationTree` 联合中的 `ClarifyNavigationNode[]` 和 `LocalizedNavigation` 是无 `tabs` 配置时的回退形态。
+`NavigationTree` 始终使用 `kind` 作为判别字段。`flat` 和 `localized` 表示侧边栏导航，`tabbed` 和 `localized-tabbed` 表示从 `tabs` 配置生成的导航。
 
 ---
 
@@ -298,9 +407,9 @@ Clarify 始终基于 `tabs` 配置构建导航，因此 Hook 收到的 `navigati
 
 | 模块 ID | 说明 |
 |---------|------|
-| `virtual:clarify-config` | 运行时站点配置 |
-| `virtual:clarify-routes` | 路由和导航数据 |
-| `virtual:clarify-openapi-registry` | 已解析的 OpenAPI 规范表 |
-| `virtual:clarify-entry-client` | 客户端入口 |
+| `virtual:clarify/config` | 运行时站点配置 |
+| `virtual:clarify/routes` | 路由和导航数据 |
+| `virtual:clarify/openapi` | 已解析的 OpenAPI 规范表 |
+| `virtual:clarify/entry-client` | 客户端入口 |
 
 修改虚拟模块属于高级用法，适合实现搜索、分析或内部平台集成等场景。

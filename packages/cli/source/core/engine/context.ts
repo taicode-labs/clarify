@@ -43,7 +43,7 @@ export class ClarifyContext implements ClarifyHookContext {
     this.generateOptions = init.generateOptions
     this.version = init.version
     this.currentRoutes = init.routes ?? []
-    this.currentNavigation = init.navigation ?? []
+    this.currentNavigation = init.navigation ?? { kind: 'flat', nodes: [] }
     this.currentPlugins = init.plugins ?? []
   }
 

@@ -6,9 +6,9 @@ import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { LocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
 import { Header, Navigation } from '../shell'
-import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots } from '../slots'
+import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlotRegistry } from '../slots'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
-import type { RouteItem, Config, LocaleConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
+import type { RouteItem, Config, LocaleConfig, NavigationNode, NavigationTab, NavigationTree } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { resolveLocalizedText } from '../utils/localized-text'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
@@ -20,13 +20,14 @@ import { PageBanner } from './PageBanner'
 import { PageFooter } from './PageFooter'
 import { PageNavigation } from './PageNavigation'
 import { PageSkeleton } from './PageSkeleton'
+import { SectionHashSync } from './SectionHashSync'
 import { SectionProvider, type Section } from './SectionProvider'
 
 export type AppShellProps = {
   config: Config
   routes: RouteItem[]
   navigation: NavigationTree
-  runtimeSlots?: RuntimeSlots
+  runtimeSlots?: RuntimeSlotRegistry
 }
 
 type BannerSlotProps = {
@@ -84,6 +85,7 @@ function resolveRouteComponent(route: RouteItem): ComponentType {
 }
 
 function scrollToHash(hash: string) {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
   if (!hash) return
 
   const targetId = safeDecodeURIComponent(hash.slice(1))
@@ -129,12 +131,8 @@ function isDefaultLocale(config: Config, locale: string | undefined): boolean {
   return Boolean(locale && config.i18n?.defaultLocale === locale)
 }
 
-function isTabbedNavigation(navigation: NavigationTree): navigation is TabbedNavigation {
-  return !Array.isArray(navigation) && 'tabs' in navigation
-}
-
-function hasPath(nodes: NavigationNode[], pathname: string): boolean {
-  return nodes.some((node) => isSameRoutePath(node.path, pathname) || hasPath(node.children ?? [], pathname))
+function hasPath(nodes: NavigationNode[], pathname: string, locale?: string): boolean {
+  return nodes.some((node) => isSameRoutePath(node.path, pathname, locale) || hasPath(node.children ?? [], pathname, locale))
 }
 
 type NavigationState = {
@@ -142,22 +140,25 @@ type NavigationState = {
   tabs?: NavigationTab[]
 }
 
-function navigationFromTabs(navigation: TabbedNavigation, pathname: string): NavigationState {
-  const currentTab = navigation.tabs.find((tab) => isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname))
+function navigationFromTabs(tabs: NavigationTab[], pathname: string, locale?: string): NavigationState {
+  const currentTab = tabs.find((tab) => isSameRoutePath(tab.path, pathname, locale) || hasPath(tab.children, pathname, locale))
   return {
-    items: currentTab?.children ?? navigation.tabs[0]?.children ?? [],
-    tabs: navigation.tabs,
+    items: currentTab?.children ?? tabs[0]?.children ?? [],
+    tabs,
   }
 }
 
 function navigationForLocale(navigation: NavigationTree, locale: string | undefined, pathname: string): NavigationState {
-  if (Array.isArray(navigation)) return { items: navigation }
-  if (isTabbedNavigation(navigation)) return navigationFromTabs(navigation, pathname)
-  if (!locale) return { items: [] }
-
-  const localizedNavigation = navigation[locale]
-  if (!localizedNavigation) return { items: [] }
-  return Array.isArray(localizedNavigation) ? { items: localizedNavigation } : navigationFromTabs(localizedNavigation, pathname)
+  switch (navigation.kind) {
+    case 'flat':
+      return { items: navigation.nodes }
+    case 'tabbed':
+      return navigationFromTabs(navigation.tabs, pathname, locale)
+    case 'localized':
+      return { items: locale ? navigation.locales[locale] ?? [] : [] }
+    case 'localized-tabbed':
+      return locale && navigation.locales[locale] ? navigationFromTabs(navigation.locales[locale].tabs, pathname, locale) : { items: [] }
+  }
 }
 
 function pageTitle(config: Config, route?: RouteItem): string {
@@ -226,7 +227,7 @@ function emptySubscribe() {
 function useStoredBannerDismissed(storageKey: string | undefined) {
   return useSyncExternalStore(
     emptySubscribe,
-    () => Boolean(storageKey && window.localStorage.getItem(storageKey) === '1'),
+    () => Boolean(storageKey && typeof window !== 'undefined' && window.localStorage.getItem(storageKey) === '1'),
     // Avoid SSR/hydration flash for dismissible banners by resolving dismissal on the client.
     () => true,
   )
@@ -255,18 +256,19 @@ function useBannerState(config: Config, currentLocale: string | undefined) {
 
 type StoredLocaleRedirectOptions = {
   config: Config
+  pathname: string
   currentRoute?: RouteItem
+  storedLocale: string | null
   explicitLocale?: string
   location: ReturnType<typeof useLocation>
   navigate: ReturnType<typeof useNavigate>
-  pathname: string
-  storedLocale: string | null
+  hashScrollSuppressedUntilRef: React.RefObject<number>
 }
 
 type AppShellNavigationEffectsArgs = StoredLocaleRedirectOptions
 
 function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
-  const { config, currentRoute, explicitLocale, location, navigate, pathname, storedLocale } = arg0
+  const { config, currentRoute, explicitLocale, hashScrollSuppressedUntilRef, location, navigate, pathname, storedLocale } = arg0
 
   useEffect(() => {
     if (explicitLocale) storeLocalePreference(explicitLocale)
@@ -280,7 +282,10 @@ function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
   }, [config, currentRoute, explicitLocale, location.hash, location.search, navigate, pathname, storedLocale])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     if (location.hash) {
+      hashScrollSuppressedUntilRef.current = Date.now() + 1200
       scrollToHash(location.hash)
       return
     }
@@ -289,7 +294,7 @@ function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
     window.requestAnimationFrame(() => {
       window.dispatchEvent(new Event('scroll'))
     })
-  }, [location.hash, location.pathname])
+  }, [hashScrollSuppressedUntilRef, location.hash, location.pathname])
 }
 
 type AppShellDocumentEffectsArgs = {
@@ -393,6 +398,7 @@ export function AppShell(arg0: AppShellProps) {
   const pathname = normalizeRoutePath(location.pathname)
   const headerRef = useRef<HTMLElement>(null)
   const headerTopAreaRef = useRef<HTMLDivElement>(null)
+  const hashScrollSuppressedUntilRef = useRef(0)
   const {
     currentRoute,
     explicitLocale,
@@ -409,7 +415,7 @@ export function AppShell(arg0: AppShellProps) {
   const layoutConfig = getAppShellLayoutConfig(hasTabs, hasBanner)
   const { renderRoutes, NotFoundRouteComponent } = useRenderedRoutes(routes, notFoundRoute)
 
-  useAppShellNavigationEffects({ config, currentRoute, explicitLocale, location, navigate, pathname, storedLocale })
+  useAppShellNavigationEffects({ config, currentRoute, explicitLocale, hashScrollSuppressedUntilRef, location, navigate, pathname, storedLocale })
   useAppShellDocumentEffects({ currentLocale, currentLocaleConfig, config, route: currentRoute ?? notFoundRoute })
 
   const layoutStyle = {
@@ -452,7 +458,7 @@ export function AppShell(arg0: AppShellProps) {
         className="clarify-sidebar hidden lg:block lg:self-stretch lg:bg-(--clarify-theme-tokens-colors-background) lg:px-5 xl:px-6"
       >
         <div className={clsx('clarify-sidebar-scroll lg:sticky lg:z-30 lg:overflow-y-auto lg:pb-8', layoutConfig.sidebarScrollClassName)}>
-          <Navigation navigation={currentNavigation.items} />
+          <Navigation navigation={currentNavigation.items} currentLocale={currentLocale} />
         </div>
       </aside>
     )
@@ -535,6 +541,7 @@ export function AppShell(arg0: AppShellProps) {
     <LocaleContext.Provider value={currentLocale}>
       <RuntimeSlotsProvider slots={runtimeSlots} route={currentRoute}>
         <SectionProvider sections={sections} headerTopAreaRef={headerTopAreaRef}>
+          <SectionHashSync hashScrollSuppressedUntilRef={hashScrollSuppressedUntilRef} />
           {renderHeader()}
           {renderLayout()}
         </SectionProvider>

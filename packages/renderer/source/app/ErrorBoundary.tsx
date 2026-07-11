@@ -68,7 +68,7 @@ function PageErrorPanel(props: PageErrorPanelProps) {
   async function copyStack() {
     if (!(await copyTextToClipboard(stackText))) return
     setCopiedStack(true)
-    window.setTimeout(() => setCopiedStack(false), 1600)
+    setTimeout(() => setCopiedStack(false), 1600)
   }
 
   return (
@@ -76,7 +76,9 @@ function PageErrorPanel(props: PageErrorPanelProps) {
       title={title}
       description={description}
       refreshLabel={reloadLabel}
-      onRefresh={() => window.location.reload()}
+      onRefresh={() => {
+        if (typeof window !== 'undefined') window.location.reload()
+      }}
       metadata={[
         [pathLabel, path],
         [typeLabel, error.name],
