@@ -284,6 +284,53 @@ describe('createOpenAPIPlugin', () => {
     expect(modules?.get(specModuleId!)).not.toContain('List users')
   })
 
+  it('keeps sections and content isolated across OpenAPI route aliases', async () => {
+    const specPath = join(tempDir, 'api.openapi.json')
+    writeFileSync(specPath, JSON.stringify({
+      openapi: '3.0.0',
+      info: { title: 'Tagged API', version: '1.0.0' },
+      paths: {
+        '/projects': { get: { summary: 'List projects', tags: ['Projects'], responses: { 200: { description: 'OK' } } } },
+        '/users': { get: { summary: 'List users', tags: ['Users'], responses: { 200: { description: 'OK' } } } },
+      },
+    }), 'utf-8')
+
+    const plugin = createOpenAPIPlugin()
+    const discoveredInput = await plugin.hooks?.['routes:discover']?.({
+      contentRoot: tempDir,
+      routes: [],
+    }, createContext([]))
+    const routes = discoveredInput?.routes ?? []
+    const ctx = createContext(routes)
+    ctx.projectConfig.tabs = [
+      {
+        tab: 'API',
+        pages: [{
+          group: 'Reference',
+          pages: [
+            { openapi: 'api.openapi.json', path: 'api/projects', filter: { tags: ['Projects'] } },
+            { openapi: 'api.openapi.json', path: 'api/users', filter: { tags: ['Users'] } },
+          ],
+        }],
+      },
+    ]
+
+    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
+    const fullRoute = discovered?.find(route => route.path === '/api')
+    const projectsRoute = discovered?.find(route => route.path === '/api/projects')
+    const usersRoute = discovered?.find(route => route.path === '/api/users')
+
+    expect(fullRoute?.meta.sections?.map(section => section.title)).toEqual(['List projects', 'List users'])
+    expect(projectsRoute?.meta.sections?.map(section => section.title)).toEqual(['List projects'])
+    expect(usersRoute?.meta.sections?.map(section => section.title)).toEqual(['List users'])
+    expect(JSON.parse(fullRoute?.source.content ?? '{}').paths).toHaveProperty('/projects')
+    expect(JSON.parse(fullRoute?.source.content ?? '{}').paths).toHaveProperty('/users')
+    expect(JSON.parse(projectsRoute?.source.content ?? '{}').paths).toHaveProperty('/projects')
+    expect(JSON.parse(projectsRoute?.source.content ?? '{}').paths).not.toHaveProperty('/users')
+    expect(JSON.parse(usersRoute?.source.content ?? '{}').paths).toHaveProperty('/users')
+    expect(JSON.parse(usersRoute?.source.content ?? '{}').paths).not.toHaveProperty('/projects')
+  })
+
   it('creates explicit-path tag-filtered OpenAPI routes from navigation config', async () => {
     const specPath = join(tempDir, 'api.openapi.json')
     writeFileSync(specPath, JSON.stringify({

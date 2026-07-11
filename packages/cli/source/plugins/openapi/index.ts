@@ -35,6 +35,18 @@ function virtualModuleIdFromPath(path: string): string {
   return `virtual:clarify-page/${path.replace(/^\/+/, '') || 'index'}`
 }
 
+function cloneOpenAPIRoute(route: ContentRoute, overrides: Partial<ContentRoute> = {}): ContentRoute {
+  return {
+    ...route,
+    meta: { ...route.meta, sections: route.meta.sections ? [...route.meta.sections] : undefined },
+    module: { ...route.module },
+    source: { ...route.source },
+    openapi: route.openapi ? { ...route.openapi, tagFilter: route.openapi.tagFilter ? [...route.openapi.tagFilter] : undefined } : undefined,
+    alternates: route.alternates ? { ...route.alternates } : undefined,
+    ...overrides,
+  }
+}
+
 function findOpenAPIRoutesForContentRoot(contentRoot: string, i18n?: ResolvedClarifyI18nConfig): ContentRoute[] {
   if (!i18n) return findOpenAPIRoutes(contentRoot)
 
@@ -63,13 +75,12 @@ function findOpenAPIRoutesForContentRoot(contentRoot: string, i18n?: ResolvedCla
         const key = `${locale.code}:${basePath}`
         if (routeByLocaleAndBase.has(key)) continue
         const path = localizedRoutePath(basePath, locale.code, i18n)
-        localizedRoutes.push({
-          ...sourceRoute,
+        localizedRoutes.push(cloneOpenAPIRoute(sourceRoute, {
           path,
           locale: locale.code,
           module: { virtualModuleId: virtualModuleIdFromPath(path) },
           isFallback: true,
-        })
+        }))
       }
     }
   }
@@ -99,8 +110,7 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
 
       const path = route.locale && config.i18n ? localizedRoutePath(targetBasePath, route.locale, config.i18n) : targetBasePath
 
-      additions.push({
-        ...route,
+      additions.push(cloneOpenAPIRoute(route, {
         path,
         basePath: targetBasePath,
         module: { virtualModuleId: virtualModuleIdFromPath(path) },
@@ -108,7 +118,7 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
           ...route.openapi,
           tagFilter: tagFilter?.length ? tagFilter : undefined,
         },
-      })
+      }))
     }
   }
 
@@ -124,12 +134,11 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
     const basePath = route.basePath ?? route.path
     if (basePath === route.path || seenBare.has(basePath)) continue
     seenBare.add(basePath)
-    bareAliases.push({
-      ...route,
+    bareAliases.push(cloneOpenAPIRoute(route, {
       path: basePath,
       module: { virtualModuleId: virtualModuleIdFromPath(basePath) },
       isBareAlias: true,
-    })
+    }))
   }
 
   return [...routesWithAlternates, ...bareAliases]
