@@ -338,7 +338,7 @@ export type ContentRouteSource = {
   /** Normalized source content captured during route discovery. */
   content?: string
   /** Public edit URL for this route's source file. */
-  editUrl?: string
+  sourceEditUrl?: string
 }
 
 export type ContentRoute = {

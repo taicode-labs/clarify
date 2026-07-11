@@ -217,7 +217,7 @@ export default function MySlot() {
 
 ### 项目级虚拟模块类型声明
 
-由于 `virtual:clarify/slot`、`virtual:clarify-runtime-slots` 这类模块只在 Clarify/Vite 构建期间存在，用户项目中的 TypeScript 语言服务默认无法识别它们。
+由于 `virtual:clarify/slot`、`virtual:clarify/slots` 这类模块只在 Clarify/Vite 构建期间存在，用户项目中的 TypeScript 语言服务默认无法识别它们。
 
 为了避免插件作者或站点作者手动编写 `declare module`，Clarify dev 应根据当前项目与启用插件自动生成项目级类型声明文件，例如：
 
@@ -269,7 +269,7 @@ declare module 'virtual:clarify/slot' {
 CLI 根据所有插件的 `slots` 生成虚拟模块，例如：
 
 ```ts
-// virtual:clarify-runtime-slots
+// virtual:clarify/slots
 
 import Slot0 from 'virtual:clarify-github-comments-slot'
 
@@ -483,7 +483,7 @@ const commentsKey = `pathname:${route.basePath ?? route.path}`
 - `ClarifyPlugin.slots`
 - `page.footer.before`
 - `RuntimeSlot`
-- `virtual:clarify-runtime-slots`
+- `virtual:clarify/slots`
 - `virtual:clarify/slot` 与 `useSlot()`
 - dev/build 自动生成项目级 `clarify-env.d.ts`
 

@@ -38,7 +38,7 @@ describe('createHtmlShellPlugin', () => {
     const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [],
-      clientEntryId: '/@id/virtual:clarify-entry-client',
+      clientEntryId: '/@id/virtual:clarify/entry-client',
       dev: true,
     }, ctx)
 
@@ -51,7 +51,7 @@ describe('createHtmlShellPlugin', () => {
       }),
       {
         tag: 'script',
-        attrs: { type: 'module', src: '/@id/virtual:clarify-entry-client' },
+        attrs: { type: 'module', src: '/@id/virtual:clarify/entry-client' },
         injectTo: 'body',
       },
     ])
@@ -62,13 +62,13 @@ describe('createHtmlShellPlugin', () => {
     const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [],
-      clientEntryId: 'virtual:clarify-entry-client',
+      clientEntryId: 'virtual:clarify/entry-client',
       dev: false,
     }, ctx)
 
     expect(result?.tags.at(1)).toEqual({
       tag: 'script',
-      attrs: { type: 'module', src: 'virtual:clarify-entry-client' },
+      attrs: { type: 'module', src: 'virtual:clarify/entry-client' },
       injectTo: 'body',
     })
   })
@@ -78,7 +78,7 @@ describe('createHtmlShellPlugin', () => {
     const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [{ tag: 'meta', attrs: { name: 'x' }, injectTo: 'head' }],
-      clientEntryId: 'virtual:clarify-entry-client',
+      clientEntryId: 'virtual:clarify/entry-client',
       dev: false,
     }, ctx)
 
@@ -90,7 +90,7 @@ describe('createHtmlShellPlugin', () => {
     const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [],
-      clientEntryId: 'virtual:clarify-entry-client',
+      clientEntryId: 'virtual:clarify/entry-client',
       dev: false,
     }, {
       ...ctx,
@@ -112,7 +112,7 @@ describe('createHtmlShellPlugin', () => {
     const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [],
-      clientEntryId: 'virtual:clarify-entry-client',
+      clientEntryId: 'virtual:clarify/entry-client',
       dev: false,
     }, {
       ...ctx,
@@ -154,7 +154,7 @@ describe('createHtmlShellPlugin', () => {
     const result = await plugin.hooks?.['html:transform']?.({
       html: '<html></html>',
       tags: [],
-      clientEntryId: 'virtual:clarify-entry-client',
+      clientEntryId: 'virtual:clarify/entry-client',
       dev: false,
     }, {
       ...ctx,
@@ -176,7 +176,7 @@ describe('createHtmlShellPlugin', () => {
     const result = await plugin.hooks?.['html:transform']?.({
       html: '<html><head><link rel="icon" href="/custom.ico" /></head></html>',
       tags: [],
-      clientEntryId: 'virtual:clarify-entry-client',
+      clientEntryId: 'virtual:clarify/entry-client',
       dev: false,
     }, {
       ...ctx,

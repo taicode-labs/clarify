@@ -42,7 +42,7 @@ export function ClarifyShell(props: ClarifyShellProps) {
             <AppShell
               config={config}
               routes={routes}
-              navigation={navigation ?? []}
+              navigation={navigation ?? { kind: 'flat', nodes: [] }}
               runtimeSlots={runtimeSlots}
             />
           </ThemeRoot>

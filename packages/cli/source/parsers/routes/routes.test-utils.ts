@@ -9,7 +9,7 @@ type ContentRouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module'
   filePath?: string
   frontmatter?: ContentRoute['source']['frontmatter']
   content?: string
-  editUrl?: string
+  sourceEditUrl?: string
   virtualModuleId?: string
   meta?: Partial<ContentRoute['meta']>
   module?: Partial<ContentRoute['module']>
@@ -25,7 +25,7 @@ export function contentRoute(route: ContentRouteFixture = {}): ContentRoute {
     filePath,
     frontmatter,
     content,
-    editUrl,
+    sourceEditUrl,
     virtualModuleId,
     meta,
     module,
@@ -50,7 +50,7 @@ export function contentRoute(route: ContentRouteFixture = {}): ContentRoute {
       filePath: filePath ?? source?.filePath ?? 'index.mdx',
       frontmatter: frontmatter ?? source?.frontmatter,
       content: content ?? source?.content,
-      editUrl: editUrl ?? source?.editUrl,
+      sourceEditUrl: sourceEditUrl ?? source?.sourceEditUrl,
     },
     ...rest,
   }

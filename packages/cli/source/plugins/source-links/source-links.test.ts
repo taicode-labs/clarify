@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import type { ContentRoute } from '../../types.js'
 
-import { attachSourceUrls, createSourceUrl } from './source-links.js'
+import { attachSourceEditUrls, createSourceEditUrl } from './source-links.js'
 
 describe('source links', () => {
   it('creates GitHub edit links from content file paths', () => {
-    expect(createSourceUrl('/repo/apps/docs/source/en-US/index.mdx', '/repo/apps/docs/source', {
+    expect(createSourceEditUrl('/repo/apps/docs/source/en-US/index.mdx', '/repo/apps/docs/source', {
       repository: 'https://github.com/taicode-labs/clarify.git',
       branch: 'main',
       directory: 'apps/docs/source',
@@ -24,8 +24,8 @@ describe('source links', () => {
       },
     ]
 
-    attachSourceUrls(routes, '/repo/source', { repository: 'https://github.com/acme/docs' })
+    attachSourceEditUrls(routes, '/repo/source', { repository: 'https://github.com/acme/docs' })
 
-    expect(routes[0]?.source?.editUrl).toBe('https://github.com/acme/docs/edit/main/index.mdx')
+    expect(routes[0]?.source?.sourceEditUrl).toBe('https://github.com/acme/docs/edit/main/index.mdx')
   })
 })

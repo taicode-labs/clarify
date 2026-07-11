@@ -154,16 +154,30 @@ type ContentRoute = {
 
 ```ts
 type NavigationTree =
-  | ClarifyNavigationNode[]
+  | FlatNavigationTree
   | LocalizedNavigation
   | TabbedNavigation
   | LocalizedTabbedNavigation
 
-type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
+type FlatNavigationTree = {
+  kind: 'flat'
+  nodes: ClarifyNavigationNode[]
+}
 
-type TabbedNavigation = { tabs: ClarifyNavigationTab[] }
+type LocalizedNavigation = {
+  kind: 'localized'
+  locales: Record<string, ClarifyNavigationNode[]>
+}
 
-type LocalizedTabbedNavigation = Record<string, TabbedNavigation>
+type TabbedNavigation = {
+  kind: 'tabbed'
+  tabs: ClarifyNavigationTab[]
+}
+
+type LocalizedTabbedNavigation = {
+  kind: 'localized-tabbed'
+  locales: Record<string, { tabs: ClarifyNavigationTab[] }>
+}
 
 type ClarifyNavigationTab = {
   type: 'tab'
@@ -178,11 +192,18 @@ type ClarifyNavigationNode = {
   title: string
   icon?: string
   children?: ClarifyNavigationNode[]
-  sections?: Pick<ContentSection, 'id' | 'title' | 'badge' | 'tags'>[]
+  sections?: NavigationSection[]
+}
+
+type NavigationSection = {
+  id: string
+  title: string
+  badge?: string
+  tags?: string[]
 }
 ```
 
-When `tabs` is enabled, `navigation` is a `{ tabs }` structure; when i18n is also enabled, `navigation` is a `{ tabs }` object grouped by locale. When `tabs` is not enabled, it is still a plain sidebar array, or a sidebar array grouped by locale when i18n is enabled.
+`NavigationTree` always uses `kind` as its discriminator. `flat` and `localized` represent sidebar navigation, while `tabbed` and `localized-tabbed` represent navigation derived from the `tabs` configuration.
 
 ---
 
@@ -194,9 +215,9 @@ Common virtual modules include:
 
 | Module ID | Description |
 |---------|------|
-| `virtual:clarify-config` | The runtime site configuration |
-| `virtual:clarify-routes` | Route and navigation data |
-| `virtual:clarify-openapi-registry` | The resolved OpenAPI spec table |
-| `virtual:clarify-entry-client` | The client entry |
+| `virtual:clarify/config` | The runtime site configuration |
+| `virtual:clarify/routes` | Route and navigation data |
+| `virtual:clarify/openapi` | The resolved OpenAPI spec table |
+| `virtual:clarify/entry-client` | The client entry |
 
 Modifying virtual modules is an advanced use; we recommend using it only when implementing search, analytics, or internal platform integration.

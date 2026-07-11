@@ -13,8 +13,8 @@ let root: Root | undefined
  * 在文档项目的 main.tsx 中调用：
  * ```ts
  * import { render } from '@clarify-labs/renderer';
- * import { routes } from 'virtual:clarify-routes';
- * import { config } from 'virtual:clarify-config';
+ * import { routes } from 'virtual:clarify/routes';
+ * import { config } from 'virtual:clarify/config';
  * render({ config, routes });
  * ```
  */

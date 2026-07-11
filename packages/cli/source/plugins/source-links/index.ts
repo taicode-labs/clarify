@@ -2,7 +2,7 @@ import { join } from 'node:path'
 
 import type { ClarifyPlugin } from '../../types.js'
 
-import { attachSourceUrls } from './source-links.js'
+import { attachSourceEditUrls } from './source-links.js'
 
 export function createSourceLinksPlugin(): ClarifyPlugin {
   return {
@@ -10,7 +10,7 @@ export function createSourceLinksPlugin(): ClarifyPlugin {
     hooks: {
       'routes:discovered': (routes, ctx) => {
         const contentRoot = join(ctx.generateOptions.projectRoot, ctx.generateOptions.rootDirectory)
-        attachSourceUrls(routes, contentRoot, ctx.projectConfig.source)
+        attachSourceEditUrls(routes, contentRoot, ctx.projectConfig.source)
         return routes
       },
     },

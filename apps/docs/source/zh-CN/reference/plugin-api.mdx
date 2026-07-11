@@ -253,16 +253,30 @@ type ContentRoute = {
 
 ```ts
 type NavigationTree =
-  | ClarifyNavigationNode[]
+  | FlatNavigationTree
   | LocalizedNavigation
   | TabbedNavigation
   | LocalizedTabbedNavigation
 
-type LocalizedNavigation = Record<string, ClarifyNavigationNode[]>
+type FlatNavigationTree = {
+  kind: 'flat'
+  nodes: ClarifyNavigationNode[]
+}
 
-type TabbedNavigation = { tabs: ClarifyNavigationTab[] }
+type LocalizedNavigation = {
+  kind: 'localized'
+  locales: Record<string, ClarifyNavigationNode[]>
+}
 
-type LocalizedTabbedNavigation = Record<string, TabbedNavigation>
+type TabbedNavigation = {
+  kind: 'tabbed'
+  tabs: ClarifyNavigationTab[]
+}
+
+type LocalizedTabbedNavigation = {
+  kind: 'localized-tabbed'
+  locales: Record<string, { tabs: ClarifyNavigationTab[] }>
+}
 
 type ClarifyNavigationTab = {
   type: 'tab'
@@ -277,16 +291,18 @@ type ClarifyNavigationNode = {
   title: string
   icon?: string
   children?: ClarifyNavigationNode[]
-  sections?: Pick<ContentSection, 'id' | 'title' | 'badge' | 'tags'>[]
+  sections?: NavigationSection[]
+}
+
+type NavigationSection = {
+  id: string
+  title: string
+  badge?: string
+  tags?: string[]
 }
 ```
 
-Clarify 始终基于 `tabs` 配置构建导航，因此 Hook 收到的 `navigation` 是：
-
-- 默认是 `TabbedNavigation`（`{ tabs }` 结构）。
-- 启用 i18n 时按 locale 分组，为 `LocalizedTabbedNavigation`（`Record<string, { tabs }>`）。
-
-`NavigationTree` 联合中的 `ClarifyNavigationNode[]` 和 `LocalizedNavigation` 是无 `tabs` 配置时的回退形态。
+`NavigationTree` 始终使用 `kind` 作为判别字段。`flat` 和 `localized` 表示侧边栏导航，`tabbed` 和 `localized-tabbed` 表示从 `tabs` 配置生成的导航。
 
 ---
 
@@ -298,9 +314,9 @@ Clarify 始终基于 `tabs` 配置构建导航，因此 Hook 收到的 `navigati
 
 | 模块 ID | 说明 |
 |---------|------|
-| `virtual:clarify-config` | 运行时站点配置 |
-| `virtual:clarify-routes` | 路由和导航数据 |
-| `virtual:clarify-openapi-registry` | 已解析的 OpenAPI 规范表 |
-| `virtual:clarify-entry-client` | 客户端入口 |
+| `virtual:clarify/config` | 运行时站点配置 |
+| `virtual:clarify/routes` | 路由和导航数据 |
+| `virtual:clarify/openapi` | 已解析的 OpenAPI 规范表 |
+| `virtual:clarify/entry-client` | 客户端入口 |
 
 修改虚拟模块属于高级用法，适合实现搜索、分析或内部平台集成等场景。

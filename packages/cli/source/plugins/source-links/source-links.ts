@@ -18,7 +18,7 @@ function encodePath(path: string): string {
     .join('/')
 }
 
-export function createSourceUrl(filePath: string, contentRoot: string, source: ClarifySourceConfig): string {
+export function createSourceEditUrl(filePath: string, contentRoot: string, source: ClarifySourceConfig): string {
   const repository = normalizeRepositoryUrl(source.repository)
   const branch = source.branch ?? 'main'
   const directory = source.directory ? trimSlashes(source.directory) : ''
@@ -27,12 +27,12 @@ export function createSourceUrl(filePath: string, contentRoot: string, source: C
   return `${repository}/edit/${encodeURIComponent(branch)}/${encodePath(sourcePath)}`
 }
 
-export function attachSourceUrls(routes: ContentRoute[], contentRoot: string, source?: ClarifySourceConfig): void {
+export function attachSourceEditUrls(routes: ContentRoute[], contentRoot: string, source?: ClarifySourceConfig): void {
   if (!source) return
   for (const route of routes) {
     route.source = {
       ...route.source,
-      editUrl: createSourceUrl(route.source.filePath, contentRoot, source),
+      sourceEditUrl: createSourceEditUrl(route.source.filePath, contentRoot, source),
     }
   }
 }

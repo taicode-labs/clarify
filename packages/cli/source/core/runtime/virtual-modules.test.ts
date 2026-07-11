@@ -13,11 +13,11 @@ type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & 
   sections?: ContentRoute['meta']['sections']
   filePath?: string
   virtualModuleId?: string
-  editUrl?: string
+  sourceEditUrl?: string
 }
 
 function route(overrides: RouteFixture): ContentRoute {
-  const { title, description, keywords, sections, filePath, virtualModuleId, editUrl, ...rest } = overrides
+  const { title, description, keywords, sections, filePath, virtualModuleId, sourceEditUrl, ...rest } = overrides
   return {
     path: '/',
     kind: 'mdx',
@@ -30,7 +30,7 @@ function route(overrides: RouteFixture): ContentRoute {
     module: { virtualModuleId: virtualModuleId ?? 'virtual:clarify-page/index' },
     source: {
       filePath: filePath ?? 'index.mdx',
-      editUrl,
+      sourceEditUrl,
     },
     ...rest,
   }
@@ -62,13 +62,14 @@ describe('generateRoutesModule', () => {
   it('generates empty routes for empty input', () => {
     const code = generateRoutesModule([], { kind: 'flat', nodes: [] })
     expect(code).toContain('export const routes = [')
-    expect(code).toContain('export const navigation = []')
+    expect(code).toContain('export const navigation = {')
+    expect(code).toContain('"kind": "flat"')
     expect(code).toContain("import { createContentDiagnosticComponent } from '@clarify-labs/renderer';")
   })
 
   it('generates lazy imports and routes array', () => {
     const routes: ContentRoute[] = [
-      route({ path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index', editUrl: 'https://github.com/acme/docs/edit/main/index.mdx' }),
+      route({ path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index', sourceEditUrl: 'https://github.com/acme/docs/edit/main/index.mdx' }),
       route({ path: '/about', title: 'About', filePath: '/a/about.mdx', virtualModuleId: 'virtual:clarify-page/about' }),
     ]
     const code = generateRoutesModule(routes, { kind: 'flat', nodes: [] })
@@ -80,6 +81,7 @@ describe('generateRoutesModule', () => {
     expect(code).toContain('This page could not be loaded')
     expect(code).toContain('lazy: true')
     expect(code).toContain('title: "About"')
+    expect(code).toContain('sourceEditUrl: "https://github.com/acme/docs/edit/main/index.mdx"')
   })
 
   it('omits plugin-specific route fields from the runtime route manifest', () => {

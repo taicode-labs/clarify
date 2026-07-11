@@ -211,7 +211,7 @@ export default function MySlot() {
 
 ### Project-level Virtual Module Type Declarations
 
-Because modules such as `virtual:clarify/slot` and `virtual:clarify-runtime-slots` only exist during the Clarify/Vite build, the TypeScript language service in the user project cannot recognize them by default.
+Because modules such as `virtual:clarify/slot` and `virtual:clarify/slots` only exist during the Clarify/Vite build, the TypeScript language service in the user project cannot recognize them by default.
 
 To avoid asking plugin authors or site authors to write `declare module` manually, Clarify dev should generate a project-level type declaration file from the current project and enabled plugins, for example:
 
@@ -263,7 +263,7 @@ This keeps runtime code implemented through virtual modules while development-ti
 The CLI generates a virtual module from all plugin `slots`, for example:
 
 ```ts
-// virtual:clarify-runtime-slots
+// virtual:clarify/slots
 
 import Slot0 from 'virtual:clarify-github-comments-slot'
 
@@ -477,7 +477,7 @@ Only add:
 - `ClarifyPlugin.slots`
 - `page.footer.before`
 - `RuntimeSlot`
-- `virtual:clarify-runtime-slots`
+- `virtual:clarify/slots`
 - `virtual:clarify/slot` and `useSlot()`
 - dev/build generated project-level `clarify-env.d.ts`
 

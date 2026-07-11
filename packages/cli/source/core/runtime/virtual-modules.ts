@@ -1,6 +1,6 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
-import type { ClarifyNavigationNode, ClarifyNavigationTab, ClarifyPlugin, ContentDiagnostic, ContentRoute, ContentSection, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, ContentSection, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 // 新的虚拟模块命名 - 更清晰的职责划分
 export const VIRTUAL_CONFIG = 'virtual:clarify/config'
@@ -108,32 +108,13 @@ type RuntimeRouteMetadata = {
 
 type RuntimeRouteContentLinks = {
   contentArtifactUrl?: string
-  sourceUrl?: string
+  sourceEditUrl?: string
 }
 
 type RuntimeRouteManifestEntry = RuntimeRouteIdentity & RuntimeRouteMetadata & RuntimeRouteContentLinks & {
   component: RuntimeRouteComponentExpression
   lazy?: true
   kind: ContentRoute['kind']
-}
-
-type RuntimeNavigationObject =
-  | ClarifyNavigationNode[]
-  | Record<string, ClarifyNavigationNode[]>
-  | { tabs: ClarifyNavigationTab[] }
-  | Record<string, { tabs: ClarifyNavigationTab[] }>
-
-export function navigationToRuntimeObject(navigation: NavigationTree): RuntimeNavigationObject {
-  switch (navigation.kind) {
-    case 'flat':
-      return navigation.nodes
-    case 'tabbed':
-      return { tabs: navigation.tabs }
-    case 'localized':
-      return navigation.locales
-    case 'localized-tabbed':
-      return navigation.locales
-  }
 }
 
 function routeToRuntimeManifestEntry(route: ContentRoute, component: RuntimeRouteComponentExpression, mode: 'client' | 'server'): RuntimeRouteManifestEntry {
@@ -153,7 +134,7 @@ function routeToRuntimeManifestEntry(route: ContentRoute, component: RuntimeRout
   if (route.meta.description) entry.description = route.meta.description
   if (route.meta.keywords?.length) entry.keywords = route.meta.keywords
   if (route.artifacts?.contentArtifactUrl) entry.contentArtifactUrl = route.artifacts.contentArtifactUrl
-  if (route.source?.editUrl) entry.sourceUrl = route.source.editUrl
+  if (route.source?.sourceEditUrl) entry.sourceEditUrl = route.source.sourceEditUrl
   if (route.meta.sections?.length) {
     entry.sections = route.meta.sections.map(section => ({ id: section.id, title: section.title, level: section.level, badge: section.badge, tags: section.tags }))
   }
@@ -190,7 +171,7 @@ export function generateRoutesModule(routes: ContentRoute[], navigation: Navigat
     return `  ${jsObject}`
   }).join(',\n')
 
-  return `${imports}\n\nexport const routes = [\n${routeEntries}\n];\n\nexport const navigation = ${JSON.stringify(navigationToRuntimeObject(navigation), null, 2)};\n`
+  return `${imports}\n\nexport const routes = [\n${routeEntries}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
 export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {

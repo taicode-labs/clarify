@@ -8,7 +8,7 @@ import { useBuiltInText } from '../core/i18n'
 import { Header, Navigation } from '../shell'
 import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlots } from '../slots'
 import { getStoredLocalePreference, storeLocalePreference } from '../theme/cookies'
-import type { RouteItem, Config, LocaleConfig, NavigationNode, NavigationTab, NavigationTree, TabbedNavigation } from '../types'
+import type { RouteItem, Config, LocaleConfig, NavigationNode, NavigationTab, NavigationTree } from '../types'
 import { safeDecodeURIComponent } from '../utils/hash'
 import { resolveLocalizedText } from '../utils/localized-text'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
@@ -129,10 +129,6 @@ function isDefaultLocale(config: Config, locale: string | undefined): boolean {
   return Boolean(locale && config.i18n?.defaultLocale === locale)
 }
 
-function isTabbedNavigation(navigation: NavigationTree): navigation is TabbedNavigation {
-  return !Array.isArray(navigation) && 'tabs' in navigation
-}
-
 function hasPath(nodes: NavigationNode[], pathname: string): boolean {
   return nodes.some((node) => isSameRoutePath(node.path, pathname) || hasPath(node.children ?? [], pathname))
 }
@@ -142,22 +138,25 @@ type NavigationState = {
   tabs?: NavigationTab[]
 }
 
-function navigationFromTabs(navigation: TabbedNavigation, pathname: string): NavigationState {
-  const currentTab = navigation.tabs.find((tab) => isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname))
+function navigationFromTabs(tabs: NavigationTab[], pathname: string): NavigationState {
+  const currentTab = tabs.find((tab) => isSameRoutePath(tab.path, pathname) || hasPath(tab.children, pathname))
   return {
-    items: currentTab?.children ?? navigation.tabs[0]?.children ?? [],
-    tabs: navigation.tabs,
+    items: currentTab?.children ?? tabs[0]?.children ?? [],
+    tabs,
   }
 }
 
 function navigationForLocale(navigation: NavigationTree, locale: string | undefined, pathname: string): NavigationState {
-  if (Array.isArray(navigation)) return { items: navigation }
-  if (isTabbedNavigation(navigation)) return navigationFromTabs(navigation, pathname)
-  if (!locale) return { items: [] }
-
-  const localizedNavigation = navigation[locale]
-  if (!localizedNavigation) return { items: [] }
-  return Array.isArray(localizedNavigation) ? { items: localizedNavigation } : navigationFromTabs(localizedNavigation, pathname)
+  switch (navigation.kind) {
+    case 'flat':
+      return { items: navigation.nodes }
+    case 'tabbed':
+      return navigationFromTabs(navigation.tabs, pathname)
+    case 'localized':
+      return { items: locale ? navigation.locales[locale] ?? [] : [] }
+    case 'localized-tabbed':
+      return locale && navigation.locales[locale] ? navigationFromTabs(navigation.locales[locale].tabs, pathname) : { items: [] }
+  }
 }
 
 function pageTitle(config: Config, route?: RouteItem): string {
