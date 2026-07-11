@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import { getMediaTypeEntries, getOperationParameters, getRequestBody } from '../lib/helpers'
-import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
+import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
 import type { OpenApiParameter, OpenApiServer, RequestAuthInput } from '../types'
 
 import { authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServers } from './ExamplePanels'
@@ -21,8 +21,8 @@ export type OperationRequestState = {
   }
 }
 
-export function useOperationRequestState(spec: OpenAPISpec, path: string, operation: OpenAPIOperation): OperationRequestState {
-  const parameters = getOperationParameters(spec, path, operation)
+export function useOperationRequestState(spec: OpenAPISpec, path: string, operation: OpenAPIOperation, source: OpenAPIOperationSource = 'path'): OperationRequestState {
+  const parameters = getOperationParameters(spec, path, operation, source)
   const requestBody = getRequestBody(spec, operation)
   const requestContents = getMediaTypeEntries(requestBody?.content, spec)
   const [selectedRequestMediaType, setSelectedRequestMediaType] = useState(requestContents[0]?.mediaType ?? '')
@@ -57,8 +57,8 @@ export type OperationServerState = {
   closeServer: () => void
 }
 
-export function useOperationServerState(spec: OpenAPISpec, operation: OpenAPIOperation, path: string): OperationServerState {
-  const servers = getServers(spec, operation, path)
+export function useOperationServerState(spec: OpenAPISpec, operation: OpenAPIOperation, path: string, source: OpenAPIOperationSource = 'path'): OperationServerState {
+  const servers = getServers(spec, operation, path, source)
   const [selectedServerKey, setSelectedServerKey] = useState(getServerKey(servers[0], 0))
   const selectedServer = servers.find((server, index) => getServerKey(server, index) === selectedServerKey) ?? servers[0]
   const [serverVariables, setServerVariables] = useState(defaultServerVariables(selectedServer))

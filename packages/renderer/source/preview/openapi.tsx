@@ -248,6 +248,7 @@ export function OpenApiExamplesPreview(arg0: OpenApiExamplesPreviewProps) {
       <EndpointIdentity
         method={method}
         path={endpoint.path}
+        operationSource="path"
         servers={identityState.servers}
         selectedServerKey={identityState.selectedServerKey}
         selectedServer={identityState.selectedServer}

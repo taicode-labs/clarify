@@ -70,16 +70,17 @@ function OpenApiPaths(arg0: OpenApiPathsProps): ReactNode {
 
   const entries = listOpenApiOperations(spec)
     .filter(({ operation }) => operationMatchesTags(operation.tags, tagFilter))
-    .map(({ path, method, operation }) => ({
+    .map(({ path, method, operation, source }) => ({
       path,
       method: method.toUpperCase(),
       operation,
+      source,
     }))
 
   return (
     <div className="clarify-api-endpoints divide-y divide-zinc-200/70 dark:divide-white/10">
-      {entries.map(({ path, method, operation }) => (
-        <OpenApiOperationComponent key={`${method}-${path}`} spec={spec} path={path} method={method} operation={operation} />
+      {entries.map(({ path, method, operation, source }) => (
+        <OpenApiOperationComponent key={`${source}-${method}-${path}`} spec={spec} path={path} method={method} operation={operation} operationSource={source} />
       ))}
     </div>
   )

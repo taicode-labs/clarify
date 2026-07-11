@@ -8,6 +8,8 @@ export type OpenAPIOperation = OpenAPIV3.OperationObject | OpenAPIV3_1.Operation
 export const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
 
 export type OpenAPIHttpMethod = typeof OPENAPI_HTTP_METHODS[number]
+export type OpenAPIOperationSource = 'path' | 'webhook'
+export type OpenAPIOperationEntry = { path: string; method: OpenAPIHttpMethod; operation: OpenAPIOperation; source: OpenAPIOperationSource }
 
 export function isOpenAPIHttpMethod(method: string): method is OpenAPIHttpMethod {
   return (OPENAPI_HTTP_METHODS as readonly string[]).includes(method.toLowerCase())
@@ -33,23 +35,39 @@ function getPathItem(spec: OpenAPISpec, path: string): OpenApiRecord | undefined
   return isRecord(resolved) ? resolved : undefined
 }
 
+function getWebhookItem(spec: OpenAPISpec, path: string): OpenApiRecord | undefined {
+  const webhooks = (spec as OpenApiRecord).webhooks
+  const pathItem = isRecord(webhooks) ? webhooks[path] : undefined
+  const resolved = isRecord(pathItem) && typeof pathItem.$ref === 'string' ? resolveOpenApiRef(spec, pathItem.$ref) : pathItem
+  return isRecord(resolved) ? resolved : undefined
+}
+
+function listOperationsFromPathItems(items: Record<string, unknown>, source: OpenAPIOperationSource, spec: OpenAPISpec): OpenAPIOperationEntry[] {
+  const operations: OpenAPIOperationEntry[] = []
+
+  for (const path of Object.keys(items)) {
+    const pathItem = source === 'webhook' ? getWebhookItem(spec, path) : getPathItem(spec, path)
+    if (!pathItem) continue
+    for (const method of OPENAPI_HTTP_METHODS) {
+      const operation = pathItem[method]
+      if (operation) operations.push({ path, method, operation: operation as OpenAPIOperation, source })
+    }
+  }
+
+  return operations
+}
+
 export function getOpenApiOperation(spec: OpenAPISpec, path: string, method: string): OpenAPIOperation | undefined {
   if (!isOpenAPIHttpMethod(method)) return undefined
   return getPathItem(spec, path)?.[method.toLowerCase() as OpenAPIHttpMethod] as OpenAPIOperation | undefined
 }
 
-export function listOpenApiOperations(spec: OpenAPISpec): Array<{ path: string; method: OpenAPIHttpMethod; operation: OpenAPIOperation }> {
+export function listOpenApiOperations(spec: OpenAPISpec): OpenAPIOperationEntry[] {
   const paths = spec.paths ?? {}
-  const operations: Array<{ path: string; method: OpenAPIHttpMethod; operation: OpenAPIOperation }> = []
+  const webhooks = (spec as OpenApiRecord).webhooks
 
-  for (const path of Object.keys(paths)) {
-    const pathItem = getPathItem(spec, path)
-    if (!pathItem) continue
-    for (const method of OPENAPI_HTTP_METHODS) {
-      const operation = pathItem[method]
-      if (operation) operations.push({ path, method, operation: operation as OpenAPIOperation })
-    }
-  }
-
-  return operations
+  return [
+    ...listOperationsFromPathItems(paths, 'path', spec),
+    ...(isRecord(webhooks) ? listOperationsFromPathItems(webhooks, 'webhook', spec) : []),
+  ]
 }

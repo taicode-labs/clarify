@@ -1,6 +1,6 @@
 import { useBuiltInText } from '../../core/i18n'
-import { getPathItem, isRecord } from '../lib/helpers'
-import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
+import { getOperationPathItem, isRecord } from '../lib/helpers'
+import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
 import type {
   ExampleEntry,
   OpenApiSecurityRequirement,
@@ -13,14 +13,16 @@ import type { SelectOption } from './SelectControl'
 
 type AuthPlaceholderArg = { scheme: OpenApiSecurityScheme }
 
-export function getServers(spec: OpenAPISpec, operation: OpenAPIOperation, path?: string): OpenApiServer[] {
+export function getServers(spec: OpenAPISpec, operation: OpenAPIOperation, path?: string, source: OpenAPIOperationSource = 'path'): OpenApiServer[] {
   const operationServers = (operation as Record<string, unknown>).servers
-  const pathServers = path ? getPathItem(spec, path)?.servers : undefined
+  const pathServers = path ? getOperationPathItem(spec, path, source)?.servers : undefined
   const servers = Array.isArray(operationServers)
     ? operationServers
     : Array.isArray(pathServers)
       ? pathServers
-      : (spec as Record<string, unknown>).servers
+      : source === 'webhook'
+        ? [{ url: 'https://webhook.example.com' }]
+        : (spec as Record<string, unknown>).servers
   if (!Array.isArray(servers)) return [{ url: 'https://api.example.com' }]
   const validServers = servers.filter((server): server is OpenApiServer => isRecord(server) && typeof server.url === 'string')
   return validServers.length > 0 ? validServers : [{ url: 'https://api.example.com' }]

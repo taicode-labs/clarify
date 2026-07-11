@@ -3,7 +3,7 @@ import { type ReactNode } from 'react'
 import { useBuiltInText } from '../../core/i18n'
 import { Markdown } from '../../mdx/Markdown'
 import { Col, Row } from '../../mdx/primitives'
-import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
+import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
 import type { MediaTypeEntry, OpenApiParameter, OpenApiRecord, OpenApiServer, RequestAuthInput } from '../types'
 
 import { RequestExamplesPanel, ResponseExamplesPanel } from './ExamplePanels'
@@ -13,6 +13,7 @@ type EndpointRequestProps = {
   spec: OpenAPISpec
   path: string
   method: string
+  operationSource?: OpenAPIOperationSource
   description?: string
   groupedParameters: {
     path: OpenApiParameter[]
@@ -37,6 +38,7 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
     spec,
     path,
     method,
+    operationSource = 'path',
     description,
     groupedParameters,
     parameters,
@@ -101,6 +103,7 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
               selectedServer={selectedServer}
               serverVariables={serverVariables}
               auth={auth}
+              operationSource={operationSource}
               sharedExampleKey={sharedExampleKey}
               onSelectExampleKey={onSelectExampleKey}
             />
@@ -114,6 +117,7 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
 type EndpointResponseProps = {
   spec: OpenAPISpec
   operation: OpenAPIOperation
+  operationSource?: OpenAPIOperationSource
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
   selectedStatus?: string
@@ -121,14 +125,17 @@ type EndpointResponseProps = {
 }
 
 export function EndpointResponse(arg0: EndpointResponseProps): ReactNode {
-  const { spec, operation, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
+  const { spec, operation, operationSource = 'path', sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
+  const t = useBuiltInText()
+  const responseTitle = operationSource === 'webhook' ? t('openapi.webhookResponses') : t('openapi.responses')
+  const responseExampleTitle = operationSource === 'webhook' ? t('openapi.webhookResponse') : t('openapi.response')
 
   return (
     <div className="mt-6">
       <Row className="relative">
         <Col>
           <div className="w-full">
-            <ResponseList operation={operation} spec={spec} selectedStatus={selectedStatus} onSelectStatus={onSelectStatus} />
+            <ResponseList title={responseTitle} operation={operation} spec={spec} selectedStatus={selectedStatus} onSelectStatus={onSelectStatus} />
           </div>
         </Col>
         <Col sticky>
@@ -136,6 +143,7 @@ export function EndpointResponse(arg0: EndpointResponseProps): ReactNode {
             <ResponseExamplesPanel
               operation={operation}
               spec={spec}
+              title={responseExampleTitle}
               sharedExampleKey={sharedExampleKey}
               onSelectExampleKey={onSelectExampleKey}
               selectedStatus={selectedStatus}

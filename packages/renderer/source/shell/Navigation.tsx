@@ -57,6 +57,7 @@ const sectionBadgeColorStyles: Record<string, string> = {
   OPTIONS: 'text-violet-500 dark:text-violet-400',
   HEAD: 'text-zinc-500 dark:text-zinc-400',
   TRACE: 'text-fuchsia-500 dark:text-fuchsia-400',
+  WEBHOOK: 'text-violet-500 dark:text-violet-400',
 }
 
 type SectionBadgeProps = { children: string }
