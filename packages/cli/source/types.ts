@@ -321,15 +321,15 @@ export type ContentRouteModule = {
 export type OpenAPIContentRouteState = {
   /** Operation tag filter applied to this route. Undefined means all operations. */
   tagFilter?: string[]
-  /** Deduplicated key derived from the source OpenAPI spec file path. */
-  sourceSpecKey?: string
-  /** Spec module key used by this route after route-level filtering. */
-  routeSpecKey?: string
+  /** Deduplicated id derived from the source OpenAPI spec file path. */
+  sourceSpecId?: string
+  /** Spec virtual module id fragment used by this route after route-level filtering. */
+  routeSpecModuleId?: string
 }
 
 export type ContentRouteArtifacts = {
   /** Public URL for the machine-readable content artifact served or emitted for this route. */
-  contentUrl?: string
+  contentArtifactUrl?: string
 }
 
 export type ContentRouteSource = {
@@ -396,12 +396,19 @@ export type ClarifyPage = {
   content: string
 }
 
+export type NavigationSection = {
+  id: string
+  title: string
+  badge?: string
+  tags?: string[]
+}
+
 export type ClarifyNavigationNode = {
   path: string
   title: string
   icon?: string
   children?: ClarifyNavigationNode[]
-  sections?: Pick<ContentSection, 'id' | 'title' | 'badge' | 'tags'>[]
+  sections?: NavigationSection[]
 }
 
 // ────────────────────────────────────────────────────────────────────────────────

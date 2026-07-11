@@ -135,15 +135,15 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
   return [...routesWithAlternates, ...bareAliases]
 }
 
-/** Derive a stable, deduplicated key from an absolute spec file path. */
-function specFileKeyFromPath(filePath: string, projectRoot: string): string {
+/** Derive a stable, deduplicated id from an absolute spec file path. */
+function sourceSpecIdFromPath(filePath: string, projectRoot: string): string {
   return relative(projectRoot, filePath).replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
 }
 
-function specModuleKeyForRoute(specFileKey: string, tagFilter?: string[]): string {
-  if (!tagFilter?.length) return specFileKey
+function routeSpecModuleIdFromSourceSpecId(sourceSpecId: string, tagFilter?: string[]): string {
+  if (!tagFilter?.length) return sourceSpecId
   const suffix = tagFilter.map(tag => tag.replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'tag').join('_')
-  return `${specFileKey}_tags_${suffix}`
+  return `${sourceSpecId}_tags_${suffix}`
 }
 
 function openAPIRegistryKeys(route: ContentRoute): string[] {
@@ -160,7 +160,7 @@ function openAPIRegistryKeys(route: ContentRoute): string[] {
 }
 
 export function createOpenAPIPlugin(): ClarifyPlugin {
-  /** specs keyed by specFileKey (deduplicated per source file). */
+  /** specs keyed by sourceSpecId (deduplicated per source file). */
   const specs = new Map<string, OpenAPISpecEntry>()
   const specModules = new Map<string, OpenAPISpec>()
 
@@ -192,14 +192,14 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           const spec = result.spec
           specByFilePath.set(route.source.filePath, spec)
 
-          // Derive a stable dedup key from the spec file path
-          const specKey = specFileKeyFromPath(route.source.filePath, ctx.generateOptions.projectRoot)
+          // Derive a stable dedup id from the spec file path
+          const sourceSpecId = sourceSpecIdFromPath(route.source.filePath, ctx.generateOptions.projectRoot)
           route.openapi = {
             ...route.openapi,
-            sourceSpecKey: specKey,
+            sourceSpecId,
           }
 
-          specs.set(specKey, { spec, filePath: route.source.filePath })
+          specs.set(sourceSpecId, { spec, filePath: route.source.filePath })
           route.meta.title = spec.info?.title ?? route.meta.title
           route.meta.description = spec.info?.description ?? route.meta.description
           route.meta.sections = extractOpenAPISections(spec, route.openapi?.tagFilter)
@@ -208,9 +208,9 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           const pageSpec = route.openapi?.tagFilter?.length
             ? filterSpecByTags(spec, route.openapi.tagFilter)
             : spec
-          const specModuleKey = specModuleKeyForRoute(specKey, route.openapi?.tagFilter)
-          route.openapi.routeSpecKey = specModuleKey
-          specModules.set(specModuleKey, pageSpec)
+          const routeSpecModuleId = routeSpecModuleIdFromSourceSpecId(sourceSpecId, route.openapi?.tagFilter)
+          route.openapi.routeSpecModuleId = routeSpecModuleId
+          specModules.set(routeSpecModuleId, pageSpec)
           route.source.content = JSON.stringify(pageSpec)
         }
 
@@ -225,13 +225,13 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         const serverRegistryEntries: Record<string, OpenAPISpec> = {}
 
         for (const route of ctx.routes) {
-          if (route.kind !== 'openapi' || !route.openapi?.sourceSpecKey) continue
-          const specModuleKey = route.openapi.routeSpecKey ?? route.openapi.sourceSpecKey
-          const spec = specModules.get(specModuleKey) ?? specs.get(route.openapi.sourceSpecKey)?.spec
+          if (route.kind !== 'openapi' || !route.openapi?.sourceSpecId) continue
+          const routeSpecModuleId = route.openapi.routeSpecModuleId ?? route.openapi.sourceSpecId
+          const spec = specModules.get(routeSpecModuleId) ?? specs.get(route.openapi.sourceSpecId)?.spec
           if (!spec) continue
 
           for (const registryKey of openAPIRegistryKeys(route)) {
-            registryEntries[registryKey] = specVirtualModuleId(specModuleKey)
+            registryEntries[registryKey] = specVirtualModuleId(routeSpecModuleId)
             serverRegistryEntries[registryKey] = spec
           }
         }
@@ -240,8 +240,8 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         modules.set(openApiServerRegistryModuleId, generateOpenAPIServerRegistryModule(serverRegistryEntries))
 
         // ── Per-spec virtual modules ──
-        for (const [specKey, spec] of specModules) {
-          modules.set(specVirtualModuleId(specKey), generateOpenAPISpecModule(spec))
+        for (const [routeSpecModuleId, spec] of specModules) {
+          modules.set(specVirtualModuleId(routeSpecModuleId), generateOpenAPISpecModule(spec))
         }
 
         // ── Per-route page modules ──
@@ -249,11 +249,11 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
           if (route.kind !== 'openapi') continue
           if (route.diagnostic) {
             modules.set(route.module.virtualModuleId, generateOpenAPIErrorModule(route.diagnostic))
-          } else if (route.openapi?.sourceSpecKey) {
-            const specModuleKey = route.openapi.routeSpecKey ?? route.openapi.sourceSpecKey
-            if (!specModules.has(specModuleKey)) continue
+          } else if (route.openapi?.sourceSpecId) {
+            const routeSpecModuleId = route.openapi.routeSpecModuleId ?? route.openapi.sourceSpecId
+            if (!specModules.has(routeSpecModuleId)) continue
             modules.set(route.module.virtualModuleId, generateOpenAPIPageModule({
-              specModuleId: specVirtualModuleId(specModuleKey),
+              specModuleId: specVirtualModuleId(routeSpecModuleId),
             }))
           }
         }

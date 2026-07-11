@@ -35,7 +35,7 @@ export function attachContentArtifactUrls(routes: ContentRoute[]): void {
   for (const route of routes) {
     route.artifacts = {
       ...route.artifacts,
-      contentUrl: route.kind === 'openapi'
+      contentArtifactUrl: route.kind === 'openapi'
         ? routeToOpenAPIArtifactUrl(route.path)
         : routeToMarkdownArtifactUrl(route.path),
     }
@@ -70,13 +70,13 @@ function llmsTxtDescription(route: ContentRoute): string | undefined {
 }
 
 function llmsTxtListItem(route: ContentRoute, basePath: string): string | undefined {
-  const contentUrl = route.artifacts?.contentUrl
-  if (!contentUrl) return undefined
+  const contentArtifactUrl = route.artifacts?.contentArtifactUrl
+  if (!contentArtifactUrl) return undefined
 
   const description = llmsTxtDescription(route)
   return description
-    ? `- [${route.meta.title}](${basePath}${contentUrl}): ${description}`
-    : `- [${route.meta.title}](${basePath}${contentUrl})`
+    ? `- [${route.meta.title}](${basePath}${contentArtifactUrl}): ${description}`
+    : `- [${route.meta.title}](${basePath}${contentArtifactUrl})`
 }
 
 function llmsTxtLocaleLabel(locale: string, projectConfig: ResolvedProjectConfig): string {
@@ -97,7 +97,7 @@ function groupLlmsTxtRoutesByLocale(routes: ContentRoute[], projectConfig: Resol
   const defaultLocale = projectConfig.i18n?.defaultLocale
 
   for (const route of routes) {
-    const sourceKey = `${route.locale ?? defaultLocale ?? 'default'}:${route.basePath ?? route.artifacts?.contentUrl ?? route.path}`
+    const sourceKey = `${route.locale ?? defaultLocale ?? 'default'}:${route.basePath ?? route.artifacts?.contentArtifactUrl ?? route.path}`
     const previousRoute = routesBySource.get(sourceKey)
 
     if (!previousRoute || (previousRoute.locale && !route.locale)) {

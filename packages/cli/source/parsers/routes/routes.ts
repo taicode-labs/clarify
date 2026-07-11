@@ -6,7 +6,7 @@ import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
 import { visit } from 'unist-util-visit'
 
-import type { ClarifyPage, ClarifyPageRouteIntent, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyRouteIntent, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, ResolvedClarifyI18nConfig, TabbedNavigation } from '../../types.js'
+import type { ClarifyPage, ClarifyPageRouteIntent, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyRouteIntent, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, NavigationSection, ResolvedClarifyI18nConfig, TabbedNavigation } from '../../types.js'
 import { createContentProcessor, type ContentProcessor } from '../content/content.js'
 import { compileMdxContent } from '../markdown/mdx.js'
 
@@ -50,8 +50,8 @@ export function extractMdxSections(content: string): ContentSection[] {
   return sections
 }
 
-function navigationSections(sections: ContentSection[]) {
-  return sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags }))
+function navigationSections(sections: ContentSection[]): NavigationSection[] {
+  return sections.map(section => ({ id: section.id, title: section.title, badge: section.badge, tags: section.tags }))
 }
 
 export function normalizePath(path: string): string {

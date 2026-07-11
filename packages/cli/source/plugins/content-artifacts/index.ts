@@ -24,17 +24,17 @@ export function createContentArtifactsPlugin(): ClarifyPlugin {
         const assets: ClarifyEmitAsset[] = []
 
         for (const route of ctx.routes) {
-          const contentUrl = route.artifacts?.contentUrl
-          if (!contentUrl) continue
+          const contentArtifactUrl = route.artifacts?.contentArtifactUrl
+          if (!contentArtifactUrl) continue
 
           assets.push({
-            fileName: contentUrl.replace(/^\//, ''),
+            fileName: contentArtifactUrl.replace(/^\//, ''),
             source: readRouteArtifactContent(route),
           })
 
           // For OpenAPI routes, also emit a YAML variant
           if (route.kind === 'openapi' && route.source.content) {
-            const yamlFileName = contentUrl.replace(/\.json$/, '.yaml')
+            const yamlFileName = contentArtifactUrl.replace(/\.json$/, '.yaml')
             const spec = JSON.parse(route.source.content)
             assets.push({
               fileName: yamlFileName.replace(/^\//, ''),

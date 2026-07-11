@@ -21,7 +21,7 @@ function createRoute(kind: 'mdx' | 'openapi', contentArtifactUrl: string): Conte
     meta: { title: 'API' },
     module: { virtualModuleId: 'virtual:clarify-page/api' },
     source: { filePath: '/tmp/api.openapi.yaml' },
-    artifacts: { contentUrl: contentArtifactUrl },
+    artifacts: { contentArtifactUrl },
   }
 }
 

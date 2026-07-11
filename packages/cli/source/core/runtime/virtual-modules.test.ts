@@ -89,8 +89,8 @@ describe('generateRoutesModule', () => {
     const code = generateRoutesModule(routes, { kind: 'flat', nodes: [] })
     expect(code).toContain('kind: "openapi"')
     expect(code).not.toContain('tagFilter')
-    expect(code).not.toContain('sourceSpecKey')
-    expect(code).not.toContain('routeSpecKey')
+    expect(code).not.toContain('sourceSpecId')
+    expect(code).not.toContain('routeSpecModuleId')
   })
 
   it('escapes route module specifiers', () => {
