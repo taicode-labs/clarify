@@ -403,8 +403,8 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
   useEffect(() => {
     if (!copiedUrl) return undefined
 
-    const timeout = window.setTimeout(() => setCopiedUrl(false), 1200)
-    return () => window.clearTimeout(timeout)
+    const timeout = setTimeout(() => setCopiedUrl(false), 1200)
+    return () => clearTimeout(timeout)
   }, [copiedUrl])
 
   async function handleCopyUrl() {

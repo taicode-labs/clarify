@@ -47,7 +47,7 @@ export function ContentActions(arg0: ContentActionsProps) {
 
   function markCopied(state: Exclude<CopyState, 'idle'>) {
     setCopied(state)
-    window.setTimeout(() => setCopied('idle'), 1600)
+    setTimeout(() => setCopied('idle'), 1600)
   }
 
   async function handleCopyContent() {

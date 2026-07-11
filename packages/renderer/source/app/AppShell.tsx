@@ -85,6 +85,7 @@ function resolveRouteComponent(route: RouteItem): ComponentType {
 }
 
 function scrollToHash(hash: string) {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
   if (!hash) return
 
   const targetId = safeDecodeURIComponent(hash.slice(1))
@@ -226,7 +227,7 @@ function emptySubscribe() {
 function useStoredBannerDismissed(storageKey: string | undefined) {
   return useSyncExternalStore(
     emptySubscribe,
-    () => Boolean(storageKey && window.localStorage.getItem(storageKey) === '1'),
+    () => Boolean(storageKey && typeof window !== 'undefined' && window.localStorage.getItem(storageKey) === '1'),
     // Avoid SSR/hydration flash for dismissible banners by resolving dismissal on the client.
     () => true,
   )
@@ -281,6 +282,8 @@ function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
   }, [config, currentRoute, explicitLocale, location.hash, location.search, navigate, pathname, storedLocale])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     if (location.hash) {
       hashScrollSuppressedUntilRef.current = Date.now() + 1200
       scrollToHash(location.hash)

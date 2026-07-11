@@ -21,7 +21,7 @@ export function CopyCodeButton(arg0: CopyCodeButtonProps): ReactNode {
         void copyTextToClipboard(code).then((ok) => {
           if (!ok) return
           setCopied(true)
-          window.setTimeout(() => setCopied(false), 1000)
+          setTimeout(() => setCopied(false), 1000)
         })
       }}
       className="flex items-center gap-1.5 rounded-full bg-(--clarify-code-control-background) px-2.5 py-1.5 text-2xs font-medium text-(--clarify-code-muted) transition hover:bg-(--clarify-code-control-background-hover) hover:text-(--clarify-code-text) focus:bg-(--clarify-code-control-background-hover) focus:text-(--clarify-code-text)"

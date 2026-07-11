@@ -13,6 +13,8 @@ type SectionHashSyncProps = {
 const HASH_UPDATE_DEBOUNCE_MS = 120
 
 function replaceHash(sectionId?: string) {
+  if (typeof window === 'undefined') return
+
   const nextHash = sectionId ? `#${encodeURIComponent(sectionId)}` : ''
   if (window.location.hash === nextHash) return
   window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}${nextHash}`)
@@ -20,6 +22,8 @@ function replaceHash(sectionId?: string) {
 
 function useReleaseHashSyncOnManualScroll(hashScrollSuppressedUntilRef: RefObject<number>) {
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     const release = () => {
       hashScrollSuppressedUntilRef.current = 0
     }
@@ -41,7 +45,7 @@ function useReleaseHashSyncOnManualScroll(hashScrollSuppressedUntilRef: RefObjec
 export function SectionHashSync(arg0: SectionHashSyncProps) {
   const { hashScrollSuppressedUntilRef } = arg0
   const location = useLocation()
-  const hashUpdateTimeoutRef = useRef<number | undefined>(undefined)
+  const hashUpdateTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const sections = useSectionStore((state) => state.sections)
   const visibleSections = useSectionStore((state) => state.visibleSections)
 
@@ -55,13 +59,13 @@ export function SectionHashSync(arg0: SectionHashSyncProps) {
 
     if (hashSectionId && Date.now() < hashScrollSuppressedUntilRef.current && !visibleSections.includes(hashSectionId)) return
 
-    hashUpdateTimeoutRef.current = window.setTimeout(() => {
+    hashUpdateTimeoutRef.current = setTimeout(() => {
       replaceHash(visibleSections[0] === '_top' ? undefined : visibleSectionId)
     }, HASH_UPDATE_DEBOUNCE_MS)
 
     return () => {
       if (hashUpdateTimeoutRef.current !== undefined) {
-        window.clearTimeout(hashUpdateTimeoutRef.current)
+        clearTimeout(hashUpdateTimeoutRef.current)
         hashUpdateTimeoutRef.current = undefined
       }
     }

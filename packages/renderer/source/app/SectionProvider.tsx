@@ -133,6 +133,8 @@ function useSectionVisibilityDebug(_headerTopAreaRef?: RefObject<HTMLDivElement 
 
 function useSectionVisibilityObserver(checkVisibleSections: () => void, headerTopAreaRef?: RefObject<HTMLDivElement | null>) {
   useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+
     const raf = window.requestAnimationFrame(() => checkVisibleSections())
     window.addEventListener('scroll', checkVisibleSections, { passive: true })
     window.addEventListener('resize', checkVisibleSections)
@@ -162,6 +164,8 @@ function useVisibleSections(sectionStore: StoreApi<SectionState>, headerTopAreaR
   const emitVisibilityDebug = useSectionVisibilityDebug(headerTopAreaRef)
 
   const checkVisibleSections = useCallback(() => {
+    if (typeof window === 'undefined') return
+
     const { innerHeight, scrollY } = window
     const viewportTop = getVisibleViewportTop(scrollY, innerHeight, headerTopAreaRef)
     const viewportBottom = getVisibleViewportBottom(scrollY, innerHeight, headerTopAreaRef)
