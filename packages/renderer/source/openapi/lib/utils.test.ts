@@ -19,7 +19,7 @@ describe('OpenAPI operation section ids', () => {
 
     const [entry] = listOpenApiOperations(spec)
 
-    expect(getOpenApiOperationSectionId(entry.operation)).toBe('listpets')
+    expect(getOpenApiOperationSectionId(entry.operation)).toBe('listPets')
   })
 
   it('normalizes section ids when resolving a single operation from a raw spec', () => {
@@ -59,6 +59,6 @@ describe('OpenAPI operation section ids', () => {
     const entry = getOpenApiOperationEntry(spec, 'pageLifecycle', 'post')
 
     expect(entry?.source).toBe('webhook')
-    expect(entry ? getOpenApiOperationSectionId(entry.operation) : '').toBe('pagelifecyclewebhook')
+    expect(entry ? getOpenApiOperationSectionId(entry.operation) : '').toBe('pageLifecycleWebhook')
   })
 })

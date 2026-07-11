@@ -21,7 +21,7 @@ export function getOpenApiOperationSectionId(operation: OpenAPIOperation): strin
 
 function createOpenApiOperationSectionId(operation: OpenApiRecord, method: string, path: string, source: OpenAPIOperationSource): string {
   const operationId = typeof operation.operationId === 'string' ? operation.operationId.trim() : ''
-  return slug(operationId || `${source === 'webhook' ? 'webhook ' : ''}${method.toLowerCase()} ${path}`)
+  return operationId || slug(`${source === 'webhook' ? 'webhook ' : ''}${method.toLowerCase()} ${path}`)
 }
 
 function normalizeOpenApiOperationSectionId(operation: OpenApiRecord, method: string, path: string, source: OpenAPIOperationSource): OpenAPIOperation {

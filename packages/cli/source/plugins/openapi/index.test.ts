@@ -160,7 +160,7 @@ describe('createOpenAPIPlugin', () => {
 
     expect(discovered?.[0].meta.title).toBe('Plugin API')
     expect(discovered?.[0].meta.sections).toEqual([
-      { id: 'listusers', title: 'List users', badge: 'GET', level: 2, tags: ['Users'] },
+      { id: 'listUsers', title: 'List users', badge: 'GET', level: 2, tags: ['Users'] },
       { id: 'patch-usersid', title: 'Update user', badge: 'PATCH', level: 2, tags: ['Users'] },
     ])
 
@@ -170,7 +170,7 @@ describe('createOpenAPIPlugin', () => {
     expect(clientRegistry).not.toContain('Plugin API')
     expect(modules?.get('virtual:clarify/openapi/server')).toContain('Plugin API')
     const specModule = [...modules!.entries()].find(([key]) => key.startsWith('virtual:clarify/openapi-spec/'))?.[1]
-    expect(specModule).toContain(`"${sectionIdExtension}":"listusers"`)
+    expect(specModule).toContain(`"${sectionIdExtension}":"listUsers"`)
     expect(specModule).toContain(`"${sectionIdExtension}":"patch-usersid"`)
     expect(modules?.get('virtual:clarify-page/api')).toContain('import spec from "virtual:clarify/openapi-spec/')
     expect(modules?.get('virtual:clarify-page/api')).toContain('createOpenApiRouteComponent({ ...routeData, spec });')

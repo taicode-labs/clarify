@@ -83,7 +83,7 @@ function filterPathItemsByTags(items: Record<string, unknown>, tags: string[]): 
 
 function createOperationSectionId(operation: Record<string, unknown>, method: string, path: string, kind: 'path' | 'webhook'): string {
   const operationId = typeof operation.operationId === 'string' ? operation.operationId.trim() : ''
-  return slug(operationId || `${kind === 'webhook' ? 'webhook ' : ''}${method.toLowerCase()} ${path}`)
+  return operationId || slug(`${kind === 'webhook' ? 'webhook ' : ''}${method.toLowerCase()} ${path}`)
 }
 
 function operationSectionId(operation: Record<string, unknown>): string {
