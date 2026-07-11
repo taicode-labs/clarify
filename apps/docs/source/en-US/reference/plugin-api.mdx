@@ -9,14 +9,62 @@ This page is the precise API documentation for Clarify's plugin mechanism. For c
 ```ts
 type ClarifyPlugin = {
   name: string
-  hooks: Partial<ClarifyHooks>
+  enforce?: 'pre' | 'post'
+  priority?: number
+  dependsOn?: string[]
+  hooks?: Partial<ClarifyHooks>
+  slots?: UISlotRegistration[]
 }
 ```
 
 | Field | Type | Required | Description |
 |------|------|------|------|
 | `name` | `string` | Yes | The plugin name, used for error messages and debugging |
-| `hooks` | `Partial<ClarifyHooks>` | Yes | The lifecycle hooks the plugin implements |
+| `enforce` | `'pre' \| 'post'` | No | Order this plugin before or after default-priority plugins |
+| `priority` | `number` | No | Numeric ordering within the same enforce bucket |
+| `dependsOn` | `string[]` | No | Plugin names that must run before this plugin |
+| `hooks` | `Partial<ClarifyHooks>` | No | The lifecycle hooks the plugin implements |
+| `slots` | `UISlotRegistration[]` | No | Runtime UI slot components registered by the plugin |
+
+---
+
+## Runtime UI slots
+
+Plugins can mount React components into stable runtime positions through the `slots` field.
+
+### `UISlotName`
+
+```ts
+type UISlotName =
+  | 'page.footer.before'
+  | 'page.banner.replace'
+  | 'page.footer.replace'
+```
+
+### `UISlotRegistration`
+
+```ts
+type UISlotRegistration = {
+  name: UISlotName
+  component: string
+}
+```
+
+`component` is a module path for a default-exported React component. Use a `/` prefix to resolve from the project root, for example `/source/plugins/MyFooter.tsx`.
+
+### `useSlot`
+
+Slot components read their context from `virtual:clarify/slot`:
+
+```tsx
+import { useSlot } from 'virtual:clarify/slot'
+
+function MySlotComponent() {
+  const { name, plugin, route, locale, DefaultComponent } = useSlot()
+
+  return DefaultComponent ? <DefaultComponent /> : null
+}
+```
 
 ---
 
@@ -24,10 +72,33 @@ type ClarifyPlugin = {
 
 ```ts
 type ClarifyHooks = {
+  'before:config:load'?: ClarifyTapHook
+  'after:config:load'?: ClarifyTapHook
+  'before:config:resolve'?: ClarifyTapHook
+  'after:config:resolve'?: ClarifyTapHook
+  'before:plugins:load'?: ClarifyTapHook
+  'after:plugins:load'?: ClarifyTapHook
+  'before:site:discover'?: ClarifyTapHook
+  'after:site:discover'?: ClarifyTapHook
+  'before:content:process'?: ClarifyTapHook
+  'after:content:process'?: ClarifyTapHook
+  'before:modules:build'?: ClarifyTapHook
+  'after:modules:build'?: ClarifyTapHook
+  'before:build'?: ClarifyTapHook
+  'after:build'?: ClarifyTapHook
+  'before:ssg'?: ClarifyTapHook
+  'after:ssg'?: ClarifyTapHook
+  'before:dev:server'?: ClarifyTapHook
+  'after:dev:server'?: ClarifyTapHook
+
+  'content:transform'?: ClarifyPipelineHook<ClarifyContentTransformInput>
   'pages:resolved'?: (
     pages: ClarifyPage[],
     ctx: ClarifyHookContext,
   ) => Promise<ClarifyPage[]> | ClarifyPage[]
+
+  'routes:discover'?: ClarifyPipelineHook<ClarifyRouteDiscoveryInput>
+  'routes:discovered'?: ClarifyPipelineHook<ContentRoute[]>
 
   'routes:resolved'?: (
     input: { routes: ContentRoute[]; navigation: NavigationTree },
@@ -41,11 +112,16 @@ type ClarifyHooks = {
     ctx: ClarifyHookContext,
   ) => Promise<Map<string, string>> | Map<string, string>
 
+  'html:transform'?: ClarifyPipelineHook<ClarifyHtmlTransformInput>
+  'build:assets'?: ClarifyCollectorHook<ClarifyEmitAsset>
   'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void
+  'build:shouldRun'?: ClarifyInterceptHook
+  'ssg:shouldRun'?: ClarifyInterceptHook
+  'dev:configureServer'?: (server: ViteDevServer, ctx: ClarifyHookContext) => Promise<void> | void
 }
 ```
 
-All hooks can return synchronously or asynchronously. Except for `build:done`, hooks must return a result of the same type.
+Pipeline hooks can return synchronously or asynchronously and must return the same shape they receive. Collector hooks return extra generated values, tap hooks perform side effects, and intercept hooks can stop a build phase.
 
 ---
 
@@ -53,10 +129,34 @@ All hooks can return synchronously or asynchronously. Except for `build:done`, h
 
 ```ts
 type ClarifyHookContext = {
+  version: string
+  projectRoot: string
+  contentRoot: string
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
+  routes: ContentRoute[]
+  navigation: NavigationTree
+  plugins: ClarifyPlugin[]
+  get<T>(key: string): T | undefined
+  set<T>(key: string, value: T): void
+  has(key: string): boolean
+  delete(key: string): boolean
 }
 ```
+
+The context combines project paths, resolved configuration, current route/navigation state, loaded plugins, and a small plugin store shared across hooks.
+
+| Field | Description |
+|------|------|
+| `version` | Clarify runtime version for the current build |
+| `projectRoot` | Absolute path to the user project root |
+| `contentRoot` | Absolute path to the resolved content root |
+| `projectConfig` | Site config after defaults have been applied |
+| `generateOptions` | Resolved build options |
+| `routes` | Current route list at the hook execution point |
+| `navigation` | Current navigation tree at the hook execution point |
+| `plugins` | Loaded plugins after ordering has been resolved |
+| `get` / `set` / `has` / `delete` | Shared plugin store helpers |
 
 ### `projectConfig`
 
@@ -124,13 +224,43 @@ type ContentRoute = {
   basePath?: string
   locale?: string
   isFallback?: boolean
+  isBareAlias?: boolean
   alternates?: Record<string, string>
+  kind: string
+  meta: ContentRouteMeta
+  module: ContentRouteModule
+  source: ContentRouteSource
+  openapi?: OpenAPIContentRouteState
+  diagnostic?: ContentDiagnostic
+  artifacts?: ContentRouteArtifacts
+}
+
+type ContentRouteMeta = {
   title: string
-  filePath: string
-  virtualModuleId: string
-  kind: 'mdx' | 'openapi'
+  description?: string
+  keywords?: string[]
   sections?: ContentSection[]
-  rawContentUrl?: string
+}
+
+type ContentRouteModule = {
+  virtualModuleId: string
+}
+
+type ContentRouteSource = {
+  filePath: string
+  frontmatter?: Record<string, unknown>
+  content?: string
+  sourceEditUrl?: string
+}
+
+type ContentRouteArtifacts = {
+  contentArtifactUrl?: string
+}
+
+type OpenAPIContentRouteState = {
+  tagFilter?: string[]
+  sourceSpecId?: string
+  routeSpecModuleId?: string
 }
 ```
 
@@ -140,13 +270,15 @@ type ContentRoute = {
 | `basePath` | The base path without the locale |
 | `locale` | The language the current route belongs to |
 | `isFallback` | Whether it is generated by default-language fallback |
+| `isBareAlias` | Whether this route is a non-indexed alias for the default locale |
 | `alternates` | The paths of the same page in other languages |
-| `title` | The display title for navigation and search |
-| `filePath` | The absolute path of the source file |
-| `virtualModuleId` | Clarify's internal virtual module ID |
-| `kind` | The page type: `mdx` or `openapi` |
-| `sections` | The page table of contents extracted from H2/H3 or OpenAPI operations |
-| `rawContentUrl` | The output URL of the raw content file |
+| `kind` | The route kind, such as `mdx` or `openapi` |
+| `meta` | Display metadata such as title, description, keywords, and page sections |
+| `module` | Runtime module information for this route |
+| `source` | Source file information, frontmatter, normalized content, and edit URL |
+| `openapi` | OpenAPI-specific state, only present for OpenAPI routes |
+| `diagnostic` | Optional diagnostic information for generated diagnostic routes |
+| `artifacts` | Emitted content artifact URLs for this route |
 
 ---
 

@@ -82,13 +82,27 @@ Clarify 内置的项目变量就是通过 `content:transform` 插件实现的。
 
 ```ts
 type ClarifyHookContext = {
+  version: string
+  projectRoot: string
+  contentRoot: string
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
+  routes: ContentRoute[]
+  navigation: NavigationTree
+  plugins: ClarifyPlugin[]
+  get<T>(key: string): T | undefined
+  set<T>(key: string, value: T): void
+  has(key: string): boolean
+  delete(key: string): boolean
 }
 ```
 
+- `projectRoot` 和 `contentRoot`：用于解析项目文件和内容文件的绝对路径。
 - `projectConfig`：已经应用默认值后的站点配置，例如 `title`、`routePrefix`、`i18n`。
 - `generateOptions`：构建运行参数，例如内容目录、输出目录、SSG 错误策略。
+- `routes` 和 `navigation`：当前 hook 执行点的路由和导航状态。
+- `plugins`：排序后的插件列表。
+- `get`、`set`、`has` 和 `delete`：用于在 hook 间协作的小型共享 store。
 
 ---
 

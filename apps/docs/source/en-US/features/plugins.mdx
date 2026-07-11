@@ -82,13 +82,27 @@ Each hook receives a unified context object:
 
 ```ts
 type ClarifyHookContext = {
+  version: string
+  projectRoot: string
+  contentRoot: string
   projectConfig: ResolvedProjectConfig
   generateOptions: ResolvedBuildOptions
+  routes: ContentRoute[]
+  navigation: NavigationTree
+  plugins: ClarifyPlugin[]
+  get<T>(key: string): T | undefined
+  set<T>(key: string, value: T): void
+  has(key: string): boolean
+  delete(key: string): boolean
 }
 ```
 
+- `projectRoot` and `contentRoot`: absolute paths for resolving project and content files.
 - `projectConfig`: the site config after defaults have been applied, e.g. `title`, `routePrefix`, `i18n`.
 - `generateOptions`: the build run parameters, e.g. the content directory, output directory, and SSG error strategy.
+- `routes` and `navigation`: the current route and navigation state at the hook execution point.
+- `plugins`: the ordered plugin list.
+- `get`, `set`, `has`, and `delete`: a small shared store for coordination between hooks.
 
 ---
 
