@@ -157,8 +157,8 @@ export function generateRoutesModule(routes: ContentRoute[], navigation: Navigat
       ? `Page${i}`
       : `() => import(${moduleSpecifier(r.module.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
     const placeholder = `__COMPONENT_${i}__`
-    const obj = routeToRuntimeManifestEntry(r, placeholder, mode)
-    const json = JSON.stringify(obj, null, 0)
+    const manifestEntry = routeToRuntimeManifestEntry(r, placeholder, mode)
+    const json = JSON.stringify(manifestEntry, null, 0)
     // JSON.stringify quotes all keys and omits spaces after colons. Convert to
     // idiomatic JS object-literal syntax: unquote identifier keys, pad colons
     // with a single space. Non-identifier keys (none currently, but defensive)
@@ -232,7 +232,7 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = [], root: st
       throw new Error(`[clarify] Plugin "${plugin}" slot "${slot.name}" has an invalid component path "${slot.component}". Component paths must start with "/" to reference the project root.`)
     }
     const componentPath = root + slot.component
-    const entry = `{ plugin: ${JSON.stringify(plugin)}, component: () => import(${moduleSpecifier(componentPath)}) }`
+    const entry = `{ plugin: ${JSON.stringify(plugin)}, loadComponent: () => import(${moduleSpecifier(componentPath)}) }`
     const list = grouped.get(slot.name) ?? []
     list.push(entry)
     grouped.set(slot.name, list)

@@ -104,30 +104,30 @@ export default defineConfig({
 
 The implementation currently does not expose a general route-extension field or a fully dynamic layout system. If a feature changes content, routes, or build artifacts, prefer hooks. If it only needs to render UI in a stable page position, prefer slots.
 
-Replacement slots let users replace Clarify's built-in components, for example a custom footer, custom previous/next navigation, or a custom content action bar.
+Replacement slots let users replace Clarify's built-in components. The current runtime exposes banner and footer replacement slots.
 
-Recommended replacement slots:
+Current slot name split:
 
 ```ts
-export type UIReplaceableSlotName =
+export type UIExtensionSlotName =
+  | 'page.footer.before'
+
+export type UIReplacementSlotName =
   | 'page.banner.replace'
   | 'page.footer.replace'
-  | 'page.navigation.replace'
-  | 'layout.header.replace'
-  | 'layout.sidebar.replace'
 ```
 
 The full slot name type is the union of both:
 
 ```ts
 export type UISlotName =
-  | UIEExtensionSlotName
-  | UIReplaceableSlotName
+  | UIExtensionSlotName
+  | UIReplacementSlotName
 ```
 
 Key rules for replacement slots:
 
-1. **Exclusive**: a `*.replace` slot can be owned by only one plugin. If multiple plugins declare the same replacement slot, it should fail at build time instead of silently overriding.
+1. **Last registration wins**: if multiple plugins declare the same replacement slot, Clarify emits a warning and uses the last matching registration.
 2. **Default fallback**: every replacement slot maps to a Clarify built-in default component. When no plugin owns it, the default component renders and behavior is identical to today.
 3. **Receives the default component reference**: a replacement component can wrap or fully replace the default implementation. The default component is exposed through slot context:
 
@@ -512,16 +512,16 @@ A new slot must satisfy two conditions:
 
 ### Phase 4: Replacement Slots
 
-After extension slots are stable, expose replacement slots (`*.replace`) that let plugins replace Clarify built-in default components, for example:
+After the first replacement slots are stable, consider adding more `*.replace` slots for Clarify built-in default components, for example:
 
-- `page.footer.replace`
 - `page.navigation.replace`
 - `layout.header.replace`
+- `layout.sidebar.replace`
 
 Replacement slots must satisfy:
 
 1. Map to a stable built-in default component, exposed through slot context.
-2. Be exclusive per slot, failing at build time on multi-plugin conflict.
+2. Define deterministic multi-plugin conflict behavior.
 3. Give the replacement component the same context as the default component to keep SSR and hydration consistent.
 
 ### Phase 5: Specialized APIs such as MDX and Search

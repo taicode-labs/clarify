@@ -253,7 +253,7 @@ describe('createRuntimeSlotsModule', () => {
     expect(code).not.toContain('import ')
     expect(code).toContain('"page.footer.before": [')
     expect(code).toContain('plugin: "clarify:github-comments"')
-    expect(code).toContain('component: () => import("/project/source/github-comments.tsx")')
+    expect(code).toContain('loadComponent: () => import("/project/source/github-comments.tsx")')
   })
 
   it('resolves /-prefixed paths against the project root', () => {
@@ -268,7 +268,7 @@ describe('createRuntimeSlotsModule', () => {
     const code = createRuntimeSlotsModule(plugins, '/project')
 
     expect(code).not.toContain('import ')
-    expect(code).toContain('component: () => import("/project/source/my-component.tsx")')
+    expect(code).toContain('loadComponent: () => import("/project/source/my-component.tsx")')
   })
 
   it('stores each /-prefixed component path independently', () => {

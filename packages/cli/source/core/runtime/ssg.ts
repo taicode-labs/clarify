@@ -48,7 +48,7 @@ export async function render(url) {
   // them synchronously (renderToString has no Suspense support).
   const entries = Object.values(runtimeSlots).flat()
   await Promise.all(entries.map(async (entry) => {
-    const mod = await entry.component()
+    const mod = await entry.loadComponent()
     entry._resolved = mod.default
   }))
   return renderToHTML({ config, routes, navigation, openApis, runtimeSlots, url, themeEditor: config.theme.editor });
