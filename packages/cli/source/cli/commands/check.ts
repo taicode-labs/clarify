@@ -69,7 +69,7 @@ async function resolveLocalFileLink(href: string, route: ContentRoute, contentRo
   const [withoutHashOrQuery] = href.split(/[?#]/)
   if (!withoutHashOrQuery || withoutHashOrQuery.startsWith('/')) return false
 
-  const target = resolve(dirname(route.filePath), withoutHashOrQuery)
+  const target = resolve(dirname(route.source.filePath), withoutHashOrQuery)
   const relativeTarget = relative(contentRoot, target)
   if (relativeTarget.startsWith('..') || isAbsolute(relativeTarget)) return false
   if (await pathExists(target)) return true
@@ -114,8 +114,8 @@ function checkDuplicateRoutes(routes: ContentRoute[], result: CheckResult): void
       addDiagnostic(result, {
         level: 'error',
         code: 'duplicate-route',
-        message: `Route "${route.path}" is defined by multiple files: ${duplicated.map(route => relative(process.cwd(), route.filePath)).join(', ')}`,
-        filePath: route.filePath,
+        message: `Route "${route.path}" is defined by multiple files: ${duplicated.map(route => relative(process.cwd(), route.source.filePath)).join(', ')}`,
+        filePath: route.source.filePath,
         routePath: route.path,
       })
     }
@@ -128,8 +128,8 @@ function checkFallbackRoutes(routes: ContentRoute[], result: CheckResult): void 
     addDiagnostic(result, {
       level: 'warning',
       code: 'i18n-fallback-route',
-      message: `Route "${route.path}" falls back to ${route.locale ?? 'default'} content from ${relative(process.cwd(), route.filePath)}`,
-      filePath: route.filePath,
+      message: `Route "${route.path}" falls back to ${route.locale ?? 'default'} content from ${relative(process.cwd(), route.source.filePath)}`,
+      filePath: route.source.filePath,
       routePath: route.path,
     })
   }
@@ -139,8 +139,8 @@ async function checkLocalLinks(routes: ContentRoute[], contentRoot: string, resu
   const routePaths = new Set(routes.map(route => route.path))
 
   for (const route of routes) {
-    if (route.kind !== 'mdx' || !route.content) continue
-    for (const match of route.content.matchAll(LOCAL_LINK_PATTERN)) {
+    if (route.kind !== 'mdx' || !route.source.content) continue
+    for (const match of route.source.content.matchAll(LOCAL_LINK_PATTERN)) {
       const href = match[1] ?? match[2]
       if (!href || !isLocalHref(href)) continue
       const candidates = routePathCandidates(href, route)
@@ -151,7 +151,7 @@ async function checkLocalLinks(routes: ContentRoute[], contentRoot: string, resu
         level: 'error',
         code: 'broken-link',
         message: `Broken local link "${href}" in route "${route.path}"`,
-        filePath: route.filePath,
+        filePath: route.source.filePath,
         routePath: route.path,
       })
     }

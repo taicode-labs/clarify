@@ -13,19 +13,19 @@ describe('source links', () => {
     })).toBe('https://github.com/taicode-labs/clarify/edit/main/apps/docs/source/en-US/index.mdx')
   })
 
-  it('attaches sourceUrl to routes', () => {
+  it('attaches source edit URLs to routes', () => {
     const routes: ContentRoute[] = [
       {
         path: '/',
-        title: 'Home',
-        filePath: '/repo/source/index.mdx',
-        virtualModuleId: '/repo/source/index.mdx',
         kind: 'mdx',
+        meta: { title: 'Home' },
+        module: { virtualModuleId: '/repo/source/index.mdx' },
+        source: { filePath: '/repo/source/index.mdx' },
       },
     ]
 
     attachSourceUrls(routes, '/repo/source', { repository: 'https://github.com/acme/docs' })
 
-    expect(routes[0]?.sourceUrl).toBe('https://github.com/acme/docs/edit/main/index.mdx')
+    expect(routes[0]?.source?.editUrl).toBe('https://github.com/acme/docs/edit/main/index.mdx')
   })
 })

@@ -46,19 +46,21 @@ describe('openapi virtual modules', () => {
   })
 
   it('generates an OpenAPI route component module', () => {
-    const code = generateOpenAPIPageModule({ specPath: 'virtual:clarify-page/api', tagFilter: ['Users'] })
+    const code = generateOpenAPIPageModule({ specModuleId: 'virtual:clarify/openapi-spec/api' })
     expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
+    expect(code).toContain('import spec from "virtual:clarify/openapi-spec/api";')
     expect(code).toContain('routeData')
-    expect(code).toContain('"specPath":"virtual:clarify-page/api"')
+    expect(code).not.toContain('"specPath"')
     expect(code).not.toContain('"Example API"')
-    expect(code).toContain('"Users"')
+    expect(code).not.toContain('"tagFilter"')
   })
 
   it('generates an OpenAPI route component module without tag filter', () => {
-    const code = generateOpenAPIPageModule({ specPath: 'virtual:clarify-page/api' })
+    const code = generateOpenAPIPageModule({ specModuleId: 'virtual:clarify/openapi-spec/api' })
     expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
+    expect(code).toContain('import spec from "virtual:clarify/openapi-spec/api";')
     expect(code).toContain('routeData')
-    expect(code).toContain('"specPath":"virtual:clarify-page/api"')
+    expect(code).not.toContain('"specPath"')
     expect(code).not.toContain('"Example API"')
   })
 

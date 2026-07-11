@@ -36,10 +36,10 @@ describe('ClarifyContext', () => {
 
     ctx.routes = [{
       path: '/',
-      title: 'Home',
-      filePath: '/site/source/index.md',
-      virtualModuleId: 'virtual:clarify/routes/index',
       kind: 'mdx',
+      meta: { title: 'Home' },
+      module: { virtualModuleId: 'virtual:clarify/routes/index' },
+      source: { filePath: '/site/source/index.md' },
     }]
     ctx.navigation = [{ path: '/', title: 'Home' }]
     ctx.plugins = [{ name: 'test' }]
@@ -63,10 +63,10 @@ describe('ClarifyContext', () => {
     const ctx = createContext()
     ctx.routes = [{
       path: '/',
-      title: 'Home',
-      filePath: '/site/source/index.md',
-      virtualModuleId: 'virtual:clarify/routes/index',
       kind: 'mdx',
+      meta: { title: 'Home' },
+      module: { virtualModuleId: 'virtual:clarify/routes/index' },
+      source: { filePath: '/site/source/index.md' },
     }]
 
     ctx.updateProjectState({

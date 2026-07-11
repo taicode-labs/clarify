@@ -6,7 +6,7 @@ import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
 import { visit } from 'unist-util-visit'
 
-import type { ClarifyPage, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, ResolvedClarifyI18nConfig, TabbedNavigation } from '../../types.js'
+import type { ClarifyPage, ClarifyPageRouteIntent, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyRouteIntent, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, ResolvedClarifyI18nConfig, TabbedNavigation } from '../../types.js'
 import { createContentProcessor, type ContentProcessor } from '../content/content.js'
 import { compileMdxContent } from '../markdown/mdx.js'
 
@@ -150,16 +150,22 @@ export async function findContentRoutes(dir: string, base: string = dir, options
 
       routes.push({
         kind: 'mdx',
-        title,
         path: cleanPath,
         basePath: cleanPath,
-        filePath: fullPath,
-        virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx?$/, '').replace(/\/+/g, '/'),
-        description: typeof page.frontmatter.description === 'string' ? page.frontmatter.description : undefined,
-        keywords: frontmatterKeywords(page.frontmatter),
-        frontmatter: page.frontmatter,
-        content: page.content,
-        sections: extractMdxSections(page.content),
+        meta: {
+          title,
+          description: typeof page.frontmatter.description === 'string' ? page.frontmatter.description : undefined,
+          keywords: frontmatterKeywords(page.frontmatter),
+          sections: extractMdxSections(page.content),
+        },
+        module: {
+          virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx?$/, '').replace(/\/+/g, '/'),
+        },
+        source: {
+          filePath: fullPath,
+          frontmatter: page.frontmatter,
+          content: page.content,
+        },
         diagnostic: mdxResult.ok ? undefined : mdxResult.diagnostic,
       })
     }
@@ -233,7 +239,7 @@ export async function findLocalizedContentRoutes(contentRoot: string, i18n?: Res
         path: localizedRoutePath(basePath, locale.code, i18n),
         basePath,
         locale: locale.code,
-        virtualModuleId: virtualModuleIdForLocalizedRoute(contentRoot, route.filePath),
+        module: { virtualModuleId: virtualModuleIdForLocalizedRoute(contentRoot, route.source.filePath) },
       })
     }
   }
@@ -274,11 +280,11 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
       const pathSoFar = '/' + parts.slice(0, i + 1).join('/')
       let node = current.find(n => n.path === pathSoFar)
       if (!node) {
-        node = { path: pathSoFar, title: i === parts.length - 1 ? route.title : kebabToTitle(parts[i]), children: [] }
+        node = { path: pathSoFar, title: i === parts.length - 1 ? route.meta.title : kebabToTitle(parts[i]), children: [] }
         current.push(node)
       }
-      if (i === parts.length - 1 && route.sections) {
-        node.sections = navigationSections(route.sections)
+      if (i === parts.length - 1 && route.meta.sections) {
+          node.sections = navigationSections(route.meta.sections)
       }
       if (i < parts.length - 1) {
         node.children = node.children ?? []
@@ -290,12 +296,12 @@ export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[]
   return root
 }
 
-function resolvePageItem(
+export function routeIntentFromPagesItem(
   item: ClarifyPagesItem
-): { pageRef?: string; openapiRef?: string; openapiTagFilter?: string[]; path?: string; redirect?: string; title?: ClarifyLocalizedText; icon?: string } {
-  if (typeof item === 'string') return { pageRef: item }
-  if ('openapi' in item) return { openapiRef: item.openapi, openapiTagFilter: item.filter?.tags, path: item.path, title: item.title, icon: item.icon }
-  return { pageRef: item.page, path: item.path, redirect: item.redirect, title: item.title, icon: item.icon }
+): ClarifyRouteIntent {
+  if (typeof item === 'string') return { kind: 'page', ref: item }
+  if ('openapi' in item) return { kind: 'openapi', ref: item.openapi, tagFilter: item.filter?.tags, path: item.path, title: item.title, icon: item.icon }
+  return { kind: 'page', ref: item.page, path: item.path, redirect: item.redirect, title: item.title, icon: item.icon }
 }
 
 function firstNavigationPath(nodes: ClarifyNavigationNode[]): string {
@@ -307,33 +313,34 @@ function firstNavigationPath(nodes: ClarifyNavigationNode[]): string {
   return '/'
 }
 
-function collectExplicitPagePathItems(tabs?: ClarifyTabsConfig): Array<{ pageRef: string; path: string }> {
-  const items: Array<{ pageRef: string; path: string }> = []
+function collectExplicitPagePathIntents(tabs?: ClarifyTabsConfig): Array<ClarifyPageRouteIntent & { path: string }> {
+  const intents: Array<ClarifyPageRouteIntent & { path: string }> = []
 
   for (const tab of tabs ?? []) {
     if (!tab.pages || tab.pages === 'FileTree') continue
     for (const group of tab.pages) {
       for (const item of group.pages) {
         if (typeof item !== 'string' && 'page' in item && item.path) {
-          items.push({ pageRef: item.page, path: item.path })
+          const intent = routeIntentFromPagesItem(item)
+          if (intent.kind === 'page' && intent.path) intents.push({ ...intent, path: intent.path })
         }
       }
     }
   }
 
-  return items
+  return intents
 }
 
 export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: ClarifyTabsConfig, i18n?: ResolvedClarifyI18nConfig): ContentRoute[] {
-  const pageItems = collectExplicitPagePathItems(tabs)
-  if (!pageItems.length) return routes
+  const pageIntents = collectExplicitPagePathIntents(tabs)
+  if (!pageIntents.length) return routes
 
   const additions: ContentRoute[] = []
   const existingKeys = new Set(routes.map(route => `${route.locale ?? ''}:${route.basePath ?? route.path}`))
 
-  for (const item of pageItems) {
-    const sourceBasePath = routePathFromRef(item.pageRef)
-    const targetBasePath = routePathFromRef(item.pageRef, item.path)
+  for (const intent of pageIntents) {
+    const sourceBasePath = routePathFromRef(intent.ref)
+    const targetBasePath = routePathFromRef(intent.ref, intent.path)
     if (sourceBasePath === targetBasePath) continue
 
     for (const route of routes) {
@@ -384,27 +391,26 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
 
   return config.map(group => {
     const children = group.pages.map(item => {
-      const { pageRef, openapiRef, openapiTagFilter, path: explicitPath, redirect, title, icon } = resolvePageItem(item)
+      const intent = routeIntentFromPagesItem(item)
 
-      if (openapiRef) {
-        const path = openAPIPagePathFromRef(openapiRef, openapiTagFilter, explicitPath)
+      if (intent.kind === 'openapi') {
+        const path = openAPIPagePathFromRef(intent.ref, intent.tagFilter, intent.path)
         const route = routeMap.get(path)
         return {
           path,
-          title: resolveLocalizedText(title, '', '') ?? route?.title ?? kebabToTitle(path.split('/').pop() ?? openapiRef),
-          icon,
-          sections: route?.sections ? navigationSections(route.sections) : undefined,
+          title: resolveLocalizedText(intent.title, '', '') ?? route?.meta.title ?? kebabToTitle(path.split('/').pop() ?? intent.ref),
+          icon: intent.icon,
+          sections: route?.meta.sections ? navigationSections(route.meta.sections) : undefined,
         }
       }
 
-      const ref = pageRef ?? ''
-      const path = routePathFromRef(ref, explicitPath)
+      const path = routePathFromRef(intent.ref, intent.path)
       const route = routeMap.get(path)
       return {
-        path: redirect ? normalizePath(redirect) : path,
-        title: resolveLocalizedText(title, '', '') ?? route?.title ?? kebabToTitle(path.split('/').pop() ?? ref),
-        icon,
-        sections: route?.sections ? navigationSections(route.sections) : undefined,
+        path: intent.redirect ? normalizePath(intent.redirect) : path,
+        title: resolveLocalizedText(intent.title, '', '') ?? route?.meta.title ?? kebabToTitle(path.split('/').pop() ?? intent.ref),
+        icon: intent.icon,
+        sections: route?.meta.sections ? navigationSections(route.meta.sections) : undefined,
       }
     })
 
@@ -446,18 +452,19 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
   const routeMap = new Map(routes.map(route => [route.basePath ?? route.path, route]))
   return config.map(group => {
     const children = group.pages.map(item => {
-      const { pageRef, openapiRef, openapiTagFilter, path: explicitPath, redirect, title, icon } = resolvePageItem(item)
-      const ref = openapiRef ?? pageRef ?? ''
-      const basePath = openapiRef ? openAPIPagePathFromRef(openapiRef, openapiTagFilter, explicitPath) : routePathFromRef(ref, explicitPath)
+      const intent = routeIntentFromPagesItem(item)
+      const basePath = intent.kind === 'openapi'
+        ? openAPIPagePathFromRef(intent.ref, intent.tagFilter, intent.path)
+        : routePathFromRef(intent.ref, intent.path)
       const route = routeMap.get(basePath)
       const path = route?.path ?? localizedRoutePath(basePath, locale, i18n)
-      const redirectPath = redirect ? localizedRoutePath(routePathFromRef(redirect), locale, i18n) : undefined
+      const redirectPath = intent.kind === 'page' && intent.redirect ? localizedRoutePath(routePathFromRef(intent.redirect), locale, i18n) : undefined
 
       return {
         path: redirectPath ?? path,
-        title: resolveLocalizedText(title, locale, i18n.defaultLocale) ?? route?.title ?? kebabToTitle(basePath.split('/').pop() ?? ref),
-        icon,
-        sections: route?.sections ? navigationSections(route.sections) : undefined,
+        title: resolveLocalizedText(intent.title, locale, i18n.defaultLocale) ?? route?.meta.title ?? kebabToTitle(basePath.split('/').pop() ?? intent.ref),
+        icon: intent.icon,
+        sections: route?.meta.sections ? navigationSections(route.meta.sections) : undefined,
       }
     })
 

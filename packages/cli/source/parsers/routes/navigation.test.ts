@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest'
 import type { ClarifyPagesGroup, ContentRoute } from '../../types.js'
 
 import { applyConfiguredPageRoutePaths, buildLocalizedNavigation, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromConfig, buildNavigationFromTabsConfig } from './routes.js'
-import { mdxRoute, testI18n } from './routes.test-utils.js'
+import { contentRoute, mdxRoute, testI18n } from './routes.test-utils.js'
 
 describe('buildNavigation', () => {
   it('returns empty array for only home route', () => {
@@ -125,8 +125,8 @@ describe('applyConfiguredPageRoutePaths', () => {
 
     expect(nextRoutes.find(route => route.path === '/docs/start')).toMatchObject({
       basePath: '/docs/start',
-      filePath: 'guide.mdx',
-      virtualModuleId: 'virtual:clarify-page/guide',
+      source: { filePath: 'guide.mdx' },
+      module: { virtualModuleId: 'virtual:clarify-page/guide' },
     })
   })
 
@@ -202,7 +202,7 @@ describe('buildNavigationFromConfig', () => {
 
   it('uses explicit OpenAPI paths in navigation', () => {
     const routes: ContentRoute[] = [
-      {
+      contentRoute({
         path: '/reference/projects',
         basePath: '/reference/projects',
         title: 'Tagged API',
@@ -210,7 +210,7 @@ describe('buildNavigationFromConfig', () => {
         virtualModuleId: 'virtual:clarify-page/reference/projects',
         kind: 'openapi',
         sections: [{ id: 'get-projects', title: 'List projects', level: 2, badge: 'GET', tags: ['Projects'] }],
-      },
+      }),
     ]
     const config: ClarifyPagesGroup[] = [
       { group: 'API', pages: [{ openapi: 'api.openapi.json', path: 'reference/projects', filter: { tags: ['Projects'] } }] },
@@ -226,7 +226,7 @@ describe('buildNavigationFromConfig', () => {
 
   it('builds OpenAPI navigation paths from tag filters', () => {
     const routes: ContentRoute[] = [
-      {
+      contentRoute({
         path: '/api/projects',
         basePath: '/api/projects',
         title: 'API',
@@ -234,7 +234,7 @@ describe('buildNavigationFromConfig', () => {
         virtualModuleId: 'virtual:clarify-page/api/projects',
         kind: 'openapi',
         sections: [{ id: 'get-projects', title: 'List projects', level: 2, badge: 'GET', tags: ['Projects'] }],
-      },
+      }),
     ]
     const config: ClarifyPagesGroup[] = [
       { group: 'API', pages: [{ openapi: 'api.openapi.json', title: 'Projects API', filter: { tags: ['Projects'] } }] },

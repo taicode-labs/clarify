@@ -28,15 +28,25 @@ function createServer(sends: unknown[] = [], modules = new Map<string, ModuleNod
   } as unknown as ViteDevServer
 }
 
-function createRoute(overrides: Partial<ContentRoute> = {}): ContentRoute {
+type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
+  title?: string
+  filePath?: string
+  virtualModuleId?: string
+  content?: string
+}
+
+function createRoute(overrides: RouteFixture = {}): ContentRoute {
+  const { title, filePath, virtualModuleId, content, ...rest } = overrides
   return {
     path: '/guide',
-    title: 'Guide',
-    filePath: '/site/source/guide.md',
-    virtualModuleId: 'virtual:clarify-page/guide',
     kind: 'mdx',
-    content: '# Guide',
-    ...overrides,
+    meta: { title: title ?? 'Guide' },
+    module: { virtualModuleId: virtualModuleId ?? 'virtual:clarify-page/guide' },
+    source: {
+      filePath: filePath ?? '/site/source/guide.md',
+      content: content ?? '# Guide',
+    },
+    ...rest,
   }
 }
 

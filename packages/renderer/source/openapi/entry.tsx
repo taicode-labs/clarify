@@ -26,8 +26,7 @@ export type OpenApiDocumentProps = {
 }
 
 export type OpenApiRouteData = {
-  specPath: string
-  tagFilter?: string[]
+  spec: OpenAPISpec
 }
 
 type OpenApiOperationWithSpecProps = {
@@ -148,6 +147,6 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
 
 export function createOpenApiRouteComponent(data: OpenApiRouteData) {
   return function OpenApiRoutePage() {
-    return <OpenApiDocument specPath={data.specPath} tagFilter={data.tagFilter} />
+    return <OpenApiDocument spec={data.spec} />
   }
 }

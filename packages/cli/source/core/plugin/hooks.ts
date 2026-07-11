@@ -1,14 +1,14 @@
 import type { ViteDevServer } from 'vite'
 
-import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyHooks, ClarifyPlugin } from '../../types.js'
+import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyPipelineHooks, ClarifyPlugin } from '../../types.js'
 
-export async function runHooks<K extends Exclude<keyof ClarifyHooks, 'build:assets' | 'build:done' | 'dev:configureServer'>>(plugins: ClarifyPlugin[], hookName: K, input: Parameters<NonNullable<ClarifyHooks[K]>>[0], ctx: ClarifyHookContext): Promise<Parameters<NonNullable<ClarifyHooks[K]>>[0]> {
+export async function runHooks<K extends keyof ClarifyPipelineHooks>(plugins: ClarifyPlugin[], hookName: K, input: Parameters<NonNullable<ClarifyPipelineHooks[K]>>[0], ctx: ClarifyHookContext): Promise<Parameters<NonNullable<ClarifyPipelineHooks[K]>>[0]> {
   let result = input
   for (const plugin of plugins) {
     const hook = plugin.hooks?.[hookName]
     if (!hook) continue
     try {
-      result = await hook(result as never, ctx) as Parameters<NonNullable<ClarifyHooks[K]>>[0]
+      result = await hook(result as never, ctx) as Parameters<NonNullable<ClarifyPipelineHooks[K]>>[0]
     } catch (err) {
       throw new Error(`[clarify] plugin "${plugin.name}" hook "${hookName}" failed: ${err}`, { cause: err })
     }
@@ -31,7 +31,7 @@ export async function runDevConfigureServerHooks(plugins: ClarifyPlugin[], serve
 export async function runCollectorHooks<T>(plugins: ClarifyPlugin[], hookName: string, ctx: ClarifyHookContext): Promise<T[]> {
   const results: T[] = []
   for (const plugin of plugins) {
-    const hook = plugin.hooks?.[hookName as keyof ClarifyHooks]
+    const hook = plugin.hooks?.[hookName as 'build:assets']
     if (!hook) continue
     try {
       const pluginResults = await (hook as (ctx: ClarifyHookContext) => Promise<T[]> | T[])(ctx)

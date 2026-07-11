@@ -182,6 +182,26 @@ export type ClarifyPagesGroup = {
 /** Use the string "FileTree" to auto-generate pages from the file system. */
 export type ClarifyPagesConfig = ClarifyPagesGroup[] | 'FileTree'
 
+export type ClarifyPageRouteIntent = {
+  kind: 'page'
+  ref: string
+  path?: string
+  redirect?: string
+  title?: ClarifyLocalizedText
+  icon?: string
+}
+
+export type ClarifyOpenAPIRouteIntent = {
+  kind: 'openapi'
+  ref: string
+  path?: string
+  tagFilter?: string[]
+  title?: ClarifyLocalizedText
+  icon?: string
+}
+
+export type ClarifyRouteIntent = ClarifyPageRouteIntent | ClarifyOpenAPIRouteIntent
+
 export type ClarifyTabItem = {
   tab: ClarifyLocalizedText
   /** Icon name from lucide-react, e.g. "BookOpen". */
@@ -287,6 +307,40 @@ export type ContentDiagnostic = {
   filePath?: string
 }
 
+export type ContentRouteMeta = {
+  title: string
+  description?: string
+  keywords?: string[]
+  sections?: ContentSection[]
+}
+
+export type ContentRouteModule = {
+  virtualModuleId: string
+}
+
+export type OpenAPIContentRouteState = {
+  /** Operation tag filter applied to this route. Undefined means all operations. */
+  tagFilter?: string[]
+  /** Deduplicated key derived from the source OpenAPI spec file path. */
+  sourceSpecKey?: string
+  /** Spec module key used by this route after route-level filtering. */
+  routeSpecKey?: string
+}
+
+export type ContentRouteArtifacts = {
+  /** Public URL for the machine-readable content artifact served or emitted for this route. */
+  contentUrl?: string
+}
+
+export type ContentRouteSource = {
+  filePath: string
+  frontmatter?: Record<string, unknown>
+  /** Normalized source content captured during route discovery. */
+  content?: string
+  /** Public edit URL for this route's source file. */
+  editUrl?: string
+}
+
 export type ContentRoute = {
   path: string
   basePath?: string
@@ -295,24 +349,14 @@ export type ContentRoute = {
   /** Indicates this route is a bare alias for the default locale (e.g., /path instead of /locale/path). Should not be indexed. */
   isBareAlias?: boolean
   alternates?: Record<string, string>
-  title: string
-  description?: string
-  keywords?: string[]
-  filePath: string
-  virtualModuleId: string
   kind: string
-  /** OpenAPI operation tag filter applied to this route. Undefined means all operations. */
-  openapiTagFilter?: string[]
-  /** Deduplicated key derived from the source OpenAPI spec file path. Routes sharing
-   * the same spec file (e.g. filtered sub-routes) share the same key. */
-  specFileKey?: string
-  frontmatter?: Record<string, unknown>
-  /** Normalized source content captured during route discovery. */
-  content?: string
+  meta: ContentRouteMeta
+  module: ContentRouteModule
+  source: ContentRouteSource
+  /** OpenAPI-specific route state. Present only for OpenAPI routes. */
+  openapi?: OpenAPIContentRouteState
   diagnostic?: ContentDiagnostic
-  sections?: ContentSection[]
-  contentArtifactUrl?: string
-  sourceUrl?: string
+  artifacts?: ContentRouteArtifacts
 }
 
 export type ClarifyNavigationTab = {
@@ -358,15 +402,23 @@ export type ClarifyProjectContext = {
   version: string
 }
 
-export type ClarifyHookContext = ClarifyProjectContext & {
+export type ClarifyRouteState = {
   routes: ContentRoute[]
   navigation: NavigationTree
+}
+
+export type ClarifyPluginState = {
   plugins: ClarifyPlugin[]
+}
+
+export type ClarifyPluginStore = {
   get<T>(key: string): T | undefined
   set<T>(key: string, value: T): void
   has(key: string): boolean
   delete(key: string): boolean
 }
+
+export type ClarifyHookContext = ClarifyProjectContext & ClarifyRouteState & ClarifyPluginState & ClarifyPluginStore
 
 export type ClarifyRouteDiscoveryInput = {
   contentRoot: string
@@ -398,45 +450,22 @@ export type ClarifyEmitAsset = {
   source: string | Uint8Array
 }
 
-export type ClarifyTapHook = (ctx: ClarifyHookContext) => Promise<void> | void
+export type MaybePromise<T> = T | Promise<T>
 
-export type ClarifyInterceptHook = (ctx: ClarifyHookContext) => Promise<boolean> | boolean
+export type ClarifyTapHook = (ctx: ClarifyHookContext) => MaybePromise<void>
 
-export type ClarifyHooks = {
-  'content:transform'?: (
-    input: ClarifyContentTransformInput,
-    ctx: ClarifyHookContext
-  ) => Promise<ClarifyContentTransformInput> | ClarifyContentTransformInput
-  'pages:resolved'?: (
-    pages: ClarifyPage[],
-    ctx: ClarifyHookContext
-  ) => Promise<ClarifyPage[]> | ClarifyPage[]
-  'routes:discover'?: (
-    input: ClarifyRouteDiscoveryInput,
-    ctx: ClarifyHookContext
-  ) => Promise<ClarifyRouteDiscoveryInput> | ClarifyRouteDiscoveryInput
-  'routes:discovered'?: (
-    routes: ContentRoute[],
-    ctx: ClarifyHookContext
-  ) => Promise<ContentRoute[]> | ContentRoute[]
-  'routes:resolved'?: (
-    input: { routes: ContentRoute[]; navigation: NavigationTree },
-    ctx: ClarifyHookContext
-  ) => Promise<{ routes: ContentRoute[]; navigation: NavigationTree }> | { routes: ContentRoute[]; navigation: NavigationTree }
-  'modules:before'?: (
-    modules: Map<string, string>,
-    ctx: ClarifyHookContext
-  ) => Promise<Map<string, string>> | Map<string, string>
-  'html:transform'?: (
-    input: ClarifyHtmlTransformInput,
-    ctx: ClarifyHookContext
-  ) => Promise<ClarifyHtmlTransformInput> | ClarifyHtmlTransformInput
-  'dev:configureServer'?: (
-    server: ViteDevServer,
-    ctx: ClarifyHookContext
-  ) => Promise<void> | void
-  'build:assets'?: (ctx: ClarifyHookContext) => Promise<ClarifyEmitAsset[]> | ClarifyEmitAsset[]
-  'build:done'?: (ctx: ClarifyHookContext) => Promise<void> | void
+export type ClarifyInterceptHook = (ctx: ClarifyHookContext) => MaybePromise<boolean>
+
+export type ClarifyPipelineHook<Input> = (input: Input, ctx: ClarifyHookContext) => MaybePromise<Input>
+
+export type ClarifyCollectorHook<Result> = (ctx: ClarifyHookContext) => MaybePromise<Result[]>
+
+export type ClarifyRoutesResolvedInput = {
+  routes: ContentRoute[]
+  navigation: NavigationTree
+}
+
+export type ClarifyLifecycleHooks = {
   'before:config:load'?: ClarifyTapHook
   'after:config:load'?: ClarifyTapHook
   'before:config:resolve'?: ClarifyTapHook
@@ -455,9 +484,30 @@ export type ClarifyHooks = {
   'after:ssg'?: ClarifyTapHook
   'before:dev:server'?: ClarifyTapHook
   'after:dev:server'?: ClarifyTapHook
+}
+
+export type ClarifyPipelineHooks = {
+  'content:transform'?: ClarifyPipelineHook<ClarifyContentTransformInput>
+  'pages:resolved'?: ClarifyPipelineHook<ClarifyPage[]>
+  'routes:discover'?: ClarifyPipelineHook<ClarifyRouteDiscoveryInput>
+  'routes:discovered'?: ClarifyPipelineHook<ContentRoute[]>
+  'routes:resolved'?: ClarifyPipelineHook<ClarifyRoutesResolvedInput>
+  'modules:before'?: ClarifyPipelineHook<Map<string, string>>
+  'html:transform'?: ClarifyPipelineHook<ClarifyHtmlTransformInput>
+}
+
+export type ClarifyBuildHooks = {
+  'build:assets'?: ClarifyCollectorHook<ClarifyEmitAsset>
+  'build:done'?: ClarifyTapHook
   'build:shouldRun'?: ClarifyInterceptHook
   'ssg:shouldRun'?: ClarifyInterceptHook
 }
+
+export type ClarifyDevHooks = {
+  'dev:configureServer'?: (server: ViteDevServer, ctx: ClarifyHookContext) => MaybePromise<void>
+}
+
+export type ClarifyHooks = ClarifyLifecycleHooks & ClarifyPipelineHooks & ClarifyBuildHooks & ClarifyDevHooks
 
 export type ClarifyPlugin = {
   name: string

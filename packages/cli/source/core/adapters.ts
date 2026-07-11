@@ -23,9 +23,9 @@ type DevStructureSnapshot = {
   navigation: string
 }
 
-function routeStructure(route: ContentRoute): Omit<ContentRoute, 'content'> {
-  const { content: _content, ...structure } = route
-  return structure
+function routeStructure(route: ContentRoute): ContentRoute {
+  const { content: _content, ...source } = route.source
+  return { ...route, source }
 }
 
 function createDevStructureSnapshot(routes: ContentRoute[], navigation: NavigationTree): DevStructureSnapshot {
@@ -61,9 +61,9 @@ function createNormalizedMdxContentPlugin(engine: ClarifyEngine): Plugin {
     transform(_code, id) {
       if (!/\.mdx?(?:\?|$)/.test(id)) return null
       const filePath = id.replace(/\?.*$/, '')
-      const route = engine.routes.find(route => route.kind === 'mdx' && route.filePath === filePath)
-      if (!route || route.content === undefined) return null
-      return { code: route.content, map: null }
+      const route = engine.routes.find(route => route.kind === 'mdx' && route.source.filePath === filePath)
+      if (!route || route.source.content === undefined) return null
+      return { code: route.source.content, map: null }
     },
   }
 }

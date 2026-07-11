@@ -18,7 +18,7 @@ function resolveProjectConfigFromContext(contextOrConfig: ClarifyProjectContext 
 
 function routeTitle(contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
   const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
-  const title = route?.title?.trim()
+  const title = route?.meta.title.trim()
   if (!title || title === projectConfig.title) return projectConfig.title
   return `${title} - ${projectConfig.title}`
 }
@@ -87,8 +87,8 @@ export function injectSSRIntoTemplate(template: string, appHtml: string, context
   // Replace <title>...</title>
   html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(routeTitle(contextOrConfig, route))}</title>`)
 
-  html = setNamedMeta(html, 'description', route?.description ?? projectConfig.description)
-  html = setNamedMeta(html, 'keywords', route?.keywords?.join(', '))
+  html = setNamedMeta(html, 'description', route?.meta.description ?? projectConfig.description)
+  html = setNamedMeta(html, 'keywords', route?.meta.keywords?.join(', '))
   html = injectCanonicalUrl(html, contextOrConfig, route)
 
   // Replace <div id="root">...</div> with SSR rendered content

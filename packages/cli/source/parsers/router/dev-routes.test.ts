@@ -13,14 +13,21 @@ import {
   handleDevRouteRequest,
 } from './dev-routes.js'
 
-function makeRoute(overrides: Partial<ContentRoute>): ContentRoute {
+type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
+  title?: string
+  filePath?: string
+  virtualModuleId?: string
+}
+
+function makeRoute(overrides: RouteFixture): ContentRoute {
+  const { title, filePath, virtualModuleId, ...rest } = overrides
   return {
     path: '/x',
-    filePath: '/site/source/x.mdx',
-    virtualModuleId: 'virtual:clarify-page/x',
-    title: 'X',
     kind: 'mdx',
-    ...overrides,
+    meta: { title: title ?? 'X' },
+    module: { virtualModuleId: virtualModuleId ?? 'virtual:clarify-page/x' },
+    source: { filePath: filePath ?? '/site/source/x.mdx' },
+    ...rest,
   }
 }
 

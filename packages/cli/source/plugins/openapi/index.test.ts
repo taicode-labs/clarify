@@ -29,7 +29,7 @@ function createContext(routes: ContentRoute[]): ClarifyHookContext {
   return {
     projectRoot: '/site',
     contentRoot: '/site/source',
-    projectConfig,
+    projectConfig: { ...projectConfig },
     generateOptions,
     version: 'test',
     routes,
@@ -81,6 +81,32 @@ function createContextWithVariables(routes: ContentRoute[]): ClarifyHookContext 
   }
 }
 
+type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
+  title?: string
+  sections?: ContentRoute['meta']['sections']
+  filePath?: string
+  virtualModuleId?: string
+  content?: string
+}
+
+function route(overrides: RouteFixture): ContentRoute {
+  const { title, sections, filePath, virtualModuleId, content, ...rest } = overrides
+  return {
+    path: '/api',
+    kind: 'openapi',
+    meta: {
+      title: title ?? 'API',
+      sections,
+    },
+    module: { virtualModuleId: virtualModuleId ?? 'virtual:clarify-page/api' },
+    source: {
+      filePath: filePath ?? '/site/source/api.openapi.json',
+      content,
+    },
+    ...rest,
+  }
+}
+
 describe('createOpenAPIPlugin', () => {
   let tempDir: string
 
@@ -116,15 +142,15 @@ describe('createOpenAPIPlugin', () => {
 
     expect(routes).toMatchObject([{
       path: '/api',
-      filePath: specPath,
-      virtualModuleId: 'virtual:clarify-page/api',
+      source: { filePath: specPath },
+      module: { virtualModuleId: 'virtual:clarify-page/api' },
       kind: 'openapi',
     }])
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
 
-    expect(discovered?.[0].title).toBe('Plugin API')
-    expect(discovered?.[0].sections).toEqual([
+    expect(discovered?.[0].meta.title).toBe('Plugin API')
+    expect(discovered?.[0].meta.sections).toEqual([
       { id: 'get-users', title: 'List users', badge: 'GET', level: 2, tags: ['Users'] },
     ])
 
@@ -134,8 +160,9 @@ describe('createOpenAPIPlugin', () => {
     expect(clientRegistry).not.toContain('Plugin API')
     expect(modules?.get('virtual:clarify/openapi/server')).toContain('Plugin API')
     expect([...modules!.keys()].some(key => key.startsWith('virtual:clarify/openapi-spec/'))).toBe(true)
-    expect(modules?.get('virtual:clarify-page/api')).toContain('createOpenApiRouteComponent(routeData);')
-    expect(modules?.get('virtual:clarify-page/api')).toContain('"specPath":"virtual:clarify-page/api"')
+    expect(modules?.get('virtual:clarify-page/api')).toContain('import spec from "virtual:clarify/openapi-spec/')
+    expect(modules?.get('virtual:clarify-page/api')).toContain('createOpenApiRouteComponent({ ...routeData, spec });')
+    expect(modules?.get('virtual:clarify-page/api')).not.toContain('"specPath"')
     expect(modules?.get('virtual:clarify-page/api')).not.toContain('Plugin API')
   })
 
@@ -143,14 +170,13 @@ describe('createOpenAPIPlugin', () => {
     const specPath = join(tempDir, 'broken.openapi.json')
     writeFileSync(specPath, '{ invalid json', 'utf-8')
 
-    const routes: ContentRoute[] = [{
+    const routes: ContentRoute[] = [route({
       path: '/broken',
       title: 'Broken',
       filePath: specPath,
       virtualModuleId: 'virtual:clarify-page/broken',
-      kind: 'openapi',
       content: '{ invalid json',
-    }]
+    })]
     const plugin = createOpenAPIPlugin()
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
@@ -198,22 +224,21 @@ describe('createOpenAPIPlugin', () => {
     }), 'utf-8')
 
     const plugin = createOpenAPIPlugin()
-    const routes: ContentRoute[] = [{
+    const routes: ContentRoute[] = [route({
       path: '/api',
       title: 'API',
       filePath: specPath,
       virtualModuleId: 'virtual:clarify-page/api',
-      kind: 'openapi',
-    }]
+    })]
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContextWithVariables(routes))
 
-    expect(discovered?.[0].title).toBe('Clarify API')
-    expect(discovered?.[0].sections).toEqual([
+    expect(discovered?.[0].meta.title).toBe('Clarify API')
+    expect(discovered?.[0].meta.sections).toEqual([
       { id: 'get-projects', title: 'List Clarify projects', badge: 'GET', level: 2, tags: ['Projects'] },
     ])
-    expect(discovered?.[0].content).toContain('"version":"1.0.0"')
-    expect(discovered?.[0].content).toContain('"properties":{"id":{"type":"string"}}')
+    expect(discovered?.[0].source.content).toContain('"version":"1.0.0"')
+    expect(discovered?.[0].source.content).toContain('"properties":{"id":{"type":"string"}}')
   })
 
   it('creates tag-filtered OpenAPI routes from navigation config', async () => {
@@ -243,15 +268,20 @@ describe('createOpenAPIPlugin', () => {
 
     expect(taggedRoute).toMatchObject({
       basePath: '/api/projects',
-      virtualModuleId: 'virtual:clarify-page/api/projects',
-      openapiTagFilter: ['Projects'],
+      module: { virtualModuleId: 'virtual:clarify-page/api/projects' },
+      openapi: { tagFilter: ['Projects'] },
     })
-    expect(taggedRoute?.sections).toEqual([
+    expect(taggedRoute?.meta.sections).toEqual([
       { id: 'get-projects', title: 'List projects', badge: 'GET', level: 2, tags: ['Projects'] },
     ])
 
     const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(discovered ?? []))
-    expect(modules?.get('virtual:clarify-page/api/projects')).toContain('"tagFilter":["Projects"]')
+    const routeModule = modules?.get('virtual:clarify-page/api/projects') ?? ''
+    const specModuleId = routeModule.match(/import spec from "([^"]+)"/)?.[1]
+    expect(specModuleId).toContain('_tags_Projects')
+    expect(routeModule).not.toContain('"tagFilter"')
+    expect(modules?.get(specModuleId!)).toContain('List projects')
+    expect(modules?.get(specModuleId!)).not.toContain('List users')
   })
 
   it('creates explicit-path tag-filtered OpenAPI routes from navigation config', async () => {
@@ -281,15 +311,161 @@ describe('createOpenAPIPlugin', () => {
 
     expect(taggedRoute).toMatchObject({
       basePath: '/reference/projects',
-      virtualModuleId: 'virtual:clarify-page/reference/projects',
-      openapiTagFilter: ['Projects'],
+      module: { virtualModuleId: 'virtual:clarify-page/reference/projects' },
+      openapi: { tagFilter: ['Projects'] },
     })
-    expect(taggedRoute?.sections).toEqual([
+    expect(taggedRoute?.meta.sections).toEqual([
       { id: 'get-projects', title: 'List projects', badge: 'GET', level: 2, tags: ['Projects'] },
     ])
 
     const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(discovered ?? []))
-    expect(modules?.get('virtual:clarify-page/reference/projects')).toContain('"tagFilter":["Projects"]')
+    const routeModule = modules?.get('virtual:clarify-page/reference/projects') ?? ''
+    const specModuleId = routeModule.match(/import spec from "([^"]+)"/)?.[1]
+    expect(specModuleId).toContain('_tags_Projects')
+    expect(routeModule).not.toContain('"tagFilter"')
+    expect(modules?.get(specModuleId!)).toContain('List projects')
+    expect(modules?.get(specModuleId!)).not.toContain('List users')
+  })
+
+  it('creates localized explicit-path OpenAPI routes with locale-specific module ids', async () => {
+    const specPath = join(tempDir, 'api.openapi.json')
+    writeFileSync(specPath, JSON.stringify({
+      openapi: '3.0.0',
+      info: { title: 'Tagged API', version: '1.0.0' },
+      paths: {
+        '/projects': { get: { summary: 'List projects', tags: ['Projects'], responses: { 200: { description: 'OK' } } } },
+      },
+    }), 'utf-8')
+
+    const plugin = createOpenAPIPlugin()
+    const routes: ContentRoute[] = [
+      route({ path: '/api', basePath: '/api', locale: 'zh-CN', title: 'API', filePath: specPath, virtualModuleId: 'virtual:clarify-page/zh-CN/api' }),
+      route({ path: '/en-US/api', basePath: '/api', locale: 'en-US', title: 'API', filePath: specPath, virtualModuleId: 'virtual:clarify-page/en-US/api' }),
+    ]
+    const ctx = createContext(routes)
+    ctx.projectConfig.i18n = {
+      defaultLocale: 'zh-CN',
+      missing: 'fallback',
+      locales: [
+        { code: 'zh-CN', label: '简体中文', dir: 'ltr' },
+        { code: 'en-US', label: 'English', dir: 'ltr' },
+      ],
+    }
+    ctx.projectConfig.tabs = [
+      { tab: 'API', pages: [{ group: 'Reference', pages: [{ openapi: 'api.openapi.json', path: 'openapi/pages', filter: { tags: ['Projects'] } }] }] },
+    ]
+
+    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
+
+    expect(discovered?.find(route => route.path === '/zh-CN/openapi/pages')).toMatchObject({
+      basePath: '/openapi/pages',
+      locale: 'zh-CN',
+      module: { virtualModuleId: 'virtual:clarify-page/zh-CN/openapi/pages' },
+      openapi: { tagFilter: ['Projects'] },
+    })
+    expect(discovered?.find(route => route.path === '/openapi/pages')).toMatchObject({
+      basePath: '/openapi/pages',
+      module: { virtualModuleId: 'virtual:clarify-page/openapi/pages' },
+      isBareAlias: true,
+      openapi: { tagFilter: ['Projects'] },
+    })
+    expect(discovered?.find(route => route.path === '/en-US/openapi/pages')).toMatchObject({
+      basePath: '/openapi/pages',
+      locale: 'en-US',
+      module: { virtualModuleId: 'virtual:clarify-page/en-US/openapi/pages' },
+      openapi: { tagFilter: ['Projects'] },
+    })
+
+    const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(discovered ?? []))
+    const clientRegistry = modules?.get('virtual:clarify/openapi')
+    expect(clientRegistry).toContain('"virtual:clarify-page/zh-CN/openapi/pages"')
+    expect(clientRegistry).toContain('"virtual:clarify-page/openapi/pages"')
+    expect(clientRegistry).toContain('"virtual:clarify-page/en-US/openapi/pages"')
+    expect(modules?.get('virtual:clarify-page/openapi/pages')).toContain('import spec from "virtual:clarify/openapi-spec/')
+    expect(modules?.get('virtual:clarify-page/zh-CN/openapi/pages')).toContain('import spec from "virtual:clarify/openapi-spec/')
+    expect(modules?.get('virtual:clarify-page/en-US/openapi/pages')).toContain('import spec from "virtual:clarify/openapi-spec/')
+  })
+
+  it('creates configured OpenAPI routes for locale-scoped spec files', async () => {
+    const zhSpecPath = join(tempDir, 'zh-CN', 'api.openapi.json')
+    const enSpecPath = join(tempDir, 'en-US', 'api.openapi.json')
+    mkdirSync(join(tempDir, 'zh-CN'), { recursive: true })
+    mkdirSync(join(tempDir, 'en-US'), { recursive: true })
+    const spec = JSON.stringify({
+      openapi: '3.0.0',
+      info: { title: 'API', version: '1.0.0' },
+      paths: {
+        '/pages': { get: { summary: 'List pages', tags: ['Pages'], responses: { 200: { description: 'OK' } } } },
+      },
+    })
+    writeFileSync(zhSpecPath, spec, 'utf-8')
+    writeFileSync(enSpecPath, spec, 'utf-8')
+
+    const plugin = createOpenAPIPlugin()
+    const routes: ContentRoute[] = [
+      route({ path: '/api', basePath: '/api', locale: 'zh-CN', title: 'API', filePath: zhSpecPath, virtualModuleId: 'virtual:clarify-page/zh-CN/api' }),
+      route({ path: '/en-US/api', basePath: '/api', locale: 'en-US', title: 'API', filePath: enSpecPath, virtualModuleId: 'virtual:clarify-page/en-US/api' }),
+    ]
+    const ctx = createContext(routes)
+    ctx.contentRoot = tempDir
+    ctx.projectConfig.i18n = {
+      defaultLocale: 'zh-CN',
+      missing: 'fallback',
+      locales: [
+        { code: 'zh-CN', label: '简体中文', dir: 'ltr' },
+        { code: 'en-US', label: 'English', dir: 'ltr' },
+      ],
+    }
+    ctx.projectConfig.tabs = [
+      { tab: 'API', pages: [{ group: 'Reference', pages: [{ openapi: 'api.openapi.json', path: 'openapi/pages', filter: { tags: ['Pages'] } }] }] },
+    ]
+
+    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
+
+    expect(discovered?.find(route => route.path === '/openapi/pages')).toMatchObject({
+      basePath: '/openapi/pages',
+      module: { virtualModuleId: 'virtual:clarify-page/openapi/pages' },
+      isBareAlias: true,
+      openapi: { tagFilter: ['Pages'] },
+    })
+    expect(discovered?.find(route => route.path === '/en-US/openapi/pages')).toMatchObject({
+      basePath: '/openapi/pages',
+      module: { virtualModuleId: 'virtual:clarify-page/en-US/openapi/pages' },
+      openapi: { tagFilter: ['Pages'] },
+    })
+  })
+
+  it('discovers OpenAPI routes with i18n route metadata', async () => {
+    const zhSpecPath = join(tempDir, 'zh-CN', 'api.openapi.json')
+    const enSpecPath = join(tempDir, 'en-US', 'api.openapi.json')
+    mkdirSync(join(tempDir, 'zh-CN'), { recursive: true })
+    mkdirSync(join(tempDir, 'en-US'), { recursive: true })
+    writeFileSync(zhSpecPath, '{"openapi":"3.0.0","info":{"title":"API","version":"1.0.0"},"paths":{}}', 'utf-8')
+    writeFileSync(enSpecPath, '{"openapi":"3.0.0","info":{"title":"API","version":"1.0.0"},"paths":{}}', 'utf-8')
+
+    const plugin = createOpenAPIPlugin()
+    const ctx = createContext([])
+    ctx.projectConfig.i18n = {
+      defaultLocale: 'zh-CN',
+      missing: 'fallback',
+      locales: [
+        { code: 'zh-CN', label: '简体中文', dir: 'ltr' },
+        { code: 'en-US', label: 'English', dir: 'ltr' },
+      ],
+    }
+    const result = await plugin.hooks?.['routes:discover']?.({ contentRoot: tempDir, routes: [] }, ctx)
+    const discovered = result?.routes
+
+    expect(discovered?.find(route => route.path === '/zh-CN/api')).toMatchObject({
+      basePath: '/api',
+      locale: 'zh-CN',
+      module: { virtualModuleId: 'virtual:clarify-page/zh-CN/api' },
+    })
+    expect(discovered?.find(route => route.path === '/en-US/api')).toMatchObject({
+      basePath: '/api',
+      locale: 'en-US',
+      module: { virtualModuleId: 'virtual:clarify-page/en-US/api' },
+    })
   })
 
   it('creates explicit-path OpenAPI route aliases from navigation config', async () => {
@@ -318,10 +494,10 @@ describe('createOpenAPIPlugin', () => {
 
     expect(aliasRoute).toMatchObject({
       basePath: '/reference',
-      virtualModuleId: 'virtual:clarify-page/reference',
-      openapiTagFilter: undefined,
+      module: { virtualModuleId: 'virtual:clarify-page/reference' },
+      openapi: { tagFilter: undefined },
     })
-    expect(aliasRoute?.sections).toEqual([
+    expect(aliasRoute?.meta.sections).toEqual([
       { id: 'get-projects', title: 'List projects', badge: 'GET', level: 2, tags: ['Projects'] },
     ])
   })

@@ -47,10 +47,16 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
     routes.push({
       path: cleanPath,
       basePath: cleanPath,
-      filePath: fullPath,
-      virtualModuleId: virtualModuleIdFromRef(ref),
-      title: kebabToTitle(cleanPath.split('/').pop() ?? 'API'),
       kind: 'openapi',
+      meta: {
+        title: kebabToTitle(cleanPath.split('/').pop() ?? 'API'),
+      },
+      module: {
+        virtualModuleId: virtualModuleIdFromRef(ref),
+      },
+      source: {
+        filePath: fullPath,
+      },
     })
   }
 

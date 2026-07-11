@@ -30,6 +30,9 @@ export function createSourceUrl(filePath: string, contentRoot: string, source: C
 export function attachSourceUrls(routes: ContentRoute[], contentRoot: string, source?: ClarifySourceConfig): void {
   if (!source) return
   for (const route of routes) {
-    route.sourceUrl = createSourceUrl(route.filePath, contentRoot, source)
+    route.source = {
+      ...route.source,
+      editUrl: createSourceUrl(route.source.filePath, contentRoot, source),
+    }
   }
 }

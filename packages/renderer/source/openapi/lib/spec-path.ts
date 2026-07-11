@@ -11,9 +11,10 @@ type OpenApiSpecResult = {
 }
 
 type OpenApiSpecModule = { default: OpenAPISpec } | OpenAPISpec
-type LoadedOpenApiSpec = {
-  loader: () => Promise<OpenApiSpecModule>
+
+type LoadedSpecState = {
   spec: OpenAPISpec | null
+  loading: boolean
 }
 
 function isOpenApiSpecLoader(value: unknown): value is () => Promise<OpenApiSpecModule> {
@@ -60,19 +61,18 @@ function normalizeSpecPath(specPath: string, currentRoutePath?: string, routePre
 }
 
 /**
- * 为绝对 specPath 生成带 locale 前缀的候选模块 ID。
- *
- * 所有 locale 的 spec 都注册在 `virtual:clarify-page/<locale>/...` 下，
- * 因此绝对路径（如 `/api`）需要显式注入 locale 前缀才能命中。
- * 相对路径会因为当前路由已含 locale 前缀而自动解析到正确的 spec。
+ * Prefer a locale-qualified registry key for absolute specPath values, then
+ * fall back to the normalized key. The CLI registers visible route aliases,
+ * while relative paths already resolve through the current localized route.
  */
-function localizeSpecModuleId(moduleId: string, specPath: string, locale: string | undefined, _defaultLocale: string | undefined): string | undefined {
-  if (!locale) return undefined
-  // 仅处理绝对路径；相对路径已经基于含 locale 前缀的当前路由解析。
-  if (!specPath.startsWith('/') || specPath.startsWith(VIRTUAL_PREFIX)) return undefined
-  const rest = moduleId.slice(VIRTUAL_PREFIX.length)
-  if (rest.startsWith(`${locale}/`) || rest === locale) return undefined
-  return `${VIRTUAL_PREFIX}${locale}/${rest}`
+function specModuleCandidates(moduleId: string, specPath: string, locale: string | undefined): string[] {
+  const candidates: string[] = []
+  if (locale && specPath.startsWith('/') && !specPath.startsWith(VIRTUAL_PREFIX)) {
+    const rest = moduleId.slice(VIRTUAL_PREFIX.length)
+    if (!rest.startsWith(`${locale}/`) && rest !== locale) candidates.push(`${VIRTUAL_PREFIX}${locale}/${rest}`)
+  }
+  candidates.push(moduleId)
+  return candidates
 }
 
 export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenApiSpecResult {
@@ -80,23 +80,22 @@ export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenApiSp
   const locale = useLocale()
   const specs = useOpenApis()
   const location = useLocation()
-  const [loadedSpec, setLoadedSpec] = useState<LoadedOpenApiSpec | null>(null)
+  const [loadedSpec, setLoadedSpec] = useState<LoadedSpecState>({ spec: null, loading: false })
   const normalized = specPath ? normalizeSpecPath(specPath, location.pathname, config.routePrefix) : undefined
-  const localized = specPath && normalized ? localizeSpecModuleId(normalized, specPath, locale, config.i18n?.defaultLocale) : undefined
-  const registryValue = normalized ? (localized && specs[localized] ? specs[localized] : specs[normalized]) : undefined
+  const candidates = specPath && normalized ? specModuleCandidates(normalized, specPath, locale) : []
+  const registryValue = candidates.map(candidate => specs[candidate]).find(Boolean)
 
   useEffect(() => {
     let cancelled = false
 
     if (!isOpenApiSpecLoader(registryValue)) return
 
-    registryValue()
-      .then(module => {
-        if (!cancelled) setLoadedSpec({ loader: registryValue, spec: getLoadedSpec(module) })
-      })
-      .catch(() => {
-        if (!cancelled) setLoadedSpec({ loader: registryValue, spec: null })
-      })
+    setLoadedSpec({ spec: null, loading: true })
+    registryValue().then(module => {
+      if (!cancelled) setLoadedSpec({ spec: getLoadedSpec(module), loading: false })
+    }).catch(() => {
+      if (!cancelled) setLoadedSpec({ spec: null, loading: false })
+    })
 
     return () => {
       cancelled = true
@@ -106,8 +105,7 @@ export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenApiSp
   if (spec) return { spec, loading: false }
   if (!specPath) return { spec: null, loading: false }
   if (isOpenApiSpecLoader(registryValue)) {
-    const currentSpec = loadedSpec?.loader === registryValue ? loadedSpec.spec : null
-    return { spec: currentSpec, loading: loadedSpec?.loader !== registryValue }
+    return loadedSpec
   }
   return { spec: registryValue ?? null, loading: false }
 }

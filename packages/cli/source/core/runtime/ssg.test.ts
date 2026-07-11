@@ -9,6 +9,30 @@ import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 import { readIndexHtml, injectSSRIntoTemplate, isNotFoundRoute, routeOutputFiles } from './ssg.js'
 
+type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
+  title?: string
+  description?: string
+  keywords?: string[]
+  filePath?: string
+  virtualModuleId?: string
+}
+
+function route(overrides: RouteFixture): ContentRoute {
+  const { title, description, keywords, filePath, virtualModuleId, ...rest } = overrides
+  return {
+    path: '/guide',
+    kind: 'mdx',
+    meta: {
+      title: title ?? 'Guide',
+      description,
+      keywords,
+    },
+    module: { virtualModuleId: virtualModuleId ?? 'virtual:guide' },
+    source: { filePath: filePath ?? '/content/guide.mdx' },
+    ...rest,
+  }
+}
+
 describe('readIndexHtml', () => {
   let tempDir: string
 
@@ -73,15 +97,14 @@ describe('injectSSRIntoTemplate', () => {
         ],
       },
     }
-    const html = injectSSRIntoTemplate(baseTemplate, '', config, {
+    const html = injectSSRIntoTemplate(baseTemplate, '', config, route({
       path: '/ar/guide',
       basePath: '/guide',
       locale: 'ar',
       title: 'Guide',
       filePath: '/content/ar/guide.mdx',
-      kind: 'mdx',
       virtualModuleId: 'virtual:guide',
-    })
+    }))
     expect(html).toContain('<html lang="ar" dir="rtl">')
   })
 
@@ -92,13 +115,12 @@ describe('injectSSRIntoTemplate', () => {
   })
 
   it('combines page title with site title', () => {
-    const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, {
+    const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, route({
       path: '/guide',
       title: 'Guide',
       filePath: '/content/guide.mdx',
-      kind: 'mdx',
       virtualModuleId: 'virtual:guide',
-    })
+    }))
     expect(html).toContain('<title>Guide - Test Docs</title>')
   })
 
@@ -108,14 +130,13 @@ describe('injectSSRIntoTemplate', () => {
   })
 
   it('uses page description before site description', () => {
-    const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, {
+    const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, route({
       path: '/guide',
       title: 'Guide',
       description: 'Guide description',
       filePath: '/content/guide.mdx',
-      kind: 'mdx',
       virtualModuleId: 'virtual:guide',
-    })
+    }))
     expect(html).toContain('<meta name="description" content="Guide description" />')
   })
 
@@ -137,14 +158,13 @@ describe('injectSSRIntoTemplate', () => {
   })
 
   it('injects keywords meta from page keywords', () => {
-    const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, {
+    const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig, route({
       path: '/guide',
       title: 'Guide',
       keywords: ['docs', 'api'],
       filePath: '/content/guide.mdx',
-      kind: 'mdx',
       virtualModuleId: 'virtual:guide',
-    })
+    }))
     expect(html).toContain('<meta name="keywords" content="docs, api" />')
   })
 
@@ -167,26 +187,24 @@ describe('injectSSRIntoTemplate', () => {
   })
 
   it('adds data-pagefind-ignore to bare alias routes in multilingual sites', () => {
-    const html = injectSSRIntoTemplate(baseTemplate, '<h1>Content</h1>', baseConfig, {
+    const html = injectSSRIntoTemplate(baseTemplate, '<h1>Content</h1>', baseConfig, route({
       path: '/guide',
       basePath: '/guide',
       isBareAlias: true,
       title: 'Guide',
       filePath: '/content/guide.mdx',
-      kind: 'mdx',
       virtualModuleId: 'virtual:guide',
-    })
+    }))
     expect(html).toContain('<div id="root" data-pagefind-ignore><h1>Content</h1></div>')
   })
 
   it('does not add data-pagefind-ignore to regular (non-bare-alias) routes', () => {
-    const html = injectSSRIntoTemplate(baseTemplate, '<h1>Content</h1>', baseConfig, {
+    const html = injectSSRIntoTemplate(baseTemplate, '<h1>Content</h1>', baseConfig, route({
       path: '/guide',
       title: 'Guide',
       filePath: '/content/guide.mdx',
-      kind: 'mdx',
       virtualModuleId: 'virtual:guide',
-    })
+    }))
     expect(html).toContain('<div id="root"><h1>Content</h1></div>')
     expect(html).not.toContain('data-pagefind-ignore')
   })
@@ -203,15 +221,14 @@ describe('injectSSRIntoTemplate', () => {
         ],
       },
     }
-    const html = injectSSRIntoTemplate(baseTemplate, '<h1>Content</h1>', config, {
+    const html = injectSSRIntoTemplate(baseTemplate, '<h1>Content</h1>', config, route({
       path: '/en-US/guide',
       basePath: '/guide',
       locale: 'en-US',
       title: 'Guide',
       filePath: '/content/en-US/guide.mdx',
-      kind: 'mdx',
       virtualModuleId: 'virtual:guide',
-    })
+    }))
     expect(html).toContain('<div id="root"><h1>Content</h1></div>')
     expect(html).not.toContain('data-pagefind-ignore')
   })
@@ -219,13 +236,12 @@ describe('injectSSRIntoTemplate', () => {
 
 describe('routeOutputFiles', () => {
   const outputDirectory = '/site/output'
-  const baseRoute: ContentRoute = {
+  const baseRoute: ContentRoute = route({
     path: '/guide',
     title: 'Guide',
     filePath: '/content/guide.mdx',
-    kind: 'mdx',
     virtualModuleId: 'virtual:guide',
-  }
+  })
 
   it('returns the nested index file for regular routes', () => {
     expect(routeOutputFiles(outputDirectory, baseRoute)).toEqual(['/site/output/guide/index.html'])

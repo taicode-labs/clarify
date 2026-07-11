@@ -70,8 +70,8 @@ export function resolveVirtualModuleId(id: string, modules: VirtualModules, rout
   const moduleId = stripVirtualPrefix(id)
   if (modules.has(moduleId)) return resolveVirtualId(moduleId)
 
-  const route = routes.find(route => route.virtualModuleId === id || route.virtualModuleId === moduleId)
-  if (route) return resolveVirtualId(route.virtualModuleId)
+  const route = routes.find(route => route.module.virtualModuleId === id || route.module.virtualModuleId === moduleId)
+  if (route) return resolveVirtualId(route.module.virtualModuleId)
 
   return null
 }
@@ -110,7 +110,7 @@ type RuntimeRouteObject = {
 function routeToRuntimeObject(route: ContentRoute, component: string, mode: 'client' | 'server'): RuntimeRouteObject {
   const obj: RuntimeRouteObject = {
     path: route.path,
-    title: route.title,
+      title: route.meta.title,
     component,
     kind: route.kind,
   }
@@ -121,12 +121,12 @@ function routeToRuntimeObject(route: ContentRoute, component: string, mode: 'cli
   if (route.isFallback) obj.isFallback = true
   if (route.isBareAlias) obj.isBareAlias = true
   if (route.alternates) obj.alternates = route.alternates
-  if (route.description) obj.description = route.description
-  if (route.keywords?.length) obj.keywords = route.keywords
-  if (route.contentArtifactUrl) obj.contentArtifactUrl = route.contentArtifactUrl
-  if (route.sourceUrl) obj.sourceUrl = route.sourceUrl
-  if (route.sections?.length) {
-    obj.sections = route.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags }))
+  if (route.meta.description) obj.description = route.meta.description
+  if (route.meta.keywords?.length) obj.keywords = route.meta.keywords
+  if (route.artifacts?.contentUrl) obj.contentArtifactUrl = route.artifacts.contentUrl
+  if (route.source?.editUrl) obj.sourceUrl = route.source.editUrl
+  if (route.meta.sections?.length) {
+    obj.sections = route.meta.sections.map(s => ({ id: s.id, title: s.title, level: s.level, badge: s.badge, tags: s.tags }))
   }
 
   return obj
@@ -134,7 +134,7 @@ function routeToRuntimeObject(route: ContentRoute, component: string, mode: 'cli
 
 export function generateRoutesModule(routes: ContentRoute[], navigation: NavigationTree, mode: 'client' | 'server' = 'client'): string {
   const imports = mode === 'server'
-    ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.virtualModuleId)};`).join('\n')
+    ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.module.virtualModuleId)};`).join('\n')
     : `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';`
 
   // `component` is a raw JS expression (an identifier or arrow function),
@@ -145,7 +145,7 @@ export function generateRoutesModule(routes: ContentRoute[], navigation: Navigat
   const routeEntries = routes.map((r, i) => {
     const component = mode === 'server'
       ? `Page${i}`
-      : `() => import(${moduleSpecifier(r.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
+      : `() => import(${moduleSpecifier(r.module.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
     const placeholder = `__COMPONENT_${i}__`
     const obj = routeToRuntimeObject(r, placeholder, mode)
     const json = JSON.stringify(obj, null, 0)
@@ -269,8 +269,8 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   for (const route of args.routes) {
     const moduleContent = route.diagnostic
       ? generateMdxErrorModule(route.diagnostic)
-      : `export { default } from ${moduleSpecifier(route.filePath)};`
-    modules.set(route.virtualModuleId, moduleContent)
+      : `export { default } from ${moduleSpecifier(route.source.filePath)};`
+    modules.set(route.module.virtualModuleId, moduleContent)
   }
 
   return modules
