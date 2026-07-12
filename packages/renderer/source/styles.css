@@ -379,6 +379,21 @@
     background: var(--clarify-ui-tab-hover-background);
   }
 
+  .clarify-api-example-code {
+    container-type: inline-size;
+  }
+
+  @container (max-width: 26rem) {
+    .clarify-api-code-toolbar {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .clarify-api-code-toolbar > button {
+      align-self: flex-end;
+    }
+  }
+
   .clarify-brand-title,
   .clarify-footer-link,
   .clarify-footer-social,

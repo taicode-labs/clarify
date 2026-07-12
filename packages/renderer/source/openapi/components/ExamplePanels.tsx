@@ -126,7 +126,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
             ) : null}
           </div>
         ) : null}
-        <div className="clarify-api-example-code group relative bg-(--clarify-code-background)">
+        <div className="clarify-api-example-code group bg-(--clarify-code-background)">
           <CodeToolbar
             code={code}
             languageOptions={languageOptions}
@@ -136,7 +136,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
             selectedClientKey={selectedClientKey}
             onSelectClient={onSelectClient}
           />
-          <pre className={`max-h-128 overflow-auto overscroll-contain p-4 text-xs text-(--clarify-code-text) ${languageOptions && languageOptions.length > 1 ? 'pt-14' : ''}`}>
+          <pre className="max-h-128 overflow-auto overscroll-contain px-4 pt-3 pb-4 text-xs text-(--clarify-code-text)">
             <HighlightedCode code={code} language={language} />
           </pre>
         </div>
@@ -331,6 +331,10 @@ function firstExampleKeyForResponseContent(content?: MediaTypeEntry, spec?: Open
   return getExampleEntries(content?.value, spec)[0]?.key ?? ''
 }
 
+export function getResponseExampleBody(content: MediaTypeEntry | undefined, example: ExampleEntry | undefined): string {
+  return content ? stringifyExample(example?.value) : ''
+}
+
 type ResponseSelectionState = {
   status: string
   mediaType: string
@@ -376,9 +380,7 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
   const linkedExampleKey = sharedExampleKey && examples.some((example) => example.key === sharedExampleKey) ? sharedExampleKey : undefined
   const currentExampleKey = linkedExampleKey ?? selectedExampleKey
   const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
-  const responseCode = selectedContent
-    ? stringifyExample(selectedExample?.value)
-    : `HTTP/1.1 ${selectedResponse?.status ?? defaultStatus}${selectedResponse?.status === '204' ? ' No Content' : ''}`
+  const responseBody = getResponseExampleBody(selectedContent, selectedExample)
 
   return {
     responses: orderedResponses,
@@ -387,7 +389,7 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
     selectedContent,
     examples,
     selectedExample,
-    responseCode,
+    responseBody,
     onSelectStatus: (value: string) => {
       const nextResponse = orderedResponses.find(({ status }) => status === value)
       const nextContents = getMediaTypeEntries(nextResponse?.response.content, spec)
@@ -423,20 +425,16 @@ export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNo
   const t = useBuiltInText()
   const state = useResponseExamplesState({ operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus })
 
-  if (!state.selectedResponse || !state.responseCode) return null
+  if (!state.selectedContent || !state.responseBody) return null
 
   return (
     <ApiExampleCodeGroup
       title={title ?? t('openapi.response')}
-      tag={state.selectedResponse.status}
-      tagOptions={state.responses.map(({ status }) => status)}
-      onSelectTag={state.onSelectStatus}
       label={state.selectedContent?.mediaType}
       labelOptions={state.responseContents.map((content) => content.mediaType)}
       onSelectLabel={state.responseContents.length > 0 ? state.onSelectMediaType : undefined}
-      comfortableMeta
-      code={state.responseCode}
-      language={state.selectedContent ? codeLanguageForMediaType(state.selectedContent.mediaType) : 'http'}
+      code={state.responseBody}
+      language={codeLanguageForMediaType(state.selectedContent.mediaType)}
       examples={state.examples}
       selectedExampleKey={state.selectedExample?.key}
       onSelectExample={state.onSelectExample}
