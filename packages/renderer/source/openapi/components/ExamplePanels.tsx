@@ -82,7 +82,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
       <div className="not-prose">
         <div className="clarify-api-example-header flex min-h-(--clarify-code-header-min-height) items-center gap-3 border-b border-(--clarify-code-border) bg-(--clarify-code-header-background) px-4 py-2">
           <h3 className="mr-auto min-w-16 truncate py-1 text-xs font-semibold text-(--clarify-code-text)">{title}</h3>
-          <div className="ml-auto flex min-w-0 items-center gap-2 whitespace-nowrap">
+          <div className="clarify-api-example-header-controls ml-auto flex min-w-0 items-center gap-2 whitespace-nowrap">
             {mediaTypes && mediaTypes.length > 1 && selectedMediaType && onSelectMediaType ? (
               <SelectControl
                 label={t('openapi.mediaType')}

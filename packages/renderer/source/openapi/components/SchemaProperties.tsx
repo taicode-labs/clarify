@@ -300,7 +300,7 @@ function SchemaNode(arg0: SchemaNodeProps): ReactNode {
         </div>
         <div className="mt-0.5 text-sm/5 text-(--clarify-ui-text-soft) *:first:mt-0 *:last:mb-0">
           {node.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{node.description}</Markdown> : fallbackDescription}
-          {node.details ? <p className="text-xs text-(--clarify-ui-text-faint)">{node.details}</p> : null}
+          {node.details ? <p className="text-xs text-(--clarify-ui-text-soft)">{node.details}</p> : null}
         </div>
       </div>
       {hasChildren ? (
@@ -319,7 +319,7 @@ function SchemaNode(arg0: SchemaNodeProps): ReactNode {
           aria-label={expanded ? t('openapi.collapse') : t('openapi.expand')}
           aria-expanded={expanded}
           onClick={() => setExpanded((value) => !value)}
-          className={clsx(rowClassName, 'cursor-pointer transition')}
+          className={clsx(rowClassName, 'cursor-pointer transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)')}
         >
           {content}
         </button>
@@ -431,7 +431,7 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
     return (
       <div className="rounded-(--clarify-theme-tokens-radius-xl) p-0">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm/5 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{status}</span>
+          {orderedResponses.length === 1 ? <span className="text-sm/5 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{status}</span> : null}
           {type ? <span className="text-xs text-(--clarify-theme-tokens-colors-muted)">{type}</span> : null}
         </div>
         <div className="mt-3 text-sm/6 text-(--clarify-ui-text-soft) *:first:mt-0 *:last:mb-0">

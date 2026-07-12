@@ -68,7 +68,7 @@ export function EndpointPath(arg0: EndpointPathProps): ReactNode {
           title={copied ? t('actions.copied') : t('actions.copy')}
           onClick={onCopy}
           className={clsx(
-            'flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) text-(--clarify-ui-text-soft) transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground)',
+            'flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) text-(--clarify-ui-text-soft) transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
             copied && 'border-emerald-400/70 bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-200',
           )}
         >
@@ -180,7 +180,7 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
     return (
       <span
         aria-label="Server"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text-foreground) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5"
       >
         <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
         <span className="hidden min-w-0 items-center gap-1.5 overflow-hidden sm:flex">
@@ -198,7 +198,7 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
       aria-label="Server"
       onClick={onToggle}
       className={clsx(
-        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text-foreground) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5',
+        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5',
         open ? 'bg-(--clarify-ui-active-background) text-(--clarify-theme-tokens-colors-foreground)' : null,
       )}
     >
@@ -339,7 +339,8 @@ function AuthPanel(arg0: AuthPanelProps): ReactNode {
                 {selectedAuth.scheme.type === 'apiKey' ? selectedAuth.scheme.in ?? 'apiKey' : selectedAuth.scheme.scheme ?? selectedAuth.scheme.type ?? 'token'}
               </span>
               <input
-                value={authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth)}
+                value={authValues[selectedAuth.name] ?? ''}
+                placeholder={authPlaceholder(selectedAuth)}
                 onChange={(event) => onChangeAuthValue(selectedAuth.name, event.target.value)}
                 className="min-w-0 flex-1 border-0 bg-transparent px-0 py-0 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) outline-hidden placeholder:text-(--clarify-ui-text-faint)"
               />
@@ -433,7 +434,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
             aria-label="Auth"
             onClick={onToggleAuth}
             className={clsx(
-              'ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-emerald-700 dark:hover:text-emerald-200',
+              'ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) dark:hover:text-emerald-200',
               authOpen ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-100' : 'bg-(--clarify-ui-subtle-background)',
             )}
           >

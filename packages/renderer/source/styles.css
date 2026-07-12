@@ -383,7 +383,26 @@
     container-type: inline-size;
   }
 
+  .clarify-api-example {
+    container-type: inline-size;
+  }
+
   @container (max-width: 26rem) {
+    .clarify-api-example-header {
+      align-items: stretch;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .clarify-api-example-header > h3 {
+      margin-right: 0;
+    }
+
+    .clarify-api-example-header-controls {
+      margin-left: 0;
+      width: 100%;
+    }
+
     .clarify-api-code-toolbar {
       align-items: stretch;
       flex-direction: column;
