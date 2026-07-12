@@ -245,16 +245,10 @@ export function createRuntimeSlotsModule(plugins: ClarifyPlugin[] = [], root: st
   return `export const runtimeSlots = {\n${entries}\n};\n`
 }
 
-export function generateMdxErrorModule(diagnostic: ContentDiagnostic): string {
+export function generateContentDiagnosticModule(diagnostic: ContentDiagnostic): string {
   return `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';
 
-export const contentDiagnostic = ${JSON.stringify({
-    kind: diagnostic.kind ?? 'mdx',
-    title: diagnostic.title,
-    message: diagnostic.message,
-    filePath: diagnostic.filePath,
-    details: diagnostic.details,
-  })};
+export const contentDiagnostic = ${JSON.stringify(diagnostic)};
 
 export default createContentDiagnosticComponent(contentDiagnostic);
 `
@@ -278,7 +272,7 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
 
   for (const route of args.routes) {
     const moduleContent = route.diagnostic
-      ? generateMdxErrorModule(route.diagnostic)
+      ? generateContentDiagnosticModule(route.diagnostic)
       : `export { default } from ${moduleSpecifier(route.source.filePath)};`
     modules.set(route.module.virtualModuleId, moduleContent)
   }

@@ -2,8 +2,10 @@ import type { ComponentType } from 'react'
 
 import { RenderErrorPanel } from './RenderErrorPanel'
 
+export type ContentDiagnosticKind = 'markdown' | 'mdx' | 'openapi' | 'route-load'
+
 export type ContentDiagnostic = {
-  kind: string
+  kind: ContentDiagnosticKind
   title: string
   message: string
   details?: string
@@ -16,8 +18,14 @@ type ContentDiagnosticPanelProps = {
 
 function ContentDiagnosticPanel(params: ContentDiagnosticPanelProps) {
   const { data } = params
-  const typeLabel = data.kind === 'mdx' ? 'MDX' : data.kind === 'openapi' ? 'OpenAPI' : 'Route'
-  const detailsLabel = data.kind === 'mdx' ? 'Why it happened' : 'Details'
+  const typeLabels: Record<ContentDiagnosticKind, string> = {
+    markdown: 'Markdown',
+    mdx: 'MDX',
+    openapi: 'OpenAPI',
+    'route-load': 'Route',
+  }
+  const typeLabel = typeLabels[data.kind]
+  const detailsLabel = data.kind === 'mdx' || data.kind === 'markdown' ? 'Why it happened' : 'Details'
   const pathLabel = 'File'
 
   return (

@@ -27,12 +27,12 @@ const generateOptions: ResolvedBuildOptions = {
   ssg: { failOnError: true },
 }
 
-function createContext(routes: ContentRoute[]): ClarifyHookContext {
+function createContext(routes: ContentRoute[], projectRoot: string = '/site'): ClarifyHookContext {
   return {
-    projectRoot: '/site',
-    contentRoot: '/site/source',
+    projectRoot,
+    contentRoot: join(projectRoot, 'source'),
     projectConfig: { ...projectConfig },
-    generateOptions,
+    generateOptions: { ...generateOptions, projectRoot },
     version: 'test',
     routes,
     navigation: { kind: 'flat', nodes: [] },
@@ -44,10 +44,6 @@ function createContext(routes: ContentRoute[]): ClarifyHookContext {
   }
 }
 
-/**
- * Plugin that mirrors the variables plugin's content:transform behavior for
- * the two test variables used below.
- */
 const variableReplacementTestPlugin: ClarifyPlugin = {
   name: 'test:variable-replacement',
   hooks: {
@@ -156,7 +152,7 @@ describe('createOpenAPIPlugin', () => {
       kind: 'openapi',
     }])
 
-    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
+    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes, tempDir))
 
     expect(discovered?.[0].meta.title).toBe('Plugin API')
     expect(discovered?.[0].meta.sections).toEqual([
@@ -164,7 +160,7 @@ describe('createOpenAPIPlugin', () => {
       { id: 'patch-usersid', title: 'Update user', badge: 'PATCH', level: 2, tags: ['Users'] },
     ])
 
-    const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(discovered ?? []))
+    const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(discovered ?? [], tempDir))
     const clientRegistry = modules?.get('virtual:clarify/openapi')
     expect(clientRegistry).toContain('() => import("virtual:clarify/openapi-spec/')
     expect(clientRegistry).not.toContain('Plugin API')
@@ -191,16 +187,16 @@ describe('createOpenAPIPlugin', () => {
     })]
     const plugin = createOpenAPIPlugin()
 
-    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes))
+    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContext(routes, tempDir))
 
     expect(discovered?.[0].diagnostic).toMatchObject({
-      kind: 'openapi',
-      title: 'OpenAPI spec parse failed',
-      filePath: specPath,
+      kind: 'openapi', title: 'OpenAPI spec parse failed',
+      filePath: 'broken.openapi.json',
+      message: 'Clarify could not parse this OpenAPI specification.',
     })
     expect(discovered?.[0].diagnostic?.details).toContain('Error parsing')
 
-    const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(routes))
+    const modules = await plugin.hooks?.['modules:before']?.(new Map(), createContext(discovered ?? [], tempDir))
     expect(modules?.get('virtual:clarify-page/broken')).toContain('contentDiagnostic')
     expect(modules?.get('virtual:clarify-page/broken')).toContain('createContentDiagnosticComponent(contentDiagnostic);')
   })

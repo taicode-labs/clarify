@@ -1,7 +1,7 @@
 import type { ViteDevServer } from 'vite'
 import { describe, expect, it } from 'vitest'
 
-import { ClarifyEngine } from './engine.js'
+import { assertNoContentDiagnostics, ClarifyEngine } from './engine.js'
 
 function createEngineWithHooks(calls: string[]): ClarifyEngine {
   const engine = new ClarifyEngine({ projectRoot: '/site' })
@@ -31,6 +31,28 @@ function createEngineWithHooks(calls: string[]): ClarifyEngine {
 }
 
 describe('ClarifyEngine phase hooks', () => {
+  it('rejects discovered content diagnostics with a route summary', () => {
+    expect(() => assertNoContentDiagnostics([
+      {
+        path: '/broken',
+        kind: 'mdx',
+        meta: { title: 'Broken' },
+        module: { virtualModuleId: 'virtual:clarify-page/broken' },
+        source: { filePath: '/site/source/broken.mdx' },
+        diagnostic: {
+          kind: 'mdx',
+          title: 'MDX syntax error',
+          message: 'Invalid JSX',
+          filePath: 'source/broken.mdx',
+        },
+      },
+    ])).toThrow('[clarify] Content diagnostics prevented the build:\n- /broken: MDX syntax error (source/broken.mdx)')
+  })
+
+  it('accepts routes without content diagnostics', () => {
+    expect(() => assertNoContentDiagnostics([])).not.toThrow()
+  })
+
   it('wraps project config initialization with config phase hooks', async () => {
     const calls: string[] = []
     const engine = new ClarifyEngine({

@@ -30,17 +30,17 @@ function commandExists(program: string): boolean {
   return result.status === 0 && result.error === undefined
 }
 
-type InstallCommand = { command: string; args: string[] }
+type PackageManager = 'pnpm' | 'npm' | 'yarn'
 
-function getInstallCommand(): InstallCommand {
-  if (commandExists('pnpm')) return { command: 'pnpm', args: ['install'] }
-  if (commandExists('npm')) return { command: 'npm', args: ['install'] }
-  if (commandExists('yarn')) return { command: 'yarn', args: ['install'] }
-  return { command: 'npm', args: ['install'] }
+function detectPackageManager(): PackageManager {
+  if (commandExists('pnpm')) return 'pnpm'
+  if (commandExists('npm')) return 'npm'
+  if (commandExists('yarn')) return 'yarn'
+  return 'npm'
 }
 
-function installDependencies(root: string): void {
-  const { command, args } = getInstallCommand()
+function installDependencies(root: string, command: PackageManager): void {
+  const args = ['install']
   console.log(`[clarify] Installing dependencies with ${command}...`)
   const result = spawnSync(command, args, { cwd: root, stdio: 'inherit' })
   if (result.status !== 0) {
@@ -48,16 +48,13 @@ function installDependencies(root: string): void {
   }
 }
 
-function getSuggestedInstallCommand(): string {
-  if (commandExists('pnpm')) return 'pnpm install'
-  if (commandExists('npm')) return 'npm install'
-  if (commandExists('yarn')) return 'yarn install'
-  return 'npm install'
+function getSuggestedInstallCommand(packageManager: PackageManager): string {
+  return `${packageManager} install`
 }
 
-function getSuggestedRunCommand(): string {
-  if (commandExists('pnpm')) return 'pnpm dev'
-  if (commandExists('yarn')) return 'yarn dev'
+function getSuggestedRunCommand(packageManager: PackageManager): string {
+  if (packageManager === 'pnpm') return 'pnpm dev'
+  if (packageManager === 'yarn') return 'yarn dev'
   return 'npm run dev'
 }
 
@@ -101,16 +98,17 @@ export function runInit(options: ResolvedCliOptions, force: boolean, template?: 
     console.log(`[clarify] Created or updated ${created.length} ${created.length === 1 ? 'file' : 'files'}: ${created.join(', ')}`)
   }
 
+  const packageManager = detectPackageManager()
   if (install) {
-    installDependencies(options.root)
-    const suggestedRun = getSuggestedRunCommand()
+    installDependencies(options.root, packageManager)
+    const suggestedRun = getSuggestedRunCommand(packageManager)
     console.log('[clarify] Dependencies installed successfully.')
     console.log(`[clarify] You can now run \`${suggestedRun}\` to start the local documentation server.`)
     return
   }
 
-  const suggestedInstall = getSuggestedInstallCommand()
-  const suggestedRun = getSuggestedRunCommand()
+  const suggestedInstall = getSuggestedInstallCommand(packageManager)
+  const suggestedRun = getSuggestedRunCommand(packageManager)
   console.log('[clarify] Next steps:')
   console.log('  1. Change into your new project directory:')
   console.log(`       cd ${options.root}`)

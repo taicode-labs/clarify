@@ -1,7 +1,7 @@
 import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import type { HtmlTagDescriptor, ViteDevServer } from 'vite'
 
-import type { UISlotRegistration } from '@clarify-labs/renderer'
+import type { ContentDiagnostic, UISlotRegistration } from '@clarify-labs/renderer'
 
 import type { ResolvedBuildOptions } from './core/config/options.js'
 
@@ -9,6 +9,7 @@ export type {
   ClarifyBuildOptions,
   ResolvedBuildOptions,
 } from './core/config/options.js'
+export type { ContentDiagnostic } from '@clarify-labs/renderer'
 
 export type OpenAPISpec = OpenAPIV3.Document | OpenAPIV3_1.Document
 
@@ -297,14 +298,6 @@ export type ContentSection = {
   level: number
   badge?: string
   tags?: string[]
-}
-
-export type ContentDiagnostic = {
-  kind: string
-  title: string
-  message: string
-  details?: string
-  filePath?: string
 }
 
 export type ContentRouteMeta = {

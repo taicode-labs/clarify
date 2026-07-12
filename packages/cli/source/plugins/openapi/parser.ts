@@ -6,6 +6,7 @@ import SwaggerParser from '@apidevtools/swagger-parser'
 import { slug } from 'github-slugger'
 
 import type { ContentProcessor } from '../../parsers/content/content.js'
+import { createContentDiagnostic } from '../../parsers/content/diagnostic.js'
 import { kebabToTitle, routePathFromRef, virtualModuleIdFromRef } from '../../parsers/routes/routes.js'
 import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
 
@@ -17,10 +18,6 @@ type ResolverFileInfo = { url: string }
 export type OpenAPIParseResult =
   | { ok: true; spec: OpenAPISpec }
   | { ok: false; diagnostic: ContentDiagnostic }
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
-}
 
 function isSameOpenAPIFile(url: string, filePath: string): boolean {
   try {
@@ -140,7 +137,7 @@ export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[])
   return sections
 }
 
-export async function readOpenAPISpec(filePath: string, contentProcessor?: ContentProcessor): Promise<OpenAPIParseResult> {
+export async function readOpenAPISpec(filePath: string, contentProcessor?: ContentProcessor, projectRoot?: string): Promise<OpenAPIParseResult> {
   try {
     if (!contentProcessor) return { ok: true, spec: await SwaggerParser.dereference(filePath) as OpenAPISpec }
 
@@ -163,13 +160,14 @@ export async function readOpenAPISpec(filePath: string, contentProcessor?: Conte
   } catch (error) {
     return {
       ok: false,
-      diagnostic: {
+      diagnostic: createContentDiagnostic({
         kind: 'openapi',
         title: 'OpenAPI spec parse failed',
-        message: `Clarify could not parse ${filePath}.`,
+        message: 'Clarify could not parse this OpenAPI specification.',
+        error,
         filePath,
-        details: errorMessage(error),
-      },
+        projectRoot,
+      }),
     }
   }
 }

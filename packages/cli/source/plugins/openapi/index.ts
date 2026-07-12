@@ -1,11 +1,12 @@
 import { join, relative } from 'node:path'
 
+import { generateContentDiagnosticModule } from '../../core/runtime/virtual-modules.js'
 import { createProjectContentProcessor } from '../../parsers/content/content.js'
 import { localizedRoutePath, openAPIPagePathFromRef, routeIntentFromPagesItem, withAlternates } from '../../parsers/routes/routes.js'
 import type { ClarifyOpenAPIRouteIntent, ClarifyPagesConfig, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
 
 import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, normalizeOpenAPISpecSectionIds, readOpenAPISpec } from './parser.js'
-import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPIServerRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, openApiServerRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
+import { generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPIServerRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, openApiServerRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 type OpenAPISpecEntry = {
   spec: OpenAPISpec
@@ -190,7 +191,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         for (const route of nextRoutes.filter(route => route.kind === 'openapi')) {
           const specFromCache = specByFilePath.get(route.source.filePath)
           const processor = createProjectContentProcessor(ctx.plugins, ctx)
-          const result = specFromCache ? { ok: true as const, spec: specFromCache } : await readOpenAPISpec(route.source.filePath, processor)
+          const result = specFromCache ? { ok: true as const, spec: specFromCache } : await readOpenAPISpec(route.source.filePath, processor, ctx.generateOptions.projectRoot)
           if (!result.ok) {
             route.diagnostic = result.diagnostic
             route.meta.title = route.meta.title || 'OpenAPI parse error'
@@ -257,7 +258,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
         for (const route of ctx.routes) {
           if (route.kind !== 'openapi') continue
           if (route.diagnostic) {
-            modules.set(route.module.virtualModuleId, generateOpenAPIErrorModule(route.diagnostic))
+            modules.set(route.module.virtualModuleId, generateContentDiagnosticModule(route.diagnostic))
           } else if (route.openapi?.sourceSpecId) {
             const routeSpecModuleId = route.openapi.routeSpecModuleId ?? route.openapi.sourceSpecId
             if (!specModules.has(routeSpecModuleId)) continue

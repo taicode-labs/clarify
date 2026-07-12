@@ -1,5 +1,5 @@
 import { VIRTUAL_OPENAPI, VIRTUAL_OPENAPI_SERVER } from '../../core/runtime/virtual-modules.js'
-import type { ContentDiagnostic, OpenAPISpec } from '../../types.js'
+import type { OpenAPISpec } from '../../types.js'
 
 export const openApiRegistryModuleId = VIRTUAL_OPENAPI
 export const openApiServerRegistryModuleId = VIRTUAL_OPENAPI_SERVER
@@ -36,20 +36,5 @@ import spec from ${JSON.stringify(opts.specModuleId)};
 export const routeData = {};
 
 export default createOpenApiRouteComponent({ ...routeData, spec });
-`
-}
-
-export function generateOpenAPIErrorModule(diagnostic: ContentDiagnostic): string {
-  return `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';
-
-export const contentDiagnostic = ${JSON.stringify({
-    kind: diagnostic.kind ?? 'openapi',
-    title: diagnostic.title,
-    message: diagnostic.message,
-    filePath: diagnostic.filePath,
-    details: diagnostic.details,
-  })};
-
-export default createContentDiagnosticComponent(contentDiagnostic);
 `
 }

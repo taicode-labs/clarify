@@ -7,6 +7,7 @@ import { visit } from 'unist-util-visit'
 import { markdownRemarkPlugins, parseCodeMeta } from '@clarify-labs/renderer'
 
 import type { ContentDiagnostic } from '../../types.js'
+import { createContentDiagnostic } from '../content/diagnostic.js'
 
 type HastNode = {
   type: string
@@ -59,12 +60,28 @@ export const rehypePlugins: NonNullable<CompileOptions['rehypePlugins']> = [
   }],
 ]
 
-function formatMdxDiagnostic(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message
-  }
+type ContentCompileDiagnosticOptions = {
+  format: 'markdown' | 'mdx'
+  phase: 'syntax' | 'compilation'
+  error: unknown
+  filePath?: string
+  projectRoot?: string
+}
 
-  return String(error)
+export function createContentCompileDiagnostic(options: ContentCompileDiagnosticOptions): ContentDiagnostic {
+  const { format, phase, error, filePath, projectRoot } = options
+  const label = format === 'mdx' ? 'MDX' : 'Markdown'
+  return createContentDiagnostic({
+    kind: format,
+    title: `${label} ${phase} error`,
+    message: phase === 'syntax'
+      ? 'This page could not be compiled. Fix the MDX syntax or component usage above, then reload the route.'
+      : `This page could not be compiled. Fix the ${label} syntax or plugin error below, then reload the route.`,
+    error,
+    filePath,
+    projectRoot,
+    includeStack: phase === 'compilation',
+  })
 }
 
 /**
@@ -97,15 +114,7 @@ export async function compileMdxContent(content: string, filePath?: string, proj
   } catch (error) {
     return {
       ok: false,
-      diagnostic: {
-        kind: 'mdx',
-        title: 'MDX syntax error',
-        message: 'This page could not be compiled. Fix the MDX syntax or component usage above, then reload the route.',
-        filePath: filePath && projectRoot
-          ? filePath.replace(projectRoot + '/', '').replace(/^\/+/, '')
-          : filePath ? filePath.replace(/^[A-Za-z]:\//, '').replace(/^\/+/, '') : undefined,
-        details: formatMdxDiagnostic(error),
-      },
+      diagnostic: createContentCompileDiagnostic({ format: 'mdx', phase: 'syntax', error, filePath, projectRoot }),
     }
   }
 }

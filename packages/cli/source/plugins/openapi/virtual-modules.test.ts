@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import type { ContentDiagnostic as RendererDiagnostic } from '@clarify-labs/renderer'
 
+import { generateContentDiagnosticModule } from '../../core/runtime/virtual-modules.js'
 import type { ContentDiagnostic as CliDiagnostic, OpenAPISpec } from '../../types.js'
 
-import { generateOpenAPIErrorModule, generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPIServerRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, openApiServerRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
+import { generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPIServerRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, openApiServerRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
 
 const spec: OpenAPISpec = {
   openapi: '3.0.0',
@@ -97,7 +98,7 @@ describe('openapi virtual modules', () => {
   })
 
   it('generates an OpenAPI diagnostic route component module', () => {
-    const code = generateOpenAPIErrorModule({
+    const code = generateContentDiagnosticModule({
       kind: 'openapi',
       title: 'OpenAPI spec parse failed',
       message: 'Clarify could not parse api.openapi.yaml.',

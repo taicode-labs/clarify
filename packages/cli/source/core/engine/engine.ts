@@ -39,6 +39,16 @@ function loadVirtualModule(id: string, modules: VirtualModules): string | null {
   return modules.get(bareId) ?? modules.get(id) ?? null
 }
 
+export function assertNoContentDiagnostics(routes: ContentRoute[]): void {
+  const failures = routes.filter(route => route.diagnostic)
+  if (failures.length === 0) return
+
+  const summary = failures
+    .map(route => `- ${route.path}: ${route.diagnostic?.title ?? 'Content error'}${route.diagnostic?.filePath ? ` (${route.diagnostic.filePath})` : ''}`)
+    .join('\n')
+  throw new Error(`[clarify] Content diagnostics prevented the build:\n${summary}`)
+}
+
 export class ClarifyEngine {
   readonly options: ClarifyBuildOptions
   readonly root: string
@@ -295,6 +305,8 @@ export class ClarifyEngine {
       if (process.env.SKIP_CLARIFY_SSG) return
 
       if (!(await runInterceptHooks(this.plugins, 'ssg:shouldRun', this.ctx))) return
+
+      if (this.generateOptions.ssg.failOnError) assertNoContentDiagnostics(this.routes)
 
       const outputDir = this.runtime.outputDirectory ?? this.generateOptions.outputDirectory
       if (!outputDir) throw new Error('[clarify] outputDirectory is required before SSG runs')

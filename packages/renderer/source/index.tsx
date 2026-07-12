@@ -2,7 +2,7 @@ import './styles.css'
 
 import { AppShell } from './app/AppShell'
 import { BuiltWithClarify } from './app/BuiltWithClarify'
-import { createContentDiagnosticComponent, type ContentDiagnostic } from './app/ContentDiagnostic'
+import { createContentDiagnosticComponent, type ContentDiagnostic, type ContentDiagnosticKind } from './app/ContentDiagnostic'
 import { PageBanner } from './app/PageBanner'
 import { PageFooter } from './app/PageFooter'
 import { SectionProvider, useSectionStore, type Section } from './app/SectionProvider'
@@ -24,7 +24,7 @@ import { remToPx } from './utils/remToPx'
 
 export type { OpenApiOperationProps, OpenApiDocumentProps, OpenAPIOperation, OpenAPISpec, OpenApiRouteData } from './openapi'
 export type { ThemeEditorProps } from './theme/ThemeEditor'
-export type { ContentDiagnostic }
+export type { ContentDiagnostic, ContentDiagnosticKind }
 export type { Config, RouteItem, RouteSection, RenderOptions, ServerRenderOptions, Section }
 export type { RuntimeSlotEntry, RuntimeSlotRegistry, UISlotRegistration, UISlotName, UISlotContext } from './slots'
 

@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react'
 import rehypeRaw from 'rehype-raw'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
-import { rehypePlugins, remarkPlugins } from '../parsers/markdown/mdx.js'
+import { createContentCompileDiagnostic, rehypePlugins, remarkPlugins } from '../parsers/markdown/mdx.js'
 import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../parsers/router/dev-routes.js'
 import type { ContentRoute, NavigationTree } from '../types.js'
 
@@ -15,6 +15,7 @@ import { CLARIFY_DEV_PROJECT_INFO_ENDPOINT, handleProjectInfoRequest } from './p
 import {
   VIRTUAL_CLIENT_ENTRY,
   VIRTUAL_ROUTES,
+  generateContentDiagnosticModule,
   resolveVirtualId,
   resolveVirtualModuleId,
 } from './runtime/virtual-modules.js'
@@ -69,29 +70,50 @@ function createNormalizedContentPlugin(engine: ClarifyEngine): Plugin {
   }
 }
 
-function createMdxPlugin(): Plugin {
-  return mdxPlugin({
-    include: ['**/*.mdx'],
-    format: 'mdx',
-    jsxImportSource: 'react',
-    providerImportSource: '@clarify-labs/renderer',
-    remarkPlugins: remarkPlugins as MdxPluginOptions['remarkPlugins'],
-    rehypePlugins,
-  }) as Plugin
+type ContentFormat = 'markdown' | 'mdx'
+type ContentCompileErrorPolicy = 'diagnostic' | 'throw'
+type TransformHook = NonNullable<Plugin['transform']> extends infer Hook ? Hook extends (...args: never[]) => unknown ? Hook : never : never
+
+export function createContentCompileTransform(transform: TransformHook, format: ContentFormat, projectRoot: string, errorPolicy: () => ContentCompileErrorPolicy = () => 'diagnostic'): NonNullable<Plugin['transform']> {
+  return async function contentCompileTransform(code, id) {
+    try {
+      return await transform.call(this, code, id)
+    } catch (error) {
+      if (errorPolicy() === 'throw') throw error
+      const filePath = id.replace(/\?.*$/, '')
+      return {
+        code: generateContentDiagnosticModule(createContentCompileDiagnostic({
+          format,
+          phase: 'compilation',
+          error,
+          filePath,
+          projectRoot,
+        })),
+        map: null,
+      }
+    }
+  }
 }
 
-function createMarkdownPlugin(): Plugin {
-  return mdxPlugin({
-    include: ['**/*.md'],
-    format: 'md',
+function createContentCompilerPlugin(format: ContentFormat, projectRoot: string, errorPolicy: () => ContentCompileErrorPolicy): Plugin {
+  const markdown = format === 'markdown'
+  const plugin = mdxPlugin({
+    include: [markdown ? '**/*.md' : '**/*.mdx'],
+    format: markdown ? 'md' : 'mdx',
     jsxImportSource: 'react',
     providerImportSource: '@clarify-labs/renderer',
     remarkPlugins: remarkPlugins as MdxPluginOptions['remarkPlugins'],
-    // Parse raw HTML blocks in Markdown files into real HAST nodes.
-    // This keeps `.md` permissive while `.mdx` still enforces JSX syntax.
-    remarkRehypeOptions: { allowDangerousHtml: true },
-    rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    ...(markdown ? { remarkRehypeOptions: { allowDangerousHtml: true } } : {}),
+    rehypePlugins: markdown ? [rehypeRaw, ...rehypePlugins] : rehypePlugins,
   }) as Plugin
+  const transform = typeof plugin.transform === 'function' ? plugin.transform : plugin.transform?.handler
+
+  if (!transform) return plugin
+
+  return {
+    ...plugin,
+    transform: createContentCompileTransform(transform, format, projectRoot, errorPolicy),
+  }
 }
 
 function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedContentPlugin: Plugin, markdown: Plugin, mdx: Plugin): Plugin {
@@ -232,9 +254,19 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedContentPlu
  * site itself - it only bridges Vite lifecycle hooks to the engine.
  */
 export function createViteAdapter(engine: ClarifyEngine): Plugin[] {
+  let contentCompileErrorPolicy: ContentCompileErrorPolicy = 'diagnostic'
+  const errorPolicy = () => contentCompileErrorPolicy
   const normalizedContentPlugin = createNormalizedContentPlugin(engine)
-  const markdown = createMarkdownPlugin()
-  const mdx = createMdxPlugin()
+  const markdown = createContentCompilerPlugin('markdown', engine.root, errorPolicy)
+  const mdx = createContentCompilerPlugin('mdx', engine.root, errorPolicy)
+  const compilePolicyPlugin: Plugin = {
+    name: 'clarify:content-compile-policy',
+    configResolved(config) {
+      contentCompileErrorPolicy = config.command === 'build' && engine.generateOptions.ssg.failOnError
+        ? 'throw'
+        : 'diagnostic'
+    },
+  }
   // `react()` returns `Plugin[]`; `tailwindcss()` returns `Plugin | Plugin[]`;
   // the rest return a single `Plugin`. Spread the array-returning results so
   // every element is a `Plugin`, avoiding the `.flat().filter(Boolean) as
@@ -243,6 +275,7 @@ export function createViteAdapter(engine: ClarifyEngine): Plugin[] {
   return [
     ...react(),
     ...(Array.isArray(tailwind) ? tailwind : [tailwind]),
+    compilePolicyPlugin,
     normalizedContentPlugin,
     createClarifyViteCorePlugin(engine, normalizedContentPlugin, markdown, mdx),
     markdown,
