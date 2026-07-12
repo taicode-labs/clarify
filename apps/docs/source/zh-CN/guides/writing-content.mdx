@@ -12,10 +12,10 @@
 
 ```txt
 source/
-├── index.mdx
-├── getting-started.mdx
+├── index.md
+├── getting-started.md
 ├── guides/
-│   ├── writing.mdx
+│   ├── writing.md
 │   └── deploy.mdx
 ├── reference/
 │   └── config.mdx
@@ -27,10 +27,10 @@ source/
 ```txt
 source/
 ├── zh-CN/
-│   ├── index.mdx
+│   ├── index.md
 │   └── getting-started.mdx
 └── en-US/
-    ├── index.mdx
+    ├── index.md
     └── getting-started.mdx
 ```
 
@@ -42,24 +42,56 @@ Clarify 按照 `source/` 下的文件结构生成页面路径：
 
 | 文件 | 路由 |
 |------|------|
-| `source/index.mdx` | `/` |
-| `source/getting-started.mdx` | `/getting-started` |
-| `source/guides/index.mdx` | `/guides` |
+| `source/index.md` | `/` |
+| `source/getting-started.md` | `/getting-started` |
+| `source/guides/index.md` | `/guides` |
 | `source/guides/auth.mdx` | `/guides/auth` |
 | `source/api.openapi.json` | `/api` |
 
 规则：
 
-- `index.mdx` 映射为所在目录根路径。
+- `index.md` 或 `index.mdx` 映射为所在目录根路径。
 - 文件名建议使用小写和连字符，例如 `api-authentication.mdx`。
-- 支持 `.mdx` 内容文件，以及 `.openapi.json`、`.openapi.yaml`、`.openapi.yml` 规范文件。
+- 支持 `.md`、`.mdx` 内容文件，以及 `.openapi.json`、`.openapi.yaml`、`.openapi.yml` 规范文件。
 - 如果站点部署在子路径，使用 `routePrefix` 配置前缀，见 [配置站点](/guides/navigation)。
+
+---
+
+## 选择 Markdown 或 MDX
+
+Clarify 对 `.md` 和 `.mdx` 使用不同的解析语义。两者都支持 Frontmatter、GFM、代码高亮、Mermaid、标题目录和搜索；区别在于页面是否需要 JSX 能力。
+
+| 能力 | `.md` | `.mdx` |
+|------|-------|--------|
+| 标准 Markdown 和 GFM | 支持 | 支持 |
+| 原始 HTML | 支持 | 按 JSX 语法解析 |
+| 内置或自定义 React 组件 | 不支持 | 支持 |
+| `import` / `export` | 不支持 | 支持 |
+| JavaScript 表达式 `{...}` | 不支持 | 支持 |
+
+**默认选择 `.md`**。它适合教程、指南和参考内容，也兼容普通 HTML 的写法：
+
+```md
+<img src="/images/overview.png">
+```
+
+**只有在页面需要组件或表达式时才选择 `.mdx`**。MDX 中的标签遵循 JSX 规则，因此没有子节点的标签必须自闭合：
+
+```mdx
+<img src="/images/overview.png" />
+
+<Callout type="tip">
+  这段内容由 React 组件渲染。
+</Callout>
+```
+
+把普通内容保留为 `.md` 可以避免 HTML 被误判为 JSX，也能更早发现真正的 MDX 组件语法错误。更改扩展名不会改变文件路由，例如 `source/guide.md` 和 `source/guide.mdx` 都映射到 `/guide`；同一路径不要同时存在两个文件。
 
 ---
 
 ## MDX 基础
 
-Clarify 使用 MDX，你可以写普通 Markdown，也可以嵌入 JSX。
+MDX 文件可以写普通 Markdown，也可以嵌入 JSX。
 
 ```mdx
 # 标题

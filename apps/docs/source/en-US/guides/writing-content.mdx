@@ -12,10 +12,10 @@ Organize docs by reader tasks rather than by internal modules:
 
 ```txt
 source/
-├── index.mdx
-├── getting-started.mdx
+├── index.md
+├── getting-started.md
 ├── guides/
-│   ├── writing.mdx
+│   ├── writing.md
 │   └── deploy.mdx
 ├── reference/
 │   └── config.mdx
@@ -27,10 +27,10 @@ When internationalization is enabled, place the same structure inside locale dir
 ```txt
 source/
 ├── zh-CN/
-│   ├── index.mdx
+│   ├── index.md
 │   └── getting-started.mdx
 └── en-US/
-    ├── index.mdx
+    ├── index.md
     └── getting-started.mdx
 ```
 
@@ -42,24 +42,56 @@ Clarify generates page paths from the file structure under `source/`:
 
 | File | Route |
 |------|------|
-| `source/index.mdx` | `/` |
-| `source/getting-started.mdx` | `/getting-started` |
-| `source/guides/index.mdx` | `/guides` |
+| `source/index.md` | `/` |
+| `source/getting-started.md` | `/getting-started` |
+| `source/guides/index.md` | `/guides` |
 | `source/guides/auth.mdx` | `/guides/auth` |
 | `source/api.openapi.json` | `/api` |
 
 Rules:
 
-- `index.mdx` maps to the root path of its directory.
+- `index.md` or `index.mdx` maps to the root path of its directory.
 - File names should use lowercase and hyphens, e.g. `api-authentication.mdx`.
-- `.mdx` content files are supported, as well as `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` spec files.
+- `.md` and `.mdx` content files are supported, as well as `.openapi.json`, `.openapi.yaml`, and `.openapi.yml` spec files.
 - If the site is deployed under a subpath, configure the prefix with `routePrefix` — see [Configuring the Site](/guides/navigation).
+
+---
+
+## Choose Markdown or MDX
+
+Clarify parses `.md` and `.mdx` with different semantics. Both support frontmatter, GFM, syntax highlighting, Mermaid, heading navigation, and search. The difference is whether the page needs JSX capabilities.
+
+| Capability | `.md` | `.mdx` |
+|------|-------|--------|
+| Standard Markdown and GFM | Yes | Yes |
+| Raw HTML | Yes | Parsed as JSX syntax |
+| Built-in or custom React components | No | Yes |
+| `import` / `export` | No | Yes |
+| JavaScript expressions `{...}` | No | Yes |
+
+**Use `.md` by default.** It is a good fit for tutorials, guides, and reference content, and accepts regular HTML syntax:
+
+```md
+<img src="/images/overview.png">
+```
+
+**Choose `.mdx` only when the page needs components or expressions.** Tags in MDX follow JSX rules, so elements without children must be self-closing:
+
+```mdx
+<img src="/images/overview.png" />
+
+<Callout type="tip">
+  This content is rendered by a React component.
+</Callout>
+```
+
+Keeping regular content in `.md` prevents HTML from being interpreted as JSX while preserving strict diagnostics for real MDX component errors. Changing the extension does not change the route: both `source/guide.md` and `source/guide.mdx` map to `/guide`. Do not create both files for the same route.
 
 ---
 
 ## MDX basics
 
-Clarify uses MDX, so you can write plain Markdown and also embed JSX.
+MDX files can contain plain Markdown and embedded JSX.
 
 ```mdx
 # Heading

@@ -1,6 +1,20 @@
 # Changelog
 
 ---
+## v0.10.2
+
+### Added
+
+- Added a dedicated Markdown content pipeline: `.md` uses Markdown/HTML semantics while `.mdx` keeps strict JSX semantics
+- Documented when to choose `.md` or `.mdx`, including their syntax differences
+
+### Improved
+
+- Replaced custom heading ID and syntax-highlighting implementations with the community-maintained `rehype-slug` and `@shikijs/rehype` plugins
+- Improved code-block language detection, metadata handling, Mermaid rendering, and unknown-language fallback
+
+---
+
 ## v0.8.2
 
 ### Improved
