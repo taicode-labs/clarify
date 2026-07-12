@@ -126,6 +126,8 @@
     --clarify-ui-text-faint: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 58%, transparent);
     --clarify-ui-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 6%, transparent);
     --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 12%, transparent);
+    --clarify-ui-tab-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 7%, var(--clarify-theme-tokens-colors-surface));
+    --clarify-ui-tab-indicator: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 78%, var(--clarify-theme-tokens-colors-foreground));
     --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 5%, transparent);
     --clarify-ui-overlay-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-muted) 28%, transparent);
     --clarify-ui-accent-text: var(--clarify-theme-tokens-colors-primary);
@@ -137,10 +139,14 @@
     --clarify-code-header-background: color-mix(in srgb, #111827 86%, var(--clarify-theme-tokens-colors-primary));
     --clarify-code-border: rgb(255 255 255 / 0.1);
     --clarify-code-text: var(--color-zinc-100);
+    --clarify-code-control-text: var(--color-zinc-300);
     --clarify-code-muted: var(--color-zinc-400);
     --clarify-code-faint: var(--color-zinc-500);
     --clarify-code-control-background: rgb(255 255 255 / 0.06);
     --clarify-code-control-background-hover: rgb(255 255 255 / 0.1);
+    --clarify-code-control-background-active: rgb(255 255 255 / 0.14);
+    --clarify-code-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 58%, white);
+    --clarify-code-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 20%, transparent);
     --clarify-ui-menu-width: 13rem;
     --clarify-ui-action-menu-width: 19.5rem;
     --clarify-layout-sidebar-grid: 18rem minmax(0, 1fr);
@@ -213,6 +219,7 @@
     --clarify-ui-text-faint: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 60%, transparent);
     --clarify-ui-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 8%, transparent);
     --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 18%, transparent);
+    --clarify-ui-tab-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 10%, var(--clarify-theme-tokens-colors-surface));
     --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 10%, transparent);
     --clarify-ui-overlay-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-background) 76%, transparent);
     --clarify-ui-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 72%, var(--clarify-theme-tokens-colors-foreground));
@@ -365,6 +372,11 @@
   .clarify-ui-tab:hover,
   .clarify-ui-tab-active {
     color: var(--clarify-ui-text-strong);
+  }
+
+  .clarify-content-tab:hover,
+  .clarify-content-tab:focus-visible {
+    background: var(--clarify-ui-tab-hover-background);
   }
 
   .clarify-brand-title,

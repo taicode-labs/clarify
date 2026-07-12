@@ -36,12 +36,12 @@ export function Tabs(arg0: ClarifyTabsProps) {
 
   return (
     <TabGroup selectedIndex={resolvedIndex} onChange={handleChange} className={className}>
-      <TabList className={clsx('flex flex-wrap items-center gap-6 border-b border-(--clarify-theme-tokens-colors-border) pb-0', listClassName)}>
+      <TabList className={clsx('-mx-2 flex flex-wrap items-center gap-2 border-b border-(--clarify-theme-tokens-colors-border) px-2 pb-0', listClassName)}>
         {items.map((item) => (
           <Tab
             key={item.id}
             className={({ selected }: TabClassNameProps) => clsx(
-              'clarify-ui-tab relative inline-flex h-10 shrink-0 items-center px-0 py-0 text-sm font-medium transition focus:outline-none',
+              'clarify-content-tab clarify-ui-tab relative inline-flex h-10 shrink-0 items-center rounded-t-md px-2 py-0 text-sm font-medium transition-colors focus:outline-none',
               selected && 'clarify-ui-tab-active',
             )}
           >
@@ -51,8 +51,8 @@ export function Tabs(arg0: ClarifyTabsProps) {
                 {selected ? (
                   <motion.span
                     layoutId={indicatorLayoutId}
-                    className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-(--clarify-theme-tokens-colors-foreground)"
-                    transition={{ type: 'tween', duration: 0.16, ease: 'easeOut' }}
+                    className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-(--clarify-ui-tab-indicator) shadow-[0_0_0.5rem_var(--clarify-ui-accent-glow)]"
+                    transition={{ type: 'spring', stiffness: 460, damping: 34, mass: 0.7 }}
                   />
                 ) : null}
               </>

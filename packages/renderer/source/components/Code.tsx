@@ -1,5 +1,6 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import clsx from 'clsx'
+import { motion } from 'framer-motion'
 import { Check, Clipboard } from 'lucide-react'
 import {
   Children,
@@ -7,6 +8,7 @@ import {
   isValidElement,
   useContext,
   useEffect,
+  useId,
   useRef,
   useState,
   type ComponentPropsWithoutRef,
@@ -162,6 +164,7 @@ function CodeGroupHeader(arg0: CodeGroupHeaderProps) {  const { title, children,
 
   const t = useBuiltInText()
   const hasTabs = Children.count(children) > 1
+  const indicatorLayoutId = useId()
 
   if (!title && !hasTabs) return null
 
@@ -169,17 +172,24 @@ function CodeGroupHeader(arg0: CodeGroupHeaderProps) {  const { title, children,
     <div className="clarify-code-group-header flex min-h-(--clarify-code-header-min-height) flex-wrap items-start gap-x-4 border-b border-(--clarify-code-border) bg-(--clarify-code-header-background) px-4">
       {title ? <h3 className="mr-auto pt-3 text-xs font-semibold text-(--clarify-code-text)">{title}</h3> : null}
       {hasTabs ? (
-        <TabList className="clarify-code-tabs -mb-px flex gap-4 text-xs font-medium">
+        <TabList className="clarify-code-tabs -mr-2 -mb-px flex gap-0 text-xs font-medium">
           {Children.map(children, (child, childIndex) => (
             <Tab
               className={clsx(
-                'clarify-code-tab border-b py-3 transition data-selected:not-data-focus:outline-hidden',
+                'clarify-code-tab relative border-b border-transparent px-2 py-3 transition-colors hover:bg-(--clarify-code-control-background-hover) data-selected:not-data-focus:outline-hidden',
                 childIndex === selectedIndex
-                  ? 'border-(--clarify-theme-tokens-colors-primary) text-(--clarify-theme-tokens-colors-primary)'
-                  : 'border-transparent text-(--clarify-code-muted) hover:text-(--clarify-code-text)',
+                  ? 'text-(--clarify-code-accent-text)'
+                  : 'text-(--clarify-code-control-text) hover:text-(--clarify-code-text)',
               )}
             >
               {getPanelTitle({ ...(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {}), fallbackTitle: t('actions.code') })}
+              {childIndex === selectedIndex ? (
+                <motion.span
+                  layoutId={indicatorLayoutId}
+                  className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-(--clarify-code-accent-text)"
+                  transition={{ type: 'spring', stiffness: 460, damping: 34, mass: 0.7 }}
+                />
+              ) : null}
             </Tab>
           ))}
         </TabList>

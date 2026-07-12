@@ -38,7 +38,7 @@ export function SelectControl(arg0: SelectControlProps): ReactNode {
       <div className={wrapperClassName}>
         <ListboxButton
           aria-label={label}
-          className={`clarify-api-select-button flex ${buttonSizeClassName} items-center justify-between gap-2 rounded-lg bg-(--clarify-code-control-background) px-2 py-1 text-xs font-medium whitespace-nowrap text-(--clarify-code-text) outline-hidden transition hover:bg-(--clarify-code-control-background-hover) focus:ring-2 focus:ring-(--clarify-ui-accent-border) data-open:bg-(--clarify-code-control-background-hover) data-open:ring-2 data-open:ring-(--clarify-ui-accent-border)`}
+          className={`clarify-api-select-button flex min-h-8 ${buttonSizeClassName} items-center justify-between gap-2 rounded-lg border border-(--clarify-code-border) bg-(--clarify-code-control-background) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--clarify-code-text) outline-hidden transition hover:border-white/20 hover:bg-(--clarify-code-control-background-hover) focus:ring-2 focus:ring-(--clarify-ui-accent-border) data-open:border-white/20 data-open:bg-(--clarify-code-control-background-active) data-open:ring-2 data-open:ring-(--clarify-ui-accent-border)`}
         >
           <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
             {icon ? <span className="shrink-0 text-(--clarify-code-faint)">{icon}</span> : null}
@@ -54,7 +54,7 @@ export function SelectControl(arg0: SelectControlProps): ReactNode {
             <ListboxOption
               key={option.value}
               value={option.value}
-              className="clarify-api-select-option group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs whitespace-nowrap text-(--clarify-code-muted) select-none data-focus:bg-(--clarify-code-control-background-hover) data-focus:text-(--clarify-code-text) data-selected:text-(--clarify-theme-tokens-colors-primary)"
+              className="clarify-api-select-option group flex min-h-9 cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs whitespace-nowrap text-(--clarify-code-control-text) select-none data-focus:bg-(--clarify-code-control-background-hover) data-focus:text-(--clarify-code-text) data-selected:bg-(--clarify-code-accent-background) data-selected:text-(--clarify-code-accent-text)"
             >
               <span>{option.label}</span>
               <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />

@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 
+import { HighlightedCode } from '../../components/HighlightedCode'
 import { useBuiltInText } from '../../core/i18n'
 import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getResponseEntries, stringifyExample } from '../lib/helpers'
 import { buildRequestCodeExamples } from '../lib/request-code'
@@ -136,7 +137,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
             onSelectClient={onSelectClient}
           />
           <pre className={`max-h-128 overflow-auto overscroll-contain p-4 text-xs text-(--clarify-code-text) ${languageOptions && languageOptions.length > 1 ? 'pt-14' : ''}`}>
-            <code className={`language-${language}`}>{code}</code>
+            <HighlightedCode code={code} language={language} />
           </pre>
         </div>
       </div>

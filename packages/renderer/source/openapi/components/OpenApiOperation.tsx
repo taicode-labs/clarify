@@ -104,8 +104,8 @@ function InlineListbox(arg0: InlineListboxProps): ReactNode {
         <ListboxButton
           aria-label={label}
           className={clsx(
-            'inline-flex min-w-0 items-center gap-1 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) data-open:border-(--clarify-ui-text-faint) data-open:bg-(--clarify-ui-hover-background)',
-            compact ? 'max-w-32 px-1.5 py-0.5 text-xs' : 'w-full px-2.5 py-1.5 text-xs',
+            'inline-flex min-w-0 items-center gap-1 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) font-semibold text-(--clarify-ui-text-strong) shadow-xs outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) data-open:border-(--clarify-ui-accent-border) data-open:bg-(--clarify-ui-active-background) data-open:ring-2 data-open:ring-(--clarify-ui-accent-border)',
+            compact ? 'min-h-7 max-w-32 px-2 py-0.5 text-xs' : 'min-h-8 w-full px-2.5 py-1.5 text-xs',
           )}
         >
           <span className="truncate">{selected?.label ?? value}</span>
@@ -113,7 +113,7 @@ function InlineListbox(arg0: InlineListboxProps): ReactNode {
         </ListboxButton>
         <ListboxOptions anchor="bottom start" className="z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-xl bg-(--clarify-theme-tokens-colors-surface) p-1 text-xs shadow-lg shadow-black/10 ring-1 ring-(--clarify-theme-tokens-colors-border) [--anchor-gap:--spacing(1)] focus:outline-none">
           {options.map((option) => (
-            <ListboxOption key={option.value} value={option.value} className="group flex cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs text-(--clarify-ui-text) select-none data-focus:bg-(--clarify-ui-hover-background) data-selected:text-(--clarify-theme-tokens-colors-primary)">
+            <ListboxOption key={option.value} value={option.value} className="group flex min-h-9 cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs text-(--clarify-ui-text) select-none data-focus:bg-(--clarify-ui-hover-background) data-focus:text-(--clarify-ui-text-strong) data-selected:bg-(--clarify-ui-active-background) data-selected:text-(--clarify-ui-accent-text)">
               <span className="min-w-0">
                 <span className="block truncate">{option.label}</span>
                 {option.description ? <span className="mt-0.5 block truncate text-2xs text-(--clarify-ui-text-faint)">{option.description}</span> : null}

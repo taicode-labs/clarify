@@ -32,7 +32,36 @@ type SnippetTarget<T extends TargetId = TargetId> = {
   client: ClientId<T>
 }
 
+const snippetControlCharacters = [
+  { character: '\n', placeholder: '\uE000', escape: '\\n' },
+  { character: '\r', placeholder: '\uE001', escape: '\\r' },
+  { character: '\t', placeholder: '\uE002', escape: '\\t' },
+] as const
+
 const snippetGenerator = snippetz()
+
+function protectSnippetControlCharacters(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return snippetControlCharacters.reduce(
+      (result, item) => result.replaceAll(item.character, item.placeholder),
+      value,
+    )
+  }
+
+  if (Array.isArray(value)) return value.map(protectSnippetControlCharacters)
+  if (!isRecord(value)) return value
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [key, protectSnippetControlCharacters(item)]),
+  )
+}
+
+function restoreSnippetControlCharacters(code: string): string {
+  return snippetControlCharacters.reduce(
+    (result, item) => result.replaceAll(item.placeholder, item.escape),
+    code,
+  )
+}
 
 function getDefaultServer(spec: OpenAPISpec): OpenApiServer {
   const servers = (spec as Record<string, unknown>).servers
@@ -122,7 +151,7 @@ function getRequestBody(requestContent?: RequestContent): RequestBody | undefine
     return params.length > 0 ? { params } : undefined
   }
 
-  return { serialized: stringifyExample(value) }
+  return { serialized: stringifyExample(protectSnippetControlCharacters(value)) }
 }
 
 function getAuthorizationValue(auth: RequestAuthInput): string | undefined {
@@ -190,7 +219,7 @@ function buildSnippetErrorMessage(error: unknown): string {
 function buildSnippet(input: RequestCodeInput, target: SnippetTarget): string {
   try {
     const result = snippetGenerator.print(target.target, target.client, buildHarRequest(input))
-    return decodeUrlPlaceholders(result || '')
+    return restoreSnippetControlCharacters(decodeUrlPlaceholders(result || ''))
   } catch (error) {
     return buildSnippetErrorMessage(error)
   }
