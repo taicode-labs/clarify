@@ -96,7 +96,9 @@ export function Mermaid(arg0: MermaidProps): ReactNode {
   )
 }
 
-function MermaidStaticSvg(arg0: { svg: string; className?: string }): ReactNode {
+type MermaidStaticSvgProps = { svg: string; className?: string }
+
+function MermaidStaticSvg(arg0: MermaidStaticSvgProps): ReactNode {
   const { svg, className } = arg0
 
   return (

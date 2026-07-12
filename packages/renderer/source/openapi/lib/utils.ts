@@ -1,5 +1,5 @@
-import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 import { slug } from 'github-slugger'
+import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 
 import type { OpenApiRecord } from '../types'
 

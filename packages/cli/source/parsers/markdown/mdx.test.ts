@@ -2,7 +2,7 @@ import { compile, type CompileOptions } from '@mdx-js/mdx'
 import rehypeRaw from 'rehype-raw'
 import { describe, expect, it, vi } from 'vitest'
 
-import { compileMdxContent, rehypeParseCodeBlocks, rehypePlugins, rehypeShiki, rehypeSlugSections, remarkPlugins } from './mdx.js'
+import { compileMdxContent, rehypeParseCodeBlocks, rehypePlugins, remarkPlugins } from './mdx.js'
 
 const testRemarkPlugins = remarkPlugins as CompileOptions['remarkPlugins']
 
@@ -36,29 +36,25 @@ function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties:
 }
 
 describe('mdx rehype plugins', () => {
-  it('adds stable ids to Chinese section headings', () => {
-    const tree: TestNode = {
-      type: 'root',
-      children: [
-        {
-          type: 'element',
-          tagName: 'h2',
-          properties: {},
-          children: [{ type: 'text', value: '中文标题' }],
-        },
-        {
-          type: 'element',
-          tagName: 'h3',
-          properties: {},
-          children: [{ type: 'text', value: '中文标题' }],
-        },
-      ],
-    }
+  it('adds stable ids to headings through the shared pipeline', async () => {
+    const compiled = String(await compile([
+      '# Overview',
+      '',
+      '## 中文标题',
+      '',
+      '### 中文标题',
+      '',
+      '<h2 id="custom-id">Custom</h2>',
+    ].join('\n'), {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
 
-    rehypeSlugSections()(tree)
-
-    expect(tree.children?.[0]?.properties?.id).toBe('中文标题')
-    expect(tree.children?.[1]?.properties?.id).toBe('中文标题-1')
+    expect(compiled).toContain('<_components.h1 id="overview">')
+    expect(compiled).toContain('<_components.h2 id="中文标题">')
+    expect(compiled).toContain('<_components.h3 id="中文标题-1">')
+    expect(compiled).toContain('<h2 id="custom-id">')
   })
 
   it('copies fenced code language to the pre element', () => {
@@ -91,64 +87,6 @@ describe('mdx rehype plugins', () => {
     expect(code?.properties?.title).toBe('Named tab')
     expect(code?.properties?.label).toBe('clarify.ts')
     expect(code?.properties?.tag).toBe('config')
-  })
-
-  it('stores raw code and replaces code text with highlighted html', async () => {
-    const tree = codeTree('ts')
-    rehypeParseCodeBlocks()(tree)
-
-    const transformer = rehypeShiki()
-    await transformer(tree)
-
-    const pre = tree.children?.[0]
-    const code = pre?.children?.[0]
-    const highlighted = code?.children?.[0]?.value ?? ''
-
-    expect(pre?.properties?.code).toBe('const answer = 42\n')
-    expect(code?.properties?.code).toBe('const answer = 42\n')
-    expect(highlighted).toContain('<span')
-    expect(highlighted).toContain('--shiki')
-  })
-
-  it('preserves line breaks in plain fenced code blocks', async () => {
-    const tree = codeTree('txt', 'first line\nsecond line\nthird line')
-    rehypeParseCodeBlocks()(tree)
-
-    const transformer = rehypeShiki()
-    await transformer(tree)
-
-    const code = tree.children?.[0]?.children?.[0]
-    const highlighted = code?.children?.[0]?.value ?? ''
-
-    expect(highlighted).toBe('<span>first line</span>\n<span>second line</span>\n<span>third line</span>')
-  })
-
-  it('shares one Shiki highlighter across concurrent transforms', async () => {
-    const createHighlighterCalls: number[] = []
-    vi.doMock('shiki', () => ({
-      bundledLanguages: { ts: true },
-      createCssVariablesTheme: () => ({ name: 'css-variables' }),
-      createHighlighter: async () => {
-        createHighlighterCalls.push(1)
-        await Promise.resolve()
-        return {
-          codeToHtml: (code: string) => `<pre><code><span>${code}</span></code></pre>`,
-          loadLanguage: () => Promise.resolve(),
-        }
-      },
-    }))
-
-    vi.resetModules()
-    const { rehypeParseCodeBlocks: freshRehypeParseCodeBlocks, rehypeShiki: freshRehypeShiki } = await import('./mdx.js')
-    const trees = [codeTree('ts'), codeTree('ts'), codeTree('ts')]
-
-    for (const tree of trees) freshRehypeParseCodeBlocks()(tree)
-    await Promise.all(trees.map(tree => freshRehypeShiki()(tree)))
-
-    expect(createHighlighterCalls).toHaveLength(1)
-
-    vi.doUnmock('shiki')
-    vi.resetModules()
   })
 
   it('passes double-quoted fenced code meta attributes to the code component', async () => {
@@ -219,10 +157,25 @@ describe('mdx rehype plugins', () => {
       rehypePlugins,
     }))
 
-    expect(compiled).toContain('<_components.pre language="ts" title="Full pipeline" label="clarify.ts"')
-    expect(compiled).toContain('<_components.code className="language-ts" title="Full pipeline" label="clarify.ts"')
-    expect(compiled).toContain('language="ts"')
-    expect(compiled).toContain('code="export default {}')
+    expect(compiled).toContain('<_components.pre className="shiki css-variables"')
+    expect(compiled).toContain('title="Full pipeline"')
+    expect(compiled).toContain('label="clarify.ts"')
+    expect(compiled).toContain('<_components.code className="language-ts">')
+    expect(compiled).toContain('var(--shiki-token-keyword)')
+    expect(compiled).toContain('{"export"}')
+  })
+
+  it('falls back to plain text for unknown fenced code languages', async () => {
+    const compiled = String(await compile('```custom-language\nfirst line\nsecond line\n```', {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(compiled).toContain('<_components.pre className="shiki css-variables"')
+    expect(compiled).toContain('<_components.code className="language-text">')
+    expect(compiled).toContain('{"first line"}')
+    expect(compiled).toContain('{"second line"}')
   })
 
   it('deduplicates repeated MDX parser messages in diagnostics', async () => {
@@ -253,11 +206,9 @@ describe('mdx rehype plugins', () => {
     // pipeline ran. The diagnostic path must skip rehypePlugins entirely so
     // code highlighting only happens once, at Vite build time.
     //
-    // We use a fresh module instance (`vi.resetModules` + dynamic import) so the
-    // module-level `highlighter` singleton in `mdx.ts` is unset - otherwise an
-    // earlier `rehypeShiki()` test could have cached it and masked whether the
-    // diagnostic path reaches Shiki at all. `vi.doMock` (not `vi.mock`) is used
-    // because it is not hoisted and can be scoped to this test.
+    // We use a fresh module instance (`vi.resetModules` + dynamic import) so a
+    // previous full-pipeline compile cannot mask whether diagnostics initialize
+    // Shiki. `vi.doMock` (not `vi.mock`) keeps the mock scoped to this test.
     const getHighlighterCalls: number[] = []
     vi.doMock('shiki', () => ({
       bundledLanguages: {},

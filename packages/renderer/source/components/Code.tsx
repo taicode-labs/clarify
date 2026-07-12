@@ -52,6 +52,18 @@ function getNodeText(node: ReactNode): string {
   return ''
 }
 
+function getCodeLanguage(node: ReactNode): string | undefined {
+  if (!isValidElement(node)) return undefined
+
+  const { className, language, children } = node.props as { className?: string; language?: string; children?: ReactNode }
+  if (language) return language
+
+  const languageClass = className?.split(/\s+/).find(value => value.startsWith('language-'))
+  if (languageClass) return languageClass.slice('language-'.length)
+
+  return Children.toArray(children).map(getCodeLanguage).find(Boolean)
+}
+
 type CopyButtonProps = { code: string }
 
 function CopyButton(arg0: CopyButtonProps) {  const { code } = arg0
@@ -331,9 +343,11 @@ type PreProps = ComponentPropsWithoutRef<typeof CodeGroup> & { language?: string
 export function Pre(arg0: PreProps) {  const { children, language, code, ...props } = arg0
 
   const isGrouped = useContext(CodeGroupContext)
+  const resolvedLanguage = language ?? getCodeLanguage(children)
+  const resolvedCode = code ?? getNodeText(children)
 
-  if (language === 'mermaid') {
-    return <Mermaid chart={code ?? getNodeText(children)} />
+  if (resolvedLanguage === 'mermaid') {
+    return <Mermaid chart={resolvedCode} />
   }
 
   if (isGrouped) return children

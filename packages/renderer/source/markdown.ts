@@ -1,1 +1,1 @@
-export { markdownRemarkPlugins } from './mdx/remark'
+export { markdownRemarkPlugins, parseCodeMeta } from './mdx/remark'

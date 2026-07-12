@@ -13,8 +13,8 @@ type OpenApiSpecResult = {
 type OpenApiSpecModule = { default: OpenAPISpec } | OpenAPISpec
 
 type LoadedSpecState = {
+  loader?: () => Promise<OpenApiSpecModule>
   spec: OpenAPISpec | null
-  loading: boolean
 }
 
 function isOpenApiSpecLoader(value: unknown): value is () => Promise<OpenApiSpecModule> {
@@ -80,7 +80,7 @@ export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenApiSp
   const locale = useLocale()
   const specs = useOpenApiSpecs()
   const location = useLocation()
-  const [loadedSpec, setLoadedSpec] = useState<LoadedSpecState>({ spec: null, loading: false })
+  const [loadedSpec, setLoadedSpec] = useState<LoadedSpecState>({ spec: null })
   const normalized = specPath ? normalizeSpecPath(specPath, location.pathname, config.routePrefix) : undefined
   const candidates = specPath && normalized ? specModuleCandidates(normalized, specPath, locale) : []
   const registryValue = candidates.map(candidate => specs[candidate]).find(Boolean)
@@ -90,11 +90,10 @@ export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenApiSp
 
     if (!isOpenApiSpecLoader(registryValue)) return
 
-    setLoadedSpec({ spec: null, loading: true })
     registryValue().then(module => {
-      if (!cancelled) setLoadedSpec({ spec: getLoadedSpec(module), loading: false })
+      if (!cancelled) setLoadedSpec({ loader: registryValue, spec: getLoadedSpec(module) })
     }).catch(() => {
-      if (!cancelled) setLoadedSpec({ spec: null, loading: false })
+      if (!cancelled) setLoadedSpec({ loader: registryValue, spec: null })
     })
 
     return () => {
@@ -105,7 +104,9 @@ export function useOpenApiSpec(spec?: OpenAPISpec, specPath?: string): OpenApiSp
   if (spec) return { spec, loading: false }
   if (!specPath) return { spec: null, loading: false }
   if (isOpenApiSpecLoader(registryValue)) {
-    return loadedSpec
+    return loadedSpec.loader === registryValue
+      ? { spec: loadedSpec.spec, loading: false }
+      : { spec: null, loading: true }
   }
   return { spec: registryValue ?? null, loading: false }
 }

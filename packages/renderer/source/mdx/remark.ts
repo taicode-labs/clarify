@@ -9,7 +9,7 @@ export type MarkdownNode = {
   children?: MarkdownNode[]
 }
 
-function parseCodeMeta(meta: string | null | undefined): Record<string, string> {
+export function parseCodeMeta(meta: string | null | undefined): Record<string, string> {
   if (!meta) return {}
 
   const props: Record<string, string> = {}
@@ -33,6 +33,7 @@ function addCodeMetaAttributes(node: MarkdownNode) {
       node.data.hProperties = {
         ...node.data.hProperties,
         ...props,
+        metastring: node.meta,
       }
     }
   }

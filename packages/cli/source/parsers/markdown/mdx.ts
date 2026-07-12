@@ -1,13 +1,12 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
-import GithubSlugger from 'github-slugger'
-import { toString } from 'mdast-util-to-string'
-import { bundledLanguages, createCssVariablesTheme, createHighlighter, type BundledLanguage, type Highlighter } from 'shiki'
+import rehypeShiki from '@shikijs/rehype'
+import rehypeSlug from 'rehype-slug'
+import { createCssVariablesTheme } from 'shiki'
 import { visit } from 'unist-util-visit'
 
-import { markdownRemarkPlugins } from '@clarify-labs/renderer'
+import { markdownRemarkPlugins, parseCodeMeta } from '@clarify-labs/renderer'
 
 import type { ContentDiagnostic } from '../../types.js'
-import { escapeHtml } from '../markdown/utils.js'
 
 type HastNode = {
   type: string
@@ -27,39 +26,7 @@ function getLanguage(className: unknown): string {
   return languageClass?.replace(/^language-/, '') || 'txt'
 }
 
-function getTextContent(node: HastNode | undefined): string {
-  if (!node) return ''
-  if (typeof node.value === 'string') return node.value
-  return node.children?.map(getTextContent).join('') ?? ''
-}
-
-function renderPlainCode(code: string): string {
-  return code
-    .split('\n')
-    .map(line => `<span>${escapeHtml(line)}</span>`)
-    .join('\n')
-}
-
-function isBundledLanguage(language: string): language is BundledLanguage {
-  return language in bundledLanguages
-}
-
-let highlighterPromise: Promise<Highlighter> | undefined
 const cssVariablesTheme = createCssVariablesTheme()
-
-async function getHighlighter(): Promise<Highlighter> {
-  highlighterPromise = highlighterPromise ?? createHighlighter({ themes: [cssVariablesTheme], langs: [] })
-  return highlighterPromise
-}
-
-function renderHighlightedCode(html: string): string {
-  const codeMatch = /<code[^>]*>([\s\S]*?)<\/code>/.exec(html)
-  const codeHtml = codeMatch?.[1] ?? html
-  return codeHtml
-    .split('\n')
-    .map(line => line.trimStart().startsWith('<span') ? line : `<span>${line}</span>`)
-    .join('\n')
-}
 
 export function rehypeParseCodeBlocks() {
   return (tree: HastNode) => {
@@ -78,68 +45,19 @@ export function rehypeParseCodeBlocks() {
   }
 }
 
-export function rehypeShiki() {
-  return async (tree: HastNode) => {
-    const shikiHighlighter = await getHighlighter()
-    const languages = new Set<BundledLanguage>()
-
-    visit(tree, 'element', (node: HastNode) => {
-      if (node.tagName !== 'pre') return
-      const codeNode = node.children?.[0]
-      if (codeNode?.tagName !== 'code') return
-      const language = typeof node.properties?.language === 'string' ? node.properties.language : getLanguage(codeNode.properties?.className)
-      if (language && language !== 'txt' && isBundledLanguage(language)) languages.add(language)
-    })
-
-    if (languages.size > 0) await shikiHighlighter.loadLanguage(...languages)
-
-    visit(tree, 'element', (node: HastNode) => {
-      if (node.tagName !== 'pre') return
-      const codeNode = node.children?.[0]
-      if (codeNode?.tagName !== 'code') return
-
-      node.properties = node.properties ?? {}
-      codeNode.properties = codeNode.properties ?? {}
-
-      const code = getTextContent(codeNode)
-      const language = typeof node.properties.language === 'string' ? node.properties.language : getLanguage(codeNode.properties.className)
-      node.properties.code = code
-      codeNode.properties.code = code
-      codeNode.properties.language = language
-
-      let highlighted = renderPlainCode(code)
-
-      if (language && language !== 'txt') {
-        try {
-          const html = shikiHighlighter.codeToHtml(code, { lang: language, theme: cssVariablesTheme })
-          highlighted = renderHighlightedCode(html)
-        } catch {
-          highlighted = renderPlainCode(code)
-        }
-      }
-
-      codeNode.children = [{ type: 'text', value: highlighted }]
-    })
-  }
-}
-
-export function rehypeSlugSections() {
-  return (tree: HastNode) => {
-    const slugger = new GithubSlugger()
-
-    visit(tree, 'element', (node: HastNode) => {
-      if (node.tagName !== 'h2' && node.tagName !== 'h3') return
-
-      node.properties = node.properties ?? {}
-      if (node.properties.id) return
-
-      node.properties.id = slugger.slug(toString(node))
-    })
-  }
-}
-
 export const remarkPlugins: unknown[] = markdownRemarkPlugins
-export const rehypePlugins = [rehypeSlugSections, rehypeParseCodeBlocks, rehypeShiki]
+export const rehypePlugins: NonNullable<CompileOptions['rehypePlugins']> = [
+  rehypeSlug,
+  rehypeParseCodeBlocks,
+  [rehypeShiki, {
+    theme: cssVariablesTheme,
+    langs: [],
+    lazy: true,
+    addLanguageClass: true,
+    fallbackLanguage: 'text',
+    parseMetaString: parseCodeMeta,
+  }],
+]
 
 function formatMdxDiagnostic(error: unknown): string {
   if (error instanceof Error) {

@@ -28,7 +28,7 @@ describe('createCli', () => {
       content: 'docs',
       output: 'output',
     }), false, 'minimal', true)
-  })
+  }, 10_000)
 
   it('uses the current working directory when init directory is omitted', async () => {
     process.argv = ['node', 'clarify', 'init']

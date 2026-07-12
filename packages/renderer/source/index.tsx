@@ -11,7 +11,7 @@ import { OpenApiSpecsContext, useOpenApiSpecs } from './context'
 import { useMDXComponents } from './mdx/components'
 import { DocShell } from './mdx/DocShell'
 import { Markdown } from './mdx/Markdown'
-import { markdownRemarkPlugins } from './mdx/remark'
+import { markdownRemarkPlugins, parseCodeMeta } from './mdx/remark'
 import { OpenApiDocument, OpenApiOperation, createOpenApiRouteComponent } from './openapi'
 import { render } from './runtime/render'
 import { SlotProvider, RuntimeSlot, RuntimeSlotsProvider, useSlot } from './slots'
@@ -35,7 +35,7 @@ export { AppShell, render, OpenApiSpecsContext, useOpenApiSpecs, BuiltWithClarif
 export { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Pre, Prose, Heading, Logo, Mermaid, GridPattern, HeroPattern, Feedback, Tag, WebFrame }
 
 // MDX integration helpers
-export { DocShell, Markdown, useMDXComponents, markdownRemarkPlugins }
+export { DocShell, Markdown, useMDXComponents, markdownRemarkPlugins, parseCodeMeta }
 
 // Plugin runtime UI slots
 export { SlotProvider, RuntimeSlot, RuntimeSlotsProvider, useSlot }

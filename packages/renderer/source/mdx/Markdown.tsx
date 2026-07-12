@@ -1,6 +1,6 @@
 import { isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
-import rehypeRaw from 'rehype-raw'
 import ReactMarkdown, { type Components } from 'react-markdown'
+import rehypeRaw from 'rehype-raw'
 
 import { Mermaid } from '../components/Mermaid'
 
