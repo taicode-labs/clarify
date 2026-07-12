@@ -155,7 +155,8 @@ function formatMdxDiagnostic(error: unknown): string {
  *
  * `rehypePlugins` includes `rehypeShiki`, which loads grammar/WASM assets and
  * is expensive. The real highlighting happens at Vite build time via the
- * `@mdx-js/rollup` plugin (see `createMdxPlugin` in `core/adapters.ts`), which
+ * `@mdx-js/rollup` plugins (see `createMarkdownPlugin` and `createMdxPlugin`
+ * in `core/adapters.ts`), which
  * runs the full remark + rehype pipeline. Re-running it here, during route
  * discovery (Phase 3), would compile every `.mdx` file twice and invoke Shiki
  * once per file per `engine.refresh()` — see ARCHITECTURE.md §2.2 which states

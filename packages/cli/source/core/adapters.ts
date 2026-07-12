@@ -3,6 +3,7 @@ import { isAbsolute, join, relative } from 'node:path'
 import mdxPlugin, { type Options as MdxPluginOptions } from '@mdx-js/rollup'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import rehypeRaw from 'rehype-raw'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { rehypePlugins, remarkPlugins } from '../parsers/markdown/mdx.js'
@@ -54,9 +55,9 @@ async function refreshDevServer(engine: ClarifyEngine, server: ViteDevServer): P
   return hasDevStructureChanged(before, after)
 }
 
-function createNormalizedMdxContentPlugin(engine: ClarifyEngine): Plugin {
+function createNormalizedContentPlugin(engine: ClarifyEngine): Plugin {
   return {
-    name: 'clarify:normalized-mdx-content',
+    name: 'clarify:normalized-content',
     enforce: 'pre',
     transform(_code, id) {
       if (!/\.mdx?(?:\?|$)/.test(id)) return null
@@ -70,7 +71,8 @@ function createNormalizedMdxContentPlugin(engine: ClarifyEngine): Plugin {
 
 function createMdxPlugin(): Plugin {
   return mdxPlugin({
-    include: ['**/*.{md,mdx}'],
+    include: ['**/*.mdx'],
+    format: 'mdx',
     jsxImportSource: 'react',
     providerImportSource: '@clarify-labs/renderer',
     remarkPlugins: remarkPlugins as MdxPluginOptions['remarkPlugins'],
@@ -78,7 +80,21 @@ function createMdxPlugin(): Plugin {
   }) as Plugin
 }
 
-function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContentPlugin: Plugin, mdx: Plugin): Plugin {
+function createMarkdownPlugin(): Plugin {
+  return mdxPlugin({
+    include: ['**/*.md'],
+    format: 'md',
+    jsxImportSource: 'react',
+    providerImportSource: '@clarify-labs/renderer',
+    remarkPlugins: remarkPlugins as MdxPluginOptions['remarkPlugins'],
+    // Parse raw HTML blocks in Markdown files into real HAST nodes.
+    // This keeps `.md` permissive while `.mdx` still enforces JSX syntax.
+    remarkRehypeOptions: { allowDangerousHtml: true },
+    rehypePlugins: [rehypeRaw, ...rehypePlugins],
+  }) as Plugin
+}
+
+function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedContentPlugin: Plugin, markdown: Plugin, mdx: Plugin): Plugin {
   let viteConfig: ResolvedConfig
 
   return {
@@ -200,7 +216,7 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
       if (!engine.shouldRunBuild()) return
       engine.configureRuntime({
         outputDirectory: viteConfig.build.outDir,
-        ssrPlugins: [engine.createSSGVirtualPlugin(), normalizedMdxContentPlugin, mdx],
+        ssrPlugins: [engine.createSSGVirtualPlugin(), normalizedContentPlugin, markdown, mdx],
       })
       await engine.runSSG()
     },
@@ -216,7 +232,8 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedMdxContent
  * site itself - it only bridges Vite lifecycle hooks to the engine.
  */
 export function createViteAdapter(engine: ClarifyEngine): Plugin[] {
-  const normalizedMdxContentPlugin = createNormalizedMdxContentPlugin(engine)
+  const normalizedContentPlugin = createNormalizedContentPlugin(engine)
+  const markdown = createMarkdownPlugin()
   const mdx = createMdxPlugin()
   // `react()` returns `Plugin[]`; `tailwindcss()` returns `Plugin | Plugin[]`;
   // the rest return a single `Plugin`. Spread the array-returning results so
@@ -226,8 +243,9 @@ export function createViteAdapter(engine: ClarifyEngine): Plugin[] {
   return [
     ...react(),
     ...(Array.isArray(tailwind) ? tailwind : [tailwind]),
-    normalizedMdxContentPlugin,
-    createClarifyViteCorePlugin(engine, normalizedMdxContentPlugin, mdx),
+    normalizedContentPlugin,
+    createClarifyViteCorePlugin(engine, normalizedContentPlugin, markdown, mdx),
+    markdown,
     mdx,
   ]
 }

@@ -1,4 +1,5 @@
 import { isValidElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import rehypeRaw from 'rehype-raw'
 import ReactMarkdown, { type Components } from 'react-markdown'
 
 import { Mermaid } from '../components/Mermaid'
@@ -53,7 +54,7 @@ export function Markdown(arg0: MarkdownProps): ReactNode {
 
   return (
     <div className={className}>
-      <ReactMarkdown components={markdownComponents} remarkPlugins={markdownRemarkPlugins}>
+      <ReactMarkdown components={markdownComponents} remarkPlugins={markdownRemarkPlugins} rehypePlugins={[rehypeRaw]}>
         {children}
       </ReactMarkdown>
     </div>

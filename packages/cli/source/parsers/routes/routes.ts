@@ -1,5 +1,5 @@
 import { readdir, readFile, stat } from 'node:fs/promises'
-import { join, relative } from 'node:path'
+import { extname, join, relative } from 'node:path'
 
 import GithubSlugger from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
@@ -23,6 +23,15 @@ export function kebabToTitle(str: string): string {
 
 function parseMdxTree(content: string) {
   return remark.parse(content)
+}
+
+async function compileRouteDiagnostic(content: string, filePath: string, baseDir: string) {
+  // `.md` routes intentionally skip JSX/MDX syntax validation.
+  // Markdown and MDX follow separate compiler semantics in the adapter layer.
+  if (extname(filePath).toLowerCase() !== '.mdx') return undefined
+
+  const result = await compileMdxContent(content, filePath, baseDir)
+  return result.ok ? undefined : result.diagnostic
 }
 
 /** 从内容中提取第一个 H1 标题 */
@@ -137,7 +146,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
         frontmatter,
         content,
       }
-      const mdxResult = await compileMdxContent(page.content, fullPath, base)
+      const diagnostic = await compileRouteDiagnostic(page.content, fullPath, base)
 
       let title = typeof page.frontmatter.title === 'string' ? page.frontmatter.title : ''
       if (!title) {
@@ -166,7 +175,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
           frontmatter: page.frontmatter,
           content: page.content,
         },
-        diagnostic: mdxResult.ok ? undefined : mdxResult.diagnostic,
+        diagnostic,
       })
     }
   }

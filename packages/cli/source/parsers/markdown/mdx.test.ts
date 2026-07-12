@@ -1,4 +1,5 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
+import rehypeRaw from 'rehype-raw'
 import { describe, expect, it, vi } from 'vitest'
 
 import { compileMdxContent, rehypeParseCodeBlocks, rehypePlugins, rehypeShiki, rehypeSlugSections, remarkPlugins } from './mdx.js'
@@ -318,5 +319,17 @@ describe('mdx rehype plugins', () => {
     expect(compiled).toContain('<_components.del>')
     expect(compiled).toContain('href="https://example.com"')
     expect(compiled).toContain('<_components.table>')
+  })
+
+  it('allows raw HTML in markdown mode when rehype-raw is enabled', async () => {
+    const compiled = String(await compile('# Intro\n\n<img src="/hero.png">', {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw],
+    }))
+
+    expect(compiled).toContain('<_components.img src="/hero.png"')
   })
 })

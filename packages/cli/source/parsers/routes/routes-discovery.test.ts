@@ -158,6 +158,16 @@ describe('findContentRoutes', () => {
     })
   })
 
+  it('skips MDX diagnostics for .md files', async () => {
+    writeFileSync(join(tempDir, 'quick-start.md'), '# Quick Start\n\n<img src="/hero.png">', 'utf-8')
+
+    const result = await findContentRoutes(tempDir)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].path).toBe('/quick-start')
+    expect(result[0].diagnostic).toBeUndefined()
+  })
+
   it('falls back to filename stem for title', async () => {
     writeFileSync(join(tempDir, 'quick-start.mdx'), '# Hello', 'utf-8')
     const result = await findContentRoutes(tempDir)

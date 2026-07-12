@@ -57,6 +57,7 @@
     "react-router": "^7.0.0",
     "react-router-dom": "^7.0.0",
     "react-zoom-pan-pinch": "^4.0.3",
+    "rehype-raw": "^7.0.0",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
     "shiki": "4.3.0",
