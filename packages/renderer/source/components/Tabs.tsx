@@ -1,16 +1,28 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { useId, useState, type ReactNode } from 'react'
+import { Children, isValidElement, useId, useState, type ReactElement, type ReactNode } from 'react'
 
-type ClarifyTabItem = {
+export type TabItem = {
   id: string
   label: ReactNode
   panel: ReactNode
 }
 
-type ClarifyTabsProps = {
-  items: ClarifyTabItem[]
+export type TabProps = {
+  title: ReactNode
+  children: ReactNode
+  value?: string
+}
+
+export function TabItem(_props: TabProps) {
+  return null
+}
+
+export type TabsProps = {
+  items?: TabItem[]
+  children?: ReactNode
+  defaultValue?: string
   selectedIndex?: number
   onChange?: (index: number) => void
   className?: string
@@ -22,10 +34,19 @@ type TabClassNameProps = {
   selected: boolean
 }
 
-export function Tabs(arg0: ClarifyTabsProps) {
-  const { items, selectedIndex, onChange, className, listClassName, panelsClassName } = arg0
+export function Tabs(arg0: TabsProps) {
+  const { items, children, defaultValue, selectedIndex, onChange, className, listClassName, panelsClassName } = arg0
+  const childItems = Children.toArray(children)
+    .filter((child): child is ReactElement<TabProps> => isValidElement(child) && child.type === TabItem)
+    .map((child, index) => ({
+      id: child.props.value ?? `tab-${index}`,
+      label: child.props.title,
+      panel: child.props.children,
+    }))
+  const resolvedItems = items ?? childItems
+  const defaultIndex = defaultValue ? Math.max(0, resolvedItems.findIndex((item) => item.id === defaultValue)) : 0
 
-  const [internalIndex, setInternalIndex] = useState(0)
+  const [internalIndex, setInternalIndex] = useState(defaultIndex)
   const resolvedIndex = typeof selectedIndex === 'number' ? selectedIndex : internalIndex
   const indicatorLayoutId = useId()
 
@@ -37,7 +58,7 @@ export function Tabs(arg0: ClarifyTabsProps) {
   return (
     <TabGroup selectedIndex={resolvedIndex} onChange={handleChange} className={className}>
       <TabList className={clsx('-mx-2 flex flex-wrap items-center gap-2 border-b border-(--clarify-theme-tokens-colors-border) px-2 pb-0', listClassName)}>
-        {items.map((item) => (
+        {resolvedItems.map((item) => (
           <Tab
             key={item.id}
             className={({ selected }: TabClassNameProps) => clsx(
@@ -61,7 +82,7 @@ export function Tabs(arg0: ClarifyTabsProps) {
         ))}
       </TabList>
       <TabPanels className={clsx('mt-4', panelsClassName)}>
-        {items.map((item) => (
+        {resolvedItems.map((item) => (
           <TabPanel key={item.id} className="focus:outline-none">
             {item.panel}
           </TabPanel>

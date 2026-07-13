@@ -10,6 +10,7 @@ The following components can be used directly in MDX pages:
 
 - Content hints: `Callout`, `Note`
 - Entries and actions: `CardGroup` / `Card`, `Button`
+- Flows and switching: `Steps` / `Step`, `Tabs` / `Tab`
 - Code and collapsible content: `CodeGroup`, `Collapse`
 - Layout and property descriptions: `Row` / `Col`, `Properties` / `Property`
 - Content embedding: `WebFrame`
@@ -36,6 +37,12 @@ The following components can be used directly in MDX pages:
   <Card title="Collapse" icon="list-collapse" href="#collapse">
     Used to collapse optional details, long lists, and advanced notes.
   </Card>
+  <Card title="Steps" icon="list-ordered" href="#steps--step">
+    Used to present installation, configuration, and task flows.
+  </Card>
+  <Card title="Tabs" icon="panel-top" href="#tabs--tab">
+    Used to switch between languages, frameworks, or platforms.
+  </Card>
   <Card title="WebFrame" icon="monitor" href="#webframe">
     Used to embed product pages, demos, previews, and other web content.
   </Card>
@@ -43,6 +50,129 @@ The following components can be used directly in MDX pages:
     Used to display a complete API Reference or a single endpoint.
   </Card>
 </CardGroup>
+
+---
+
+## Steps / Step
+
+Use `Steps` for ordered procedures. Each `Step` displays its number automatically.
+
+```mdx
+<Steps>
+  <Step title="Install Clarify">
+    Run `pnpm add -D @clarify-labs/cli`.
+  </Step>
+  <Step title="Start the development server">
+    Run `pnpm clarify dev` and open the local URL.
+  </Step>
+</Steps>
+```
+
+<Steps>
+  <Step title="Install Clarify">Add the CLI to your development dependencies.</Step>
+  <Step title="Start the development server">Run the development command and preview the docs.</Step>
+</Steps>
+
+### Complex content
+
+`Step` content supports full MDX, including paragraphs, lists, links, code blocks, and other built-in components such as `Callout`. Keep blank lines between block-level Markdown and JSX tags so the content is parsed as blocks.
+
+````mdx
+<Steps>
+  <Step title="Install dependencies">
+
+    Choose the package manager used by your project:
+
+    ```bash
+    pnpm add @clarify-labs/renderer
+    ```
+
+    <Callout type="tip">
+      Pin the version used in production.
+    </Callout>
+
+  </Step>
+  <Step title="Verify the configuration">
+
+    1. Start the development server
+    2. Open the local preview URL
+    3. Check the browser console
+
+  </Step>
+</Steps>
+````
+
+| Component | Property | Type | Description |
+|-----------|----------|------|-------------|
+| `Steps` | `className` | `string` | Additional CSS classes |
+| `Step` | `title` | `ReactNode` | Optional step heading |
+| `Step` | `className` | `string` | Additional CSS classes |
+
+---
+
+## Tabs / Tab
+
+Use `Tabs` to show mutually exclusive content in one place. `defaultValue` matches the `value` of a `Tab`.
+
+```mdx
+<Tabs defaultValue="pnpm">
+  <Tab title="pnpm" value="pnpm">
+    `pnpm add @clarify-labs/renderer`
+  </Tab>
+  <Tab title="npm" value="npm">
+    `npm install @clarify-labs/renderer`
+  </Tab>
+</Tabs>
+```
+
+<Tabs defaultValue="pnpm">
+  <Tab title="pnpm" value="pnpm">`pnpm add @clarify-labs/renderer`</Tab>
+  <Tab title="npm" value="npm">`npm install @clarify-labs/renderer`</Tab>
+</Tabs>
+
+### Complex content
+
+Like `Step`, each `Tab` supports full MDX. Tab panels can contain code blocks, tables, lists, and other built-in components:
+
+````mdx
+<Tabs defaultValue="pnpm">
+  <Tab title="pnpm" value="pnpm">
+
+    ```bash
+    pnpm add @clarify-labs/renderer
+    ```
+
+    See [Getting started](/getting-started) for the remaining configuration.
+
+  </Tab>
+  <Tab title="npm" value="npm">
+
+    ```bash
+    npm install @clarify-labs/renderer
+    ```
+
+    <Collapse title="View npm configuration">
+      You can continue to use **Markdown** and other MDX content here.
+    </Collapse>
+
+  </Tab>
+</Tabs>
+````
+
+Content written directly in `.mdx` needs no extra processing. For a runtime Markdown string, use the built-in `Markdown` component:
+
+```mdx
+<Tab title="Dynamic content">
+  <Markdown>{markdownString}</Markdown>
+</Tab>
+```
+
+| Component | Property | Type | Description |
+|-----------|----------|------|-------------|
+| `Tabs` | `defaultValue` | `string` | Value of the initially selected `Tab` |
+| `Tabs` | `className` | `string` | Additional CSS classes |
+| `Tab` | `title` | `ReactNode` | Tab label |
+| `Tab` | `value` | `string` | Tab value matched by `defaultValue` |
 
 ---
 
