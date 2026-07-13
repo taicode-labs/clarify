@@ -57,12 +57,12 @@ export function Tabs(arg0: TabsProps) {
 
   return (
     <TabGroup selectedIndex={resolvedIndex} onChange={handleChange} className={clsx('clarify-tabs my-6', className)}>
-      <TabList className={clsx('flex max-w-full items-stretch gap-6 overflow-x-auto border-b border-(--clarify-theme-tokens-colors-border)', listClassName)}>
+      <TabList className={clsx('flex max-w-full items-stretch gap-1 overflow-x-auto border-b border-(--clarify-theme-tokens-colors-border)', listClassName)}>
         {resolvedItems.map((item) => (
           <Tab
             key={item.id}
             className={({ selected }: TabClassNameProps) => clsx(
-              'clarify-content-tab clarify-ui-tab relative inline-flex h-10 shrink-0 items-center px-0 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
+              'clarify-content-tab clarify-ui-tab relative my-1 inline-flex h-9 shrink-0 items-center rounded-(--clarify-theme-tokens-radius-md) px-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
               selected && 'clarify-ui-tab-active',
             )}
           >
@@ -72,7 +72,7 @@ export function Tabs(arg0: TabsProps) {
                 {selected ? (
                   <motion.span
                     layoutId={indicatorLayoutId}
-                    className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-(--clarify-ui-tab-indicator)"
+                    className="absolute inset-x-2.5 -bottom-1 h-0.5 rounded-full bg-(--clarify-ui-tab-indicator)"
                     transition={{ type: 'tween', duration: 0.16, ease: 'easeOut' }}
                   />
                 ) : null}

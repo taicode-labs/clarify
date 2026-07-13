@@ -415,7 +415,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
   }
 
   return (
-    <div className="not-prose flex w-full flex-col overflow-hidden rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs">
+    <div className="clarify-openai-endpoint-identity not-prose flex w-full flex-col overflow-hidden rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs">
       <div className="flex min-w-0 items-center gap-1.5 overflow-hidden px-2.5 py-2">
         <EndpointMethodBadge method={method} />
         {operationSource === 'webhook' ? <EndpointMethodBadge method="WEBHOOK" /> : null}
@@ -479,7 +479,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const [selectedResponseStatus, setSelectedResponseStatus] = useState(() => getDefaultResponseStatus(operation, spec))
 
   return (
-    <section className="clarify-api-endpoint scroll-mt-24 pb-16 first:pt-0 last:pb-0" aria-labelledby={id}>
+    <section className="clarify-openai-endpoint scroll-mt-24 pb-16 first:pt-0 last:pb-0" aria-labelledby={id}>
       <Heading id={id}>
         {summary}
       </Heading>

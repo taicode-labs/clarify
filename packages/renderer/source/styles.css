@@ -388,37 +388,46 @@
     background: var(--clarify-ui-tab-hover-background);
   }
 
-  .clarify-api-example-code {
+  .clarify-openai-example-code {
     container-type: inline-size;
   }
 
-  .clarify-api-example {
+  .clarify-openai-example {
     container-type: inline-size;
   }
 
   @container (max-width: 26rem) {
-    .clarify-api-example-header {
+    .clarify-openai-example-header {
       align-items: stretch;
       flex-direction: column;
       gap: 0.25rem;
     }
 
-    .clarify-api-example-header > h3 {
+    .clarify-openai-example-header > h3 {
       margin-right: 0;
     }
 
-    .clarify-api-example-header-controls {
+    .clarify-openai-example-header-controls {
       margin-left: 0;
       width: 100%;
     }
 
-    .clarify-api-code-toolbar {
+    .clarify-openai-code-toolbar {
       align-items: stretch;
       flex-direction: column;
     }
 
-    .clarify-api-code-toolbar > button {
+    .clarify-openai-code-toolbar > button {
       align-self: flex-end;
+    }
+
+    .clarify-openai-code-toolbar.clarify-openai-code-toolbar-inline {
+      align-items: center;
+      flex-direction: row;
+    }
+
+    .clarify-openai-code-toolbar.clarify-openai-code-toolbar-inline > button {
+      align-self: auto;
     }
   }
 
@@ -565,7 +574,7 @@
 
   .clarify-tag,
   .clarify-code-panel-tag,
-  .clarify-api-example-status,
+  .clarify-openai-example-status,
   .clarify-page-navigation-label {
     font-size: var(--clarify-ui-description-font-size);
     line-height: var(--clarify-ui-description-line-height);

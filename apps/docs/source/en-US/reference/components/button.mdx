@@ -1,6 +1,8 @@
 # Button
 
-`Button` provides a clear next action. It renders a link when `href` is present and a native button otherwise. Internal links preserve Clarify client navigation and the current locale.
+`Button` gives a prominent action a predictable visual weight. It renders a link when `href` is present and a native button otherwise; internal links preserve Clarify client navigation and the current locale.
+
+Use it for actions readers should notice immediately, such as starting a setup flow, opening a tool, or confirming an operation. Keep ordinary navigation inside prose as Markdown links.
 
 ## Usage
 
@@ -21,6 +23,24 @@
 
 Use `primary` for the main page action, `secondary` or `outline` for secondary actions, `filled` for the theme accent, and `text` for a low-emphasis inline action.
 
+<div className="not-prose my-6 flex flex-wrap items-center gap-3">
+  <Button variant="primary">Primary</Button>
+  <Button variant="secondary">Secondary</Button>
+  <Button variant="filled">Filled</Button>
+  <Button variant="outline">Outline</Button>
+  <Button variant="text" arrow="right">Text action</Button>
+</div>
+
+## Direction and state
+
+Arrows communicate progression or return. Native button props are forwarded, so loading flows can disable an action while work is in progress.
+
+<div className="not-prose my-6 flex flex-wrap items-center gap-3">
+  <Button variant="outline" arrow="left">Previous step</Button>
+  <Button arrow="right">Continue</Button>
+  <Button variant="secondary" disabled>Saving changes</Button>
+</div>
+
 ## Props
 
 | Prop | Type | Default | Description |
@@ -33,4 +53,4 @@ Use `primary` for the main page action, `secondary` or `outline` for secondary a
 
 Native `<a>` or `<button>` props are forwarded, including `target`, `rel`, `type`, and `disabled`.
 
-<Callout type="tip">Keep one primary button per region. Prefer an ordinary Markdown link for navigation within prose.</Callout>
+<Callout type="tip">Keep one primary button per region. Pair it with a quieter secondary action instead of presenting several equally prominent choices.</Callout>

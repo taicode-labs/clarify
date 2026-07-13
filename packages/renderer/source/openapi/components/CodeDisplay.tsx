@@ -56,6 +56,7 @@ export function ExampleMetaValue(arg0: ExampleMetaValueProps): ReactNode {
 
 type CodeToolbarProps = {
   code: string
+  leadingControls?: ReactNode
   languageOptions?: SelectOption[]
   selectedLanguageKey?: string
   onSelectLanguage?: (key: string) => void
@@ -67,6 +68,7 @@ type CodeToolbarProps = {
 export function CodeToolbar(arg0: CodeToolbarProps): ReactNode {
   const {
     code,
+    leadingControls,
     languageOptions,
     selectedLanguageKey,
     onSelectLanguage,
@@ -76,10 +78,12 @@ export function CodeToolbar(arg0: CodeToolbarProps): ReactNode {
   } = arg0
 
   const t = useBuiltInText()
+  const inlineControls = Boolean(leadingControls)
 
   return (
-    <div className="clarify-api-code-toolbar flex items-center gap-2 px-4 pt-3">
-      <div className="clarify-api-code-toolbar-controls flex min-w-0 flex-1 flex-wrap items-center gap-2">
+    <div className={`clarify-openai-code-toolbar flex items-center gap-2 px-4 pt-3${inlineControls ? ' clarify-openai-code-toolbar-inline' : ''}`}>
+      <div className={`clarify-openai-code-toolbar-controls flex min-w-0 flex-1 items-center gap-2${inlineControls ? ' flex-nowrap overflow-x-auto' : ' flex-wrap'}`}>
+        {leadingControls}
         {languageOptions && languageOptions.length > 1 && selectedLanguageKey && onSelectLanguage ? (
           <SelectControl
             label={t('openapi.language')}

@@ -1,6 +1,8 @@
 # WebFrame
 
-`WebFrame` embeds a product page, hosted demo, or static UI preview. It uses a lazy-loaded iframe when `src` is present and renders `children` directly otherwise.
+`WebFrame` presents a product page, hosted demo, or static UI preview without making it look like ordinary prose. It uses a lazy-loaded iframe when `src` is present and renders `children` directly otherwise.
+
+Use the browser chrome when the URL or page context matters. Hide it for focused component previews where the surrounding browser metaphor would add noise.
 
 ## Embed a page
 
@@ -14,6 +16,24 @@ Set `showWindow={false}` to hide the simulated browser header:
 <WebFrame src="https://clarify.pub" title="Component preview" showWindow={false} height={320} />
 ```
 
+## Frame styles
+
+The same preview can be presented as a browser page or as a clean embedded surface:
+
+<WebFrame title="Settings preview" height={150}>
+  <div style={{ padding: 24 }}>
+    <strong>Workspace access</strong>
+    <p style={{ marginTop: 8 }}>Control who can publish documentation.</p>
+  </div>
+</WebFrame>
+
+<WebFrame title="Settings preview" showWindow={false} height={150}>
+  <div style={{ padding: 24 }}>
+    <strong>Workspace access</strong>
+    <p style={{ marginTop: 8 }}>Control who can publish documentation.</p>
+  </div>
+</WebFrame>
+
 ## Inline preview
 
 ```mdx
@@ -25,7 +45,7 @@ Set `showWindow={false}` to hide the simulated browser header:
 </WebFrame>
 ```
 
-Rendered result:
+Rendered result with browser context:
 
 <WebFrame title="Inline preview" height={180}>
   <div style={{ padding: 24 }}>

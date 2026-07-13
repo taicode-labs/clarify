@@ -103,14 +103,14 @@ export function ContentActions(arg0: ContentActionsProps) {
   return (
     <div className="clarify-content-actions not-prose flex shrink-0 justify-start sm:justify-end">
       <Menu as="div" className="clarify-content-actions-menu relative inline-flex min-w-0 text-sm font-medium">
-        <div className="clarify-content-actions-group inline-flex min-w-0 overflow-hidden rounded-full border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-sm shadow-zinc-900/5">
+        <div className="clarify-content-actions-group inline-flex min-w-0 items-center gap-1">
           {primaryAction ? (
             <button
               type="button"
               onClick={primaryAction.run}
-              className="clarify-content-actions-primary clarify-ui-control inline-flex h-8 min-w-0 items-center gap-1.5 px-2.5 transition sm:px-3"
+              className="clarify-content-actions-primary clarify-ui-control inline-flex h-9 min-w-0 items-center gap-2 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-3 shadow-xs shadow-zinc-900/5 transition"
             >
-              <PrimaryIcon className="h-3.5 w-3.5 shrink-0" />
+              <PrimaryIcon className="h-4 w-4 shrink-0" />
               <span className="truncate">{copied === primaryAction.key ? t('actions.copied') : primaryAction.label}</span>
             </button>
           ) : (
@@ -118,13 +118,13 @@ export function ContentActions(arg0: ContentActionsProps) {
               href={route.sourceEditUrl}
               target="_blank"
               rel="noreferrer"
-              className="clarify-content-actions-primary clarify-ui-control inline-flex h-8 min-w-0 items-center gap-1.5 px-2.5 no-underline transition sm:px-3"
+              className="clarify-content-actions-primary clarify-ui-control inline-flex h-9 min-w-0 items-center gap-2 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-3 no-underline shadow-xs shadow-zinc-900/5 transition"
             >
-              <PrimaryIcon className="h-3.5 w-3.5 shrink-0" />
+              <PrimaryIcon className="h-4 w-4 shrink-0" />
               <span className="truncate">{t('contentActions.editPage')}</span>
             </a>
           )}
-          <MenuButton className="clarify-content-actions-trigger clarify-ui-control inline-flex h-8 w-8 items-center justify-center border-l border-(--clarify-theme-tokens-colors-border) transition" aria-label={t('contentActions.copyOptions')}>
+          <MenuButton className="clarify-content-actions-trigger clarify-ui-control inline-flex size-9 items-center justify-center rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs shadow-zinc-900/5 transition" aria-label={t('contentActions.copyOptions')}>
             <ChevronDown className="h-3.5 w-3.5" />
           </MenuButton>
         </div>

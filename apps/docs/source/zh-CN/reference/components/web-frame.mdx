@@ -1,6 +1,8 @@
 # WebFrame
 
-`WebFrame` 用于嵌入产品页面、托管演示或静态 UI 预览。提供 `src` 时使用延迟加载的 iframe；不提供时直接渲染 `children`。
+`WebFrame` 用于呈现产品页面、托管演示或静态 UI 预览，并让它与普通正文形成清晰区分。提供 `src` 时使用延迟加载的 iframe；不提供时直接渲染 `children`。
+
+当 URL 或页面上下文有意义时保留浏览器外框；展示聚焦的组件预览时可以隐藏外框，减少无关视觉信息。
 
 ## 嵌入网页
 
@@ -14,6 +16,24 @@
 <WebFrame src="https://clarify.pub" title="组件预览" showWindow={false} height={320} />
 ```
 
+## 外框样式
+
+同一份预览既可以呈现为浏览器页面，也可以作为简洁的嵌入区域：
+
+<WebFrame title="设置预览" height={150}>
+  <div style={{ padding: 24 }}>
+    <strong>工作区访问权限</strong>
+    <p style={{ marginTop: 8 }}>控制哪些成员可以发布文档。</p>
+  </div>
+</WebFrame>
+
+<WebFrame title="设置预览" showWindow={false} height={150}>
+  <div style={{ padding: 24 }}>
+    <strong>工作区访问权限</strong>
+    <p style={{ marginTop: 8 }}>控制哪些成员可以发布文档。</p>
+  </div>
+</WebFrame>
+
 ## 内联预览
 
 ```mdx
@@ -25,7 +45,7 @@
 </WebFrame>
 ```
 
-渲染效果：
+带浏览器上下文的渲染效果：
 
 <WebFrame title="内联预览" height={180}>
   <div style={{ padding: 24 }}>

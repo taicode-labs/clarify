@@ -1,6 +1,8 @@
 # Collapse
 
-`Collapse` 将可选说明、实现细节或长列表收起，让主要任务保持清晰。重要前置条件和风险不应藏在折叠区域中。
+`Collapse` 让可选说明、实现细节或长列表保持可访问，同时不打断主要任务。读者可以留在当前上下文中，自行决定何时展开补充内容。
+
+标题应明确描述被隐藏的内容。完成任务所必需的前置条件、警告和关键信息应始终保持可见。
 
 ## 用法
 
@@ -14,7 +16,12 @@
 </Collapse>
 ```
 
-<Collapse title="查看详细说明">这是默认折叠的内容，支持 **Markdown** 和其他 MDX 组件。</Collapse>
+<div className="my-6 space-y-3">
+  <Collapse title="查看配置详情">这是默认折叠的内容，支持 **Markdown** 和其他 MDX 组件。</Collapse>
+  <Collapse summary="故障排查输出" defaultOpen>这段内容初始可见，用户仍可手动收起。</Collapse>
+</div>
+
+第一个折叠项将可选信息移出主要阅读路径。内容通常有用但可能占据较多空间时，可以使用 `defaultOpen`。
 
 ## 属性
 
