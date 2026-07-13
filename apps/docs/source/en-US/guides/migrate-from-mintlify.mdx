@@ -21,51 +21,58 @@ Clarify accepts unknown Mintlify fields and silently ignores them (with a warnin
 
 ## Migration steps
 
-### 1. Rename the configuration file
+<Steps>
+  <Step title="Rename the configuration file">
 
-```bash
-mv docs.json clarify.json
-```
+    ```bash
+    mv docs.json clarify.json
+    ```
 
-### 2. Adjust fields
+  </Step>
+  <Step title="Adjust fields">
 
-```json
-// Before (docs.json)
-{
-  "name": "My Docs",
-  "colors": {
-    "primary": "#00D492"
-  }
-}
-
-// After (clarify.json)
-{
-  "title": "My Docs",
-  "theme": {
-    "preset": "default",
-    "tokens": {
+    ```json
+    // Before (docs.json)
+    {
+      "name": "My Docs",
       "colors": {
         "primary": "#00D492"
       }
     }
-  }
-}
-```
 
-### 3. Migrate content files
+    // After (clarify.json)
+    {
+      "title": "My Docs",
+      "theme": {
+        "preset": "default",
+        "tokens": {
+          "colors": {
+            "primary": "#00D492"
+          }
+        }
+      }
+    }
+    ```
 
-Mintlify uses `.mdx` or `.md` files, and Clarify supports MDX as well:
+  </Step>
+  <Step title="Migrate content files">
 
-- Copy content files into the `source/` directory
-- Make sure the file structure matches the routing expectations
-- Check and update the frontmatter format
+    Mintlify uses `.mdx` or `.md` files, and Clarify supports MDX as well:
 
-### 4. Install dependencies and build
+    - Copy content files into the `source/` directory
+    - Make sure the file structure matches the routing expectations
+    - Check and update the frontmatter format
 
-```bash
-pnpm add -D @clarify-labs/cli
-pnpm exec clarify build
-```
+  </Step>
+  <Step title="Install dependencies and build">
+
+    ```bash
+    pnpm add -D @clarify-labs/cli
+    pnpm exec clarify build
+    ```
+
+  </Step>
+</Steps>
 
 ---
 

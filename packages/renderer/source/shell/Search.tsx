@@ -65,11 +65,11 @@ export function MobileSearch(arg0: MobileSearchProps) {  const {
     <div className="clarify-mobile-search contents lg:hidden">
       <button
         type="button"
-        className="clarify-mobile-search-button clarify-ui-control relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition lg:hidden"
+        className="clarify-mobile-search-button clarify-ui-control relative flex size-9 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition lg:hidden"
         aria-label={t('search.placeholder')}
         {...buttonProps}
       >
-        <span className="absolute size-12 pointer-fine:hidden" />
+        <span className="absolute size-11 pointer-fine:hidden" />
         <SearchIcon className="h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-white" />
       </button>
       <Suspense fallback={null}>

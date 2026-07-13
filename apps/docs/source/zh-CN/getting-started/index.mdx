@@ -4,193 +4,199 @@
 
 Clarify = MDX 内容 + `clarify.ts` 配置 + OpenAPI 规范 + 静态站点生成。你主要维护 `source/` 和配置文件，Clarify 负责开发服务器、路由、渲染和构建。
 
----
+<Steps>
+  <Step title="准备环境">
 
-## 1. 准备环境
+    需要：
 
-需要：
+    - Node.js ≥ 20
+    - pnpm ≥ 9
 
-- Node.js ≥ 20
-- pnpm ≥ 9
+    使用官方初始化命令创建新项目：
 
-使用官方初始化命令创建新项目：
+    <CodeGroup>
 
-<CodeGroup>
+    ```bash title="pnpm"
+    pnpm dlx @clarify-labs/cli init my-docs
+    cd my-docs
+    ```
 
-```bash title="pnpm"
-pnpm dlx @clarify-labs/cli init my-docs
-cd my-docs
-```
+    ```bash title="npm"
+    npx @clarify-labs/cli init my-docs
+    cd my-docs
+    ```
 
-```bash title="npm"
-npx @clarify-labs/cli init my-docs
-cd my-docs
-```
+    ```bash title="yarn"
+    yarn dlx @clarify-labs/cli init my-docs
+    cd my-docs
+    ```
 
-```bash title="yarn"
-yarn dlx @clarify-labs/cli init my-docs
-cd my-docs
-```
+    </CodeGroup>
 
-</CodeGroup>
+    脚手架会自动帮你写入 `package.json` 脚本：
 
-脚手架会自动帮你写入 `package.json` 脚本：
+    ```json
+    {
+      "scripts": {
+        "dev": "clarify dev",
+        "build": "clarify build --output output"
+      }
+    }
+    ```
 
-```json
-{
-  "scripts": {
-    "dev": "clarify dev",
-    "build": "clarify build --output output"
-  }
-}
-```
+  </Step>
+  <Step title="添加站点配置">
 
----
+    默认使用 `clarify.json`。需要类型提示或接入插件时，可以切换为 `clarify.ts`。
 
-## 2. 添加站点配置
+    <CodeGroup>
 
-推荐使用 `clarify.ts`，可以获得类型提示，也方便后续接入插件。
+      ```json title="clarify.json"
+      {
+        "title": "我的文档",
+        "description": "基于 Clarify 构建的文档站点",
+        "navbar": {
+          "links": [
+            { "label": "文档", "href": "/getting-started" },
+            { "label": "GitHub", "href": "https://github.com/example/project", "external": true }
+          ]
+        }
+      }
+      ```
 
-```ts
-import { defineConfig } from '@clarify-labs/cli'
+      ```ts title="clarify.ts"
+      import { defineConfig } from '@clarify-labs/cli'
 
-export default defineConfig({
-  title: '我的文档',
-  description: '基于 Clarify 构建的文档站点',
-  navbar: {
-    links: [
-      { label: '文档', href: '/getting-started' },
-      { label: 'GitHub', href: 'https://github.com/example/project', external: true },
-    ],
-  },
-})
-```
+      export default defineConfig({
+        title: '我的文档',
+        description: '基于 Clarify 构建的文档站点',
+        navbar: {
+          links: [
+            { label: '文档', href: '/getting-started' },
+            { label: 'GitHub', href: 'https://github.com/example/project', external: true },
+          ],
+        },
+      })
+      ```
 
-简单项目也可以使用 `clarify.json`：
+    </CodeGroup>
 
-```json
-{
-  "title": "我的文档",
-  "description": "基于 Clarify 构建的文档站点"
-}
-```
+    完整字段见 [配置参考](/reference/clarify-config)。
 
-完整字段见 [配置参考](/reference/clarify-config)。
+  </Step>
+  <Step title="编写第一批页面">
 
----
+    Clarify 默认读取 `source/` 目录。新增 `.mdx` 文件就是新增页面。
 
-## 3. 编写第一批页面
+    ```txt
+    my-docs/
+    ├── clarify.json
+    ├── package.json
+    └── source/
+        ├── index.mdx
+        └── getting-started.mdx
+    ```
 
-Clarify 默认读取 `source/` 目录。新增 `.mdx` 文件就是新增页面。
+    `source/index.mdx`：
 
-```txt
-my-docs/
-├── clarify.ts
-├── package.json
-└── source/
-    ├── index.mdx
-    └── getting-started.mdx
-```
+    ```mdx
+    ---
+    title: 首页
+    description: 我的产品文档首页
+    ---
 
-`source/index.mdx`：
+    # 欢迎使用
 
-```mdx
----
-title: 首页
-description: 我的产品文档首页
----
+    这里是文档首页。
+    ```
 
-# 欢迎使用
+    `source/getting-started.mdx`：
 
-这里是文档首页。
-```
+    ```mdx
+    ---
+    title: 快速开始
+    ---
 
-`source/getting-started.mdx`：
+    # 快速开始
 
-```mdx
----
-title: 快速开始
----
+    这里是第一篇指南。
+    ```
 
-# 快速开始
+    路由会自动生成：
 
-这里是第一篇指南。
-```
+    | 文件 | 路由 |
+    |------|------|
+    | `source/index.mdx` | `/` |
+    | `source/getting-started.mdx` | `/getting-started` |
+    | `source/guides/index.mdx` | `/guides` |
+    | `source/guides/auth.mdx` | `/guides/auth` |
 
-路由会自动生成：
+  </Step>
+  <Step title="启动开发服务器">
 
-| 文件 | 路由 |
-|------|------|
-| `source/index.mdx` | `/` |
-| `source/getting-started.mdx` | `/getting-started` |
-| `source/guides/index.mdx` | `/guides` |
-| `source/guides/auth.mdx` | `/guides/auth` |
+    优先通过项目脚本启动，这样无论 CLI 是全局安装还是项目本地依赖，使用方式都一致：
 
----
+    <CodeGroup>
 
-## 4. 启动开发服务器
+    ```bash title="pnpm"
+    pnpm dev
+    ```
 
-优先通过项目脚本启动，这样无论 CLI 是全局安装还是项目本地依赖，使用方式都一致：
+    ```bash title="npm"
+    npm run dev
+    ```
 
-<CodeGroup>
+    ```bash title="yarn"
+    yarn dev
+    ```
 
-```bash title="pnpm"
-pnpm dev
-```
+    </CodeGroup>
 
-```bash title="npm"
-npm run dev
-```
+    打开终端输出的本地地址。你修改 MDX、配置或 OpenAPI 文件后，开发服务器会重新生成页面。
 
-```bash title="yarn"
-yarn dev
-```
+  </Step>
+  <Step title="构建生产版本">
 
-</CodeGroup>
+    <CodeGroup>
 
-打开终端输出的本地地址。你修改 MDX、配置或 OpenAPI 文件后，开发服务器会重新生成页面。
+    ```bash title="pnpm"
+    pnpm build
+    ```
 
----
+    ```bash title="npm"
+    npm run build
+    ```
 
-## 5. 构建生产版本
+    ```bash title="yarn"
+    yarn build
+    ```
 
-<CodeGroup>
+    </CodeGroup>
 
-```bash title="pnpm"
-pnpm build
-```
+    默认输出到 `output/`：
 
-```bash title="npm"
-npm run build
-```
+    ```txt
+    output/
+    ├── index.html
+    ├── getting-started/
+    │   └── index.html
+    ├── assets/
+    └── llms.txt
+    ```
 
-```bash title="yarn"
-yarn build
-```
+    这些都是静态文件，可以部署到 Vercel、Netlify、GitHub Pages、S3、Nginx 或任意静态托管服务。
 
-</CodeGroup>
-
-默认输出到 `output/`：
-
-```txt
-output/
-├── index.html
-├── getting-started/
-│   └── index.html
-├── assets/
-└── llms.txt
-```
-
-这些都是静态文件，可以部署到 Vercel、Netlify、GitHub Pages、S3、Nginx 或任意静态托管服务。
+  </Step>
+</Steps>
 
 ---
 
 ## 下一步
 
-| 目标 | 阅读 |
-|------|------|
-| 写出结构清晰的文档 | [写作文档](/guides/writing-content) |
-| 配置导航、主题和多语言 | [配置站点](/guides/navigation) |
-| 生成 API Reference 或嵌入接口 | [API 文档](/features/openapi) |
-| 发布到线上并让 AI 读取原始内容 | [发布上线](/guides/deployment) |
-| 从 Mintlify 迁移 | [从 Mintlify 迁移](/guides/migrate-from-mintlify) |
+<CardGroup cols={2}>
+  <Card title="编写内容" icon="file-code-2" href="/guides/writing-content">用 MDX、Frontmatter 和内置组件组织页面。</Card>
+  <Card title="配置站点" icon="sliders-horizontal" href="/guides/navigation">设置导航、主题和多语言。</Card>
+  <Card title="编写 API 文档" icon="file-json-2" href="/features/openapi">生成 API Reference 或嵌入单个接口。</Card>
+  <Card title="发布上线" icon="cloud-upload" href="/guides/deployment">部署静态站点，并向 AI 工具提供原始内容。</Card>
+  <Card title="从 Mintlify 迁移" icon="arrow-right-left" href="/guides/migrate-from-mintlify">将现有文档项目迁移到 Clarify。</Card>
+</CardGroup>

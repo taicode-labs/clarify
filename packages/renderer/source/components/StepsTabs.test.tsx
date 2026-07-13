@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { useMDXComponents } from '../mdx/components'
 
+import { Code, CodeGroup, Pre } from './Code'
 import { Step, Steps } from './Steps'
 import { TabItem, Tabs } from './Tabs'
 
@@ -44,5 +45,20 @@ describe('Tabs', () => {
     expect(components.Step).toBe(Step)
     expect(components.Tabs).toBe(Tabs)
     expect(components.Tab).toBe(TabItem)
+  })
+})
+
+describe('CodeGroup', () => {
+  it('uses fenced code titles from the compiled Pre and Code tree', () => {
+    const html = renderToStaticMarkup(
+      <CodeGroup>
+        <Pre><Code title="pnpm" language="bash">pnpm add clarify</Code></Pre>
+        <Pre><Code title="npm" language="bash">npm install clarify</Code></Pre>
+      </CodeGroup>,
+    )
+
+    expect(html).toContain('pnpm')
+    expect(html).toContain('npm')
+    expect(html).not.toContain('>Code<')
   })
 })

@@ -50,10 +50,12 @@ export function SectionHashSync(arg0: SectionHashSyncProps) {
   const sections = useSectionStore((state) => state.sections)
   const visibleSections = useSectionStore((state) => state.visibleSections)
 
-  if (pathnameRef.current !== location.pathname) {
+  useEffect(() => {
+    if (pathnameRef.current === location.pathname) return
+
     pathnameRef.current = location.pathname
     hashScrollSuppressedUntilRef.current = Date.now() + 1200
-  }
+  }, [hashScrollSuppressedUntilRef, location.pathname])
 
   useReleaseHashSyncOnManualScroll(hashScrollSuppressedUntilRef)
 

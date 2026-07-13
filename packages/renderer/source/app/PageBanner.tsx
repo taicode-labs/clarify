@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { ArrowRight, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -23,13 +23,19 @@ function PageBannerLink(props: PageBannerLinkProps) {
   const { href, label, external: externalProp, config, locale } = props
   const external = externalProp ?? isExternalHref(href)
   const resolvedHref = external ? href : localizeHref(href, config, locale)
-  const className = "clarify-banner-link shrink-0 rounded-full bg-(--clarify-theme-tokens-colors-primary) px-3 py-1 text-xs/5 font-semibold text-white no-underline transition hover:opacity-90"
+  const className = "clarify-banner-link inline-flex h-7 shrink-0 items-center gap-1 rounded-(--clarify-theme-tokens-radius-md) px-2 text-xs/5 font-semibold text-(--clarify-ui-accent-text) no-underline transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)"
+  const children = (
+    <>
+      <span className="hidden sm:inline">{label}</span>
+      <ArrowRight className="size-3.5" aria-hidden="true" />
+    </>
+  )
 
   if (external) {
-    return <a href={resolvedHref} target="_blank" rel="noreferrer" className={className}>{label}</a>
+    return <a href={resolvedHref} target="_blank" rel="noreferrer" className={className} aria-label={label} title={label}>{children}</a>
   }
 
-  return <Link to={resolvedHref} className={className}>{label}</Link>
+  return <Link to={resolvedHref} className={className} aria-label={label} title={label}>{children}</Link>
 }
 
 export type PageBannerProps = {
@@ -65,15 +71,15 @@ export function PageBanner(props: PageBannerProps) {
   const linkLabel = link ? resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale) : ''
 
   return (
-    <div className="clarify-banner relative flex min-h-12 items-center border-b border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) px-4 text-sm text-(--clarify-ui-text) dark:border-white/10">
-      <div className="mx-auto flex w-full max-w-(--clarify-theme-layout-max-width) items-center justify-center gap-3 pr-8 sm:pr-0">
-        <p className="clarify-banner-content m-0 text-center font-medium">{content}</p>
+    <div className="clarify-banner relative flex h-12 items-center border-b border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) px-4 text-sm text-(--clarify-ui-text) dark:border-white/10">
+      <div className="mx-auto flex min-w-0 w-full max-w-(--clarify-theme-layout-max-width) items-center justify-center gap-1 pr-9 sm:gap-2">
+        <p className="clarify-banner-content m-0 min-w-0 truncate text-left font-medium sm:text-center">{content}</p>
         {link ? <PageBannerLink href={link.href} label={linkLabel} external={link.external} config={config} locale={currentLocale} /> : null}
       </div>
       {banner.dismissible ? (
         <button
           type="button"
-          className="clarify-banner-dismiss absolute right-3 inline-flex size-8 items-center justify-center rounded-full text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong)"
+          className="clarify-banner-dismiss absolute right-2 inline-flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) sm:right-3"
           aria-label="Dismiss announcement"
           onClick={() => {
             if (storageKey && typeof window !== 'undefined') window.localStorage.setItem(storageKey, '1')

@@ -4,193 +4,199 @@ This page explains how Clarify works through the shortest possible path: install
 
 Clarify = MDX content + `clarify.ts` configuration + OpenAPI specs + static site generation. You mainly maintain `source/` and the configuration file, while Clarify handles the dev server, routing, rendering, and builds.
 
----
+<Steps>
+  <Step title="Prepare your environment">
 
-## 1. Prepare your environment
+    You need:
 
-You need:
+    - Node.js ≥ 20
+    - pnpm ≥ 9
 
-- Node.js ≥ 20
-- pnpm ≥ 9
+    Create a new project with the official init command:
 
-Create a new project with the official init command:
+    <CodeGroup>
 
-<CodeGroup>
+    ```bash title="pnpm"
+    pnpm dlx @clarify-labs/cli init my-docs
+    cd my-docs
+    ```
 
-```bash title="pnpm"
-pnpm dlx @clarify-labs/cli init my-docs
-cd my-docs
-```
+    ```bash title="npm"
+    npx @clarify-labs/cli init my-docs
+    cd my-docs
+    ```
 
-```bash title="npm"
-npx @clarify-labs/cli init my-docs
-cd my-docs
-```
+    ```bash title="yarn"
+    yarn dlx @clarify-labs/cli init my-docs
+    cd my-docs
+    ```
 
-```bash title="yarn"
-yarn dlx @clarify-labs/cli init my-docs
-cd my-docs
-```
+    </CodeGroup>
 
-</CodeGroup>
+    The scaffold adds scripts to `package.json` for you:
 
-The scaffold adds scripts to `package.json` for you:
+    ```json
+    {
+      "scripts": {
+        "dev": "clarify dev",
+        "build": "clarify build --output output"
+      }
+    }
+    ```
 
-```json
-{
-  "scripts": {
-    "dev": "clarify dev",
-    "build": "clarify build --output output"
-  }
-}
-```
+  </Step>
+  <Step title="Add site configuration">
 
----
+    Use `clarify.json` by default. Switch to `clarify.ts` when you need type hints or plugins.
 
-## 2. Add site configuration
+    <CodeGroup>
 
-We recommend using `clarify.ts`, which gives you type hints and makes it easier to add plugins later.
+      ```json title="clarify.json"
+      {
+        "title": "My Docs",
+        "description": "A documentation site built with Clarify",
+        "navbar": {
+          "links": [
+            { "label": "Docs", "href": "/getting-started" },
+            { "label": "GitHub", "href": "https://github.com/example/project", "external": true }
+          ]
+        }
+      }
+      ```
 
-```ts
-import { defineConfig } from '@clarify-labs/cli'
+      ```ts title="clarify.ts"
+      import { defineConfig } from '@clarify-labs/cli'
 
-export default defineConfig({
-  title: 'My Docs',
-  description: 'A documentation site built with Clarify',
-  navbar: {
-    links: [
-      { label: 'Docs', href: '/getting-started' },
-      { label: 'GitHub', href: 'https://github.com/example/project', external: true },
-    ],
-  },
-})
-```
+      export default defineConfig({
+        title: 'My Docs',
+        description: 'A documentation site built with Clarify',
+        navbar: {
+          links: [
+            { label: 'Docs', href: '/getting-started' },
+            { label: 'GitHub', href: 'https://github.com/example/project', external: true },
+          ],
+        },
+      })
+      ```
 
-Simple projects can also use `clarify.json`:
+    </CodeGroup>
 
-```json
-{
-  "title": "My Docs",
-  "description": "A documentation site built with Clarify"
-}
-```
+    See the [Configuration Reference](/reference/clarify-config) for all fields.
 
-See the [Configuration Reference](/reference/clarify-config) for all fields.
+  </Step>
+  <Step title="Write your first pages">
 
----
+    Clarify reads the `source/` directory by default. Adding an `.mdx` file adds a page.
 
-## 3. Write your first pages
+    ```txt
+    my-docs/
+    ├── clarify.json
+    ├── package.json
+    └── source/
+        ├── index.mdx
+        └── getting-started.mdx
+    ```
 
-Clarify reads the `source/` directory by default. Adding an `.mdx` file adds a page.
+    `source/index.mdx`:
 
-```txt
-my-docs/
-├── clarify.ts
-├── package.json
-└── source/
-    ├── index.mdx
-    └── getting-started.mdx
-```
+    ```mdx
+    ---
+    title: Home
+    description: The home page for my product docs
+    ---
 
-`source/index.mdx`:
+    # Welcome
 
-```mdx
----
-title: Home
-description: The home page for my product docs
----
+    This is the documentation home page.
+    ```
 
-# Welcome
+    `source/getting-started.mdx`:
 
-This is the documentation home page.
-```
+    ```mdx
+    ---
+    title: Getting Started
+    ---
 
-`source/getting-started.mdx`:
+    # Getting Started
 
-```mdx
----
-title: Getting Started
----
+    This is the first guide.
+    ```
 
-# Getting Started
+    Routes are generated automatically:
 
-This is the first guide.
-```
+    | File | Route |
+    |------|------|
+    | `source/index.mdx` | `/` |
+    | `source/getting-started.mdx` | `/getting-started` |
+    | `source/guides/index.mdx` | `/guides` |
+    | `source/guides/auth.mdx` | `/guides/auth` |
 
-Routes are generated automatically:
+  </Step>
+  <Step title="Start the dev server">
 
-| File | Route |
-|------|------|
-| `source/index.mdx` | `/` |
-| `source/getting-started.mdx` | `/getting-started` |
-| `source/guides/index.mdx` | `/guides` |
-| `source/guides/auth.mdx` | `/guides/auth` |
+    Prefer starting through the project script so the same flow works whether the CLI is installed locally or available globally:
 
----
+    <CodeGroup>
 
-## 4. Start the dev server
+    ```bash title="pnpm"
+    pnpm dev
+    ```
 
-Prefer starting through the project script so the same flow works whether the CLI is installed locally or available globally:
+    ```bash title="npm"
+    npm run dev
+    ```
 
-<CodeGroup>
+    ```bash title="yarn"
+    yarn dev
+    ```
 
-```bash title="pnpm"
-pnpm dev
-```
+    </CodeGroup>
 
-```bash title="npm"
-npm run dev
-```
+    Open the local address printed in the terminal. After you edit MDX, configuration, or OpenAPI files, the dev server regenerates the pages.
 
-```bash title="yarn"
-yarn dev
-```
+  </Step>
+  <Step title="Build the production version">
 
-</CodeGroup>
+    <CodeGroup>
 
-Open the local address printed in the terminal. After you edit MDX, configuration, or OpenAPI files, the dev server regenerates the pages.
+    ```bash title="pnpm"
+    pnpm build
+    ```
 
----
+    ```bash title="npm"
+    npm run build
+    ```
 
-## 5. Build the production version
+    ```bash title="yarn"
+    yarn build
+    ```
 
-<CodeGroup>
+    </CodeGroup>
 
-```bash title="pnpm"
-pnpm build
-```
+    By default the output goes to `output/`:
 
-```bash title="npm"
-npm run build
-```
+    ```txt
+    output/
+    ├── index.html
+    ├── getting-started/
+    │   └── index.html
+    ├── assets/
+    └── llms.txt
+    ```
 
-```bash title="yarn"
-yarn build
-```
+    These are all static files, deployable to Vercel, Netlify, GitHub Pages, S3, Nginx, or any static hosting service.
 
-</CodeGroup>
-
-By default the output goes to `output/`:
-
-```txt
-output/
-├── index.html
-├── getting-started/
-│   └── index.html
-├── assets/
-└── llms.txt
-```
-
-These are all static files, deployable to Vercel, Netlify, GitHub Pages, S3, Nginx, or any static hosting service.
+  </Step>
+</Steps>
 
 ---
 
 ## Next steps
 
-| Goal | Read |
-|------|------|
-| Write clearly structured docs | [Writing Content](/guides/writing-content) |
-| Configure navigation, theme, and multiple languages | [Configuring the Site](/guides/navigation) |
-| Generate the API reference or embed endpoints | [API Documentation](/features/openapi) |
-| Publish online and let AI read the raw content | [Publishing](/guides/deployment) |
-| Migrate from Mintlify | [Migrate from Mintlify](/guides/migrate-from-mintlify) |
+<CardGroup cols={2}>
+  <Card title="Write content" icon="file-code-2" href="/guides/writing-content">Structure pages with MDX, frontmatter, and built-in components.</Card>
+  <Card title="Configure the site" icon="sliders-horizontal" href="/guides/navigation">Set up navigation, themes, and multiple languages.</Card>
+  <Card title="Document an API" icon="file-json-2" href="/features/openapi">Generate a reference or embed individual endpoints.</Card>
+  <Card title="Publish" icon="cloud-upload" href="/guides/deployment">Deploy the static site and expose content to AI tools.</Card>
+  <Card title="Migrate from Mintlify" icon="arrow-right-left" href="/guides/migrate-from-mintlify">Move an existing documentation project to Clarify.</Card>
+</CardGroup>

@@ -13,12 +13,12 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="clarify-theme-toggle relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition hover:bg-(--clarify-ui-hover-background)"
+      className="clarify-theme-toggle clarify-ui-control relative flex size-9 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
       aria-label={label}
       title={label}
       onClick={() => setTheme(nextTheme)}
     >
-      <span className="absolute size-12 pointer-fine:hidden" />
+      <span className="absolute size-11 pointer-fine:hidden" />
       {theme === 'system' ? <Monitor className="h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground)" /> : null}
       {theme === 'light' ? <Sun className="h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground)" /> : null}
       {theme === 'dark' ? <Moon className="h-5 w-5 stroke-white" /> : null}

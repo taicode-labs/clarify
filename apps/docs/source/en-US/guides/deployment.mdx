@@ -10,19 +10,24 @@ Clarify supports SSR rendering, but it uses **build-time SSR**: `clarify build` 
 
 Clarify's production rendering flow is SSG (Static Site Generation) + hydration:
 
-1. The build environment runs `pnpm exec clarify build`.
-2. The CLI uses a Vite SSR bundle to render each documentation route in Node.js.
-3. Each route writes a standalone `index.html` and generates JS/CSS assets, raw Markdown/OpenAPI artifacts, and `llms.txt`.
-4. When a user visits a page, they first get the already-rendered HTML; after the browser loads the JavaScript it hydrates into a React app, and subsequent in-site navigation gets a client-side navigation experience.
+<Steps>
+  <Step title="Start the production build">
+    The build environment runs `pnpm exec clarify build`.
+  </Step>
+  <Step title="Render every route">
+    The CLI uses a Vite SSR bundle to render each documentation route in Node.js.
+  </Step>
+  <Step title="Write static artifacts">
+    Each route writes a standalone `index.html` and generates JS/CSS assets, raw Markdown/OpenAPI artifacts, and `llms.txt`.
+  </Step>
+  <Step title="Hydrate in the browser">
+    Visitors first receive the rendered HTML. After JavaScript loads, React hydrates the page and subsequent in-site navigation runs on the client.
+  </Step>
+</Steps>
 
-This means:
-
-- ✅ Supports first-screen HTML, SEO friendliness, and direct access to deep links;
-- ✅ Deployment only needs to host static files;
-- ✅ Vercel, Netlify, GitHub Pages, object storage, CDNs, and Nginx all work;
-- ❌ A request-time SSR server in production is neither needed nor provided.
-
----
+<Callout type="success" title="Static output, rich navigation">
+  The production site needs only static file hosting. It still provides first-screen HTML, SEO-friendly deep links, and client-side navigation after hydration. A request-time Node.js SSR server is neither needed nor provided.
+</Callout>
 
 ## Build artifacts
 
@@ -56,6 +61,13 @@ Every route has standalone HTML, suitable for SEO and direct access; after the b
 ---
 
 ## Deployment platforms
+
+<CardGroup cols={2}>
+  <Card title="Vercel" icon="triangle" href="#vercel">Connect a repository and publish the `output` directory.</Card>
+  <Card title="Netlify" icon="cloud" href="#netlify">Use the Clarify build command and set `output` as the publish directory.</Card>
+  <Card title="GitHub Pages" icon="github" href="#github-pages">Configure `routePrefix` and deploy with GitHub Actions.</Card>
+  <Card title="CDN / Nginx" icon="server" href="#cdn--nginx">Upload the static output to your web root.</Card>
+</CardGroup>
 
 ### Vercel
 

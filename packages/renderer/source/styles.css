@@ -374,6 +374,15 @@
     color: var(--clarify-ui-text-strong);
   }
 
+  .clarify-ui-top-link:hover {
+    background: var(--clarify-ui-hover-background);
+  }
+
+  .clarify-ui-top-link-active {
+    color: var(--clarify-ui-text-strong);
+    background: var(--clarify-ui-active-background);
+  }
+
   .clarify-content-tab:hover,
   .clarify-content-tab:focus-visible {
     background: var(--clarify-ui-tab-hover-background);
