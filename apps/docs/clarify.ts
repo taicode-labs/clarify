@@ -198,7 +198,6 @@ export default defineConfig({
                 { page: 'reference/components/collapse', title: 'Collapse', icon: 'ListCollapse' },
                 { page: 'reference/components/accordion-group', title: 'AccordionGroup', icon: 'ListCollapse' },
                 { page: 'reference/components/file-tree', title: 'FileTree', icon: 'FolderTree' },
-                { page: 'reference/components/figure', title: 'Figure', icon: 'Image' },
                 { page: 'reference/components/tooltip', title: 'Tooltip', icon: 'MessageCircleQuestion' },
                 { page: 'reference/components/button', title: 'Button', icon: 'MousePointerClick' },
                 { page: 'reference/components/web-frame', title: 'WebFrame', icon: 'Monitor' },

@@ -3,28 +3,25 @@ import clsx from 'clsx'
 import { Maximize2, X } from 'lucide-react'
 import { type ComponentPropsWithoutRef, type ReactNode, useState } from 'react'
 
-export type FigureProps = {
-  src: string
-  alt: string
+export type ImageProps = ComponentPropsWithoutRef<'img'> & {
   caption?: ReactNode
   zoom?: boolean
-  imageProps?: Omit<ComponentPropsWithoutRef<'img'>, 'alt' | 'src'>
-} & Omit<ComponentPropsWithoutRef<'figure'>, 'children'>
+}
 
-export function Figure(arg0: FigureProps) {
-  const { src, alt, caption, zoom = false, imageProps, className, ...props } = arg0
+export function Image(arg0: ImageProps) {
+  const { src, alt = '', caption, zoom = false, className, ...props } = arg0
   const [open, setOpen] = useState(false)
   const image = (
     <img
-      {...imageProps}
+      {...props}
       src={src}
       alt={alt}
-      className={clsx('block h-auto max-w-full object-contain', imageProps?.className)}
+      className={clsx('block h-auto max-w-full object-contain', className)}
     />
   )
 
   return (
-    <figure className={clsx('clarify-figure not-prose mx-auto my-8 w-fit max-w-full', className)} {...props}>
+    <figure className="clarify-figure not-prose mx-auto my-8 w-fit max-w-full">
       <div className="group relative w-fit max-w-full overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background)">
         {zoom ? (
           <button

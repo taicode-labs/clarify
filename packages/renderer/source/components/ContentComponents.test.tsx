@@ -5,8 +5,8 @@ import { useMDXComponents } from '../mdx/components'
 
 import { AccordionGroup } from './AccordionGroup'
 import { Collapse } from './Collapse'
-import { Figure } from './Figure'
 import { FileTree, FileTreeItem } from './FileTree'
+import { Image } from './Image'
 import { Tooltip } from './Tooltip'
 
 describe('content components', () => {
@@ -37,14 +37,15 @@ describe('content components', () => {
     expect(html).toContain('role="group"')
   })
 
-  it('renders an image with an optional caption', () => {
+  it('renders the built-in image as a figure with an optional caption', () => {
     const html = renderToStaticMarkup(
-      <Figure src="/overview.png" alt="Overview" caption="Project overview" />,
+      <Image src="/overview.png" alt="Overview" caption="Project overview" loading="lazy" />,
     )
 
     expect(html).toContain('<figure')
     expect(html).toContain('<figcaption')
     expect(html).toContain('alt="Overview"')
+    expect(html).toContain('loading="lazy"')
   })
 
   it('associates tooltip content with a keyboard-focusable trigger', () => {
@@ -61,7 +62,8 @@ describe('content components', () => {
     expect(components.AccordionGroup).toBe(AccordionGroup)
     expect(components.FileTree).toBe(FileTree)
     expect(components.FileTreeItem).toBe(FileTreeItem)
-    expect(components.Figure).toBe(Figure)
+    expect(components.img).toBe(Image)
+    expect(components).not.toHaveProperty('Figure')
     expect(components.Tooltip).toBe(Tooltip)
   })
 })

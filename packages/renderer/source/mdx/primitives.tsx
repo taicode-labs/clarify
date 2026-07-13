@@ -3,8 +3,9 @@ import { Info } from 'lucide-react'
 import { createElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 
 import { PageTitleActions } from '../app/PageActions'
-import { AccordionGroup, Button, Callout, Card, CardGroup, Figure, FileTree, FileTreeItem, Heading, LocalizedLink, Prose, Step, Steps, Tab, Tabs, Tooltip, WebFrame } from '../components'
+import { AccordionGroup, Button, Callout, Card, CardGroup, FileTree, FileTreeItem, Heading, LocalizedLink, Prose, Step, Steps, Tab, Tabs, Tooltip, WebFrame } from '../components'
 import { Code, CodeGroup, Pre } from '../components/Code'
+import { Image } from '../components/Image'
 
 type WrapperProps = { children: ReactNode }
 
@@ -46,7 +47,8 @@ export function h1(arg0: ComponentPropsWithoutRef<'h1'>) {
 
 export const code = Code
 export const pre = Pre
-export { AccordionGroup, Button, Callout, Card, CardGroup, CodeGroup, Figure, FileTree, FileTreeItem, Step, Steps, Tab, Tabs, Tooltip, WebFrame }
+export const img = Image
+export { AccordionGroup, Button, Callout, Card, CardGroup, CodeGroup, FileTree, FileTreeItem, Step, Steps, Tab, Tabs, Tooltip, WebFrame }
 
 export function h2(props: Omit<ComponentPropsWithoutRef<typeof Heading>, 'level'>) {
   return createElement(Heading, { level: 2, ...props })

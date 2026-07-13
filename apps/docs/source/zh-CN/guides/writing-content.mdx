@@ -90,7 +90,7 @@ Clarify 对 `.md` 和 `.mdx` 使用不同的解析语义。两者都支持 Front
   这段内容由 React 组件渲染。
 </Callout>
 
-<Figure src="/clarify.png" alt="Clarify 字标" caption="图片需要图注或点击放大时，使用 Figure。" zoom />
+<img src="/clarify.png" alt="Clarify 字标" caption="图片可以直接添加图注和点击放大能力。" zoom />
 ```
 
 把普通内容保留为 `.md` 可以避免 HTML 被误判为 JSX，也能更早发现真正的 MDX 组件语法错误。更改扩展名不会改变文件路由，例如 `source/guide.md` 和 `source/guide.mdx` 都映射到 `/guide`；同一路径不要同时存在两个文件。
