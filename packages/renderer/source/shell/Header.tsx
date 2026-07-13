@@ -1,8 +1,8 @@
 import { CloseButton, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import clsx from 'clsx'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { Globe2, MoreHorizontal } from 'lucide-react'
-import { forwardRef } from 'react'
+import { LayoutGroup, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { ChevronLeft, ChevronRight, Globe2, MoreHorizontal } from 'lucide-react'
+import { forwardRef, useCallback, useEffect, useId, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -194,36 +194,113 @@ function ProductTabs(arg0: ProductTabsProps) {  const { tabs, currentLocale } = 
 
   const t = useBuiltInText()
   const pathname = normalizeRoutePath(useLocation().pathname)
+  const prefersReducedMotion = useReducedMotion()
+  const indicatorGroupId = useId()
+  const navRef = useRef<HTMLElement>(null)
+  const activeTabRef = useRef<HTMLAnchorElement>(null)
+  const [scrollState, setScrollState] = useState({ start: true, end: true })
+
+  const updateScrollState = useCallback(() => {
+    const nav = navRef.current
+    if (!nav) return
+    const maxScrollLeft = nav.scrollWidth - nav.clientWidth
+    setScrollState({
+      start: nav.scrollLeft <= 1,
+      end: nav.scrollLeft >= maxScrollLeft - 1,
+    })
+  }, [])
+
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+
+    updateScrollState()
+    const resizeObserver = new ResizeObserver(updateScrollState)
+    resizeObserver.observe(nav)
+    return () => resizeObserver.disconnect()
+  }, [tabs, updateScrollState])
+
+  useEffect(() => {
+    activeTabRef.current?.scrollIntoView({
+      behavior: prefersReducedMotion ? 'instant' : 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    })
+  }, [pathname, prefersReducedMotion])
+
+  const scrollTabs = (direction: -1 | 1) => {
+    const nav = navRef.current
+    if (!nav) return
+    nav.scrollBy({
+      left: direction * Math.max(nav.clientWidth * 0.6, 240),
+      behavior: prefersReducedMotion ? 'instant' : 'smooth',
+    })
+  }
+
   if (!tabs?.length) return null
 
   return (
     <div data-clarify-header-tabs className="clarify-product-tabs hidden h-14 border-t border-(--clarify-theme-tokens-colors-border) lg:block dark:border-white/10">
-      <nav className="clarify-product-tabs-nav mx-auto flex h-full w-full max-w-(--clarify-theme-layout-max-width) items-stretch gap-6 overflow-x-auto px-5" aria-label={t('navbar.sections')}>
-        {tabs.map((tab) => {
-          const active = isActiveTab(tab, pathname, currentLocale)
-          return (
-            <Link
-              key={`${tab.title}-${tab.path}`}
-              to={tab.path}
-              aria-current={active ? 'page' : undefined}
-              className={clsx(
-                'clarify-product-tab clarify-ui-tab relative inline-flex h-full shrink-0 items-center gap-2 px-0 transition',
-                active && 'clarify-ui-tab-active',
-              )}
-            >
-              <NavigationIcon name={tab.icon} className="h-4 w-4" />
-              <span>{tab.title}</span>
-              {active ? (
-                <motion.span
-                  layoutId="clarify-product-tab-indicator"
-                  className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-(--clarify-theme-tokens-colors-foreground) dark:bg-white"
-                  transition={{ type: 'tween', duration: 0.16, ease: 'easeOut' }}
-                />
-              ) : null}
-            </Link>
-          )
-        })}
-      </nav>
+      <div
+        className="clarify-product-tabs-frame relative mx-auto h-full w-full max-w-(--clarify-theme-layout-max-width)"
+        data-at-start={scrollState.start || undefined}
+        data-at-end={scrollState.end || undefined}
+      >
+        <button
+          type="button"
+          className="clarify-product-tabs-scroll clarify-product-tabs-scroll-start"
+          onClick={() => scrollTabs(-1)}
+          aria-label="Scroll sections left"
+          tabIndex={scrollState.start ? -1 : 0}
+          aria-hidden={scrollState.start}
+        >
+          <ChevronLeft className="size-4" aria-hidden="true" />
+        </button>
+        <LayoutGroup id={indicatorGroupId}>
+          <nav
+            ref={navRef}
+            className="clarify-product-tabs-nav flex h-full w-full items-stretch gap-2 overflow-x-auto px-5"
+            aria-label={t('navbar.sections')}
+            onScroll={updateScrollState}
+          >
+            {tabs.map((tab) => {
+              const active = isActiveTab(tab, pathname, currentLocale)
+              return (
+                <Link
+                  ref={active ? activeTabRef : undefined}
+                  key={`${tab.title}-${tab.path}`}
+                  to={tab.path}
+                  aria-current={active ? 'page' : undefined}
+                  className={clsx(
+                    'clarify-product-tab clarify-ui-tab relative inline-flex h-full shrink-0 items-center gap-2 px-3 no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
+                    active && 'clarify-ui-tab-active',
+                  )}
+                >
+                  <NavigationIcon name={tab.icon} className="h-4 w-4" />
+                  <span>{tab.title}</span>
+                  {active ? (
+                    <motion.span
+                      layoutId="active-indicator"
+                      className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-(--clarify-ui-tab-indicator)"
+                      transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 38, mass: 0.7 }}
+                    />
+                  ) : null}
+                </Link>
+              )
+            })}
+          </nav>
+        </LayoutGroup>
+        <button
+          type="button"
+          className="clarify-product-tabs-scroll clarify-product-tabs-scroll-end"
+          onClick={() => scrollTabs(1)}
+          aria-label="Scroll sections right"
+          tabIndex={scrollState.end ? -1 : 0}
+          aria-hidden={scrollState.end}
+        >
+          <ChevronRight className="size-4" aria-hidden="true" />
+        </button>
+      </div>
     </div>
   )
 }

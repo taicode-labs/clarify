@@ -111,7 +111,51 @@
       }
     },
     "/examples/single-server": {
-      "$ref": "./api.openapi/paths/examples-single-server.json"
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "demoSingleServer",
+        "summary": "Multiple fixed asset servers",
+        "description": "Provides multiple fixed server URLs without variables, so clicking the server opens the URL selector directly.",
+        "security": [],
+        "servers": [
+          {
+            "url": "https://assets.clarify.local/v1",
+            "description": "Production asset server."
+          },
+          {
+            "url": "https://staging-assets.clarify.local/v1",
+            "description": "Staging asset server."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current API build metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "version",
+                    "commit"
+                  ],
+                  "properties": {
+                    "version": {
+                      "type": "string",
+                      "example": "1.0.0"
+                    },
+                    "commit": {
+                      "type": "string",
+                      "example": "a1b2c3d"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "webhooks": {
