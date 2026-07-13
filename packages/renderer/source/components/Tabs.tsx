@@ -56,13 +56,13 @@ export function Tabs(arg0: TabsProps) {
   }
 
   return (
-    <TabGroup selectedIndex={resolvedIndex} onChange={handleChange} className={className}>
-      <TabList className={clsx('-mx-2 flex flex-wrap items-center gap-2 border-b border-(--clarify-theme-tokens-colors-border) px-2 pb-0', listClassName)}>
+    <TabGroup selectedIndex={resolvedIndex} onChange={handleChange} className={clsx('clarify-tabs my-6', className)}>
+      <TabList className={clsx('flex w-fit max-w-full flex-wrap items-center gap-1 rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-code-background) p-1', listClassName)}>
         {resolvedItems.map((item) => (
           <Tab
             key={item.id}
             className={({ selected }: TabClassNameProps) => clsx(
-              'clarify-content-tab clarify-ui-tab relative inline-flex h-10 shrink-0 items-center rounded-t-md px-2 py-0 text-sm font-medium transition-colors focus:outline-none',
+              'clarify-content-tab clarify-ui-tab relative isolate inline-flex h-8 shrink-0 items-center rounded-(--clarify-theme-tokens-radius-md) px-3 py-0 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-1',
               selected && 'clarify-ui-tab-active',
             )}
           >
@@ -72,7 +72,7 @@ export function Tabs(arg0: TabsProps) {
                 {selected ? (
                   <motion.span
                     layoutId={indicatorLayoutId}
-                    className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-(--clarify-ui-tab-indicator) shadow-[0_0_0.5rem_var(--clarify-ui-accent-glow)]"
+                    className="absolute inset-0 -z-10 rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-theme-tokens-colors-surface) shadow-xs ring-1 ring-black/5 dark:ring-white/10"
                     transition={{ type: 'spring', stiffness: 460, damping: 34, mass: 0.7 }}
                   />
                 ) : null}
@@ -81,9 +81,9 @@ export function Tabs(arg0: TabsProps) {
           </Tab>
         ))}
       </TabList>
-      <TabPanels className={clsx('mt-4', panelsClassName)}>
+      <TabPanels className={clsx('mt-5', panelsClassName)}>
         {resolvedItems.map((item) => (
-          <TabPanel key={item.id} className="focus:outline-none">
+          <TabPanel key={item.id} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)">
             {item.panel}
           </TabPanel>
         ))}

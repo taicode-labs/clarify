@@ -1,0 +1,36 @@
+# Button
+
+`Button` provides a clear next action. It renders a link when `href` is present and a native button otherwise. Internal links preserve Clarify client navigation and the current locale.
+
+## Usage
+
+```mdx
+<Button href="/getting-started" arrow="right">Start installing</Button>
+
+<Button href="https://github.com/taicode-labs/clarify" variant="outline">
+  View GitHub
+</Button>
+```
+
+<div className="not-prose my-6 flex flex-wrap gap-3">
+  <Button href="/getting-started" arrow="right">Start installing</Button>
+  <Button href="https://github.com/taicode-labs/clarify" variant="outline">View GitHub</Button>
+</div>
+
+## Variants
+
+Use `primary` for the main page action, `secondary` or `outline` for secondary actions, `filled` for the theme accent, and `text` for a low-emphasis inline action.
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `variant` | `'primary' \| 'secondary' \| 'filled' \| 'outline' \| 'text'` | `'primary'` | Visual style |
+| `arrow` | `'left' \| 'right'` | - | Shows a directional arrow |
+| `href` | `string` | - | Renders a link when present |
+| `children` | `ReactNode` | Required | Button label |
+| `className` | `string` | - | Additional class name |
+
+Native `<a>` or `<button>` props are forwarded, including `target`, `rel`, `type`, and `disabled`.
+
+<Callout type="tip">Keep one primary button per region. Prefer an ordinary Markdown link for navigation within prose.</Callout>

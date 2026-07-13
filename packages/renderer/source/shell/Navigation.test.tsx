@@ -45,5 +45,6 @@ describe('Navigation', () => {
     expect(html).toContain('aria-expanded="false"')
     expect(html).toMatch(/aria-current="page"[^>]+href="\/guides\/configure"/)
     expect(html).not.toMatch(/aria-current="page"[^>]+href="\/guides\/start"/)
+    expect(html).not.toContain('clarify-navigation-tree-line')
   })
 })

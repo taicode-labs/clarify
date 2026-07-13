@@ -526,8 +526,8 @@
     font-weight: 500;
   }
 
-  .clarify-navigation-tree-line {
-    background: var(--clarify-theme-tokens-colors-border);
+  .clarify-navigation-section-highlight {
+    background: var(--clarify-ui-subtle-background);
   }
 
   .clarify-navigation-anchor-link {

@@ -1,0 +1,23 @@
+# Note
+
+`Note` is a lightweight inline aside for context that does not change the task. It has no variant or title bar and carries less visual weight than `Callout`.
+
+## Usage
+
+```mdx
+<Note>
+  Page titles, H2/H3 headings, and navigation labels affect search results.
+</Note>
+```
+
+<Note>Page titles, H2/H3 headings, and navigation labels affect search results.</Note>
+
+The body supports links, inline code, and other inline Markdown.
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `ReactNode` | Required | Note content |
+
+<Callout type="tip">Use `Callout` instead when the message needs a heading, semantic color, or risk level.</Callout>

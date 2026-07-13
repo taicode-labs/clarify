@@ -1,0 +1,42 @@
+# CodeGroup
+
+`CodeGroup` 把等价代码示例放在同一个代码面板中，适合不同包管理器、语言或运行环境。每个围栏代码块会成为一个可切换标签。
+
+## 用法
+
+````mdx
+<CodeGroup title="安装 CLI">
+
+```bash title="pnpm"
+pnpm add -D @clarify-labs/cli
+```
+
+```bash title="npm"
+npm install --save-dev @clarify-labs/cli
+```
+
+</CodeGroup>
+````
+
+<CodeGroup title="安装 CLI">
+
+```bash title="pnpm"
+pnpm add -D @clarify-labs/cli
+```
+
+```bash title="npm"
+npm install --save-dev @clarify-labs/cli
+```
+
+</CodeGroup>
+
+## 属性
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `title` | `string` | - | 代码组标题 |
+| `children` | `ReactNode` | 必填 | 两个或更多围栏代码块 |
+
+代码块语言决定语法高亮，`title` 元数据决定标签文案。只有一个代码块时，直接使用普通代码围栏更简洁。
+
+<Callout type="tip">各标签应完成同一任务。不同阶段的命令应使用 `Steps`，不要放进 `CodeGroup`。</Callout>

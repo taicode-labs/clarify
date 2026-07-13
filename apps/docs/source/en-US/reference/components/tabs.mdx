@@ -1,0 +1,51 @@
+# Tabs / Tab
+
+`Tabs` displays mutually exclusive content in one region. Use it for language, package manager, framework, or platform variants. `defaultValue` should match one `Tab` value.
+
+## Basic usage
+
+```mdx
+<Tabs defaultValue="pnpm">
+  <Tab title="pnpm" value="pnpm">`pnpm add @clarify-labs/renderer`</Tab>
+  <Tab title="npm" value="npm">`npm install @clarify-labs/renderer`</Tab>
+</Tabs>
+```
+
+<Tabs defaultValue="pnpm">
+  <Tab title="pnpm" value="pnpm">`pnpm add @clarify-labs/renderer`</Tab>
+  <Tab title="npm" value="npm">`npm install @clarify-labs/renderer`</Tab>
+</Tabs>
+
+## Complex content
+
+`Tab` supports code blocks, tables, lists, and other built-in components:
+
+````mdx
+<Tabs defaultValue="pnpm">
+  <Tab title="pnpm" value="pnpm">
+
+    ```bash
+    pnpm add @clarify-labs/renderer
+    ```
+
+    Continue with [Getting Started](/getting-started).
+
+  </Tab>
+  <Tab title="npm" value="npm">
+    <Collapse title="Show npm config">This supports **Markdown**.</Collapse>
+  </Tab>
+</Tabs>
+````
+
+## Props
+
+| Component | Prop | Type | Description |
+|-----------|------|------|-------------|
+| `Tabs` | `defaultValue` | `string` | Initially selected tab value |
+| `Tabs` | `children` | `ReactNode` | One or more `Tab` elements |
+| `Tabs` | `className` | `string` | Class name for the container |
+| `Tab` | `title` | `ReactNode` | Tab label |
+| `Tab` | `value` | `string` | Stable unique value for the tab |
+| `Tab` | `children` | `ReactNode` | Panel content with full MDX support |
+
+<Callout type="tip">Keep the structure of each tab comparable. Split long or independently linkable content into separate pages.</Callout>

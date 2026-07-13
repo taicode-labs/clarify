@@ -11,7 +11,7 @@ export function Steps(arg0: StepsProps) {
 
   return (
     <ol
-      className={clsx('clarify-steps my-8 ml-4 list-none border-l border-(--clarify-theme-tokens-colors-border) p-0', className)}
+      className={clsx('clarify-steps my-8 ml-3 list-none border-l-2 border-(--clarify-theme-tokens-colors-border) p-0', className)}
       {...props}
     >
       {children}
@@ -30,12 +30,12 @@ export function Step(arg0: StepProps) {
 
   return (
     <li
-      className={clsx('clarify-step relative m-0 pb-8 pl-8 last:pb-0', className)}
+      className={clsx('clarify-step relative m-0 pb-10 pl-9 last:pb-0', className)}
       {...props}
     >
-      <span className="absolute top-0 -left-3 flex size-6 items-center justify-center rounded-full border border-(--clarify-ui-accent-border) bg-(--clarify-theme-tokens-colors-background) text-xs font-semibold text-(--clarify-ui-accent-text) before:content-[counter(list-item)]" aria-hidden="true" />
-      {title ? <h3 className="m-0 text-base font-semibold text-(--clarify-theme-tokens-colors-foreground)">{title}</h3> : null}
-      <div className={clsx('text-sm/6 text-(--clarify-theme-tokens-colors-foreground) *:last:mb-0', title && 'mt-2', !title && '*:first:mt-0')}>
+      <span className="absolute top-0 -left-3.5 flex size-7 items-center justify-center rounded-full bg-(--clarify-theme-tokens-colors-primary) text-xs font-semibold text-white shadow-[0_0_0_4px_var(--clarify-theme-tokens-colors-background)] before:content-[counter(list-item)] dark:text-zinc-950" aria-hidden="true" />
+      {title ? <h3 className="m-0 pt-0.5 text-base font-semibold text-(--clarify-theme-tokens-colors-foreground)">{title}</h3> : null}
+      <div className={clsx('text-sm/6 text-(--clarify-ui-text-soft) *:last:mb-0', title && 'mt-2.5', !title && '*:first:mt-0')}>
         {children}
       </div>
     </li>

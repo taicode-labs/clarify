@@ -1,0 +1,42 @@
+# CodeGroup
+
+`CodeGroup` puts equivalent code samples in one panel for package managers, languages, or environments. Each fenced code block becomes a selectable tab.
+
+## Usage
+
+````mdx
+<CodeGroup title="Install the CLI">
+
+```bash title="pnpm"
+pnpm add -D @clarify-labs/cli
+```
+
+```bash title="npm"
+npm install --save-dev @clarify-labs/cli
+```
+
+</CodeGroup>
+````
+
+<CodeGroup title="Install the CLI">
+
+```bash title="pnpm"
+pnpm add -D @clarify-labs/cli
+```
+
+```bash title="npm"
+npm install --save-dev @clarify-labs/cli
+```
+
+</CodeGroup>
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | - | Heading for the code group |
+| `children` | `ReactNode` | Required | Two or more fenced code blocks |
+
+The fence language controls syntax highlighting and the `title` metadata supplies the tab label. Use a normal code fence when there is only one sample.
+
+<Callout type="tip">Each tab should accomplish the same task. Use `Steps`, not `CodeGroup`, for commands from different stages.</Callout>

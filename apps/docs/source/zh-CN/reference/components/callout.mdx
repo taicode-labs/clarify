@@ -1,0 +1,34 @@
+# Callout
+
+`Callout` 用于突出会影响理解、决策或操作结果的信息。它支持语义类型、可选标题和图标。
+
+## 类型
+
+<Callout type="info" title="Info">提供当前任务需要知道的背景。</Callout>
+<Callout type="note" title="Note">补充正文没有展开的细节。</Callout>
+<Callout type="tip" title="Tip">推荐更高效或更稳妥的做法。</Callout>
+<Callout type="warning" title="Warning">提醒可能的失败、权限或兼容性问题。</Callout>
+<Callout type="danger" title="Danger">标记删除数据、暴露密钥等高风险操作。</Callout>
+<Callout type="success" title="Success">确认操作完成或验证通过。</Callout>
+
+```mdx
+<Callout type="warning" title="生产环境">
+  更改 `routePrefix` 后，需要同步更新反向代理规则。
+</Callout>
+```
+
+## 属性
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `type` | `'info' \| 'note' \| 'tip' \| 'warning' \| 'danger' \| 'success'` | `'info'` | 语义颜色和默认图标 |
+| `title` | `ReactNode` | 根据 `type` 生成 | 标题；传空值可隐藏 |
+| `icon` | `boolean` | `true` | 是否显示类型图标 |
+| `children` | `ReactNode` | 必填 | 正文，支持 MDX |
+| `className` | `string` | - | 外层容器类名 |
+
+## 使用原则
+
+- 一个 Callout 只表达一个结论，标题使用短语而不是完整段落。
+- 普通背景说明使用 `Note`，不要让整页充满彩色提示框。
+- `danger` 仅用于不可逆或安全相关风险，普通注意事项使用 `warning`。

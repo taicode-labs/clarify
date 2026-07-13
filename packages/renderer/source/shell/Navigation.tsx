@@ -9,6 +9,7 @@ import { useSectionStore } from '../app/SectionProvider'
 import { useBuiltInText } from '../i18n'
 import type { NavigationNode } from '../types'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
+import { remToPx } from '../utils/remToPx'
 
 import { NavigationIcon } from './icons'
 
@@ -69,23 +70,66 @@ type NavigationPageProps = {
   node: NavigationNode
   pathname: string
   currentLocale?: string
-  depth: number
+  ancestorsExpanded: boolean
+}
+
+function getVisibleSectionHighlightRange(sectionIds: string[], visibleSectionIds: string[]) {
+  const validVisibleSectionIds = visibleSectionIds.filter(id => id === '_top' || sectionIds.includes(id))
+  if (!validVisibleSectionIds.length) return undefined
+
+  const firstVisibleSectionId = validVisibleSectionIds[0]!
+  const lastVisibleSectionId = validVisibleSectionIds[validVisibleSectionIds.length - 1]!
+  const pageHeight = remToPx(2.25)
+  const sectionOffset = pageHeight + remToPx(0.25)
+  const sectionHeight = remToPx(2)
+  const getSectionTop = (id: string) => {
+    if (id === '_top') return 0
+    return sectionOffset + sectionIds.indexOf(id) * sectionHeight
+  }
+  const top = getSectionTop(firstVisibleSectionId)
+  const bottom = lastVisibleSectionId === '_top'
+    ? pageHeight
+    : getSectionTop(lastVisibleSectionId) + sectionHeight
+
+  return { top, height: bottom - top }
+}
+
+type VisibleSectionHighlightProps = {
+  top: number
+  height: number
+}
+
+function VisibleSectionHighlight(arg0: VisibleSectionHighlightProps) {
+  const { top, height } = arg0
+
+  return (
+    <motion.div
+      className="clarify-navigation-section-highlight pointer-events-none absolute inset-x-0 top-0"
+      initial={false}
+      animate={{ opacity: 1, height, top, transition: { duration: 0.2, ease: 'easeOut' } }}
+      style={{ borderRadius: 'var(--clarify-theme-tokens-radius-md)' }}
+    />
+  )
 }
 
 function NavigationPage(arg0: NavigationPageProps) {
-  const { node, pathname, currentLocale, depth } = arg0
+  const { node, pathname, currentLocale, ancestorsExpanded } = arg0
   const sections = useSectionStore(state => state.sections)
+  const visibleSections = useSectionStore(state => state.visibleSections)
   const active = isSameRoutePath(node.path, pathname, currentLocale)
   const href = normalizePath(node.path)
+  const highlightRange = active && ancestorsExpanded
+    ? getVisibleSectionHighlightRange(sections.map(section => section.id), visibleSections)
+    : undefined
 
   return (
     <li className="clarify-navigation-page relative">
+      {highlightRange ? <VisibleSectionHighlight {...highlightRange} /> : null}
       <CloseButton
         as={Link}
         to={href}
         aria-current={active ? 'page' : undefined}
-        className="clarify-navigation-link group relative flex min-h-9 items-center gap-2 rounded-(--clarify-theme-tokens-radius-md) py-1.5 pr-3 no-underline transition"
-        style={{ paddingLeft: `${0.75 + depth * 0.75}rem` }}
+        className="clarify-navigation-link group relative z-10 flex min-h-9 items-center gap-2 rounded-(--clarify-theme-tokens-radius-md) py-1.5 pr-3 pl-2 no-underline transition"
       >
         <span className="clarify-navigation-active-marker absolute inset-y-1.5 left-0 w-0.5 rounded-full opacity-0 transition-opacity group-aria-current:opacity-100" />
         {node.icon ? <NavigationIcon name={node.icon} className="clarify-navigation-item-icon h-3.5 w-3.5 shrink-0" /> : null}
@@ -106,8 +150,8 @@ function NavigationPage(arg0: NavigationPageProps) {
                 <CloseButton
                   as={Link}
                   to={`${href}#${section.id}`}
-                  className="clarify-navigation-anchor-link flex min-h-8 items-center gap-2 pr-3 no-underline transition"
-                  style={{ paddingLeft: `${2.25 + depth * 0.75 + Math.max(0, (section.level ?? 2) - 2) * 0.75}rem` }}
+                  className="clarify-navigation-anchor-link relative z-10 flex min-h-8 items-center gap-2 pr-3 no-underline transition"
+                  style={{ paddingLeft: `${2.25 + Math.max(0, (section.level ?? 2) - 2) * 0.75}rem` }}
                 >
                   {section.badge ? <SectionBadge>{section.badge}</SectionBadge> : null}
                   <span className="min-w-0 flex-1 truncate whitespace-nowrap">{section.title}</span>
@@ -125,11 +169,11 @@ type NavigationBranchProps = {
   node: NavigationNode
   pathname: string
   currentLocale?: string
-  depth: number
+  ancestorsExpanded: boolean
 }
 
 function NavigationBranch(arg0: NavigationBranchProps) {
-  const { node, pathname, currentLocale, depth } = arg0
+  const { node, pathname, currentLocale, ancestorsExpanded } = arg0
   const controlsId = useId()
   const active = containsActivePath(node, pathname, currentLocale)
   const [expansionOverride, setExpansionOverride] = useState<boolean>()
@@ -143,29 +187,36 @@ function NavigationBranch(arg0: NavigationBranchProps) {
         aria-controls={controlsId}
         data-active={active || undefined}
         onClick={() => setExpansionOverride(!expanded)}
-        className="clarify-navigation-branch-trigger group flex min-h-9 w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-md) py-1.5 pr-3 text-left transition"
-        style={{ paddingLeft: `${0.5 + depth * 0.75}rem` }}
+        className="clarify-navigation-branch-trigger group flex min-h-9 w-full items-center rounded-(--clarify-theme-tokens-radius-md) py-1.5 pr-3 pl-2 text-left transition"
       >
         <ChevronRight className="clarify-navigation-chevron h-3.5 w-3.5 shrink-0 transition-transform duration-150 group-aria-expanded:rotate-90" />
-        {node.icon ? <NavigationIcon name={node.icon} className="clarify-navigation-item-icon h-3.5 w-3.5 shrink-0" /> : null}
-        <span className="min-w-0 flex-1 truncate whitespace-nowrap">{node.title}</span>
-        <span className="clarify-navigation-branch-count tabular-nums">{node.children?.length}</span>
+        <span className="flex min-w-0 items-center gap-2 pl-2">
+          {node.icon ? <NavigationIcon name={node.icon} className="clarify-navigation-item-icon h-3.5 w-3.5 shrink-0" /> : null}
+          <span className="min-w-0 flex-1 truncate whitespace-nowrap">{node.title}</span>
+          <span className="clarify-navigation-branch-count tabular-nums">{node.children?.length}</span>
+        </span>
       </button>
 
       <AnimatePresence initial={false}>
         {expanded ? (
           <motion.div
             id={controlsId}
-            className="clarify-navigation-branch-content relative overflow-hidden"
+            className="clarify-navigation-branch-content grid grid-cols-[auto_minmax(0,1fr)] overflow-hidden"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1, transition: { duration: 0.18, ease: 'easeOut' } }}
             exit={{ height: 0, opacity: 0, transition: { duration: 0.12, ease: 'easeIn' } }}
           >
-            <div
-              className="clarify-navigation-tree-line absolute inset-y-1 w-px"
-              style={{ left: `${1.18 + depth * 0.75}rem` }}
-            />
-            <NavigationNodes nodes={node.children ?? []} pathname={pathname} currentLocale={currentLocale} depth={depth + 1} />
+            <div className="grid">
+              <ChevronRight aria-hidden="true" className="invisible col-start-1 row-start-1 h-3.5 w-3.5" />
+            </div>
+            <div className="col-start-2">
+              <NavigationNodes
+                nodes={node.children ?? []}
+                pathname={pathname}
+                currentLocale={currentLocale}
+                ancestorsExpanded={ancestorsExpanded && expanded}
+              />
+            </div>
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -177,11 +228,11 @@ type NavigationNodesProps = {
   nodes: NavigationNode[]
   pathname: string
   currentLocale?: string
-  depth: number
+  ancestorsExpanded: boolean
 }
 
 function NavigationNodes(arg0: NavigationNodesProps) {
-  const { nodes, pathname, currentLocale, depth } = arg0
+  const { nodes, pathname, currentLocale, ancestorsExpanded } = arg0
 
   return (
     <ul role="list" className="clarify-navigation-tree py-0.5">
@@ -191,7 +242,7 @@ function NavigationNodes(arg0: NavigationNodesProps) {
           node={node}
           pathname={pathname}
           currentLocale={currentLocale}
-          depth={depth}
+          ancestorsExpanded={ancestorsExpanded}
         />
       ) : (
         <NavigationPage
@@ -199,7 +250,7 @@ function NavigationNodes(arg0: NavigationNodesProps) {
           node={node}
           pathname={pathname}
           currentLocale={currentLocale}
-          depth={depth}
+          ancestorsExpanded={ancestorsExpanded}
         />
       ))}
     </ul>
@@ -222,8 +273,8 @@ function NavigationGroup(arg0: NavigationGroupProps) {
         <NavigationIcon name={group.icon} className="clarify-navigation-group-title-icon h-3.5 w-3.5 shrink-0" />
         <span className="min-w-0 truncate">{group.title}</span>
       </h2>
-      <div className="mt-2">
-        <NavigationNodes nodes={group.nodes} pathname={pathname} currentLocale={currentLocale} depth={0} />
+      <div className="mt-2 px-2">
+        <NavigationNodes nodes={group.nodes} pathname={pathname} currentLocale={currentLocale} ancestorsExpanded />
       </div>
     </li>
   )

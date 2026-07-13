@@ -1,0 +1,42 @@
+# WebFrame
+
+`WebFrame` 用于嵌入产品页面、托管演示或静态 UI 预览。提供 `src` 时使用延迟加载的 iframe；不提供时直接渲染 `children`。
+
+## 嵌入网页
+
+```mdx
+<WebFrame src="https://clarify.pub" title="Clarify 官网" height={360} />
+```
+
+设置 `showWindow={false}` 可以隐藏模拟浏览器标题栏：
+
+```mdx
+<WebFrame src="https://clarify.pub" title="组件预览" showWindow={false} height={320} />
+```
+
+## 内联预览
+
+```mdx
+<WebFrame title="内联预览" height={180}>
+  <div style={{ padding: 24 }}>
+    <strong>预览内容</strong>
+    <p>内容直接渲染在框架内部。</p>
+  </div>
+</WebFrame>
+```
+
+## 属性
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `src` | `string` | - | iframe URL；省略时渲染 `children` |
+| `title` | `string` | `'Embedded content'` | iframe 可访问名称和窗口标题 |
+| `showWindow` | `boolean` | `true` | 是否显示模拟窗口外壳 |
+| `height` | `CSSProperties['height']` | `420` | 内容高度 |
+| `className` | `string` | - | 外层容器类名 |
+| `iframeClassName` | `string` | - | iframe 或内联容器类名 |
+| `children` | `ReactNode` | - | 未提供 `src` 时的内容 |
+
+其他原生 iframe 属性也会透传，例如 `allow`、`sandbox` 和 `referrerPolicy`。
+
+<Callout type="warning">外部站点可能通过安全响应头禁止 iframe 嵌入。嵌入不受信任内容时应配置严格的 `sandbox`。</Callout>

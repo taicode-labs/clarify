@@ -183,12 +183,34 @@ export default defineConfig({
               icon: 'Blocks',
               pages: [
                 {
-                  page: 'reference/built-in-components',
-                  title: {
+                  group: {
                     'zh-CN': '内置组件',
                     'en-US': 'Built-in Components',
                   },
                   icon: 'Component',
+                  pages: [
+                    {
+                      page: 'reference/built-in-components',
+                      title: {
+                        'zh-CN': '组件总览',
+                        'en-US': 'Overview',
+                      },
+                      icon: 'LayoutGrid',
+                    },
+                    { page: 'reference/components/steps', title: 'Steps / Step', icon: 'ListOrdered' },
+                    { page: 'reference/components/tabs', title: 'Tabs / Tab', icon: 'PanelTop' },
+                    { page: 'reference/components/callout', title: 'Callout', icon: 'MessageSquareWarning' },
+                    { page: 'reference/components/note', title: 'Note', icon: 'StickyNote' },
+                    { page: 'reference/components/card', title: 'CardGroup / Card', icon: 'PanelsTopLeft' },
+                    { page: 'reference/components/collapse', title: 'Collapse', icon: 'ListCollapse' },
+                    { page: 'reference/components/button', title: 'Button', icon: 'MousePointerClick' },
+                    { page: 'reference/components/web-frame', title: 'WebFrame', icon: 'Monitor' },
+                    { page: 'reference/components/code-group', title: 'CodeGroup', icon: 'Braces' },
+                    { page: 'reference/components/row-col', title: 'Row / Col', icon: 'Columns2' },
+                    { page: 'reference/components/properties', title: 'Properties / Property', icon: 'ListTree' },
+                    { page: 'reference/components/markdown', title: 'Markdown', icon: 'FileText' },
+                    { page: 'reference/components/openapi', title: 'OpenAPI', icon: 'FileJson2' },
+                  ],
                 },
                 {
                   page: 'openapi/embedding',

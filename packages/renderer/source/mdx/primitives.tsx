@@ -62,8 +62,8 @@ export function Note(arg0: NoteProps) {
   const { children } = arg0
 
   return (
-    <div className="clarify-note my-6 flex gap-2.5 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4 text-sm/6 text-(--clarify-theme-tokens-colors-foreground) [--tw-prose-links-hover:var(--clarify-ui-accent-text)] [--tw-prose-links:var(--clarify-theme-tokens-colors-foreground)]">
-      <Info className="mt-1 h-4 w-4 flex-none stroke-(--clarify-ui-accent-text)" />
+    <div className="clarify-note my-6 flex gap-3 rounded-r-(--clarify-theme-tokens-radius-lg) border-l-2 border-(--clarify-theme-tokens-colors-primary) bg-(--clarify-ui-subtle-background) px-4 py-3 text-sm/6 text-(--clarify-ui-text-soft) [--tw-prose-links-hover:var(--clarify-ui-accent-text)] [--tw-prose-links:var(--clarify-theme-tokens-colors-foreground)]">
+      <Info className="mt-1 size-4 flex-none stroke-(--clarify-ui-accent-text)" />
       <div className="*:first:mt-0 *:last:mb-0">{children}</div>
     </div>
   )

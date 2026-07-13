@@ -132,10 +132,10 @@ function useSectionVisibilityDebug(_headerTopAreaRef?: RefObject<HTMLDivElement 
 }
 
 function useSectionVisibilityObserver(checkVisibleSections: () => void, headerTopAreaRef?: RefObject<HTMLDivElement | null>) {
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (typeof window === 'undefined') return undefined
 
-    const raf = window.requestAnimationFrame(() => checkVisibleSections())
+    checkVisibleSections()
     window.addEventListener('scroll', checkVisibleSections, { passive: true })
     window.addEventListener('resize', checkVisibleSections)
 
@@ -150,7 +150,6 @@ function useSectionVisibilityObserver(checkVisibleSections: () => void, headerTo
     }
 
     return () => {
-      window.cancelAnimationFrame(raf)
       window.removeEventListener('scroll', checkVisibleSections)
       window.removeEventListener('resize', checkVisibleSections)
       resizeObserver?.disconnect()
@@ -189,17 +188,22 @@ function useVisibleSections(sectionStore: StoreApi<SectionState>, headerTopAreaR
 
 function useSyncSections(sectionStore: StoreApi<SectionState>, sections: Section[]) {
   useIsomorphicLayoutEffect(() => {
-    sectionStore.setState((state) => ({
-      sections: sections.map((section) => {
+    sectionStore.setState((state) => {
+      const nextSections = sections.map((section) => {
         const registeredSection = state.sections.find((item) => item.id === section.id)
         return {
           ...section,
           headingRef: registeredSection?.headingRef,
           offsetRem: registeredSection?.offsetRem ?? section.offsetRem,
         }
-      }),
-      visibleSections: [],
-    }))
+      })
+      const nextSectionIds = new Set(nextSections.map(section => section.id))
+
+      return {
+        sections: nextSections,
+        visibleSections: state.visibleSections.filter(id => id === '_top' || nextSectionIds.has(id)),
+      }
+    })
   }, [sectionStore, sections])
 }
 

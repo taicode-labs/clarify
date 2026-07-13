@@ -1,0 +1,37 @@
+# Row / Col
+
+`Row` 和 `Col` 创建响应式双栏布局。窄屏按文档顺序堆叠，超宽屏显示两列，适合“解释 + 示例”或“步骤 + 预览”。
+
+## 用法
+
+````mdx
+<Row>
+  <Col>
+
+    ## 启动预览
+
+    开发服务器会监听内容和配置变化。
+
+  </Col>
+  <Col sticky>
+
+    ```bash
+    pnpm exec clarify dev
+    ```
+
+  </Col>
+</Row>
+````
+
+`sticky` 仅在双栏布局生效，让示例在阅读较长说明时保持可见。
+
+## 属性
+
+| 组件 | 属性 | 类型 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `Row` | `children` | `ReactNode` | 必填 | 通常为两个 `Col` |
+| `Row` | `className` | `string` | - | 网格类名 |
+| `Col` | `children` | `ReactNode` | 必填 | 当前列内容 |
+| `Col` | `sticky` | `boolean` | `false` | 大屏时吸顶 |
+
+<Callout type="warning">移动端会按源码顺序显示内容，因此第一列应先提供理解第二列所需的上下文。</Callout>

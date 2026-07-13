@@ -1,0 +1,31 @@
+# Markdown
+
+`Markdown` parses a runtime string with Clarify's Markdown renderer. Use it for data-driven content, custom component output, or external text. Markdown written directly in an `.mdx` file does not need this wrapper.
+
+## Usage
+
+```mdx
+<Markdown>{"**Important:** run the build checks before publishing."}</Markdown>
+```
+
+The string can come from a variable in page scope:
+
+```mdx
+export const releaseNote = `
+## Release notes
+
+- Added search
+- Fixed navigation
+`
+
+<Markdown>{releaseNote}</Markdown>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `children` | `string` | - | Markdown string to parse |
+| `className` | `string` | - | Class name for the outer container |
+
+<Callout type="warning">Render only trusted or sanitized content. Establish the security boundary before dynamic data reaches the documentation page.</Callout>

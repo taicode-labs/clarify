@@ -1,0 +1,37 @@
+# CardGroup / Card
+
+`CardGroup` provides a responsive grid while `Card` creates a titled entry point with an optional icon and link. Use them for home-page entry points, section indexes, and feature matrices.
+
+## Basic usage
+
+```mdx
+<CardGroup cols={2}>
+  <Card title="Getting Started" icon="rocket" href="/getting-started">
+    Install the CLI and create your first documentation site.
+  </Card>
+  <Card title="Writing Content" icon="file-code-2" href="/guides/writing-content">
+    Use Markdown, JSX, and built-in components.
+  </Card>
+</CardGroup>
+```
+
+<CardGroup cols={2}>
+  <Card title="Getting Started" icon="rocket" href="/getting-started">Install the CLI and create your first documentation site.</Card>
+  <Card title="Writing Content" icon="file-code-2" href="/guides/writing-content">Use Markdown, JSX, and built-in components.</Card>
+</CardGroup>
+
+## Icons and props
+
+`icon` accepts a `lucide-react` icon name and converts kebab-case automatically, including `badge-info` and `file-code-2`.
+
+| Component | Prop | Type | Default | Description |
+|-----------|------|------|---------|-------------|
+| `CardGroup` | `cols` | `1 \| 2 \| 3 \| 4` | `2` | Desktop columns; stacks on narrow screens |
+| `CardGroup` | `className` | `string` | - | Class name for the grid |
+| `Card` | `title` | `string` | Required | Card heading |
+| `Card` | `icon` | `string` | - | Lucide icon name |
+| `Card` | `href` | `string` | - | Internal or external URL |
+| `Card` | `children` | `ReactNode` | - | Short description |
+| `Card` | `className` | `string` | - | Class name for the card |
+
+<Callout type="warning">Treat cards as entry points, not containers for long-form content. Keep descriptions short and put details on the destination page.</Callout>

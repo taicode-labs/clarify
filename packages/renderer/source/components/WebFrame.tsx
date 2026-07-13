@@ -43,7 +43,7 @@ export function WebFrame(arg0: WebFrameProps) {
     return (
       <div
         className={clsx(
-          'clarify-web-frame not-prose my-10 overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-(--clarify-ui-accent-glow)',
+          'clarify-web-frame not-prose my-10 overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-lg shadow-zinc-900/5 dark:shadow-none',
           className,
         )}
       >
@@ -55,15 +55,18 @@ export function WebFrame(arg0: WebFrameProps) {
   return (
     <div
       className={clsx(
-        'clarify-web-frame not-prose my-10 overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-(--clarify-ui-accent-glow)',
+        'clarify-web-frame not-prose my-10 overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-lg shadow-zinc-900/5 dark:shadow-none',
         className,
       )}
     >
-      <div className="flex h-10 items-center gap-2 border-b border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-code-background) px-4">
-        <span className="size-3 rounded-full bg-red-400" aria-hidden="true" />
-        <span className="size-3 rounded-full bg-yellow-400" aria-hidden="true" />
-        <span className="size-3 rounded-full bg-green-400" aria-hidden="true" />
-        <span className="sr-only">{title}</span>
+      <div className="grid h-10 grid-cols-[1fr_minmax(0,2fr)_1fr] items-center gap-3 border-b border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-code-background) px-3">
+        <div className="flex items-center gap-1.5" aria-hidden="true">
+          <span className="size-2.5 rounded-full bg-red-400/80" />
+          <span className="size-2.5 rounded-full bg-amber-400/80" />
+          <span className="size-2.5 rounded-full bg-emerald-400/80" />
+        </div>
+        <div className="truncate rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-3 py-1 text-center text-xs text-(--clarify-ui-text-faint)">{title}</div>
+        <span aria-hidden="true" />
       </div>
       {frame}
     </div>

@@ -1,0 +1,29 @@
+# Collapse
+
+`Collapse` 将可选说明、实现细节或长列表收起，让主要任务保持清晰。重要前置条件和风险不应藏在折叠区域中。
+
+## 用法
+
+```mdx
+<Collapse title="查看详细说明">
+  这是默认折叠的内容，支持 **Markdown** 和其他 MDX 组件。
+</Collapse>
+
+<Collapse summary="默认展开" defaultOpen>
+  这段内容初始可见，用户仍可手动收起。
+</Collapse>
+```
+
+<Collapse title="查看详细说明">这是默认折叠的内容，支持 **Markdown** 和其他 MDX 组件。</Collapse>
+
+## 属性
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `title` | `ReactNode` | - | 折叠标题，优先于 `summary` |
+| `summary` | `ReactNode` | `'Details'` | 未提供 `title` 时的标题 |
+| `defaultOpen` | `boolean` | `false` | 是否初始展开 |
+| `children` | `ReactNode` | 必填 | 展开后的内容，支持完整 MDX |
+| `className` | `string` | - | 外层容器类名 |
+
+<Callout type="tip">标题应说明展开后能看到什么，例如“查看代理配置”，避免只写“更多”。</Callout>

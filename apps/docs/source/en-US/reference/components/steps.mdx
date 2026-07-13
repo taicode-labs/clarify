@@ -1,0 +1,57 @@
+# Steps / Step
+
+`Steps` presents a procedure with a meaningful order. Each `Step` receives a number and connector automatically. Use it for installation, configuration, migration, and troubleshooting, not to decorate unrelated sections.
+
+## Basic usage
+
+```mdx
+<Steps>
+  <Step title="Install the CLI">
+    Run `pnpm add -D @clarify-labs/cli`.
+  </Step>
+  <Step title="Start the preview">
+    Run `pnpm clarify dev`.
+  </Step>
+</Steps>
+```
+
+<Steps>
+  <Step title="Install the CLI">Add Clarify as a development dependency.</Step>
+  <Step title="Start the preview">Run the development command and open the local URL.</Step>
+</Steps>
+
+## Complex content
+
+Each `Step` accepts paragraphs, lists, links, code blocks, and other built-in components. Keep blank lines around block content:
+
+````mdx
+<Steps>
+  <Step title="Install dependencies">
+
+    ```bash
+    pnpm add @clarify-labs/renderer
+    ```
+
+    <Callout type="tip">Pin the production version.</Callout>
+
+  </Step>
+  <Step title="Verify the result">
+
+    1. Open the preview URL
+    2. Check the terminal output
+
+  </Step>
+</Steps>
+````
+
+## Props
+
+| Component | Prop | Type | Description |
+|-----------|------|------|-------------|
+| `Steps` | `children` | `ReactNode` | One or more `Step` elements |
+| `Steps` | `className` | `string` | Class name for the ordered list |
+| `Step` | `title` | `ReactNode` | Optional step heading |
+| `Step` | `children` | `ReactNode` | Step content with full MDX support |
+| `Step` | `className` | `string` | Class name for this step |
+
+<Callout type="warning">Avoid nesting another `Steps` sequence inside a step. Use `Tabs` for alternative paths or link to a dedicated page.</Callout>

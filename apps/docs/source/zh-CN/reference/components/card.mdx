@@ -1,0 +1,37 @@
+# CardGroup / Card
+
+`CardGroup` 负责响应式网格，`Card` 提供带标题、图标和链接的内容入口。适合首页入口、章节索引和功能矩阵。
+
+## 基础用法
+
+```mdx
+<CardGroup cols={2}>
+  <Card title="快速开始" icon="rocket" href="/getting-started">
+    安装 CLI 并创建第一个文档站点。
+  </Card>
+  <Card title="写作文档" icon="file-code-2" href="/guides/writing-content">
+    使用 Markdown、JSX 和内置组件。
+  </Card>
+</CardGroup>
+```
+
+<CardGroup cols={2}>
+  <Card title="快速开始" icon="rocket" href="/getting-started">安装 CLI 并创建第一个文档站点。</Card>
+  <Card title="写作文档" icon="file-code-2" href="/guides/writing-content">使用 Markdown、JSX 和内置组件。</Card>
+</CardGroup>
+
+## 图标与属性
+
+`icon` 使用 `lucide-react` 图标名，支持 kebab-case 自动转换，例如 `badge-info` 和 `file-code-2`。
+
+| 组件 | 属性 | 类型 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `CardGroup` | `cols` | `1 \| 2 \| 3 \| 4` | `2` | 桌面端列数；窄屏自动堆叠 |
+| `CardGroup` | `className` | `string` | - | 网格类名 |
+| `Card` | `title` | `string` | 必填 | 卡片标题 |
+| `Card` | `icon` | `string` | - | Lucide 图标名 |
+| `Card` | `href` | `string` | - | 站内或外部链接 |
+| `Card` | `children` | `ReactNode` | - | 简短描述 |
+| `Card` | `className` | `string` | - | 卡片类名 |
+
+<Callout type="warning">卡片应作为入口而不是正文容器。描述保持简短，详细内容放到目标页面。</Callout>

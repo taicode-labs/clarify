@@ -1,0 +1,29 @@
+# Collapse
+
+`Collapse` hides optional guidance, implementation detail, or long lists so the primary task remains clear. Do not hide prerequisites or risks inside it.
+
+## Usage
+
+```mdx
+<Collapse title="Show details">
+  This content is collapsed by default and supports **Markdown** and other MDX components.
+</Collapse>
+
+<Collapse summary="Open by default" defaultOpen>
+  This content starts visible and can still be collapsed.
+</Collapse>
+```
+
+<Collapse title="Show details">This content is collapsed by default and supports **Markdown** and other MDX components.</Collapse>
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `ReactNode` | - | Disclosure label, preferred over `summary` |
+| `summary` | `ReactNode` | `'Details'` | Label when `title` is absent |
+| `defaultOpen` | `boolean` | `false` | Whether the content starts expanded |
+| `children` | `ReactNode` | Required | Expanded content with full MDX support |
+| `className` | `string` | - | Class name for the container |
+
+<Callout type="tip">Describe what opening the disclosure reveals, such as “Show proxy configuration,” instead of using a vague “More.”</Callout>

@@ -26,14 +26,15 @@ export function Collapse(arg0: CollapseProps) {
   return (
     <div
       className={clsx(
-        'clarify-collapse my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)',
+        'clarify-collapse my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) transition-colors',
+        open && 'border-(--clarify-ui-accent-border)',
         className,
       )}
       {...props}
     >
       <button
         type="button"
-        className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2 focus-visible:ring-offset-(--clarify-theme-tokens-colors-background)"
+        className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 px-4 py-2.5 text-left text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary)"
         aria-expanded={open}
         aria-controls={contentId}
         onClick={() => setOpen((value) => !value)}
@@ -41,7 +42,7 @@ export function Collapse(arg0: CollapseProps) {
         <span>{summaryLabel}</span>
         <ChevronDown
           className={clsx(
-            'h-4 w-4 text-(--clarify-theme-tokens-colors-muted) transition-transform duration-200',
+            'size-4 rounded-full text-(--clarify-ui-text-faint) transition duration-200',
             open && 'rotate-180',
           )}
           aria-hidden="true"
@@ -55,7 +56,7 @@ export function Collapse(arg0: CollapseProps) {
         <div
           ref={contentRef}
           className={clsx(
-            'px-4 py-4 text-sm/6 text-(--clarify-theme-tokens-colors-foreground) transition-opacity duration-200 ease-out',
+            'px-4 py-4 text-sm/6 text-(--clarify-ui-text-soft) transition-opacity duration-200 ease-out *:first:mt-0 *:last:mb-0',
             open ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1',
           )}
         >
