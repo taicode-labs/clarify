@@ -150,11 +150,17 @@ function NavigationPage(arg0: NavigationPageProps) {
                 <CloseButton
                   as={Link}
                   to={`${href}#${section.id}`}
-                  className="clarify-navigation-anchor-link relative z-10 flex min-h-8 items-center gap-2 pr-3 no-underline transition"
-                  style={{ paddingLeft: `${2.25 + Math.max(0, (section.level ?? 2) - 2) * 0.75}rem` }}
+                  className="clarify-navigation-anchor-link relative z-10 flex min-h-8 items-center pr-3 pl-2 no-underline transition"
                 >
-                  {section.badge ? <SectionBadge>{section.badge}</SectionBadge> : null}
-                  <span className="min-w-0 flex-1 truncate whitespace-nowrap">{section.title}</span>
+                  <span className="clarify-navigation-section-indent flex shrink-0" aria-hidden="true">
+                    {Array.from({ length: Math.max(1, (section.level ?? 2) - 1) }, (_, index) => (
+                      <ChevronRight key={index} className="invisible h-3.5 w-3.5" />
+                    ))}
+                  </span>
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    {section.badge ? <SectionBadge>{section.badge}</SectionBadge> : null}
+                    <span className="min-w-0 flex-1 truncate whitespace-nowrap">{section.title}</span>
+                  </span>
                 </CloseButton>
               </li>
             ))}

@@ -35,7 +35,11 @@ describe('Navigation', () => {
   it('expands the active branch and marks only the active page', () => {
     const html = renderToStaticMarkup(
       <MemoryRouter initialEntries={['/guides/configure']}>
-        <SectionProvider sections={[]}>
+        <SectionProvider sections={[
+          { id: 'overview', title: 'Overview', level: 2 },
+          { id: 'details', title: 'Details', level: 3 },
+        ]}
+        >
           <Navigation navigation={navigation} />
         </SectionProvider>
       </MemoryRouter>,
@@ -46,5 +50,8 @@ describe('Navigation', () => {
     expect(html).toMatch(/aria-current="page"[^>]+href="\/guides\/configure"/)
     expect(html).not.toMatch(/aria-current="page"[^>]+href="\/guides\/start"/)
     expect(html).not.toContain('clarify-navigation-tree-line')
+    expect(html).not.toContain('padding-left:')
+    expect(html).toMatch(/clarify-navigation-section-indent[^>]*>\s*<svg[^>]*>.*?<\/svg>\s*<\/span>.*?Overview/)
+    expect(html).toMatch(/clarify-navigation-section-indent[^>]*>\s*<svg[^>]*>.*?<\/svg>\s*<svg[^>]*>.*?<\/svg>\s*<\/span>.*?Details/)
   })
 })
