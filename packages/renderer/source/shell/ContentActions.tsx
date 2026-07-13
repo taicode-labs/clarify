@@ -1,6 +1,6 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
-import { Check, ChevronDown, Copy, ExternalLink, FileText, Link2, PencilLine } from 'lucide-react'
-import { useState } from 'react'
+import { Check, ChevronDown, Copy, ExternalLink, FileText, Link2, LoaderCircle, PencilLine, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 import { useBuiltInText } from '../i18n'
 import type { RouteItem } from '../types'
@@ -13,6 +13,7 @@ type ContentActionsProps = {
 }
 
 type CopyState = 'idle' | 'content' | 'link' | 'llms'
+type CopyPhase = 'idle' | 'copying' | 'copied' | 'failed'
 type CopyAction = {
   key: Exclude<CopyState, 'idle'>
   label: string
@@ -35,6 +36,16 @@ export function ContentActions(arg0: ContentActionsProps) {
   const { route, routePrefix } = arg0
   const t = useBuiltInText()
   const [copied, setCopied] = useState<CopyState>('idle')
+  const [copyPhase, setCopyPhase] = useState<CopyPhase>('idle')
+
+  useEffect(() => {
+    if (copyPhase !== 'copied' && copyPhase !== 'failed') return undefined
+    const timeout = setTimeout(() => {
+      setCopied('idle')
+      setCopyPhase('idle')
+    }, 1600)
+    return () => clearTimeout(timeout)
+  }, [copyPhase])
 
   if (!route?.contentArtifactUrl && !route?.sourceEditUrl) return null
 
@@ -45,27 +56,35 @@ export function ContentActions(arg0: ContentActionsProps) {
   const viewLabel = isOpenApi ? t('contentActions.viewOpenApi') : t('contentActions.viewMarkdown')
   const viewDescription = isOpenApi ? t('contentActions.viewOpenApiDescription') : t('contentActions.viewMarkdownDescription')
 
-  function markCopied(state: Exclude<CopyState, 'idle'>) {
+  async function runCopy(state: Exclude<CopyState, 'idle'>, getText: () => Promise<string> | string) {
     setCopied(state)
-    setTimeout(() => setCopied('idle'), 1600)
+    setCopyPhase('copying')
+    try {
+      const text = await getText()
+      setCopyPhase((await copyTextToClipboard(text)) ? 'copied' : 'failed')
+    } catch {
+      setCopyPhase('failed')
+    }
   }
 
   async function handleCopyContent() {
     if (!contentArtifactUrl) return
-    const response = await fetch(contentArtifactUrl)
-    const text = await response.text()
-    if (await copyTextToClipboard(text)) markCopied('content')
+    await runCopy('content', async () => {
+      const response = await fetch(contentArtifactUrl)
+      if (!response.ok) throw new Error(`Failed to fetch content: ${response.status}`)
+      return response.text()
+    })
   }
 
   const llmsArtifactUrl = resolveContentArtifactUrl('/llms.txt', routePrefix)
 
   async function handleCopyLink() {
     if (!contentArtifactUrl) return
-    if (await copyTextToClipboard(getAbsoluteUrl(contentArtifactUrl))) markCopied('link')
+    await runCopy('link', () => getAbsoluteUrl(contentArtifactUrl))
   }
 
   async function handleCopyLlms() {
-    if (await copyTextToClipboard(getAbsoluteUrl(llmsArtifactUrl))) markCopied('llms')
+    await runCopy('llms', () => getAbsoluteUrl(llmsArtifactUrl))
   }
 
   const actions: CopyAction[] = contentArtifactUrl
@@ -98,7 +117,14 @@ export function ContentActions(arg0: ContentActionsProps) {
     copiedLabel: t('contentActions.copiedLlms'),
   }
   const primaryAction = actions[0]
-  const PrimaryIcon = primaryAction && copied === primaryAction.key ? Check : primaryAction?.icon ?? PencilLine
+  const primaryPhase = primaryAction && copied === primaryAction.key ? copyPhase : 'idle'
+  const PrimaryIcon = primaryPhase === 'copying' ? LoaderCircle : primaryPhase === 'copied' ? Check : primaryPhase === 'failed' ? X : primaryAction?.icon ?? PencilLine
+  const feedbackAction = copied === 'content' ? actions[0] : copied === 'link' ? actions[1] : copied === 'llms' ? llmsAction : undefined
+  const feedbackLabel = copyPhase === 'copying'
+    ? t('actions.copying')
+    : copyPhase === 'failed'
+      ? t('actions.copyFailed')
+      : feedbackAction?.copiedLabel
 
   return (
     <div className="clarify-content-actions not-prose flex shrink-0 justify-start sm:justify-end">
@@ -108,10 +134,12 @@ export function ContentActions(arg0: ContentActionsProps) {
             <button
               type="button"
               onClick={primaryAction.run}
+              disabled={primaryPhase === 'copying'}
+              aria-live="polite"
               className="clarify-content-actions-primary clarify-ui-control inline-flex h-9 min-w-0 items-center gap-2 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-3 shadow-xs shadow-zinc-900/5 transition"
             >
-              <PrimaryIcon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{copied === primaryAction.key ? t('actions.copied') : primaryAction.label}</span>
+              <PrimaryIcon className={`h-4 w-4 shrink-0 ${primaryPhase === 'copying' ? 'animate-spin' : ''}`} />
+              <span className="truncate">{primaryPhase === 'idle' ? primaryAction.label : feedbackLabel}</span>
             </button>
           ) : (
             <a
@@ -128,6 +156,15 @@ export function ContentActions(arg0: ContentActionsProps) {
             <ChevronDown className="h-3.5 w-3.5" />
           </MenuButton>
         </div>
+        {feedbackAction && copyPhase !== 'idle' && copied !== primaryAction?.key ? (
+          <div
+            role="status"
+            className="absolute top-full right-0 mt-2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 text-xs shadow-lg shadow-zinc-900/10"
+          >
+            {copyPhase === 'copying' ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : copyPhase === 'copied' ? <Check className="h-3.5 w-3.5 text-(--clarify-theme-tokens-colors-primary)" /> : <X className="h-3.5 w-3.5" />}
+            <span>{feedbackLabel}</span>
+          </div>
+        ) : null}
         <MenuItems
           modal={false}
           anchor="bottom end"

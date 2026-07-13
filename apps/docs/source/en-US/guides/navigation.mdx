@@ -180,15 +180,18 @@ export default defineConfig({
 
 Directory example:
 
-```txt
-source/
-├── zh-CN/
-│   ├── index.mdx
-│   └── getting-started.mdx
-└── en-US/
-    ├── index.mdx
-    └── getting-started.mdx
-```
+<FileTree aria-label="Localized source directory">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="zh-CN" type="folder">
+      <FileTreeItem name="index.mdx" />
+      <FileTreeItem name="getting-started.mdx" />
+    </FileTreeItem>
+    <FileTreeItem name="en-US" type="folder">
+      <FileTreeItem name="index.mdx" />
+      <FileTreeItem name="getting-started.mdx" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 Routing rules:
 

@@ -6,14 +6,18 @@ Clarify uses a Monorepo structure with two levels: apps and packages.
 
 ## Monorepo structure
 
-```
-├── apps/
-│   ├── docs/           # Documentation playground & development site (port 5173)
-│   └── www/            # Marketing website & landing pages (port 5174)
-├── packages/
-│   ├── renderer/       # Shared React components & UI primitives
-│   └── cli/            # Clarify CLI and documentation build engine
-```
+<FileTree aria-label="Clarify monorepo structure">
+  <FileTreeItem name="clarify" type="folder">
+    <FileTreeItem name="apps" type="folder" description="port 5173">
+      <FileTreeItem name="docs" description="Documentation playground & development site" />
+      <FileTreeItem name="www" description="Marketing website & landing pages" />
+    </FileTreeItem>
+    <FileTreeItem name="packages" type="folder">
+      <FileTreeItem name="renderer" description="Shared React components & UI primitives" />
+      <FileTreeItem name="cli" description="Clarify CLI and documentation build engine" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 ---
 

@@ -6,14 +6,18 @@ This chapter is for developers who want to understand Clarify's implementation i
 
 ## Repository structure
 
-```txt
-apps/
-  docs/       Documentation playground and integration site
-  www/        Marketing site
-packages/
-  cli/        CLI, content engine, Vite integration, and SSG pipeline
-  renderer/   React app shell, MDX components, OpenAPI UI, and runtime entry points
-```
+<FileTree aria-label="Clarify repository structure">
+  <FileTreeItem name="clarify" type="folder">
+    <FileTreeItem name="apps" type="folder">
+      <FileTreeItem name="docs" description="Documentation playground and integration site" />
+      <FileTreeItem name="www" description="Marketing site" />
+    </FileTreeItem>
+    <FileTreeItem name="packages" type="folder">
+      <FileTreeItem name="cli" description="CLI, content engine, Vite integration, and SSG pipeline" />
+      <FileTreeItem name="renderer" description="React app shell, MDX components, OpenAPI UI, and runtime entries" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 The repository convention is to use `source/` as the source directory and not add `src/`.
 

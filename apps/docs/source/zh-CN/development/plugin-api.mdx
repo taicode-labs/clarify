@@ -219,15 +219,9 @@ export default function MySlot() {
 
 由于 `virtual:clarify/slot`、`virtual:clarify/slots` 这类模块只在 Clarify/Vite 构建期间存在，用户项目中的 TypeScript 语言服务默认无法识别它们。
 
-为了避免插件作者或站点作者手动编写 `declare module`，Clarify dev 应根据当前项目与启用插件自动生成项目级类型声明文件，例如：
+为了避免插件作者或站点作者手动编写 `declare module`，Clarify dev 应根据当前项目与启用插件自动生成项目级类型声明文件，例如 `clarify-env.d.ts`。该文件可以包含：
 
-```txt
-clarify-env.d.ts
-```
-
-该文件可以包含：
-
-```ts
+```ts title="clarify-env.d.ts"
 declare module 'virtual:clarify/slot' {
   import type { RouteItem } from '@clarify-labs/renderer'
 

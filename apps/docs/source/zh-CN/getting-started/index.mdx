@@ -35,7 +35,7 @@ Clarify = MDX 内容 + `clarify.ts` 配置 + OpenAPI 规范 + 静态站点生成
 
     脚手架会自动帮你写入 `package.json` 脚本：
 
-    ```json
+    ```json title="package.json"
     {
       "scripts": {
         "dev": "clarify dev",
@@ -88,18 +88,20 @@ Clarify = MDX 内容 + `clarify.ts` 配置 + OpenAPI 规范 + 静态站点生成
 
     Clarify 默认读取 `source/` 目录。新增 `.mdx` 文件就是新增页面。
 
-    ```txt
-    my-docs/
-    ├── clarify.json
-    ├── package.json
-    └── source/
-        ├── index.mdx
-        └── getting-started.mdx
-    ```
+    <FileTree aria-label="新项目骨架">
+      <FileTreeItem name="my-docs" type="folder">
+        <FileTreeItem name="clarify.json" />
+        <FileTreeItem name="package.json" />
+        <FileTreeItem name="source" type="folder">
+          <FileTreeItem name="index.mdx" />
+          <FileTreeItem name="getting-started.mdx" />
+        </FileTreeItem>
+      </FileTreeItem>
+    </FileTree>
 
     `source/index.mdx`：
 
-    ```mdx
+    ```mdx title="source/index.mdx"
     ---
     title: 首页
     description: 我的产品文档首页
@@ -112,7 +114,7 @@ Clarify = MDX 内容 + `clarify.ts` 配置 + OpenAPI 规范 + 静态站点生成
 
     `source/getting-started.mdx`：
 
-    ```mdx
+    ```mdx title="source/getting-started.mdx"
     ---
     title: 快速开始
     ---
@@ -175,14 +177,16 @@ Clarify = MDX 内容 + `clarify.ts` 配置 + OpenAPI 规范 + 静态站点生成
 
     默认输出到 `output/`：
 
-    ```txt
-    output/
-    ├── index.html
-    ├── getting-started/
-    │   └── index.html
-    ├── assets/
-    └── llms.txt
-    ```
+    <FileTree aria-label="构建输出目录">
+      <FileTreeItem name="output" type="folder">
+        <FileTreeItem name="index.html" />
+        <FileTreeItem name="getting-started" type="folder">
+          <FileTreeItem name="index.html" />
+        </FileTreeItem>
+        <FileTreeItem name="assets" type="folder" />
+        <FileTreeItem name="llms.txt" />
+      </FileTreeItem>
+    </FileTree>
 
     这些都是静态文件，可以部署到 Vercel、Netlify、GitHub Pages、S3、Nginx 或任意静态托管服务。
 

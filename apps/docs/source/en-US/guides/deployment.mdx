@@ -45,16 +45,18 @@ pnpm exec clarify build --output dist
 
 The build result looks like:
 
-```txt
-output/
-├── index.html
-├── getting-started/
-│   └── index.html
-├── assets/
-├── llms.txt
-├── index.md
-└── api.openapi.json
-```
+<FileTree aria-label="Build output directory">
+  <FileTreeItem name="output" type="folder">
+    <FileTreeItem name="index.html" />
+    <FileTreeItem name="getting-started" type="folder">
+      <FileTreeItem name="index.html" />
+    </FileTreeItem>
+    <FileTreeItem name="assets" type="folder" />
+    <FileTreeItem name="llms.txt" />
+    <FileTreeItem name="index.md" />
+    <FileTreeItem name="api.openapi.json" />
+  </FileTreeItem>
+</FileTree>
 
 Every route has standalone HTML, suitable for SEO and direct access; after the browser loads the JavaScript it gets a client-side navigation experience. When deploying, only publish the `output/` directory — do not publish the temporary SSR bundle from the build process.
 
@@ -86,7 +88,7 @@ Every route has standalone HTML, suitable for SEO and direct access; after the b
 
 If the repository is named `my-repo` and the site address is `https://username.github.io/my-repo/`, configure:
 
-```ts
+```ts title="clarify.ts"
 export default defineConfig({
   routePrefix: '/my-repo/',
 })
@@ -94,7 +96,7 @@ export default defineConfig({
 
 Example GitHub Actions:
 
-```yaml
+```yaml title=".github/workflows/deploy.yml"
 name: Deploy to GitHub Pages
 on:
   push:
@@ -125,7 +127,7 @@ rsync -avz output/ user@server:/var/www/html/
 
 Nginx example:
 
-```nginx
+```nginx title="nginx.conf"
 server {
     listen 80;
     root /var/www/html;

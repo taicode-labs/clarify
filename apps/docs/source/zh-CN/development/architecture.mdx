@@ -6,14 +6,18 @@ Clarify 采用 Monorepo 结构组织，包含应用和包两个层级。
 
 ## Monorepo 结构
 
-```
-├── apps/
-│   ├── docs/           # 文档游乐场 & 开发站点 (端口 5173)
-│   └── www/            # 营销网站 & 落地页 (端口 5174)
-├── packages/
-│   ├── renderer/       # 共享 React 组件 & UI 原语
-│   └── cli/            # Clarify CLI 与文档构建引擎
-```
+<FileTree aria-label="Clarify monorepo 结构">
+  <FileTreeItem name="clarify" type="folder">
+    <FileTreeItem name="apps" type="folder" description="端口 5173">
+      <FileTreeItem name="docs" description="文档游乐场 & 开发站点" />
+      <FileTreeItem name="www" description="营销网站 & 落地页" />
+    </FileTreeItem>
+    <FileTreeItem name="packages" type="folder">
+      <FileTreeItem name="renderer" description="共享 React 组件 & UI 原语" />
+      <FileTreeItem name="cli" description="Clarify CLI 与文档构建引擎" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 ---
 

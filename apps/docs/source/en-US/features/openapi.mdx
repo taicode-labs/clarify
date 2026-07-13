@@ -27,11 +27,12 @@ OpenAPI pages are more than static field tables. Clarify turns the spec into int
 
 Place an OpenAPI file in the content directory:
 
-```txt
-source/
-├── index.mdx
-└── api.openapi.json
-```
+<FileTree aria-label="Minimal OpenAPI content layout">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="index.mdx" />
+    <FileTreeItem name="api.openapi.json" />
+  </FileTreeItem>
+</FileTree>
 
 Clarify generates:
 
@@ -81,13 +82,16 @@ OpenAPI 3.0 / 3.1 is supported, with these file extensions:
 
 When i18n is enabled, OpenAPI files also follow the language-directory rule. The default language has no locale prefix, while non-default languages include the locale prefix:
 
-```txt
-source/
-├── zh-CN/
-│   └── api.openapi.json  → /api
-└── en-US/
-    └── api.openapi.json  → /en-US/api
-```
+<FileTree aria-label="Localized OpenAPI files">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="zh-CN" type="folder">
+      <FileTreeItem name="api.openapi.json" description="-> /api" />
+    </FileTreeItem>
+    <FileTreeItem name="en-US" type="folder">
+      <FileTreeItem name="api.openapi.json" description="-> /en-US/api" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 So when embedding an endpoint in a Chinese page you typically use `specPath="/api"`; when embedding the same spec in an English page you typically use `specPath="/en-US/api"`.
 
@@ -143,15 +147,17 @@ Clarify generates request code for common languages and clients, including cURL,
 
 ## Recommended API documentation structure
 
-```txt
-source/
-├── guides/
-│   ├── authentication.mdx
-│   ├── pagination.mdx
-│   └── webhooks.mdx
-├── api.openapi.json
-└── index.mdx
-```
+<FileTree aria-label="Recommended API documentation structure">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="guides" type="folder">
+      <FileTreeItem name="authentication.mdx" />
+      <FileTreeItem name="pagination.mdx" />
+      <FileTreeItem name="webhooks.mdx" />
+    </FileTreeItem>
+    <FileTreeItem name="api.openapi.json" />
+    <FileTreeItem name="index.mdx" />
+  </FileTreeItem>
+</FileTree>
 
 Authoring responsibilities:
 

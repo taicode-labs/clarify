@@ -6,14 +6,18 @@
 
 ## 代码库结构
 
-```txt
-apps/
-  docs/       文档游乐场和集成站点
-  www/        营销站点
-packages/
-  cli/        CLI、内容引擎、Vite 集成和 SSG 流程
-  renderer/   React 应用壳、MDX 组件、OpenAPI UI 和运行时入口
-```
+<FileTree aria-label="Clarify 代码库结构">
+  <FileTreeItem name="clarify" type="folder">
+    <FileTreeItem name="apps" type="folder">
+      <FileTreeItem name="docs" description="文档游乐场和集成站点" />
+      <FileTreeItem name="www" description="营销站点" />
+    </FileTreeItem>
+    <FileTreeItem name="packages" type="folder">
+      <FileTreeItem name="cli" description="CLI、内容引擎、Vite 集成和 SSG 流程" />
+      <FileTreeItem name="renderer" description="React 应用壳、MDX 组件、OpenAPI UI 和运行时入口" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 仓库约定使用 `source/` 作为源码目录，不新增 `src/`。
 

@@ -35,7 +35,7 @@ Clarify = MDX content + `clarify.ts` configuration + OpenAPI specs + static site
 
     The scaffold adds scripts to `package.json` for you:
 
-    ```json
+    ```json title="package.json"
     {
       "scripts": {
         "dev": "clarify dev",
@@ -88,18 +88,20 @@ Clarify = MDX content + `clarify.ts` configuration + OpenAPI specs + static site
 
     Clarify reads the `source/` directory by default. Adding an `.mdx` file adds a page.
 
-    ```txt
-    my-docs/
-    ├── clarify.json
-    ├── package.json
-    └── source/
-        ├── index.mdx
-        └── getting-started.mdx
-    ```
+    <FileTree aria-label="New project skeleton">
+      <FileTreeItem name="my-docs" type="folder">
+        <FileTreeItem name="clarify.json" />
+        <FileTreeItem name="package.json" />
+        <FileTreeItem name="source" type="folder">
+          <FileTreeItem name="index.mdx" />
+          <FileTreeItem name="getting-started.mdx" />
+        </FileTreeItem>
+      </FileTreeItem>
+    </FileTree>
 
     `source/index.mdx`:
 
-    ```mdx
+    ```mdx title="source/index.mdx"
     ---
     title: Home
     description: The home page for my product docs
@@ -112,7 +114,7 @@ Clarify = MDX content + `clarify.ts` configuration + OpenAPI specs + static site
 
     `source/getting-started.mdx`:
 
-    ```mdx
+    ```mdx title="source/getting-started.mdx"
     ---
     title: Getting Started
     ---
@@ -175,14 +177,16 @@ Clarify = MDX content + `clarify.ts` configuration + OpenAPI specs + static site
 
     By default the output goes to `output/`:
 
-    ```txt
-    output/
-    ├── index.html
-    ├── getting-started/
-    │   └── index.html
-    ├── assets/
-    └── llms.txt
-    ```
+    <FileTree aria-label="Build output directory">
+      <FileTreeItem name="output" type="folder">
+        <FileTreeItem name="index.html" />
+        <FileTreeItem name="getting-started" type="folder">
+          <FileTreeItem name="index.html" />
+        </FileTreeItem>
+        <FileTreeItem name="assets" type="folder" />
+        <FileTreeItem name="llms.txt" />
+      </FileTreeItem>
+    </FileTree>
 
     These are all static files, deployable to Vercel, Netlify, GitHub Pages, S3, Nginx, or any static hosting service.
 

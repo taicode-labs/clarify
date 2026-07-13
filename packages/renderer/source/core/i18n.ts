@@ -7,7 +7,9 @@ export type BuiltInLocale = 'en' | 'zh-CN'
 export type BuiltInTextKey =
   | 'actions.code'
   | 'actions.copy'
+  | 'actions.copying'
   | 'actions.copied'
+  | 'actions.copyFailed'
   | 'builtWith.label'
   | 'builtWith.prefix'
   | 'callout.danger'
@@ -111,7 +113,9 @@ const builtInText = {
   en: {
     'actions.code': 'Code',
     'actions.copy': 'Copy',
+    'actions.copying': 'Copying...',
     'actions.copied': 'Copied!',
+    'actions.copyFailed': 'Copy failed',
     'builtWith.label': 'Built with Clarify',
     'builtWith.prefix': 'Built with',
     'callout.danger': 'Danger',
@@ -214,7 +218,9 @@ const builtInText = {
   'zh-CN': {
     'actions.code': '代码',
     'actions.copy': '复制',
+    'actions.copying': '正在复制...',
     'actions.copied': '已复制！',
+    'actions.copyFailed': '复制失败',
     'builtWith.label': '由 Clarify 构建',
     'builtWith.prefix': '构建来自',
     'callout.danger': '危险',

@@ -45,16 +45,18 @@ pnpm exec clarify build --output dist
 
 构建结果类似：
 
-```txt
-output/
-├── index.html
-├── getting-started/
-│   └── index.html
-├── assets/
-├── llms.txt
-├── index.md
-└── api.openapi.json
-```
+<FileTree aria-label="构建输出目录">
+  <FileTreeItem name="output" type="folder">
+    <FileTreeItem name="index.html" />
+    <FileTreeItem name="getting-started" type="folder">
+      <FileTreeItem name="index.html" />
+    </FileTreeItem>
+    <FileTreeItem name="assets" type="folder" />
+    <FileTreeItem name="llms.txt" />
+    <FileTreeItem name="index.md" />
+    <FileTreeItem name="api.openapi.json" />
+  </FileTreeItem>
+</FileTree>
 
 每个路由都有独立 HTML，适合 SEO 和直接访问；浏览器加载 JavaScript 后会获得客户端导航体验。部署时只需要发布 `output/` 目录，不要发布构建过程中的临时 SSR bundle。
 
@@ -86,7 +88,7 @@ output/
 
 如果仓库名为 `my-repo`，站点地址是 `https://username.github.io/my-repo/`，配置：
 
-```ts
+```ts title="clarify.ts"
 export default defineConfig({
   routePrefix: '/my-repo/',
 })
@@ -94,7 +96,7 @@ export default defineConfig({
 
 示例 GitHub Actions：
 
-```yaml
+```yaml title=".github/workflows/deploy.yml"
 name: Deploy to GitHub Pages
 on:
   push:
@@ -125,7 +127,7 @@ rsync -avz output/ user@server:/var/www/html/
 
 Nginx 示例：
 
-```nginx
+```nginx title="nginx.conf"
 server {
     listen 80;
     root /var/www/html;
