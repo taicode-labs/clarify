@@ -70,8 +70,35 @@ Page item types:
 |------|------|
 | `page` | References an MDX page under `source`, without the `.mdx` suffix |
 | `openapi` | References an OpenAPI JSON/YAML file under `source` |
+| `group` | Creates a collapsible group; its `pages` can contain pages or nested groups |
 | `title` | Overrides the page's display title in navigation |
 | `icon` | Uses a lucide icon name |
+
+### Nested sidebars
+
+For larger documentation sets, groups can be nested inside a top-level group:
+
+```ts
+{
+  group: 'Guides',
+  icon: 'BookOpen',
+  pages: [
+    {
+      group: 'Authentication',
+      icon: 'KeyRound',
+      pages: [
+        { page: 'guides/auth/setup', title: 'Configure authentication' },
+        { page: 'guides/auth/sso', title: 'Single sign-on' },
+      ],
+    },
+    { page: 'guides/deployment', title: 'Deployment' },
+  ],
+}
+```
+
+Nested groups appear as expandable directories in the sidebar. Every ancestor of the current page expands automatically, while other groups can be opened or closed independently. Mobile navigation uses the same structure: expanding a directory keeps the drawer open, and following a page link closes it.
+
+Groups can be nested recursively, but we recommend no more than three visible information levels for easy scanning: a top-level group, one nested group, and pages. Prefer page sections or another tab for deeper structures.
 
 Example OpenAPI entry:
 

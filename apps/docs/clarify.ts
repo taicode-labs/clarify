@@ -151,36 +151,54 @@ export default defineConfig({
           icon: 'PenLine',
           pages: [
             {
-              page: 'guides/writing-content',
-              title: {
-                'zh-CN': 'MDX 与内容',
-                'en-US': 'MDX Guide',
+              group: {
+                'zh-CN': '组织内容',
+                'en-US': 'Structure Content',
               },
-              icon: 'PenLine',
+              icon: 'ListTree',
+              pages: [
+                {
+                  page: 'guides/writing-content',
+                  title: {
+                    'zh-CN': 'MDX 与内容',
+                    'en-US': 'MDX Guide',
+                  },
+                  icon: 'PenLine',
+                },
+                {
+                  page: 'guides/navigation',
+                  title: {
+                    'zh-CN': '导航与配置',
+                    'en-US': 'Navigation & Config',
+                  },
+                  icon: 'SlidersHorizontal',
+                },
+              ],
             },
             {
-              page: 'guides/navigation',
-              title: {
-                'zh-CN': '导航与配置',
-                'en-US': 'Navigation & Config',
+              group: {
+                'zh-CN': '扩展内容',
+                'en-US': 'Extend Content',
               },
-              icon: 'SlidersHorizontal',
-            },
-            {
-              page: 'reference/built-in-components',
-              title: {
-                'zh-CN': '内置组件',
-                'en-US': 'Built-in Components',
-              },
-              icon: 'Component',
-            },
-            {
-              page: 'openapi/embedding',
-              title: {
-                'zh-CN': '在 MDX 中嵌入 OpenAPI',
-                'en-US': 'Embed OpenAPI in MDX',
-              },
-              icon: 'CodeXml',
+              icon: 'Blocks',
+              pages: [
+                {
+                  page: 'reference/built-in-components',
+                  title: {
+                    'zh-CN': '内置组件',
+                    'en-US': 'Built-in Components',
+                  },
+                  icon: 'Component',
+                },
+                {
+                  page: 'openapi/embedding',
+                  title: {
+                    'zh-CN': '在 MDX 中嵌入 OpenAPI',
+                    'en-US': 'Embed OpenAPI in MDX',
+                  },
+                  icon: 'CodeXml',
+                },
+              ],
             },
           ],
         },

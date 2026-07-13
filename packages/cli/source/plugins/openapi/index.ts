@@ -3,7 +3,7 @@ import { join, relative } from 'node:path'
 import { generateContentDiagnosticModule } from '../../core/runtime/virtual-modules.js'
 import { createProjectContentProcessor } from '../../parsers/content/content.js'
 import { localizedRoutePath, openAPIPagePathFromRef, routeIntentFromPagesItem, withAlternates } from '../../parsers/routes/routes.js'
-import type { ClarifyOpenAPIRouteIntent, ClarifyPagesConfig, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyOpenAPIRouteIntent, ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
 
 import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, normalizeOpenAPISpecSectionIds, readOpenAPISpec } from './parser.js'
 import { generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPIServerRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, openApiServerRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
@@ -17,13 +17,21 @@ type OpenAPISpecEntry = {
 function collectOpenAPIPageIntents(config: ResolvedProjectConfig): ClarifyOpenAPIRouteIntent[] {
   const intents: ClarifyOpenAPIRouteIntent[] = []
 
+  function visitItems(items: ClarifyPagesItem[]) {
+    for (const item of items) {
+      if (typeof item !== 'string' && 'group' in item) {
+        visitItems(item.pages)
+        continue
+      }
+      const intent = routeIntentFromPagesItem(item)
+      if (intent.kind === 'openapi' && (intent.path || intent.tagFilter?.length)) intents.push(intent)
+    }
+  }
+
   function visitPages(pages?: ClarifyPagesConfig) {
     if (!pages || pages === 'FileTree') return
     for (const group of pages) {
-      for (const item of group.pages) {
-        const intent = routeIntentFromPagesItem(item)
-        if (intent.kind === 'openapi' && (intent.path || intent.tagFilter?.length)) intents.push(intent)
-      }
+      visitItems(group.pages)
     }
   }
 

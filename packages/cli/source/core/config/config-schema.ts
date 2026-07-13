@@ -88,8 +88,12 @@ export const clarifySourceConfigSchema = z.object({
   directory: z.string().optional(),
 })
 
-export const clarifyPagesItemSchema = z.union([
+export const clarifyPagesItemSchema: z.ZodType<
+  import('../../types.js').ClarifyPagesItem,
+  import('../../types.js').ClarifyPagesItem
+> = z.lazy(() => z.union([
   z.string(),
+  clarifyPagesGroupSchema,
   z.object({
     page: z.string(),
     path: z.string().optional(),
@@ -106,13 +110,16 @@ export const clarifyPagesItemSchema = z.union([
       tags: z.array(z.string()).optional(),
     }).optional(),
   }),
-])
+]))
 
-export const clarifyPagesGroupSchema = z.object({
+export const clarifyPagesGroupSchema: z.ZodType<
+  import('../../types.js').ClarifyPagesGroup,
+  import('../../types.js').ClarifyPagesGroup
+> = z.lazy(() => z.object({
   group: clarifyLocalizedTextSchema,
   icon: z.string().optional(),
   pages: z.array(clarifyPagesItemSchema),
-})
+}))
 
 export const clarifyPagesConfigSchema = z.union([
   z.array(clarifyPagesGroupSchema),

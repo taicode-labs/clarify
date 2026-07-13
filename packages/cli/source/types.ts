@@ -146,6 +146,7 @@ export type ResolvedClarifyThemeConfig = {
 
 export type ClarifyPagesItem =
   | string
+  | ClarifyPagesGroup
   | {
     page: string
     /** Explicit route path. Defaults to the path generated from page. */
@@ -177,6 +178,7 @@ export type ClarifyPagesGroup = {
   group: ClarifyLocalizedText
   /** Icon name from lucide-react, e.g. "BookOpen". */
   icon?: string
+  /** Pages or nested groups within this section. */
   pages: ClarifyPagesItem[]
 }
 
