@@ -191,18 +191,14 @@ The quality of an API reference depends largely on the OpenAPI spec itself. We r
 
 ## FAQ
 
-### The API page does not appear in the sidebar?
-
-If you explicitly configure `tabs[].pages`, Clarify does not automatically insert all files into the sidebar. You need to add the `openapi` entry manually.
-
-### `OpenAPI spec not found`?
-
-Check:
-
-- Whether the OpenAPI file is under `source`.
-- Whether the file name uses `.openapi.json` / `.openapi.yaml` / `.openapi.yml`.
-- Whether `specPath` is written as a route rather than a file name.
-
-### `Endpoint not found`?
-
-Check whether `path` matches the OpenAPI `paths` key exactly, whether path parameters use the `{id}` form, and whether `method` exists under that path.
+<AccordionGroup>
+  <Collapse title="The API page does not appear in the sidebar?">
+    If you explicitly configure `tabs[].pages`, Clarify does not automatically insert all files into the sidebar. You need to add the `openapi` entry manually.
+  </Collapse>
+  <Collapse title="OpenAPI spec not found?">
+    Check whether the OpenAPI file is under `source`, whether its name uses `.openapi.json`, `.openapi.yaml`, or `.openapi.yml`, and whether `specPath` is written as a route rather than a file name.
+  </Collapse>
+  <Collapse title="Endpoint not found?">
+    Check whether `path` matches the OpenAPI `paths` key exactly, whether path parameters use the `{id}` form, and whether `method` exists under that path.
+  </Collapse>
+</AccordionGroup>

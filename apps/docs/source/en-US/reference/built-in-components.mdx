@@ -11,9 +11,14 @@ Clarify automatically registers a set of public components in MDX. Use them with
   <Card title="Note" icon="sticky-note" href="/reference/components/note">Add lightweight context without interrupting the flow.</Card>
   <Card title="CardGroup / Card" icon="panels-top-left" href="/reference/components/card">Build entry points, feature matrices, and indexes.</Card>
   <Card title="Collapse" icon="list-collapse" href="/reference/components/collapse">Hide optional details and advanced guidance.</Card>
+  <Card title="AccordionGroup" icon="list-collapse" href="/reference/components/accordion-group">Group related questions and troubleshooting details.</Card>
+  <Card title="FileTree" icon="folder-tree" href="/reference/components/file-tree">Show project and directory structures.</Card>
+  <Card title="Figure" icon="image" href="/reference/components/figure">Present images with captions and optional zoom.</Card>
+  <Card title="Tooltip" icon="message-circle-question" href="/reference/components/tooltip">Explain short terms without breaking a sentence.</Card>
   <Card title="Button" icon="mouse-pointer-click" href="/reference/components/button">Offer a clear next action.</Card>
   <Card title="WebFrame" icon="monitor" href="/reference/components/web-frame">Embed a web page, demo, or inline preview.</Card>
   <Card title="CodeGroup" icon="braces" href="/reference/components/code-group">Present alternative code samples together.</Card>
+  <Card title="Mermaid" icon="workflow" href="/reference/components/mermaid">Render flowcharts, sequences, and other technical diagrams.</Card>
   <Card title="Row / Col" icon="columns-2" href="/reference/components/row-col">Create responsive two-column content.</Card>
   <Card title="Properties / Property" icon="list-tree" href="/reference/components/properties">Describe configuration, props, and fields.</Card>
   <Card title="Markdown" icon="file-text" href="/reference/components/markdown">Render a runtime Markdown string.</Card>
@@ -40,4 +45,7 @@ import { Status } from '../../components/Status'
 - Use `Callout` for decision-relevant information and `Note` for context that does not change the main task.
 - Use `Card` to navigate to another page and `Button` for a clear next action.
 - Use `CodeGroup` to compare equivalent code and `Collapse` for optional detail.
+- Use `AccordionGroup` for related disclosures, `FileTree` for directory structures, and `Figure` for captioned images.
+- Use `Tooltip` only for short supplementary definitions; keep required information visible in the page.
+- Use `Mermaid` for diagrams whose source should remain versionable and searchable.
 - Pass data-driven Markdown strings to `Markdown`; content written directly in `.mdx` needs no wrapper.

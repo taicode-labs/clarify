@@ -1,0 +1,29 @@
+# Figure
+
+`Figure` presents an image with an optional caption and click-to-zoom preview.
+
+## Usage
+
+```mdx
+<Figure
+  src="/clarify.png"
+  alt="Clarify wordmark"
+  caption="A caption adds context without repeating the alternative text."
+  zoom
+/>
+```
+
+<Figure src="/clarify.png" alt="Clarify wordmark" caption="A caption adds context without repeating the alternative text." zoom />
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `src` | `string` | Required | Image URL |
+| `alt` | `string` | Required | Accessible alternative text |
+| `caption` | `ReactNode` | - | Visible context shown below the image |
+| `zoom` | `boolean` | `false` | Open a larger preview when clicked |
+| `imageProps` | `ImgHTMLAttributes` | - | Additional native image attributes |
+| `className` | `string` | - | Class name for the `figure` element |
+
+<Callout type="tip">Describe the image in `alt`; use the caption for interpretation, source, or surrounding context.</Callout>

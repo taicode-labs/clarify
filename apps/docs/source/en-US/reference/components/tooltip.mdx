@@ -1,0 +1,24 @@
+# Tooltip
+
+`Tooltip` explains a short term in place. It appears on hover or keyboard focus.
+
+## Usage
+
+```mdx
+Clarify supports <Tooltip content="GitHub Flavored Markdown">GFM</Tooltip> in Markdown and MDX pages.
+```
+
+Clarify supports <Tooltip content="GitHub Flavored Markdown">GFM</Tooltip> in Markdown and MDX pages.
+
+Use `side="bottom"` when there is not enough room above the term.
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `content` | `ReactNode` | Required | Short supplementary explanation |
+| `children` | `ReactNode` | Required | Visible, keyboard-focusable trigger content |
+| `side` | `'top' \| 'bottom'` | `'top'` | Preferred placement |
+| `className` | `string` | - | Class name for the outer wrapper |
+
+<Callout type="warning">Do not place prerequisites, warnings, links, or long instructions inside a tooltip. Touch and assistive technology users must be able to understand the page without discovering hidden content.</Callout>

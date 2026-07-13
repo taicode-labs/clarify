@@ -1,0 +1,29 @@
+# Figure
+
+`Figure` 用于展示带可选图注的图片，并支持点击放大预览。
+
+## 用法
+
+```mdx
+<Figure
+  src="/clarify.png"
+  alt="Clarify 字标"
+  caption="图注用于补充上下文，不需要重复替代文本。"
+  zoom
+/>
+```
+
+<Figure src="/clarify.png" alt="Clarify 字标" caption="图注用于补充上下文，不需要重复替代文本。" zoom />
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `src` | `string` | 必填 | 图片地址 |
+| `alt` | `string` | 必填 | 无障碍替代文本 |
+| `caption` | `ReactNode` | - | 显示在图片下方的上下文 |
+| `zoom` | `boolean` | `false` | 点击时打开大图预览 |
+| `imageProps` | `ImgHTMLAttributes` | - | 其他原生图片属性 |
+| `className` | `string` | - | `figure` 元素的类名 |
+
+<Callout type="tip">用 `alt` 描述图片内容；用图注解释图片含义、来源或上下文。</Callout>

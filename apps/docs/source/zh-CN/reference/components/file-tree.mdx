@@ -1,0 +1,34 @@
+# FileTree
+
+`FileTree` 用于展示项目或目录结构，无需维护容易错位的制表字符。
+
+## 用法
+
+```mdx
+<FileTree aria-label="项目文件">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="index.mdx" description="首页" />
+    <FileTreeItem name="guides" type="folder">
+      <FileTreeItem name="deploy.mdx" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
+```
+
+<FileTree aria-label="项目文件">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="index.mdx" description="首页" />
+    <FileTreeItem name="guides" type="folder"><FileTreeItem name="deploy.mdx" /></FileTreeItem>
+  </FileTreeItem>
+</FileTree>
+
+## Props
+
+`FileTree` 支持原生 `div` 属性。如果上下文没有说明目录内容，请提供 `aria-label`。
+
+| FileTreeItem 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `name` | `ReactNode` | 必填 | 文件或目录名称 |
+| `type` | `'file' \| 'folder'` | 自动推断 | 项目图标；存在子项时自动视为目录 |
+| `description` | `ReactNode` | - | 简短的用途或备注 |
+| `children` | `ReactNode` | - | 嵌套的文件和目录 |

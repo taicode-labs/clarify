@@ -191,18 +191,14 @@ API Reference 的质量主要取决于 OpenAPI 规范本身。建议至少补齐
 
 ## 常见问题
 
-### API 页面没有出现在侧边栏？
-
-如果显式配置了 `tabs[].pages`，Clarify 不会自动把所有文件插入侧边栏。需要手动添加 `openapi` 条目。
-
-### `OpenAPI spec not found`？
-
-检查：
-
-- OpenAPI 文件是否在 `source` 下。
-- 文件名是否使用 `.openapi.json` / `.openapi.yaml` / `.openapi.yml`。
-- `specPath` 是否写的是路由，而不是文件名。
-
-### `Endpoint not found`？
-
-检查 `path` 是否和 OpenAPI `paths` 键完全一致，路径参数是否使用 `{id}` 形式，`method` 是否存在于该路径下。
+<AccordionGroup>
+  <Collapse title="API 页面没有出现在侧边栏？">
+    如果显式配置了 `tabs[].pages`，Clarify 不会自动把所有文件插入侧边栏。需要手动添加 `openapi` 条目。
+  </Collapse>
+  <Collapse title="OpenAPI spec not found？">
+    检查 OpenAPI 文件是否在 `source` 下，文件名是否使用 `.openapi.json`、`.openapi.yaml` 或 `.openapi.yml`，以及 `specPath` 是否写的是路由而不是文件名。
+  </Collapse>
+  <Collapse title="Endpoint not found？">
+    检查 `path` 是否和 OpenAPI `paths` 键完全一致，路径参数是否使用 `{id}` 形式，`method` 是否存在于该路径下。
+  </Collapse>
+</AccordionGroup>

@@ -1,0 +1,34 @@
+# FileTree
+
+`FileTree` presents a project or directory structure without relying on fragile box-drawing text.
+
+## Usage
+
+```mdx
+<FileTree aria-label="Project files">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="index.mdx" description="Home page" />
+    <FileTreeItem name="guides" type="folder">
+      <FileTreeItem name="deploy.mdx" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
+```
+
+<FileTree aria-label="Project files">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="index.mdx" description="Home page" />
+    <FileTreeItem name="guides" type="folder"><FileTreeItem name="deploy.mdx" /></FileTreeItem>
+  </FileTreeItem>
+</FileTree>
+
+## Props
+
+`FileTree` accepts native `div` props. Give it an `aria-label` when the surrounding text does not identify the tree.
+
+| FileTreeItem prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `name` | `ReactNode` | Required | File or directory name |
+| `type` | `'file' \| 'folder'` | Inferred | Item icon; children imply a folder |
+| `description` | `ReactNode` | - | Short inline purpose or note |
+| `children` | `ReactNode` | - | Nested files and directories |

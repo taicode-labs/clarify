@@ -7,12 +7,15 @@ export type CollapseProps = {
   title?: ReactNode
   summary?: ReactNode
   defaultOpen?: boolean
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
   className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'children' | 'className'>
 
 export function Collapse(arg0: CollapseProps) {
-  const { children, title, summary, defaultOpen = false, className, ...props } = arg0
-  const [open, setOpen] = useState(defaultOpen)
+  const { children, title, summary, defaultOpen = false, open: controlledOpen, onOpenChange, className, ...props } = arg0
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen)
+  const open = controlledOpen ?? uncontrolledOpen
   const contentRef = useRef<HTMLDivElement | null>(null)
   const [maxHeight, setMaxHeight] = useState('0px')
   const summaryLabel = title ?? summary ?? 'Details'
@@ -37,7 +40,11 @@ export function Collapse(arg0: CollapseProps) {
         className="flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 px-4 py-2.5 text-left text-sm font-semibold text-(--clarify-theme-tokens-colors-foreground) transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary)"
         aria-expanded={open}
         aria-controls={contentId}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          const nextOpen = !open
+          if (controlledOpen === undefined) setUncontrolledOpen(nextOpen)
+          onOpenChange?.(nextOpen)
+        }}
       >
         <span>{summaryLabel}</span>
         <ChevronDown

@@ -10,29 +10,35 @@
 
 把文档按读者任务组织，而不是按内部模块组织：
 
-```txt
-source/
-├── index.md
-├── getting-started.md
-├── guides/
-│   ├── writing.md
-│   └── deploy.mdx
-├── reference/
-│   └── config.mdx
-└── api.openapi.json
-```
+<FileTree aria-label="推荐的文档目录结构">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="index.md" />
+    <FileTreeItem name="getting-started.md" />
+    <FileTreeItem name="guides" type="folder">
+      <FileTreeItem name="writing.md" />
+      <FileTreeItem name="deploy.mdx" />
+    </FileTreeItem>
+    <FileTreeItem name="reference" type="folder">
+      <FileTreeItem name="config.mdx" />
+    </FileTreeItem>
+    <FileTreeItem name="api.openapi.json" />
+  </FileTreeItem>
+</FileTree>
 
 启用国际化时，把同样的结构放进 locale 目录：
 
-```txt
-source/
-├── zh-CN/
-│   ├── index.md
-│   └── getting-started.mdx
-└── en-US/
-    ├── index.md
-    └── getting-started.mdx
-```
+<FileTree aria-label="多语言文档目录结构">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="zh-CN" type="folder">
+      <FileTreeItem name="index.md" />
+      <FileTreeItem name="getting-started.mdx" />
+    </FileTreeItem>
+    <FileTreeItem name="en-US" type="folder">
+      <FileTreeItem name="index.md" />
+      <FileTreeItem name="getting-started.mdx" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 ---
 
@@ -59,7 +65,7 @@ Clarify 按照 `source/` 下的文件结构生成页面路径：
 
 ## 选择 Markdown 或 MDX
 
-Clarify 对 `.md` 和 `.mdx` 使用不同的解析语义。两者都支持 Frontmatter、GFM、代码高亮、Mermaid、标题目录和搜索；区别在于页面是否需要 JSX 能力。
+Clarify 对 `.md` 和 `.mdx` 使用不同的解析语义。两者都支持 Frontmatter、<Tooltip content="GitHub Flavored Markdown">GFM</Tooltip>、代码高亮、Mermaid、标题目录和搜索；区别在于页面是否需要 JSX 能力。
 
 | 能力 | `.md` | `.mdx` |
 |------|-------|--------|
@@ -83,6 +89,8 @@ Clarify 对 `.md` 和 `.mdx` 使用不同的解析语义。两者都支持 Front
 <Callout type="tip">
   这段内容由 React 组件渲染。
 </Callout>
+
+<Figure src="/clarify.png" alt="Clarify 字标" caption="图片需要图注或点击放大时，使用 Figure。" zoom />
 ```
 
 把普通内容保留为 `.md` 可以避免 HTML 被误判为 JSX，也能更早发现真正的 MDX 组件语法错误。更改扩展名不会改变文件路由，例如 `source/guide.md` 和 `source/guide.mdx` 都映射到 `/guide`；同一路径不要同时存在两个文件。

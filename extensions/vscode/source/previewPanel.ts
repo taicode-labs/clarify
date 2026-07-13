@@ -16,10 +16,10 @@ export class PreviewPanel {
   /**
    * Show or reveal the preview panel and load the specified preview URL.
    */
-  show(previewUrl: string, openToSide: boolean): void {
-    this.currentUrl = previewUrl
-
+  show(previewUrl: string, openToSide: boolean, createIfMissing = true): void {
     if (!this.panel) {
+      if (!createIfMissing) return
+
       this.panel = vscode.window.createWebviewPanel(
         'clarifyPreview',
         'Clarify Preview',
@@ -38,6 +38,7 @@ export class PreviewPanel {
       this.panel.reveal(openToSide ? vscode.ViewColumn.Beside : this.panel.viewColumn)
     }
 
+    this.currentUrl = previewUrl
     this.panel.webview.html = this.renderHtml(previewUrl)
   }
 

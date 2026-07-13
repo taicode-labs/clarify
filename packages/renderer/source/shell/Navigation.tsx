@@ -195,12 +195,9 @@ function NavigationBranch(arg0: NavigationBranchProps) {
         onClick={() => setExpansionOverride(!expanded)}
         className="clarify-navigation-branch-trigger group flex min-h-9 w-full items-center rounded-(--clarify-theme-tokens-radius-md) py-1.5 pr-3 pl-2 text-left transition"
       >
-        <ChevronRight className="clarify-navigation-chevron h-3.5 w-3.5 shrink-0 transition-transform duration-150 group-aria-expanded:rotate-90" />
-        <span className="flex min-w-0 items-center gap-2 pl-2">
-          {node.icon ? <NavigationIcon name={node.icon} className="clarify-navigation-item-icon h-3.5 w-3.5 shrink-0" /> : null}
-          <span className="min-w-0 flex-1 truncate whitespace-nowrap">{node.title}</span>
-          <span className="clarify-navigation-branch-count tabular-nums">{node.children?.length}</span>
-        </span>
+        {node.icon ? <NavigationIcon name={node.icon} className="clarify-navigation-item-icon h-3.5 w-3.5 shrink-0" /> : null}
+        <span className="min-w-0 flex-1 truncate pl-2 whitespace-nowrap">{node.title}</span>
+        <ChevronRight className="clarify-navigation-chevron ml-2 h-3.5 w-3.5 shrink-0 transition-transform duration-150 group-aria-expanded:rotate-90" />
       </button>
 
       <AnimatePresence initial={false}>
