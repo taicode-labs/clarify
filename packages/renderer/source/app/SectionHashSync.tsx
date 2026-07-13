@@ -45,14 +45,23 @@ function useReleaseHashSyncOnManualScroll(hashScrollSuppressedUntilRef: RefObjec
 export function SectionHashSync(arg0: SectionHashSyncProps) {
   const { hashScrollSuppressedUntilRef } = arg0
   const location = useLocation()
+  const pathnameRef = useRef(location.pathname)
   const hashUpdateTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const sections = useSectionStore((state) => state.sections)
   const visibleSections = useSectionStore((state) => state.visibleSections)
+
+  useEffect(() => {
+    if (pathnameRef.current === location.pathname) return
+
+    pathnameRef.current = location.pathname
+    hashScrollSuppressedUntilRef.current = Date.now() + 1200
+  }, [hashScrollSuppressedUntilRef, location.pathname])
 
   useReleaseHashSyncOnManualScroll(hashScrollSuppressedUntilRef)
 
   useEffect(() => {
     if (!sections.length || !visibleSections.length) return
+    if (!location.hash && Date.now() < hashScrollSuppressedUntilRef.current) return
 
     const visibleSectionId = visibleSections.find((id) => id !== '_top' && sections.some((section) => section.id === id))
     const hashSectionId = location.hash ? safeDecodeURIComponent(location.hash.slice(1)) : undefined

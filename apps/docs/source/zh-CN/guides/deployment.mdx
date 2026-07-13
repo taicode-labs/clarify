@@ -10,19 +10,24 @@ Clarify 支持 SSR 渲染，但它采用的是**构建期 SSR**：`clarify build
 
 Clarify 的生产渲染流程是 SSG（Static Site Generation）+ Hydration：
 
-1. 构建环境运行 `pnpm exec clarify build`。
-2. CLI 使用 Vite SSR bundle 在 Node.js 中渲染每个文档路由。
-3. 每个路由写出独立的 `index.html`，并生成 JS/CSS 资源、原始 Markdown/OpenAPI 制品和 `llms.txt`。
-4. 用户访问页面时先拿到已经渲染好的 HTML；浏览器加载 JavaScript 后再注水为 React 应用，后续站内跳转获得客户端导航体验。
+<Steps>
+  <Step title="启动生产构建">
+    构建环境运行 `pnpm exec clarify build`。
+  </Step>
+  <Step title="渲染全部路由">
+    CLI 使用 Vite SSR bundle 在 Node.js 中渲染每个文档路由。
+  </Step>
+  <Step title="写出静态产物">
+    每个路由写出独立的 `index.html`，并生成 JS/CSS 资源、原始 Markdown/OpenAPI 制品和 `llms.txt`。
+  </Step>
+  <Step title="在浏览器中 Hydrate">
+    用户先拿到已经渲染好的 HTML。JavaScript 加载后，React 完成 Hydration，后续站内跳转由客户端接管。
+  </Step>
+</Steps>
 
-这意味着：
-
-- ✅ 支持首屏 HTML、SEO 友好和直接访问深层链接；
-- ✅ 部署时只需要托管静态文件；
-- ✅ Vercel、Netlify、GitHub Pages、对象存储、CDN、Nginx 都可以使用；
-- ❌ 不需要也不提供生产环境的请求时 SSR 服务器。
-
----
+<Callout type="success" title="静态产物，完整体验">
+  生产站点只需要静态文件托管，同时具备首屏 HTML、SEO 友好的深层链接，以及 Hydration 后的客户端导航。不需要也不提供请求时 Node.js SSR 服务器。
+</Callout>
 
 ## 构建产物
 
@@ -40,22 +45,31 @@ pnpm exec clarify build --output dist
 
 构建结果类似：
 
-```txt
-output/
-├── index.html
-├── getting-started/
-│   └── index.html
-├── assets/
-├── llms.txt
-├── index.md
-└── api.openapi.json
-```
+<FileTree aria-label="构建输出目录">
+  <FileTreeItem name="output" type="folder">
+    <FileTreeItem name="index.html" />
+    <FileTreeItem name="getting-started" type="folder">
+      <FileTreeItem name="index.html" />
+    </FileTreeItem>
+    <FileTreeItem name="assets" type="folder" />
+    <FileTreeItem name="llms.txt" />
+    <FileTreeItem name="index.md" />
+    <FileTreeItem name="api.openapi.json" />
+  </FileTreeItem>
+</FileTree>
 
 每个路由都有独立 HTML，适合 SEO 和直接访问；浏览器加载 JavaScript 后会获得客户端导航体验。部署时只需要发布 `output/` 目录，不要发布构建过程中的临时 SSR bundle。
 
 ---
 
 ## 部署平台
+
+<CardGroup cols={2}>
+  <Card title="Vercel" icon="triangle" href="#vercel">连接代码仓库并发布 `output` 目录。</Card>
+  <Card title="Netlify" icon="cloud" href="#netlify">使用 Clarify 构建命令，并将 `output` 设为发布目录。</Card>
+  <Card title="GitHub Pages" icon="github" href="#github-pages">配置 `routePrefix`，并通过 GitHub Actions 部署。</Card>
+  <Card title="CDN / Nginx" icon="server" href="#cdn--nginx">将静态产物上传到 Web 根目录。</Card>
+</CardGroup>
 
 ### Vercel
 
@@ -74,7 +88,7 @@ output/
 
 如果仓库名为 `my-repo`，站点地址是 `https://username.github.io/my-repo/`，配置：
 
-```ts
+```ts title="clarify.ts"
 export default defineConfig({
   routePrefix: '/my-repo/',
 })
@@ -82,7 +96,7 @@ export default defineConfig({
 
 示例 GitHub Actions：
 
-```yaml
+```yaml title=".github/workflows/deploy.yml"
 name: Deploy to GitHub Pages
 on:
   push:
@@ -113,7 +127,7 @@ rsync -avz output/ user@server:/var/www/html/
 
 Nginx 示例：
 
-```nginx
+```nginx title="nginx.conf"
 server {
     listen 80;
     root /var/www/html;

@@ -290,7 +290,8 @@ function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
       return
     }
 
-    window.scrollTo({ top: 0, left: 0 })
+    hashScrollSuppressedUntilRef.current = Date.now() + 1200
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     window.requestAnimationFrame(() => {
       window.dispatchEvent(new Event('scroll'))
     })

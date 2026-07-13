@@ -151,28 +151,63 @@ export default defineConfig({
           icon: 'PenLine',
           pages: [
             {
-              page: 'guides/writing-content',
-              title: {
-                'zh-CN': 'MDX 与内容',
-                'en-US': 'MDX Guide',
+              group: {
+                'zh-CN': '组织内容',
+                'en-US': 'Structure Content',
               },
-              icon: 'PenLine',
+              icon: 'ListTree',
+              pages: [
+                {
+                  page: 'guides/writing-content',
+                  title: {
+                    'zh-CN': 'MDX 与内容',
+                    'en-US': 'MDX Guide',
+                  },
+                  icon: 'PenLine',
+                },
+                {
+                  page: 'guides/navigation',
+                  title: {
+                    'zh-CN': '导航与配置',
+                    'en-US': 'Navigation & Config',
+                  },
+                  icon: 'SlidersHorizontal',
+                },
+              ],
             },
             {
-              page: 'guides/navigation',
-              title: {
-                'zh-CN': '导航与配置',
-                'en-US': 'Navigation & Config',
-              },
-              icon: 'SlidersHorizontal',
-            },
-            {
-              page: 'reference/built-in-components',
-              title: {
+              group: {
                 'zh-CN': '内置组件',
                 'en-US': 'Built-in Components',
               },
               icon: 'Component',
+              pages: [
+                {
+                  page: 'reference/built-in-components',
+                  title: {
+                    'zh-CN': '组件总览',
+                    'en-US': 'Overview',
+                  },
+                  icon: 'LayoutGrid',
+                },
+                { page: 'reference/components/steps', title: 'Steps / Step', icon: 'ListOrdered' },
+                { page: 'reference/components/tabs', title: 'Tabs / Tab', icon: 'PanelTop' },
+                { page: 'reference/components/callout', title: 'Callout', icon: 'MessageSquareWarning' },
+                { page: 'reference/components/note', title: 'Note', icon: 'StickyNote' },
+                { page: 'reference/components/card', title: 'CardGroup / Card', icon: 'PanelsTopLeft' },
+                { page: 'reference/components/collapse', title: 'Collapse', icon: 'ListCollapse' },
+                { page: 'reference/components/accordion-group', title: 'AccordionGroup', icon: 'ListCollapse' },
+                { page: 'reference/components/file-tree', title: 'FileTree', icon: 'FolderTree' },
+                { page: 'reference/components/tooltip', title: 'Tooltip', icon: 'MessageCircleQuestion' },
+                { page: 'reference/components/button', title: 'Button', icon: 'MousePointerClick' },
+                { page: 'reference/components/web-frame', title: 'WebFrame', icon: 'Monitor' },
+                { page: 'reference/components/code-group', title: 'CodeGroup', icon: 'Braces' },
+                { page: 'reference/components/mermaid', title: 'Mermaid', icon: 'Workflow' },
+                { page: 'reference/components/row-col', title: 'Row / Col', icon: 'Columns2' },
+                { page: 'reference/components/properties', title: 'Properties / Property', icon: 'ListTree' },
+                { page: 'reference/components/markdown', title: 'Markdown', icon: 'FileText' },
+                { page: 'reference/components/openapi', title: 'OpenAPI', icon: 'FileJson2' },
+              ],
             },
             {
               page: 'openapi/embedding',

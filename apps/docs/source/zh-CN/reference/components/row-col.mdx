@@ -1,0 +1,52 @@
+# Row / Col
+
+`Row` 和 `Col` 创建响应式双栏阅读布局。窄屏按文档顺序排列，超宽屏显示两列，适合“解释 + 示例”“步骤 + 预览”或“请求 + 响应”。
+
+每一列仍是普通文档内容，而不是卡片，因此长篇技术内容可以自然组合标题、代码块、提示和表格。
+
+## 用法
+
+````mdx
+<Row>
+  <Col>
+
+    ## 启动预览
+
+    开发服务器会监听内容和配置变化。
+
+  </Col>
+  <Col sticky>
+
+    ```bash
+    pnpm exec clarify dev
+    ```
+
+  </Col>
+</Row>
+````
+
+渲染效果：
+
+<Row>
+  <Col>
+    <strong>启动预览</strong>
+    <p>开发服务器会监听内容和配置变化。</p>
+    <p>编辑页面并检查渲染结果时，右侧命令可以持续保持可见。</p>
+  </Col>
+  <Col sticky>
+    <Callout type="tip">在项目根目录运行 <code>pnpm exec clarify dev</code>。</Callout>
+  </Col>
+</Row>
+
+`sticky` 仅在双栏布局生效，让示例在阅读较长说明时保持可见。较小屏幕会恢复普通文档流，因此源码顺序仍决定阅读顺序。
+
+## 属性
+
+| 组件 | 属性 | 类型 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `Row` | `children` | `ReactNode` | 必填 | 通常为两个 `Col` |
+| `Row` | `className` | `string` | - | 网格类名 |
+| `Col` | `children` | `ReactNode` | 必填 | 当前列内容 |
+| `Col` | `sticky` | `boolean` | `false` | 大屏时吸顶 |
+
+<Callout type="warning">移动端会按源码顺序显示内容，因此第一列应先提供理解第二列所需的上下文。</Callout>

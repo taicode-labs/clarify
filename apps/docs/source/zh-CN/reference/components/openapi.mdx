@@ -1,0 +1,41 @@
+# OpenAPI 组件
+
+`OpenApiOperation` 在任务型指南中嵌入一个接口，`OpenApiDocument` 在页面中嵌入完整或按标签筛选的 API Reference。两者都会展示认证、参数、请求体、响应和请求示例。
+
+## 单个接口
+
+```mdx
+<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+```
+
+`path` 和 `method` 必须与规范中的 operation 精确匹配。
+
+渲染效果：
+
+<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+
+## 完整文档
+
+```mdx
+<OpenApiDocument specPath="/api" />
+```
+
+按标签限制展示范围：
+
+```mdx
+<OpenApiDocument specPath="/api" tagFilter={["Users", "Teams"]} />
+```
+
+## 属性
+
+| 组件 | 属性 | 类型 | 说明 |
+|------|------|------|------|
+| `OpenApiOperation` | `specPath` | `string` | 配置中的 OpenAPI 规范路径 |
+| `OpenApiOperation` | `path` | `string` | 接口路径，例如 `/sessions` |
+| `OpenApiOperation` | `method` | `string` | HTTP 方法，不区分大小写 |
+| `OpenApiDocument` | `specPath` | `string` | 配置中的 OpenAPI 规范路径 |
+| `OpenApiDocument` | `tagFilter` | `string[]` | 仅展示匹配标签的接口 |
+
+<Callout type="tip">指南负责解释任务和决策，把接口事实交给 OpenAPI 组件，避免手写参数表与规范漂移。</Callout>
+
+更多配置方式见 [OpenAPI 文档](/features/openapi) 和 [在 MDX 中嵌入 OpenAPI](/openapi/embedding)。

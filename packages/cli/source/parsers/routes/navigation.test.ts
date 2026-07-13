@@ -166,6 +166,36 @@ describe('buildNavigationFromConfig', () => {
     expect(tree[1].children?.map(c => c.path)).toEqual(['/advanced/ssg'])
   })
 
+  it('builds nested navigation groups from explicit config', () => {
+    const routes: ContentRoute[] = [
+      mdxRoute({ path: '/guides/auth/setup', title: 'Setup', filePath: 'setup.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/guides/auth/sso', title: 'SSO', filePath: 'sso.mdx', virtualModuleId: 'v' }),
+    ]
+    const config: ClarifyPagesGroup[] = [
+      {
+        group: 'Guides',
+        pages: [
+          {
+            group: 'Authentication',
+            icon: 'KeyRound',
+            pages: ['guides/auth/setup', { page: 'guides/auth/sso', title: 'Single sign-on' }],
+          },
+        ],
+      },
+    ]
+
+    const tree = buildNavigationFromConfig(routes, config)
+    expect(tree[0].children?.[0]).toMatchObject({
+      path: '/guides/auth/setup',
+      title: 'Authentication',
+      icon: 'KeyRound',
+    })
+    expect(tree[0].children?.[0].children).toEqual([
+      expect.objectContaining({ path: '/guides/auth/setup', title: 'Setup' }),
+      expect.objectContaining({ path: '/guides/auth/sso', title: 'Single sign-on' }),
+    ])
+  })
+
   it('falls back to filename title when route not found', () => {
     const routes: ContentRoute[] = []
     const config: ClarifyPagesGroup[] = [

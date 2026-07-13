@@ -27,11 +27,12 @@ OpenAPI pages are more than static field tables. Clarify turns the spec into int
 
 Place an OpenAPI file in the content directory:
 
-```txt
-source/
-├── index.mdx
-└── api.openapi.json
-```
+<FileTree aria-label="Minimal OpenAPI content layout">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="index.mdx" />
+    <FileTreeItem name="api.openapi.json" />
+  </FileTreeItem>
+</FileTree>
 
 Clarify generates:
 
@@ -81,13 +82,16 @@ OpenAPI 3.0 / 3.1 is supported, with these file extensions:
 
 When i18n is enabled, OpenAPI files also follow the language-directory rule. The default language has no locale prefix, while non-default languages include the locale prefix:
 
-```txt
-source/
-├── zh-CN/
-│   └── api.openapi.json  → /api
-└── en-US/
-    └── api.openapi.json  → /en-US/api
-```
+<FileTree aria-label="Localized OpenAPI files">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="zh-CN" type="folder">
+      <FileTreeItem name="api.openapi.json" description="-> /api" />
+    </FileTreeItem>
+    <FileTreeItem name="en-US" type="folder">
+      <FileTreeItem name="api.openapi.json" description="-> /en-US/api" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 So when embedding an endpoint in a Chinese page you typically use `specPath="/api"`; when embedding the same spec in an English page you typically use `specPath="/en-US/api"`.
 
@@ -143,15 +147,17 @@ Clarify generates request code for common languages and clients, including cURL,
 
 ## Recommended API documentation structure
 
-```txt
-source/
-├── guides/
-│   ├── authentication.mdx
-│   ├── pagination.mdx
-│   └── webhooks.mdx
-├── api.openapi.json
-└── index.mdx
-```
+<FileTree aria-label="Recommended API documentation structure">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="guides" type="folder">
+      <FileTreeItem name="authentication.mdx" />
+      <FileTreeItem name="pagination.mdx" />
+      <FileTreeItem name="webhooks.mdx" />
+    </FileTreeItem>
+    <FileTreeItem name="api.openapi.json" />
+    <FileTreeItem name="index.mdx" />
+  </FileTreeItem>
+</FileTree>
 
 Authoring responsibilities:
 
@@ -191,18 +197,14 @@ The quality of an API reference depends largely on the OpenAPI spec itself. We r
 
 ## FAQ
 
-### The API page does not appear in the sidebar?
-
-If you explicitly configure `tabs[].pages`, Clarify does not automatically insert all files into the sidebar. You need to add the `openapi` entry manually.
-
-### `OpenAPI spec not found`?
-
-Check:
-
-- Whether the OpenAPI file is under `source`.
-- Whether the file name uses `.openapi.json` / `.openapi.yaml` / `.openapi.yml`.
-- Whether `specPath` is written as a route rather than a file name.
-
-### `Endpoint not found`?
-
-Check whether `path` matches the OpenAPI `paths` key exactly, whether path parameters use the `{id}` form, and whether `method` exists under that path.
+<AccordionGroup>
+  <Collapse title="The API page does not appear in the sidebar?">
+    If you explicitly configure `tabs[].pages`, Clarify does not automatically insert all files into the sidebar. You need to add the `openapi` entry manually.
+  </Collapse>
+  <Collapse title="OpenAPI spec not found?">
+    Check whether the OpenAPI file is under `source`, whether its name uses `.openapi.json`, `.openapi.yaml`, or `.openapi.yml`, and whether `specPath` is written as a route rather than a file name.
+  </Collapse>
+  <Collapse title="Endpoint not found?">
+    Check whether `path` matches the OpenAPI `paths` key exactly, whether path parameters use the `{id}` form, and whether `method` exists under that path.
+  </Collapse>
+</AccordionGroup>

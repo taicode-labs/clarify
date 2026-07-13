@@ -74,23 +74,30 @@ package.json scripts
 
 Clarify uses convention-based routes derived from the file system:
 
-```
-source/
-├── index.mdx           → /
-├── getting-started.mdx → /getting-started
-├── guides/
-│   ├── index.mdx       → /guides
-│   └── theming.mdx     → /guides/theming
-└── api.openapi.yaml    → /api
-```
+<FileTree aria-label="Convention-based routes">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="index.mdx" description="-> /" />
+    <FileTreeItem name="getting-started.mdx" description="-> /getting-started" />
+    <FileTreeItem name="guides" type="folder">
+      <FileTreeItem name="index.mdx" description="-> /guides" />
+      <FileTreeItem name="theming.mdx" description="-> /guides/theming" />
+    </FileTreeItem>
+    <FileTreeItem name="api.openapi.yaml" description="-> /api" />
+  </FileTreeItem>
+</FileTree>
 
 Multilingual sites use locale directories. The default language has no prefix, and non-default languages use a locale prefix:
 
-```
-source/
-├── zh-CN/index.md      → /
-└── en-US/index.md      → /en-US
-```
+<FileTree aria-label="Multilingual locale directories">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="zh-CN" type="folder">
+      <FileTreeItem name="index.md" description="-> /" />
+    </FileTreeItem>
+    <FileTreeItem name="en-US" type="folder">
+      <FileTreeItem name="index.md" description="-> /en-US" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 When `i18n.missing` is `fallback`, missing translations reuse the default-language page and mark the route with `isFallback`. Each localized route also carries `basePath` and `alternates` for language switching.
 

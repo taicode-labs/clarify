@@ -1,0 +1,57 @@
+# Steps / Step
+
+`Steps` 用于有明确先后关系的流程，`Step` 会自动获得序号和连接线。适合安装、配置、迁移和故障排查，不适合仅为视觉效果包装无顺序的章节。
+
+## 基础用法
+
+```mdx
+<Steps>
+  <Step title="安装 CLI">
+    运行 `pnpm add -D @clarify-labs/cli`。
+  </Step>
+  <Step title="启动预览">
+    运行 `pnpm clarify dev`。
+  </Step>
+</Steps>
+```
+
+<Steps>
+  <Step title="安装 CLI">将 Clarify 添加为开发依赖。</Step>
+  <Step title="启动预览">运行开发命令并打开本地地址。</Step>
+</Steps>
+
+## 复杂内容
+
+每个 `Step` 都支持段落、列表、链接、代码块和其他内置组件。块内容与标签之间应保留空行：
+
+````mdx
+<Steps>
+  <Step title="安装依赖">
+
+    ```bash
+    pnpm add @clarify-labs/renderer
+    ```
+
+    <Callout type="tip">建议锁定生产版本。</Callout>
+
+  </Step>
+  <Step title="验证结果">
+
+    1. 打开预览地址
+    2. 检查终端输出
+
+  </Step>
+</Steps>
+````
+
+## 属性
+
+| 组件 | 属性 | 类型 | 说明 |
+|------|------|------|------|
+| `Steps` | `children` | `ReactNode` | 一个或多个 `Step` |
+| `Steps` | `className` | `string` | 外层有序列表类名 |
+| `Step` | `title` | `ReactNode` | 可选步骤标题 |
+| `Step` | `children` | `ReactNode` | 步骤正文，支持完整 MDX |
+| `Step` | `className` | `string` | 当前步骤类名 |
+
+<Callout type="warning">不要在一个流程中嵌套另一组 `Steps`。需要分支方案时，在步骤内使用 `Tabs` 或链接到独立页面。</Callout>

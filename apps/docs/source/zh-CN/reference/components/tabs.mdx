@@ -1,0 +1,51 @@
+# Tabs / Tab
+
+`Tabs` 在同一区域展示互斥内容，适合语言、包管理器、框架和平台差异。`defaultValue` 应匹配一个 `Tab` 的 `value`。
+
+## 基础用法
+
+```mdx
+<Tabs defaultValue="pnpm">
+  <Tab title="pnpm" value="pnpm">`pnpm add @clarify-labs/renderer`</Tab>
+  <Tab title="npm" value="npm">`npm install @clarify-labs/renderer`</Tab>
+</Tabs>
+```
+
+<Tabs defaultValue="pnpm">
+  <Tab title="pnpm" value="pnpm">`pnpm add @clarify-labs/renderer`</Tab>
+  <Tab title="npm" value="npm">`npm install @clarify-labs/renderer`</Tab>
+</Tabs>
+
+## 复杂内容
+
+`Tab` 支持代码块、表格、列表和其他内置组件：
+
+````mdx
+<Tabs defaultValue="pnpm">
+  <Tab title="pnpm" value="pnpm">
+
+    ```bash
+    pnpm add @clarify-labs/renderer
+    ```
+
+    查看 [快速开始](/getting-started) 继续配置。
+
+  </Tab>
+  <Tab title="npm" value="npm">
+    <Collapse title="查看 npm 配置">这里支持 **Markdown**。</Collapse>
+  </Tab>
+</Tabs>
+````
+
+## 属性
+
+| 组件 | 属性 | 类型 | 说明 |
+|------|------|------|------|
+| `Tabs` | `defaultValue` | `string` | 首次渲染时选中的标签值 |
+| `Tabs` | `children` | `ReactNode` | 一个或多个 `Tab` |
+| `Tabs` | `className` | `string` | 外层容器类名 |
+| `Tab` | `title` | `ReactNode` | 标签标题 |
+| `Tab` | `value` | `string` | 标签的稳定唯一值 |
+| `Tab` | `children` | `ReactNode` | 标签面板内容，支持完整 MDX |
+
+<Callout type="tip">保持各标签内容结构相近。若每项内容很长或需要独立链接，应拆成不同页面。</Callout>

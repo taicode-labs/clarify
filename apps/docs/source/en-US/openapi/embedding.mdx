@@ -19,13 +19,16 @@ Clarify can render `.openapi.json` / `.openapi.yaml` files as complete API Refer
 
 Place the spec under the current locale directory, for example:
 
-```txt
-source/
-└── zh-CN/
-    ├── api.openapi.json
-    └── openapi/
-        └── embedding.mdx
-```
+<FileTree aria-label="OpenAPI spec under a locale directory">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="zh-CN" type="folder">
+      <FileTreeItem name="api.openapi.json" />
+      <FileTreeItem name="openapi" type="folder">
+        <FileTreeItem name="embedding.mdx" />
+      </FileTreeItem>
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 The file name determines the Reference route:
 

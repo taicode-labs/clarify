@@ -30,6 +30,7 @@ type ApiExampleCodeGroupProps = {
   labelOptions?: string[]
   onSelectLabel?: (key: string) => void
   comfortableMeta?: boolean
+  metaInToolbar?: boolean
   code: string
   language: string
   mediaTypes?: string[]
@@ -56,6 +57,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
     labelOptions,
     onSelectLabel,
     comfortableMeta = false,
+    metaInToolbar = false,
     code,
     language,
     mediaTypes,
@@ -76,13 +78,36 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
   const metaClassName = comfortableMeta
     ? 'flex min-h-11 min-w-0 items-center gap-2 border-y border-(--clarify-code-border) border-t-transparent bg-(--clarify-code-background) px-4 py-2'
     : 'flex h-9 min-w-0 items-center gap-2 border-y border-(--clarify-code-border) border-t-transparent bg-(--clarify-code-background) px-4'
+  const meta = (
+    <>
+      {tag ? (
+        <ExampleMetaValue
+          label={t('openapi.status')}
+          value={tag}
+          options={tagOptions}
+          onChange={onSelectTag}
+          className="clarify-openai-example-status font-semibold text-emerald-400"
+        />
+      ) : null}
+      {tag && label ? <span className="h-0.5 w-0.5 shrink-0 rounded-full bg-(--clarify-code-faint)" /> : null}
+      {label ? (
+        <ExampleMetaValue
+          label={t('openapi.mediaType')}
+          value={label}
+          options={labelOptions}
+          onChange={onSelectLabel}
+          className="min-w-0 truncate text-xs text-(--clarify-code-muted)"
+        />
+      ) : null}
+    </>
+  )
 
   return (
-    <div className="clarify-api-example my-6 overflow-hidden rounded-2xl bg-(--clarify-code-background) shadow-md ring-1 ring-(--clarify-code-border)">
+    <div className="clarify-openai-example my-6 overflow-hidden rounded-2xl bg-(--clarify-code-background) shadow-md ring-1 ring-(--clarify-code-border)">
       <div className="not-prose">
-        <div className="clarify-api-example-header flex min-h-(--clarify-code-header-min-height) items-center gap-3 border-b border-(--clarify-code-border) bg-(--clarify-code-header-background) px-4 py-2">
+        <div className="clarify-openai-example-header flex min-h-(--clarify-code-header-min-height) items-center gap-3 border-b border-(--clarify-code-border) bg-(--clarify-code-header-background) px-4 py-2">
           <h3 className="mr-auto min-w-16 truncate py-1 text-xs font-semibold text-(--clarify-code-text)">{title}</h3>
-          <div className="clarify-api-example-header-controls ml-auto flex min-w-0 items-center gap-2 whitespace-nowrap">
+          <div className="clarify-openai-example-header-controls ml-auto flex min-w-0 items-center gap-2 whitespace-nowrap">
             {mediaTypes && mediaTypes.length > 1 && selectedMediaType && onSelectMediaType ? (
               <SelectControl
                 label={t('openapi.mediaType')}
@@ -103,32 +128,11 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
             ) : null}
           </div>
         </div>
-        {tag || label ? (
-          <div className={metaClassName}>
-            {tag ? (
-              <ExampleMetaValue
-                label={t('openapi.status')}
-                value={tag}
-                options={tagOptions}
-                onChange={onSelectTag}
-                className="clarify-api-example-status font-semibold text-emerald-400"
-              />
-            ) : null}
-            {tag && label ? <span className="h-0.5 w-0.5 shrink-0 rounded-full bg-(--clarify-code-faint)" /> : null}
-            {label ? (
-              <ExampleMetaValue
-                label={t('openapi.mediaType')}
-                value={label}
-                options={labelOptions}
-                onChange={onSelectLabel}
-                className="min-w-0 truncate text-xs text-(--clarify-code-muted)"
-              />
-            ) : null}
-          </div>
-        ) : null}
-        <div className="clarify-api-example-code group bg-(--clarify-code-background)">
+        {(tag || label) && !metaInToolbar ? <div className={metaClassName}>{meta}</div> : null}
+        <div className="clarify-openai-example-code group bg-(--clarify-code-background)">
           <CodeToolbar
             code={code}
+            leadingControls={metaInToolbar ? meta : undefined}
             languageOptions={languageOptions}
             selectedLanguageKey={selectedLanguageKey}
             onSelectLanguage={onSelectLanguage}
@@ -430,6 +434,9 @@ export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNo
   return (
     <ApiExampleCodeGroup
       title={title ?? t('openapi.response')}
+      tag={state.selectedResponse?.status}
+      tagOptions={state.responses.map((response) => response.status)}
+      onSelectTag={state.responses.length > 0 ? state.onSelectStatus : undefined}
       label={state.selectedContent?.mediaType}
       labelOptions={state.responseContents.map((content) => content.mediaType)}
       onSelectLabel={state.responseContents.length > 0 ? state.onSelectMediaType : undefined}
@@ -438,6 +445,7 @@ export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNo
       examples={state.examples}
       selectedExampleKey={state.selectedExample?.key}
       onSelectExample={state.onSelectExample}
+      metaInToolbar
     />
   )
 }

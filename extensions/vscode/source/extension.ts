@@ -125,7 +125,7 @@ async function openPreview(projectRoot: string, filePath: string): Promise<void>
     await ensureServerReady(projectRoot, true)
     setupAutoOpen()
     updateStatusBar()
-    await navigateToRoute(filePath)
+    await navigateToRoute(filePath, true)
   } catch (err) {
     vscode.window.showErrorMessage(`Clarify: failed to start dev server — ${formatError(err)}`)
     updateStatusBar()
@@ -191,7 +191,7 @@ async function ensureServerReady(projectRoot: string, withProgress: boolean): Pr
  * wrapper simply posts the file path to the dev server and handles the
  * resulting preview URL.
  */
-async function navigateToRoute(filePath: string): Promise<void> {
+async function navigateToRoute(filePath: string, createIfMissing = false): Promise<void> {
   if (!routeResolver) return
 
   try {
@@ -201,7 +201,7 @@ async function navigateToRoute(filePath: string): Promise<void> {
       return
     }
     const openToSide = vscode.workspace.getConfiguration('clarify').get<boolean>('openToSide', true)
-    previewPanel.show(previewUrl, openToSide)
+    previewPanel.show(previewUrl, openToSide, createIfMissing)
   } catch (err) {
     vscode.window.showErrorMessage(`Clarify: could not resolve route — ${formatError(err)}`)
   }

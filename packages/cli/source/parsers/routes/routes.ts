@@ -309,6 +309,7 @@ export function routeIntentFromPagesItem(
   item: ClarifyPagesItem
 ): ClarifyRouteIntent {
   if (typeof item === 'string') return { kind: 'page', ref: item }
+  if ('group' in item) throw new Error('Navigation groups do not resolve to route intents')
   if ('openapi' in item) return { kind: 'openapi', ref: item.openapi, tagFilter: item.filter?.tags, path: item.path, title: item.title, icon: item.icon }
   return { kind: 'page', ref: item.page, path: item.path, redirect: item.redirect, title: item.title, icon: item.icon }
 }
@@ -325,15 +326,21 @@ function firstNavigationPath(nodes: ClarifyNavigationNode[]): string {
 function collectExplicitPagePathIntents(tabs?: ClarifyTabsConfig): Array<ClarifyPageRouteIntent & { path: string }> {
   const intents: Array<ClarifyPageRouteIntent & { path: string }> = []
 
+  const collectItems = (items: ClarifyPagesItem[]) => {
+    for (const item of items) {
+      if (typeof item !== 'string' && 'group' in item) {
+        collectItems(item.pages)
+      } else if (typeof item !== 'string' && 'page' in item && item.path) {
+        const intent = routeIntentFromPagesItem(item)
+        if (intent.kind === 'page' && intent.path) intents.push({ ...intent, path: intent.path })
+      }
+    }
+  }
+
   for (const tab of tabs ?? []) {
     if (!tab.pages || tab.pages === 'FileTree') continue
     for (const group of tab.pages) {
-      for (const item of group.pages) {
-        if (typeof item !== 'string' && 'page' in item && item.path) {
-          const intent = routeIntentFromPagesItem(item)
-          if (intent.kind === 'page' && intent.path) intents.push({ ...intent, path: intent.path })
-        }
-      }
+      collectItems(group.pages)
     }
   }
 
@@ -399,8 +406,17 @@ export function buildNavigationFromTabsConfig(routes: ContentRoute[], tabs: Clar
 export function buildNavigationFromConfig(routes: ContentRoute[], config: ClarifyPagesGroup[]): ClarifyNavigationNode[] {
   const routeMap = new Map(routes.map(r => [r.path, r]))
 
-  return config.map(group => {
-    const children = group.pages.map(item => {
+  const buildItem = (item: ClarifyPagesItem): ClarifyNavigationNode => {
+    if (typeof item !== 'string' && 'group' in item) {
+      const children = item.pages.map(buildItem)
+      return {
+        path: firstNavigationPath(children),
+        title: resolveLocalizedText(item.group, '', '') ?? '',
+        icon: item.icon,
+        children,
+      }
+    }
+
       const intent = routeIntentFromPagesItem(item)
 
       if (intent.kind === 'openapi') {
@@ -422,7 +438,10 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
         icon: intent.icon,
         sections: route?.meta.sections ? navigationSections(route.meta.sections) : undefined,
       }
-    })
+  }
+
+  return config.map(group => {
+    const children = group.pages.map(buildItem)
 
     return {
       path: children[0]?.path ?? '/',
@@ -460,8 +479,17 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
   }
 
   const routeMap = new Map(routes.map(route => [route.basePath ?? route.path, route]))
-  return config.map(group => {
-    const children = group.pages.map(item => {
+  const buildItem = (item: ClarifyPagesItem): ClarifyNavigationNode => {
+    if (typeof item !== 'string' && 'group' in item) {
+      const children = item.pages.map(buildItem)
+      return {
+        path: firstNavigationPath(children),
+        title: resolveLocalizedText(item.group, locale, i18n.defaultLocale) ?? '',
+        icon: item.icon,
+        children,
+      }
+    }
+
       const intent = routeIntentFromPagesItem(item)
       const basePath = intent.kind === 'openapi'
         ? openAPIPagePathFromRef(intent.ref, intent.tagFilter, intent.path)
@@ -476,7 +504,10 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
         icon: intent.icon,
         sections: route?.meta.sections ? navigationSections(route.meta.sections) : undefined,
       }
-    })
+  }
+
+  return config.map(group => {
+    const children = group.pages.map(buildItem)
 
     return {
       path: children[0]?.path ?? localizedRoutePath('/', locale, i18n),

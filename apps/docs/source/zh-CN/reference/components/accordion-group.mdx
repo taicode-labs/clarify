@@ -1,0 +1,33 @@
+# AccordionGroup
+
+`AccordionGroup` 把相关的 `Collapse` 合并成一个紧凑区域。默认情况下，展开一项会关闭之前展开的项。
+
+## 用法
+
+```mdx
+<AccordionGroup>
+  <Collapse title="支持哪些 Node.js 版本？" defaultOpen>
+    Clarify 支持 Node.js 20 及以上版本。
+  </Collapse>
+  <Collapse title="如何清除缓存？">
+    删除本地缓存目录，然后重新启动开发服务器。
+  </Collapse>
+</AccordionGroup>
+```
+
+<AccordionGroup>
+  <Collapse title="支持哪些 Node.js 版本？" defaultOpen>Clarify 支持 Node.js 20 及以上版本。</Collapse>
+  <Collapse title="如何清除缓存？">删除本地缓存目录，然后重新启动开发服务器。</Collapse>
+</AccordionGroup>
+
+需要同时对比多个答案时，设置 `multiple`。
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `multiple` | `boolean` | `false` | 允许同时展开多个项目 |
+| `children` | `Collapse` 元素 | - | 按显示顺序排列的相关折叠项 |
+| `className` | `string` | - | 分组容器的类名 |
+
+`Collapse` 继续使用现有的 `title`、`summary` 和 `defaultOpen` 属性。

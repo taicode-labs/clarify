@@ -1,4 +1,3 @@
-import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
 import clsx from 'clsx'
 import { CheckIcon, ChevronDownIcon, CopyIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
@@ -13,6 +12,7 @@ import type { OpenApiServer, OpenApiServerVariable } from '../types'
 import { EndpointRequest, EndpointResponse } from './EndpointSections'
 import { authLabel, authPlaceholder, getServerKey, getServerLabel } from './ExamplePanels'
 import type { AuthOption } from './ExamplePanels'
+import { InlineListbox } from './InlineListbox'
 import { useOperationAuthState, useOperationRequestState, useOperationServerState } from './OpenApiOperation.state'
 
 
@@ -79,54 +79,6 @@ export function EndpointPath(arg0: EndpointPathProps): ReactNode {
   )
 }
 
-type UiOption = {
-  value: string
-  label: string
-  description?: string
-}
-
-type InlineListboxProps = {
-  label: string
-  value: string
-  options: UiOption[]
-  onChange: (value: string) => void
-  compact?: boolean
-}
-
-function InlineListbox(arg0: InlineListboxProps): ReactNode {
-  const { label, value, options, onChange, compact = false } = arg0
-
-  const selected = options.find((option) => option.value === value) ?? options[0]
-
-  return (
-    <Listbox value={selected?.value ?? value} onChange={onChange}>
-      <div className="pointer-events-auto relative inline-flex min-w-0">
-        <ListboxButton
-          aria-label={label}
-          className={clsx(
-            'inline-flex min-w-0 items-center gap-1 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) font-semibold text-(--clarify-ui-text-strong) shadow-xs outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) data-open:border-(--clarify-ui-accent-border) data-open:bg-(--clarify-ui-active-background) data-open:ring-2 data-open:ring-(--clarify-ui-accent-border)',
-            compact ? 'min-h-7 max-w-32 px-2 py-0.5 text-xs' : 'min-h-8 w-full px-2.5 py-1.5 text-xs',
-          )}
-        >
-          <span className="truncate">{selected?.label ?? value}</span>
-          <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-(--clarify-ui-text-faint)" aria-hidden="true" />
-        </ListboxButton>
-        <ListboxOptions anchor="bottom start" className="z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-xl bg-(--clarify-theme-tokens-colors-surface) p-1 text-xs shadow-lg shadow-black/10 ring-1 ring-(--clarify-theme-tokens-colors-border) [--anchor-gap:--spacing(1)] focus:outline-none">
-          {options.map((option) => (
-            <ListboxOption key={option.value} value={option.value} className="group flex min-h-9 cursor-default items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-xs text-(--clarify-ui-text) select-none data-focus:bg-(--clarify-ui-hover-background) data-focus:text-(--clarify-ui-text-strong) data-selected:bg-(--clarify-ui-active-background) data-selected:text-(--clarify-ui-accent-text)">
-              <span className="min-w-0">
-                <span className="block truncate">{option.label}</span>
-                {option.description ? <span className="mt-0.5 block truncate text-2xs text-(--clarify-ui-text-faint)">{option.description}</span> : null}
-              </span>
-              <CheckIcon className="h-3.5 w-3.5 shrink-0 opacity-0 group-data-selected:opacity-100" aria-hidden="true" />
-            </ListboxOption>
-          ))}
-        </ListboxOptions>
-      </div>
-    </Listbox>
-  )
-}
-
 function getServerPreviewUrl(server: OpenApiServer, variables: Record<string, string>): string {
   return (server.url ?? '').replace(/\{([^}]+)\}/g, (_, name: string) => variables[name] ?? server.variables?.[name]?.default ?? `{${name}}`)
 }
@@ -163,15 +115,19 @@ function getDefaultResponseStatus(operation: OpenAPIOperation, spec?: OpenAPISpe
 }
 
 type ServerUrlValueProps = {
+  servers: OpenApiServer[]
+  selectedKey: string
   server: OpenApiServer
   variables: Record<string, string>
   open: boolean
   interactive: boolean
+  directSelect: boolean
+  onSelect: (key: string) => void
   onToggle: () => void
 }
 
 function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
-  const { server, variables, open, interactive, onToggle } = arg0
+  const { servers, selectedKey, server, variables, open, interactive, directSelect, onSelect, onToggle } = arg0
 
   const url = getServerPreviewUrl(server, variables)
   const protocolLabel = getServerProtocolLabel(server, variables)
@@ -191,6 +147,33 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
     )
   }
 
+  if (directSelect) {
+    return (
+      <InlineListbox
+        label="Server"
+        value={selectedKey}
+        options={servers.map((option, index) => ({
+          value: getServerKey(option, index),
+          label: getServerLabel(option, index),
+          description: option.description,
+        }))}
+        onChange={onSelect}
+        className="w-8 shrink-0 sm:w-fit sm:min-w-16 sm:max-w-(--clarify-server-url-max-width)"
+        buttonClassName="group flex h-8 w-full min-w-0 cursor-pointer items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) px-0 text-(--clarify-ui-text) transition-colors hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) data-open:bg-(--clarify-ui-active-background) data-open:text-(--clarify-theme-tokens-colors-foreground) sm:px-1.5"
+        buttonContent={(
+          <>
+            <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
+            <span className="hidden min-w-0 items-center gap-1 overflow-hidden sm:flex">
+              {protocolLabel ? <span className="shrink-0 rounded bg-sky-100 px-1.5 py-0.5 text-2xs font-black text-sky-700 dark:bg-sky-400/15 dark:text-sky-200">{protocolLabel}</span> : null}
+              <span className="truncate font-semibold text-xs">{url}</span>
+              <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400 transition-transform group-data-open:rotate-180" aria-hidden="true" />
+            </span>
+          </>
+        )}
+      />
+    )
+  }
+
   return (
     <button
       type="button"
@@ -198,7 +181,7 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
       aria-label="Server"
       onClick={onToggle}
       className={clsx(
-        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5',
+        'flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text) transition-colors hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5',
         open ? 'bg-(--clarify-ui-active-background) text-(--clarify-theme-tokens-colors-foreground)' : null,
       )}
     >
@@ -206,7 +189,7 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
         <span className="hidden min-w-0 items-center gap-1 overflow-hidden sm:flex">
           {protocolLabel ? <span className="shrink-0 rounded bg-sky-100 px-1.5 py-0.5 text-2xs font-black text-sky-700 dark:bg-sky-400/15 dark:text-sky-200">{protocolLabel}</span> : null}
         <span className="truncate font-semibold text-xs">{url}</span>
-        <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400" aria-hidden="true" />
+        <ChevronDownIcon className={clsx('h-3.5 w-3.5 shrink-0 text-zinc-400 transition-transform', open && 'rotate-180')} aria-hidden="true" />
       </span>
     </button>
   )
@@ -397,6 +380,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
     onChangeAuthValue,
   } = arg0
 
+  const directServerSelect = servers.length > 1 && servers.every((server) => Object.keys(server.variables ?? {}).length === 0)
   const serverInteractive = servers.length > 1 || Object.keys(selectedServer.variables ?? {}).length > 0
   const [copiedUrl, setCopiedUrl] = useState(false)
   const fullUrl = getFullEndpointUrl(selectedServer, serverVariables, path)
@@ -415,15 +399,19 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
   }
 
   return (
-    <div className="not-prose flex w-full flex-col overflow-hidden rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs">
+    <div className="clarify-openai-endpoint-identity not-prose flex w-full flex-col overflow-hidden rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs">
       <div className="flex min-w-0 items-center gap-1.5 overflow-hidden px-2.5 py-2">
         <EndpointMethodBadge method={method} />
         {operationSource === 'webhook' ? <EndpointMethodBadge method="WEBHOOK" /> : null}
         <ServerUrlValue
+          servers={servers}
+          selectedKey={selectedServerKey}
           server={selectedServer}
           variables={serverVariables}
           open={serverOpen}
           interactive={serverInteractive}
+          directSelect={directServerSelect}
+          onSelect={onSelectServer}
           onToggle={onToggleServer}
         />
         <EndpointPath path={path} copied={copiedUrl} onCopy={handleCopyUrl} />
@@ -442,7 +430,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
           </button>
         ) : null}
       </div>
-      {serverInteractive && serverOpen ? (
+      {serverInteractive && !directServerSelect && serverOpen ? (
         <ServerPanel
           servers={servers}
           selectedKey={selectedServerKey}
@@ -479,7 +467,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const [selectedResponseStatus, setSelectedResponseStatus] = useState(() => getDefaultResponseStatus(operation, spec))
 
   return (
-    <section className="clarify-api-endpoint scroll-mt-24 pb-16 first:pt-0 last:pb-0" aria-labelledby={id}>
+    <section className="clarify-openai-endpoint scroll-mt-24 pb-16 first:pt-0 last:pb-0" aria-labelledby={id}>
       <Heading id={id}>
         {summary}
       </Heading>

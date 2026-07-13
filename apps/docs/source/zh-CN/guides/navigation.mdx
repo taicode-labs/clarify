@@ -70,8 +70,35 @@ export default defineConfig({
 |------|------|
 | `page` | 引用 `source` 下的 MDX 页面，不写 `.mdx` 后缀 |
 | `openapi` | 引用 `source` 下的 OpenAPI JSON/YAML 文件 |
+| `group` | 创建可折叠分组；分组的 `pages` 可以继续包含页面或嵌套分组 |
 | `title` | 覆盖页面在导航中的显示标题 |
 | `icon` | 使用 lucide 图标名称 |
+
+### 嵌套侧边栏
+
+在内容较多时，可以在顶层分组内继续嵌套分组：
+
+```ts
+{
+  group: '指南',
+  icon: 'BookOpen',
+  pages: [
+    {
+      group: '身份认证',
+      icon: 'KeyRound',
+      pages: [
+        { page: 'guides/auth/setup', title: '配置认证' },
+        { page: 'guides/auth/sso', title: '单点登录' },
+      ],
+    },
+    { page: 'guides/deployment', title: '部署' },
+  ],
+}
+```
+
+嵌套分组在侧边栏中显示为可展开目录。当前页面所在的所有祖先分组会自动展开，其他分组可以独立展开或收起；移动端使用相同结构，展开目录不会关闭导航抽屉，进入页面后才会关闭。
+
+配置支持递归分组，但为了保持扫描效率，建议控制在三层可见信息以内：顶层分组、一个嵌套分组、页面。更深的内容优先拆成页面内章节，或重新划分 tab。
 
 示例 OpenAPI 入口：
 
@@ -153,15 +180,18 @@ export default defineConfig({
 
 目录示例：
 
-```txt
-source/
-├── zh-CN/
-│   ├── index.mdx
-│   └── getting-started.mdx
-└── en-US/
-    ├── index.mdx
-    └── getting-started.mdx
-```
+<FileTree aria-label="本地化源码目录">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="zh-CN" type="folder">
+      <FileTreeItem name="index.mdx" />
+      <FileTreeItem name="getting-started.mdx" />
+    </FileTreeItem>
+    <FileTreeItem name="en-US" type="folder">
+      <FileTreeItem name="index.mdx" />
+      <FileTreeItem name="getting-started.mdx" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 路由规则：
 

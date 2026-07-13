@@ -249,7 +249,7 @@ describe('createOpenAPIPlugin', () => {
     expect(discovered?.[0].source.content).toContain('"properties":{"id":{"type":"string"}}')
   })
 
-  it('creates tag-filtered OpenAPI routes from navigation config', async () => {
+  it('creates tag-filtered OpenAPI routes from nested navigation config', async () => {
     const specPath = join(tempDir, 'api.openapi.json')
     writeFileSync(specPath, JSON.stringify({
       openapi: '3.0.0',
@@ -268,7 +268,7 @@ describe('createOpenAPIPlugin', () => {
     const routes = discoveredInput?.routes ?? []
     const ctx = createContext(routes)
     ctx.projectConfig.tabs = [
-      { tab: 'API', pages: [{ group: 'Reference', pages: [{ openapi: 'api.openapi.json', filter: { tags: ['Projects'] } }] }] },
+      { tab: 'API', pages: [{ group: 'Reference', pages: [{ group: 'Resources', pages: [{ openapi: 'api.openapi.json', filter: { tags: ['Projects'] } }] }] }] },
     ]
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)

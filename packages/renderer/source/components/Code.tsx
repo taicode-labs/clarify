@@ -54,6 +54,15 @@ function getNodeText(node: ReactNode): string {
   return ''
 }
 
+function getCodeTitle(node: ReactNode): string | undefined {
+  if (!isValidElement(node)) return undefined
+
+  const { title, children } = node.props as { title?: string; children?: ReactNode }
+  if (title) return title
+
+  return Children.toArray(children).map(getCodeTitle).find(Boolean)
+}
+
 function getCodeLanguage(node: ReactNode): string | undefined {
   if (!isValidElement(node)) return undefined
 
@@ -64,6 +73,14 @@ function getCodeLanguage(node: ReactNode): string | undefined {
   if (languageClass) return languageClass.slice('language-'.length)
 
   return Children.toArray(children).map(getCodeLanguage).find(Boolean)
+}
+
+function getCodePanelTitle(node: ReactNode, fallbackTitle: string): string {
+  return getPanelTitle({
+    title: getCodeTitle(node),
+    language: getCodeLanguage(node),
+    fallbackTitle,
+  })
 }
 
 type CopyButtonProps = { code: string }
@@ -182,7 +199,7 @@ function CodeGroupHeader(arg0: CodeGroupHeaderProps) {  const { title, children,
                   : 'text-(--clarify-code-control-text) hover:text-(--clarify-code-text)',
               )}
             >
-              {getPanelTitle({ ...(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {}), fallbackTitle: t('actions.code') })}
+              {getCodePanelTitle(child, t('actions.code'))}
               {childIndex === selectedIndex ? (
                 <motion.span
                   layoutId={indicatorLayoutId}
@@ -301,9 +318,7 @@ export function CodeGroup(arg0: CodeGroupProps) {  const {
 
   const t = useBuiltInText()
   const languages =
-    Children.map(children, (child) =>
-      getPanelTitle({ ...(isValidElement(child) ? (child.props as { title?: string; language?: string }) : {}), fallbackTitle: t('actions.code') }),
-    ) ?? []
+    Children.map(children, (child) => getCodePanelTitle(child, t('actions.code'))) ?? []
   const tabGroupProps = useTabGroupProps(languages)
   const hasTabs = Children.count(children) > 1
   const containerClassName = 'clarify-code-group my-6 overflow-hidden rounded-2xl bg-(--clarify-code-background) shadow-md ring-1 ring-(--clarify-code-border)'

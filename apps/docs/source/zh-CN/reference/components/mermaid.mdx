@@ -1,0 +1,38 @@
+# Mermaid
+
+`Mermaid` 根据文本源码渲染图表，适合流程、时序、状态变化和关系图，让图示也能参与版本审查。
+
+## 用法
+
+直接使用 `mermaid` 代码围栏最简洁：
+
+````md
+```mermaid
+flowchart LR
+  Write[编写 MDX] --> Build[构建站点]
+  Build --> Publish[发布文档]
+```
+````
+
+渲染效果：
+
+```mermaid
+flowchart LR
+  Write[编写 MDX] --> Build[构建站点]
+  Build --> Publish[发布文档]
+```
+
+在生成的 MDX 中，也可以通过 `chart` 直接调用组件：
+
+```mdx
+<Mermaid chart={'sequenceDiagram\n  Author->>Clarify: 保存内容\n  Clarify-->>Reader: 更新页面'} />
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `chart` | `string` | 必填 | Mermaid 图表源码 |
+| `className` | `string` | - | 图表容器的类名 |
+
+<Callout type="tip">标签应当清晰到在加载期间或渲染失败时，仅阅读原始源码也能理解流程。</Callout>

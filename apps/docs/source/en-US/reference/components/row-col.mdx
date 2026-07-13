@@ -1,0 +1,52 @@
+# Row / Col
+
+`Row` and `Col` create a responsive two-column reading layout. Content follows document order on narrow screens and becomes two columns on extra-wide screens, making it useful for explanation plus example, instructions plus preview, or request plus response.
+
+Each column remains ordinary document content rather than a card. This keeps long technical material readable and allows headings, code blocks, callouts, and tables to compose naturally.
+
+## Usage
+
+````mdx
+<Row>
+  <Col>
+
+    ## Start the preview
+
+    The development server watches content and configuration changes.
+
+  </Col>
+  <Col sticky>
+
+    ```bash
+    pnpm exec clarify dev
+    ```
+
+  </Col>
+</Row>
+````
+
+Rendered result:
+
+<Row>
+  <Col>
+    <strong>Start the preview</strong>
+    <p>The development server watches content and configuration changes.</p>
+    <p>Edit a page, review the rendered result, and keep the command visible while you work through the surrounding instructions.</p>
+  </Col>
+  <Col sticky>
+    <Callout type="tip">Run <code>pnpm exec clarify dev</code> from the project root.</Callout>
+  </Col>
+</Row>
+
+`sticky` applies only in the two-column layout and keeps an example visible beside a long explanation. On smaller screens it returns to normal document flow, so source order still determines the reading order.
+
+## Props
+
+| Component | Prop | Type | Default | Description |
+|-----------|------|------|---------|-------------|
+| `Row` | `children` | `ReactNode` | Required | Usually two `Col` elements |
+| `Row` | `className` | `string` | - | Class name for the grid |
+| `Col` | `children` | `ReactNode` | Required | Content for this column |
+| `Col` | `sticky` | `boolean` | `false` | Sticks on large screens |
+
+<Callout type="warning">Mobile layouts follow source order, so the first column should provide the context needed to understand the second.</Callout>

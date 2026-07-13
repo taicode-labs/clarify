@@ -169,11 +169,11 @@ export function MobileNavigation(arg0: MobileNavigationProps) {  const {
     <IsInsideMobileNavigationContext.Provider value={true}>
       <button
         type="button"
-        className="clarify-mobile-navigation-button clarify-ui-icon-button relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
+        className="clarify-mobile-navigation-button clarify-ui-icon-button relative flex size-9 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
         aria-label={t('navigation.toggle')}
         onClick={toggle}
       >
-        <span className="absolute size-12 pointer-fine:hidden" />
+        <span className="absolute size-11 pointer-fine:hidden" />
         <ToggleIcon className="h-4 w-4 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-white" />
       </button>
       {!isInsideMobileNavigation ? (

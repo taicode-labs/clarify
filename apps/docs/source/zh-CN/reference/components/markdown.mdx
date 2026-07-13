@@ -1,0 +1,35 @@
+# Markdown
+
+`Markdown` 将运行时字符串解析为 Clarify 风格的 Markdown。它适合数据驱动内容、自定义组件返回值或外部文本；直接写在 `.mdx` 文件中的 Markdown 不需要它。
+
+## 用法
+
+```mdx
+<Markdown>{"**重要：** 发布前请运行构建检查。"}</Markdown>
+```
+
+渲染效果：
+
+<Markdown>{"**重要：** 发布前请运行构建检查。"}</Markdown>
+
+字符串可以来自页面作用域中的变量：
+
+```mdx
+export const releaseNote = `
+## 版本说明
+
+- 新增搜索
+- 修复导航
+`
+
+<Markdown>{releaseNote}</Markdown>
+```
+
+## 属性
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `children` | `string` | - | 要解析的 Markdown 字符串 |
+| `className` | `string` | - | 外层容器类名 |
+
+<Callout type="warning">只渲染可信或已清理的内容。动态内容的安全边界应在数据进入文档页面前建立。</Callout>

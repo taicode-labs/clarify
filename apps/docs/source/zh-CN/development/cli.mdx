@@ -74,23 +74,30 @@ package.json scripts
 
 Clarify 使用从文件系统派生的约定式路由：
 
-```
-source/
-├── index.mdx           → /
-├── getting-started.mdx → /getting-started
-├── guides/
-│   ├── index.mdx       → /guides
-│   └── theming.mdx     → /guides/theming
-└── api.openapi.yaml    → /api
-```
+<FileTree aria-label="约定式路由">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="index.mdx" description="-> /" />
+    <FileTreeItem name="getting-started.mdx" description="-> /getting-started" />
+    <FileTreeItem name="guides" type="folder">
+      <FileTreeItem name="index.mdx" description="-> /guides" />
+      <FileTreeItem name="theming.mdx" description="-> /guides/theming" />
+    </FileTreeItem>
+    <FileTreeItem name="api.openapi.yaml" description="-> /api" />
+  </FileTreeItem>
+</FileTree>
 
 多语言站点使用 locale 目录。默认语言不带前缀，非默认语言带 locale 前缀：
 
-```
-source/
-├── zh-CN/index.md      → /
-└── en-US/index.md      → /en-US
-```
+<FileTree aria-label="多语言 locale 目录">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="zh-CN" type="folder">
+      <FileTreeItem name="index.md" description="-> /" />
+    </FileTreeItem>
+    <FileTreeItem name="en-US" type="folder">
+      <FileTreeItem name="index.md" description="-> /en-US" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 当 `i18n.missing` 为 `fallback` 时，缺失翻译会复用默认语言页面，并在路由上标记 `isFallback`。每个本地化路由还会携带 `basePath` 和 `alternates` 供语言切换使用。
 

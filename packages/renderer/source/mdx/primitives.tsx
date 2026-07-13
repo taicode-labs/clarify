@@ -3,8 +3,9 @@ import { Info } from 'lucide-react'
 import { createElement, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 
 import { PageTitleActions } from '../app/PageActions'
-import { Button, Callout, Card, CardGroup, Heading, LocalizedLink, Prose, WebFrame } from '../components'
+import { AccordionGroup, Button, Callout, Card, CardGroup, FileTree, FileTreeItem, Heading, LocalizedLink, Prose, Step, Steps, Tab, Tabs, Tooltip, WebFrame } from '../components'
 import { Code, CodeGroup, Pre } from '../components/Code'
+import { Image } from '../components/Image'
 
 type WrapperProps = { children: ReactNode }
 
@@ -46,7 +47,8 @@ export function h1(arg0: ComponentPropsWithoutRef<'h1'>) {
 
 export const code = Code
 export const pre = Pre
-export { Button, Callout, Card, CardGroup, CodeGroup, WebFrame }
+export const img = Image
+export { AccordionGroup, Button, Callout, Card, CardGroup, CodeGroup, FileTree, FileTreeItem, Step, Steps, Tab, Tabs, Tooltip, WebFrame }
 
 export function h2(props: Omit<ComponentPropsWithoutRef<typeof Heading>, 'level'>) {
   return createElement(Heading, { level: 2, ...props })
@@ -62,8 +64,8 @@ export function Note(arg0: NoteProps) {
   const { children } = arg0
 
   return (
-    <div className="clarify-note my-6 flex gap-2.5 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4 text-sm/6 text-(--clarify-theme-tokens-colors-foreground) [--tw-prose-links-hover:var(--clarify-ui-accent-text)] [--tw-prose-links:var(--clarify-theme-tokens-colors-foreground)]">
-      <Info className="mt-1 h-4 w-4 flex-none stroke-(--clarify-ui-accent-text)" />
+    <div className="clarify-note my-6 flex gap-3 rounded-r-(--clarify-theme-tokens-radius-lg) border-l-2 border-(--clarify-theme-tokens-colors-primary) bg-(--clarify-ui-subtle-background) px-4 py-3 text-sm/6 text-(--clarify-ui-text-soft) [--tw-prose-links-hover:var(--clarify-ui-accent-text)] [--tw-prose-links:var(--clarify-theme-tokens-colors-foreground)]">
+      <Info className="mt-1 size-4 flex-none stroke-(--clarify-ui-accent-text)" />
       <div className="*:first:mt-0 *:last:mb-0">{children}</div>
     </div>
   )

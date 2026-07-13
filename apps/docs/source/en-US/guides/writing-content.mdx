@@ -10,29 +10,35 @@ The goal is to let authors know: where files should go, how pages are generated,
 
 Organize docs by reader tasks rather than by internal modules:
 
-```txt
-source/
-├── index.md
-├── getting-started.md
-├── guides/
-│   ├── writing.md
-│   └── deploy.mdx
-├── reference/
-│   └── config.mdx
-└── api.openapi.json
-```
+<FileTree aria-label="Recommended documentation structure">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="index.md" />
+    <FileTreeItem name="getting-started.md" />
+    <FileTreeItem name="guides" type="folder">
+      <FileTreeItem name="writing.md" />
+      <FileTreeItem name="deploy.mdx" />
+    </FileTreeItem>
+    <FileTreeItem name="reference" type="folder">
+      <FileTreeItem name="config.mdx" />
+    </FileTreeItem>
+    <FileTreeItem name="api.openapi.json" />
+  </FileTreeItem>
+</FileTree>
 
 When internationalization is enabled, place the same structure inside locale directories:
 
-```txt
-source/
-├── zh-CN/
-│   ├── index.md
-│   └── getting-started.mdx
-└── en-US/
-    ├── index.md
-    └── getting-started.mdx
-```
+<FileTree aria-label="Localized documentation structure">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="zh-CN" type="folder">
+      <FileTreeItem name="index.md" />
+      <FileTreeItem name="getting-started.mdx" />
+    </FileTreeItem>
+    <FileTreeItem name="en-US" type="folder">
+      <FileTreeItem name="index.md" />
+      <FileTreeItem name="getting-started.mdx" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 ---
 
@@ -59,7 +65,7 @@ Rules:
 
 ## Choose Markdown or MDX
 
-Clarify parses `.md` and `.mdx` with different semantics. Both support frontmatter, GFM, syntax highlighting, Mermaid, heading navigation, and search. The difference is whether the page needs JSX capabilities.
+Clarify parses `.md` and `.mdx` with different semantics. Both support frontmatter, <Tooltip content="GitHub Flavored Markdown">GFM</Tooltip>, syntax highlighting, Mermaid, heading navigation, and search. The difference is whether the page needs JSX capabilities.
 
 | Capability | `.md` | `.mdx` |
 |------|-------|--------|
@@ -83,6 +89,8 @@ Clarify parses `.md` and `.mdx` with different semantics. Both support frontmatt
 <Callout type="tip">
   This content is rendered by a React component.
 </Callout>
+
+<img src="/clarify.png" alt="Clarify wordmark" caption="Images can include a caption and click-to-zoom preview directly." zoom />
 ```
 
 Keeping regular content in `.md` prevents HTML from being interpreted as JSX while preserving strict diagnostics for real MDX component errors. Changing the extension does not change the route: both `source/guide.md` and `source/guide.mdx` map to `/guide`. Do not create both files for the same route.

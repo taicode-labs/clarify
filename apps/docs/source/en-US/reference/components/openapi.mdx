@@ -1,0 +1,41 @@
+# OpenAPI Components
+
+`OpenApiOperation` embeds one operation in a task-oriented guide. `OpenApiDocument` embeds a complete or tag-filtered API reference. Both render authentication, parameters, request bodies, responses, and request examples.
+
+## One operation
+
+```mdx
+<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+```
+
+`path` and `method` must match an operation in the specification.
+
+Rendered result:
+
+<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+
+## Complete reference
+
+```mdx
+<OpenApiDocument specPath="/api" />
+```
+
+Limit the reference by tags:
+
+```mdx
+<OpenApiDocument specPath="/api" tagFilter={["Users", "Teams"]} />
+```
+
+## Props
+
+| Component | Prop | Type | Description |
+|-----------|------|------|-------------|
+| `OpenApiOperation` | `specPath` | `string` | Configured OpenAPI specification path |
+| `OpenApiOperation` | `path` | `string` | Operation path, such as `/sessions` |
+| `OpenApiOperation` | `method` | `string` | Case-insensitive HTTP method |
+| `OpenApiDocument` | `specPath` | `string` | Configured OpenAPI specification path |
+| `OpenApiDocument` | `tagFilter` | `string[]` | Includes only operations with matching tags |
+
+<Callout type="tip">Let guides explain tasks and decisions while OpenAPI components own interface facts, preventing hand-written parameter tables from drifting.</Callout>
+
+See [OpenAPI documentation](/features/openapi) and [Embed OpenAPI in MDX](/openapi/embedding) for configuration details.

@@ -213,15 +213,9 @@ export default function MySlot() {
 
 Because modules such as `virtual:clarify/slot` and `virtual:clarify/slots` only exist during the Clarify/Vite build, the TypeScript language service in the user project cannot recognize them by default.
 
-To avoid asking plugin authors or site authors to write `declare module` manually, Clarify dev should generate a project-level type declaration file from the current project and enabled plugins, for example:
+To avoid asking plugin authors or site authors to write `declare module` manually, Clarify dev should generate a project-level type declaration file from the current project and enabled plugins, for example `clarify-env.d.ts`. The file can contain:
 
-```txt
-clarify-env.d.ts
-```
-
-The file can contain:
-
-```ts
+```ts title="clarify-env.d.ts"
 declare module 'virtual:clarify/slot' {
   import type { RouteItem } from '@clarify-labs/renderer'
 

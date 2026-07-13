@@ -85,14 +85,16 @@ Clarify 采用虚拟模块模式实现更清晰的分离：
 
 Clarify 使用**基于文件系统的路由**，并支持可选的 frontmatter 覆盖：
 
-```
-rootDirectory/
-├── index.mdx           → /
-├── getting-started.mdx → /getting-started
-├── guides/
-│   ├── index.mdx       → /guides
-│   └── theming.mdx     → /guides/theming
-```
+<FileTree aria-label="基于文件系统的路由">
+  <FileTreeItem name="rootDirectory" type="folder">
+    <FileTreeItem name="index.mdx" description="-> /" />
+    <FileTreeItem name="getting-started.mdx" description="-> /getting-started" />
+    <FileTreeItem name="guides" type="folder">
+      <FileTreeItem name="index.mdx" description="-> /guides" />
+      <FileTreeItem name="theming.mdx" description="-> /guides/theming" />
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 - 路由从相对于 `rootDirectory` 的文件路径派生
 - 支持 `.md`、`.mdx` 和 `.openapi.json/.yaml/.yml` 文件

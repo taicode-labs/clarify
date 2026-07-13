@@ -1,0 +1,32 @@
+# Properties / Property
+
+`Properties` 和 `Property` 用于描述配置项、组件 Props 和数据字段。它们比宽表格更适合长说明，并能在窄屏保持可读。
+
+## 用法
+
+```mdx
+<Properties>
+  <Property name="routePrefix" type="string">
+    部署子路径，例如 `/docs/`。
+  </Property>
+  <Property name="tabs" type="ClarifyTabsConfig">
+    配置顶部业务分类和侧边栏结构。
+  </Property>
+</Properties>
+```
+
+<Properties>
+  <Property name="routePrefix" type="string">部署子路径，例如 `/docs/`。</Property>
+  <Property name="tabs" type="ClarifyTabsConfig">配置顶部业务分类和侧边栏结构。</Property>
+</Properties>
+
+## 属性
+
+| 组件 | 属性 | 类型 | 说明 |
+|------|------|------|------|
+| `Properties` | `children` | `ReactNode` | 一个或多个 `Property` |
+| `Property` | `name` | `string` | 字段或属性名 |
+| `Property` | `type` | `string` | 可选类型说明 |
+| `Property` | `children` | `ReactNode` | 详细说明，支持 MDX |
+
+<Callout type="tip">短且可比较的数据仍适合表格；说明包含多段文字、链接或示例时使用 `Properties`。</Callout>

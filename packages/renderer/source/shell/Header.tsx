@@ -1,8 +1,8 @@
 import { CloseButton, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import clsx from 'clsx'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { Globe2, MoreHorizontal } from 'lucide-react'
-import { forwardRef } from 'react'
+import { LayoutGroup, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { ChevronLeft, ChevronRight, Globe2, MoreHorizontal } from 'lucide-react'
+import { forwardRef, useCallback, useEffect, useId, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -42,15 +42,16 @@ function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, curren
   return (
     <Menu as="div" className="clarify-language-switcher relative">
       <MenuButton
-        className="clarify-language-switcher-button clarify-ui-control flex h-8 items-center gap-1.5 rounded-(--clarify-theme-tokens-radius-md) px-1.5 transition"
+        className="clarify-language-switcher-button clarify-ui-control flex h-9 items-center gap-1.5 rounded-(--clarify-theme-tokens-radius-md) px-2 transition"
         aria-label={t('language.switch')}
       >
-        <span className="absolute size-12 pointer-fine:hidden" />
+        <span className="absolute size-11 pointer-fine:hidden" />
         <Globe2 className="h-5 w-5 stroke-current" />
         <span className="hidden sm:inline">{selectedLocaleConfig?.label ?? selectedLocale}</span>
       </MenuButton>
       <MenuItems
         transition
+        modal={false}
         className="clarify-language-switcher-menu clarify-ui-menu absolute right-0 z-50 mt-2 w-(--clarify-ui-menu-width) rounded-(--clarify-theme-tokens-radius-xl) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg ring-1 shadow-zinc-900/5 ring-(--clarify-theme-tokens-colors-border) transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-zinc-900 dark:ring-white/10"
       >
         {i18n.locales.flatMap((locale: LocaleConfig) => {
@@ -85,18 +86,22 @@ function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, curren
   )
 }
 
-type TopLevelNavItemProps = { href: string; children: React.ReactNode }
+type TopLevelNavItemProps = { href: string; active?: boolean; children: React.ReactNode }
 
-function TopLevelNavItem(arg0: TopLevelNavItemProps) {  const { href, children } = arg0
+function TopLevelNavItem(arg0: TopLevelNavItemProps) {  const { href, active = false, children } = arg0
 
   const external = isExternalHref(href)
+  const className = clsx(
+    'clarify-ui-top-link inline-flex h-9 items-center rounded-(--clarify-theme-tokens-radius-md) px-3 no-underline transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
+    active && 'clarify-ui-top-link-active',
+  )
 
   if (external) {
     return (
       <li>
         <a
           href={href}
-          className="clarify-ui-top-link transition"
+          className={className}
           target="_blank"
           rel="noreferrer"
         >
@@ -110,7 +115,8 @@ function TopLevelNavItem(arg0: TopLevelNavItemProps) {  const { href, children }
     <li>
       <Link
         to={href}
-        className="clarify-ui-top-link transition"
+        className={className}
+        aria-current={active ? 'page' : undefined}
       >
         {children}
       </Link>
@@ -133,10 +139,10 @@ function MobileNavbarMenu(arg0: MobileNavbarMenuProps) {
   return (
     <Menu as="div" className="clarify-mobile-navbar-menu relative md:hidden">
       <MenuButton
-        className="clarify-mobile-navbar-menu-button clarify-ui-control relative flex size-8 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
+        className="clarify-mobile-navbar-menu-button clarify-ui-control relative flex size-9 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition"
         aria-label={t('navbar.openLinks')}
       >
-        <span className="absolute size-12 pointer-fine:hidden" />
+        <span className="absolute size-11 pointer-fine:hidden" />
         <MoreHorizontal className="h-5 w-5" />
       </MenuButton>
       <MenuItems
@@ -189,36 +195,113 @@ function ProductTabs(arg0: ProductTabsProps) {  const { tabs, currentLocale } = 
 
   const t = useBuiltInText()
   const pathname = normalizeRoutePath(useLocation().pathname)
+  const prefersReducedMotion = useReducedMotion()
+  const indicatorGroupId = useId()
+  const navRef = useRef<HTMLElement>(null)
+  const activeTabRef = useRef<HTMLAnchorElement>(null)
+  const [scrollState, setScrollState] = useState({ start: true, end: true })
+
+  const updateScrollState = useCallback(() => {
+    const nav = navRef.current
+    if (!nav) return
+    const maxScrollLeft = nav.scrollWidth - nav.clientWidth
+    setScrollState({
+      start: nav.scrollLeft <= 1,
+      end: nav.scrollLeft >= maxScrollLeft - 1,
+    })
+  }, [])
+
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+
+    updateScrollState()
+    const resizeObserver = new ResizeObserver(updateScrollState)
+    resizeObserver.observe(nav)
+    return () => resizeObserver.disconnect()
+  }, [tabs, updateScrollState])
+
+  useEffect(() => {
+    activeTabRef.current?.scrollIntoView({
+      behavior: prefersReducedMotion ? 'instant' : 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    })
+  }, [pathname, prefersReducedMotion])
+
+  const scrollTabs = (direction: -1 | 1) => {
+    const nav = navRef.current
+    if (!nav) return
+    nav.scrollBy({
+      left: direction * Math.max(nav.clientWidth * 0.6, 240),
+      behavior: prefersReducedMotion ? 'instant' : 'smooth',
+    })
+  }
+
   if (!tabs?.length) return null
 
   return (
     <div data-clarify-header-tabs className="clarify-product-tabs hidden h-14 border-t border-(--clarify-theme-tokens-colors-border) lg:block dark:border-white/10">
-      <nav className="clarify-product-tabs-nav mx-auto flex h-full w-full max-w-(--clarify-theme-layout-max-width) items-stretch gap-6 overflow-x-auto px-5" aria-label={t('navbar.sections')}>
-        {tabs.map((tab) => {
-          const active = isActiveTab(tab, pathname, currentLocale)
-          return (
-            <Link
-              key={`${tab.title}-${tab.path}`}
-              to={tab.path}
-              aria-current={active ? 'page' : undefined}
-              className={clsx(
-                'clarify-product-tab clarify-ui-tab relative inline-flex h-full shrink-0 items-center gap-2 px-0 transition',
-                active && 'clarify-ui-tab-active',
-              )}
-            >
-              <NavigationIcon name={tab.icon} className="h-4 w-4" />
-              <span>{tab.title}</span>
-              {active ? (
-                <motion.span
-                  layoutId="clarify-product-tab-indicator"
-                  className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-(--clarify-theme-tokens-colors-foreground) dark:bg-white"
-                  transition={{ type: 'tween', duration: 0.16, ease: 'easeOut' }}
-                />
-              ) : null}
-            </Link>
-          )
-        })}
-      </nav>
+      <div
+        className="clarify-product-tabs-frame relative mx-auto h-full w-full max-w-(--clarify-theme-layout-max-width)"
+        data-at-start={scrollState.start || undefined}
+        data-at-end={scrollState.end || undefined}
+      >
+        <button
+          type="button"
+          className="clarify-product-tabs-scroll clarify-product-tabs-scroll-start"
+          onClick={() => scrollTabs(-1)}
+          aria-label="Scroll sections left"
+          tabIndex={scrollState.start ? -1 : 0}
+          aria-hidden={scrollState.start}
+        >
+          <ChevronLeft className="size-4" aria-hidden="true" />
+        </button>
+        <LayoutGroup id={indicatorGroupId}>
+          <nav
+            ref={navRef}
+            className="clarify-product-tabs-nav flex h-full w-full items-stretch gap-2 overflow-x-auto px-5"
+            aria-label={t('navbar.sections')}
+            onScroll={updateScrollState}
+          >
+            {tabs.map((tab) => {
+              const active = isActiveTab(tab, pathname, currentLocale)
+              return (
+                <Link
+                  ref={active ? activeTabRef : undefined}
+                  key={`${tab.title}-${tab.path}`}
+                  to={tab.path}
+                  aria-current={active ? 'page' : undefined}
+                  className={clsx(
+                    'clarify-product-tab clarify-ui-tab relative inline-flex h-full shrink-0 items-center gap-2 px-3 no-underline transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
+                    active && 'clarify-ui-tab-active',
+                  )}
+                >
+                  <NavigationIcon name={tab.icon} className="h-4 w-4" />
+                  <span>{tab.title}</span>
+                  {active ? (
+                    <motion.span
+                      layoutId="active-indicator"
+                      className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-(--clarify-ui-tab-indicator)"
+                      transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 38, mass: 0.7 }}
+                    />
+                  ) : null}
+                </Link>
+              )
+            })}
+          </nav>
+        </LayoutGroup>
+        <button
+          type="button"
+          className="clarify-product-tabs-scroll clarify-product-tabs-scroll-end"
+          onClick={() => scrollTabs(1)}
+          aria-label="Scroll sections right"
+          tabIndex={scrollState.end ? -1 : 0}
+          aria-hidden={scrollState.end}
+        >
+          <ChevronRight className="size-4" aria-hidden="true" />
+        </button>
+      </div>
     </div>
   )
 }
@@ -238,6 +321,7 @@ export const Header = forwardRef<
 >(function Header(arg0, ref) {  const { config, navigation, tabs, routes, currentLocale, currentRoute, banner, topAreaRef, className, ...props } = arg0
 
   const t = useBuiltInText()
+  const pathname = normalizeRoutePath(useLocation().pathname)
   const { isOpen: mobileNavIsOpen } = useMobileNavigationStore()
   const isInsideMobileNavigation = useIsInsideMobileNavigation()
   const homeHref = resolveHomeHref(config, currentLocale)
@@ -270,13 +354,18 @@ export const Header = forwardRef<
     if (!hasNavbarLinks) return null
 
     return (
-      <nav className="clarify-top-nav hidden md:block">
-        <ul role="list" className="flex items-center gap-8">
-          {config.navbar?.links?.map((link) => (
-            <TopLevelNavItem key={link.href} href={localizeHref(link.href, config, currentLocale)}>
-              {resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale)}
-            </TopLevelNavItem>
-          ))}
+      <nav className="clarify-top-nav hidden md:block" aria-label={t('navbar.sections')}>
+        <ul role="list" className="flex items-center gap-0.5">
+          {config.navbar?.links?.map((link) => {
+            const href = localizeHref(link.href, config, currentLocale)
+            const active = !isExternalHref(href) && isSameRoutePath(href, pathname, currentLocale)
+
+            return (
+              <TopLevelNavItem key={link.href} href={href} active={active}>
+                {resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale)}
+              </TopLevelNavItem>
+            )
+          })}
         </ul>
       </nav>
     )
@@ -284,9 +373,9 @@ export const Header = forwardRef<
 
   function renderHeaderActions() {
     return (
-      <div className="clarify-header-actions flex shrink-0 items-center gap-5">
+      <div className="clarify-header-actions flex shrink-0 items-center gap-1">
         {renderTopLinks()}
-        {hasNavbarLinks ? <div className="hidden md:block md:h-5 md:w-px md:bg-(--clarify-theme-tokens-colors-border) md:dark:bg-white/15" /> : null}
+        {hasNavbarLinks ? <div className="mx-2 hidden h-5 w-px bg-(--clarify-theme-tokens-colors-border) md:block md:dark:bg-white/15" /> : null}
         <MobileSearch routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
         <LanguageSwitcher config={config} currentLocale={currentLocale} currentRoute={currentRoute} />
         <ThemeToggle />

@@ -1,0 +1,56 @@
+# Button
+
+`Button` 为重要操作提供稳定、明确的视觉层级。传入 `href` 时渲染为链接，不传时渲染为原生按钮；站内链接会保留 Clarify 的客户端导航和当前语言。
+
+它适合需要读者立即注意的操作，例如开始配置、打开工具或确认任务。正文中的普通跳转仍应使用 Markdown 链接。
+
+## 用法
+
+```mdx
+<Button href="/getting-started" arrow="right">开始安装</Button>
+
+<Button href="https://github.com/taicode-labs/clarify" variant="outline">
+  查看 GitHub
+</Button>
+```
+
+<div className="not-prose my-6 flex flex-wrap gap-3">
+  <Button href="/getting-started" arrow="right">开始安装</Button>
+  <Button href="https://github.com/taicode-labs/clarify" variant="outline">查看 GitHub</Button>
+</div>
+
+## 样式
+
+`primary` 适合页面主行动，`secondary` 和 `outline` 适合次级行动，`filled` 使用主题主色，`text` 适合低视觉权重的行内入口。
+
+<div className="not-prose my-6 flex flex-wrap items-center gap-3">
+  <Button variant="primary">主要操作</Button>
+  <Button variant="secondary">次要操作</Button>
+  <Button variant="filled">主题强调</Button>
+  <Button variant="outline">描边按钮</Button>
+  <Button variant="text" arrow="right">文本操作</Button>
+</div>
+
+## 方向与状态
+
+箭头用于表达继续或返回。组件会透传原生按钮属性，因此任务执行期间可以禁用操作。
+
+<div className="not-prose my-6 flex flex-wrap items-center gap-3">
+  <Button variant="outline" arrow="left">上一步</Button>
+  <Button arrow="right">继续</Button>
+  <Button variant="secondary" disabled>正在保存</Button>
+</div>
+
+## 属性
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `variant` | `'primary' \| 'secondary' \| 'filled' \| 'outline' \| 'text'` | `'primary'` | 视觉样式 |
+| `arrow` | `'left' \| 'right'` | - | 显示方向箭头 |
+| `href` | `string` | - | 存在时渲染为链接 |
+| `children` | `ReactNode` | 必填 | 按钮文案 |
+| `className` | `string` | - | 追加类名 |
+
+组件还会透传原生 `<a>` 或 `<button>` 属性，例如 `target`、`rel`、`type` 和 `disabled`。
+
+<Callout type="tip">一个区域通常只保留一个主按钮，并搭配视觉更安静的次级操作，避免多个选项同时争夺注意力。</Callout>

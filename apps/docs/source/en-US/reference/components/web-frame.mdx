@@ -1,0 +1,71 @@
+# WebFrame
+
+`WebFrame` presents a product page, hosted demo, or static UI preview without making it look like ordinary prose. It uses a lazy-loaded iframe when `src` is present and renders `children` directly otherwise.
+
+Use the browser chrome when the URL or page context matters. Hide it for focused component previews where the surrounding browser metaphor would add noise.
+
+## Embed a page
+
+```mdx
+<WebFrame src="https://clarify.pub" title="Clarify website" height={360} />
+```
+
+Set `showWindow={false}` to hide the simulated browser header:
+
+```mdx
+<WebFrame src="https://clarify.pub" title="Component preview" showWindow={false} height={320} />
+```
+
+## Frame styles
+
+The same preview can be presented as a browser page or as a clean embedded surface:
+
+<WebFrame title="Settings preview" height={150}>
+  <div style={{ padding: 24 }}>
+    <strong>Workspace access</strong>
+    <p style={{ marginTop: 8 }}>Control who can publish documentation.</p>
+  </div>
+</WebFrame>
+
+<WebFrame title="Settings preview" showWindow={false} height={150}>
+  <div style={{ padding: 24 }}>
+    <strong>Workspace access</strong>
+    <p style={{ marginTop: 8 }}>Control who can publish documentation.</p>
+  </div>
+</WebFrame>
+
+## Inline preview
+
+```mdx
+<WebFrame title="Inline preview" height={180}>
+  <div style={{ padding: 24 }}>
+    <strong>Preview content</strong>
+    <p>This content renders directly inside the frame.</p>
+  </div>
+</WebFrame>
+```
+
+Rendered result with browser context:
+
+<WebFrame title="Inline preview" height={180}>
+  <div style={{ padding: 24 }}>
+    <strong>Preview content</strong>
+    <p>This content renders directly inside the frame.</p>
+  </div>
+</WebFrame>
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `src` | `string` | - | iframe URL; omit to render `children` |
+| `title` | `string` | `'Embedded content'` | Accessible iframe name and window title |
+| `showWindow` | `boolean` | `true` | Whether to show the simulated window chrome |
+| `height` | `CSSProperties['height']` | `420` | Content height |
+| `className` | `string` | - | Class name for the outer container |
+| `iframeClassName` | `string` | - | Class name for the iframe or inline container |
+| `children` | `ReactNode` | - | Content when `src` is absent |
+
+Other native iframe props are forwarded, including `allow`, `sandbox`, and `referrerPolicy`.
+
+<Callout type="warning">External sites can block iframe embedding with security headers. Apply a restrictive `sandbox` when embedding untrusted content.</Callout>

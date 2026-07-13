@@ -1,0 +1,33 @@
+# AccordionGroup
+
+`AccordionGroup` combines related `Collapse` items into one compact surface. By default, opening one item closes the previous item.
+
+## Usage
+
+```mdx
+<AccordionGroup>
+  <Collapse title="Which Node.js versions are supported?" defaultOpen>
+    Clarify supports Node.js 20 and later.
+  </Collapse>
+  <Collapse title="How do I clear the cache?">
+    Remove the local cache directory and restart the development server.
+  </Collapse>
+</AccordionGroup>
+```
+
+<AccordionGroup>
+  <Collapse title="Which Node.js versions are supported?" defaultOpen>Clarify supports Node.js 20 and later.</Collapse>
+  <Collapse title="How do I clear the cache?">Remove the local cache directory and restart the development server.</Collapse>
+</AccordionGroup>
+
+Set `multiple` when readers should be able to compare several expanded answers.
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `multiple` | `boolean` | `false` | Allow several items to remain expanded |
+| `children` | `Collapse` elements | - | Related disclosures in display order |
+| `className` | `string` | - | Class name for the group container |
+
+`Collapse` keeps its existing `title`, `summary`, and `defaultOpen` props.

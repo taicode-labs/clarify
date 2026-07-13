@@ -1,0 +1,32 @@
+# Properties / Property
+
+`Properties` and `Property` describe configuration, component props, and data fields. They handle long descriptions better than wide tables and remain readable on narrow screens.
+
+## Usage
+
+```mdx
+<Properties>
+  <Property name="routePrefix" type="string">
+    Deployment subpath, such as `/docs/`.
+  </Property>
+  <Property name="tabs" type="ClarifyTabsConfig">
+    Configures top-level categories and sidebar navigation.
+  </Property>
+</Properties>
+```
+
+<Properties>
+  <Property name="routePrefix" type="string">Deployment subpath, such as `/docs/`.</Property>
+  <Property name="tabs" type="ClarifyTabsConfig">Configures top-level categories and sidebar navigation.</Property>
+</Properties>
+
+## Props
+
+| Component | Prop | Type | Description |
+|-----------|------|------|-------------|
+| `Properties` | `children` | `ReactNode` | One or more `Property` elements |
+| `Property` | `name` | `string` | Field or property name |
+| `Property` | `type` | `string` | Optional type label |
+| `Property` | `children` | `ReactNode` | Detailed description with MDX support |
+
+<Callout type="tip">Use a table for short, comparable data. Use `Properties` when descriptions contain paragraphs, links, or examples.</Callout>

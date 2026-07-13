@@ -1,0 +1,34 @@
+# Callout
+
+`Callout` highlights information that affects understanding, decisions, or task outcomes. It supports semantic variants, an optional title, and an icon.
+
+## Variants
+
+<Callout type="info" title="Info">Provide context needed for the current task.</Callout>
+<Callout type="note" title="Note">Add detail that the main text does not expand.</Callout>
+<Callout type="tip" title="Tip">Recommend a faster or safer approach.</Callout>
+<Callout type="warning" title="Warning">Flag potential failures, permissions, or compatibility issues.</Callout>
+<Callout type="danger" title="Danger">Mark destructive or security-sensitive actions.</Callout>
+<Callout type="success" title="Success">Confirm completion or successful validation.</Callout>
+
+```mdx
+<Callout type="warning" title="Production">
+  Update the reverse proxy rules after changing `routePrefix`.
+</Callout>
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `'info' \| 'note' \| 'tip' \| 'warning' \| 'danger' \| 'success'` | `'info'` | Semantic color and default icon |
+| `title` | `ReactNode` | Derived from `type` | Heading; pass an empty value to hide it |
+| `icon` | `boolean` | `true` | Whether to show the variant icon |
+| `children` | `ReactNode` | Required | Body with MDX support |
+| `className` | `string` | - | Class name for the container |
+
+## Guidelines
+
+- Keep one conclusion per callout and use a short phrase for its title.
+- Use `Note` for ordinary background so the page is not dominated by colored panels.
+- Reserve `danger` for irreversible or security-sensitive risks; use `warning` for ordinary cautions.

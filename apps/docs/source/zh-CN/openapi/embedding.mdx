@@ -19,13 +19,16 @@ Clarify 不只会把 `.openapi.json` / `.openapi.yaml` 渲染成完整 API Refer
 
 把规范放在当前语言目录下，例如：
 
-```txt
-source/
-└── zh-CN/
-    ├── api.openapi.json
-    └── openapi/
-        └── embedding.mdx
-```
+<FileTree aria-label="语言目录下的 OpenAPI 规范">
+  <FileTreeItem name="source" type="folder">
+    <FileTreeItem name="zh-CN" type="folder">
+      <FileTreeItem name="api.openapi.json" />
+      <FileTreeItem name="openapi" type="folder">
+        <FileTreeItem name="embedding.mdx" />
+      </FileTreeItem>
+    </FileTreeItem>
+  </FileTreeItem>
+</FileTree>
 
 文件名决定 Reference 路由：
 
