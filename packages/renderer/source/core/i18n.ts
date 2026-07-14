@@ -51,6 +51,7 @@ export type BuiltInTextKey =
   | 'notFound.label'
   | 'notFound.title'
   | 'openapi.apiDocumentation'
+  | 'openapi.authentication'
   | 'openapi.bodyProperties'
   | 'openapi.collapse'
   | 'openapi.endpointNotFound'
@@ -59,6 +60,8 @@ export type BuiltInTextKey =
   | 'openapi.headers'
   | 'openapi.language'
   | 'openapi.client'
+  | 'openapi.closeRequest'
+  | 'openapi.credential'
   | 'openapi.loading'
   | 'openapi.mediaType'
   | 'openapi.none'
@@ -71,17 +74,24 @@ export type BuiltInTextKey =
   | 'openapi.request'
   | 'openapi.requestBody'
   | 'openapi.requestBodyEmpty'
+  | 'openapi.requestCorsHint'
   | 'openapi.responseBodyProperties'
   | 'openapi.required'
   | 'openapi.requiredBadge'
   | 'openapi.response'
+  | 'openapi.responseBodyEmpty'
+  | 'openapi.responseEmpty'
   | 'openapi.responses'
   | 'openapi.schemaExample'
+  | 'openapi.sendRequest'
+  | 'openapi.sendingRequest'
+  | 'openapi.server'
   | 'openapi.scrollExamplesLeft'
   | 'openapi.scrollExamplesRight'
   | 'openapi.specNotFound'
   | 'openapi.specPathMissing'
   | 'openapi.status'
+  | 'openapi.tryRequest'
   | 'openapi.version'
   | 'openapi.webhookResponse'
   | 'openapi.webhookResponses'
@@ -157,6 +167,7 @@ const builtInText = {
     'notFound.label': '404',
     'notFound.title': 'Page not found',
     'openapi.apiDocumentation': 'API Documentation',
+    'openapi.authentication': 'Authentication',
     'openapi.bodyProperties': 'Body properties',
     'openapi.collapse': 'Collapse',
     'openapi.endpointNotFound': 'Endpoint not found: {endpoint}',
@@ -165,6 +176,8 @@ const builtInText = {
     'openapi.headers': 'Headers',
     'openapi.language': 'Language',
     'openapi.client': 'Client',
+    'openapi.closeRequest': 'Close request tester',
+    'openapi.credential': 'Credential',
     'openapi.loading': 'Loading OpenAPI spec...',
     'openapi.mediaType': 'Media type',
     'openapi.none': 'None',
@@ -177,17 +190,24 @@ const builtInText = {
     'openapi.request': 'Request',
     'openapi.requestBody': 'Request body',
     'openapi.requestBodyEmpty': 'No request body',
+    'openapi.requestCorsHint': 'The API may be unavailable from this browser because of its network or CORS policy',
     'openapi.responseBodyProperties': 'Response body properties',
     'openapi.required': 'Required.',
     'openapi.requiredBadge': 'required',
     'openapi.response': 'Response',
+    'openapi.responseBodyEmpty': 'The response body is empty.',
+    'openapi.responseEmpty': 'Send the request to inspect the response.',
     'openapi.responses': 'Responses',
     'openapi.schemaExample': 'Schema example',
+    'openapi.sendRequest': 'Send',
+    'openapi.sendingRequest': 'Sending',
+    'openapi.server': 'Server',
     'openapi.scrollExamplesLeft': 'Scroll examples left',
     'openapi.scrollExamplesRight': 'Scroll examples right',
     'openapi.specNotFound': 'OpenAPI spec not found: {specPath}',
     'openapi.specPathMissing': 'spec or specPath was not provided',
     'openapi.status': 'Status',
+    'openapi.tryRequest': 'Try request',
     'openapi.version': 'Version {version}',
     'openapi.webhookResponse': 'Webhook response',
     'openapi.webhookResponses': 'Webhook responses',
@@ -262,6 +282,7 @@ const builtInText = {
     'notFound.label': '404',
     'notFound.title': '页面未找到',
     'openapi.apiDocumentation': 'API 文档',
+    'openapi.authentication': '认证方式',
     'openapi.bodyProperties': '请求体属性',
     'openapi.collapse': '收起',
     'openapi.endpointNotFound': '未找到端点：{endpoint}',
@@ -270,6 +291,8 @@ const builtInText = {
     'openapi.headers': '请求头',
     'openapi.language': '语言',
     'openapi.client': '客户端',
+    'openapi.closeRequest': '关闭请求测试器',
+    'openapi.credential': '认证凭证',
     'openapi.loading': '正在加载 OpenAPI 描述文件...',
     'openapi.mediaType': '媒体类型',
     'openapi.none': '无',
@@ -282,17 +305,24 @@ const builtInText = {
     'openapi.request': '请求',
     'openapi.requestBody': '请求体',
     'openapi.requestBodyEmpty': '暂无请求体',
+    'openapi.requestCorsHint': '受目标 API 的网络或 CORS 策略影响，浏览器可能无法直接访问',
     'openapi.responseBodyProperties': '响应体属性',
     'openapi.required': '必填。',
     'openapi.requiredBadge': '必填',
     'openapi.response': '响应',
+    'openapi.responseBodyEmpty': '响应体为空。',
+    'openapi.responseEmpty': '发送请求后在这里查看响应。',
     'openapi.responses': '响应',
     'openapi.schemaExample': 'Schema 示例',
+    'openapi.sendRequest': '发送',
+    'openapi.sendingRequest': '发送中',
+    'openapi.server': '服务地址',
     'openapi.scrollExamplesLeft': '向左滚动示例',
     'openapi.scrollExamplesRight': '向右滚动示例',
     'openapi.specNotFound': '未找到 OpenAPI 描述文件：{specPath}',
     'openapi.specPathMissing': '未提供 spec 或 specPath',
     'openapi.status': '状态',
+    'openapi.tryRequest': '发起测试请求',
     'openapi.version': '版本 {version}',
     'openapi.webhookResponse': 'Webhook 响应',
     'openapi.webhookResponses': 'Webhook 响应',

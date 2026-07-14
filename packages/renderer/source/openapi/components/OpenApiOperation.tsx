@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CheckIcon, ChevronDownIcon, CopyIcon, LockKeyholeIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, CopyIcon, LockKeyholeIcon, PlayIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 
 import { Heading } from '../../components/Heading'
@@ -9,13 +9,12 @@ import { getMediaTypeEntries, getResponseEntries, joinPath } from '../lib/helper
 import { getOpenApiOperationSectionId, type OpenAPIOperation, type OpenAPIOperationSource, type OpenAPISpec } from '../lib/utils'
 import type { OpenApiServer, OpenApiServerVariable } from '../types'
 
+import { ApiRequestDialog } from './ApiRequest'
 import { EndpointRequest, EndpointResponse } from './EndpointSections'
 import { authLabel, authPlaceholder, getServerKey, getServerLabel } from './ExamplePanels'
 import type { AuthOption } from './ExamplePanels'
 import { InlineListbox } from './InlineListbox'
 import { useOperationAuthState, useOperationRequestState, useOperationServerState } from './OpenApiOperation.state'
-
-
 export type OpenApiOperationProps = {
   spec: OpenAPISpec
   path: string
@@ -23,7 +22,6 @@ export type OpenApiOperationProps = {
   operation: OpenAPIOperation
   operationSource?: OpenAPIOperationSource
 }
-
 const endpointMethodStyleVars: Record<string, string> = {
   GET: 'bg-(--clarify-http-method-get-background) text-(--clarify-http-method-get-text)',
   POST: 'bg-(--clarify-http-method-post-background) text-(--clarify-http-method-post-text)',
@@ -355,6 +353,7 @@ type EndpointIdentityProps = {
   onToggleAuth: () => void
   onSelectAuth: (name: string) => void
   onChangeAuthValue: (name: string, value: string) => void
+  onTryRequest?: () => void
 }
 
 export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
@@ -378,7 +377,9 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
     onToggleAuth,
     onSelectAuth,
     onChangeAuthValue,
+    onTryRequest,
   } = arg0
+  const t = useBuiltInText()
 
   const directServerSelect = servers.length > 1 && servers.every((server) => Object.keys(server.variables ?? {}).length === 0)
   const serverInteractive = servers.length > 1 || Object.keys(selectedServer.variables ?? {}).length > 0
@@ -415,6 +416,14 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
           onToggle={onToggleServer}
         />
         <EndpointPath path={path} copied={copiedUrl} onCopy={handleCopyUrl} />
+        {onTryRequest ? (
+          <button type="button"
+            aria-label={t('openapi.tryRequest')} title={t('openapi.tryRequest')} onClick={onTryRequest}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-theme-tokens-colors-primary) text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2"
+          >
+            <PlayIcon className="h-4 w-4 fill-current" aria-hidden="true" />
+          </button>
+        ) : null}
         {authOptions.length > 0 ? (
           <button
             type="button"
@@ -465,6 +474,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const authState = useOperationAuthState(spec, operation)
   const [linkedExampleKey, setLinkedExampleKey] = useState('')
   const [selectedResponseStatus, setSelectedResponseStatus] = useState(() => getDefaultResponseStatus(operation, spec))
+  const [requestOpen, setRequestOpen] = useState(false)
 
   return (
     <section className="clarify-openai-endpoint scroll-mt-24 pb-16 first:pt-0 last:pb-0" aria-labelledby={id}>
@@ -497,7 +507,9 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
         }}
         onSelectAuth={authState.onSelectAuth}
         onChangeAuthValue={authState.onChangeAuthValue}
+        onTryRequest={() => setRequestOpen(true)}
       />
+      <ApiRequestDialog open={requestOpen} onClose={() => setRequestOpen(false)} spec={spec} path={path} method={method} operation={operation} operationSource={operationSource} />
       <EndpointRequest
         spec={spec}
         path={path}
