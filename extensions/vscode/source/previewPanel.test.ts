@@ -48,4 +48,16 @@ describe('PreviewPanel', () => {
 
     expect(createWebviewPanel).toHaveBeenCalledOnce()
   })
+
+  it('preserves editor focus when automatic navigation reveals a hidden panel', () => {
+    const panel = createPanel()
+    createWebviewPanel.mockReturnValue(panel)
+    const preview = new PreviewPanel({} as never)
+    preview.show('http://localhost:5173/guide', true, true)
+    panel.visible = false
+
+    preview.show('http://localhost:5173/reference', true, false, true)
+
+    expect(panel.reveal).toHaveBeenCalledWith(2, true)
+  })
 })
