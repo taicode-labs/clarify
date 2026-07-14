@@ -244,15 +244,11 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown, defaultExpanded?:
 type SchemaNodeProps = { node: SchemaTreeNode; depth?: number; defaultExpanded?: boolean }
 
 function EnumValueNode(arg0: SchemaNodeProps): ReactNode {
-  const { node, depth = 0 } = arg0
-  const rowClassName = clsx(
-    'flex min-w-0 items-start rounded py-0.5 text-left',
-    depth > 0 ? '-mx-2 w-(--clarify-schema-row-nested-width) px-2' : 'w-full px-1',
-  )
+  const { node } = arg0
 
   return (
-    <li className="clarify-schema-node m-0 px-0 py-2 first:pt-0 last:pb-0">
-      <div className={rowClassName}>
+    <li className="clarify-schema-node m-0 p-0">
+      <div className="flex min-w-0 items-start rounded-md px-2 py-2 text-left">
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
             <span className="text-sm/5 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{node.name}</span>
@@ -286,10 +282,7 @@ function SchemaNode(arg0: SchemaNodeProps): ReactNode {
     : node.required
       ? t('openapi.required')
       : t('openapi.optional')
-  const rowClassName = clsx(
-    'flex min-w-0 items-start rounded py-0.5 text-left',
-    depth > 0 ? '-mx-2 w-(--clarify-schema-row-nested-width) px-2' : 'w-full px-1',
-  )
+  const rowClassName = 'flex w-full min-w-0 items-start rounded-md px-2 py-2 text-left'
 
   const content = (
     <>
@@ -312,7 +305,7 @@ function SchemaNode(arg0: SchemaNodeProps): ReactNode {
   )
 
   return (
-    <li className="clarify-schema-node m-0 px-0 py-2 first:pt-0 last:pb-0">
+    <li className="clarify-schema-node m-0 p-0">
       {hasChildren ? (
         <button
           type="button"
@@ -342,8 +335,10 @@ function SchemaTree(arg0: SchemaTreeProps): ReactNode {
     <ul
       role="list"
       className={clsx(
-        'm-0 list-none divide-y divide-(--clarify-theme-tokens-colors-border) p-0',
-        depth > 0 && 'mt-2 rounded-lg bg-(--clarify-ui-subtle-background) px-2 py-1',
+        'm-0 list-none p-0',
+        depth === 0
+          ? 'divide-y divide-(--clarify-theme-tokens-colors-border)'
+          : 'ml-2 border-l border-(--clarify-theme-tokens-colors-border) pl-2',
       )}
     >
       {nodes.map((node) => <SchemaNode key={node.key} node={node} depth={depth} defaultExpanded={node.defaultExpanded} />)}
@@ -363,7 +358,7 @@ export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {
   return (
     <div>
       <h3>{title}</h3>
-      <div className="clarify-schema-properties my-6">
+      <div className="clarify-schema-properties not-prose my-6">
         <SchemaTree nodes={root.children} />
       </div>
     </div>
@@ -469,7 +464,9 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
           label: status,
           panel: renderResponsePanel({ status, response }),
         }))}
-        panelsClassName="mt-4"
+        className="mt-4 mb-6"
+        listClassName="w-fit rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) p-1"
+        panelsClassName="mt-5"
       />
     </div>
   )

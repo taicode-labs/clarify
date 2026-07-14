@@ -104,6 +104,32 @@ describe('schemaToType', () => {
 })
 
 describe('SchemaProperties', () => {
+  it('renders nested properties as an indented tree outside prose styles', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {},
+    }
+
+    const schema = {
+      type: 'object',
+      properties: {
+        profile: {
+          type: 'object',
+          properties: { name: { type: 'string' } },
+        },
+      },
+    }
+
+    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
+
+    expect(markup).toContain('clarify-schema-properties not-prose my-6')
+    expect(markup).toContain('clarify-schema-node m-0 p-0')
+    expect(markup).toMatch(/<button[^>]*class="[^"]*rounded-md[^"]*hover:bg-/)
+    expect(markup).toContain('ml-2 border-l border-(--clarify-theme-tokens-colors-border) pl-2')
+    expect(markup).not.toContain('bg-(--clarify-ui-subtle-background)')
+  })
+
   it('keeps enum branches collapsed by default even when x-enumDescriptions are present', () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',

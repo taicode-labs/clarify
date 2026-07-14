@@ -76,8 +76,8 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
 
   const t = useBuiltInText()
   const metaClassName = comfortableMeta
-    ? 'flex min-h-11 min-w-0 items-center gap-2 border-y border-(--clarify-code-border) border-t-transparent bg-(--clarify-code-background) px-4 py-2'
-    : 'flex h-9 min-w-0 items-center gap-2 border-y border-(--clarify-code-border) border-t-transparent bg-(--clarify-code-background) px-4'
+    ? 'flex min-h-10 min-w-0 items-center gap-2 border-b border-(--clarify-code-border) bg-(--clarify-code-background) px-3.5 py-2'
+    : 'flex h-9 min-w-0 items-center gap-2 border-b border-(--clarify-code-border) bg-(--clarify-code-background) px-3.5'
   const meta = (
     <>
       {tag ? (
@@ -103,10 +103,10 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
   )
 
   return (
-    <div className="clarify-openai-example my-6 overflow-hidden rounded-2xl bg-(--clarify-code-background) shadow-md ring-1 ring-(--clarify-code-border)">
+    <div className="clarify-openai-example my-6 overflow-hidden rounded-lg border border-(--clarify-code-border) bg-(--clarify-code-background) shadow-sm">
       <div className="not-prose">
-        <div className="clarify-openai-example-header flex min-h-(--clarify-code-header-min-height) items-center gap-3 border-b border-(--clarify-code-border) bg-(--clarify-code-header-background) px-4 py-2">
-          <h3 className="mr-auto min-w-16 truncate py-1 text-xs font-semibold text-(--clarify-code-text)">{title}</h3>
+        <div className="clarify-openai-example-header flex min-h-11 items-center gap-3 border-b border-(--clarify-code-border) bg-(--clarify-code-header-background) px-3.5 py-1.5">
+          <h3 className="mr-auto min-w-16 truncate py-1 text-sm font-semibold text-(--clarify-code-text)">{title}</h3>
           <div className="clarify-openai-example-header-controls ml-auto flex min-w-0 items-center gap-2 whitespace-nowrap">
             {mediaTypes && mediaTypes.length > 1 && selectedMediaType && onSelectMediaType ? (
               <SelectControl
