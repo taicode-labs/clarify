@@ -201,7 +201,7 @@ async function navigateToRoute(filePath: string, createIfMissing = false): Promi
       return
     }
     const openToSide = vscode.workspace.getConfiguration('clarify').get<boolean>('openToSide', true)
-    previewPanel.show(previewUrl, openToSide, createIfMissing)
+    previewPanel.show(previewUrl, openToSide, createIfMissing, !createIfMissing)
   } catch (err) {
     vscode.window.showErrorMessage(`Clarify: could not resolve route — ${formatError(err)}`)
   }

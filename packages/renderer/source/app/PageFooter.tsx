@@ -67,22 +67,21 @@ export function PageFooter() {
   const hasContent = Boolean(copyright || links.length > 0 || socials.length > 0)
 
   if (!hasContent) {
-    return <footer aria-hidden="true" className="clarify-page-footer mt-16 w-full border-t border-(--clarify-theme-tokens-colors-border) pt-8 lg:mt-24" />
+    return null
   }
 
   return (
-    <footer className="clarify-page-footer mt-16 flex w-full flex-col gap-4 border-t border-(--clarify-theme-tokens-colors-border) py-8 lg:mt-24">
+    <footer className="clarify-page-footer w-full">
       <div
         className={clsx(
-          'clarify-footer-content flex flex-col items-end gap-3 text-right',
-          'sm:items-start sm:text-left',
+          'clarify-footer-content flex flex-col items-start gap-2.5 text-left',
         )}
       >
         {copyright ? (
           <p className="clarify-footer-copyright m-0">{copyright}</p>
         ) : null}
         {links.length > 0 || socials.length > 0 ? (
-          <div className="clarify-footer-links flex flex-wrap justify-end gap-x-4 gap-y-2 sm:justify-start">
+          <div className="clarify-footer-links flex flex-wrap justify-start gap-x-4 gap-y-2">
             {links.map((link) => (
               <FooterLink key={`${link.href}-${resolveLocalizedText(link.label, locale, config.i18n?.defaultLocale)}`} link={link} locale={locale} config={config} />
             ))}

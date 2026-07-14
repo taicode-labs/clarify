@@ -16,7 +16,7 @@ export class PreviewPanel {
   /**
    * Show or reveal the preview panel and load the specified preview URL.
    */
-  show(previewUrl: string, openToSide: boolean, createIfMissing = true): void {
+  show(previewUrl: string, openToSide: boolean, createIfMissing = true, preserveFocus = false): void {
     if (!this.panel) {
       if (!createIfMissing) return
 
@@ -35,7 +35,10 @@ export class PreviewPanel {
         this.currentUrl = undefined
       })
     } else if (!this.panel.visible) {
-      this.panel.reveal(openToSide ? vscode.ViewColumn.Beside : this.panel.viewColumn)
+      this.panel.reveal(
+        openToSide ? vscode.ViewColumn.Beside : this.panel.viewColumn,
+        preserveFocus,
+      )
     }
 
     this.currentUrl = previewUrl

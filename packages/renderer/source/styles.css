@@ -134,9 +134,9 @@
     --clarify-ui-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 10%, transparent);
     --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 22%, transparent);
     --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 18%, transparent);
-    --clarify-code-background: color-mix(in srgb, #020617 92%, var(--clarify-theme-tokens-colors-primary));
-    --clarify-code-surface: color-mix(in srgb, #0f172a 88%, var(--clarify-theme-tokens-colors-primary));
-    --clarify-code-header-background: color-mix(in srgb, #111827 86%, var(--clarify-theme-tokens-colors-primary));
+    --clarify-code-background: #18181b;
+    --clarify-code-surface: #202023;
+    --clarify-code-header-background: #242427;
     --clarify-code-border: rgb(255 255 255 / 0.1);
     --clarify-code-text: var(--color-zinc-100);
     --clarify-code-control-text: var(--color-zinc-300);
@@ -201,7 +201,7 @@
     --clarify-ui-menu-line-height: 1.5rem;
     --clarify-ui-description-font-size: 0.75rem;
     --clarify-ui-description-line-height: 1.25rem;
-    --clarify-ui-tight-letter-spacing: -0.01em;
+    --clarify-ui-tight-letter-spacing: 0;
     --clarify-ui-search-field-font-size: 0.9375rem;
     --clarify-ui-search-field-line-height: 1.5rem;
     --clarify-ui-navigation-section-font-size: var(--clarify-ui-menu-font-size);
@@ -226,9 +226,9 @@
     --clarify-ui-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 16%, transparent);
     --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 30%, transparent);
     --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 28%, transparent);
-    --clarify-code-background: color-mix(in srgb, #020617 94%, var(--clarify-theme-tokens-colors-primary));
-    --clarify-code-surface: color-mix(in srgb, #0f172a 92%, var(--clarify-theme-tokens-colors-primary));
-    --clarify-code-header-background: color-mix(in srgb, #111827 90%, var(--clarify-theme-tokens-colors-primary));
+    --clarify-code-background: #18181b;
+    --clarify-code-surface: #202023;
+    --clarify-code-header-background: #242427;
     --clarify-code-border: rgb(255 255 255 / 0.12);
     --clarify-http-method-get-background: color-mix(in srgb, var(--color-emerald-400) 30%, transparent);
     --clarify-http-method-get-text: var(--color-emerald-200);

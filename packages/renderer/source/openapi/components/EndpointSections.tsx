@@ -78,7 +78,7 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
   return (
     <>
       {renderDescription()}
-      <Row className="relative mt-6">
+      <Row className="clarify-openapi-request-workspace relative mt-8 border-t border-(--clarify-theme-tokens-colors-border) pt-6">
         <Col>
           <div className="w-full">
             <ParameterList title={t('openapi.pathParameters')} parameters={groupedParameters.path} />
@@ -131,8 +131,8 @@ export function EndpointResponse(arg0: EndpointResponseProps): ReactNode {
   const responseExampleTitle = operationSource === 'webhook' ? t('openapi.webhookResponse') : t('openapi.response')
 
   return (
-    <div className="mt-6">
-      <Row className="relative">
+    <div className="mt-10 border-t border-(--clarify-theme-tokens-colors-border) pt-6">
+      <Row className="clarify-openapi-response-workspace relative">
         <Col>
           <div className="w-full">
             <ResponseList title={responseTitle} operation={operation} spec={spec} selectedStatus={selectedStatus} onSelectStatus={onSelectStatus} />

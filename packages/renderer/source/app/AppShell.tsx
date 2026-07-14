@@ -504,13 +504,15 @@ export function AppShell(arg0: AppShellProps) {
 
   function renderFooter() {
     return (
-      <>
-        <RuntimeSlot name="page.footer.before" />
-        <RuntimeSlot name="page.footer.replace" default={DefaultFooterComponent} />
-        <div className="flex justify-end">
+      <div className="clarify-page-footer-region mt-8 grid gap-5 border-t border-(--clarify-theme-tokens-colors-border) pt-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="clarify-page-footer-slot min-w-0">
+          <RuntimeSlot name="page.footer.before" />
+          <RuntimeSlot name="page.footer.replace" default={DefaultFooterComponent} />
+        </div>
+        <div className="clarify-page-attribution flex justify-end sm:self-end">
           <BuiltWithClarify />
         </div>
-      </>
+      </div>
     )
   }
 
