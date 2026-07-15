@@ -833,6 +833,92 @@
         },
         "description": "用单个没有变量的固定 URL 覆盖 servers，因此服务器地址以纯文本展示，不再提供切换功能。"
       }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "operationId": "demoHtmlResponse",
+        "summary": "当前文档站首页",
+        "description": "从当前宿主加载真实的文档站首页，用于测试同源 HTML 响应预览。",
+        "security": [],
+        "servers": [
+          {
+            "url": "/",
+            "description": "当前 Clarify 文档站点提供的 HTML 测试文件"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Accept",
+            "in": "header",
+            "description": "要求文档服务器返回 HTML 文档响应。",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "text/html"
+            }
+          },
+          {
+            "name": "theme",
+            "in": "query",
+            "description": "用于测试单选参数的预览配色。",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "system",
+                "light",
+                "dark"
+              ],
+              "default": "system"
+            }
+          },
+          {
+            "name": "sections",
+            "in": "query",
+            "description": "用于测试多选参数的可见内容区域。",
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "summary",
+                  "metadata",
+                  "content"
+                ]
+              },
+              "default": [
+                "summary",
+                "content"
+              ]
+            }
+          },
+          {
+            "name": "X-Preview-Source",
+            "in": "header",
+            "description": "用于检查自定义请求头的可选来源标记。",
+            "schema": {
+              "type": "string",
+              "example": "clarify-workbench"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "以适合 iframe 预览的 HTML 文档形式返回真实文档站首页。",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "webhooks": {

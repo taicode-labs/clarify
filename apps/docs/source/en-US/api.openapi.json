@@ -156,6 +156,92 @@
           }
         }
       }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "operationId": "demoHtmlResponse",
+        "summary": "Current documentation homepage",
+        "description": "Loads the real documentation homepage from the current host so the request workbench can test a same-origin HTML response preview.",
+        "security": [],
+        "servers": [
+          {
+            "url": "/",
+            "description": "The current Clarify documentation site."
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Accept",
+            "in": "header",
+            "description": "Requests the HTML document response from the documentation server.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "text/html"
+            }
+          },
+          {
+            "name": "theme",
+            "in": "query",
+            "description": "Preview color scheme used to exercise a single-select parameter.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "system",
+                "light",
+                "dark"
+              ],
+              "default": "system"
+            }
+          },
+          {
+            "name": "sections",
+            "in": "query",
+            "description": "Visible fixture sections used to exercise a multi-select parameter.",
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "summary",
+                  "metadata",
+                  "content"
+                ]
+              },
+              "default": [
+                "summary",
+                "content"
+              ]
+            }
+          },
+          {
+            "name": "X-Preview-Source",
+            "in": "header",
+            "description": "Optional marker used to inspect custom request headers.",
+            "schema": {
+              "type": "string",
+              "example": "clarify-workbench"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The real documentation homepage as an HTML document suitable for iframe preview.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "webhooks": {

@@ -147,6 +147,13 @@
     --clarify-code-control-background-active: rgb(255 255 255 / 0.14);
     --clarify-code-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 58%, white);
     --clarify-code-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 20%, transparent);
+    --clarify-code-property: #7dd3fc;
+    --clarify-code-string: #6ee7b7;
+    --clarify-code-number: #fcd34d;
+    --clarify-code-success: #34d399;
+    --clarify-code-danger: #fda4af;
+    --clarify-code-danger-border: rgb(251 113 133 / 0.28);
+    --clarify-code-danger-background: rgb(251 113 133 / 0.1);
     --clarify-ui-menu-width: 13rem;
     --clarify-ui-action-menu-width: 19.5rem;
     --clarify-layout-sidebar-grid: 18rem minmax(0, 1fr);
@@ -230,6 +237,13 @@
     --clarify-code-surface: #202023;
     --clarify-code-header-background: #242427;
     --clarify-code-border: rgb(255 255 255 / 0.12);
+    --clarify-code-property: #7dd3fc;
+    --clarify-code-string: #6ee7b7;
+    --clarify-code-number: #fcd34d;
+    --clarify-code-success: #6ee7b7;
+    --clarify-code-danger: #fda4af;
+    --clarify-code-danger-border: rgb(251 113 133 / 0.35);
+    --clarify-code-danger-background: rgb(251 113 133 / 0.12);
     --clarify-http-method-get-background: color-mix(in srgb, var(--color-emerald-400) 30%, transparent);
     --clarify-http-method-get-text: var(--color-emerald-200);
     --clarify-http-method-post-background: color-mix(in srgb, var(--color-sky-400) 30%, transparent);

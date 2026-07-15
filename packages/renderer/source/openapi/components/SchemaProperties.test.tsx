@@ -125,7 +125,7 @@ describe('SchemaProperties', () => {
 
     expect(markup).toContain('clarify-schema-properties not-prose my-6')
     expect(markup).toContain('clarify-schema-node m-0 p-0')
-    expect(markup).toMatch(/<button[^>]*class="[^"]*rounded-md[^"]*hover:bg-/)
+    expect(markup).toMatch(/<button[^>]*class="[^"]*rounded-\(--clarify-theme-tokens-radius-md\)[^"]*hover:bg-/)
     expect(markup).toContain('ml-2 border-l border-(--clarify-theme-tokens-colors-border) pl-2')
     expect(markup).not.toContain('bg-(--clarify-ui-subtle-background)')
   })

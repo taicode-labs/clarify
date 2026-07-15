@@ -129,6 +129,7 @@ Status: complete
 - [x] Support OpenAPI `style`, `explode`, `allowEmptyValue`, and required validation.
 - [x] Preserve parameter draft values while allowing optional parameters to be excluded from a request.
 - [x] Render request parameters as full-width rows with stable identity and value columns.
+- [x] Align the request workbench with Scalar's flat, protocol-first layout and control geometry.
 - [x] Distinguish browser-managed cookie parameters from editable values.
 - [x] Add reset-to-example and clear controls per section.
 
@@ -251,5 +252,6 @@ Acceptance:
 - 2026-07-14: Fetch failures are classified as network errors at the execution boundary while `AbortError` remains distinguishable and empty responses preserve their metadata.
 - 2026-07-14: Optional parameter inclusion is independent from its draft value; disabling a parameter preserves the value while excluding it from validation and request serialization.
 - 2026-07-14: Request parameters and response headers use continuous table-like rows instead of nested form cards.
+- 2026-07-15: Reorganized the request workbench around Scalar's flat operation layout: path parameters are independent from server variables, request sections share continuous rows, and controls no longer use nested rounded cards.
 - 2026-07-15: `clarify start` is planned as a production-like static runtime rather than an alias for `clarify dev`; it automatically manages compiled output and exposes a same-origin API proxy.
 - 2026-07-15: Proxy targets are allowlisted from OpenAPI servers or explicit CLI configuration, and browser-supplied arbitrary upstream URLs are rejected.

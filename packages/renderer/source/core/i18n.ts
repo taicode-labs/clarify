@@ -55,7 +55,6 @@ export type BuiltInTextKey =
   | 'openapi.bodyProperties'
   | 'openapi.collapse'
   | 'openapi.clear'
-  | 'openapi.clearAllCredentials'
   | 'openapi.codeSnippet'
   | 'openapi.endpointNotFound'
   | 'openapi.example'
@@ -76,6 +75,7 @@ export type BuiltInTextKey =
   | 'openapi.loading'
   | 'openapi.mediaType'
   | 'openapi.none'
+  | 'openapi.noRequestConfiguration'
   | 'openapi.openApiReference'
   | 'openapi.operationParameter'
   | 'openapi.optional'
@@ -205,7 +205,6 @@ const builtInText = {
     'openapi.bodyProperties': 'Body properties',
     'openapi.collapse': 'Collapse',
     'openapi.clear': 'Clear',
-    'openapi.clearAllCredentials': 'Clear all credentials',
     'openapi.codeSnippet': 'Code snippet',
     'openapi.endpointNotFound': 'Endpoint not found: {endpoint}',
     'openapi.example': 'Example',
@@ -226,6 +225,7 @@ const builtInText = {
     'openapi.loading': 'Loading OpenAPI spec...',
     'openapi.mediaType': 'Media type',
     'openapi.none': 'None',
+    'openapi.noRequestConfiguration': 'This request has no parameters, authentication, variables, or request body. It is ready to send as-is.',
     'openapi.openApiReference': 'OpenAPI Reference',
     'openapi.operationParameter': 'Operation parameter.',
     'openapi.optional': 'Optional.',
@@ -354,7 +354,6 @@ const builtInText = {
     'openapi.bodyProperties': '请求体属性',
     'openapi.collapse': '收起',
     'openapi.clear': '清除',
-    'openapi.clearAllCredentials': '清除全部凭据',
     'openapi.codeSnippet': '代码示例',
     'openapi.endpointNotFound': '未找到端点：{endpoint}',
     'openapi.example': '示例',
@@ -375,6 +374,7 @@ const builtInText = {
     'openapi.loading': '正在加载 OpenAPI 描述文件...',
     'openapi.mediaType': '媒体类型',
     'openapi.none': '无',
+    'openapi.noRequestConfiguration': '此请求没有参数、认证、变量或请求体，可以直接发送。',
     'openapi.openApiReference': 'OpenAPI 参考',
     'openapi.operationParameter': '操作参数。',
     'openapi.optional': '可选。',

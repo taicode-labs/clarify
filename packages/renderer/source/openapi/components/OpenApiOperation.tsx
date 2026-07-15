@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CheckIcon, ChevronDownIcon, CopyIcon, PlayIcon, ServerIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, CopyIcon, ServerIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 
 import { Heading } from '../../components/Heading'
@@ -9,11 +9,13 @@ import { getMediaTypeEntries, getResponseEntries, joinPath } from '../lib/helper
 import { getOpenApiOperationSectionId, type OpenAPIOperation, type OpenAPIOperationSource, type OpenAPISpec } from '../lib/utils'
 import type { OpenApiServer, OpenApiServerVariable } from '../types'
 
+import { EndpointMethodBadge } from './EndpointMethodBadge'
 import { EndpointRequest, EndpointResponse } from './EndpointSections'
 import { getServerKey, getServerLabel } from './ExamplePanels'
 import { InlineListbox } from './InlineListbox'
 import { useOperationAuthState, useOperationRequestState, useOperationServerState } from './OpenApiOperation.state'
 import { OpenApiRequestDialog } from './OpenApiRequest'
+import { SendRequestButton } from './SendRequestButton'
 export type OpenApiOperationProps = {
   spec: OpenAPISpec
   path: string
@@ -21,32 +23,6 @@ export type OpenApiOperationProps = {
   operation: OpenAPIOperation
   operationSource?: OpenAPIOperationSource
 }
-const endpointMethodStyleVars: Record<string, string> = {
-  GET: 'bg-(--clarify-http-method-get-background) text-(--clarify-http-method-get-text)',
-  POST: 'bg-(--clarify-http-method-post-background) text-(--clarify-http-method-post-text)',
-  PUT: 'bg-(--clarify-http-method-put-background) text-(--clarify-http-method-put-text)',
-  PATCH: 'bg-(--clarify-http-method-patch-background) text-(--clarify-http-method-patch-text)',
-  DELETE: 'bg-(--clarify-http-method-delete-background) text-(--clarify-http-method-delete-text)',
-  WEBHOOK: 'bg-(--clarify-http-method-webhook-background) text-(--clarify-http-method-webhook-text)',
-}
-
-type EndpointMethodBadgeProps = { method: string }
-
-function EndpointMethodBadge(arg0: EndpointMethodBadgeProps): ReactNode {
-  const { method } = arg0
-
-  return (
-    <span
-      className={clsx(
-        'rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-0.5 text-xs/6 font-black tracking-wide',
-        endpointMethodStyleVars[method] ?? 'bg-(--clarify-http-method-default-background) text-(--clarify-http-method-default-text)',
-      )}
-    >
-      {method}
-    </span>
-  )
-}
-
 type EndpointPathProps = { path: string; copied?: boolean; onCopy?: () => void }
 
 export function EndpointPath(arg0: EndpointPathProps): ReactNode {
@@ -349,12 +325,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
         />
         <EndpointPath path={path} copied={copiedUrl} onCopy={handleCopyUrl} />
         {onTryRequest ? (
-          <button type="button"
-            aria-label={t('openapi.tryRequest')} title={t('openapi.tryRequest')} onClick={onTryRequest}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-theme-tokens-colors-primary) text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2"
-          >
-            <PlayIcon className="h-4 w-4 fill-current" aria-hidden="true" />
-          </button>
+          <SendRequestButton label={t('openapi.tryRequest')} onClick={onTryRequest} />
         ) : null}
       </div>
       {serverInteractive && !directServerSelect && serverOpen ? (
