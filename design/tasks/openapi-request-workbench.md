@@ -11,6 +11,7 @@ Turn the OpenAPI request tester into a production-quality API workbench with exp
 - OpenAPI serialization rules belong in pure domain modules, never in React components.
 - Credentials are shared for the current site session and are never persisted to disk by default.
 - Browser limitations such as CORS, forbidden headers, and cookie management must be visible and honest.
+- The CLI should provide a local same-origin runtime when browser restrictions prevent direct API requests.
 - Every work package requires focused unit tests, typecheck, lint, production build, and desktop/mobile visual verification.
 
 ## Target architecture
@@ -33,6 +34,12 @@ OpenApiRequestWorkbench
     ├── RequestHeaders                headers sent by the workbench
     ├── ResponseHeaders               searchable name/value table with copy
     └── ResponseBody                  Preview / Raw with copy/download
+
+clarify start
+├── build coordinator                 build when output is missing or stale
+├── static asset server               serve output with SPA fallback
+├── OpenAPI server discovery          derive stable proxy targets from specifications
+└── scoped API proxy                  same-origin forwarding to discovered targets
 ```
 
 ## Domain contracts
@@ -181,6 +188,34 @@ Status: in progress
 - [x] Browser verification at 390x844, 768x1024, and 1440x900.
 - [x] Verify light/dark themes, keyboard navigation, focus, overflow, and reduced motion.
 
+### WP9 - CLI static server and smart API proxy
+
+Status: planned
+
+- [ ] Add `clarify start` as the production-like runtime for compiled documentation; keep `clarify dev` focused on authoring and hot reload.
+- [ ] Build automatically when output is missing or older than project inputs, with explicit `--build` and `--no-build` overrides for deterministic automation.
+- [ ] Serve the configured output directory with correct MIME types, cache headers, compressed assets when available, and SPA/document-route fallback.
+- [ ] Reuse the shared `--root`, `--content`, `--output`, `--host`, `--port`, and `--open` option model instead of introducing a second configuration surface.
+- [ ] Discover proxy targets from normalized OpenAPI `servers`, assign stable local target identifiers, and publish the mapping to the compiled runtime without modifying generated files.
+- [ ] Route workbench requests through a reserved same-origin path when proxying is enabled while preserving the selected server path, query, method, body, status, and streaming response.
+- [ ] Forward end-to-end request and response headers, remove hop-by-hop headers, rewrite `Host`, and handle redirects and `Set-Cookie` attributes for the local origin deliberately.
+- [ ] Support multiple specifications and multiple server origins without route collisions; show the resolved upstream target in CLI logs and the workbench request summary.
+- [ ] Enable the discovered-target proxy by default for `start`, with `--proxy`, `--no-proxy`, and explicit target overrides for CI, private gateways, and incomplete specifications.
+- [ ] Bind to loopback by default and reject arbitrary upstream URLs so the server cannot become an open proxy; non-loopback binding must print a security warning.
+- [ ] Preserve TLS verification by default, redact credentials and sensitive query values from logs, cap request body size, and return structured proxy errors without leaking secrets.
+- [ ] Shut down cleanly on signals and report actionable errors for occupied ports, missing output, invalid server URLs, unreachable upstreams, and proxy timeouts.
+- [ ] Document direct-browser versus local-proxy behavior in English and Chinese, including the remaining limits around browser cookie policy and client certificates.
+
+Acceptance:
+
+- `clarify start` serves a clean production build and deep links load directly after a fresh checkout.
+- A request to every valid OpenAPI server can use the local same-origin proxy without API-side CORS changes.
+- The proxy allowlist contains only discovered or explicitly configured targets and cannot forward to a URL supplied solely by a browser request.
+- Switching between OpenAPI servers changes the upstream deterministically without rebuilding or restarting the CLI.
+- Authorization, API key, JSON, form, multipart, binary, empty, error, redirect, and streaming exchanges retain their HTTP semantics through the proxy.
+- Unit tests cover target discovery, URL/path joining, header filtering, cookie rewriting, allowlist enforcement, stale-build decisions, and shutdown.
+- Integration tests start the CLI against fixture APIs and verify static fallback, proxy success, upstream failure, timeout, payload limits, and secret-redacted logs.
+
 ## Implementation order
 
 1. WP1 domain and execution split
@@ -189,7 +224,8 @@ Status: in progress
 4. WP4 request body editor
 5. WP5 site authentication
 6. WP6 public API cleanup
-7. WP7 final verification
+7. WP9 CLI static server and smart API proxy
+8. WP7 final verification
 
 ## Known browser constraints
 
@@ -198,6 +234,7 @@ Status: in progress
 - Some response headers are unavailable unless exposed by CORS.
 - `Set-Cookie` is never readable from browser JavaScript.
 - HTML preview must remain sandboxed without scripts or same-origin privileges.
+- `clarify start` can remove CORS as a deployment prerequisite for local use, but it cannot override browser cookie policy, operating-system trust, upstream authorization, or mutual TLS requirements.
 
 ## Decision log
 
@@ -214,3 +251,5 @@ Status: in progress
 - 2026-07-14: Fetch failures are classified as network errors at the execution boundary while `AbortError` remains distinguishable and empty responses preserve their metadata.
 - 2026-07-14: Optional parameter inclusion is independent from its draft value; disabling a parameter preserves the value while excluding it from validation and request serialization.
 - 2026-07-14: Request parameters and response headers use continuous table-like rows instead of nested form cards.
+- 2026-07-15: `clarify start` is planned as a production-like static runtime rather than an alias for `clarify dev`; it automatically manages compiled output and exposes a same-origin API proxy.
+- 2026-07-15: Proxy targets are allowlisted from OpenAPI servers or explicit CLI configuration, and browser-supplied arbitrary upstream URLs are rejected.
