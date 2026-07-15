@@ -1,7 +1,7 @@
 import { snippetz } from '@scalar/snippetz'
 import type { ClientId, HarRequest, TargetId } from '@scalar/snippetz'
 
-import type { OpenApiMediaType, OpenApiParameter, OpenApiServer, RequestAuthInput, RequestCodeExample } from '../types'
+import type { OpenApiMediaType, OpenApiParameter, OpenApiServer, RequestAuthInput, RequestAuthInputs, RequestCodeExample } from '../types'
 
 import { getContentExample, isRecord, joinPath, stringifyExample } from './helpers'
 import type { OpenAPIOperationSource, OpenAPISpec } from './utils'
@@ -16,7 +16,7 @@ export type RequestCodeInput = {
   requestContent?: RequestContent
   server?: OpenApiServer
   serverVariables?: Record<string, string>
-  auth?: RequestAuthInput
+  auth?: RequestAuthInputs
   operationSource?: OpenAPIOperationSource
 }
 
@@ -39,6 +39,15 @@ const snippetControlCharacters = [
 ] as const
 
 const snippetGenerator = snippetz()
+
+function getAuthPlaceholder(name: string): string {
+  const normalizedName = name.replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/[^a-zA-Z0-9]+/g, '_').toUpperCase()
+  return `YOUR_${normalizedName || 'CREDENTIAL'}`
+}
+
+function redactAuth(auth: RequestAuthInputs = []): RequestAuthInputs {
+  return auth.map(input => ({ ...input, value: getAuthPlaceholder(input.name) }))
+}
 
 function protectSnippetControlCharacters(value: unknown): unknown {
   if (typeof value === 'string') {
@@ -88,13 +97,15 @@ function buildOperationUrl(input: RequestCodeInput): string {
   return joinPath(serverUrl, input.path)
 }
 
-function getQueryString(parameters: OpenApiParameter[], auth?: RequestAuthInput): HarRequest['queryString'] {
+function getQueryString(parameters: OpenApiParameter[], auth: RequestAuthInputs = []): HarRequest['queryString'] {
   const queryString = parameters
     .filter((parameter) => parameter.in === 'query' && parameter.name)
     .map((parameter) => ({ name: parameter.name, value: encodeUrlPlaceholders(`{${parameter.name}}`) }))
 
-  if (auth?.scheme.type === 'apiKey' && auth.scheme.in === 'query' && auth.scheme.name) {
-    queryString.push({ name: auth.scheme.name, value: auth.value })
+  for (const input of auth) {
+    if (input.scheme.type === 'apiKey' && input.scheme.in === 'query' && input.scheme.name) {
+      queryString.push({ name: input.scheme.name, value: input.value })
+    }
   }
 
   return queryString
@@ -161,9 +172,7 @@ function getAuthorizationValue(auth: RequestAuthInput): string | undefined {
   return undefined
 }
 
-function getAuthHeaders(auth?: RequestAuthInput): Record<string, string> {
-  if (!auth) return {}
-
+function getAuthHeader(auth: RequestAuthInput): Record<string, string> {
   if (auth.scheme.type === 'apiKey' && auth.scheme.in === 'header' && auth.scheme.name) {
     return { [auth.scheme.name]: auth.value }
   }
@@ -172,9 +181,9 @@ function getAuthHeaders(auth?: RequestAuthInput): Record<string, string> {
   return authorization ? { Authorization: authorization } : {}
 }
 
-function getRequestHeaders(requestContent?: RequestContent, auth?: RequestAuthInput): Record<string, string> {
+function getRequestHeaders(requestContent?: RequestContent, auth: RequestAuthInputs = []): Record<string, string> {
   return {
-    ...getAuthHeaders(auth),
+    ...Object.assign({}, ...auth.map(getAuthHeader)),
     Accept: 'application/json',
     ...(requestContent ? { 'Content-Type': requestContent.mediaType } : {}),
   }
@@ -270,6 +279,8 @@ const requestSnippetOptions: RequestSnippetOption[] = [
 ]
 
 export function buildRequestCodeExamples(input: RequestCodeInput): RequestCodeExample[] {
+  const redactedInput = { ...input, auth: redactAuth(input.auth) }
+
   return requestSnippetOptions.map((option) => ({
     key: `${option.languageKey}:${option.client}`,
     title: option.title,
@@ -277,6 +288,6 @@ export function buildRequestCodeExamples(input: RequestCodeInput): RequestCodeEx
     languageKey: option.languageKey,
     clientKey: option.client,
     clientTitle: option.clientTitle,
-    code: buildSnippet(input, option),
+    code: buildSnippet(redactedInput, option),
   }))
 }

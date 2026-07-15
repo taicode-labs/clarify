@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { CheckIcon, ChevronDownIcon, CopyIcon, LockKeyholeIcon, PlayIcon, ServerIcon, UnlockKeyholeIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, CopyIcon, PlayIcon, ServerIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 
 import { Heading } from '../../components/Heading'
@@ -9,12 +9,11 @@ import { getMediaTypeEntries, getResponseEntries, joinPath } from '../lib/helper
 import { getOpenApiOperationSectionId, type OpenAPIOperation, type OpenAPIOperationSource, type OpenAPISpec } from '../lib/utils'
 import type { OpenApiServer, OpenApiServerVariable } from '../types'
 
-import { ApiRequestDialog } from './ApiRequest'
 import { EndpointRequest, EndpointResponse } from './EndpointSections'
-import { authLabel, authPlaceholder, getServerKey, getServerLabel } from './ExamplePanels'
-import type { AuthOption } from './ExamplePanels'
+import { getServerKey, getServerLabel } from './ExamplePanels'
 import { InlineListbox } from './InlineListbox'
 import { useOperationAuthState, useOperationRequestState, useOperationServerState } from './OpenApiOperation.state'
+import { OpenApiRequestDialog } from './OpenApiRequest'
 export type OpenApiOperationProps = {
   spec: OpenAPISpec
   path: string
@@ -282,57 +281,6 @@ function ServerPanel(arg0: ServerPanelProps): ReactNode {
   )
 }
 
-type AuthPanelProps = {
-  authOptions: AuthOption[]
-  selectedAuthName: string
-  selectedAuth?: AuthOption
-  authValues: Record<string, string>
-  onSelectAuth: (name: string) => void
-  onChangeAuthValue: (name: string, value: string) => void
-}
-
-function AuthPanel(arg0: AuthPanelProps): ReactNode {
-  const { authOptions, selectedAuthName, selectedAuth, authValues, onSelectAuth, onChangeAuthValue } = arg0
-
-  if (authOptions.length === 0) return null
-
-  return (
-    <div className="border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) p-3">
-      <div className="grid gap-3 sm:grid-cols-(--clarify-openapi-control-grid)">
-        <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-2xs font-semibold text-(--clarify-ui-text-soft)">Auth</span>
-          <InlineListbox
-            label="Auth"
-            value={selectedAuthName}
-            options={authOptions.map(({ name, scheme }) => ({
-              value: name,
-              label: name,
-              description: authLabel(name, scheme),
-            }))}
-            onChange={onSelectAuth}
-          />
-        </label>
-        {selectedAuth ? (
-          <label className="flex min-w-0 flex-col gap-1.5">
-            <span className="text-2xs font-semibold text-(--clarify-ui-text-soft)">Credential</span>
-            <div className="flex min-w-0 items-center rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 shadow-xs">
-              <span className="mr-2 shrink-0 text-2xs font-semibold text-(--clarify-ui-text-soft)">
-                {selectedAuth.scheme.type === 'apiKey' ? selectedAuth.scheme.in ?? 'apiKey' : selectedAuth.scheme.scheme ?? selectedAuth.scheme.type ?? 'token'}
-              </span>
-              <input
-                value={authValues[selectedAuth.name] ?? ''}
-                placeholder={authPlaceholder(selectedAuth)}
-                onChange={(event) => onChangeAuthValue(selectedAuth.name, event.target.value)}
-                className="min-w-0 flex-1 border-0 bg-transparent px-0 py-0 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) outline-hidden placeholder:text-(--clarify-ui-text-faint)"
-              />
-            </div>
-          </label>
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
 type EndpointIdentityProps = {
   method: string
   operationSource: OpenAPIOperationSource
@@ -342,17 +290,9 @@ type EndpointIdentityProps = {
   selectedServer: OpenApiServer
   serverVariables: Record<string, string>
   serverOpen: boolean
-  authOptions: AuthOption[]
-  selectedAuthName: string
-  selectedAuth?: AuthOption
-  authValues: Record<string, string>
-  authOpen: boolean
   onSelectServer: (key: string) => void
   onChangeServerVariable: (name: string, value: string) => void
   onToggleServer: () => void
-  onToggleAuth: () => void
-  onSelectAuth: (name: string) => void
-  onChangeAuthValue: (name: string, value: string) => void
   onTryRequest?: () => void
 }
 
@@ -366,17 +306,9 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
     selectedServer,
     serverVariables,
     serverOpen,
-    authOptions,
-    selectedAuthName,
-    selectedAuth,
-    authValues,
-    authOpen,
     onSelectServer,
     onChangeServerVariable,
     onToggleServer,
-    onToggleAuth,
-    onSelectAuth,
-    onChangeAuthValue,
     onTryRequest,
   } = arg0
   const t = useBuiltInText()
@@ -424,20 +356,6 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
             <PlayIcon className="h-4 w-4 fill-current" aria-hidden="true" />
           </button>
         ) : null}
-        {authOptions.length > 0 ? (
-          <button
-            type="button"
-            aria-expanded={authOpen}
-            aria-label="Auth"
-            onClick={onToggleAuth}
-            className={clsx(
-              'ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) dark:hover:text-emerald-200',
-              authOpen ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-100' : 'bg-(--clarify-ui-subtle-background)',
-            )}
-          >
-            {authOpen ? <UnlockKeyholeIcon className="h-4 w-4" aria-hidden="true" /> : <LockKeyholeIcon className="h-4 w-4" aria-hidden="true" />}
-          </button>
-        ) : null}
       </div>
       {serverInteractive && !directServerSelect && serverOpen ? (
         <ServerPanel
@@ -447,16 +365,6 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
           variables={serverVariables}
           onSelectServer={onSelectServer}
           onChangeVariable={onChangeServerVariable}
-        />
-      ) : null}
-      {authOpen ? (
-        <AuthPanel
-          authOptions={authOptions}
-          selectedAuthName={selectedAuthName}
-          selectedAuth={selectedAuth}
-          authValues={authValues}
-          onSelectAuth={onSelectAuth}
-          onChangeAuthValue={onChangeAuthValue}
         />
       ) : null}
     </div>
@@ -490,26 +398,12 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
         selectedServer={serverState.selectedServer}
         serverVariables={serverState.serverVariables}
         serverOpen={serverState.serverOpen}
-        authOptions={authState.authOptions}
-        selectedAuthName={authState.selectedAuthName}
-        selectedAuth={authState.selectedAuth}
-        authValues={authState.authValues}
-        authOpen={authState.authOpen}
         onSelectServer={serverState.onSelectServer}
         onChangeServerVariable={serverState.onChangeServerVariable}
-        onToggleServer={() => {
-          serverState.onToggleServer()
-          authState.closeAuth()
-        }}
-        onToggleAuth={() => {
-          authState.onToggleAuth()
-          serverState.closeServer()
-        }}
-        onSelectAuth={authState.onSelectAuth}
-        onChangeAuthValue={authState.onChangeAuthValue}
+        onToggleServer={serverState.onToggleServer}
         onTryRequest={() => setRequestOpen(true)}
       />
-      <ApiRequestDialog open={requestOpen} onClose={() => setRequestOpen(false)} spec={spec} path={path} method={method} operation={operation} operationSource={operationSource} />
+      <OpenApiRequestDialog open={requestOpen} onClose={() => setRequestOpen(false)} spec={spec} path={path} method={method} operation={operation} operationSource={operationSource} />
       <EndpointRequest
         spec={spec}
         path={path}

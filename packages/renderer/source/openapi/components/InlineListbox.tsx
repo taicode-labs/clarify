@@ -18,25 +18,30 @@ type InlineListboxProps = {
   buttonContent?: ReactNode
   buttonClassName?: string
   className?: string
+  invalid?: boolean
+  describedBy?: string
+  disabled?: boolean
 }
 
 export function InlineListbox(arg0: InlineListboxProps): ReactNode {
-  const { label, value, options, onChange, compact = false, buttonContent, buttonClassName, className } = arg0
-  const selected = options.find((option) => option.value === value) ?? options[0]
+  const { label, value, options, onChange, compact = false, buttonContent, buttonClassName, className, invalid, describedBy, disabled = false } = arg0
+  const selected = options.find((option) => option.value === value)
 
   return (
-    <Listbox value={selected?.value ?? value} onChange={onChange}>
+    <Listbox value={value} onChange={onChange} disabled={disabled}>
       <div className={clsx('pointer-events-auto relative inline-flex min-w-0', className)}>
         <ListboxButton
           aria-label={label}
+          aria-invalid={invalid || undefined}
+          aria-describedby={describedBy}
           className={clsx(
-            buttonClassName ?? 'inline-flex min-w-0 items-center gap-1 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) font-semibold text-(--clarify-ui-text-strong) shadow-xs outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) data-open:border-(--clarify-ui-accent-border) data-open:bg-(--clarify-ui-active-background) data-open:ring-2 data-open:ring-(--clarify-ui-accent-border)',
+            buttonClassName ?? 'inline-flex min-w-0 items-center gap-1 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) font-semibold text-(--clarify-ui-text-strong) shadow-xs outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) focus:ring-2 focus:ring-(--clarify-theme-tokens-colors-primary) data-disabled:cursor-not-allowed data-open:border-(--clarify-ui-accent-border) data-open:bg-(--clarify-ui-active-background) data-open:ring-2 data-open:ring-(--clarify-ui-accent-border)',
             buttonClassName ? null : compact ? 'min-h-7 max-w-32 px-2 py-0.5 text-xs' : 'min-h-8 w-full px-2.5 py-1.5 text-xs',
           )}
         >
           {buttonContent ?? (
             <>
-              <span className="truncate">{selected?.label ?? value}</span>
+              <span className="truncate">{selected?.label ?? (value || label)}</span>
               <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-(--clarify-ui-text-faint)" aria-hidden="true" />
             </>
           )}

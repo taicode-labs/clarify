@@ -21,10 +21,10 @@ The play button in the endpoint bar opens an interactive request tester. Users c
 Embed the same request tester directly in a guide when trying the endpoint is part of the workflow:
 
 ```mdx
-<ApiRequest specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiRequest specPath="/api" path="/examples/basic-request" method="get" />
 ```
 
-<ApiRequest specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiRequest specPath="/api" path="/examples/basic-request" method="get" />
 
 ## Complete reference
 
@@ -45,9 +45,9 @@ Limit the reference by tags:
 | `OpenApiOperation` | `specPath` | `string` | Configured OpenAPI specification path |
 | `OpenApiOperation` | `path` | `string` | Operation path, such as `/sessions` |
 | `OpenApiOperation` | `method` | `string` | Case-insensitive HTTP method |
-| `ApiRequest` | `specPath` | `string` | Configured OpenAPI specification path |
-| `ApiRequest` | `path` | `string` | Operation path, such as `/sessions` |
-| `ApiRequest` | `method` | `string` | Case-insensitive HTTP method |
+| `OpenApiRequest` | `specPath` | `string` | Configured OpenAPI specification path |
+| `OpenApiRequest` | `path` | `string` | Operation path, such as `/sessions` |
+| `OpenApiRequest` | `method` | `string` | Case-insensitive HTTP method |
 | `OpenApiDocument` | `specPath` | `string` | Configured OpenAPI specification path |
 | `OpenApiDocument` | `tagFilter` | `string[]` | Includes only operations with matching tags |
 

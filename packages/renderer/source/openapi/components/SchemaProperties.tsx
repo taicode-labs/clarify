@@ -465,7 +465,6 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
           panel: renderResponsePanel({ status, response }),
         }))}
         className="mt-4 mb-6"
-        listClassName="w-fit rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) p-1"
         panelsClassName="mt-5"
       />
     </div>

@@ -4,7 +4,7 @@ import { useBuiltInText } from '../../core/i18n'
 import { Markdown } from '../../mdx/Markdown'
 import { Col, Row } from '../../mdx/primitives'
 import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
-import type { MediaTypeEntry, OpenApiParameter, OpenApiRecord, OpenApiServer, RequestAuthInput } from '../types'
+import type { MediaTypeEntry, OpenApiParameter, OpenApiRecord, OpenApiServer, RequestAuthInputs } from '../types'
 
 import { RequestExamplesPanel, ResponseExamplesPanel } from './ExamplePanels'
 import { ParameterList, ResponseList, SchemaProperties } from './SchemaProperties'
@@ -28,7 +28,7 @@ type EndpointRequestProps = {
   onSelectRequestMediaType: (value: string) => void
   selectedServer: OpenApiServer
   serverVariables: Record<string, string>
-  auth?: RequestAuthInput
+  auth?: RequestAuthInputs
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
 }

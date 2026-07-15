@@ -21,10 +21,10 @@
 当发起请求本身就是指南流程的一部分时，可以直接嵌入同一个测试器：
 
 ```mdx
-<ApiRequest specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiRequest specPath="/api" path="/examples/basic-request" method="get" />
 ```
 
-<ApiRequest specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiRequest specPath="/api" path="/examples/basic-request" method="get" />
 
 ## 完整文档
 
@@ -45,9 +45,9 @@
 | `OpenApiOperation` | `specPath` | `string` | 配置中的 OpenAPI 规范路径 |
 | `OpenApiOperation` | `path` | `string` | 接口路径，例如 `/sessions` |
 | `OpenApiOperation` | `method` | `string` | HTTP 方法，不区分大小写 |
-| `ApiRequest` | `specPath` | `string` | 配置中的 OpenAPI 规范路径 |
-| `ApiRequest` | `path` | `string` | 接口路径，例如 `/sessions` |
-| `ApiRequest` | `method` | `string` | HTTP 方法，不区分大小写 |
+| `OpenApiRequest` | `specPath` | `string` | 配置中的 OpenAPI 规范路径 |
+| `OpenApiRequest` | `path` | `string` | 接口路径，例如 `/sessions` |
+| `OpenApiRequest` | `method` | `string` | HTTP 方法，不区分大小写 |
 | `OpenApiDocument` | `specPath` | `string` | 配置中的 OpenAPI 规范路径 |
 | `OpenApiDocument` | `tagFilter` | `string[]` | 仅展示匹配标签的接口 |
 

@@ -5,8 +5,8 @@ import { Prose } from '../components/Prose'
 import { useBuiltInText } from '../core/i18n'
 import { Markdown } from '../mdx/Markdown'
 
-import { ApiRequestWorkbench } from './components/ApiRequest'
 import { OpenApiOperation as OpenApiOperationComponent } from './components/OpenApiOperation'
+import { OpenApiRequestWorkbench } from './components/OpenApiRequest'
 import { useOpenApiSpec } from './lib/spec-path'
 import { getOpenApiOperationEntry, listOpenApiOperations } from './lib/utils'
 import type { OpenAPISpec } from './lib/utils'
@@ -42,7 +42,7 @@ export type OpenApiOperationProps = {
   method: string
 }
 
-export type ApiRequestProps = OpenApiOperationProps
+export type OpenApiRequestProps = OpenApiOperationProps
 
 function OpenApiHeader(arg0: OpenApiHeaderProps): ReactNode {
   const { spec } = arg0
@@ -149,7 +149,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   return <OpenApiOperationWithSpec spec={spec} path={path} method={method} />
 }
 
-export function ApiRequest(arg0: ApiRequestProps): ReactNode {
+export function OpenApiRequest(arg0: OpenApiRequestProps): ReactNode {
   const { specPath, path, method } = arg0
   const t = useBuiltInText()
   const { spec, loading } = useOpenApiSpec(undefined, specPath)
@@ -161,7 +161,7 @@ export function ApiRequest(arg0: ApiRequestProps): ReactNode {
   if (!entry) return <WarningBox tone="red">{t('openapi.endpointNotFound', { endpoint: `${method.toUpperCase()} ${path}` })}</WarningBox>
 
   return (
-    <ApiRequestWorkbench
+    <OpenApiRequestWorkbench
       spec={spec}
       path={path}
       method={entry.method.toUpperCase()}

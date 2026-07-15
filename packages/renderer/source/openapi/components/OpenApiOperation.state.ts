@@ -2,9 +2,10 @@ import { useState } from 'react'
 
 import { getMediaTypeEntries, getOperationParameters, getRequestBody } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
-import type { OpenApiParameter, OpenApiServer, RequestAuthInput } from '../types'
+import { emptyOpenApiCredentials, getOpenApiCredentialScope, useOpenApiStore } from '../store'
+import type { OpenApiParameter, OpenApiServer, RequestAuthInputs } from '../types'
 
-import { authPlaceholder, defaultServerVariables, getAuthOptions, getServerKey, getServers } from './ExamplePanels'
+import { defaultServerVariables, getAuthOptions, getServerKey, getServers } from './ExamplePanels'
 import type { AuthOption } from './ExamplePanels'
 
 export type OperationRequestState = {
@@ -87,21 +88,27 @@ export type OperationAuthState = {
   selectedAuth?: AuthOption
   authValues: Record<string, string>
   authOpen: boolean
-  authInput?: RequestAuthInput
+  authInput?: RequestAuthInputs
   onSelectAuth: (name: string) => void
   onChangeAuthValue: (name: string, value: string) => void
+  onClearAuthValue: (name: string) => void
+  onClearAuthValues: () => void
   onToggleAuth: () => void
   closeAuth: () => void
 }
 
 export function useOperationAuthState(spec: OpenAPISpec, operation: OpenAPIOperation): OperationAuthState {
   const authOptions = getAuthOptions(spec, operation)
-  const [selectedAuthName, setSelectedAuthName] = useState(authOptions[0]?.name ?? '')
-  const selectedAuth = authOptions.find((option) => option.name === selectedAuthName)
-  const [authValues, setAuthValues] = useState<Record<string, string>>({})
+  const [selectedAuthName, setSelectedAuthName] = useState(authOptions[0]?.key ?? '')
+  const selectedAuth = authOptions.find((option) => option.key === selectedAuthName)
+  const credentialScope = getOpenApiCredentialScope(spec)
+  const authValues = useOpenApiStore((state) => state.credentials[credentialScope] ?? emptyOpenApiCredentials)
+  const setCredential = useOpenApiStore((state) => state.setCredential)
+  const clearCredential = useOpenApiStore((state) => state.clearCredential)
+  const clearCredentials = useOpenApiStore((state) => state.clearCredentials)
   const [authOpen, setAuthOpen] = useState(false)
-  const authInput: RequestAuthInput | undefined = selectedAuth
-    ? { name: selectedAuth.name, scheme: selectedAuth.scheme, value: authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth) }
+  const authInput: RequestAuthInputs | undefined = selectedAuth
+    ? selectedAuth.schemes.map((option) => ({ name: option.name, scheme: option.scheme, value: authValues[option.name] ?? '' }))
     : undefined
 
   return {
@@ -112,7 +119,9 @@ export function useOperationAuthState(spec: OpenAPISpec, operation: OpenAPIOpera
     authOpen,
     authInput,
     onSelectAuth: setSelectedAuthName,
-    onChangeAuthValue: (name, value) => setAuthValues((current) => ({ ...current, [name]: value })),
+    onChangeAuthValue: (name, value) => setCredential(credentialScope, name, value),
+    onClearAuthValue: (name) => clearCredential(credentialScope, name),
+    onClearAuthValues: () => clearCredentials(credentialScope),
     onToggleAuth: () => setAuthOpen((current) => !current),
     closeAuth: () => setAuthOpen(false),
   }
