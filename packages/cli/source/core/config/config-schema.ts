@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import type { ClarifyVariableValue, ClarifyProjectConfig } from '../../types.js'
 
-export const clarifyLogoConfigSchema = z.union([
+const clarifyLogoConfigSchema = z.union([
   z.string(),
   z.object({
     light: z.string().optional(),
@@ -10,7 +10,7 @@ export const clarifyLogoConfigSchema = z.union([
   }).strict(),
 ])
 
-export const clarifyFaviconConfigSchema = z.union([
+const clarifyFaviconConfigSchema = z.union([
   z.string(),
   z.object({
     light: z.string().optional(),
@@ -18,18 +18,18 @@ export const clarifyFaviconConfigSchema = z.union([
   }).strict(),
 ])
 
-export const clarifyLocalizedTextSchema = z.union([
+const clarifyLocalizedTextSchema = z.union([
   z.string(),
   z.record(z.string(), z.string()),
 ])
 
-export const clarifyLocaleConfigSchema = z.object({
+const clarifyLocaleConfigSchema = z.object({
   code: z.string(),
   label: z.string(),
   dir: z.union([z.literal('ltr'), z.literal('rtl')]).optional(),
 }).strict()
 
-export const clarifyLocalesConfigSchema = z.object({
+const clarifyLocalesConfigSchema = z.object({
   default: z.string().optional(),
   missing: z.union([z.literal('fallback'), z.literal('404'), z.literal('hide')]).optional(),
   locales: z.array(clarifyLocaleConfigSchema).min(1),
@@ -55,40 +55,40 @@ export const clarifyLocalesConfigSchema = z.object({
   }
 })
 
-export const clarifyNavbarLinkSchema = z.object({
+const clarifyNavbarLinkSchema = z.object({
   label: clarifyLocalizedTextSchema,
   href: z.string(),
   external: z.boolean().optional(),
 }).strict()
 
-export const clarifyBannerConfigOptionsSchema = z.object({
+const clarifyBannerConfigOptionsSchema = z.object({
   content: clarifyLocalizedTextSchema,
   dismissible: z.boolean().optional(),
   link: clarifyNavbarLinkSchema.optional(),
 }).strict()
 
-export const clarifyFooterConfigSchema = z.object({
+const clarifyFooterConfigSchema = z.object({
   links: z.array(clarifyNavbarLinkSchema).optional(),
   socials: z.record(z.string(), z.string()).optional(),
   copyright: clarifyLocalizedTextSchema.optional(),
 }).strict()
 
-export const clarifyVariableValueSchema: z.ZodType<ClarifyVariableValue> = z.lazy(() => z.union([
+const clarifyVariableValueSchema: z.ZodType<ClarifyVariableValue> = z.lazy(() => z.union([
   z.string(),
   z.number(),
   z.boolean(),
   z.record(z.string(), clarifyVariableValueSchema),
 ]))
 
-export const clarifyVariablesConfigSchema = z.record(z.string(), clarifyVariableValueSchema)
+const clarifyVariablesConfigSchema = z.record(z.string(), clarifyVariableValueSchema)
 
-export const clarifyRepositoryConfigSchema = z.object({
+const clarifyRepositoryConfigSchema = z.object({
   url: z.string().optional(),
   branch: z.string().optional(),
   directory: z.string().optional(),
 }).strict()
 
-export const clarifyPagesItemSchema: z.ZodType<
+const clarifyPagesItemSchema: z.ZodType<
   import('../../types.js').ClarifyPagesItem,
   import('../../types.js').ClarifyPagesItem
 > = z.lazy(() => z.union([
@@ -112,7 +112,7 @@ export const clarifyPagesItemSchema: z.ZodType<
   }).strict(),
 ]))
 
-export const clarifyPagesGroupSchema: z.ZodType<
+const clarifyPagesGroupSchema: z.ZodType<
   import('../../types.js').ClarifyPagesGroup,
   import('../../types.js').ClarifyPagesGroup
 > = z.lazy(() => z.object({
@@ -121,29 +121,29 @@ export const clarifyPagesGroupSchema: z.ZodType<
   pages: z.array(clarifyPagesItemSchema),
 }).strict())
 
-export const clarifyPagesConfigSchema = z.union([
+const clarifyPagesConfigSchema = z.union([
   z.array(clarifyPagesGroupSchema),
   z.literal('FileTree'),
 ])
 
-export const clarifyTabItemSchema = z.object({
+const clarifyTabItemSchema = z.object({
   tab: clarifyLocalizedTextSchema,
   icon: z.string().optional(),
   pages: clarifyPagesConfigSchema.optional(),
 }).strict()
 
-export const clarifyTabsConfigSchema = z.array(clarifyTabItemSchema)
+const clarifyTabsConfigSchema = z.array(clarifyTabItemSchema)
 
-export const clarifyThemePresetSchema = z.enum(['default', 'base'])
+const clarifyThemePresetSchema = z.enum(['default', 'base'])
 
-export const clarifyThemeModeColorValueSchema = z.object({
+const clarifyThemeModeColorValueSchema = z.object({
   light: z.string().optional(),
   dark: z.string().optional(),
 }).strict()
 
-export const clarifyThemeColorValueSchema = z.union([z.string(), clarifyThemeModeColorValueSchema])
+const clarifyThemeColorValueSchema = z.union([z.string(), clarifyThemeModeColorValueSchema])
 
-export const clarifyThemeColorTokensConfigSchema = z.object({
+const clarifyThemeColorTokensConfigSchema = z.object({
   primary: clarifyThemeColorValueSchema.optional(),
   accent: clarifyThemeColorValueSchema.optional(),
   background: clarifyThemeColorValueSchema.optional(),
@@ -154,23 +154,23 @@ export const clarifyThemeColorTokensConfigSchema = z.object({
   codeBackground: clarifyThemeColorValueSchema.optional(),
 }).strict()
 
-export const clarifyThemeRadiusTokensConfigSchema = z.object({
+const clarifyThemeRadiusTokensConfigSchema = z.object({
   sm: z.string().optional(),
   md: z.string().optional(),
   lg: z.string().optional(),
   xl: z.string().optional(),
 }).strict()
 
-export const clarifyThemeTokensConfigSchema = z.object({
+const clarifyThemeTokensConfigSchema = z.object({
   colors: clarifyThemeColorTokensConfigSchema.optional(),
   radius: clarifyThemeRadiusTokensConfigSchema.optional(),
 }).strict()
 
-export const clarifyThemeLayoutConfigSchema = z.object({
+const clarifyThemeLayoutConfigSchema = z.object({
   maxWidth: z.string().optional(),
 }).strict()
 
-export const clarifyThemeConfigSchema = z.object({
+const clarifyThemeConfigSchema = z.object({
   preset: clarifyThemePresetSchema.optional(),
   tokens: clarifyThemeTokensConfigSchema.optional(),
   layout: clarifyThemeLayoutConfigSchema.optional(),

@@ -3,7 +3,7 @@ import type { OpenAPISpec } from '../../types.js'
 
 export const openApiRegistryModuleId = VIRTUAL_OPENAPI
 export const openApiServerRegistryModuleId = VIRTUAL_OPENAPI_SERVER
-export const OPENAPI_SPEC_PREFIX = 'virtual:clarify/openapi-spec/'
+const OPENAPI_SPEC_PREFIX = 'virtual:clarify/openapi-spec/'
 
 export function specVirtualModuleId(specKey: string): string {
   return `${OPENAPI_SPEC_PREFIX}${specKey}`

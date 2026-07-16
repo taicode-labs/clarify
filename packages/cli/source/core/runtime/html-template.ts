@@ -37,7 +37,7 @@ function canonicalUrl(contextOrConfig: ClarifyProjectContext | ResolvedProjectCo
 }
 
 /** Inject `lang` (and optional `dir`) onto the `<html>` tag for the route locale. */
-export function injectHtmlLocaleAttributes(html: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
+function injectHtmlLocaleAttributes(html: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
   const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
   const localeCode = route?.locale ?? projectConfig.locales?.default
   if (!localeCode) return html
@@ -57,7 +57,7 @@ export function injectHtmlLocaleAttributes(html: string, contextOrConfig: Clarif
 }
 
 /** Set, replace, or remove a `<meta name="...">` tag in `<head>`. */
-export function setNamedMeta(html: string, name: string, content: string | undefined): string {
+function setNamedMeta(html: string, name: string, content: string | undefined): string {
   const metaPattern = new RegExp(`<meta\\b(?=[^>]*\\bname=["']${name}["'])[^>]*>\\n?`, 'i')
   if (!content) return html.replace(metaPattern, '')
 
@@ -67,7 +67,7 @@ export function setNamedMeta(html: string, name: string, content: string | undef
 }
 
 /** Remove any existing canonical link and (if a URL is resolved) inject a fresh one. */
-export function injectCanonicalUrl(html: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
+function injectCanonicalUrl(html: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
   const url = route ? canonicalUrl(contextOrConfig, route) : undefined
   // Remove any existing canonical link
   html = html.replace(/<link\b[^>]*\brel=["']canonical["'][^>]*\/?>\n?/gi, '')

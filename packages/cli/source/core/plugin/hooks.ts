@@ -28,7 +28,7 @@ export async function runDevConfigureServerHooks(plugins: ClarifyPlugin[], serve
   }
 }
 
-export async function runCollectorHooks<T>(plugins: ClarifyPlugin[], hookName: string, ctx: ClarifyHookContext): Promise<T[]> {
+async function runCollectorHooks<T>(plugins: ClarifyPlugin[], hookName: string, ctx: ClarifyHookContext): Promise<T[]> {
   const results: T[] = []
   for (const plugin of plugins) {
     const hook = plugin.hooks?.[hookName as 'build:assets']

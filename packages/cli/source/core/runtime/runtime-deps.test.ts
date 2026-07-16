@@ -15,5 +15,7 @@ describe('createClarifyRuntimeAliases', () => {
     expect(aliasPatterns).toContain('/^react-dom$/')
     expect(aliasPatterns).toContain('/^react-router-dom$/')
     expect(aliasPatterns).toContain('/^react-router$/')
+    expect(aliasPatterns).toContain('/^mermaid$/')
+    expect(aliasPatterns).toContain('/^react-zoom-pan-pinch$/')
   })
 })

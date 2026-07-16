@@ -36,7 +36,7 @@ function resolveOptions(options: CliOptions): ResolvedCliOptions {
   return resolveCliOptions(options)
 }
 
-export function createCli() {
+function createCli() {
   const cli = cac('clarify')
 
   cli

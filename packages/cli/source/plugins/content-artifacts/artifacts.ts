@@ -21,12 +21,12 @@ function shouldUseUtf8Signature(route: ContentRoute): boolean {
   return false
 }
 
-export function routeToMarkdownArtifactUrl(routePath: string): string {
+function routeToMarkdownArtifactUrl(routePath: string): string {
   const normalizedPath = routePath === '/' ? '/index' : routePath.replace(/\/$/, '')
   return `${normalizedPath}.md`
 }
 
-export function routeToOpenAPIArtifactUrl(routePath: string): string {
+function routeToOpenAPIArtifactUrl(routePath: string): string {
   const normalizedPath = routePath === '/' ? '/index' : routePath.replace(/\/$/, '')
   return `${normalizedPath}.openapi.json`
 }

@@ -47,7 +47,7 @@ function extractH1(content: string): string {
 }
 
 /** 从 MDX/Markdown 内容中提取 H2/H3 章节 */
-export function extractMdxSections(content: string): ContentSection[] {
+function extractMdxSections(content: string): ContentSection[] {
   const sections: ContentSection[] = []
   const slugger = new GithubSlugger()
   const tree = parseMdxTree(content)
@@ -76,7 +76,7 @@ function pathSegmentFromOpenAPITag(tag: string): string {
     .replace(/^-+|-+$/g, '') || 'tag'
 }
 
-export function openAPITagsPathSegment(tags: string[]): string {
+function openAPITagsPathSegment(tags: string[]): string {
   return tags.map(pathSegmentFromOpenAPITag).join('-')
 }
 
@@ -109,7 +109,7 @@ export function localizedRoutePath(basePath: string, locale: string, _i18n: Reso
   return normalizedBasePath === '/' ? prefix : normalizePath(`${prefix}${normalizedBasePath}`)
 }
 
-export function resolveLocalizedText(text: ClarifyLocalizedText | undefined, locale: string, fallbackLocale?: string): string | undefined {
+function resolveLocalizedText(text: ClarifyLocalizedText | undefined, locale: string, fallbackLocale?: string): string | undefined {
   if (typeof text === 'string') return text
   if (text === undefined) return undefined
   return text[locale] ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0]
