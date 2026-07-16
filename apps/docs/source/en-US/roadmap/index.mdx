@@ -4,7 +4,7 @@ Clarify's roadmap is guided by one long-term goal: provide an open-source, local
 
 This roadmap starts with the **stable capabilities that are already delivered**, then outlines the areas currently being prioritized and the directions planned for future exploration. Planned items do not imply a committed release date; priorities may change based on user feedback, maintenance cost, and ecosystem needs.
 
-The current documentation reflects the latest patch release, `v0.8.2`. This update adds project-variable support, aligns workspace package versions, syncs the CLI version output, and refreshes the roadmap and changelog pages.
+The current documentation reflects the latest patch release, `v0.11.0`. This release adds an interactive OpenAPI request workbench that lets readers send real API requests and inspect responses directly inside the documentation.
 
 ---
 
@@ -13,7 +13,7 @@ The current documentation reflects the latest patch release, `v0.8.2`. This upda
 | Area | Status | Notes |
 |------|--------|-------|
 | MDX documentation publishing | Released | MDX compilation, built-in components, code highlighting, static page output, and client-side navigation. |
-| OpenAPI documentation | Released | Full API references, tag filtering, single-endpoint embedding, request/response examples, and request-code panels. |
+| OpenAPI documentation | Released | Full API references, tag filtering, single-endpoint embedding, request/response examples, copyable multi-language request-code panels, and an interactive request workbench. |
 | Multilingual sites | Released | Locale directories, default locale behavior, route prefixes, missing-translation fallback, and localized navigation labels. |
 | Site configuration and navigation | Released | TypeScript config, tabs, grouped sidebars, top navigation, footer, redirects, `routePrefix`, and the global announcement banner. |
 | Theming and branding | Released | Light/dark themes, system preference, theme tokens, layout width, radius settings, and the visual theme editor. |
@@ -46,6 +46,7 @@ The current documentation reflects the latest patch release, `v0.8.2`. This upda
 - [x] Embed any individual endpoint inside MDX
 - [x] Display parameters, request bodies, responses, schemas, examples, authentication, and server information
 - [x] Generate copyable request code in multiple languages
+- [x] Interactive request workbench for sending requests and inspecting responses directly in the docs
 - [x] Validate OpenAPI references and operation targets at build time
 
 ### Site configuration and information architecture

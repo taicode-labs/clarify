@@ -62,6 +62,14 @@ Clarify 不只会把 `.openapi.json` / `.openapi.yaml` 渲染成完整 API Refer
 
 <OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
 
+接口栏中的播放按钮会打开交互式请求测试器。如果发起请求本身就是指南流程的一部分，可以直接嵌入同一个测试器：
+
+```mdx
+<OpenApiRequest specPath="/api" path="/examples/basic-request" method="get" />
+```
+
+`OpenApiRequest` 的参数与 `OpenApiOperation` 一致。它只渲染请求工作台，适合在教程中引导读者实际发起一次请求并查看响应。
+
 ---
 
 ## 嵌入复杂请求接口

@@ -55,20 +55,61 @@ export default defineConfig({
 
 ## Lifecycle
 
-Clarify's current build flow calls the following hooks:
+Clarify's build flow exposes hooks across the full lifecycle. The complete list is organized by phase below; for the precise type definitions see [Plugin API reference](/reference/plugin-api).
 
-| Hook | When it fires | Typical use |
-|------|----------|----------|
-| `content:transform` | Before Clarify extracts metadata from content sources such as MDX and OpenAPI specs | Expand project variables, normalize frontmatter, inject generated content, or validate raw content |
-| `routes:discover` | While discovering routes from a content root | Add non-MDX routes such as OpenAPI routes, or replace discovery results |
-| `routes:discovered` | After route discovery, before configured page paths and navigation are applied | Enrich discovered routes, add source links, or attach artifact URLs |
-| `pages:resolved` | After routes are mapped to pages, before writing back to routes | Rewrite page-level frontmatter or content |
-| `routes:resolved` | After routes and navigation are generated | Adjust routes, navigation nodes, tabs, and visible pages |
-| `modules:before` | After virtual modules are generated, before handing them to Vite | Inject or modify runtime virtual modules |
-| `html:transform` | Before HTML is emitted or served | Inject HTML tags, theme bootstrapping scripts, or client entry scripts |
-| `dev:configureServer` | When the Vite dev server is configured | Register local middleware or dev-only endpoints |
-| `build:assets` | During build asset emission | Emit additional static files |
-| `build:done` | After the build and SSG complete | Generate extra artifacts, report build results |
+### Lifecycle hooks (`tap`)
+
+Tap hooks run for side effects at clearly defined points. They come in `before:`/`after:` pairs around each major stage:
+
+| Hook | Fires |
+|------|-------|
+| `before:config:load` / `after:config:load` | Around raw config loading |
+| `before:config:resolve` / `after:config:resolve` | Around config resolution and default application |
+| `before:plugins:load` / `after:plugins:load` | Around plugin discovery and ordering |
+| `before:site:discover` / `after:site:discover` | Around content/site discovery |
+| `before:content:process` / `after:content:process` | Around content processing |
+| `before:modules:build` / `after:modules:build` | Around virtual module generation |
+| `before:build` / `after:build` | Around the production build |
+| `before:ssg` / `after:ssg` | Around static site generation |
+| `before:dev:server` / `after:dev:server` | Around dev server setup |
+
+### Content & routing hooks (`pipeline`)
+
+Pipeline hooks transform structured data. Each receives the current value and must return the next value (sync or async):
+
+| Hook | Purpose |
+|------|---------|
+| `content:transform` | Rewrite or augment content before it becomes a page |
+| `pages:resolved` | Inspect or rewrite the resolved page list |
+| `routes:discover` | Extend route discovery with additional content sources |
+| `routes:discovered` | Adjust the discovered route list |
+| `routes:resolved` | Update routes and navigation after resolution |
+| `modules:before` | Inject or modify virtual modules before Vite consumes them |
+| `html:transform` | Transform the HTML shell and injected tags |
+
+### Build artifact hooks (`collector`)
+
+Collector hooks return additional items to be emitted:
+
+| Hook | Purpose |
+|------|---------|
+| `build:assets` | Emit extra static assets during the build |
+| `build:done` | Run post-build work such as search index or file generation |
+
+### Intercept hooks
+
+Intercept hooks can short-circuit a build stage:
+
+| Hook | Purpose |
+|------|---------|
+| `build:shouldRun` | Decide whether the build stage runs |
+| `ssg:shouldRun` | Decide whether SSG runs |
+
+### Dev server hooks
+
+| Hook | Purpose |
+|------|---------|
+| `dev:configureServer` | Hook into the Vite dev server |
 
 Plugins run in the order of the `plugins` array. The result returned by one plugin becomes the input to the next.
 

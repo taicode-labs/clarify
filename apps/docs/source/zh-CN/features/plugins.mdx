@@ -55,7 +55,27 @@ export default defineConfig({
 
 ## 生命周期
 
-Clarify 当前构建流程会调用以下 Hook：
+Clarify 的 Hook 分为三类：tap hook 执行副作用、pipeline hook 串联转换数据、collector hook 收集额外产物。完整的类型定义见 [插件 API 参考](/reference/plugin-api)。
+
+### 生命周期 Hook（tap）
+
+在构建各阶段前后触发，适合执行副作用：
+
+| Hook | 触发时机 | 典型用途 |
+|------|----------|----------|
+| `before:config:load` / `after:config:load` | 读取 `clarify.ts/js/json` 前后 | 调整加载入口或校验原始配置 |
+| `before:config:resolve` / `after:config:resolve` | 应用默认值前后 | 介入配置合并过程 |
+| `before:plugins:load` / `after:plugins:load` | 加载插件列表前后 | 注入额外插件或校验插件顺序 |
+| `before:site:discover` / `after:site:discover` | 发现站点内容前后 | 准备发现上下文或汇总结果 |
+| `before:content:process` / `after:content:process` | 处理内容前后 | 介入内容提取流程 |
+| `before:modules:build` / `after:modules:build` | 构建虚拟模块前后 | 调整模块生成 |
+| `before:build` / `after:build` | 执行构建前后 | 准备构建环境或汇总构建结果 |
+| `before:ssg` / `after:ssg` | 静态生成前后 | 介入 SSG 渲染 |
+| `before:dev:server` / `after:dev:server` | 启动开发服务器前后 | 注册开发态中间件或清理资源 |
+
+### 内容与路由 Hook（pipeline）
+
+输入和输出形状一致，前一个插件的返回值会作为下一个插件的输入：
 
 | Hook | 触发时机 | 典型用途 |
 |------|----------|----------|
@@ -66,11 +86,30 @@ Clarify 当前构建流程会调用以下 Hook：
 | `routes:resolved` | 路由和导航生成后 | 调整路由、导航节点、tabs 和可见页面 |
 | `modules:before` | 虚拟模块生成后、交给 Vite 前 | 注入或修改运行时虚拟模块 |
 | `html:transform` | HTML 输出或开发服务返回前 | 注入 HTML 标签、主题启动脚本或客户端入口脚本 |
-| `dev:configureServer` | Vite 开发服务器配置时 | 注册本地中间件或仅开发环境使用的接口 |
-| `build:assets` | 构建产物写入阶段 | 生成额外静态文件 |
+
+### 构建产物 Hook（collector）
+
+| Hook | 触发时机 | 典型用途 |
+|------|----------|----------|
+| `build:assets` | 构建产物写入阶段 | 返回额外静态文件，由 Clarify 统一写入 |
 | `build:done` | 构建和 SSG 完成后 | 生成额外产物、上报构建结果 |
 
-插件按照 `plugins` 数组顺序依次执行。前一个插件返回的结果会作为下一个插件的输入。
+### 拦截 Hook（intercept）
+
+返回 `false` 可以阻止对应阶段执行：
+
+| Hook | 作用 |
+|------|------|
+| `build:shouldRun` | 控制是否执行生产构建 |
+| `ssg:shouldRun` | 控制是否执行 SSG 渲染 |
+
+### 开发服务器 Hook
+
+| Hook | 触发时机 | 典型用途 |
+|------|----------|----------|
+| `dev:configureServer` | Vite 开发服务器配置时 | 注册本地中间件或仅开发环境使用的接口 |
+
+插件按照 `plugins` 数组顺序依次执行。可以通过 `enforce: 'pre' | 'post'`、`priority` 和 `dependsOn` 调整执行顺序，详见 [插件 API 参考](/reference/plugin-api)。
 
 Clarify 内置的项目变量就是通过 `content:transform` 插件实现的。用户插件也运行在同一个生命周期中，并且会在内置插件之后执行。
 

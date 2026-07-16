@@ -62,6 +62,14 @@ Rendered result:
 
 <OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
 
+The play button in the operation panel opens an interactive request tester. If sending the request is itself part of the guide flow, you can embed the same tester directly:
+
+```mdx
+<OpenApiRequest specPath="/api" path="/examples/basic-request" method="get" />
+```
+
+`OpenApiRequest` takes the same parameters as `OpenApiOperation`. It renders only the request workbench, which is ideal when a tutorial wants readers to actually send a request and inspect the response.
+
 ---
 
 ## Embed a complex request endpoint
