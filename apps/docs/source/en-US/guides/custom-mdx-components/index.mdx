@@ -1,0 +1,49 @@
+import { SnakeGame } from './SnakeGame'
+
+# Custom MDX Components
+
+Clarify supports importing project React components directly from `.mdx`. Keep one-off components beside the article that owns them: imports stay short and ownership stays obvious.
+
+```text
+custom-mdx-components/
+├── index.mdx
+└── SnakeGame.tsx
+```
+
+```mdx
+import { SnakeGame } from './SnakeGame'
+```
+
+## Live rendering
+
+The panel below is not a screenshot. It is a small game rendered by `SnakeGame.tsx`, complete with React state, timed updates, keyboard events, click controls, and client hydration.
+
+<SnakeGame
+  title="Snake"
+  startLabel="Start game"
+  pauseLabel="Pause"
+  resumeLabel="Resume"
+  restartLabel="Play again"
+  scoreLabel="Score"
+  idleMessage="Use arrow keys, WASD, or the controls to start moving"
+  pausedMessage="Game paused"
+  gameOverMessage="You crashed. Give it another go."
+/>
+
+## Where components belong
+
+<Steps>
+  <Step title="Article-only components">
+    Keep them next to the article, such as `guide/index.mdx` and `guide/Diagram.tsx`. This is the recommended default.
+  </Step>
+  <Step title="Section-shared components">
+    Use a `_components` directory in the section when a few nearby articles share the component.
+  </Step>
+  <Step title="Site-wide components">
+    Promote a component to `source/components` only when it is genuinely reused across sections and locales.
+  </Step>
+</Steps>
+
+<Callout type="tip">
+  Clarify scans only `.md` and `.mdx` files as content routes. A colocated `.tsx` file never creates an extra page.
+</Callout>

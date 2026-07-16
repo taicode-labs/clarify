@@ -97,6 +97,14 @@ export default defineConfig({
                     icon: 'PenLine',
                   },
                   {
+                    page: 'guides/custom-mdx-components',
+                    title: {
+                      'zh-CN': '自定义 MDX 组件',
+                      'en-US': 'Custom MDX Components',
+                    },
+                    icon: 'Blocks',
+                  },
+                  {
                     page: 'guides/navigation',
                     title: {
                       'zh-CN': '导航与配置',

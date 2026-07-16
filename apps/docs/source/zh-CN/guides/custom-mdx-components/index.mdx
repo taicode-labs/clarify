@@ -1,0 +1,49 @@
+import { SnakeGame } from './SnakeGame'
+
+# 自定义 MDX 组件
+
+Clarify 支持在 `.mdx` 中直接导入项目里的 React 组件。一次性组件可以和文章放在同一个目录里，导入路径短，也能清楚表达它只属于这篇内容。
+
+```text
+custom-mdx-components/
+├── index.mdx
+└── SnakeGame.tsx
+```
+
+```mdx
+import { SnakeGame } from './SnakeGame'
+```
+
+## 实际渲染
+
+下面不是截图，而是由 `SnakeGame.tsx` 实际渲染的小游戏。它包含 React 状态、定时更新、键盘事件、点击交互和客户端 hydration。
+
+<SnakeGame
+  title="贪吃蛇"
+  startLabel="开始游戏"
+  pauseLabel="暂停"
+  resumeLabel="继续"
+  restartLabel="再来一局"
+  scoreLabel="得分"
+  idleMessage="使用方向键、WASD 或右侧按钮开始移动"
+  pausedMessage="游戏已暂停"
+  gameOverMessage="撞到了，再试一次吧"
+/>
+
+## 放在哪里
+
+<Steps>
+  <Step title="文章专用组件">
+    放在文章目录旁边，例如 `guide/index.mdx` 与 `guide/Diagram.tsx`。这是默认推荐方式。
+  </Step>
+  <Step title="栏目共享组件">
+    放在该栏目的 `_components` 目录，由同一栏目内的几篇文章复用。
+  </Step>
+  <Step title="全站公共组件">
+    只有真正跨栏目、跨语言复用时，才提升到 `source/components`。
+  </Step>
+</Steps>
+
+<Callout type="tip">
+  Clarify 只把 `.md` 和 `.mdx` 扫描为内容路由，同目录的 `.tsx` 文件不会生成额外页面。
+</Callout>
