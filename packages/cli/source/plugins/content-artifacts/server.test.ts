@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveContentArtifactPath, resolveContentArtifactType } from './server.js'
 
 const projectConfig: ResolvedProjectConfig = {

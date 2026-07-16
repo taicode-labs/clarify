@@ -3,10 +3,10 @@ import type { IncomingMessage } from 'node:http'
 
 import { describe, it, expect } from 'vitest'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { resolveFeaturesConfig } from '../../core/config/config.js'
 import {
   toDevRouteEntry,
   resolveRouteForFile,

@@ -4,10 +4,9 @@ import { resolve } from 'node:path'
 import { loadConfigFromFile } from 'vite'
 import type { ConfigEnv } from 'vite'
 
-import type { ClarifyProjectConfig } from '../../types.js'
+import type { ClarifyProjectConfig, ClarifyPlugin  } from '../../types.js'
 
 import { validateProjectConfig } from './config.js'
-import type { ClarifyPlugin } from '../../types.js'
 
 export type ClarifyConfig = ClarifyProjectConfig & {
   plugins?: ClarifyPlugin[]

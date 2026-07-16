@@ -1,8 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { OpenApiResponseViewer } from './OpenApiResponseViewer'
 import { RequestField } from './OpenApiRequestFields'
+import { OpenApiResponseViewer } from './OpenApiResponseViewer'
 
 describe('OpenApiResponseViewer', () => {
   it('renders a designed empty state on the theme-scoped response surface', () => {

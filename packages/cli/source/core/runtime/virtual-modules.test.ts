@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest'
 
 import { buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
-import type { ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
-
+import type { ClarifyPlugin, ContentRoute, ResolvedProjectConfig } from '../../types.js'
 import { resolveFeaturesConfig } from '../config/config.js'
+
 import { buildVirtualModules, createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from './virtual-modules.js'
 
 type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
@@ -47,11 +47,6 @@ describe('generateConfigModule', () => {
       theme: resolveThemeConfig({ tokens: { colors: { primary: '#fff' } } }),
       variables: {},
       features: resolveFeaturesConfig(),
-    }
-    const generateOptions: ResolvedBuildOptions = {
-      projectRoot: '/site',
-      rootDirectory: 'source',
-      outputDirectory: 'dist',
     }
     const code = generateConfigModule(projectConfig)
     const expected = {

@@ -4,10 +4,10 @@ import { join } from 'node:path'
 
 import { describe, expect, it, afterEach, beforeEach } from 'vitest'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
-import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { createOpenAPIPlugin } from './index.js'
 
 const sectionIdExtension = 'x-clarify-section-id'
@@ -545,8 +545,7 @@ describe('createOpenAPIPlugin', () => {
       { tab: 'API', pages: [{ group: 'Reference', pages: [{ openapi: 'api.openapi.json', path: 'reference' }] }] },
     ] }
 
-    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
-    const aliasRoute = discovered?.find(route => route.path === '/reference')
+    const aliasRoute = (await plugin.hooks?.['routes:discovered']?.(routes, ctx))?.find(route => route.path === '/reference')
 
     expect(aliasRoute).toMatchObject({
       basePath: '/reference',
