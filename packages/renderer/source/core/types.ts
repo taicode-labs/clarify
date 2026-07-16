@@ -188,7 +188,7 @@ export type Config = {
   banner?: BannerConfig;
   footer?: FooterConfig;
   locales?: LocalesConfig;
-  variables: VariablesConfig;
+  variables?: VariablesConfig;
   features: FeaturesConfig;
   version?: string;
 };
