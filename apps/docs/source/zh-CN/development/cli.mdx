@@ -1,6 +1,6 @@
 # CLI 与引擎设计
 
-Clarify CLI 位于 `packages/cli`，它把内部构建引擎封装成 `clarify dev`、`clarify build` 和 `clarify init`。用户只需要关心 Clarify 命令，不需要创建或维护 Vite 配置文件。
+Clarify CLI 位于 `packages/cli`，它把内部构建引擎封装成 `clarify dev`、`clarify build`、`clarify check` 和 `clarify init`。用户只需要关心 Clarify 命令，不需要创建或维护 Vite 配置文件。
 
 ---
 
@@ -55,6 +55,10 @@ source → Frontmatter → MDX/OpenAPI 编译 → 路由清单 → Renderer → 
 2. 打包客户端资源。
 3. 调用服务端渲染入口为所有路由生成 HTML。
 4. 写出 raw Markdown/OpenAPI 文件和 `llms.txt`。
+
+### `clarify check`
+
+校验文档项目而不生成静态产物，适合在 CI 或提交前快速确认配置、路由、OpenAPI 引用和内容诊断是否通过。
 
 ### `clarify init`
 
@@ -144,17 +148,28 @@ JSON 配置会被校验并应用默认值，但不能表达可执行插件。
 
 ## Hook 生命周期
 
-内置插件先运行，用户插件后运行。当前生命周期为：
+内置插件先运行，用户插件后运行。Hook 分为生命周期（`before:`/`after:` 对）、内容/路由管线、构建产物和拦截四类。完整生命周期顺序：
 
 ```txt
-routes:discover
-  → routes:discovered
-  → 构建默认 navigation
-  → routes:resolved
-  → buildVirtualModules
-  → modules:before
-  → html:transform
-  → dev:configureServer / build closeBundle
+before:config:load / after:config:load
+  -> before:config:resolve / after:config:resolve
+  -> before:plugins:load / after:plugins:load
+  -> before:site:discover / after:site:discover
+  -> content:transform
+  -> before:content:process / after:content:process
+  -> routes:discover
+  -> routes:discovered
+  -> pages:resolved
+  -> 构建默认 navigation
+  -> routes:resolved
+  -> before:modules:build / after:modules:build
+  -> buildVirtualModules
+  -> modules:before
+  -> html:transform
+  -> before:build / after:build（受 build:shouldRun 拦截）
+  -> before:ssg / after:ssg（受 ssg:shouldRun 拦截）
+  -> dev:configureServer / build closeBundle
+  -> build:assets
   → build:done
 ```
 

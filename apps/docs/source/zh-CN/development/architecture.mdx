@@ -138,17 +138,30 @@ Renderer 不从文件系统推断导航，只消费 CLI 生成的 `NavigationTre
 
 ## 插件模型
 
-Clarify 内置 OpenAPI、content artifacts、HTML shell 等能力都通过插件 hook 接入。当前实现的 hook 包括：
+Clarify 内置 OpenAPI、content artifacts、HTML shell 等能力都通过插件 hook 接入。Hook 分为生命周期（`before:`/`after:` 对）、内容/路由管线、构建产物和拦截四类。当前实现的 hook 包括：
 
 | Hook | 作用 |
 |------|------|
-| `routes:discover` | 在路由发现阶段添加或修改路由。 |
-| `routes:discovered` | 路由发现后补充元数据，例如解析 OpenAPI。 |
-| `routes:resolved` | 修改最终路由和导航。 |
+| `before:config:load` / `after:config:load` | 原始配置加载前后。 |
+| `before:config:resolve` / `after:config:resolve` | 配置解析和应用默认值前后。 |
+| `before:plugins:load` / `after:plugins:load` | 插件发现和排序前后。 |
+| `before:site:discover` / `after:site:discover` | 内容/站点发现前后。 |
+| `before:content:process` / `after:content:process` | 内容处理前后。 |
+| `before:modules:build` / `after:modules:build` | 虚拟模块生成前后。 |
+| `before:build` / `after:build` | 生产构建前后。 |
+| `before:ssg` / `after:ssg` | 静态站点生成前后。 |
+| `before:dev:server` / `after:dev:server` | 开发服务器启动前后。 |
+| `content:transform` | 在内容变成页面前重写或补充内容。 |
+| `pages:resolved` | 检查或改写页面列表。 |
+| `routes:discover` | 用额外内容源扩展路由发现。 |
+| `routes:discovered` | 调整已发现的路由列表。 |
+| `routes:resolved` | 在路由和导航解析完成后更新它们。 |
 | `modules:before` | 在 Vite 消费前添加或修改虚拟模块。 |
 | `html:transform` | 转换 HTML shell 和注入标签。 |
-| `dev:configureServer` | 添加开发服务器中间件。 |
+| `build:assets` | 在构建期间生成额外资源。 |
 | `build:done` | SSG 后写入额外制品。 |
+| `build:shouldRun` / `ssg:shouldRun` | 拦截构建或 SSG 阶段。 |
+| `dev:configureServer` | 添加开发服务器中间件。 |
 
 这套模型应该继续承载搜索索引、分析脚本、AI 翻译等后续扩展，避免在构建流程中添加一次性的特殊分支。
 

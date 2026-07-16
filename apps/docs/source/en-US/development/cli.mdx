@@ -1,6 +1,6 @@
 # CLI and engine design
 
-The Clarify CLI lives in `packages/cli`. It wraps the internal build engine as `clarify dev`, `clarify build`, and `clarify init`. Users only need to care about Clarify commands and do not need to create or maintain Vite configuration files.
+The Clarify CLI lives in `packages/cli`. It wraps the internal build engine as `clarify dev`, `clarify build`, `clarify check`, and `clarify init`. Users only need to care about Clarify commands and do not need to create or maintain Vite configuration files.
 
 ---
 
@@ -55,6 +55,10 @@ source → Frontmatter → MDX/OpenAPI compilation → route manifest → Render
 2. Bundles client assets.
 3. Calls the server rendering entry to generate HTML for all routes.
 4. Writes raw Markdown/OpenAPI files and `llms.txt`.
+
+### `clarify check`
+
+Validates the documentation project without producing static artifacts. Useful for CI or pre-commit checks to confirm configuration, routes, OpenAPI references, and content diagnostics pass.
 
 ### `clarify init`
 
@@ -144,17 +148,28 @@ These modules are assembled internally by the CLI. Regular users do not need to 
 
 ## Hook lifecycle
 
-Built-in plugins run first, and user plugins run afterward. The current lifecycle is:
+Built-in plugins run first, and user plugins run afterward. Hooks are grouped into lifecycle (`before:`/`after:` pairs), content/routing pipeline, build artifacts, and intercept categories. The full lifecycle order:
 
 ```txt
-routes:discover
-  → routes:discovered
-  → build default navigation
-  → routes:resolved
-  → buildVirtualModules
-  → modules:before
-  → html:transform
-  → dev:configureServer / build closeBundle
+before:config:load / after:config:load
+  -> before:config:resolve / after:config:resolve
+  -> before:plugins:load / after:plugins:load
+  -> before:site:discover / after:site:discover
+  -> content:transform
+  -> before:content:process / after:content:process
+  -> routes:discover
+  -> routes:discovered
+  -> pages:resolved
+  -> build default navigation
+  -> routes:resolved
+  -> before:modules:build / after:modules:build
+  -> buildVirtualModules
+  -> modules:before
+  -> html:transform
+  -> before:build / after:build (gated by build:shouldRun)
+  -> before:ssg / after:ssg (gated by ssg:shouldRun)
+  -> dev:configureServer / build closeBundle
+  -> build:assets
   → build:done
 ```
 

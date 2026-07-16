@@ -20,17 +20,16 @@
 - `devServer.ts` — `DevServerManager`，进程启动、健康检查和关闭
 - `routeResolver.ts` — 通过 CLI dev server 解析编辑器文件到预览路由
 - `previewPanel.ts` — 在 Webview 中显示 iframe 预览
-- `dependencyManager.ts` — 无本地 CLI 时安装和复用私有 CLI
-- `projectInfo.ts` — 查询 `/dev/project-info` 获取文件识别规则
-- `utils.ts` — 工作区检测、文件分类、本地 CLI 解析
-- `utils.test.ts` — `utils.ts` 的单元测试
+- `projectInfo.ts` - 查询 `/dev/project-info` 获取文件识别规则
+- `utils.ts` - 工作区检测、文件分类、本地 CLI 解析
+- `utils.test.ts` / `previewPanel.test.ts` - 单元测试
 
 ## 预览流程
 
 1. 用户触发 `Clarify: Preview`。
 2. 扩展调用 `ensureServerReady(projectRoot)`。
 3. 若已有可用 dev server，则复用它。
-4. 否则扩展解析或安装 CLI 并启动 `clarify dev`。
+4. 否则扩展解析本地或全局 CLI 并启动 `clarify dev`。
 5. 服务器就绪后，`RouteResolver` 获取当前文件对应的路由。
 6. Webview 打开指向生成预览 URL 的 iframe。
 
@@ -38,14 +37,13 @@
 
 ### CLI 解析优先级
 
-扩展优先使用本地工作区 CLI，然后是私有安装，最后回退到 `npx`：
+扩展优先使用本地工作区 CLI，然后是全局 PATH，最后回退到 `clarify.cliPath` 配置覆盖：
 
-1. `clarify.cliPath` 配置
-2. 工作区中的 `packages/cli/bin/clarify.js`
-3. `node_modules/.bin/clarify`
-4. `node_modules/@clarify-labs/cli/bin/clarify.js`
-5. 扩展存储下的私有安装
-6. `npx @clarify-labs/cli@<version>`
+1. `clarify.cliPath` 配置（如果设置，覆盖所有自动解析）
+2. 工作区中的 `packages/cli/bin/clarify.js`（monorepo 开发模式）
+3. `node_modules/.bin/clarify`（标准本地安装）
+4. `node_modules/@clarify-labs/cli/bin/clarify.js`（显式依赖安装）
+5. 全局 PATH 中的 `clarify`（通过 `which`/`where` 检测）
 
 ### Dev server 启动
 
@@ -71,8 +69,7 @@
 
 扩展提供如下设置：
 
-- `clarify.version` — 未找到本地 CLI 时安装的版本
-- `clarify.cliPath` — 绝对 binary 路径覆盖所有自动解析
+- `clarify.cliPath` - 绝对 binary 路径，覆盖所有自动解析
 - `clarify.autoStartServer` — 激活时启动服务
 - `clarify.autoOpenPreview` — 切换内容文件时同步预览
 - `clarify.openToSide` — 在侧边打开预览面板
@@ -85,7 +82,7 @@
 
 ## 测试说明
 
-单元测试覆盖 `extensions/vscode/source/utils.test.ts` 中的纯函数。
+单元测试覆盖 `extensions/vscode/source/utils.test.ts` 和 `extensions/vscode/source/previewPanel.test.ts` 中的纯函数和组件行为。
 
 实时预览和进程管理行为通过本地扩展运行与调试验证。
 

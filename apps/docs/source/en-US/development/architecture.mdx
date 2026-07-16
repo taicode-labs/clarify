@@ -138,17 +138,30 @@ The Renderer does not infer navigation from the file system; it only consumes th
 
 ## Plugin model
 
-Clarify's built-in capabilities such as OpenAPI, content artifacts, and the HTML shell are all connected through plugin hooks. The currently implemented hooks include:
+Clarify's built-in capabilities such as OpenAPI, content artifacts, and the HTML shell are all connected through plugin hooks. Hooks are grouped into lifecycle (`before:`/`after:` pairs), content/routing pipeline, build artifacts, and intercept categories. The currently implemented hooks include:
 
 | Hook | Purpose |
 |------|---------|
-| `routes:discover` | Add or modify routes during route discovery. |
-| `routes:discovered` | Add metadata after route discovery, such as parsing OpenAPI. |
-| `routes:resolved` | Modify final routes and navigation. |
+| `before:config:load` / `after:config:load` | Around raw config loading. |
+| `before:config:resolve` / `after:config:resolve` | Around config resolution and default application. |
+| `before:plugins:load` / `after:plugins:load` | Around plugin discovery and ordering. |
+| `before:site:discover` / `after:site:discover` | Around content/site discovery. |
+| `before:content:process` / `after:content:process` | Around content processing. |
+| `before:modules:build` / `after:modules:build` | Around virtual module generation. |
+| `before:build` / `after:build` | Around the production build. |
+| `before:ssg` / `after:ssg` | Around static site generation. |
+| `before:dev:server` / `after:dev:server` | Around dev server setup. |
+| `content:transform` | Rewrite or enrich content before it becomes a page. |
+| `pages:resolved` | Inspect or reshape the page list. |
+| `routes:discover` | Extend route discovery with additional content sources. |
+| `routes:discovered` | Adjust the discovered route list. |
+| `routes:resolved` | Update routes and navigation after resolution. |
 | `modules:before` | Add or modify virtual modules before Vite consumes them. |
 | `html:transform` | Transform the HTML shell and inject tags. |
-| `dev:configureServer` | Add development server middleware. |
+| `build:assets` | Emit extra assets during the build. |
 | `build:done` | Write additional artifacts after SSG. |
+| `build:shouldRun` / `ssg:shouldRun` | Intercept the build or SSG stage. |
+| `dev:configureServer` | Add development server middleware. |
 
 This model should continue to carry future extensions such as search indexes, analytics scripts, and AI translation, avoiding one-off special branches in the build pipeline.
 

@@ -17,10 +17,30 @@ export type ClarifyPlugin = {
 
 ## 构建期 hook
 
-当前实现支持的 hook 名称如下：
+ClarifyHooks 由生命周期、管线、构建和开发四组 hook 组成。类型定义见 `packages/cli/source/types.ts`。
+
+### 生命周期 hook（`tap`）
+
+Tap hook 在明确的阶段点运行，用于副作用。每个主要阶段都有 `before:`/`after:` 对：
+
+| Hook | 触发时机 |
+|------|--------|
+| `before:config:load` / `after:config:load` | 原始配置加载前后 |
+| `before:config:resolve` / `after:config:resolve` | 配置解析和应用默认值前后 |
+| `before:plugins:load` / `after:plugins:load` | 插件发现和排序前后 |
+| `before:site:discover` / `after:site:discover` | 内容/站点发现前后 |
+| `before:content:process` / `after:content:process` | 内容处理前后 |
+| `before:modules:build` / `after:modules:build` | 虚拟模块生成前后 |
+| `before:build` / `after:build` | 生产构建前后 |
+| `before:ssg` / `after:ssg` | 静态站点生成前后 |
+| `before:dev:server` / `after:dev:server` | 开发服务器启动前后 |
+
+### 内容与路由 hook（`pipeline`）
+
+Pipeline hook 转换结构化数据。每个 hook 接收当前值并必须返回下一个值（同步或异步）：
 
 | Hook | 作用 |
-| --- | --- |
+|------|------|
 | `content:transform` | 在内容变成页面前重写或补充内容。 |
 | `pages:resolved` | 检查或改写页面列表。 |
 | `routes:discover` | 用额外内容源扩展路由发现。 |
@@ -28,9 +48,28 @@ export type ClarifyPlugin = {
 | `routes:resolved` | 在路由和导航解析完成后更新它们。 |
 | `modules:before` | 注入虚拟模块或运行时辅助代码。 |
 | `html:transform` | 调整最终 HTML shell 及其标签。 |
-| `dev:configureServer` | 钩入 Vite 开发服务器。 |
+
+### 构建产物 hook（`collector`）
+
+| Hook | 作用 |
+|------|------|
 | `build:assets` | 在构建期间生成额外资源。 |
 | `build:done` | 在构建完成后执行后处理，比如搜索索引或生成文件。 |
+
+### 拦截 hook（`intercept`）
+
+拦截 hook 可以短路构建阶段：
+
+| Hook | 作用 |
+|------|------|
+| `build:shouldRun` | 决定构建阶段是否运行。 |
+| `ssg:shouldRun` | 决定 SSG 是否运行。 |
+
+### 开发服务器 hook
+
+| Hook | 作用 |
+|------|------|
+| `dev:configureServer` | 钩入 Vite 开发服务器。 |
 
 当插件需要修改内容、路由数据、导航、构建产物或 HTML 输出时，优先使用这些 hook。
 
@@ -226,11 +265,9 @@ declare module 'virtual:clarify/slot' {
   import type { RouteItem } from '@clarify-labs/renderer'
 
   export type UISlotName =
-    | 'page.title.actions'
-    | 'page.navigation.before'
-    | 'page.navigation.after'
     | 'page.footer.before'
-    | 'page.footer.after'
+    | 'page.banner.replace'
+    | 'page.footer.replace'
 
   export type SlotContext = {
     name: UISlotName
@@ -238,6 +275,7 @@ declare module 'virtual:clarify/slot' {
     route?: RouteItem
     locale?: string
     config?: Record<string, unknown>
+    DefaultComponent?: ComponentType
   }
 
   export function useSlot(): SlotContext
@@ -470,18 +508,19 @@ const commentsKey = `pathname:${route.basePath ?? route.path}`
 
 ## 插件接口演进路线
 
-### 第一阶段：稳定 UI 插槽
+### 第一阶段：稳定 UI 插槽（已交付）
 
-只新增：
+已交付：
 
 - `ClarifyPlugin.slots`
-- `page.footer.before`
-- `RuntimeSlot`
+- 扩展型插槽 `page.footer.before`
+- 替换型插槽 `page.banner.replace`、`page.footer.replace`
+- `RuntimeSlot` / `ReplaceableSlot`
 - `virtual:clarify/slots`
 - `virtual:clarify/slot` 与 `useSlot()`
 - dev/build 自动生成项目级 `clarify-env.d.ts`
 
-该阶段解决评论、反馈、底部 CTA 这类最明确的 UI 扩展需求，同时避免 slot component props 随上下文增长而膨胀，并避免虚拟模块在用户项目里产生类型错误。
+该阶段解决了评论、反馈、底部 CTA 这类最明确的 UI 扩展需求，同时避免 slot component props 随上下文增长而膨胀，并避免虚拟模块在用户项目里产生类型错误。
 
 ### 第二阶段：运行时模块声明
 
@@ -510,9 +549,9 @@ runtimeModules?: {
 1. 位置足够稳定，不暴露内部布局细节。
 2. 至少有一个明确插件场景无法通过已有 slot 合理实现。
 
-### 第四阶段：替换型插槽
+### 第四阶段：更多替换型插槽
 
-在第一批替换型插槽稳定后，再考虑继续开放更多替换型插槽（`*.replace`），用于替换 Clarify 内置默认组件，例如：
+在现有替换型插槽稳定后，再考虑继续开放更多替换型插槽（`*.replace`），用于替换 Clarify 内置默认组件，例如：
 
 - `page.navigation.replace`
 - `layout.header.replace`

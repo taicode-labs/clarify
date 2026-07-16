@@ -17,7 +17,27 @@ export type ClarifyPlugin = {
 
 ## Build-time hooks
 
-The implemented hook names are:
+ClarifyHooks is the union of four hook groups: lifecycle, pipeline, build, and dev. The type definitions live in `packages/cli/source/types.ts`.
+
+### Lifecycle hooks (`tap`)
+
+Tap hooks run for side effects at clearly defined points. Each major stage comes in a `before:`/`after:` pair:
+
+| Hook | Fires |
+|------|-------|
+| `before:config:load` / `after:config:load` | Around raw config loading |
+| `before:config:resolve` / `after:config:resolve` | Around config resolution and default application |
+| `before:plugins:load` / `after:plugins:load` | Around plugin discovery and ordering |
+| `before:site:discover` / `after:site:discover` | Around content/site discovery |
+| `before:content:process` / `after:content:process` | Around content processing |
+| `before:modules:build` / `after:modules:build` | Around virtual module generation |
+| `before:build` / `after:build` | Around the production build |
+| `before:ssg` / `after:ssg` | Around static site generation |
+| `before:dev:server` / `after:dev:server` | Around dev server setup |
+
+### Content & routing hooks (`pipeline`)
+
+Pipeline hooks transform structured data. Each receives the current value and must return the next value (sync or async):
 
 | Hook | Purpose |
 | --- | --- |
@@ -28,9 +48,28 @@ The implemented hook names are:
 | `routes:resolved` | Update routes and navigation after they have been resolved. |
 | `modules:before` | Inject virtual modules or runtime helpers. |
 | `html:transform` | Update the final HTML shell and its tags. |
-| `dev:configureServer` | Hook into the Vite dev server. |
+
+### Build artifact hooks (`collector`)
+
+| Hook | Purpose |
+|------|---------|
 | `build:assets` | Emit extra assets during the build. |
 | `build:done` | Run post-build work such as search indexes or generated files. |
+
+### Intercept hooks
+
+Intercept hooks can short-circuit a build stage:
+
+| Hook | Purpose |
+|------|---------|
+| `build:shouldRun` | Decide whether the build stage runs. |
+| `ssg:shouldRun` | Decide whether SSG runs. |
+
+### Dev server hooks
+
+| Hook | Purpose |
+|------|---------|
+| `dev:configureServer` | Hook into the Vite dev server. |
 
 Use hooks when a plugin needs to change content, route data, navigation, build artifacts, or HTML output.
 
@@ -220,11 +259,9 @@ declare module 'virtual:clarify/slot' {
   import type { RouteItem } from '@clarify-labs/renderer'
 
   export type UISlotName =
-    | 'page.title.actions'
-    | 'page.navigation.before'
-    | 'page.navigation.after'
     | 'page.footer.before'
-    | 'page.footer.after'
+    | 'page.banner.replace'
+    | 'page.footer.replace'
 
   export type SlotContext = {
     name: UISlotName
@@ -232,6 +269,7 @@ declare module 'virtual:clarify/slot' {
     route?: RouteItem
     locale?: string
     config?: Record<string, unknown>
+    DefaultComponent?: ComponentType
   }
 
   export function useSlot(): SlotContext
@@ -464,13 +502,14 @@ If a future plugin truly needs page-level build-time data, it can use hooks to a
 
 ## Plugin API Evolution Path
 
-### Phase 1: Stable UI Slots
+### Phase 1: Stable UI Slots (delivered)
 
-Only add:
+Delivered:
 
 - `ClarifyPlugin.slots`
-- `page.footer.before`
-- `RuntimeSlot`
+- Extension slot `page.footer.before`
+- Replacement slots `page.banner.replace` and `page.footer.replace`
+- `RuntimeSlot` / `ReplaceableSlot`
 - `virtual:clarify/slots`
 - `virtual:clarify/slot` and `useSlot()`
 - dev/build generated project-level `clarify-env.d.ts`
@@ -504,9 +543,9 @@ A new slot must satisfy two conditions:
 1. Its position is stable enough and does not expose internal layout details.
 2. At least one concrete plugin scenario cannot be implemented reasonably with existing slots.
 
-### Phase 4: Replacement Slots
+### Phase 4: More Replacement Slots
 
-After the first replacement slots are stable, consider adding more `*.replace` slots for Clarify built-in default components, for example:
+After the current replacement slots are stable, consider adding more `*.replace` slots for Clarify built-in default components, for example:
 
 - `page.navigation.replace`
 - `layout.header.replace`
