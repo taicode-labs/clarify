@@ -51,37 +51,85 @@ export type BuiltInTextKey =
   | 'notFound.label'
   | 'notFound.title'
   | 'openapi.apiDocumentation'
+  | 'openapi.authentication'
   | 'openapi.bodyProperties'
   | 'openapi.collapse'
+  | 'openapi.clear'
+  | 'openapi.codeSnippet'
   | 'openapi.endpointNotFound'
   | 'openapi.example'
   | 'openapi.expand'
   | 'openapi.headers'
+  | 'openapi.headerName'
+  | 'openapi.headerValue'
+  | 'openapi.headerParameters'
+  | 'openapi.fieldDescription'
+  | 'openapi.includeParameter'
+  | 'openapi.cookieParameters'
+  | 'openapi.cookieParametersBrowserManaged'
+  | 'openapi.cookies'
+  | 'openapi.cookiesBrowserHidden'
   | 'openapi.language'
   | 'openapi.client'
+  | 'openapi.closeRequest'
+  | 'openapi.credential'
   | 'openapi.loading'
   | 'openapi.mediaType'
   | 'openapi.none'
+  | 'openapi.noRequestConfiguration'
   | 'openapi.openApiReference'
   | 'openapi.operationParameter'
   | 'openapi.optional'
   | 'openapi.parameter'
+  | 'openapi.parameterInvalidArray'
+  | 'openapi.parameterInvalidDate'
+  | 'openapi.parameterInvalidDateTime'
+  | 'openapi.parameterInvalidEnum'
+  | 'openapi.parameterInvalidInteger'
+  | 'openapi.parameterInvalidNumber'
+  | 'openapi.parameterInvalidObject'
   | 'openapi.pathParameters'
   | 'openapi.queryParameters'
+  | 'openapi.preview'
+  | 'openapi.raw'
+  | 'openapi.resetToExample'
+  | 'openapi.body'
+  | 'openapi.binaryPreview'
+  | 'openapi.downloadBody'
+  | 'openapi.noHeaders'
+  | 'openapi.responseViews'
+  | 'openapi.responseUrl'
+  | 'openapi.redirected'
+  | 'openapi.searchHeaders'
+  | 'openapi.unknownContentType'
+  | 'openapi.variables'
+  | 'openapi.requestConfiguration'
+  | 'openapi.requestHeaders'
   | 'openapi.request'
   | 'openapi.requestBody'
   | 'openapi.requestBodyEmpty'
+  | 'openapi.requestCorsHint'
   | 'openapi.responseBodyProperties'
+  | 'openapi.responseHeaders'
   | 'openapi.required'
   | 'openapi.requiredBadge'
   | 'openapi.response'
+  | 'openapi.responseBodyEmpty'
+  | 'openapi.responseBodyEmptyTitle'
+  | 'openapi.responseEmpty'
+  | 'openapi.responseEmptyTitle'
+  | 'openapi.responseErrorTitle'
   | 'openapi.responses'
   | 'openapi.schemaExample'
+  | 'openapi.sendRequest'
+  | 'openapi.sendingRequest'
+  | 'openapi.server'
   | 'openapi.scrollExamplesLeft'
   | 'openapi.scrollExamplesRight'
   | 'openapi.specNotFound'
   | 'openapi.specPathMissing'
   | 'openapi.status'
+  | 'openapi.tryRequest'
   | 'openapi.version'
   | 'openapi.webhookResponse'
   | 'openapi.webhookResponses'
@@ -157,37 +205,85 @@ const builtInText = {
     'notFound.label': '404',
     'notFound.title': 'Page not found',
     'openapi.apiDocumentation': 'API Documentation',
+    'openapi.authentication': 'Authentication',
     'openapi.bodyProperties': 'Body properties',
     'openapi.collapse': 'Collapse',
+    'openapi.clear': 'Clear',
+    'openapi.codeSnippet': 'Code snippet',
     'openapi.endpointNotFound': 'Endpoint not found: {endpoint}',
     'openapi.example': 'Example',
     'openapi.expand': 'Expand',
     'openapi.headers': 'Headers',
+    'openapi.headerName': 'Name',
+    'openapi.headerValue': 'Value',
+    'openapi.headerParameters': 'Header parameters',
+    'openapi.fieldDescription': 'Field description',
+    'openapi.includeParameter': 'Include parameter',
+    'openapi.cookieParameters': 'Cookie parameters',
+    'openapi.cookieParametersBrowserManaged': 'Cookies are managed by the browser. Matching cookies are sent when the server allows credentialed requests.',
+    'openapi.cookies': 'Cookies',
+    'openapi.cookiesBrowserHidden': 'Cookies are managed by the browser. Set-Cookie values are not exposed to JavaScript.',
     'openapi.language': 'Language',
     'openapi.client': 'Client',
+    'openapi.closeRequest': 'Close request tester',
+    'openapi.credential': 'Credential',
     'openapi.loading': 'Loading OpenAPI spec...',
     'openapi.mediaType': 'Media type',
     'openapi.none': 'None',
+    'openapi.noRequestConfiguration': 'This request has no parameters, authentication, variables, or request body. It is ready to send as-is.',
     'openapi.openApiReference': 'OpenAPI Reference',
     'openapi.operationParameter': 'Operation parameter.',
     'openapi.optional': 'Optional.',
     'openapi.parameter': 'parameter',
+    'openapi.parameterInvalidArray': 'Enter a valid JSON array.',
+    'openapi.parameterInvalidDate': 'Enter a valid date.',
+    'openapi.parameterInvalidDateTime': 'Enter a valid date and time.',
+    'openapi.parameterInvalidEnum': 'Select one of the allowed values.',
+    'openapi.parameterInvalidInteger': 'Enter a whole number.',
+    'openapi.parameterInvalidNumber': 'Enter a valid number.',
+    'openapi.parameterInvalidObject': 'Enter a valid JSON object.',
     'openapi.pathParameters': 'Path parameters',
     'openapi.queryParameters': 'Query parameters',
+    'openapi.preview': 'Preview',
+    'openapi.raw': 'Raw',
+    'openapi.resetToExample': 'Reset to example',
+    'openapi.body': 'Body',
+    'openapi.binaryPreview': 'Binary response preview is not available.',
+    'openapi.downloadBody': 'Download response body',
+    'openapi.noHeaders': 'No response headers match the current search.',
+    'openapi.responseViews': 'Response views',
+    'openapi.responseUrl': 'Final URL',
+    'openapi.redirected': 'Redirected',
+    'openapi.searchHeaders': 'Search response headers',
+    'openapi.unknownContentType': 'Unknown content type',
+    'openapi.variables': 'Variables',
+    'openapi.requestConfiguration': 'Request configuration',
+    'openapi.requestHeaders': 'Request headers',
     'openapi.request': 'Request',
     'openapi.requestBody': 'Request body',
     'openapi.requestBodyEmpty': 'No request body',
+    'openapi.requestCorsHint': 'The API may be unavailable from this browser because of its network or CORS policy',
     'openapi.responseBodyProperties': 'Response body properties',
+    'openapi.responseHeaders': 'Response headers',
     'openapi.required': 'Required.',
     'openapi.requiredBadge': 'required',
     'openapi.response': 'Response',
+    'openapi.responseBodyEmpty': 'The response body is empty.',
+    'openapi.responseBodyEmptyTitle': 'No response content',
+    'openapi.responseEmpty': 'Send the request to inspect the response.',
+    'openapi.responseEmptyTitle': 'Ready for a request',
+    'openapi.responseErrorTitle': 'Request failed',
     'openapi.responses': 'Responses',
     'openapi.schemaExample': 'Schema example',
+    'openapi.sendRequest': 'Send',
+    'openapi.sendingRequest': 'Sending',
+    'openapi.server': 'Server',
     'openapi.scrollExamplesLeft': 'Scroll examples left',
     'openapi.scrollExamplesRight': 'Scroll examples right',
     'openapi.specNotFound': 'OpenAPI spec not found: {specPath}',
     'openapi.specPathMissing': 'spec or specPath was not provided',
     'openapi.status': 'Status',
+    'openapi.tryRequest': 'Try request',
     'openapi.version': 'Version {version}',
     'openapi.webhookResponse': 'Webhook response',
     'openapi.webhookResponses': 'Webhook responses',
@@ -262,37 +358,85 @@ const builtInText = {
     'notFound.label': '404',
     'notFound.title': '页面未找到',
     'openapi.apiDocumentation': 'API 文档',
+    'openapi.authentication': '认证方式',
     'openapi.bodyProperties': '请求体属性',
     'openapi.collapse': '收起',
+    'openapi.clear': '清除',
+    'openapi.codeSnippet': '代码示例',
     'openapi.endpointNotFound': '未找到端点：{endpoint}',
     'openapi.example': '示例',
     'openapi.expand': '展开',
     'openapi.headers': '请求头',
+    'openapi.headerName': '名称',
+    'openapi.headerValue': '值',
+    'openapi.headerParameters': '请求头参数',
+    'openapi.fieldDescription': '字段说明',
+    'openapi.includeParameter': '传递参数',
+    'openapi.cookieParameters': 'Cookie 参数',
+    'openapi.cookieParametersBrowserManaged': 'Cookie 由浏览器管理；当服务端允许携带凭据时，匹配的 Cookie 会随请求发送。',
+    'openapi.cookies': 'Cookies',
+    'openapi.cookiesBrowserHidden': 'Cookie 由浏览器管理，JavaScript 无法读取 Set-Cookie 的值。',
     'openapi.language': '语言',
     'openapi.client': '客户端',
+    'openapi.closeRequest': '关闭请求测试器',
+    'openapi.credential': '认证凭证',
     'openapi.loading': '正在加载 OpenAPI 描述文件...',
     'openapi.mediaType': '媒体类型',
     'openapi.none': '无',
+    'openapi.noRequestConfiguration': '此请求没有参数、认证、变量或请求体，可以直接发送。',
     'openapi.openApiReference': 'OpenAPI 参考',
     'openapi.operationParameter': '操作参数。',
     'openapi.optional': '可选。',
     'openapi.parameter': '参数',
+    'openapi.parameterInvalidArray': '请输入有效的 JSON 数组。',
+    'openapi.parameterInvalidDate': '请输入有效日期。',
+    'openapi.parameterInvalidDateTime': '请输入有效的日期和时间。',
+    'openapi.parameterInvalidEnum': '请选择允许的值。',
+    'openapi.parameterInvalidInteger': '请输入整数。',
+    'openapi.parameterInvalidNumber': '请输入有效数字。',
+    'openapi.parameterInvalidObject': '请输入有效的 JSON 对象。',
     'openapi.pathParameters': '路径参数',
     'openapi.queryParameters': '查询参数',
+    'openapi.preview': '预览',
+    'openapi.raw': '原始内容',
+    'openapi.resetToExample': '重置为示例',
+    'openapi.body': '响应体',
+    'openapi.binaryPreview': '暂不支持预览二进制响应。',
+    'openapi.downloadBody': '下载响应体',
+    'openapi.noHeaders': '没有匹配当前搜索的响应头。',
+    'openapi.responseViews': '响应视图',
+    'openapi.responseUrl': '最终 URL',
+    'openapi.redirected': '已重定向',
+    'openapi.searchHeaders': '搜索响应头',
+    'openapi.unknownContentType': '未知内容类型',
+    'openapi.variables': '变量',
+    'openapi.requestConfiguration': '请求配置',
+    'openapi.requestHeaders': '请求头',
     'openapi.request': '请求',
     'openapi.requestBody': '请求体',
     'openapi.requestBodyEmpty': '暂无请求体',
+    'openapi.requestCorsHint': '受目标 API 的网络或 CORS 策略影响，浏览器可能无法直接访问',
     'openapi.responseBodyProperties': '响应体属性',
+    'openapi.responseHeaders': '响应头',
     'openapi.required': '必填。',
     'openapi.requiredBadge': '必填',
     'openapi.response': '响应',
+    'openapi.responseBodyEmpty': '响应体为空。',
+    'openapi.responseBodyEmptyTitle': '无响应内容',
+    'openapi.responseEmpty': '发送请求后在这里查看响应。',
+    'openapi.responseEmptyTitle': '等待发送请求',
+    'openapi.responseErrorTitle': '请求失败',
     'openapi.responses': '响应',
     'openapi.schemaExample': 'Schema 示例',
+    'openapi.sendRequest': '发送',
+    'openapi.sendingRequest': '发送中',
+    'openapi.server': '服务地址',
     'openapi.scrollExamplesLeft': '向左滚动示例',
     'openapi.scrollExamplesRight': '向右滚动示例',
     'openapi.specNotFound': '未找到 OpenAPI 描述文件：{specPath}',
     'openapi.specPathMissing': '未提供 spec 或 specPath',
     'openapi.status': '状态',
+    'openapi.tryRequest': '发起测试请求',
     'openapi.version': '版本 {version}',
     'openapi.webhookResponse': 'Webhook 响应',
     'openapi.webhookResponses': 'Webhook 响应',
@@ -337,6 +481,6 @@ export function translateBuiltInText(locale: string | undefined, key: BuiltInTex
 export function useBuiltInText(locale?: string) {
   const config = useContext(ConfigContext)
   const currentLocale = useContext(LocaleContext)
-  const resolvedLocale = locale ?? currentLocale ?? config?.i18n?.defaultLocale
+  const resolvedLocale = locale ?? currentLocale ?? config?.locales?.default
   return (key: BuiltInTextKey, replacements?: Record<string, string>) => translateBuiltInText(resolvedLocale, key, replacements)
 }

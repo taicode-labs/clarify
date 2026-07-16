@@ -152,6 +152,5 @@ export function createRandomTheme(): ThemeConfig {
       radius: { ...selection.radius },
     },
     layout: { maxWidth: selection.maxWidth },
-    editor: false,
   }
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
@@ -12,6 +13,7 @@ const projectConfig: ResolvedProjectConfig = {
   assetPrefix: '/',
   theme: resolveThemeConfig(),
   variables: {},
+  features: resolveFeaturesConfig(),
 }
 
 function createRoute(kind: 'mdx' | 'openapi', contentArtifactUrl: string): ContentRoute {

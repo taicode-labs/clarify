@@ -86,7 +86,7 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
   })
 }
 
-export async function renderSSGRoutes(routes: ContentRoute[], contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string, failOnError: boolean = true): Promise<void> {
+export async function renderSSGRoutes(routes: ContentRoute[], contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string): Promise<void> {
   const { render } = await import(pathToFileURL(ssrBundlePath).href)
 
   const template = readIndexHtml(outputDirectory)
@@ -107,9 +107,7 @@ export async function renderSSGRoutes(routes: ContentRoute[], contextOrConfig: C
       }
     } catch (err) {
       console.error(`[clarify] Failed to render route "${route.path}":`, err)
-      if (failOnError) {
-        throw err
-      }
+      throw err
     }
   }
 }

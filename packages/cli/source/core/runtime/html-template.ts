@@ -39,10 +39,10 @@ function canonicalUrl(contextOrConfig: ClarifyProjectContext | ResolvedProjectCo
 /** Inject `lang` (and optional `dir`) onto the `<html>` tag for the route locale. */
 export function injectHtmlLocaleAttributes(html: string, contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, route?: ContentRoute): string {
   const projectConfig = resolveProjectConfigFromContext(contextOrConfig)
-  const localeCode = route?.locale ?? projectConfig.i18n?.defaultLocale
+  const localeCode = route?.locale ?? projectConfig.locales?.default
   if (!localeCode) return html
 
-  const localeConfig = projectConfig.i18n?.locales.find(locale => locale.code === localeCode)
+  const localeConfig = projectConfig.locales?.locales.find(locale => locale.code === localeCode)
   const dir = localeConfig?.dir
 
   return html.replace(/<html\b([^>]*)>/i, (_match, attributes: string) => {

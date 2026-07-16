@@ -7,6 +7,9 @@ export type OpenApiParameter = {
   in?: string
   required?: boolean
   description?: string
+  style?: string
+  explode?: boolean
+  allowEmptyValue?: boolean
   schema?: unknown
 }
 
@@ -56,6 +59,8 @@ export type RequestAuthInput = {
   value: string
   scheme: OpenApiSecurityScheme
 }
+
+export type RequestAuthInputs = RequestAuthInput[]
 
 export type MediaTypeEntry = {
   mediaType: string

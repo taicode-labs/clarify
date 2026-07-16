@@ -113,22 +113,22 @@ function scrollToHash(hash: string) {
 }
 
 function explicitLocaleForPath(config: Config, pathname: string): string | undefined {
-  const i18n = config.i18n
-  if (!i18n) return undefined
+  const locales = config.locales
+  if (!locales) return undefined
   const firstSegment = pathname.split('/').filter(Boolean)[0]
-  return i18n.locales.find((locale) => locale.code === firstSegment)?.code
+  return locales.locales.find((locale) => locale.code === firstSegment)?.code
 }
 
 function fallbackLocale(config: Config): string | undefined {
-  return config.i18n?.defaultLocale
+  return config.locales?.default
 }
 
 function storedLocaleForConfig(config: Config): string | null {
-  return getStoredLocalePreference(config.i18n?.locales.map(locale => locale.code))
+  return getStoredLocalePreference(config.locales?.locales.map(locale => locale.code))
 }
 
 function isDefaultLocale(config: Config, locale: string | undefined): boolean {
-  return Boolean(locale && config.i18n?.defaultLocale === locale)
+  return Boolean(locale && config.locales?.default === locale)
 }
 
 function hasPath(nodes: NavigationNode[], pathname: string, locale?: string): boolean {
@@ -191,7 +191,7 @@ function useRouteState(config: Config, routes: RouteItem[], navigation: Navigati
   const explicitLocale = explicitLocaleForPath(config, pathname)
   const storedLocale = storedLocaleForConfig(config)
   const currentLocale = explicitLocale ?? storedLocale ?? fallbackLocale(config)
-  const currentLocaleConfig = config.i18n?.locales.find((locale) => locale.code === currentLocale)
+  const currentLocaleConfig = config.locales?.locales.find((locale) => locale.code === currentLocale)
   const notFoundRoute = currentRoute ? undefined : notFoundRouteForPath(routes, pathname, currentLocale)
   const currentNavigation = navigationForLocale(navigation, currentLocale, pathname)
   const sections = sectionsForRoute(currentRoute)
@@ -236,7 +236,7 @@ function useStoredBannerDismissed(storageKey: string | undefined) {
 function useBannerState(config: Config, currentLocale: string | undefined) {
   const banner = config.banner
   const bannerContent = banner
-    ? resolveLocalizedText(banner.content, currentLocale, config.i18n?.defaultLocale)
+    ? resolveLocalizedText(banner.content, currentLocale, config.locales?.default)
     : ''
   const bannerStorageKey = banner && bannerContent ? `clarify:banner:dismissed:${config.title}:${bannerContent}` : undefined
   const storedBannerDismissed = useStoredBannerDismissed(banner?.dismissible ? bannerStorageKey : undefined)

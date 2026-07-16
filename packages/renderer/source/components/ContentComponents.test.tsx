@@ -51,9 +51,11 @@ describe('content components', () => {
   it('associates tooltip content with a keyboard-focusable trigger', () => {
     const html = renderToStaticMarkup(<Tooltip content="Application programming interface">API</Tooltip>)
 
-    expect(html).toContain('tabindex="0"')
+    expect(html).toContain('<button type="button"')
     expect(html).toContain('aria-describedby=')
     expect(html).toContain('role="tooltip"')
+    expect(html).toContain('popover="manual"')
+    expect(html).toContain('fixed')
   })
 
   it('registers all content components in MDX', () => {

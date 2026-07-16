@@ -6,13 +6,13 @@ export function isExternalHref(href: string): boolean {
 
 export function hasLocalePrefix(href: string, config: Config): boolean {
   const firstSegment = href.replace(/^\/+/, '').split('/')[0]
-  return Boolean(firstSegment && config.i18n?.locales.some((locale) => locale.code === firstSegment))
+  return Boolean(firstSegment && config.locales?.locales.some((locale) => locale.code === firstSegment))
 }
 
 export function localizeHref(href: string, config: Config, locale?: string): string {
-  if (!locale || !config.i18n || isExternalHref(href) || href.startsWith('#')) return href
+  if (!locale || !config.locales || isExternalHref(href) || href.startsWith('#')) return href
   if (hasLocalePrefix(href, config)) return href
-  if (locale === config.i18n.defaultLocale) return href.startsWith('/') ? href : `/${href}`
+  if (locale === config.locales.default) return href.startsWith('/') ? href : `/${href}`
 
   const cleanHref = href === '/' ? '' : href.replace(/^\/+/, '')
   return `/${locale}${cleanHref ? `/${cleanHref}` : ''}`

@@ -33,4 +33,14 @@ describe('resolveProjectContext', () => {
     expect(context.contentRoot).toBe(join(tempDir, 'custom-source'))
     expect(context.configFilePath).toBe(join(tempDir, 'clarify.json'))
   })
+
+  it('uses the default content root when no build option is provided', async () => {
+    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ title: 'Docs' }), 'utf-8')
+
+    const context = await resolveProjectContext({ projectRoot: tempDir })
+
+    expect(context.buildOptions.rootDirectory).toBe('source')
+    expect(context.contentRoot).toBe(join(tempDir, 'source'))
+    expect(context.projectContext.contentRoot).toBe(join(tempDir, 'source'))
+  })
 })

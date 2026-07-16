@@ -4,6 +4,7 @@ import { join } from 'node:path'
 
 import { describe, expect, it, afterEach, beforeEach } from 'vitest'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
@@ -18,13 +19,13 @@ const projectConfig: ResolvedProjectConfig = {
   assetPrefix: '/',
   theme: resolveThemeConfig({ tokens: { colors: { primary: '#000000' } } }),
   variables: {},
+  features: resolveFeaturesConfig(),
 }
 
 const generateOptions: ResolvedBuildOptions = {
   projectRoot: '/site',
   rootDirectory: 'source',
   outputDirectory: 'output',
-  ssg: { failOnError: true },
 }
 
 function createContext(routes: ContentRoute[], projectRoot: string = '/site'): ClarifyHookContext {
@@ -267,9 +268,9 @@ describe('createOpenAPIPlugin', () => {
     }, createContext([]))
     const routes = discoveredInput?.routes ?? []
     const ctx = createContext(routes)
-    ctx.projectConfig.tabs = [
+    ctx.projectConfig.navigation = { tabs: [
       { tab: 'API', pages: [{ group: 'Reference', pages: [{ group: 'Resources', pages: [{ openapi: 'api.openapi.json', filter: { tags: ['Projects'] } }] }] }] },
-    ]
+    ] }
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
     const taggedRoute = discovered?.find(route => route.path === '/api/projects')
@@ -310,7 +311,7 @@ describe('createOpenAPIPlugin', () => {
     }, createContext([]))
     const routes = discoveredInput?.routes ?? []
     const ctx = createContext(routes)
-    ctx.projectConfig.tabs = [
+    ctx.projectConfig.navigation = { tabs: [
       {
         tab: 'API',
         pages: [{
@@ -321,7 +322,7 @@ describe('createOpenAPIPlugin', () => {
           ],
         }],
       },
-    ]
+    ] }
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
     const fullRoute = discovered?.find(route => route.path === '/api')
@@ -357,9 +358,9 @@ describe('createOpenAPIPlugin', () => {
     }, createContext([]))
     const routes = discoveredInput?.routes ?? []
     const ctx = createContext(routes)
-    ctx.projectConfig.tabs = [
+    ctx.projectConfig.navigation = { tabs: [
       { tab: 'API', pages: [{ group: 'Reference', pages: [{ openapi: 'api.openapi.json', path: 'reference/projects', filter: { tags: ['Projects'] } }] }] },
-    ]
+    ] }
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
     const taggedRoute = discovered?.find(route => route.path === '/reference/projects')
@@ -398,17 +399,17 @@ describe('createOpenAPIPlugin', () => {
       route({ path: '/en-US/api', basePath: '/api', locale: 'en-US', title: 'API', filePath: specPath, virtualModuleId: 'virtual:clarify-page/en-US/api' }),
     ]
     const ctx = createContext(routes)
-    ctx.projectConfig.i18n = {
-      defaultLocale: 'zh-CN',
+    ctx.projectConfig.locales = {
+      default: 'zh-CN',
       missing: 'fallback',
       locales: [
         { code: 'zh-CN', label: '简体中文', dir: 'ltr' },
         { code: 'en-US', label: 'English', dir: 'ltr' },
       ],
     }
-    ctx.projectConfig.tabs = [
+    ctx.projectConfig.navigation = { tabs: [
       { tab: 'API', pages: [{ group: 'Reference', pages: [{ openapi: 'api.openapi.json', path: 'openapi/pages', filter: { tags: ['Projects'] } }] }] },
-    ]
+    ] }
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
 
@@ -463,17 +464,17 @@ describe('createOpenAPIPlugin', () => {
     ]
     const ctx = createContext(routes)
     ctx.contentRoot = tempDir
-    ctx.projectConfig.i18n = {
-      defaultLocale: 'zh-CN',
+    ctx.projectConfig.locales = {
+      default: 'zh-CN',
       missing: 'fallback',
       locales: [
         { code: 'zh-CN', label: '简体中文', dir: 'ltr' },
         { code: 'en-US', label: 'English', dir: 'ltr' },
       ],
     }
-    ctx.projectConfig.tabs = [
+    ctx.projectConfig.navigation = { tabs: [
       { tab: 'API', pages: [{ group: 'Reference', pages: [{ openapi: 'api.openapi.json', path: 'openapi/pages', filter: { tags: ['Pages'] } }] }] },
-    ]
+    ] }
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
 
@@ -500,8 +501,8 @@ describe('createOpenAPIPlugin', () => {
 
     const plugin = createOpenAPIPlugin()
     const ctx = createContext([])
-    ctx.projectConfig.i18n = {
-      defaultLocale: 'zh-CN',
+    ctx.projectConfig.locales = {
+      default: 'zh-CN',
       missing: 'fallback',
       locales: [
         { code: 'zh-CN', label: '简体中文', dir: 'ltr' },
@@ -540,12 +541,11 @@ describe('createOpenAPIPlugin', () => {
     }, createContext([]))
     const routes = discoveredInput?.routes ?? []
     const ctx = createContext(routes)
-    ctx.projectConfig.tabs = [
+    ctx.projectConfig.navigation = { tabs: [
       { tab: 'API', pages: [{ group: 'Reference', pages: [{ openapi: 'api.openapi.json', path: 'reference' }] }] },
-    ]
+    ] }
 
-    const discovered = await plugin.hooks?.['routes:discovered']?.(routes, ctx)
-    const aliasRoute = discovered?.find(route => route.path === '/reference')
+    const aliasRoute = (await plugin.hooks?.['routes:discovered']?.(routes, ctx))?.find(route => route.path === '/reference')
 
     expect(aliasRoute).toMatchObject({
       basePath: '/reference',

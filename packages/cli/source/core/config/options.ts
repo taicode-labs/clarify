@@ -7,11 +7,6 @@ export type ClarifyBuildOptions = ClarifyProjectConfig & {
   rootDirectory?: string
   /** Output directory for the built docs site. When omitted, Vite's build.outDir is used. */
   outputDirectory?: string
-  /** Static generation behavior. */
-  ssg?: {
-    /** Fail the build when SSG fails. Default: true. */
-    failOnError?: boolean
-  }
 
   /** Clarify plugin extensions for translation, search, and other build-time features. */
   plugins?: ClarifyPlugin[]
@@ -21,9 +16,6 @@ export type ResolvedBuildOptions = {
   projectRoot: string
   rootDirectory: string
   outputDirectory?: string
-  ssg: {
-    failOnError: boolean
-  }
 }
 
 export function resolveBuildOptions(options: ClarifyBuildOptions = {}): ResolvedBuildOptions {
@@ -31,8 +23,5 @@ export function resolveBuildOptions(options: ClarifyBuildOptions = {}): Resolved
     projectRoot: options.projectRoot ?? process.cwd(),
     rootDirectory: options.rootDirectory ?? 'source',
     outputDirectory: options.outputDirectory,
-    ssg: {
-      failOnError: options.ssg?.failOnError ?? true,
-    },
   }
 }

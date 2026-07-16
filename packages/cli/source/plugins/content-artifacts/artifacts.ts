@@ -80,7 +80,7 @@ function llmsTxtListItem(route: ContentRoute, basePath: string): string | undefi
 }
 
 function llmsTxtLocaleLabel(locale: string, projectConfig: ResolvedProjectConfig): string {
-  return projectConfig.i18n?.locales.find(item => item.code === locale)?.label ?? locale
+  return projectConfig.locales?.locales.find(item => item.code === locale)?.label ?? locale
 }
 
 function groupRoutesByLocale(routes: ContentRoute[]): Map<string, ContentRoute[]> {
@@ -94,7 +94,7 @@ function groupRoutesByLocale(routes: ContentRoute[]): Map<string, ContentRoute[]
 
 function groupLlmsTxtRoutesByLocale(routes: ContentRoute[], projectConfig: ResolvedProjectConfig): Map<string, ContentRoute[]> {
   const routesBySource = new Map<string, ContentRoute>()
-  const defaultLocale = projectConfig.i18n?.defaultLocale
+  const defaultLocale = projectConfig.locales?.default
 
   for (const route of routes) {
     const sourceKey = `${route.locale ?? defaultLocale ?? 'default'}:${route.basePath ?? route.artifacts?.contentArtifactUrl ?? route.path}`

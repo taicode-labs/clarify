@@ -4,16 +4,16 @@ import { resolve } from 'node:path'
 import { loadConfigFromFile } from 'vite'
 import type { ConfigEnv } from 'vite'
 
-import type { ClarifyProjectConfig } from '../../types.js'
+import type { ClarifyProjectConfig, ClarifyPlugin  } from '../../types.js'
 
 import { validateProjectConfig } from './config.js'
-import type { ClarifyBuildOptions } from './options.js'
 
-export type ClarifyConfig = ClarifyProjectConfig & Pick<ClarifyBuildOptions, 'plugins' | 'ssg'>
+export type ClarifyConfig = ClarifyProjectConfig & {
+  plugins?: ClarifyPlugin[]
+}
 
 export function defineConfig(config: ClarifyConfig): ClarifyConfig {
-  validateProjectConfig(config)
-  return config
+  return validateClarifyConfig(config)
 }
 
 /**
@@ -44,14 +44,19 @@ function assertConfigObject(config: unknown, configFile: string): Record<string,
 
 function loadJsonConfig(configFile: string): ClarifyConfig {
   const config = assertConfigObject(JSON.parse(readFileSync(configFile, 'utf-8')), configFile)
-  const projectConfig = validateProjectConfig(config)
-  const ssg = config.ssg && typeof config.ssg === 'object' && !Array.isArray(config.ssg)
-    ? config.ssg as ClarifyConfig['ssg']
-    : undefined
-  return {
-    ...projectConfig,
-    ...(ssg ? { ssg } : {}),
+  if ('plugins' in config) {
+    throw new Error('[clarify] clarify.json does not support plugins; use clarify.ts or clarify.js')
   }
+  return validateClarifyConfig(config)
+}
+
+function validateClarifyConfig(config: ClarifyConfig | Record<string, unknown>): ClarifyConfig {
+  const { plugins, ...projectConfigInput } = config
+  if (plugins !== undefined && !Array.isArray(plugins)) {
+    throw new Error('[clarify] config field "plugins" is invalid: Expected an array')
+  }
+  const projectConfig = validateProjectConfig(projectConfigInput)
+  return plugins ? { ...projectConfig, plugins } : projectConfig
 }
 
 export async function loadClarifyConfig(root: string, env: ConfigEnv): Promise<ClarifyConfig> {
@@ -64,5 +69,5 @@ export async function loadClarifyConfig(root: string, env: ConfigEnv): Promise<C
 
   const loaded = await loadConfigFromFile(env, configFile, root, 'silent')
   const config = assertConfigObject(loaded?.config, configFile)
-  return config as ClarifyConfig
+  return validateClarifyConfig(config)
 }

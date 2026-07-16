@@ -262,9 +262,7 @@ export function createViteAdapter(engine: ClarifyEngine): Plugin[] {
   const compilePolicyPlugin: Plugin = {
     name: 'clarify:content-compile-policy',
     configResolved(config) {
-      contentCompileErrorPolicy = config.command === 'build' && engine.generateOptions.ssg.failOnError
-        ? 'throw'
-        : 'diagnostic'
+      contentCompileErrorPolicy = config.command === 'build' ? 'throw' : 'diagnostic'
     },
   }
   // `react()` returns `Plugin[]`; `tailwindcss()` returns `Plugin | Plugin[]`;

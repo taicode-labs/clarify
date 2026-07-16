@@ -147,6 +147,13 @@
     --clarify-code-control-background-active: rgb(255 255 255 / 0.14);
     --clarify-code-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 58%, white);
     --clarify-code-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 20%, transparent);
+    --clarify-code-property: #0369a1;
+    --clarify-code-string: #047857;
+    --clarify-code-number: #a16207;
+    --clarify-code-success: #047857;
+    --clarify-code-danger: #be123c;
+    --clarify-code-danger-border: rgb(251 113 133 / 0.28);
+    --clarify-code-danger-background: rgb(251 113 133 / 0.1);
     --clarify-ui-menu-width: 13rem;
     --clarify-ui-action-menu-width: 19.5rem;
     --clarify-layout-sidebar-grid: 18rem minmax(0, 1fr);
@@ -230,6 +237,13 @@
     --clarify-code-surface: #202023;
     --clarify-code-header-background: #242427;
     --clarify-code-border: rgb(255 255 255 / 0.12);
+    --clarify-code-property: #7dd3fc;
+    --clarify-code-string: #6ee7b7;
+    --clarify-code-number: #fcd34d;
+    --clarify-code-success: #6ee7b7;
+    --clarify-code-danger: #fda4af;
+    --clarify-code-danger-border: rgb(251 113 133 / 0.35);
+    --clarify-code-danger-background: rgb(251 113 133 / 0.12);
     --clarify-http-method-get-background: color-mix(in srgb, var(--color-emerald-400) 30%, transparent);
     --clarify-http-method-get-text: var(--color-emerald-200);
     --clarify-http-method-post-background: color-mix(in srgb, var(--color-sky-400) 30%, transparent);
@@ -242,6 +256,20 @@
     --clarify-http-method-webhook-text: var(--color-violet-200);
     --clarify-http-method-default-background: color-mix(in srgb, var(--color-zinc-400) 26%, transparent);
     --clarify-http-method-default-text: var(--color-zinc-100);
+  }
+
+  .clarify-api-response {
+    --clarify-code-background: var(--clarify-theme-tokens-colors-surface);
+    --clarify-code-surface: var(--clarify-theme-tokens-colors-surface);
+    --clarify-code-header-background: var(--clarify-ui-subtle-background);
+    --clarify-code-border: var(--clarify-theme-tokens-colors-border);
+    --clarify-code-text: var(--clarify-ui-text-strong);
+    --clarify-code-control-text: var(--clarify-ui-text);
+    --clarify-code-muted: var(--clarify-ui-text-soft);
+    --clarify-code-faint: var(--clarify-ui-text-faint);
+    --clarify-code-control-background: var(--clarify-ui-subtle-background);
+    --clarify-code-control-background-hover: var(--clarify-ui-hover-background);
+    --clarify-code-control-background-active: var(--clarify-ui-active-background);
   }
 
   .clarify-ui-control {

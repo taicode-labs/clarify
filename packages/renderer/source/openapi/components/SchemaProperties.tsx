@@ -248,7 +248,7 @@ function EnumValueNode(arg0: SchemaNodeProps): ReactNode {
 
   return (
     <li className="clarify-schema-node m-0 p-0">
-      <div className="flex min-w-0 items-start rounded-md px-2 py-2 text-left">
+      <div className="flex min-w-0 items-start rounded-(--clarify-theme-tokens-radius-md) px-2 py-2 text-left">
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
             <span className="text-sm/5 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{node.name}</span>
@@ -282,7 +282,7 @@ function SchemaNode(arg0: SchemaNodeProps): ReactNode {
     : node.required
       ? t('openapi.required')
       : t('openapi.optional')
-  const rowClassName = 'flex w-full min-w-0 items-start rounded-md px-2 py-2 text-left'
+  const rowClassName = 'flex w-full min-w-0 items-start rounded-(--clarify-theme-tokens-radius-md) px-2 py-2 text-left'
 
   const content = (
     <>
@@ -465,7 +465,6 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
           panel: renderResponsePanel({ status, response }),
         }))}
         className="mt-4 mb-6"
-        listClassName="w-fit rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) p-1"
         panelsClassName="mt-5"
       />
     </div>

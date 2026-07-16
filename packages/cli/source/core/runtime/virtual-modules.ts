@@ -76,8 +76,24 @@ export function resolveVirtualModuleId(id: string, modules: VirtualModules, rout
   return null
 }
 
-export function generateConfigModule(projectConfig: ResolvedProjectConfig, buildOptions: ResolvedBuildOptions, version?: string): string {
-  const runtimeConfig: Record<string, unknown> = { ...projectConfig, ...buildOptions }
+export function generateConfigModule(projectConfig: ResolvedProjectConfig, version?: string): string {
+  const runtimeConfig: Record<string, unknown> = {
+    title: projectConfig.title,
+    description: projectConfig.description,
+    siteUrl: projectConfig.siteUrl,
+    routePrefix: projectConfig.routePrefix,
+    assetPrefix: projectConfig.assetPrefix,
+    logo: projectConfig.logo,
+    homeUrl: projectConfig.homeUrl,
+    favicon: projectConfig.favicon,
+    theme: projectConfig.theme,
+    navigation: projectConfig.navigation,
+    banner: projectConfig.banner,
+    footer: projectConfig.footer,
+    locales: projectConfig.locales,
+    variables: projectConfig.variables,
+    features: projectConfig.features,
+  }
   if (version) {
     runtimeConfig.version = version
   }
@@ -261,7 +277,7 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   // Collect all plugins
   const allPlugins: ClarifyPlugin[] = [...(args.plugins ?? [])]
   
-  modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.generateOptions, args.version))
+  modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.version))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, 'server'))
   modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))

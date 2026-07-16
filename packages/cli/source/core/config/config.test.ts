@@ -11,54 +11,116 @@ describe('clarifyProjectConfigSchema', () => {
     expect(clarifyProjectConfigSchema.parse({
       title: 'Docs',
       siteUrl: 'https://docs.example.com',
-      source: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' },
-      navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+      features: {
+        repository: {
+          url: 'https://github.com/acme/docs',
+          branch: 'main',
+          directory: 'docs/source',
+        },
+      },
+      navigation: {
+        links: [{ label: 'GitHub', href: 'https://github.com', external: true }],
+        tabs: [
+          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+        ],
+      },
       variables: {
         product: { name: 'Clarify' },
         version: '0.8.0',
         stable: true,
         build: 8,
       },
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
       },
-      tabs: [
-        { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
-      ],
-    })).toEqual({
+    })).toMatchObject({
       title: 'Docs',
       siteUrl: 'https://docs.example.com',
-      source: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' },
-      navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+      features: { repository: { url: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' } },
+      navigation: {
+        links: [{ label: 'GitHub', href: 'https://github.com', external: true }],
+        tabs: [
+          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+        ],
+      },
       variables: {
         product: { name: 'Clarify' },
         version: '0.8.0',
         stable: true,
         build: 8,
       },
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
       },
-      tabs: [
-        { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
-      ],
+      routePrefix: '/',
     })
   })
 
-  it('rejects defaultLocale outside configured locales', () => {
+  it('accepts config fields in any order', () => {
+    expect(clarifyProjectConfigSchema.parse({
+      features: {
+        openapi: { enabled: true, playground: false },
+        search: false,
+      },
+      locales: {
+        locales: [{ label: 'English', code: 'en-US' }],
+        missing: '404',
+        default: 'en-US',
+      },
+      navigation: {
+        tabs: [{ pages: 'FileTree', icon: 'BookOpen', tab: 'Docs' }],
+        links: [{ external: true, href: 'https://example.com', label: 'Website' }],
+      },
+      routePrefix: '/docs',
+      title: 'Docs',
+    })).toMatchObject({
+      title: 'Docs',
+      routePrefix: '/docs',
+      locales: {
+        default: 'en-US',
+        missing: '404',
+      },
+      features: {
+        search: { enabled: false },
+        openapi: { enabled: true, playground: false },
+      },
+    })
+  })
+
+  it('rejects build directories in project config', () => {
+    expect(() => clarifyProjectConfigSchema.parse({ contentDir: 'docs' })).toThrow(/contentDir/)
+    expect(() => clarifyProjectConfigSchema.parse({ outputDir: 'dist' })).toThrow(/outputDir/)
+  })
+
+  it('rejects unknown fields in nested config objects', () => {
+    expect(() => clarifyProjectConfigSchema.parse({ theme: { legacyPreset: 'base' } })).toThrow(/legacyPreset/)
+    expect(() => clarifyProjectConfigSchema.parse({ logo: { light: '/logo.svg', legacyDark: '/dark.svg' } })).toThrow(/legacyDark/)
+    expect(() => clarifyProjectConfigSchema.parse({ navigation: { tabs: [{ tab: 'Docs', legacyPages: [] }] } })).toThrow(/legacyPages/)
+  })
+
+  it('rejects default outside configured locales', () => {
     expect(() => clarifyProjectConfigSchema.parse({
-      i18n: {
-        defaultLocale: 'en-US',
+      locales: {
+        default: 'en-US',
         locales: [{ code: 'zh-CN', label: '简体中文' }],
       },
-    })).toThrow('defaultLocale must be one of i18n.locales')
+    })).toThrow('default must be one of locales.locales')
+  })
+
+  it('rejects the legacy defaultLocale field', () => {
+    expect(() => clarifyProjectConfigSchema.parse({
+      locales: {
+        defaultLocale: 'zh-CN',
+        locales: [{ code: 'zh-CN', label: '简体中文' }],
+      },
+    })).toThrow(/defaultLocale/)
   })
 
   it('rejects duplicate locale codes', () => {
     expect(() => clarifyProjectConfigSchema.parse({
-      i18n: {
+      locales: {
         locales: [
           { code: 'zh-CN', label: '简体中文' },
           { code: 'zh-CN', label: '中文' },
@@ -75,7 +137,6 @@ describe('resolveProjectConfig', () => {
       title: 'Clarify Docs',
       description: '',
       siteUrl: undefined,
-      source: undefined,
       logo: undefined,
       homeUrl: undefined,
       favicon: undefined,
@@ -104,14 +165,13 @@ describe('resolveProjectConfig', () => {
         layout: {
           maxWidth: '82rem',
         },
-        editor: false,
       },
-      navbar: undefined,
+      navigation: undefined,
       banner: undefined,
       footer: undefined,
       variables: {},
-      i18n: undefined,
-      tabs: undefined,
+      locales: undefined,
+      features: resolveProjectConfig({}).features,
     })
   })
 
@@ -120,60 +180,63 @@ describe('resolveProjectConfig', () => {
       title: 'Project Docs',
       description: 'Desc',
       siteUrl: 'https://docs.example.com',
-      source: { repository: 'https://github.com/acme/docs' },
-      theme: { tokens: { colors: { primary: '#333' } }, editor: true },
+      features: { repository: { url: 'https://github.com/acme/docs' } },
+      theme: { tokens: { colors: { primary: '#333' } } },
       homeUrl: 'https://example.com',
       favicon: '/favicon.svg',
-      navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
+      navigation: {
+        links: [{ label: 'GitHub', href: 'https://github.com' }],
+        tabs: [{ tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] }],
+      },
       banner: { content: 'v2 is out', dismissible: true },
       footer: { copyright: '© 2026' },
       variables: {
         product: { name: 'Clarify' },
         apiVersion: '1.0.0',
       },
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         locales: [
           { code: 'zh-CN', label: '简体中文' },
           { code: 'en-US', label: 'English' },
         ],
       },
-      tabs: [
-        { tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] },
-      ],
     }
     const result = resolveProjectConfig(config)
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
     expect(result.siteUrl).toBe('https://docs.example.com')
-    expect(result.source).toEqual({ repository: 'https://github.com/acme/docs' })
+    expect(result.features.repository).toEqual({
+      enabled: true,
+      url: 'https://github.com/acme/docs',
+    })
     expect(result.theme.tokens.colors.primary).toBe('#333')
     expect(result.theme.layout).toEqual({ maxWidth: '82rem' })
-    expect(result.theme.editor).toBe(true)
+    expect(result.features.themeEditor.enabled).toBe(true)
     expect(result.homeUrl).toBe('https://example.com')
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.assetPrefix).toBe('/')
-    expect(result.navbar).toEqual({ links: [{ label: 'GitHub', href: 'https://github.com' }] })
+    expect(result.navigation?.links).toEqual([{ label: 'GitHub', href: 'https://github.com' }])
     expect(result.banner).toEqual({ content: 'v2 is out', dismissible: true })
     expect(result.footer).toEqual({ copyright: '© 2026' })
     expect(result.variables).toEqual({
       product: { name: 'Clarify' },
       apiVersion: '1.0.0',
     })
-    expect(result.i18n).toEqual({
-      defaultLocale: 'zh-CN',
+    expect(result.locales).toEqual({
+      default: 'zh-CN',
       missing: 'fallback',
       locales: [
         { code: 'zh-CN', label: '简体中文' },
         { code: 'en-US', label: 'English' },
       ],
     })
-    expect(result.tabs).toEqual([
+    expect(result.navigation?.tabs).toEqual([
       { tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] },
     ])
   })
 
-  it('normalizes routePrefix for Vite base paths', () => {
+  it('normalizes base for Vite paths', () => {
     expect(resolveProjectConfig({ routePrefix: '' }).routePrefix).toBe('/')
     expect(resolveProjectConfig({ routePrefix: '/' }).routePrefix).toBe('/')
     expect(resolveProjectConfig({ routePrefix: 'docs' }).routePrefix).toBe('/docs/')
@@ -182,7 +245,7 @@ describe('resolveProjectConfig', () => {
     expect(resolveProjectConfig({ routePrefix: ' /docs/api/ ' }).routePrefix).toBe('/docs/api/')
   })
 
-  it('defaults assetPrefix to routePrefix and normalizes overrides', () => {
+  it('defaults assets to base and normalizes overrides', () => {
     expect(resolveProjectConfig({ routePrefix: '/docs' }).assetPrefix).toBe('/docs/')
     expect(resolveProjectConfig({ routePrefix: '/docs', assetPrefix: '' }).assetPrefix).toBe('/')
     expect(resolveProjectConfig({ assetPrefix: 'assets' }).assetPrefix).toBe('/assets/')
@@ -192,6 +255,24 @@ describe('resolveProjectConfig', () => {
     expect(resolveProjectConfig({ assetPrefix: '../assets' }).assetPrefix).toBe('../assets/')
     expect(resolveProjectConfig({ assetPrefix: ' https://cdn.example.com/docs ' }).assetPrefix).toBe('https://cdn.example.com/docs/')
     expect(resolveProjectConfig({ assetPrefix: 'https://cdn.example.com/docs/' }).assetPrefix).toBe('https://cdn.example.com/docs/')
+  })
+
+  it('resolves features from booleans and detailed options', () => {
+    const defaults = resolveProjectConfig().features
+    expect(defaults.search).toEqual({ enabled: true, provider: 'pagefind' })
+    expect(resolveProjectConfig({ features: { search: false } }).features.search).toEqual({ enabled: false, provider: 'pagefind' })
+  })
+
+  it('rejects the removed artifacts feature', () => {
+    expect(() => clarifyProjectConfigSchema.parse({ features: { artifacts: false } })).toThrow(/artifacts/)
+  })
+
+  it('rejects removed feature fields', () => {
+    expect(() => clarifyProjectConfigSchema.parse({ features: { editLink: false } })).toThrow(/editLink/)
+    expect(() => clarifyProjectConfigSchema.parse({ features: { gitSource: false } })).toThrow(/gitSource/)
+    expect(() => clarifyProjectConfigSchema.parse({ features: { repository: { repository: 'https://github.com/acme/docs' } } })).toThrow(/repository/)
+    expect(() => clarifyProjectConfigSchema.parse({ features: { openapi: { responsePreview: false } } })).toThrow(/responsePreview/)
+    expect(() => clarifyProjectConfigSchema.parse({ features: { openapi: { responseDownload: false } } })).toThrow(/responseDownload/)
   })
 
   it('applies theme presets before project overrides', () => {
@@ -266,7 +347,6 @@ describe('resolveBuildOptions', () => {
       projectRoot: process.cwd(),
       rootDirectory: 'source',
       outputDirectory: undefined,
-      ssg: { failOnError: true },
     })
   })
 
@@ -276,17 +356,6 @@ describe('resolveBuildOptions', () => {
       projectRoot: process.cwd(),
       rootDirectory: 'docs',
       outputDirectory: 'build',
-      ssg: { failOnError: true },
-    })
-  })
-
-  it('applies provided ssg options', () => {
-    const result = resolveBuildOptions({ ssg: { failOnError: false } })
-    expect(result).toEqual({
-      projectRoot: process.cwd(),
-      rootDirectory: 'source',
-      outputDirectory: undefined,
-      ssg: { failOnError: false },
     })
   })
 })

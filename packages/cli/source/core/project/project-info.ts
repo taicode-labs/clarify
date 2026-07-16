@@ -14,7 +14,7 @@ import { CONFIG_FILENAMES } from '../config/user-config.js'
  *  - `contentRoot`: the resolved content root directory name (relative to
  *    the project root, e.g. `"source"`).
  *  - `projectRoot`: the absolute project root path.
- *  - `i18n`: locale information when internationalization is configured.
+ *  - `locales`: locale information when localization is configured.
  */
 export const CLARIFY_DEV_PROJECT_INFO_ENDPOINT = '/dev/project-info'
 
@@ -37,8 +37,8 @@ export type ProjectInfoResponse = {
   contentFileExtensions: readonly string[]
   contentRoot: string
   projectRoot: string
-  i18n?: {
-    defaultLocale: string
+  locales?: {
+    default: string
     locales: string[]
   }
 }
@@ -62,10 +62,10 @@ export function buildProjectInfo(context: ClarifyProjectContext): ProjectInfoRes
     projectRoot,
   }
 
-  if (projectConfig.i18n) {
-    response.i18n = {
-      defaultLocale: projectConfig.i18n.defaultLocale,
-      locales: projectConfig.i18n.locales.map(l => l.code),
+  if (projectConfig.locales) {
+    response.locales = {
+      default: projectConfig.locales.default,
+      locales: projectConfig.locales.locales.map(l => l.code),
     }
   }
 

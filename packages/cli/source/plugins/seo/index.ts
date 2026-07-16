@@ -7,14 +7,11 @@ export function createSeoPlugin(): ClarifyPlugin {
     name: 'clarify:seo',
     hooks: {
       'build:assets'(ctx) {
+        const assets: ClarifyEmitAsset[] = []
         const sitemap = createSitemapXml(ctx.routes, ctx.projectConfig)
         const robots = createRobotsTxt(ctx.projectConfig)
-        if (!sitemap || !robots) return []
-
-        const assets: ClarifyEmitAsset[] = [
-          { fileName: 'sitemap.xml', source: sitemap },
-          { fileName: 'robots.txt', source: robots },
-        ]
+        if (sitemap) assets.push({ fileName: 'sitemap.xml', source: sitemap })
+        if (robots) assets.push({ fileName: 'robots.txt', source: robots })
         return assets
       },
     },

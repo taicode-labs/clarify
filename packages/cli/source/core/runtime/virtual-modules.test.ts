@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest'
 
 import { buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
-import type { ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyPlugin, ContentRoute, ResolvedProjectConfig } from '../../types.js'
+import { resolveFeaturesConfig } from '../config/config.js'
 
 import { buildVirtualModules, createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from './virtual-modules.js'
 
@@ -45,15 +46,18 @@ describe('generateConfigModule', () => {
       assetPrefix: '/',
       theme: resolveThemeConfig({ tokens: { colors: { primary: '#fff' } } }),
       variables: {},
+      features: resolveFeaturesConfig(),
     }
-    const generateOptions: ResolvedBuildOptions = {
-      projectRoot: '/site',
-      rootDirectory: 'source',
-      outputDirectory: 'dist',
-      ssg: { failOnError: true },
+    const code = generateConfigModule(projectConfig)
+    const expected = {
+      title: projectConfig.title,
+      description: projectConfig.description,
+      routePrefix: projectConfig.routePrefix,
+      assetPrefix: projectConfig.assetPrefix,
+      theme: projectConfig.theme,
+      variables: projectConfig.variables,
+      features: projectConfig.features,
     }
-    const code = generateConfigModule(projectConfig, generateOptions)
-    const expected = { ...projectConfig, ...generateOptions }
     expect(code).toBe(`export const config = ${JSON.stringify(expected)};`)
   })
 })
@@ -130,11 +134,14 @@ describe('generateRoutesModule', () => {
       assetPrefix: '/',
       theme: resolveThemeConfig(),
       variables: {},
-      tabs: [
-        { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
-      ],
+      features: resolveFeaturesConfig(),
+      navigation: {
+        tabs: [
+          { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
+        ],
+      },
     }
-    const code = generateRoutesModule(routes, buildNavigationFromTabsConfig(routes, projectConfig.tabs!))
+    const code = generateRoutesModule(routes, buildNavigationFromTabsConfig(routes, projectConfig.navigation!.tabs!))
     expect(code).toContain('"tabs"')
     expect(code).toContain('"title": "Docs"')
     expect(code).toContain('"/"')
@@ -179,12 +186,12 @@ describe('buildVirtualModules', () => {
         assetPrefix: '/',
         theme: resolveThemeConfig(),
         variables: {},
+        features: resolveFeaturesConfig(),
       },
       generateOptions: {
         projectRoot: '/site',
         rootDirectory: 'source',
         outputDirectory: 'dist',
-        ssg: { failOnError: true },
       },
       routes: [route({
         path: '/broken',

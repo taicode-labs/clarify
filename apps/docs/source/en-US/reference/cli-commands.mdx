@@ -222,20 +222,19 @@ export default defineConfig({
   title: 'Clarify Docs',
   description: 'Documentation powered by Clarify',
   theme: { preset: 'default' },
-  tabs: [
-    {
-      tab: 'Docs',
-      icon: 'BookOpen',
-      pages: 'FileTree',
-    },
-  ],
+  navigation: {
+    tabs: [
+      {
+        tab: 'Docs',
+        icon: 'BookOpen',
+        pages: 'FileTree',
+      },
+    ],
+  },
   plugins: [
     // searchPlugin(),
     // translatePlugin(),
   ],
-  ssg: {
-    failOnError: true,
-  },
 })
 ```
 

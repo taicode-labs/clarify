@@ -1,9 +1,9 @@
 import type { ZodError } from 'zod'
 
 import { resolveThemeConfig } from '../../parsers/theme.js'
-import type { ClarifyI18nConfig, ClarifyProjectConfig, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyFeaturesConfig, ClarifyLocalesConfig, ClarifyProjectConfig, ResolvedClarifyFeaturesConfig, ResolvedClarifyLocalesConfig, ResolvedProjectConfig } from '../../types.js'
 
-import { clarifyProjectConfigSchema } from './config-schema.js'
+import { clarifyFeaturesConfigSchema, clarifyProjectConfigSchema } from './config-schema.js'
 
 function formatIssuePath(path: PropertyKey[]): string {
   return path.reduce<string>((result, segment) => {
@@ -31,18 +31,22 @@ export function validateProjectConfig(value: unknown): ClarifyProjectConfig {
   return result.data
 }
 
-function resolveI18nConfig(i18n?: ClarifyI18nConfig): ResolvedClarifyI18nConfig | undefined {
-  if (!i18n) return undefined
+function resolveLocalesConfig(locales?: ClarifyLocalesConfig): ResolvedClarifyLocalesConfig | undefined {
+  if (!locales) return undefined
 
-  const firstLocale = i18n.locales[0]?.code
-  const defaultLocale = i18n.defaultLocale ?? firstLocale
+  const firstLocale = locales.locales[0]?.code
+  const defaultLocale = locales.default ?? firstLocale
   if (!defaultLocale) return undefined
 
   return {
-    defaultLocale,
-    missing: i18n.missing ?? 'fallback',
-    locales: i18n.locales,
+    default: defaultLocale,
+    missing: locales.missing ?? 'fallback',
+    locales: locales.locales,
   }
+}
+
+export function resolveFeaturesConfig(features: ClarifyFeaturesConfig = {}): ResolvedClarifyFeaturesConfig {
+  return clarifyFeaturesConfigSchema.parse(features) as unknown as ResolvedClarifyFeaturesConfig
 }
 
 function resolveRoutePrefix(routePrefix?: string): string {
@@ -70,18 +74,17 @@ export function resolveProjectConfig(config: ClarifyProjectConfig = {}): Resolve
     title: config.title ?? 'Clarify Docs',
     description: config.description ?? '',
     siteUrl: config.siteUrl,
-    source: config.source,
+    routePrefix,
+    assetPrefix: resolveAssetPrefix(config.assetPrefix, routePrefix),
     logo: config.logo,
     homeUrl: config.homeUrl,
     favicon: config.favicon,
-    routePrefix,
-    assetPrefix: resolveAssetPrefix(config.assetPrefix, routePrefix),
     theme: resolveThemeConfig(config.theme),
-    navbar: config.navbar,
+    navigation: config.navigation,
     banner: config.banner,
     footer: config.footer,
+    locales: resolveLocalesConfig(config.locales),
     variables: config.variables ?? {},
-    i18n: resolveI18nConfig(config.i18n),
-    tabs: config.tabs,
+    features: resolveFeaturesConfig(config.features),
   }
 }

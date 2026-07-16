@@ -94,7 +94,7 @@ async function generateDevSearchIndex(ctx: ClarifyHookContext, root: string, pag
       const result = await index.addCustomRecord({
         url: route.path,
         content,
-        language: toPagefindLanguage(route.locale ?? ctx.projectConfig.i18n?.defaultLocale),
+        language: toPagefindLanguage(route.locale ?? ctx.projectConfig.locales?.default),
         meta: {
           title: route.meta.title,
         },
@@ -150,6 +150,7 @@ export function createSearchIndexPlugin(): ClarifyPlugin {
     name: 'clarify:search-index',
     hooks: {
       async 'dev:configureServer'(server, ctx) {
+        if (!ctx.projectConfig.features.search.enabled) return
         const pagefind = await import('pagefind') as PagefindModule
         let currentRoot: string | undefined
         const staleRoots = new Set<string>()
@@ -194,6 +195,7 @@ export function createSearchIndexPlugin(): ClarifyPlugin {
         })
       },
       async 'build:done'(ctx) {
+        if (!ctx.projectConfig.features.search.enabled) return
         const outputDirectory = ctx.generateOptions.outputDirectory
         if (!outputDirectory) return
 

@@ -6,6 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
+import { resolveFeaturesConfig } from '../config/config.js'
 
 import { readIndexHtml, injectSSRIntoTemplate, isNotFoundRoute, routeOutputFiles } from './ssg.js'
 
@@ -65,6 +66,7 @@ describe('injectSSRIntoTemplate', () => {
     assetPrefix: '/',
     theme: resolveThemeConfig(),
     variables: {},
+    features: resolveFeaturesConfig(),
   }
 
   const baseTemplate = `<!doctype html>
@@ -88,8 +90,8 @@ describe('injectSSRIntoTemplate', () => {
   it('injects html locale attributes for localized routes', () => {
     const config: ResolvedProjectConfig = {
       ...baseConfig,
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         missing: 'fallback',
         locales: [
           { code: 'zh-CN', label: '简体中文' },
@@ -212,8 +214,8 @@ describe('injectSSRIntoTemplate', () => {
   it('does not add data-pagefind-ignore to localized routes', () => {
     const config: ResolvedProjectConfig = {
       ...baseConfig,
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         missing: 'fallback',
         locales: [
           { code: 'zh-CN', label: '简体中文' },

@@ -96,10 +96,10 @@ export const openApis: Record<string, OpenAPISpec>
 
 ### `virtual:clarify/config`
 
-Resolved project configuration and build options.
+Resolved project configuration used by the browser and SSG renderer. Build-only directories are not exposed.
 
 ```typescript
-export const config: ResolvedProjectConfig & ResolvedBuildOptions
+export const config: ResolvedProjectConfig & { version?: string }
 ```
 
 ### `virtual:clarify-page/*`
@@ -142,7 +142,7 @@ Unknown client-side paths are handled by the catch-all route in `AppShell`:
 - If there is no custom `/404`, Clarify displays the built-in localized 404 panel.
 - Because unknown paths do not have an active content route, content actions and previous/next navigation stay hidden.
 
-Page components are also wrapped with `PageErrorBoundary`. When a page throws during client rendering, Clarify displays a localized error panel with the current path, a refresh button, and expandable error details. Build-time SSR errors still follow the SSG `failOnError` strategy.
+Page components are also wrapped with `PageErrorBoundary`. When a page throws during client rendering, Clarify displays a localized error panel with the current path, a refresh button, and expandable error details. Build-time SSR errors always fail the production build.
 
 ---
 

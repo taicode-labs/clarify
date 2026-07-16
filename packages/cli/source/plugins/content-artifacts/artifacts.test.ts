@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
@@ -71,13 +72,14 @@ describe('content artifact helpers', () => {
       description: 'Helpful docs',
       routePrefix: '/docs',
       assetPrefix: '/docs/',
-      i18n: {
-        defaultLocale: 'en-US',
+      locales: {
+        default: 'en-US',
         missing: 'fallback',
         locales: [{ code: 'en-US', label: 'English' }],
       },
       theme: resolveThemeConfig(),
       variables: {},
+      features: resolveFeaturesConfig(),
     }
     const routes = [
       route({ path: '/guide', locale: 'en-US', title: 'Guide', description: 'Start here.', artifacts: { contentArtifactUrl: '/guide.md' } }),
@@ -99,8 +101,8 @@ describe('content artifact helpers', () => {
       description: 'Helpful docs',
       routePrefix: '',
       assetPrefix: '/',
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         missing: 'fallback',
         locales: [
           { code: 'zh-CN', label: '简体中文' },
@@ -109,6 +111,7 @@ describe('content artifact helpers', () => {
       },
       theme: resolveThemeConfig(),
       variables: {},
+      features: resolveFeaturesConfig(),
     }
     const routes = [
       route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', artifacts: { contentArtifactUrl: '/zh-CN/guide.md' } }),
@@ -132,6 +135,7 @@ describe('content artifact helpers', () => {
       assetPrefix: '/',
       theme: resolveThemeConfig(),
       variables: {},
+      features: resolveFeaturesConfig(),
     }
     const routes = [route({ path: '/guide', title: '快速开始', artifacts: { contentArtifactUrl: '/guide.md' } })]
 
@@ -144,8 +148,8 @@ describe('content artifact helpers', () => {
       description: 'Helpful docs',
       routePrefix: '',
       assetPrefix: '/',
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         missing: 'fallback',
         locales: [
           { code: 'zh-CN', label: '简体中文' },
@@ -154,6 +158,7 @@ describe('content artifact helpers', () => {
       },
       theme: resolveThemeConfig(),
       variables: {},
+      features: resolveFeaturesConfig(),
     }
     const routes = [
       route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: 'Guide', artifacts: { contentArtifactUrl: '/zh-CN/guide.md' } }),

@@ -16,8 +16,8 @@ export type ProjectInfo = {
   contentFileExtensions: readonly string[]
   contentRoot: string
   projectRoot: string
-  i18n?: {
-    defaultLocale: string
+  locales?: {
+    default: string
     locales: string[]
   }
 }

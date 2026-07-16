@@ -3,6 +3,7 @@ import type { IncomingMessage } from 'node:http'
 
 import { describe, it, expect } from 'vitest'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
@@ -38,12 +39,13 @@ const mockProjectConfig: ResolvedProjectConfig = {
   assetPrefix: '/',
   theme: resolveThemeConfig(),
   variables: {},
+  features: resolveFeaturesConfig(),
 }
 
 const mockI18nProjectConfig: ResolvedProjectConfig = {
   ...mockProjectConfig,
-  i18n: {
-    defaultLocale: 'en-US',
+  locales: {
+    default: 'en-US',
     missing: 'fallback',
     locales: [
       { code: 'en-US', label: 'English' },
@@ -62,7 +64,6 @@ const mockContext: ClarifyProjectContext = {
     projectRoot: '/site',
     rootDirectory: 'source',
     outputDirectory: undefined,
-    ssg: { failOnError: true },
   },
   version: 'test',
 }

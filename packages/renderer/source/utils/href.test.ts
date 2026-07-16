@@ -7,19 +7,24 @@ import { hasLocalePrefix, isExternalHref, localizeHref, prefixHref } from './hre
 const baseConfig = {
   title: 'Test',
   description: 'Test docs',
-  theme: { preset: 'default', tokens: {}, layout: {}, editor: false },
-  rootDirectory: '/test',
+  theme: { preset: 'default', tokens: {} as Config['theme']['tokens'], layout: {} as Config['theme']['layout'] },
   routePrefix: '/',
-  outputDirectory: '/test/output',
-  i18n: {
-    defaultLocale: 'en',
+  assetPrefix: '/',
+  locales: {
+    default: 'en',
     missing: 'fallback' as const,
     locales: [
       { code: 'en', label: 'English' },
       { code: 'zh-CN', label: '中文' },
     ],
   },
-} as Config
+  features: {
+    search: { enabled: true, provider: 'pagefind' },
+    repository: { enabled: true },
+    themeEditor: { enabled: true },
+    openapi: { enabled: true, playground: true },
+  },
+} satisfies Config
 
 describe('isExternalHref', () => {
   it('returns true for http URLs', () => {

@@ -32,7 +32,6 @@ export function createContentArtifactsPlugin(): ClarifyPlugin {
             source: readRouteArtifactContent(route),
           })
 
-          // For OpenAPI routes, also emit a YAML variant
           if (route.kind === 'openapi' && route.source.content) {
             const yamlFileName = contentArtifactUrl.replace(/\.json$/, '.yaml')
             const spec = JSON.parse(route.source.content)

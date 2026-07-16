@@ -35,7 +35,6 @@ export const themePresets = {
     layout: {
       maxWidth: '82rem',
     },
-    editor: false,
   },
   base: {
     preset: 'base',
@@ -60,7 +59,6 @@ export const themePresets = {
     layout: {
       maxWidth: '80rem',
     },
-    editor: false,
   },
 } satisfies Record<ThemePreset, ThemeConfig>
 
@@ -85,7 +83,6 @@ export function cloneTheme(theme: ThemeConfig): ThemeConfig {
       radius: { ...theme.tokens.radius },
     },
     layout: { ...theme.layout },
-    editor: theme.editor,
   }
 }
 

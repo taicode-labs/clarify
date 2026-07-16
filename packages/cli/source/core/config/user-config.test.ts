@@ -7,9 +7,23 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { defineConfig, findClarifyConfigFile, loadClarifyConfig } from './user-config.js'
 
 describe('defineConfig', () => {
-  it('returns the provided config', () => {
-    const config = { title: 'Docs', ssg: { failOnError: false } }
-    expect(defineConfig(config)).toBe(config)
+  it('returns the validated config with defaults', () => {
+    const config = { title: 'Docs' }
+    expect(defineConfig(config)).toMatchObject({
+      title: 'Docs',
+      routePrefix: '/',
+    })
+  })
+
+  it('rejects build directories', () => {
+    expect(() => defineConfig({ contentDir: 'docs' } as never)).toThrow(/contentDir/)
+    expect(() => defineConfig({ outputDir: 'dist' } as never)).toThrow(/outputDir/)
+  })
+
+  it('rejects ssg configuration', () => {
+    expect(() => defineConfig({
+      features: { ssg: { failOnError: false } },
+    } as never)).toThrow('[clarify] config field "features" is invalid: Unrecognized key: "ssg"')
   })
 
   it('rejects imported footer components', () => {
@@ -20,6 +34,10 @@ describe('defineConfig', () => {
     expect(() => defineConfig({
       footer: Footer,
     } as never)).toThrow('[clarify] config field "footer" is invalid')
+  })
+
+  it('rejects invalid plugins', () => {
+    expect(() => defineConfig({ plugins: 'legacy-plugin' } as never)).toThrow('[clarify] config field "plugins" is invalid')
   })
 })
 
@@ -64,7 +82,22 @@ describe('loadClarifyConfig', () => {
   it('loads and validates clarify.json', async () => {
     writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ title: 'JSON Docs' }), 'utf-8')
 
-    await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).resolves.toEqual({ title: 'JSON Docs' })
+    await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).resolves.toEqual({
+      title: 'JSON Docs',
+      routePrefix: '/',
+    })
+  })
+
+  it('rejects build directories in clarify.json', async () => {
+    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ contentDir: 'docs' }), 'utf-8')
+
+    await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).rejects.toThrow(/contentDir/)
+  })
+
+  it('rejects plugins in clarify.json', async () => {
+    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ plugins: [] }), 'utf-8')
+
+    await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).rejects.toThrow('clarify.json does not support plugins')
   })
 
   it('rejects invalid clarify.json project fields', async () => {

@@ -6,7 +6,7 @@ import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
 import { visit } from 'unist-util-visit'
 
-import type { ClarifyPage, ClarifyPageRouteIntent, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyRouteIntent, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, NavigationSection, ResolvedClarifyI18nConfig, TabbedNavigation } from '../../types.js'
+import type { ClarifyPage, ClarifyPageRouteIntent, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyRouteIntent, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, NavigationSection, ResolvedClarifyLocalesConfig, TabbedNavigation } from '../../types.js'
 import { createContentProcessor, type ContentProcessor } from '../content/content.js'
 import { compileMdxContent } from '../markdown/mdx.js'
 
@@ -103,7 +103,7 @@ export function virtualModuleIdFromRef(ref: string): string {
     .replace(/\/+/g, '/')
 }
 
-export function localizedRoutePath(basePath: string, locale: string, _i18n: ResolvedClarifyI18nConfig): string {
+export function localizedRoutePath(basePath: string, locale: string, _i18n: ResolvedClarifyLocalesConfig): string {
   const normalizedBasePath = normalizePath(basePath)
   const prefix = normalizePath(locale)
   return normalizedBasePath === '/' ? prefix : normalizePath(`${prefix}${normalizedBasePath}`)
@@ -200,7 +200,7 @@ function frontmatterKeywords(frontmatter: Record<string, unknown>): string[] | u
   return keywords.length > 0 ? keywords : undefined
 }
 
-export function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute {
+export function withAlternates(route: ContentRoute, routes: ContentRoute[], locales: ResolvedClarifyLocalesConfig): ContentRoute {
   const basePath = route.basePath ?? route.path
   // 排除裸路径别名，避免覆盖带 locale 前缀的路径
   const routeByLocaleAndBase = new Map(
@@ -209,7 +209,7 @@ export function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n
       .map(r => [`${r.locale ?? ''}:${r.basePath ?? r.path}`, r]),
   )
   const alternates = Object.fromEntries(
-    i18n.locales.flatMap((locale) => {
+    locales.locales.flatMap((locale) => {
       const alternate = routeByLocaleAndBase.get(`${locale.code}:${basePath}`)
       return alternate ? [[locale.code, alternate.path]] : []
     })
@@ -221,11 +221,11 @@ export function withAlternates(route: ContentRoute, routes: ContentRoute[], i18n
  * 为默认语言的 locale-prefixed 路由生成无前缀的"裸路径别名"，方便不带语言
  * 前缀的 URL 也能访问。标记 `isBareAlias` 以便搜索索引生成时过滤重复索引。
  */
-function generateBareAliases(routes: ContentRoute[], i18n: ResolvedClarifyI18nConfig): ContentRoute[] {
+function generateBareAliases(routes: ContentRoute[], locales: ResolvedClarifyLocalesConfig): ContentRoute[] {
   const bareRoutes: ContentRoute[] = []
   const seenBare = new Set(routes.map(r => r.path))
   for (const route of routes) {
-    if (route.locale !== i18n.defaultLocale) continue
+    if (route.locale !== locales.default) continue
     const bp = route.basePath ?? route.path
     if (bp === route.path || seenBare.has(bp)) continue
     seenBare.add(bp)
@@ -234,18 +234,18 @@ function generateBareAliases(routes: ContentRoute[], i18n: ResolvedClarifyI18nCo
   return bareRoutes
 }
 
-export async function findLocalizedContentRoutes(contentRoot: string, i18n?: ResolvedClarifyI18nConfig, options: FindContentRoutesOptions = {}): Promise<ContentRoute[]> {
-  if (!i18n) return findContentRoutes(contentRoot, contentRoot, options)
+export async function findLocalizedContentRoutes(contentRoot: string, locales?: ResolvedClarifyLocalesConfig, options: FindContentRoutesOptions = {}): Promise<ContentRoute[]> {
+  if (!locales) return findContentRoutes(contentRoot, contentRoot, options)
 
   const localizedRoutes: ContentRoute[] = []
-  for (const locale of i18n.locales) {
+  for (const locale of locales.locales) {
     const localeRoot = join(contentRoot, locale.code)
     const discovered = await findContentRoutes(localeRoot, localeRoot, options)
     for (const route of discovered) {
       const basePath = route.basePath ?? route.path
       localizedRoutes.push({
         ...route,
-        path: localizedRoutePath(basePath, locale.code, i18n),
+        path: localizedRoutePath(basePath, locale.code, locales),
         basePath,
         locale: locale.code,
         module: { virtualModuleId: virtualModuleIdForLocalizedRoute(contentRoot, route.source.filePath) },
@@ -253,17 +253,17 @@ export async function findLocalizedContentRoutes(contentRoot: string, i18n?: Res
     }
   }
 
-  if (i18n.missing === 'fallback') {
+  if (locales.missing === 'fallback') {
     const routeByLocaleAndBase = new Map(localizedRoutes.map(route => [`${route.locale ?? ''}:${route.basePath ?? route.path}`, route]))
-    const defaultRoutes = localizedRoutes.filter(route => route.locale === i18n.defaultLocale)
+    const defaultRoutes = localizedRoutes.filter(route => route.locale === locales.default)
     for (const sourceRoute of defaultRoutes) {
       const basePath = sourceRoute.basePath ?? sourceRoute.path
-      for (const locale of i18n.locales) {
+      for (const locale of locales.locales) {
         const key = `${locale.code}:${basePath}`
         if (routeByLocaleAndBase.has(key)) continue
         localizedRoutes.push({
           ...sourceRoute,
-          path: localizedRoutePath(basePath, locale.code, i18n),
+          path: localizedRoutePath(basePath, locale.code, locales),
           locale: locale.code,
           isFallback: true,
         })
@@ -271,9 +271,9 @@ export async function findLocalizedContentRoutes(contentRoot: string, i18n?: Res
     }
   }
 
-  const routesWithAlternates = localizedRoutes.map(route => withAlternates(route, localizedRoutes, i18n))
+  const routesWithAlternates = localizedRoutes.map(route => withAlternates(route, localizedRoutes, locales))
 
-  return [...routesWithAlternates, ...generateBareAliases(routesWithAlternates, i18n)]
+  return [...routesWithAlternates, ...generateBareAliases(routesWithAlternates, locales)]
 }
 
 export function buildNavigation(routes: ContentRoute[]): ClarifyNavigationNode[] {
@@ -347,7 +347,7 @@ function collectExplicitPagePathIntents(tabs?: ClarifyTabsConfig): Array<Clarify
   return intents
 }
 
-export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: ClarifyTabsConfig, i18n?: ResolvedClarifyI18nConfig): ContentRoute[] {
+export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: ClarifyTabsConfig, locales?: ResolvedClarifyLocalesConfig): ContentRoute[] {
   const pageIntents = collectExplicitPagePathIntents(tabs)
   if (!pageIntents.length) return routes
 
@@ -368,18 +368,18 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
 
       additions.push({
         ...route,
-        path: route.locale && i18n ? localizedRoutePath(targetBasePath, route.locale, i18n) : targetBasePath,
+        path: route.locale && locales ? localizedRoutePath(targetBasePath, route.locale, locales) : targetBasePath,
         basePath: targetBasePath,
       })
     }
   }
 
   const nextRoutes = [...routes, ...additions]
-  const routesWithAlternates = i18n ? nextRoutes.map(route => withAlternates(route, nextRoutes, i18n)) : nextRoutes
+  const routesWithAlternates = locales ? nextRoutes.map(route => withAlternates(route, nextRoutes, locales)) : nextRoutes
 
-  if (!i18n) return routesWithAlternates
+  if (!locales) return routesWithAlternates
 
-  return [...routesWithAlternates, ...generateBareAliases(routesWithAlternates, i18n)]
+  return [...routesWithAlternates, ...generateBareAliases(routesWithAlternates, locales)]
 }
 
 function buildNavigationFromPagesConfig(routes: ContentRoute[], config?: ClarifyPagesConfig): ClarifyNavigationNode[] {
@@ -452,30 +452,30 @@ export function buildNavigationFromConfig(routes: ContentRoute[], config: Clarif
   })
 }
 
-function localizeNavigationPaths(nodes: ClarifyNavigationNode[], locale: string, i18n: ResolvedClarifyI18nConfig): ClarifyNavigationNode[] {
+function localizeNavigationPaths(nodes: ClarifyNavigationNode[], locale: string, locales: ResolvedClarifyLocalesConfig): ClarifyNavigationNode[] {
   return nodes.map(node => ({
     ...node,
-    path: localizedRoutePath(node.path, locale, i18n),
-    children: node.children ? localizeNavigationPaths(node.children, locale, i18n) : undefined,
+    path: localizedRoutePath(node.path, locale, locales),
+    children: node.children ? localizeNavigationPaths(node.children, locale, locales) : undefined,
   }))
 }
 
-export function buildLocalizedNavigation(routes: ContentRoute[], config: ClarifyPagesConfig | undefined, i18n?: ResolvedClarifyI18nConfig): LocalizedNavigation | undefined {
-  if (!i18n) return undefined
+export function buildLocalizedNavigation(routes: ContentRoute[], config: ClarifyPagesConfig | undefined, localesConfig?: ResolvedClarifyLocalesConfig): LocalizedNavigation | undefined {
+  if (!localesConfig) return undefined
 
   const locales: LocalizedNavigation['locales'] = {}
-  for (const locale of i18n.locales) {
+  for (const locale of localesConfig.locales) {
     const localeRoutes = routes.filter(route => route.locale === locale.code)
-    locales[locale.code] = buildLocalizedNavigationForLocale(localeRoutes, config, locale.code, i18n)
+    locales[locale.code] = buildLocalizedNavigationForLocale(localeRoutes, config, locale.code, localesConfig)
   }
 
   return { kind: 'localized', locales }
 }
 
-function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: ClarifyPagesConfig | undefined, locale: string, i18n: ResolvedClarifyI18nConfig): ClarifyNavigationNode[] {
+function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: ClarifyPagesConfig | undefined, locale: string, locales: ResolvedClarifyLocalesConfig): ClarifyNavigationNode[] {
   if (!config || config === 'FileTree') {
     const baseNavigation = buildNavigation(routes.map(route => ({ ...route, path: route.basePath ?? route.path })))
-    return localizeNavigationPaths(baseNavigation, locale, i18n)
+    return localizeNavigationPaths(baseNavigation, locale, locales)
   }
 
   const routeMap = new Map(routes.map(route => [route.basePath ?? route.path, route]))
@@ -484,7 +484,7 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
       const children = item.pages.map(buildItem)
       return {
         path: firstNavigationPath(children),
-        title: resolveLocalizedText(item.group, locale, i18n.defaultLocale) ?? '',
+        title: resolveLocalizedText(item.group, locale, locales.default) ?? '',
         icon: item.icon,
         children,
       }
@@ -495,12 +495,12 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
         ? openAPIPagePathFromRef(intent.ref, intent.tagFilter, intent.path)
         : routePathFromRef(intent.ref, intent.path)
       const route = routeMap.get(basePath)
-      const path = route?.path ?? localizedRoutePath(basePath, locale, i18n)
-      const redirectPath = intent.kind === 'page' && intent.redirect ? localizedRoutePath(routePathFromRef(intent.redirect), locale, i18n) : undefined
+      const path = route?.path ?? localizedRoutePath(basePath, locale, locales)
+      const redirectPath = intent.kind === 'page' && intent.redirect ? localizedRoutePath(routePathFromRef(intent.redirect), locale, locales) : undefined
 
       return {
         path: redirectPath ?? path,
-        title: resolveLocalizedText(intent.title, locale, i18n.defaultLocale) ?? route?.meta.title ?? kebabToTitle(basePath.split('/').pop() ?? intent.ref),
+        title: resolveLocalizedText(intent.title, locale, locales.default) ?? route?.meta.title ?? kebabToTitle(basePath.split('/').pop() ?? intent.ref),
         icon: intent.icon,
         sections: route?.meta.sections ? navigationSections(route.meta.sections) : undefined,
       }
@@ -510,27 +510,27 @@ function buildLocalizedNavigationForLocale(routes: ContentRoute[], config: Clari
     const children = group.pages.map(buildItem)
 
     return {
-      path: children[0]?.path ?? localizedRoutePath('/', locale, i18n),
-      title: resolveLocalizedText(group.group, locale, i18n.defaultLocale) ?? '',
+      path: children[0]?.path ?? localizedRoutePath('/', locale, locales),
+      title: resolveLocalizedText(group.group, locale, locales.default) ?? '',
       icon: group.icon,
       children,
     }
   })
 }
 
-export function buildLocalizedNavigationFromTabsConfig(routes: ContentRoute[], tabs: ClarifyTabsConfig, i18n?: ResolvedClarifyI18nConfig): LocalizedTabbedNavigation | undefined {
-  if (!i18n) return undefined
+export function buildLocalizedNavigationFromTabsConfig(routes: ContentRoute[], tabs: ClarifyTabsConfig, localesConfig?: ResolvedClarifyLocalesConfig): LocalizedTabbedNavigation | undefined {
+  if (!localesConfig) return undefined
 
   const locales: LocalizedTabbedNavigation['locales'] = {}
-  for (const locale of i18n.locales) {
+  for (const locale of localesConfig.locales) {
     const localeRoutes = routes.filter(route => route.locale === locale.code)
     locales[locale.code] = {
       tabs: tabs.map(tab => {
-        const children = buildLocalizedNavigationForLocale(localeRoutes, tab.pages, locale.code, i18n)
+        const children = buildLocalizedNavigationForLocale(localeRoutes, tab.pages, locale.code, localesConfig)
         return {
           type: 'tab',
           path: firstNavigationPath(children),
-          title: resolveLocalizedText(tab.tab, locale.code, i18n.defaultLocale) ?? '',
+          title: resolveLocalizedText(tab.tab, locale.code, localesConfig.default) ?? '',
           icon: tab.icon,
           children,
         }

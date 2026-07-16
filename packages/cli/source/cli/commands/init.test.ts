@@ -76,8 +76,8 @@ describe('runInit', () => {
     }, false, 'complete')
 
     const config = readFileSync(join(tempDir, 'clarify.ts'), 'utf-8')
-    expect(config).toContain('i18n')
-    expect(config).toContain("defaultLocale: 'en-US'")
+    expect(config).toContain('locales')
+    expect(config).toContain("default: 'en-US'")
     expect(readFileSync(join(tempDir, 'docs/en-US/reference/configuration.mdx'), 'utf-8')).toContain('# Configuration')
     expect(readFileSync(join(tempDir, 'docs/en-US/changelog.mdx'), 'utf-8')).toContain('# Changelog')
     expect(readJson(join(tempDir, 'docs/en-US/api.openapi.json')).openapi).toBe('3.1.0')

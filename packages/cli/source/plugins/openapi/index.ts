@@ -3,7 +3,7 @@ import { join, relative } from 'node:path'
 import { generateContentDiagnosticModule } from '../../core/runtime/virtual-modules.js'
 import { createProjectContentProcessor } from '../../parsers/content/content.js'
 import { localizedRoutePath, openAPIPagePathFromRef, routeIntentFromPagesItem, withAlternates } from '../../parsers/routes/routes.js'
-import type { ClarifyOpenAPIRouteIntent, ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyOpenAPIRouteIntent, ClarifyPagesConfig, ClarifyPagesItem, ClarifyPlugin, ContentRoute, OpenAPISpec, ResolvedClarifyLocalesConfig, ResolvedProjectConfig } from '../../types.js'
 
 import { extractOpenAPISections, filterSpecByTags, findOpenAPIRoutes, normalizeOpenAPISpecSectionIds, readOpenAPISpec } from './parser.js'
 import { generateOpenAPIPageModule, generateOpenAPIRegistryModule, generateOpenAPIServerRegistryModule, generateOpenAPISpecModule, openApiRegistryModuleId, openApiServerRegistryModuleId, specVirtualModuleId } from './virtual-modules.js'
@@ -35,7 +35,7 @@ function collectOpenAPIPageIntents(config: ResolvedProjectConfig): ClarifyOpenAP
     }
   }
 
-  for (const tab of config.tabs ?? []) visitPages(tab.pages)
+  for (const tab of config.navigation?.tabs ?? []) visitPages(tab.pages)
 
   return intents
 }
@@ -56,15 +56,15 @@ function cloneOpenAPIRoute(route: ContentRoute, overrides: Partial<ContentRoute>
   }
 }
 
-function findOpenAPIRoutesForContentRoot(contentRoot: string, i18n?: ResolvedClarifyI18nConfig): ContentRoute[] {
-  if (!i18n) return findOpenAPIRoutes(contentRoot)
+function findOpenAPIRoutesForContentRoot(contentRoot: string, locales?: ResolvedClarifyLocalesConfig): ContentRoute[] {
+  if (!locales) return findOpenAPIRoutes(contentRoot)
 
   const localizedRoutes: ContentRoute[] = []
-  for (const locale of i18n.locales) {
+  for (const locale of locales.locales) {
     const localeRoot = join(contentRoot, locale.code)
     for (const route of findOpenAPIRoutes(localeRoot, localeRoot)) {
       const basePath = route.basePath ?? route.path
-      const path = localizedRoutePath(basePath, locale.code, i18n)
+      const path = localizedRoutePath(basePath, locale.code, locales)
       localizedRoutes.push({
         ...route,
         path,
@@ -75,15 +75,15 @@ function findOpenAPIRoutesForContentRoot(contentRoot: string, i18n?: ResolvedCla
     }
   }
 
-  if (i18n.missing === 'fallback') {
+  if (locales.missing === 'fallback') {
     const routeByLocaleAndBase = new Map(localizedRoutes.map(route => [`${route.locale ?? ''}:${route.basePath ?? route.path}`, route]))
-    const defaultRoutes = localizedRoutes.filter(route => route.locale === i18n.defaultLocale)
+    const defaultRoutes = localizedRoutes.filter(route => route.locale === locales.default)
     for (const sourceRoute of defaultRoutes) {
       const basePath = sourceRoute.basePath ?? sourceRoute.path
-      for (const locale of i18n.locales) {
+      for (const locale of locales.locales) {
         const key = `${locale.code}:${basePath}`
         if (routeByLocaleAndBase.has(key)) continue
-        const path = localizedRoutePath(basePath, locale.code, i18n)
+        const path = localizedRoutePath(basePath, locale.code, locales)
         localizedRoutes.push(cloneOpenAPIRoute(sourceRoute, {
           path,
           locale: locale.code,
@@ -117,7 +117,7 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
       if (existingKeys.has(key)) continue
       existingKeys.add(key)
 
-      const path = route.locale && config.i18n ? localizedRoutePath(targetBasePath, route.locale, config.i18n) : targetBasePath
+      const path = route.locale && config.locales ? localizedRoutePath(targetBasePath, route.locale, config.locales) : targetBasePath
 
       additions.push(cloneOpenAPIRoute(route, {
         path,
@@ -132,14 +132,14 @@ function createConfiguredOpenAPIRoutes(routes: ContentRoute[], config: ResolvedP
   }
 
   const nextRoutes = [...routes, ...additions]
-  if (!config.i18n) return nextRoutes
+  if (!config.locales) return nextRoutes
 
-  const routesWithAlternates = nextRoutes.map(route => withAlternates(route, nextRoutes, config.i18n!))
+  const routesWithAlternates = nextRoutes.map(route => withAlternates(route, nextRoutes, config.locales!))
   const bareAliases: ContentRoute[] = []
   const seenBare = new Set(routesWithAlternates.map(route => route.path))
 
   for (const route of routesWithAlternates) {
-    if (route.locale !== config.i18n.defaultLocale) continue
+    if (route.locale !== config.locales.default) continue
     const basePath = route.basePath ?? route.path
     if (basePath === route.path || seenBare.has(basePath)) continue
     seenBare.add(basePath)
@@ -187,7 +187,7 @@ export function createOpenAPIPlugin(): ClarifyPlugin {
     hooks: {
       'routes:discover': (input, ctx) => ({
         ...input,
-        routes: [...input.routes, ...findOpenAPIRoutesForContentRoot(input.contentRoot, ctx.projectConfig.i18n)],
+        routes: [...input.routes, ...findOpenAPIRoutesForContentRoot(input.contentRoot, ctx.projectConfig.locales)],
       }),
       'routes:discovered': async (routes, ctx) => {
         specs.clear()

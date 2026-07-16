@@ -6,6 +6,7 @@ import { useBuiltInText } from '../core/i18n'
 import { Markdown } from '../mdx/Markdown'
 
 import { OpenApiOperation as OpenApiOperationComponent } from './components/OpenApiOperation'
+import { OpenApiRequestWorkbench } from './components/OpenApiRequest'
 import { useOpenApiSpec } from './lib/spec-path'
 import { getOpenApiOperationEntry, listOpenApiOperations } from './lib/utils'
 import type { OpenAPISpec } from './lib/utils'
@@ -40,6 +41,8 @@ export type OpenApiOperationProps = {
   path: string
   method: string
 }
+
+export type OpenApiRequestProps = OpenApiOperationProps
 
 function OpenApiHeader(arg0: OpenApiHeaderProps): ReactNode {
   const { spec } = arg0
@@ -144,6 +147,28 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   }
 
   return <OpenApiOperationWithSpec spec={spec} path={path} method={method} />
+}
+
+export function OpenApiRequest(arg0: OpenApiRequestProps): ReactNode {
+  const { specPath, path, method } = arg0
+  const t = useBuiltInText()
+  const { spec, loading } = useOpenApiSpec(undefined, specPath)
+
+  if (loading) return <WarningBox>{t('openapi.loading')}</WarningBox>
+  if (!spec) return <WarningBox>{t('openapi.specNotFound', { specPath })}</WarningBox>
+
+  const entry = getOpenApiOperationEntry(spec, path, method)
+  if (!entry) return <WarningBox tone="red">{t('openapi.endpointNotFound', { endpoint: `${method.toUpperCase()} ${path}` })}</WarningBox>
+
+  return (
+    <OpenApiRequestWorkbench
+      spec={spec}
+      path={path}
+      method={entry.method.toUpperCase()}
+      operation={entry.operation}
+      operationSource={entry.source}
+    />
+  )
 }
 
 export function createOpenApiRouteComponent(data: OpenApiRouteData) {

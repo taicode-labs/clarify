@@ -59,16 +59,23 @@ function getSecurityRequirements(spec: OpenAPISpec, operation: OpenAPIOperation)
   return Array.isArray(specSecurity) ? specSecurity.filter(isRecord) as OpenApiSecurityRequirement[] : []
 }
 
-export type AuthOption = { name: string; scheme: OpenApiSecurityScheme }
+export type AuthSchemeOption = { name: string; scheme: OpenApiSecurityScheme }
+export type AuthOption = { key: string; label: string; schemes: AuthSchemeOption[] }
 
 export function getAuthOptions(spec: OpenAPISpec, operation: OpenAPIOperation): AuthOption[] {
   const schemes = getSecuritySchemes(spec)
   const requirements = getSecurityRequirements(spec, operation)
-  const names = new Set(requirements.flatMap((requirement) => Object.keys(requirement)))
 
-  return Array.from(names)
-    .map((name) => ({ name, scheme: schemes[name] }))
-    .filter((option): option is AuthOption => Boolean(option.scheme))
+  return requirements.map((requirement, index) => {
+    const requirementSchemes = Object.keys(requirement)
+      .map((name) => ({ name, scheme: schemes[name] }))
+      .filter((option): option is AuthSchemeOption => Boolean(option.scheme))
+    return {
+      key: `requirement:${index}`,
+      label: requirementSchemes.map((option) => option.name).join(' + '),
+      schemes: requirementSchemes,
+    }
+  })
 }
 
 export function authPlaceholder(auth?: AuthPlaceholderArg): string {

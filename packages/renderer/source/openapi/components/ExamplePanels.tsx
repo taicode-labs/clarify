@@ -9,7 +9,7 @@ import type {
   ExampleEntry,
   MediaTypeEntry,
   OpenApiParameter,
-  RequestAuthInput,
+  RequestAuthInputs,
 } from '../types'
 
 
@@ -159,7 +159,7 @@ type RequestExamplesPanelProps = {
   onSelectMediaType: (value: string) => void
   selectedServer: Parameters<typeof buildRequestCodeExamples>[0]['server']
   serverVariables: Record<string, string>
-  auth?: RequestAuthInput
+  auth?: RequestAuthInputs
   operationSource?: OpenAPIOperationSource
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
@@ -175,7 +175,7 @@ type UseRequestExamplesStateArgs = {
   onSelectMediaType: (value: string) => void
   selectedServer: Parameters<typeof buildRequestCodeExamples>[0]['server']
   serverVariables: Record<string, string>
-  auth?: RequestAuthInput
+  auth?: RequestAuthInputs
   operationSource?: OpenAPIOperationSource
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void

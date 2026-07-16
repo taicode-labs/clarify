@@ -24,6 +24,5 @@ export function resolveThemeConfig(theme: ClarifyThemeConfig = {}): ResolvedClar
       ...presetTheme.layout,
       ...theme.layout,
     },
-    editor: theme.editor ?? presetTheme.editor,
   }
 }

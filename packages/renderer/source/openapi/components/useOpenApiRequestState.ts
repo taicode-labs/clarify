@@ -1,0 +1,127 @@
+import { useEffect, useRef, useState } from 'react'
+
+import { executeApiRequest, type ApiResponseExchange } from '../lib/api-exchange'
+import { parameterKey } from '../lib/api-request'
+import { getExampleEntries, getMediaTypeEntries, getRequestBody, stringifyExample } from '../lib/helpers'
+import { validateRequestParameters, type RequestParameterIssue } from '../lib/request-parameters'
+import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
+import { emptyOpenApiCredentials, getOpenApiCredentialScope, useOpenApiStore } from '../store'
+import type { OpenApiParameter } from '../types'
+
+import { defaultServerVariables, getAuthOptions, getServerKey, getServers } from './ExamplePanels'
+
+export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operation: OpenAPIOperation, operationSource: OpenAPIOperationSource) {
+  const servers = getServers(spec, operation, path, operationSource)
+  const [selectedServerKey, setSelectedServerKey] = useState(getServerKey(servers[0], 0))
+  const selectedServer = servers.find((server, index) => getServerKey(server, index) === selectedServerKey) ?? servers[0]
+  const [serverVariables, setServerVariables] = useState(defaultServerVariables(selectedServer))
+  const authOptions = getAuthOptions(spec, operation)
+  const [selectedAuthName, setSelectedAuthName] = useState(authOptions[0]?.key ?? '')
+  const selectedAuth = authOptions.find((option) => option.key === selectedAuthName)
+  const credentialScope = getOpenApiCredentialScope(spec)
+  const credentials = useOpenApiStore((state) => state.credentials[credentialScope] ?? emptyOpenApiCredentials)
+  const setCredential = useOpenApiStore((state) => state.setCredential)
+  const clearCredential = useOpenApiStore((state) => state.clearCredential)
+  const requestContents = getMediaTypeEntries(getRequestBody(spec, operation)?.content, spec)
+  const [mediaType, setMediaType] = useState(requestContents[0]?.mediaType ?? '')
+  const selectedContent = requestContents.find((entry) => entry.mediaType === mediaType) ?? requestContents[0]
+  const [body, setBody] = useState(stringifyExample(getExampleEntries(selectedContent?.value, spec)[0]?.value))
+
+  function selectServer(value: string) {
+    const nextServer = servers.find((server, index) => getServerKey(server, index) === value) ?? servers[0]
+    setSelectedServerKey(value)
+    setServerVariables(defaultServerVariables(nextServer))
+  }
+
+  function selectMediaType(value: string) {
+    const content = requestContents.find((entry) => entry.mediaType === value)?.value
+    setMediaType(value)
+    setBody(stringifyExample(getExampleEntries(content, spec)[0]?.value))
+  }
+
+  return {
+    servers,
+    selectedServer,
+    selectedServerKey,
+    serverVariables,
+    setServerVariables,
+    serverVariableEntries: Object.entries(selectedServer.variables ?? {}),
+    selectServer,
+    authOptions,
+    selectedAuthName,
+    setSelectedAuthName,
+    selectedAuth,
+    credentialScope,
+    credentials,
+    setCredential,
+    clearCredential,
+    requestContents,
+    mediaType,
+    body,
+    setBody,
+    selectMediaType,
+  }
+}
+
+export function useOpenApiParameterState(spec: OpenAPISpec, parameters: OpenApiParameter[], initialParameterValue: (parameter: OpenApiParameter) => string) {
+  const [parameterValues, setParameterValues] = useState<Record<string, string>>(() => Object.fromEntries(parameters.map((parameter) => [parameterKey(parameter), initialParameterValue(parameter)])))
+  const [parameterEnabled, setParameterEnabled] = useState<Record<string, boolean>>(() => Object.fromEntries(parameters.map((parameter) => [parameterKey(parameter), true])))
+  const [parameterIssues, setParameterIssues] = useState<Record<string, RequestParameterIssue>>({})
+
+  function setParameterGroupValues(grouped: OpenApiParameter[], mode: 'reset' | 'clear') {
+    const keys = new Set(grouped.map(parameterKey))
+    setParameterValues((current) => ({ ...current, ...Object.fromEntries(grouped.map((parameter) => [parameterKey(parameter), mode === 'reset' ? initialParameterValue(parameter) : ''])) }))
+    setParameterIssues((current) => Object.fromEntries(Object.entries(current).filter(([key]) => !keys.has(key))))
+  }
+
+  function setParameterIncluded(parameter: OpenApiParameter, enabled: boolean) {
+    const key = parameterKey(parameter)
+    setParameterEnabled((current) => ({ ...current, [key]: enabled }))
+    if (!enabled) setParameterIssues((current) => { const next = { ...current }; delete next[key]; return next })
+  }
+
+  function updateParameterValue(parameter: OpenApiParameter, value: string) {
+    const key = parameterKey(parameter)
+    setParameterValues((current) => ({ ...current, [key]: value }))
+    setParameterIssues((current) => { const next = { ...current }; delete next[key]; return next })
+  }
+
+  function validate(parametersToValidate: OpenApiParameter[]) {
+    const issues = validateRequestParameters(spec, parametersToValidate, parameterValues)
+    setParameterIssues(issues)
+    return issues
+  }
+
+  return { parameterValues, parameterEnabled, parameterIssues, setParameterGroupValues, setParameterIncluded, updateParameterValue, validate }
+}
+
+export function useOpenApiRequestExecution() {
+  const [exchange, setExchange] = useState<ApiResponseExchange>()
+  const [error, setError] = useState('')
+  const [sending, setSending] = useState(false)
+  const requestController = useRef<AbortController>(null)
+  useEffect(() => () => requestController.current?.abort(), [])
+
+  async function execute(request: Parameters<typeof executeApiRequest>[0], corsHint: string) {
+    requestController.current?.abort()
+    const controller = new AbortController()
+    requestController.current = controller
+    setSending(true)
+    setError('')
+    setExchange(undefined)
+    try {
+      setExchange(await executeApiRequest(request, { signal: controller.signal }))
+    } catch (cause) {
+      if (cause instanceof DOMException && cause.name === 'AbortError') return
+      const message = cause instanceof Error ? cause.message : String(cause)
+      setError(`${message}. ${corsHint}`)
+    } finally {
+      if (requestController.current === controller) {
+        requestController.current = null
+        setSending(false)
+      }
+    }
+  }
+
+  return { exchange, error, sending, execute }
+}

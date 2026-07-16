@@ -74,11 +74,11 @@ export class ClarifyContext implements ClarifyHookContext {
   }
 
   get isI18n(): boolean {
-    return Boolean(this.projectConfig.i18n)
+    return Boolean(this.projectConfig.locales)
   }
 
   get defaultLocale(): string | undefined {
-    return this.projectConfig.i18n?.defaultLocale
+    return this.projectConfig.locales?.default
   }
 
   get<T>(key: string): T | undefined {

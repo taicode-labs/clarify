@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyHookContext } from '../../types.js'
 
@@ -21,12 +22,12 @@ const ctx: ClarifyHookContext = {
       },
       release: 'Release Notes',
     },
+    features: resolveFeaturesConfig(),
   },
   generateOptions: {
     projectRoot: '/site',
     rootDirectory: 'source',
     outputDirectory: 'output',
-    ssg: { failOnError: true },
   },
   version: 'test',
   routes: [],

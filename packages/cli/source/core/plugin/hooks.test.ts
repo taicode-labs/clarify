@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyPlugin, ClarifyHookContext, ClarifyPage } from '../../types.js'
+import { resolveFeaturesConfig } from '../config/config.js'
 
 import { runHooks } from './hooks.js'
 
@@ -15,12 +16,12 @@ const mockCtx: ClarifyHookContext = {
     assetPrefix: '/',
     theme: resolveThemeConfig(),
     variables: {},
+    features: resolveFeaturesConfig(),
   },
   generateOptions: {
     projectRoot: '/site',
     rootDirectory: 'source',
     outputDirectory: 'dist',
-    ssg: { failOnError: true },
   },
   version: 'test',
   routes: [],

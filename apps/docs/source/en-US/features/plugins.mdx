@@ -98,8 +98,8 @@ type ClarifyHookContext = {
 ```
 
 - `projectRoot` and `contentRoot`: absolute paths for resolving project and content files.
-- `projectConfig`: the site config after defaults have been applied, e.g. `title`, `routePrefix`, `i18n`.
-- `generateOptions`: the build run parameters, e.g. the content directory, output directory, and SSG error strategy.
+- `projectConfig`: the site config after defaults have been applied, e.g. `title`, `routePrefix`, `locales`.
+- `generateOptions`: the build run parameters, e.g. the content directory and output directory.
 - `routes` and `navigation`: the current route and navigation state at the hook execution point.
 - `plugins`: the ordered plugin list.
 - `get`, `set`, `has`, and `delete`: a small shared store for coordination between hooks.
@@ -116,11 +116,7 @@ import { defineConfig, type ClarifyPlugin } from '@clarify-labs/cli'
 const hideDraftRoutes: ClarifyPlugin = {
   name: 'hide-draft-routes',
   hooks: {
-    'routes:resolved'({ routes, navigation }, ctx) {
-      if (ctx.generateOptions.ssg.failOnError === false) {
-        return { routes, navigation }
-      }
-
+    'routes:resolved'({ routes, navigation }) {
       return {
         routes: routes.filter(route => !route.path.includes('/drafts/')),
         navigation,

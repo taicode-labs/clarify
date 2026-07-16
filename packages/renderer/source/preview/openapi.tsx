@@ -73,13 +73,13 @@ function usePreviewIdentityState(arg0: UsePreviewIdentityStateArgs) {
   const [serverOpen, setServerOpen] = useState(false)
 
   const authOptions = getAuthOptions(spec, operation)
-  const [selectedAuthName, setSelectedAuthName] = useState(authOptions[0]?.name ?? '')
-  const selectedAuth = authOptions.find((option) => option.name === selectedAuthName)
+  const [selectedAuthName, setSelectedAuthName] = useState(authOptions[0]?.key ?? '')
+  const selectedAuth = authOptions.find((option) => option.key === selectedAuthName)
   const [authValues, setAuthValues] = useState<Record<string, string>>({})
   const [authOpen, setAuthOpen] = useState(false)
 
-  const authInput: RequestAuthInput | undefined = selectedAuth
-    ? { name: selectedAuth.name, scheme: selectedAuth.scheme, value: authValues[selectedAuth.name] ?? authPlaceholder(selectedAuth) }
+  const authInput: RequestAuthInput[] | undefined = selectedAuth
+    ? selectedAuth.schemes.map((option) => ({ name: option.name, scheme: option.scheme, value: authValues[option.name] ?? authPlaceholder(option) }))
     : undefined
 
   return {
@@ -114,6 +114,14 @@ function usePreviewIdentityState(arg0: UsePreviewIdentityStateArgs) {
     onChangeAuthValue: (name: string, value: string) => {
       setAuthValues((current) => ({ ...current, [name]: value }))
     },
+    onClearAuthValue: (name: string) => {
+      setAuthValues((current) => {
+        const values = { ...current }
+        delete values[name]
+        return values
+      })
+    },
+    onClearAuthValues: () => setAuthValues({}),
   }
 }
 
@@ -254,17 +262,9 @@ export function OpenApiExamplesPreview(arg0: OpenApiExamplesPreviewProps) {
         selectedServer={identityState.selectedServer}
         serverVariables={identityState.serverVariables}
         serverOpen={identityState.serverOpen}
-        authOptions={identityState.authOptions}
-        selectedAuthName={identityState.selectedAuthName}
-        selectedAuth={identityState.selectedAuth}
-        authValues={identityState.authValues}
-        authOpen={identityState.authOpen}
         onSelectServer={identityState.onSelectServer}
         onChangeServerVariable={identityState.onChangeServerVariable}
         onToggleServer={identityState.onToggleServer}
-        onToggleAuth={identityState.onToggleAuth}
-        onSelectAuth={identityState.onSelectAuth}
-        onChangeAuthValue={identityState.onChangeAuthValue}
       />
     )
   }

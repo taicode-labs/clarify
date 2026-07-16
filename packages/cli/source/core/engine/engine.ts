@@ -177,7 +177,7 @@ export class ClarifyEngine {
   async discoverSite(): Promise<void> {
     const plugins = this.ctx.plugins
     const contentRoot = this.ctx.contentRoot
-    const { i18n, tabs } = this.ctx.projectConfig
+    const { locales, navigation: navigationConfig } = this.ctx.projectConfig
 
     // Phase 3: site:discover - scan content directory. The Engine provides the
     // default discovery logic (i18n-aware content scanning) directly; user
@@ -186,8 +186,8 @@ export class ClarifyEngine {
       const processor = createProjectContentProcessor(plugins, this.ctx)
       const options = { contentProcessor: processor }
 
-      const discovered = i18n
-        ? await findLocalizedContentRoutes(contentRoot, i18n, options)
+      const discovered = locales
+        ? await findLocalizedContentRoutes(contentRoot, locales, options)
         : await findContentRoutes(contentRoot, contentRoot, options)
 
       // Run routes:discover hook so plugins can augment the discovered routes.
@@ -224,10 +224,11 @@ export class ClarifyEngine {
     // Build navigation directly. The Engine applies configured page route
     // paths and builds the navigation tree (tabs-based or auto-generated).
     // User plugins can intercept via the routes:resolved hook.
-    routes = applyConfiguredPageRoutePaths(routes, tabs, i18n)
+    const tabs = navigationConfig?.tabs
+    routes = applyConfiguredPageRoutePaths(routes, tabs, locales)
     const navigation = tabs
-      ? i18n
-        ? (buildLocalizedNavigationFromTabsConfig(routes, tabs, i18n) ?? { kind: 'localized-tabbed', locales: {} })
+      ? locales
+        ? (buildLocalizedNavigationFromTabsConfig(routes, tabs, locales) ?? { kind: 'localized-tabbed', locales: {} })
         : buildNavigationFromTabsConfig(routes, tabs)
       : { kind: 'flat' as const, nodes: buildNavigation(routes) }
     const resolved = await runHooks(plugins, 'routes:resolved', { routes, navigation }, this.ctx)
@@ -252,7 +253,7 @@ export class ClarifyEngine {
         routes: this.routes,
         navigation: this.navigation,
         plugins: this.plugins,
-        themeEditor: this.runtime.command === 'serve' || this.runtime.themeEditor === true || this.projectConfig.theme.editor,
+        themeEditor: this.runtime.command === 'serve' || this.runtime.themeEditor === true || this.projectConfig.features.themeEditor.enabled,
         version: this.ctx.version,
       })
       this.virtualModules = await runHooks(this.plugins, 'modules:before', this.virtualModules, this.ctx)
@@ -306,7 +307,7 @@ export class ClarifyEngine {
 
       if (!(await runInterceptHooks(this.plugins, 'ssg:shouldRun', this.ctx))) return
 
-      if (this.generateOptions.ssg.failOnError) assertNoContentDiagnostics(this.routes)
+      assertNoContentDiagnostics(this.routes)
 
       const outputDir = this.runtime.outputDirectory ?? this.generateOptions.outputDirectory
       if (!outputDir) throw new Error('[clarify] outputDirectory is required before SSG runs')
@@ -326,10 +327,10 @@ export class ClarifyEngine {
         })
 
         const ssrBundlePath = join(ssrOutputDir, 'entry-server.js')
-        await renderSSGRoutes(this.routes, this.runtimeContext(), outputDir, ssrBundlePath, this.generateOptions.ssg.failOnError)
+        await renderSSGRoutes(this.routes, this.runtimeContext(), outputDir, ssrBundlePath)
       } catch (err) {
         console.error('[clarify] SSG failed:', err)
-        if (this.generateOptions.ssg.failOnError) throw err
+        throw err
       } finally {
         if (tempEntryPath) {
           try {
