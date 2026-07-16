@@ -152,7 +152,7 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
   }
 
   return (
-    <div className={clsx('clarify-api-request flex min-h-0 min-w-0 flex-col not-prose bg-(--clarify-theme-tokens-colors-surface)', compact ? 'h-full' : 'my-6')}>
+    <div className={clsx('clarify-api-request flex min-h-0 min-w-0 flex-col not-prose bg-(--clarify-theme-tokens-colors-surface) [--clarify-theme-tokens-radius-lg:6px] [--clarify-theme-tokens-radius-md:4px] [--clarify-theme-tokens-radius-sm:2px] [--clarify-theme-tokens-radius-xl:8px] [--clarify-ui-accent-background:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_10%,transparent)] [--clarify-ui-accent-border:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_22%,transparent)] [--clarify-ui-accent-text:var(--clarify-theme-tokens-colors-foreground)] [--clarify-ui-active-background:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_12%,transparent)] [--clarify-ui-subtle-background:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)]', compact ? 'h-full' : 'my-6')}>
       {renderHeader()}
 
       <div className="grid min-h-0 flex-1 gap-0 px-0 lg:grid-cols-[minmax(0,1.12fr)_minmax(22rem,0.88fr)]">
@@ -193,7 +193,7 @@ export function OpenApiRequestDialog(arg0: OpenApiRequestDialogProps): ReactNode
     <Dialog open={open} onClose={() => {}} className="relative z-50">
       <DialogBackdrop className="fixed inset-0 bg-(--clarify-ui-overlay-background) backdrop-blur-sm" />
       <div className="fixed inset-0 grid place-items-center overflow-y-auto p-3 sm:p-6">
-          <DialogPanel className="relative flex h-[min(46rem,calc(100dvh-1.5rem))] w-full max-w-7xl flex-col overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) shadow-2xl sm:h-[min(46rem,calc(100dvh-3rem))]">
+          <DialogPanel className="relative flex h-[min(46rem,calc(100dvh-1.5rem))] w-full max-w-7xl flex-col overflow-hidden rounded-lg border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) shadow-2xl sm:h-[min(46rem,calc(100dvh-3rem))]">
             <DialogTitle className="sr-only">{t('openapi.tryRequest')}</DialogTitle>
             <OpenApiRequestWorkbench {...workbenchProps} compact onClose={onClose} />
           </DialogPanel>
