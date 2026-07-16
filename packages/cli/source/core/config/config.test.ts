@@ -12,8 +12,8 @@ describe('clarifyProjectConfigSchema', () => {
       title: 'Docs',
       siteUrl: 'https://docs.example.com',
       features: {
-        editLink: {
-          repository: 'https://github.com/acme/docs',
+        repository: {
+          url: 'https://github.com/acme/docs',
           branch: 'main',
           directory: 'docs/source',
         },
@@ -37,7 +37,7 @@ describe('clarifyProjectConfigSchema', () => {
     })).toMatchObject({
       title: 'Docs',
       siteUrl: 'https://docs.example.com',
-      features: { editLink: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' } },
+      features: { repository: { url: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' } },
       navigation: {
         links: [{ label: 'GitHub', href: 'https://github.com', external: true }],
         tabs: [
@@ -61,7 +61,7 @@ describe('clarifyProjectConfigSchema', () => {
   it('accepts config fields in any order', () => {
     expect(clarifyProjectConfigSchema.parse({
       features: {
-        openapi: { responseDownload: false, enabled: true, playground: false },
+        openapi: { enabled: true, playground: false },
         search: false,
       },
       locales: {
@@ -84,7 +84,7 @@ describe('clarifyProjectConfigSchema', () => {
       },
       features: {
         search: { enabled: false },
-        openapi: { enabled: true, playground: false, responseDownload: false },
+        openapi: { enabled: true, playground: false },
       },
     })
   })
@@ -180,7 +180,7 @@ describe('resolveProjectConfig', () => {
       title: 'Project Docs',
       description: 'Desc',
       siteUrl: 'https://docs.example.com',
-      features: { editLink: { repository: 'https://github.com/acme/docs' } },
+      features: { repository: { url: 'https://github.com/acme/docs' } },
       theme: { tokens: { colors: { primary: '#333' } } },
       homeUrl: 'https://example.com',
       favicon: '/favicon.svg',
@@ -206,9 +206,9 @@ describe('resolveProjectConfig', () => {
     expect(result.title).toBe('Project Docs')
     expect(result.description).toBe('Desc')
     expect(result.siteUrl).toBe('https://docs.example.com')
-    expect(result.features.editLink).toEqual({
+    expect(result.features.repository).toEqual({
       enabled: true,
-      repository: 'https://github.com/acme/docs',
+      url: 'https://github.com/acme/docs',
     })
     expect(result.theme.tokens.colors.primary).toBe('#333')
     expect(result.theme.layout).toEqual({ maxWidth: '82rem' })
@@ -265,6 +265,14 @@ describe('resolveProjectConfig', () => {
 
   it('rejects the removed artifacts feature', () => {
     expect(() => clarifyProjectConfigSchema.parse({ features: { artifacts: false } })).toThrow(/artifacts/)
+  })
+
+  it('rejects removed feature fields', () => {
+    expect(() => clarifyProjectConfigSchema.parse({ features: { editLink: false } })).toThrow(/editLink/)
+    expect(() => clarifyProjectConfigSchema.parse({ features: { gitSource: false } })).toThrow(/gitSource/)
+    expect(() => clarifyProjectConfigSchema.parse({ features: { repository: { repository: 'https://github.com/acme/docs' } } })).toThrow(/repository/)
+    expect(() => clarifyProjectConfigSchema.parse({ features: { openapi: { responsePreview: false } } })).toThrow(/responsePreview/)
+    expect(() => clarifyProjectConfigSchema.parse({ features: { openapi: { responseDownload: false } } })).toThrow(/responseDownload/)
   })
 
   it('applies theme presets before project overrides', () => {

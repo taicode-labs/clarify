@@ -67,10 +67,10 @@ export type ClarifyVariableValue = ClarifyVariablePrimitive | { [key: string]: C
 
 export type ClarifyVariablesConfig = Record<string, ClarifyVariableValue>
 
-export type ClarifyEditLinkConfig = {
+export type ClarifyRepositoryConfig = {
   /** Repository web URL, for example https://github.com/owner/repo. */
-  repository?: string
-  /** Source branch used for edit links. Default: main. */
+  url?: string
+  /** Source branch. Default: main. */
   branch?: string
   /** Directory prefix inside the repository that maps to rootDirectory. */
   directory?: string
@@ -225,24 +225,20 @@ export type ClarifyFeatureConfig<Options extends object = Record<never, never>> 
 
 export type ClarifyFeaturesConfig = {
   search?: ClarifyFeatureConfig<{ provider?: 'pagefind' }>
-  editLink?: ClarifyFeatureConfig<ClarifyEditLinkConfig>
+  repository?: ClarifyFeatureConfig<ClarifyRepositoryConfig>
   themeEditor?: ClarifyFeatureConfig
   openapi?: ClarifyFeatureConfig<{
     playground?: boolean
-    responsePreview?: boolean
-    responseDownload?: boolean
   }>
 }
 
 export type ResolvedClarifyFeaturesConfig = {
   search: { enabled: boolean; provider: 'pagefind' }
-  editLink: { enabled: boolean; repository?: string; branch?: string; directory?: string }
+  repository: { enabled: boolean; url?: string; branch?: string; directory?: string }
   themeEditor: { enabled: boolean }
   openapi: {
     enabled: boolean
     playground: boolean
-    responsePreview: boolean
-    responseDownload: boolean
   }
 }
 

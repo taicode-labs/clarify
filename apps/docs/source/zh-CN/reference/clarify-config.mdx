@@ -115,16 +115,14 @@ export default defineConfig({
     search: {
       provider: 'pagefind',
     },
-    editLink: {
-      repository: 'https://github.com/acme/docs',
+    repository: {
+      url: 'https://github.com/acme/docs',
       branch: 'main',
       directory: 'docs/source',
     },
     themeEditor: true,
     openapi: {
       playground: true,
-      responsePreview: true,
-      responseDownload: true,
     },
   },
   plugins: [],
@@ -151,7 +149,7 @@ export default defineConfig({
 | `footer` | `ClarifyFooterConfig` | — | 页脚。可放置常用链接、社区入口、版权声明、外部社交账号，或自定义页脚组件路径。Clarify 品牌标识始终保留。 |
 | `locales` | `ClarifyLocalesConfig` | — | 可用语言、默认语言、文本方向和缺失翻译策略。 |
 | `variables` | `Record<string, string \| number \| boolean \| object>` | `{}` | 全局项目变量。可在 MDX frontmatter、正文和 OpenAPI JSON/YAML 规范中用 `{{ name }}` 或 `{{ nested.name }}` 占位符复用产品名、版本号、链接、联系方式、API 基础地址和法律声明等内容。 |
-| `features` | `ClarifyFeaturesConfig` | 全部开启 | 可选能力及其细节配置。`editLink` 配置源码仓库。 |
+| `features` | `ClarifyFeaturesConfig` | 全部开启 | 可选能力及其细节配置。`repository` 描述文档关联的源码仓库。 |
 | `plugins` | `ClarifyPlugin[]` | `[]` | 构建期插件列表。只能在 `clarify.ts` 或 `clarify.js` 中使用，不能写入 `clarify.json`。 |
 
 主题覆盖能力还包括 `theme.tokens.colors`、`theme.tokens.radius` 和 `theme.layout.maxWidth`。站点是否暴露内置主题编辑器由 `features.themeEditor` 控制。
@@ -177,11 +175,11 @@ export default defineConfig({
 
 ---
 
-## `siteUrl` 和 `features.editLink`
+## `siteUrl` 和 `features.repository`
 
 `siteUrl` 表示生产环境最终访问地址，必须包含协议，例如 `https://docs.example.com`。如果文档部署在子路径，请把子路径写入 `siteUrl` 并配合 `routePrefix` 使用。
 
-`features.editLink` 用于“编辑此页面”链接：
+`features.repository` 描述文档源码所属的代码仓库。Clarify 当前用它生成“编辑此页面”链接；这份仓库级配置未来还可以承载更多仓库集成能力。
 
 | 字段 | 必填 | 说明 |
 |------|------|------|
@@ -204,10 +202,10 @@ export default defineConfig({
 })
 ```
 
-```ts title="编辑链接"
+```ts title="Git 源仓库"
 export default defineConfig({
-  features: { editLink: {
-    repository: 'https://github.com/acme/docs',
+  features: { repository: {
+    url: 'https://github.com/acme/docs',
     branch: 'main',
     directory: 'apps/docs/source',
   } },
@@ -217,8 +215,8 @@ export default defineConfig({
 ```json title="JSON 配置"
 {
   "siteUrl": "https://docs.example.com",
-  "features": { "editLink": {
-    "repository": "https://github.com/acme/docs",
+  "features": { "repository": {
+    "url": "https://github.com/acme/docs",
     "branch": "main",
     "directory": "source"
   } }
@@ -432,16 +430,14 @@ type ClarifyFeatureConfig<Options> =
 
 type ClarifyFeaturesConfig = {
   search?: ClarifyFeatureConfig<{ provider?: 'pagefind' }>
-  editLink?: ClarifyFeatureConfig<{
-    repository?: string
+  repository?: ClarifyFeatureConfig<{
+    url?: string
     branch?: string
     directory?: string
   }>
   themeEditor?: ClarifyFeatureConfig<Record<never, never>>
   openapi?: ClarifyFeatureConfig<{
     playground?: boolean
-    responsePreview?: boolean
-    responseDownload?: boolean
   }>
 }
 ```
@@ -451,24 +447,22 @@ type ClarifyFeaturesConfig = {
 | 字段 | 默认解析结果 | 说明 |
 |------|--------------|------|
 | `search` | `{ enabled: true, provider: 'pagefind' }` | 站内全文搜索。当前 provider 仅支持 `pagefind`。 |
-| `editLink` | `{ enabled: true }` | 页面源码编辑链接。配置 `repository` 后可生成仓库编辑地址；`branch` 默认使用 `main`，`directory` 对应仓库内的内容目录。 |
+| `repository` | `{ enabled: true }` | 文档源码关联的代码仓库。配置 `url` 后可启用页面编辑链接等仓库能力；`branch` 默认使用 `main`，`directory` 对应仓库内的内容目录。 |
 | `themeEditor` | `{ enabled: true }` | 内置主题编辑器。开发服务器始终提供编辑器；生产站点是否展示由此项控制。 |
-| `openapi` | `{ enabled: true, playground: true, responsePreview: true, responseDownload: true }` | OpenAPI 页面及请求工作台、响应预览、响应下载能力。 |
+| `openapi` | `{ enabled: true, playground: true }` | OpenAPI 页面及请求工作台。响应预览和下载是页面内置能力。 |
 
 ```ts title="按需配置功能"
 export default defineConfig({
   features: {
     search: true,
-    editLink: {
-      repository: 'https://github.com/acme/docs',
+    repository: {
+      url: 'https://github.com/acme/docs',
       branch: 'main',
       directory: 'docs/source',
     },
     themeEditor: false,
     openapi: {
       playground: true,
-      responsePreview: true,
-      responseDownload: false,
     },
   },
 })
@@ -476,7 +470,7 @@ export default defineConfig({
 
 Clarify 始终输出可直接读取的 Markdown/OpenAPI 源文件和 `llms.txt`。配置 `siteUrl` 后，还会输出 `sitemap.xml` 和 `robots.txt`。这些核心构建产物不需要 feature 配置。
 
-`enabled: false` 会禁用整项，即使同一对象中仍填写了子选项也不会生效。`sitemap` 和 `robots` 还需要 `siteUrl` 才能生成带公开站点地址的有效产物。
+`enabled: false` 会禁用整项，即使同一对象中仍填写了子选项也不会生效。
 
 ---
 

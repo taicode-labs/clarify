@@ -166,14 +166,11 @@ export type NavigationConfig = {
 
 export type FeaturesConfig = {
   search: { enabled: boolean; provider: 'pagefind' | 'none' };
-  editLink: { enabled: boolean; repository?: string; branch?: string; directory?: string };
-  artifacts: { enabled: boolean; content: boolean; llms: boolean; sitemap: boolean; robots: boolean };
+  repository: { enabled: boolean; url?: string; branch?: string; directory?: string };
   themeEditor: { enabled: boolean };
   openapi: {
     enabled: boolean;
     playground: boolean;
-    responsePreview: boolean;
-    responseDownload: boolean;
   };
 };
 

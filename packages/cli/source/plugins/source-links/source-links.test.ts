@@ -7,7 +7,7 @@ import { attachSourceEditUrls, createSourceEditUrl } from './source-links.js'
 describe('source links', () => {
   it('creates GitHub edit links from content file paths', () => {
     expect(createSourceEditUrl('/repo/apps/docs/source/en-US/index.mdx', '/repo/apps/docs/source', {
-      repository: 'https://github.com/taicode-labs/clarify.git',
+      url: 'https://github.com/taicode-labs/clarify.git',
       branch: 'main',
       directory: 'apps/docs/source',
     })).toBe('https://github.com/taicode-labs/clarify/edit/main/apps/docs/source/en-US/index.mdx')
@@ -24,7 +24,7 @@ describe('source links', () => {
       },
     ]
 
-    attachSourceEditUrls(routes, '/repo/source', { repository: 'https://github.com/acme/docs' })
+    attachSourceEditUrls(routes, '/repo/source', { url: 'https://github.com/acme/docs' })
 
     expect(routes[0]?.source?.sourceEditUrl).toBe('https://github.com/acme/docs/edit/main/index.mdx')
   })

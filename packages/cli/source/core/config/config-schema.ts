@@ -82,8 +82,8 @@ export const clarifyVariableValueSchema: z.ZodType<ClarifyVariableValue> = z.laz
 
 export const clarifyVariablesConfigSchema = z.record(z.string(), clarifyVariableValueSchema)
 
-export const clarifyEditLinkConfigSchema = z.object({
-  repository: z.string().optional(),
+export const clarifyRepositoryConfigSchema = z.object({
+  url: z.string().optional(),
   branch: z.string().optional(),
   directory: z.string().optional(),
 }).strict()
@@ -188,13 +188,11 @@ function featureSchema<Schema extends z.ZodRawShape>(shape: Schema, defaults: Re
 
 export const clarifyFeaturesConfigSchema = z.object({
   search: featureSchema({ provider: z.literal('pagefind').default('pagefind') }, { provider: 'pagefind' }),
-  editLink: featureSchema(clarifyEditLinkConfigSchema.shape, {}),
+  repository: featureSchema(clarifyRepositoryConfigSchema.shape, {}),
   themeEditor: featureSchema({}, {}),
   openapi: featureSchema({
     playground: z.boolean().default(true),
-    responsePreview: z.boolean().default(true),
-    responseDownload: z.boolean().default(true),
-  }, { playground: true, responsePreview: true, responseDownload: true }),
+  }, { playground: true }),
 }).strict()
 
 export const clarifyProjectConfigSchema = z.object({

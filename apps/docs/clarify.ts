@@ -489,8 +489,8 @@ export default defineConfig({
   },
   features: {
     themeEditor: true,
-    editLink: {
-      repository: 'https://github.com/taicode-labs/clarify',
+    repository: {
+      url: 'https://github.com/taicode-labs/clarify',
       branch: 'main',
       directory: 'apps/docs/source',
     },

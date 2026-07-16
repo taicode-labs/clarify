@@ -20,10 +20,9 @@ const baseConfig = {
   },
   features: {
     search: { enabled: true, provider: 'pagefind' },
-    editLink: { enabled: true },
-    artifacts: { enabled: true, content: true, llms: true, sitemap: true, robots: true },
+    repository: { enabled: true },
     themeEditor: { enabled: true },
-    openapi: { enabled: true, playground: true, responsePreview: true, responseDownload: true },
+    openapi: { enabled: true, playground: true },
   },
 } satisfies Config
 

@@ -115,16 +115,14 @@ export default defineConfig({
     search: {
       provider: 'pagefind',
     },
-    editLink: {
-      repository: 'https://github.com/acme/docs',
+    repository: {
+      url: 'https://github.com/acme/docs',
       branch: 'main',
       directory: 'docs/source',
     },
     themeEditor: true,
     openapi: {
       playground: true,
-      responsePreview: true,
-      responseDownload: true,
     },
   },
   plugins: [],
@@ -151,7 +149,7 @@ export default defineConfig({
 | `footer` | `ClarifyFooterConfig` | — | Footer links, social/community links, copyright text, or a custom footer component path. Clarify branding remains required. |
 | `locales` | `ClarifyLocalesConfig` | — | Locale options, default locale, text direction, and missing-translation behavior. |
 | `variables` | `Record<string, string \| number \| boolean \| object>` | `{}` | Global project variables. Use them in MDX frontmatter, page body, and OpenAPI JSON/YAML specs with `{{ name }}` or `{{ nested.name }}` placeholders for product names, versions, links, contacts, API base URLs, and legal text. |
-| `features` | `ClarifyFeaturesConfig` | All enabled | Optional capabilities and their detailed settings. `editLink` configures source repositories. |
+| `features` | `ClarifyFeaturesConfig` | All enabled | Optional capabilities and their detailed settings. `repository` describes the source repository associated with the documentation. |
 | `plugins` | `ClarifyPlugin[]` | `[]` | Build-time plugins. Available only in `clarify.ts` or `clarify.js`, not in `clarify.json`. |
 
 Theme overrides are also available through `theme.tokens.colors`, `theme.tokens.radius`, and `theme.layout.maxWidth`. Use `features.themeEditor` to control whether the built-in theme editor is exposed in the site.
@@ -177,11 +175,11 @@ Recommendations:
 
 ---
 
-## `siteUrl` and `features.editLink`
+## `siteUrl` and `features.repository`
 
 `siteUrl` is the final production URL and must include the protocol, for example `https://docs.example.com`. If the docs are deployed under a subpath, include that subpath in `siteUrl` and configure `routePrefix` accordingly.
 
-`features.editLink` powers “Edit this page” links:
+`features.repository` describes the repository that owns the documentation source. Clarify currently uses it to generate “Edit this page” links; the repository-level configuration can support more integrations in the future.
 
 | Field | Required | Description |
 |-------|----------|-------------|
@@ -204,10 +202,10 @@ export default defineConfig({
 })
 ```
 
-```ts title="Edit links"
+```ts title="Git source"
 export default defineConfig({
-  features: { editLink: {
-    repository: 'https://github.com/acme/docs',
+  features: { repository: {
+    url: 'https://github.com/acme/docs',
     branch: 'main',
     directory: 'apps/docs/source',
   } },
@@ -217,8 +215,8 @@ export default defineConfig({
 ```json title="JSON config"
 {
   "siteUrl": "https://docs.example.com",
-  "features": { "editLink": {
-    "repository": "https://github.com/acme/docs",
+  "features": { "repository": {
+    "url": "https://github.com/acme/docs",
     "branch": "main",
     "directory": "source"
   } }
@@ -432,16 +430,14 @@ type ClarifyFeatureConfig<Options> =
 
 type ClarifyFeaturesConfig = {
   search?: ClarifyFeatureConfig<{ provider?: 'pagefind' }>
-  editLink?: ClarifyFeatureConfig<{
-    repository?: string
+  repository?: ClarifyFeatureConfig<{
+    url?: string
     branch?: string
     directory?: string
   }>
   themeEditor?: ClarifyFeatureConfig<Record<never, never>>
   openapi?: ClarifyFeatureConfig<{
     playground?: boolean
-    responsePreview?: boolean
-    responseDownload?: boolean
   }>
 }
 ```
@@ -451,24 +447,22 @@ All built-in features are enabled by default. Every feature supports a boolean s
 | Field | Resolved default | Description |
 |-------|------------------|-------------|
 | `search` | `{ enabled: true, provider: 'pagefind' }` | Full-text site search. `pagefind` is currently the only provider. |
-| `editLink` | `{ enabled: true }` | Source edit links for pages. Set `repository` to generate repository edit URLs; `branch` defaults to `main`, and `directory` maps to the content directory inside the repository. |
+| `repository` | `{ enabled: true }` | Repository associated with the documentation source. Set `url` to enable repository-aware capabilities such as page edit links; `branch` defaults to `main`, and `directory` maps to the content directory inside the repository. |
 | `themeEditor` | `{ enabled: true }` | Built-in theme editor. The development server always provides it; this option controls its availability in production sites. |
-| `openapi` | `{ enabled: true, playground: true, responsePreview: true, responseDownload: true }` | OpenAPI pages plus the request playground, response preview, and response download capabilities. |
+| `openapi` | `{ enabled: true, playground: true }` | OpenAPI pages and the request playground. Response preview and download are built-in page capabilities. |
 
 ```ts title="Configure features selectively"
 export default defineConfig({
   features: {
     search: true,
-    editLink: {
-      repository: 'https://github.com/acme/docs',
+    repository: {
+      url: 'https://github.com/acme/docs',
       branch: 'main',
       directory: 'docs/source',
     },
     themeEditor: false,
     openapi: {
       playground: true,
-      responsePreview: true,
-      responseDownload: false,
     },
   },
 })
@@ -476,7 +470,7 @@ export default defineConfig({
 
 Clarify always emits source-ready Markdown/OpenAPI files and `llms.txt`. When `siteUrl` is configured, it also emits `sitemap.xml` and `robots.txt`. These core build outputs do not require feature configuration.
 
-`enabled: false` disables the whole feature, even when child options remain in the same object. `sitemap` and `robots` also require `siteUrl` to emit useful production-site URLs.
+`enabled: false` disables the whole feature, even when child options remain in the same object.
 
 ---
 
