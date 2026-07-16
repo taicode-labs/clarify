@@ -1,8 +1,10 @@
 import clsx from 'clsx'
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, InfoIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { Tooltip } from '../../components/Tooltip'
 import { useBuiltInText } from '../../core/i18n'
+import { Markdown } from '../../mdx/Markdown'
 import { isRecord, resolveSchema, schemaToType } from '../lib/helpers'
 import type { RequestParameterIssue } from '../lib/request-parameters'
 import type { OpenAPISpec } from '../lib/utils'
@@ -39,6 +41,7 @@ export function RequestField(arg0: RequestFieldProps): ReactNode {
   const options = Array.isArray(schemaRecord?.enum) ? schemaRecord.enum.map(String) : []
   const itemOptions = Array.isArray(itemSchema?.enum) ? itemSchema.enum.map(String) : []
   const type = schemaToType(schema) ?? 'string'
+  const description = parameter.description ?? (typeof schemaRecord?.description === 'string' ? schemaRecord.description : undefined)
   const structured = type.includes('[]') || type.includes('object')
   const boolean = type.includes('boolean')
   const numeric = type.includes('integer') || type.includes('number')
@@ -58,6 +61,17 @@ export function RequestField(arg0: RequestFieldProps): ReactNode {
       return []
     }
   })()
+  const descriptionTip = description ? (
+    <Tooltip
+      content={<Markdown className="max-w-80 text-left *:first:mt-0 *:last:mb-0">{description}</Markdown>}
+      side="bottom"
+      className="mr-1 shrink-0 [&>[role=tooltip]]:w-80 [&>[role=tooltip]]:max-w-[min(20rem,calc(100vw-2rem))] [&>[role=tooltip]]:border [&>[role=tooltip]]:border-(--clarify-theme-tokens-colors-border) [&>[role=tooltip]]:bg-(--clarify-theme-tokens-colors-surface) [&>[role=tooltip]]:p-3 [&>[role=tooltip]]:text-(--clarify-ui-text) [&>[role=tooltip]]:shadow-xl"
+      triggerClassName="clarify-field-description-trigger clarify-ui-control inline-flex size-7 items-center justify-center rounded-md !border-b-0 text-(--clarify-ui-text-faint) transition-colors"
+    >
+      <InfoIcon className="size-4" aria-hidden="true" />
+      <span className="sr-only">{t('openapi.fieldDescription')}</span>
+    </Tooltip>
+  ) : null
 
   return (
     <div className="group grid min-w-0 grid-cols-[2rem_minmax(0,1fr)] sm:grid-cols-[2rem_minmax(0,1fr)_minmax(0,1fr)] sm:items-stretch">
@@ -78,7 +92,8 @@ export function RequestField(arg0: RequestFieldProps): ReactNode {
           {parameter.required ? <span className="text-(--clarify-error-accent-text)">*</span> : null}
         </label>
       </div>
-      <div className={clsx('col-start-2 min-w-0 border-t border-(--clarify-theme-tokens-colors-border) sm:col-start-3 sm:row-start-1 sm:border-t-0', !enabled && 'opacity-45')}>
+      <div className={clsx('col-start-2 flex min-w-0 items-center border-t border-(--clarify-theme-tokens-colors-border) sm:col-start-3 sm:row-start-1 sm:border-t-0', !enabled && 'opacity-45')}>
+      <div className="min-w-0 flex-1">
       {itemOptions.length > 0 ? (
         <MultiInlineListbox label={parameter.name ?? ''} value={arrayValue} options={itemOptions.map((option) => ({ value: option, label: option }))} onChange={(next) => onChange(JSON.stringify(next))} invalid={Boolean(issue)} describedBy={issue ? `${fieldId}-issue` : undefined} disabled={!enabled} />
       ) : options.length > 0 ? (
@@ -91,6 +106,8 @@ export function RequestField(arg0: RequestFieldProps): ReactNode {
         <input {...controlProps} id={fieldId} value={value} type={numeric ? 'number' : schemaRecord?.format === 'date' ? 'date' : schemaRecord?.format === 'date-time' ? 'datetime-local' : 'text'} required={parameter.required} onChange={(event) => onChange(event.target.value)} className="h-8 w-full border-0 bg-transparent px-2 font-mono text-xs text-(--clarify-theme-tokens-colors-foreground) outline-hidden transition placeholder:text-(--clarify-ui-text-faint) focus:bg-(--clarify-ui-hover-background) aria-invalid:text-(--clarify-error-accent-text)" />
       )}
       </div>
+      {descriptionTip}
+      </div>
       {issueText ? <span id={`${fieldId}-issue`} className="col-start-2 border-t border-(--clarify-theme-tokens-colors-border) px-2 py-1 text-xs/5 font-medium text-(--clarify-error-accent-text) sm:col-start-3">{issueText}</span> : null}
     </div>
   )
@@ -99,7 +116,7 @@ export function RequestField(arg0: RequestFieldProps): ReactNode {
 export function RequestSection(arg0: RequestSectionProps): ReactNode {
   const { title, count, defaultOpen, actions, className, contentClassName, children } = arg0
   return (
-    <details open={defaultOpen} className={clsx('group border-b border-(--clarify-theme-tokens-colors-border)', className)}>
+    <details open={defaultOpen} className={clsx('group shrink-0 border-b border-(--clarify-theme-tokens-colors-border)', className)}>
       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 bg-(--clarify-ui-subtle-background) px-2.5 text-sm font-medium text-(--clarify-ui-text-strong) hover:bg-(--clarify-ui-hover-background) group-open:border-b group-open:border-(--clarify-theme-tokens-colors-border)">
         <ChevronDownIcon className="size-4 shrink-0 -rotate-90 transition group-open:rotate-0" aria-hidden="true" />
         <span className="flex-1">{title}</span>

@@ -144,9 +144,9 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
   function renderRequestBody() {
     if (requestContents.length === 0) return null
     return (
-      <RequestSection title={t('openapi.requestBody')} count={1} defaultOpen className="open:grid open:min-h-55 open:flex-1 open:grid-rows-[auto_minmax(0,1fr)]" contentClassName="flex min-h-0 flex-col">
+      <RequestSection title={t('openapi.requestBody')} count={1} defaultOpen className="open:grid open:min-h-55 open:grow open:shrink open:basis-55 open:grid-rows-[auto_minmax(11rem,1fr)]" contentClassName={clsx('grid h-full min-h-0', requestContents.length > 1 ? 'grid-rows-[auto_minmax(11rem,1fr)]' : 'grid-rows-[minmax(11rem,1fr)]')}>
         {requestContents.length > 1 ? <div><InlineListbox label={t('openapi.mediaType')} value={mediaType} options={requestContents.map((entry) => ({ value: entry.mediaType, label: entry.mediaType }))} onChange={selectMediaType} /></div> : null}
-        <textarea aria-label={t('openapi.requestBody')} value={body} onChange={(event) => setBody(event.target.value)} spellCheck={false} className="block min-h-44 w-full flex-1 resize-y border-0 bg-(--clarify-code-background) p-3 font-mono text-xs/5 text-(--clarify-code-text) outline-hidden focus:ring-2 focus:ring-inset focus:ring-(--clarify-theme-tokens-colors-primary)" />
+        <textarea aria-label={t('openapi.requestBody')} value={body} onChange={(event) => setBody(event.target.value)} spellCheck={false} className="block h-full min-h-44 w-full resize-none border-0 bg-(--clarify-code-background) p-3 font-mono text-xs/5 text-(--clarify-code-text) outline-hidden focus:ring-2 focus:ring-inset focus:ring-(--clarify-theme-tokens-colors-primary)" />
       </RequestSection>
     )
   }
@@ -177,7 +177,7 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
 
         </div>
 
-        <div className="h-full min-h-0 min-w-0 overflow-hidden">
+        <div className="h-full min-h-0 min-w-0 overflow-hidden border-t border-(--clarify-theme-tokens-colors-border) lg:border-t-0 lg:border-l">
           <OpenApiResponseViewer exchange={exchange} error={error} />
         </div>
       </div>
@@ -192,13 +192,11 @@ export function OpenApiRequestDialog(arg0: OpenApiRequestDialogProps): ReactNode
   return (
     <Dialog open={open} onClose={() => {}} className="relative z-50">
       <DialogBackdrop className="fixed inset-0 bg-(--clarify-ui-overlay-background) backdrop-blur-sm" />
-      <div className="fixed inset-0 overflow-y-auto p-3 sm:p-6">
-        <div className="flex min-h-full items-start justify-center">
-          <DialogPanel className="relative flex h-[min(52rem,calc(100vh-3rem))] max-h-[calc(100vh-3rem)] w-full max-w-[min(90rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) shadow-2xl">
+      <div className="fixed inset-0 grid place-items-center overflow-y-auto p-3 sm:p-6">
+          <DialogPanel className="relative flex h-[min(46rem,calc(100dvh-1.5rem))] w-full max-w-7xl flex-col overflow-hidden rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) shadow-2xl sm:h-[min(46rem,calc(100dvh-3rem))]">
             <DialogTitle className="sr-only">{t('openapi.tryRequest')}</DialogTitle>
             <OpenApiRequestWorkbench {...workbenchProps} compact onClose={onClose} />
           </DialogPanel>
-        </div>
       </div>
     </Dialog>
   )

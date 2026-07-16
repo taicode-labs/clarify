@@ -63,6 +63,7 @@ export type BuiltInTextKey =
   | 'openapi.headerName'
   | 'openapi.headerValue'
   | 'openapi.headerParameters'
+  | 'openapi.fieldDescription'
   | 'openapi.includeParameter'
   | 'openapi.cookieParameters'
   | 'openapi.cookieParametersBrowserManaged'
@@ -114,7 +115,10 @@ export type BuiltInTextKey =
   | 'openapi.requiredBadge'
   | 'openapi.response'
   | 'openapi.responseBodyEmpty'
+  | 'openapi.responseBodyEmptyTitle'
   | 'openapi.responseEmpty'
+  | 'openapi.responseEmptyTitle'
+  | 'openapi.responseErrorTitle'
   | 'openapi.responses'
   | 'openapi.schemaExample'
   | 'openapi.sendRequest'
@@ -213,6 +217,7 @@ const builtInText = {
     'openapi.headerName': 'Name',
     'openapi.headerValue': 'Value',
     'openapi.headerParameters': 'Header parameters',
+    'openapi.fieldDescription': 'Field description',
     'openapi.includeParameter': 'Include parameter',
     'openapi.cookieParameters': 'Cookie parameters',
     'openapi.cookieParametersBrowserManaged': 'Cookies are managed by the browser. Matching cookies are sent when the server allows credentialed requests.',
@@ -264,7 +269,10 @@ const builtInText = {
     'openapi.requiredBadge': 'required',
     'openapi.response': 'Response',
     'openapi.responseBodyEmpty': 'The response body is empty.',
+    'openapi.responseBodyEmptyTitle': 'No response content',
     'openapi.responseEmpty': 'Send the request to inspect the response.',
+    'openapi.responseEmptyTitle': 'Ready for a request',
+    'openapi.responseErrorTitle': 'Request failed',
     'openapi.responses': 'Responses',
     'openapi.schemaExample': 'Schema example',
     'openapi.sendRequest': 'Send',
@@ -362,6 +370,7 @@ const builtInText = {
     'openapi.headerName': '名称',
     'openapi.headerValue': '值',
     'openapi.headerParameters': '请求头参数',
+    'openapi.fieldDescription': '字段说明',
     'openapi.includeParameter': '传递参数',
     'openapi.cookieParameters': 'Cookie 参数',
     'openapi.cookieParametersBrowserManaged': 'Cookie 由浏览器管理；当服务端允许携带凭据时，匹配的 Cookie 会随请求发送。',
@@ -413,7 +422,10 @@ const builtInText = {
     'openapi.requiredBadge': '必填',
     'openapi.response': '响应',
     'openapi.responseBodyEmpty': '响应体为空。',
+    'openapi.responseBodyEmptyTitle': '无响应内容',
     'openapi.responseEmpty': '发送请求后在这里查看响应。',
+    'openapi.responseEmptyTitle': '等待发送请求',
+    'openapi.responseErrorTitle': '请求失败',
     'openapi.responses': '响应',
     'openapi.schemaExample': 'Schema 示例',
     'openapi.sendRequest': '发送',

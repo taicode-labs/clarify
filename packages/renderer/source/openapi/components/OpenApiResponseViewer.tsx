@@ -1,11 +1,13 @@
 import clsx from 'clsx'
-import { CheckIcon, ChevronDownIcon, CopyIcon, DownloadIcon, SearchIcon } from 'lucide-react'
+import { CheckIcon, CircleAlertIcon, CopyIcon, DownloadIcon, FileX2Icon, SearchIcon, SendIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import { useBuiltInText } from '../../core/i18n'
 import { copyTextToClipboard } from '../../utils/clipboard'
 import type { ApiResponseExchange } from '../lib/api-exchange'
 import { isRecord } from '../lib/helpers'
+
+import { RequestSection } from './OpenApiRequestFields'
 
 type BodyMode = 'preview' | 'raw'
 
@@ -22,6 +24,12 @@ type JsonPreviewProps = { value: unknown }
 type ResponsePreviewProps = { exchange: ApiResponseExchange }
 type ResponseHeadersProps = { headers: Array<[string, string]> }
 type ResponseMediaProps = { blob: Blob; type: 'image' | 'audio' | 'video' }
+type ResponseStateProps = {
+  icon: typeof SendIcon
+  title: string
+  description: string
+  tone?: 'default' | 'error'
+}
 
 function formatBytes(size: number): string {
   if (size < 1024) return `${size} B`
@@ -35,6 +43,23 @@ function parseJson(value: string): unknown {
   } catch {
     return undefined
   }
+}
+
+function ResponseState(arg0: ResponseStateProps): ReactNode {
+  const { icon: Icon, title, description, tone = 'default' } = arg0
+  const error = tone === 'error'
+
+  return (
+    <div className="grid min-h-56 flex-1 place-items-center px-6 py-10 text-center" role={error ? 'alert' : 'status'}>
+      <div className="max-w-sm">
+        <span className={clsx('mx-auto mb-3 grid size-10 place-items-center rounded-full border', error ? 'border-(--clarify-code-danger-border) bg-(--clarify-code-danger-background) text-(--clarify-code-danger)' : 'border-(--clarify-code-border) bg-(--clarify-code-control-background) text-(--clarify-code-muted)')}>
+          <Icon className="size-4.5" aria-hidden="true" />
+        </span>
+        <p className={clsx('text-sm font-semibold', error ? 'text-(--clarify-code-danger)' : 'text-(--clarify-code-text)')}>{title}</p>
+        <p className="mt-1 text-xs/5 text-(--clarify-code-faint)">{description}</p>
+      </div>
+    </div>
+  )
 }
 
 function JsonPreview(arg0: JsonPreviewProps): ReactNode {
@@ -88,7 +113,7 @@ function ResponsePreview(arg0: ResponsePreviewProps): ReactNode {
   const { exchange } = arg0
   const t = useBuiltInText()
   const contentType = exchange.contentType.toLowerCase()
-  if (!exchange.size) return <div className="grid min-h-56 place-items-center text-xs text-(--clarify-code-faint)">{t('openapi.responseBodyEmpty')}</div>
+  if (!exchange.size) return <ResponseState icon={FileX2Icon} title={t('openapi.responseBodyEmptyTitle')} description={t('openapi.responseBodyEmpty')} />
   if (contentType.includes('json')) {
     const parsed = parseJson(exchange.body)
     return typeof parsed === 'undefined' ? <pre className="whitespace-pre-wrap wrap-break-word font-mono text-xs/5">{exchange.body}</pre> : <div className="overflow-auto font-mono text-xs/5"><JsonPreview value={parsed} /></div>
@@ -152,18 +177,26 @@ export function OpenApiResponseViewer(arg0: OpenApiResponseViewerProps): ReactNo
   }
 
   return (
-    <section className="flex h-full min-h-96 min-w-0 flex-col bg-(--clarify-code-background) text-(--clarify-code-text)" aria-label={t('openapi.response')}>
-      <div className="sticky top-0 z-10 flex min-h-11 flex-wrap items-center gap-2 border-b border-(--clarify-code-border) px-3 text-sm font-medium">
+    <section className="clarify-api-response flex h-full min-h-96 min-w-0 flex-col bg-(--clarify-code-background) text-(--clarify-code-text)" aria-label={t('openapi.response')}>
+      <div className="sticky top-0 z-10 flex min-h-11 flex-wrap items-center gap-2 border-b border-(--clarify-code-border) bg-(--clarify-code-header-background) px-2.5 text-sm font-medium">
         <span className="mr-auto text-(--clarify-code-text)">{t('openapi.response')}</span>
         {exchange ? <><span className="text-xs font-semibold text-(--clarify-code-muted)">{exchange.duration} ms</span><span className="text-xs text-(--clarify-code-faint)">{formatBytes(exchange.size)}</span><span className={clsx('size-2 rounded-full', exchange.status < 400 ? 'bg-(--clarify-code-success)' : 'bg-(--clarify-code-danger)')} /><span className={clsx('text-xs font-semibold', exchange.status < 400 ? 'text-(--clarify-code-success)' : 'text-(--clarify-code-danger)')}>{exchange.status} {exchange.statusText}</span></> : null}
       </div>
-      {error ? <div className="m-3 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-code-danger-border) bg-(--clarify-code-danger-background) p-3 text-xs/5 text-(--clarify-code-danger)">{error}</div> : null}
-      {!error && !exchange ? <div className="grid min-h-72 flex-1 place-items-center text-center text-xs text-(--clarify-code-faint)">{t('openapi.responseEmpty')}</div> : null}
+      {error ? <ResponseState icon={CircleAlertIcon} title={t('openapi.responseErrorTitle')} description={error} tone="error" /> : null}
+      {!error && !exchange ? <ResponseState icon={SendIcon} title={t('openapi.responseEmptyTitle')} description={t('openapi.responseEmpty')} /> : null}
       {exchange ? <div className="min-h-0 flex-1 overflow-auto">
-        <details className="group border-b border-(--clarify-code-border)"><summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 px-3 text-xs font-medium text-(--clarify-code-muted) hover:bg-(--clarify-code-control-background)"><ChevronDownIcon className="size-3.5 -rotate-90 group-open:rotate-0" /><span>{t('openapi.cookies')}</span><span className="font-mono text-2xs text-(--clarify-code-faint)">0</span></summary><div className="border-t border-(--clarify-code-border)"><HiddenCookies /></div></details>
-        <details className="group border-b border-(--clarify-code-border)"><summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 px-3 text-xs font-medium text-(--clarify-code-muted) hover:bg-(--clarify-code-control-background)"><ChevronDownIcon className="size-3.5 -rotate-90 group-open:rotate-0" /><span>{t('openapi.requestHeaders')}</span><span className="font-mono text-2xs text-(--clarify-code-faint)">{exchange.request.headers.length}</span></summary><div className="border-t border-(--clarify-code-border)"><ResponseHeaders headers={exchange.request.headers} /></div></details>
-        <details className="group border-b border-(--clarify-code-border)"><summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 px-3 text-xs font-medium text-(--clarify-code-muted) hover:bg-(--clarify-code-control-background)"><ChevronDownIcon className="size-3.5 -rotate-90 group-open:rotate-0" /><span>{t('openapi.responseHeaders')}</span><span className="font-mono text-2xs text-(--clarify-code-faint)">{exchange.headers.length}</span></summary><div className="border-t border-(--clarify-code-border)"><ResponseHeaders headers={exchange.headers} /></div></details>
-        <details open className="group"><summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 border-b border-(--clarify-code-border) px-3 text-xs font-medium text-(--clarify-code-muted) hover:bg-(--clarify-code-control-background)"><ChevronDownIcon className="size-3.5 -rotate-90 group-open:rotate-0" /><span className="mr-auto">{t('openapi.body')}</span><span className="font-mono text-2xs text-(--clarify-code-faint)">{exchange.contentType || t('openapi.unknownContentType')}</span></summary><div className="min-h-72"><div className="flex h-10 items-center justify-between border-b border-(--clarify-code-border) px-3"><div role="tablist" className="flex">{(['preview', 'raw'] as BodyMode[]).map((mode) => <button key={mode} type="button" role="tab" aria-selected={bodyMode === mode} onClick={() => setBodyMode(mode)} className={clsx('border-b-2 px-2.5 py-1 text-2xs font-semibold', bodyMode === mode ? 'border-(--clarify-theme-tokens-colors-primary) text-(--clarify-code-text)' : 'border-transparent text-(--clarify-code-muted)')}>{mode === 'preview' ? t('openapi.preview') : t('openapi.raw')}</button>)}</div><div className="flex"><CopyButton value={exchange.body} /><button type="button" onClick={downloadBody} aria-label={t('openapi.downloadBody')} title={t('openapi.downloadBody')} className="grid size-8 shrink-0 place-items-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-code-muted) transition hover:bg-(--clarify-code-control-background-hover) hover:text-(--clarify-code-text) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)"><DownloadIcon className="size-4" aria-hidden="true" /></button></div></div><div className="p-4">{bodyMode === 'preview' ? <ResponsePreview exchange={exchange} /> : exchange.size ? <pre className="max-h-128 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-xs/5">{exchange.body}</pre> : <div className="py-8 text-center text-xs text-(--clarify-code-faint)">{t('openapi.responseBodyEmpty')}</div>}</div></div></details>
+        <RequestSection title={t('openapi.cookies')} count={0}>
+          <HiddenCookies />
+        </RequestSection>
+        <RequestSection title={t('openapi.requestHeaders')} count={exchange.request.headers.length}>
+          <ResponseHeaders headers={exchange.request.headers} />
+        </RequestSection>
+        <RequestSection title={t('openapi.responseHeaders')} count={exchange.headers.length}>
+          <ResponseHeaders headers={exchange.headers} />
+        </RequestSection>
+        <RequestSection title={t('openapi.body')} defaultOpen actions={<span className="font-mono text-2xs font-normal text-(--clarify-code-faint)">{exchange.contentType || t('openapi.unknownContentType')}</span>}>
+          <div className="min-h-72"><div className="flex h-10 items-center justify-between border-b border-(--clarify-code-border) px-3"><div role="tablist" className="flex">{(['preview', 'raw'] as BodyMode[]).map((mode) => <button key={mode} type="button" role="tab" aria-selected={bodyMode === mode} onClick={() => setBodyMode(mode)} className={clsx('border-b-2 px-2.5 py-1 text-2xs font-semibold', bodyMode === mode ? 'border-(--clarify-theme-tokens-colors-primary) text-(--clarify-code-text)' : 'border-transparent text-(--clarify-code-muted)')}>{mode === 'preview' ? t('openapi.preview') : t('openapi.raw')}</button>)}</div><div className="flex"><CopyButton value={exchange.body} /><button type="button" onClick={downloadBody} aria-label={t('openapi.downloadBody')} title={t('openapi.downloadBody')} className="grid size-8 shrink-0 place-items-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-code-muted) transition hover:bg-(--clarify-code-control-background-hover) hover:text-(--clarify-code-text) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)"><DownloadIcon className="size-4" aria-hidden="true" /></button></div></div><div className="p-4">{bodyMode === 'preview' ? <ResponsePreview exchange={exchange} /> : exchange.size ? <pre className="max-h-128 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-xs/5">{exchange.body}</pre> : <div className="py-8 text-center text-xs text-(--clarify-code-faint)">{t('openapi.responseBodyEmpty')}</div>}</div></div>
+        </RequestSection>
       </div> : null}
     </section>
   )
