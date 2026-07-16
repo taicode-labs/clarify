@@ -107,8 +107,8 @@ Do not put file system scanning or configuration loading into the Renderer; do n
 
 | Type | Owner | Purpose |
 |------|-------|---------|
-| `ResolvedProjectConfig` | CLI | Defaults for site title, description, path prefix, theme, navigation, footer, i18n, and tabs. |
-| `ResolvedBuildOptions` | CLI | Content root directory, output directory, and SSG behavior. |
+| `ResolvedProjectConfig` | CLI | Resolved site metadata, deployment prefixes, branding, theme, navigation, locales, variables, and features. |
+| `ResolvedBuildOptions` | CLI | Project root, content root directory, and output directory. |
 | `ContentRoute` | CLI → Renderer | A single renderable route with identity fields, `meta`, `module`, `source`, optional OpenAPI state, diagnostics, and generated `artifacts`. |
 | `NavigationTree` | CLI → Renderer | Sidebar and tab navigation, localizable. |
 

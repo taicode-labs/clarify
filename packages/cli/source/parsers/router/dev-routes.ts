@@ -100,7 +100,7 @@ export function inferRouteForFile(filePath: string, contentRoot: string, default
 
   const basePath = basePathFromRef(refWithoutLocale)
   const path = fileLocale && defaultLocale
-    ? localizedRoutePath(basePath, fileLocale, { defaultLocale, missing: 'fallback', locales: [] })
+    ? localizedRoutePath(basePath, fileLocale, { default: defaultLocale, missing: 'fallback', locales: [] })
     : basePath
 
   const title = segments[segments.length - 1]?.replace(/\.(mdx?|openapi\.(json|ya?ml))$/, '') || 'Untitled'
@@ -164,12 +164,12 @@ export async function handleDevRouteRequest(req: IncomingMessage, res: ServerRes
   const file = typeof body === 'object' && body !== null ? (body as { file?: unknown }).file : undefined
 
   if (typeof file === 'string' && file.length > 0) {
-    const route = resolveRouteForFile(file, routes, context.projectConfig.i18n?.defaultLocale)
+    const route = resolveRouteForFile(file, routes, context.projectConfig.locales?.default)
     if (route) {
       res.end(JSON.stringify(toDevRouteEntry(route)))
       return
     }
-    const inferred = inferRouteForFile(file, context.contentRoot, context.projectConfig.i18n?.defaultLocale)
+    const inferred = inferRouteForFile(file, context.contentRoot, context.projectConfig.locales?.default)
     res.end(JSON.stringify(inferred))
     return
   }

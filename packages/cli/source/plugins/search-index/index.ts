@@ -94,7 +94,7 @@ async function generateDevSearchIndex(ctx: ClarifyHookContext, root: string, pag
       const result = await index.addCustomRecord({
         url: route.path,
         content,
-        language: toPagefindLanguage(route.locale ?? ctx.projectConfig.i18n?.defaultLocale),
+        language: toPagefindLanguage(route.locale ?? ctx.projectConfig.locales?.default),
         meta: {
           title: route.meta.title,
         },

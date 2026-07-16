@@ -49,7 +49,7 @@ export function PageBanner(props: PageBannerProps) {
   const banner = config.banner
 
   // All hooks must be called unconditionally — before any early return.
-  const content = banner ? resolveLocalizedText(banner.content, currentLocale, config.i18n?.defaultLocale) : ''
+  const content = banner ? resolveLocalizedText(banner.content, currentLocale, config.locales?.default) : ''
   const storageKey = useMemo(() => {
     if (!banner || !content) return ''
     return bannerStorageKey(config, content)
@@ -68,7 +68,7 @@ export function PageBanner(props: PageBannerProps) {
   if (dismissed) return null
 
   const link = banner.link
-  const linkLabel = link ? resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale) : ''
+  const linkLabel = link ? resolveLocalizedText(link.label, currentLocale, config.locales?.default) : ''
 
   return (
     <div className="clarify-banner relative flex h-12 items-center border-b border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) px-4 text-sm text-(--clarify-ui-text) dark:border-white/10">

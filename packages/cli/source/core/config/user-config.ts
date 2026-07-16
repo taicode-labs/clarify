@@ -14,9 +14,7 @@ export type ClarifyConfig = ClarifyProjectConfig & {
 }
 
 export function defineConfig(config: ClarifyConfig): ClarifyConfig {
-  const projectConfig = validateProjectConfig(config)
-  if (!config.plugins && Object.keys(projectConfig).length === Object.keys(config).length) return config
-  return config.plugins ? { ...projectConfig, plugins: config.plugins } : projectConfig
+  return validateClarifyConfig(config)
 }
 
 /**
@@ -47,8 +45,19 @@ function assertConfigObject(config: unknown, configFile: string): Record<string,
 
 function loadJsonConfig(configFile: string): ClarifyConfig {
   const config = assertConfigObject(JSON.parse(readFileSync(configFile, 'utf-8')), configFile)
-  const projectConfig = validateProjectConfig(config)
-  return config.plugins ? { ...projectConfig, plugins: config.plugins as ClarifyPlugin[] } : projectConfig
+  if ('plugins' in config) {
+    throw new Error('[clarify] clarify.json does not support plugins; use clarify.ts or clarify.js')
+  }
+  return validateClarifyConfig(config)
+}
+
+function validateClarifyConfig(config: ClarifyConfig | Record<string, unknown>): ClarifyConfig {
+  const { plugins, ...projectConfigInput } = config
+  if (plugins !== undefined && !Array.isArray(plugins)) {
+    throw new Error('[clarify] config field "plugins" is invalid: Expected an array')
+  }
+  const projectConfig = validateProjectConfig(projectConfigInput)
+  return plugins ? { ...projectConfig, plugins } : projectConfig
 }
 
 export async function loadClarifyConfig(root: string, env: ConfigEnv): Promise<ClarifyConfig> {
@@ -61,5 +70,5 @@ export async function loadClarifyConfig(root: string, env: ConfigEnv): Promise<C
 
   const loaded = await loadConfigFromFile(env, configFile, root, 'silent')
   const config = assertConfigObject(loaded?.config, configFile)
-  return config as ClarifyConfig
+  return validateClarifyConfig(config)
 }

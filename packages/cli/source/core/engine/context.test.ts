@@ -88,7 +88,7 @@ describe('ClarifyContext', () => {
       projectConfig: resolveProjectConfig({
         locales: {
           default: 'en-US',
-          options: [{ code: 'en-US', label: 'English' }],
+          locales: [{ code: 'en-US', label: 'English' }],
         },
       }),
       generateOptions: resolveBuildOptions({ projectRoot: '/site' }),

@@ -22,8 +22,8 @@ const mockProjectConfig: ResolvedProjectConfig = {
 
 const mockI18nProjectConfig: ResolvedProjectConfig = {
   ...mockProjectConfig,
-  i18n: {
-    defaultLocale: 'en-US',
+  locales: {
+    default: 'en-US',
     missing: 'fallback',
     locales: [
       { code: 'en-US', label: 'English' },
@@ -40,7 +40,6 @@ const mockContext: ClarifyProjectContext = {
     projectRoot: '/proj',
     rootDirectory: 'source',
     outputDirectory: undefined,
-    ssg: { failOnError: true },
   },
   version: 'test',
 }
@@ -67,7 +66,7 @@ describe('buildProjectInfo', () => {
     expect(info.contentFileExtensions).toBe(CONTENT_FILE_EXTENSIONS)
     expect(info.contentRoot).toBe('source')
     expect(info.projectRoot).toBe('/proj')
-    expect(info.i18n).toBeUndefined()
+    expect(info.locales).toBeUndefined()
   })
 
   it('derives the content root name from an absolute content root path', () => {
@@ -80,10 +79,10 @@ describe('buildProjectInfo', () => {
     expect(info.contentRoot).toBe('/elsewhere/source')
   })
 
-  it('includes i18n locale info when configured', () => {
+  it('includes locale info when configured', () => {
     const info = buildProjectInfo(mockI18nContext)
-    expect(info.i18n).toEqual({
-      defaultLocale: 'en-US',
+    expect(info.locales).toEqual({
+      default: 'en-US',
       locales: ['en-US', 'zh-CN'],
     })
   })
@@ -116,7 +115,7 @@ describe('handleProjectInfoRequest', () => {
       contentFileExtensions: [...CONTENT_FILE_EXTENSIONS],
       contentRoot: 'source',
       projectRoot: '/proj',
-      i18n: { defaultLocale: 'en-US', locales: ['en-US', 'zh-CN'] },
+      locales: { default: 'en-US', locales: ['en-US', 'zh-CN'] },
     })
   })
 })

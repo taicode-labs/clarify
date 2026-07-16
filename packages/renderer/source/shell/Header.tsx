@@ -32,11 +32,11 @@ function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, curren
 
   const t = useBuiltInText()
   const location = useLocation()
-  const i18n = config.i18n
-  if (!i18n || i18n.locales.length < 2) return null
+  const locales = config.locales
+  if (!locales || locales.locales.length < 2) return null
 
-  const selectedLocale = currentLocale ?? i18n.defaultLocale
-  const selectedLocaleConfig = i18n.locales.find(locale => locale.code === selectedLocale) ?? i18n.locales[0]
+  const selectedLocale = currentLocale ?? locales.default
+  const selectedLocaleConfig = locales.locales.find(locale => locale.code === selectedLocale) ?? locales.locales[0]
   const suffix = `${location.search}${location.hash}`
 
   return (
@@ -54,7 +54,7 @@ function LanguageSwitcher(arg0: LanguageSwitcherProps) {  const { config, curren
         modal={false}
         className="clarify-language-switcher-menu clarify-ui-menu absolute right-0 z-50 mt-2 w-(--clarify-ui-menu-width) rounded-(--clarify-theme-tokens-radius-xl) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg ring-1 shadow-zinc-900/5 ring-(--clarify-theme-tokens-colors-border) transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-zinc-900 dark:ring-white/10"
       >
-        {i18n.locales.flatMap((locale: LocaleConfig) => {
+        {locales.locales.flatMap((locale: LocaleConfig) => {
           const localizedPath = localizedRoutePath(config, locale.code, currentRoute)
           if (!localizedPath) return []
 
@@ -151,7 +151,7 @@ function MobileNavbarMenu(arg0: MobileNavbarMenuProps) {
         className="clarify-mobile-navbar-menu-list clarify-ui-menu z-50 mt-2 w-(--clarify-ui-menu-width) rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900"
       >
         {links.map((link) => {
-          const label = resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale)
+          const label = resolveLocalizedText(link.label, currentLocale, config.locales?.default)
           const href = localizeHref(link.href, config, currentLocale)
           const external = isExternalHref(href)
 
@@ -330,7 +330,7 @@ export const Header = forwardRef<
   const { scrollY } = useScroll()
   const bgOpacityLight = useTransform(scrollY, [0, 72], ['70%', '95%'])
   const bgOpacityDark = useTransform(scrollY, [0, 72], ['60%', '92%'])
-  const hasNavbarLinks = Boolean(config.navbar?.links?.length)
+  const hasNavbarLinks = Boolean(config.navigation?.links?.length)
 
   function renderBrand() {
     if (homeExternal) {
@@ -356,13 +356,13 @@ export const Header = forwardRef<
     return (
       <nav className="clarify-top-nav hidden md:block" aria-label={t('navbar.sections')}>
         <ul role="list" className="flex items-center gap-0.5">
-          {config.navbar?.links?.map((link) => {
+          {config.navigation?.links?.map((link) => {
             const href = localizeHref(link.href, config, currentLocale)
             const active = !isExternalHref(href) && isSameRoutePath(href, pathname, currentLocale)
 
             return (
               <TopLevelNavItem key={link.href} href={href} active={active}>
-                {resolveLocalizedText(link.label, currentLocale, config.i18n?.defaultLocale)}
+                {resolveLocalizedText(link.label, currentLocale, config.locales?.default)}
               </TopLevelNavItem>
             )
           })}
@@ -379,7 +379,7 @@ export const Header = forwardRef<
         <MobileSearch routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
         <LanguageSwitcher config={config} currentLocale={currentLocale} currentRoute={currentRoute} />
         <ThemeToggle />
-        <MobileNavbarMenu links={config.navbar?.links} config={config} currentLocale={currentLocale} />
+        <MobileNavbarMenu links={config.navigation?.links} config={config} currentLocale={currentLocale} />
       </div>
     )
   }

@@ -52,17 +52,15 @@ describe('generateConfigModule', () => {
       projectRoot: '/site',
       rootDirectory: 'source',
       outputDirectory: 'dist',
-      ssg: { failOnError: true },
     }
-    const code = generateConfigModule(projectConfig, generateOptions)
+    const code = generateConfigModule(projectConfig)
     const expected = {
       title: projectConfig.title,
-      theme: projectConfig.theme,
       description: projectConfig.description,
-      rootDirectory: generateOptions.rootDirectory,
       routePrefix: projectConfig.routePrefix,
       assetPrefix: projectConfig.assetPrefix,
-      outputDirectory: generateOptions.outputDirectory,
+      theme: projectConfig.theme,
+      variables: projectConfig.variables,
       features: projectConfig.features,
     }
     expect(code).toBe(`export const config = ${JSON.stringify(expected)};`)
@@ -142,11 +140,13 @@ describe('generateRoutesModule', () => {
       theme: resolveThemeConfig(),
       variables: {},
       features: resolveFeaturesConfig(),
-      tabs: [
-        { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
-      ],
+      navigation: {
+        tabs: [
+          { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
+        ],
+      },
     }
-    const code = generateRoutesModule(routes, buildNavigationFromTabsConfig(routes, projectConfig.tabs!))
+    const code = generateRoutesModule(routes, buildNavigationFromTabsConfig(routes, projectConfig.navigation!.tabs!))
     expect(code).toContain('"tabs"')
     expect(code).toContain('"title": "Docs"')
     expect(code).toContain('"/"')
@@ -197,7 +197,6 @@ describe('buildVirtualModules', () => {
         projectRoot: '/site',
         rootDirectory: 'source',
         outputDirectory: 'dist',
-        ssg: { failOnError: true },
       },
       routes: [route({
         path: '/broken',

@@ -11,7 +11,7 @@ export function createSourceLinksPlugin(): ClarifyPlugin {
       'routes:discovered': (routes, ctx) => {
         if (!ctx.projectConfig.features.editLink.enabled) return routes
         const contentRoot = join(ctx.generateOptions.projectRoot, ctx.generateOptions.rootDirectory)
-        attachSourceEditUrls(routes, contentRoot, ctx.projectConfig.source)
+        attachSourceEditUrls(routes, contentRoot, ctx.projectConfig.features.editLink)
         return routes
       },
     },

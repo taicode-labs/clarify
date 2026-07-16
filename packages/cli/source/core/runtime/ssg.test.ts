@@ -90,8 +90,8 @@ describe('injectSSRIntoTemplate', () => {
   it('injects html locale attributes for localized routes', () => {
     const config: ResolvedProjectConfig = {
       ...baseConfig,
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         missing: 'fallback',
         locales: [
           { code: 'zh-CN', label: '简体中文' },
@@ -214,8 +214,8 @@ describe('injectSSRIntoTemplate', () => {
   it('does not add data-pagefind-ignore to localized routes', () => {
     const config: ResolvedProjectConfig = {
       ...baseConfig,
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         missing: 'fallback',
         locales: [
           { code: 'zh-CN', label: '简体中文' },

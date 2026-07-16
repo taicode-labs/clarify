@@ -10,13 +10,11 @@ export function createContentArtifactsPlugin(): ClarifyPlugin {
   return {
     name: 'clarify:content-artifacts',
     hooks: {
-      'routes:resolved': (input, ctx) => {
-        if (!ctx.projectConfig.features.artifacts.enabled || !ctx.projectConfig.features.artifacts.content) return input
+      'routes:resolved': (input) => {
         attachContentArtifactUrls(input.routes)
         return input
       },
       'dev:configureServer': (server: ViteDevServer, ctx) => {
-        if (!ctx.projectConfig.features.artifacts.enabled || !ctx.projectConfig.features.artifacts.content) return
         server.middlewares.use((req, res, next) => {
           if (serveContentArtifacts(req, res, ctx.projectConfig, ctx.routes)) return
           next()
@@ -25,33 +23,29 @@ export function createContentArtifactsPlugin(): ClarifyPlugin {
       'build:assets': (ctx) => {
         const assets: ClarifyEmitAsset[] = []
 
-        if (ctx.projectConfig.features.artifacts.enabled && ctx.projectConfig.features.artifacts.content) {
-          for (const route of ctx.routes) {
-            const contentArtifactUrl = route.artifacts?.contentArtifactUrl
-            if (!contentArtifactUrl) continue
+        for (const route of ctx.routes) {
+          const contentArtifactUrl = route.artifacts?.contentArtifactUrl
+          if (!contentArtifactUrl) continue
 
+          assets.push({
+            fileName: contentArtifactUrl.replace(/^\//, ''),
+            source: readRouteArtifactContent(route),
+          })
+
+          if (route.kind === 'openapi' && route.source.content) {
+            const yamlFileName = contentArtifactUrl.replace(/\.json$/, '.yaml')
+            const spec = JSON.parse(route.source.content)
             assets.push({
-              fileName: contentArtifactUrl.replace(/^\//, ''),
-              source: readRouteArtifactContent(route),
+              fileName: yamlFileName.replace(/^\//, ''),
+              source: yamlStringify(spec, { lineWidth: 0 }),
             })
-
-            if (route.kind === 'openapi' && route.source.content) {
-              const yamlFileName = contentArtifactUrl.replace(/\.json$/, '.yaml')
-              const spec = JSON.parse(route.source.content)
-              assets.push({
-                fileName: yamlFileName.replace(/^\//, ''),
-                source: yamlStringify(spec, { lineWidth: 0 }),
-              })
-            }
           }
         }
 
-        if (ctx.projectConfig.features.artifacts.enabled && ctx.projectConfig.features.artifacts.llms) {
-          assets.push({
-            fileName: 'llms.txt',
-            source: createLlmsTxtArtifact(ctx.routes, ctx.projectConfig),
-          })
-        }
+        assets.push({
+          fileName: 'llms.txt',
+          source: createLlmsTxtArtifact(ctx.routes, ctx.projectConfig),
+        })
 
         return assets
       },

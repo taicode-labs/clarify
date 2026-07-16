@@ -62,7 +62,11 @@ describe('createSearchIndexPlugin', () => {
     const ctx = {
       projectConfig: {
         routePrefix: '/',
-        i18n: { defaultLocale: 'en-US' },
+        locales: {
+          default: 'en-US',
+          missing: 'fallback',
+          locales: [{ code: 'en-US', label: 'English' }],
+        },
         features: { search: { enabled: true, provider: 'pagefind' } },
       },
       routes: [{

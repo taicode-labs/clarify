@@ -207,7 +207,7 @@ These artifacts are used to:
 
 ## Error behavior
 
-`generateOptions.ssg.failOnError` defaults to `true`. If SSR fails for any route, the production build fails to avoid publishing incomplete documentation.
+If SSR fails for any route, the production build fails to avoid publishing incomplete documentation. This behavior is not configurable.
 
 If best-effort output is needed in the future, it should be enabled through explicit configuration and documented with its trade-offs; the default behavior should continue to favor discovering problems at build time.
 

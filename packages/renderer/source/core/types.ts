@@ -54,8 +54,8 @@ export type LocaleConfig = {
   dir?: 'ltr' | 'rtl';
 };
 
-export type I18nConfig = {
-  defaultLocale: string;
+export type LocalesConfig = {
+  default: string;
   missing: 'fallback' | '404' | 'hide';
   locales: LocaleConfig[];
 };
@@ -78,11 +78,11 @@ export type FooterConfig = {
   copyright?: LocalizedText;
 };
 
-export type SourceConfig = {
-  repository: string;
-  branch?: string;
-  directory?: string;
-};
+export type VariablePrimitive = string | number | boolean;
+
+export type VariableValue = VariablePrimitive | { [key: string]: VariableValue };
+
+export type VariablesConfig = Record<string, VariableValue>;
 
 export type ThemePreset = 'default' | 'base';
 
@@ -159,9 +159,14 @@ export type TabItem = {
 
 export type TabsConfig = TabItem[];
 
+export type NavigationConfig = {
+  links?: NavbarLink[];
+  tabs?: TabsConfig;
+};
+
 export type FeaturesConfig = {
   search: { enabled: boolean; provider: 'pagefind' | 'none' };
-  editLink: { enabled: boolean };
+  editLink: { enabled: boolean; repository?: string; branch?: string; directory?: string };
   artifacts: { enabled: boolean; content: boolean; llms: boolean; sitemap: boolean; robots: boolean };
   themeEditor: { enabled: boolean };
   openapi: {
@@ -174,22 +179,19 @@ export type FeaturesConfig = {
 
 export type Config = {
   title: string;
+  description: string;
+  siteUrl?: string;
+  routePrefix: string;
+  assetPrefix: string;
   logo?: LogoConfig;
   homeUrl?: string;
   favicon?: FaviconConfig;
   theme: ThemeConfig;
-  description: string;
-  siteUrl?: string;
-  source?: SourceConfig;
-  rootDirectory: string;
-  routePrefix: string;
-  assetPrefix: string;
-  outputDirectory: string;
-  navbar?: { links?: NavbarLink[] };
+  navigation?: NavigationConfig;
   banner?: BannerConfig;
   footer?: FooterConfig;
-  i18n?: I18nConfig;
-  tabs?: TabsConfig;
+  locales?: LocalesConfig;
+  variables: VariablesConfig;
   features: FeaturesConfig;
   version?: string;
 };

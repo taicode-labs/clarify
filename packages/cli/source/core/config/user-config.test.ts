@@ -8,13 +8,22 @@ import { defineConfig, findClarifyConfigFile, loadClarifyConfig } from './user-c
 
 describe('defineConfig', () => {
   it('returns the validated config with defaults', () => {
-    const config = { title: 'Docs', features: { ssg: { failOnError: false } } }
+    const config = { title: 'Docs' }
     expect(defineConfig(config)).toMatchObject({
       title: 'Docs',
-      contentDir: 'source',
-      base: '/',
-      features: { ssg: { enabled: true, failOnError: false } },
+      routePrefix: '/',
     })
+  })
+
+  it('rejects build directories', () => {
+    expect(() => defineConfig({ contentDir: 'docs' } as never)).toThrow(/contentDir/)
+    expect(() => defineConfig({ outputDir: 'dist' } as never)).toThrow(/outputDir/)
+  })
+
+  it('rejects ssg configuration', () => {
+    expect(() => defineConfig({
+      features: { ssg: { failOnError: false } },
+    } as never)).toThrow('[clarify] config field "features" is invalid: Unrecognized key: "ssg"')
   })
 
   it('rejects imported footer components', () => {
@@ -25,6 +34,10 @@ describe('defineConfig', () => {
     expect(() => defineConfig({
       footer: Footer,
     } as never)).toThrow('[clarify] config field "footer" is invalid')
+  })
+
+  it('rejects invalid plugins', () => {
+    expect(() => defineConfig({ plugins: 'legacy-plugin' } as never)).toThrow('[clarify] config field "plugins" is invalid')
   })
 })
 
@@ -71,9 +84,20 @@ describe('loadClarifyConfig', () => {
 
     await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).resolves.toEqual({
       title: 'JSON Docs',
-      contentDir: 'source',
-      base: '/',
+      routePrefix: '/',
     })
+  })
+
+  it('rejects build directories in clarify.json', async () => {
+    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ contentDir: 'docs' }), 'utf-8')
+
+    await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).rejects.toThrow(/contentDir/)
+  })
+
+  it('rejects plugins in clarify.json', async () => {
+    writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ plugins: [] }), 'utf-8')
+
+    await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).rejects.toThrow('clarify.json does not support plugins')
   })
 
   it('rejects invalid clarify.json project fields', async () => {

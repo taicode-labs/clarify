@@ -72,8 +72,8 @@ describe('content artifact helpers', () => {
       description: 'Helpful docs',
       routePrefix: '/docs',
       assetPrefix: '/docs/',
-      i18n: {
-        defaultLocale: 'en-US',
+      locales: {
+        default: 'en-US',
         missing: 'fallback',
         locales: [{ code: 'en-US', label: 'English' }],
       },
@@ -101,8 +101,8 @@ describe('content artifact helpers', () => {
       description: 'Helpful docs',
       routePrefix: '',
       assetPrefix: '/',
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         missing: 'fallback',
         locales: [
           { code: 'zh-CN', label: '简体中文' },
@@ -148,8 +148,8 @@ describe('content artifact helpers', () => {
       description: 'Helpful docs',
       routePrefix: '',
       assetPrefix: '/',
-      i18n: {
-        defaultLocale: 'zh-CN',
+      locales: {
+        default: 'zh-CN',
         missing: 'fallback',
         locales: [
           { code: 'zh-CN', label: '简体中文' },

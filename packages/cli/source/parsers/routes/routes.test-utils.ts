@@ -1,4 +1,4 @@
-import type { ContentRoute, ResolvedClarifyI18nConfig } from '../../types.js'
+import type { ContentRoute, ResolvedClarifyLocalesConfig } from '../../types.js'
 
 type ContentRouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'source'>> & {
   kind?: ContentRoute['kind']
@@ -60,8 +60,8 @@ export function mdxRoute(route: ContentRouteFixture = {}): ContentRoute {
   return contentRoute({ ...route, kind: 'mdx' })
 }
 
-export const testI18n: ResolvedClarifyI18nConfig = {
-  defaultLocale: 'zh-CN',
+export const testI18n: ResolvedClarifyLocalesConfig = {
+  default: 'zh-CN',
   missing: 'fallback',
   locales: [
     { code: 'zh-CN', label: '简体中文' },

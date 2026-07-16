@@ -28,7 +28,6 @@ const ctx: ClarifyHookContext = {
     projectRoot: '/site',
     rootDirectory: 'source',
     outputDirectory: 'output',
-    ssg: { failOnError: true },
   },
   version: 'test',
   routes: [],

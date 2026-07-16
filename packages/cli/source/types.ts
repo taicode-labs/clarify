@@ -30,15 +30,15 @@ export type ClarifyLocaleConfig = {
 }
 
 export type ClarifyLocalesConfig = {
-  /** Default visible locale. Content is read from rootDirectory/defaultLocale. */
+  /** Default visible locale. Localized content is read from rootDirectory/<locale>. */
   default?: string
   /** Missing translation behavior. Fallback uses default locale content. */
   missing?: 'fallback' | '404' | 'hide'
-  options: ClarifyLocaleConfig[]
+  locales: ClarifyLocaleConfig[]
 }
 
-export type ResolvedClarifyI18nConfig = {
-  defaultLocale: string
+export type ResolvedClarifyLocalesConfig = {
+  default: string
   missing: 'fallback' | '404' | 'hide'
   locales: ClarifyLocaleConfig[]
 }
@@ -226,14 +226,7 @@ export type ClarifyFeatureConfig<Options extends object = Record<never, never>> 
 export type ClarifyFeaturesConfig = {
   search?: ClarifyFeatureConfig<{ provider?: 'pagefind' }>
   editLink?: ClarifyFeatureConfig<ClarifyEditLinkConfig>
-  artifacts?: ClarifyFeatureConfig<{
-    content?: boolean
-    llms?: boolean
-    sitemap?: boolean
-    robots?: boolean
-  }>
   themeEditor?: ClarifyFeatureConfig
-  ssg?: ClarifyFeatureConfig<{ failOnError?: boolean }>
   openapi?: ClarifyFeatureConfig<{
     playground?: boolean
     responsePreview?: boolean
@@ -244,9 +237,7 @@ export type ClarifyFeaturesConfig = {
 export type ResolvedClarifyFeaturesConfig = {
   search: { enabled: boolean; provider: 'pagefind' }
   editLink: { enabled: boolean; repository?: string; branch?: string; directory?: string }
-  artifacts: { enabled: boolean; content: boolean; llms: boolean; sitemap: boolean; robots: boolean }
   themeEditor: { enabled: boolean }
-  ssg: { enabled: boolean; failOnError: boolean }
   openapi: {
     enabled: boolean
     playground: boolean
@@ -264,6 +255,12 @@ export type ClarifyProjectConfig = {
 
   /** Canonical public site URL. Enables sitemap.xml and robots.txt generation. */
   siteUrl?: string
+
+  /** Route prefix where the site is mounted. Default: '/'. */
+  routePrefix?: string
+
+  /** Path or URL prefix for emitted assets. Defaults to routePrefix. */
+  assetPrefix?: string
 
   /** Path to site logo image (relative to rootDirectory or absolute). Supports light/dark mode. */
   logo?: ClarifyLogoConfig
@@ -286,23 +283,14 @@ export type ClarifyProjectConfig = {
   /** Footer configuration. */
   footer?: ClarifyFooterConfig
 
-  /** Reusable constants available in supported content via {{ variableName }} placeholders. */
-  variables?: ClarifyVariablesConfig
-
   /** Localized content configuration. */
   locales?: ClarifyLocalesConfig
 
+  /** Reusable constants available in supported content via {{ variableName }} placeholders. */
+  variables?: ClarifyVariablesConfig
+
   /** Optional product capabilities. All built-in features are enabled by default. */
   features?: ClarifyFeaturesConfig
-
-  /** Root directory for content sources. Default: 'source'. */
-  contentDir?: string
-  /** Output directory for the built site. */
-  outputDir?: string
-  /** Base path for the site. Default: '/'. */
-  base?: string
-  /** Base path or URL for emitted assets. Defaults to base. */
-  assets?: string
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -311,21 +299,19 @@ export type ClarifyProjectConfig = {
 
 export type ResolvedProjectConfig = {
   title: string
-  logo?: ClarifyLogoConfig
-  homeUrl?: string
   description: string
   siteUrl?: string
-  source?: ClarifyEditLinkConfig
   routePrefix: string
   assetPrefix: string
+  logo?: ClarifyLogoConfig
+  homeUrl?: string
   favicon?: ClarifyFaviconConfig
   theme: ResolvedClarifyThemeConfig
-  navbar?: { links?: ClarifyNavbarLink[] }
+  navigation?: ClarifyNavigationConfig
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig
+  locales?: ResolvedClarifyLocalesConfig
   variables: ClarifyVariablesConfig
-  i18n?: ResolvedClarifyI18nConfig
-  tabs?: ClarifyTabsConfig
   features: ResolvedClarifyFeaturesConfig
 }
 

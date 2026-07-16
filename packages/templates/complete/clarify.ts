@@ -2,26 +2,10 @@ import { defineConfig } from '@clarify-labs/cli'
 import demoSlotsPlugin from './source/plugins/index.js'
 
 export default defineConfig({
-  plugins: [demoSlotsPlugin],
   title: 'Clarify Docs',
   description: 'A full-featured documentation starter powered by Clarify.',
   logo: '/logo.svg',
   favicon: '/favicon.svg',
-  banner: {
-    content: {
-      'en-US': 'Edit this starter in {{contentDir}} and ship your docs with Clarify.',
-      'zh-CN': '在 {{contentDir}} 中编辑这个多语言模板，并使用 Clarify 发布文档。',
-    },
-    dismissible: true,
-  },
-  locales: {
-    default: 'en-US',
-    missing: 'fallback',
-    options: [
-      { code: 'en-US', label: 'English' },
-      { code: 'zh-CN', label: '简体中文' },
-    ],
-  },
   theme: {
     preset: 'default',
     tokens: {
@@ -41,20 +25,8 @@ export default defineConfig({
       { label: { 'en-US': 'API', 'zh-CN': '接口' }, href: '/api' },
       { label: 'GitHub', href: 'https://github.com/taicode-labs/clarify', external: true },
     ],
-  },
-  footer: {
-    copyright: '© 2026 Your Company. Built with Clarify.',
-    links: [
-      { label: { 'en-US': 'Get started', 'zh-CN': '开始使用' }, href: '/' },
-      { label: { 'en-US': 'Configuration', 'zh-CN': '配置' }, href: '/reference/configuration' },
-      { label: { 'en-US': 'API reference', 'zh-CN': 'API 参考' }, href: '/api' },
-    ],
-    socials: {
-      GitHub: 'https://github.com/taicode-labs/clarify',
-    },
-  },
     tabs: [
-    {
+      {
       tab: { 'en-US': 'Docs', 'zh-CN': '文档' },
       icon: 'BookOpen',
       pages: [
@@ -91,7 +63,34 @@ export default defineConfig({
           ],
         },
       ],
-    },
+      },
     ],
   },
+  banner: {
+    content: {
+      'en-US': 'Edit this starter in {{contentDir}} and ship your docs with Clarify.',
+      'zh-CN': '在 {{contentDir}} 中编辑这个多语言模板，并使用 Clarify 发布文档。',
+    },
+    dismissible: true,
+  },
+  footer: {
+    copyright: '© 2026 Your Company. Built with Clarify.',
+    links: [
+      { label: { 'en-US': 'Get started', 'zh-CN': '开始使用' }, href: '/' },
+      { label: { 'en-US': 'Configuration', 'zh-CN': '配置' }, href: '/reference/configuration' },
+      { label: { 'en-US': 'API reference', 'zh-CN': 'API 参考' }, href: '/api' },
+    ],
+    socials: {
+      GitHub: 'https://github.com/taicode-labs/clarify',
+    },
+  },
+  locales: {
+    default: 'en-US',
+    missing: 'fallback',
+    locales: [
+      { code: 'en-US', label: 'English' },
+      { code: 'zh-CN', label: '简体中文' },
+    ],
+  },
+  plugins: [demoSlotsPlugin],
 })

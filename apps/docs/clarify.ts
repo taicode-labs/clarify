@@ -8,46 +8,8 @@ export default defineConfig({
   logo: '/clarify.svg',
   homeUrl: 'https://clarify.pub',
   favicon: '/clarify-icon.png',
-  locales: {
-    default: 'zh-CN',
-    missing: 'fallback',
-    options: [
-      {
-        code: 'zh-CN',
-        label: '简体中文',
-        dir: 'ltr',
-      },
-      {
-        code: 'en-US',
-        label: 'English',
-        dir: 'ltr',
-      },
-    ],
-  },
   theme: {
     preset: 'default',
-  },
-  features: {
-    themeEditor: true,
-    editLink: {
-      repository: 'https://github.com/taicode-labs/clarify',
-      branch: 'main',
-      directory: 'apps/docs/source',
-    },
-  },
-  banner: {
-    content: {
-      'zh-CN': 'Clarify 现在支持全局公告配置。',
-      'en-US': 'Clarify now supports global announcement banners.',
-    },
-    link: {
-      label: {
-        'zh-CN': '查看路线图',
-        'en-US': 'View roadmap',
-      },
-      href: '/roadmap',
-    },
-    dismissible: true,
   },
   navigation: {
     links: [
@@ -463,6 +425,20 @@ export default defineConfig({
       },
     ],
   },
+  banner: {
+    content: {
+      'zh-CN': 'Clarify 现在支持全局公告配置。',
+      'en-US': 'Clarify now supports global announcement banners.',
+    },
+    link: {
+      label: {
+        'zh-CN': '查看路线图',
+        'en-US': 'View roadmap',
+      },
+      href: '/roadmap',
+    },
+    dismissible: true,
+  },
   footer: {
     copyright: {
       'zh-CN': '© 2026 Clarify Labs. 开源文档发布工具。',
@@ -493,6 +469,30 @@ export default defineConfig({
     ],
     socials: {
       GitHub: 'https://github.com/taicode-labs/clarify',
+    },
+  },
+  locales: {
+    default: 'zh-CN',
+    missing: 'fallback',
+    locales: [
+      {
+        code: 'zh-CN',
+        label: '简体中文',
+        dir: 'ltr',
+      },
+      {
+        code: 'en-US',
+        label: 'English',
+        dir: 'ltr',
+      },
+    ],
+  },
+  features: {
+    themeEditor: true,
+    editLink: {
+      repository: 'https://github.com/taicode-labs/clarify',
+      branch: 'main',
+      directory: 'apps/docs/source',
     },
   },
   plugins: [docsFooterPlugin],

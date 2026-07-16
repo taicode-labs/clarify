@@ -121,10 +121,8 @@ const staticOutputEndpoint = {
 const previewConfig = {
   title: 'Clarify preview',
   description: 'Renderer preview environment',
-  rootDirectory: 'source',
   routePrefix: '/',
   assetPrefix: '/',
-  outputDirectory: 'output',
   theme: {
     preset: 'default',
     tokens: {
@@ -149,11 +147,12 @@ const previewConfig = {
       maxWidth: '88rem',
     },
   },
-  i18n: {
-    defaultLocale: 'en',
+  locales: {
+    default: 'en',
     missing: 'fallback',
     locales: [{ code: 'en', label: 'English' }],
   },
+  variables: {},
   features: {
     search: { enabled: true, provider: 'pagefind' },
     editLink: { enabled: true },
@@ -186,7 +185,7 @@ function PreviewEnvironment(arg0: PreviewEnvironmentProps) {
   return (
     <MemoryRouter initialEntries={[initialEntry]}>
       <ConfigContext.Provider value={previewConfig}>
-        <LocaleContext.Provider value={previewConfig.i18n.defaultLocale}>
+        <LocaleContext.Provider value={previewConfig.locales.default}>
           <OpenApiSpecsContext.Provider value={{}}>
             <SectionProvider sections={sections}>
               {children}

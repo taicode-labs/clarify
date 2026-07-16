@@ -23,24 +23,21 @@ export type ResolvedProjectContext = {
 export async function resolveProjectContext(options: ClarifyBuildOptions = {}, env: ConfigEnv = { command: 'build', mode: 'production' }): Promise<ResolvedProjectContext> {
   const projectRoot = resolve(options.projectRoot ?? process.cwd())
   const initialBuildOptions = resolveBuildOptions(options)
-  const contentRoot = join(projectRoot, initialBuildOptions.rootDirectory)
   const configFilePath = findClarifyConfigFile(projectRoot)
   const config = configFilePath && existsSync(configFilePath)
     ? await loadClarifyConfig(projectRoot, env)
     : {}
 
-  const rootDirectory = options.rootDirectory ?? config.contentDir ?? initialBuildOptions.rootDirectory
-  const outputDirectory = options.outputDirectory ?? config.outputDir ?? initialBuildOptions.outputDirectory
-
   const mergedOptions: ClarifyBuildOptions = {
     ...config,
     ...options,
     projectRoot,
-    rootDirectory,
-    outputDirectory,
+    rootDirectory: options.rootDirectory ?? initialBuildOptions.rootDirectory,
+    outputDirectory: options.outputDirectory ?? initialBuildOptions.outputDirectory,
   }
   const resolvedProjectConfig = resolveProjectConfig(mergedOptions)
   const resolvedBuildOptions = resolveBuildOptions(mergedOptions)
+  const contentRoot = join(projectRoot, resolvedBuildOptions.rootDirectory)
 
   const projectContext: ClarifyProjectContext = {
     projectRoot,

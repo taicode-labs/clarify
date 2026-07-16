@@ -7,7 +7,7 @@ export const clarifyLogoConfigSchema = z.union([
   z.object({
     light: z.string().optional(),
     dark: z.string().optional(),
-  }),
+  }).strict(),
 ])
 
 export const clarifyFaviconConfigSchema = z.union([
@@ -15,7 +15,7 @@ export const clarifyFaviconConfigSchema = z.union([
   z.object({
     light: z.string().optional(),
     dark: z.string().optional(),
-  }),
+  }).strict(),
 ])
 
 export const clarifyLocalizedTextSchema = z.union([
@@ -27,20 +27,20 @@ export const clarifyLocaleConfigSchema = z.object({
   code: z.string(),
   label: z.string(),
   dir: z.union([z.literal('ltr'), z.literal('rtl')]).optional(),
-})
+}).strict()
 
 export const clarifyLocalesConfigSchema = z.object({
   default: z.string().optional(),
   missing: z.union([z.literal('fallback'), z.literal('404'), z.literal('hide')]).optional(),
-  options: z.array(clarifyLocaleConfigSchema).min(1),
-}).superRefine((config, ctx) => {
+  locales: z.array(clarifyLocaleConfigSchema).min(1),
+}).strict().superRefine((config, ctx) => {
   const localeCodes = new Set<string>()
-  for (const [index, locale] of config.options.entries()) {
+  for (const [index, locale] of config.locales.entries()) {
     if (localeCodes.has(locale.code)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Duplicate locale code "${locale.code}"`,
-        path: ['options', index, 'code'],
+        path: ['locales', index, 'code'],
       })
     }
     localeCodes.add(locale.code)
@@ -49,7 +49,7 @@ export const clarifyLocalesConfigSchema = z.object({
   if (config.default && !localeCodes.has(config.default)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'default must be one of locales.options',
+      message: 'default must be one of locales.locales',
       path: ['default'],
     })
   }
@@ -59,7 +59,7 @@ export const clarifyNavbarLinkSchema = z.object({
   label: clarifyLocalizedTextSchema,
   href: z.string(),
   external: z.boolean().optional(),
-})
+}).strict()
 
 export const clarifyBannerConfigOptionsSchema = z.object({
   content: clarifyLocalizedTextSchema,
@@ -86,7 +86,7 @@ export const clarifyEditLinkConfigSchema = z.object({
   repository: z.string().optional(),
   branch: z.string().optional(),
   directory: z.string().optional(),
-})
+}).strict()
 
 export const clarifyPagesItemSchema: z.ZodType<
   import('../../types.js').ClarifyPagesItem,
@@ -100,7 +100,7 @@ export const clarifyPagesItemSchema: z.ZodType<
     title: clarifyLocalizedTextSchema.optional(),
     icon: z.string().optional(),
     redirect: z.string().optional(),
-  }),
+  }).strict(),
   z.object({
     openapi: z.string(),
     path: z.string().optional(),
@@ -108,8 +108,8 @@ export const clarifyPagesItemSchema: z.ZodType<
     title: clarifyLocalizedTextSchema.optional(),
     filter: z.object({
       tags: z.array(z.string()).optional(),
-    }).optional(),
-  }),
+    }).strict().optional(),
+  }).strict(),
 ]))
 
 export const clarifyPagesGroupSchema: z.ZodType<
@@ -119,7 +119,7 @@ export const clarifyPagesGroupSchema: z.ZodType<
   group: clarifyLocalizedTextSchema,
   icon: z.string().optional(),
   pages: z.array(clarifyPagesItemSchema),
-}))
+}).strict())
 
 export const clarifyPagesConfigSchema = z.union([
   z.array(clarifyPagesGroupSchema),
@@ -130,7 +130,7 @@ export const clarifyTabItemSchema = z.object({
   tab: clarifyLocalizedTextSchema,
   icon: z.string().optional(),
   pages: clarifyPagesConfigSchema.optional(),
-})
+}).strict()
 
 export const clarifyTabsConfigSchema = z.array(clarifyTabItemSchema)
 
@@ -139,7 +139,7 @@ export const clarifyThemePresetSchema = z.enum(['default', 'base'])
 export const clarifyThemeModeColorValueSchema = z.object({
   light: z.string().optional(),
   dark: z.string().optional(),
-})
+}).strict()
 
 export const clarifyThemeColorValueSchema = z.union([z.string(), clarifyThemeModeColorValueSchema])
 
@@ -152,29 +152,29 @@ export const clarifyThemeColorTokensConfigSchema = z.object({
   muted: clarifyThemeColorValueSchema.optional(),
   border: clarifyThemeColorValueSchema.optional(),
   codeBackground: clarifyThemeColorValueSchema.optional(),
-})
+}).strict()
 
 export const clarifyThemeRadiusTokensConfigSchema = z.object({
   sm: z.string().optional(),
   md: z.string().optional(),
   lg: z.string().optional(),
   xl: z.string().optional(),
-})
+}).strict()
 
 export const clarifyThemeTokensConfigSchema = z.object({
   colors: clarifyThemeColorTokensConfigSchema.optional(),
   radius: clarifyThemeRadiusTokensConfigSchema.optional(),
-})
+}).strict()
 
 export const clarifyThemeLayoutConfigSchema = z.object({
   maxWidth: z.string().optional(),
-})
+}).strict()
 
 export const clarifyThemeConfigSchema = z.object({
   preset: clarifyThemePresetSchema.optional(),
   tokens: clarifyThemeTokensConfigSchema.optional(),
   layout: clarifyThemeLayoutConfigSchema.optional(),
-})
+}).strict()
 
 function featureSchema<Schema extends z.ZodRawShape>(shape: Schema, defaults: Record<string, unknown>) {
   const objectSchema = z.object({ enabled: z.boolean().default(true), ...shape }).strict().default({ enabled: true, ...defaults } as never)
@@ -188,15 +188,8 @@ function featureSchema<Schema extends z.ZodRawShape>(shape: Schema, defaults: Re
 
 export const clarifyFeaturesConfigSchema = z.object({
   search: featureSchema({ provider: z.literal('pagefind').default('pagefind') }, { provider: 'pagefind' }),
-  artifacts: featureSchema({
-    content: z.boolean().default(true),
-    llms: z.boolean().default(true),
-    sitemap: z.boolean().default(true),
-    robots: z.boolean().default(true),
-  }, { content: true, llms: true, sitemap: true, robots: true }),
   editLink: featureSchema(clarifyEditLinkConfigSchema.shape, {}),
   themeEditor: featureSchema({}, {}),
-  ssg: featureSchema({ failOnError: z.boolean().default(true) }, { failOnError: true }),
   openapi: featureSchema({
     playground: z.boolean().default(true),
     responsePreview: z.boolean().default(true),
@@ -208,6 +201,8 @@ export const clarifyProjectConfigSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   siteUrl: z.string().optional(),
+  routePrefix: z.string().default('/'),
+  assetPrefix: z.string().optional(),
   logo: clarifyLogoConfigSchema.optional(),
   homeUrl: z.string().optional(),
   favicon: clarifyFaviconConfigSchema.optional(),
@@ -218,13 +213,9 @@ export const clarifyProjectConfigSchema = z.object({
   }).strict().optional(),
   banner: clarifyBannerConfigOptionsSchema.optional(),
   footer: clarifyFooterConfigSchema.optional(),
-  variables: clarifyVariablesConfigSchema.optional(),
   locales: clarifyLocalesConfigSchema.optional(),
+  variables: clarifyVariablesConfigSchema.optional(),
   features: clarifyFeaturesConfigSchema.optional(),
-  contentDir: z.string().default('source'),
-  outputDir: z.string().optional(),
-  base: z.string().default('/'),
-  assets: z.string().optional(),
-}) satisfies z.ZodType<ClarifyProjectConfig>
+}).strict() satisfies z.ZodType<ClarifyProjectConfig>
 
 export type ClarifyProjectConfigInput = z.input<typeof clarifyProjectConfigSchema>

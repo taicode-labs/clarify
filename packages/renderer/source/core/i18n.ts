@@ -481,6 +481,6 @@ export function translateBuiltInText(locale: string | undefined, key: BuiltInTex
 export function useBuiltInText(locale?: string) {
   const config = useContext(ConfigContext)
   const currentLocale = useContext(LocaleContext)
-  const resolvedLocale = locale ?? currentLocale ?? config?.i18n?.defaultLocale
+  const resolvedLocale = locale ?? currentLocale ?? config?.locales?.default
   return (key: BuiltInTextKey, replacements?: Record<string, string>) => translateBuiltInText(resolvedLocale, key, replacements)
 }

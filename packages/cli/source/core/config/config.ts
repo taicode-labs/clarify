@@ -1,7 +1,7 @@
 import type { ZodError } from 'zod'
 
 import { resolveThemeConfig } from '../../parsers/theme.js'
-import type { ClarifyFeaturesConfig, ClarifyLocalesConfig, ClarifyProjectConfig, ResolvedClarifyFeaturesConfig, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyFeaturesConfig, ClarifyLocalesConfig, ClarifyProjectConfig, ResolvedClarifyFeaturesConfig, ResolvedClarifyLocalesConfig, ResolvedProjectConfig } from '../../types.js'
 
 import { clarifyFeaturesConfigSchema, clarifyProjectConfigSchema } from './config-schema.js'
 
@@ -31,17 +31,17 @@ export function validateProjectConfig(value: unknown): ClarifyProjectConfig {
   return result.data
 }
 
-function resolveLocalesConfig(locales?: ClarifyLocalesConfig): ResolvedClarifyI18nConfig | undefined {
+function resolveLocalesConfig(locales?: ClarifyLocalesConfig): ResolvedClarifyLocalesConfig | undefined {
   if (!locales) return undefined
 
-  const firstLocale = locales.options[0]?.code
+  const firstLocale = locales.locales[0]?.code
   const defaultLocale = locales.default ?? firstLocale
   if (!defaultLocale) return undefined
 
   return {
-    defaultLocale,
+    default: defaultLocale,
     missing: locales.missing ?? 'fallback',
-    locales: locales.options,
+    locales: locales.locales,
   }
 }
 
@@ -68,27 +68,23 @@ function resolveAssetPrefix(assetPrefix: string | undefined, routePrefix: string
 }
 
 export function resolveProjectConfig(config: ClarifyProjectConfig = {}): ResolvedProjectConfig {
-  const routePrefix = resolveRoutePrefix(config.base)
+  const routePrefix = resolveRoutePrefix(config.routePrefix)
 
   return {
     title: config.title ?? 'Clarify Docs',
     description: config.description ?? '',
     siteUrl: config.siteUrl,
-    source: config.features?.editLink && typeof config.features.editLink !== 'boolean' && config.features.editLink.repository
-      ? { repository: config.features.editLink.repository, branch: config.features.editLink.branch, directory: config.features.editLink.directory }
-      : undefined,
+    routePrefix,
+    assetPrefix: resolveAssetPrefix(config.assetPrefix, routePrefix),
     logo: config.logo,
     homeUrl: config.homeUrl,
     favicon: config.favicon,
-    routePrefix,
-    assetPrefix: resolveAssetPrefix(config.assets, routePrefix),
     theme: resolveThemeConfig(config.theme),
-    navbar: config.navigation?.links ? { links: config.navigation.links } : undefined,
+    navigation: config.navigation,
     banner: config.banner,
     footer: config.footer,
+    locales: resolveLocalesConfig(config.locales),
     variables: config.variables ?? {},
-    i18n: resolveLocalesConfig(config.locales),
-    tabs: config.navigation?.tabs,
     features: resolveFeaturesConfig(config.features),
   }
 }

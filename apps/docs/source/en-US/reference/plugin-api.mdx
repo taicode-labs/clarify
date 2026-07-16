@@ -165,6 +165,10 @@ The site config after defaults have been applied:
 ```ts
 type ResolvedProjectConfig = {
   title: string
+  description: string
+  siteUrl?: string
+  routePrefix: string
+  assetPrefix: string
   logo?: string | { light?: string; dark?: string }
   favicon?: string | { light?: string; dark?: string }
   theme: {
@@ -172,13 +176,12 @@ type ResolvedProjectConfig = {
     tokens: ResolvedClarifyThemeTokensConfig
     layout: ResolvedClarifyThemeLayoutConfig
   }
-  description: string
-  routePrefix: string
-  navbar?: { links?: ClarifyNavbarLink[] }
+  navigation?: ClarifyNavigationConfig
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig
-  i18n?: ResolvedClarifyI18nConfig
-  tabs?: ClarifyTabsConfig
+  variables: ClarifyVariablesConfig
+  locales?: ResolvedClarifyLocalesConfig
+  features: ResolvedClarifyFeaturesConfig
 }
 ```
 
@@ -188,9 +191,6 @@ type ResolvedProjectConfig = {
 type ResolvedBuildOptions = {
   rootDirectory: string
   outputDirectory?: string
-  ssg: {
-    failOnError: boolean
-  }
 }
 ```
 

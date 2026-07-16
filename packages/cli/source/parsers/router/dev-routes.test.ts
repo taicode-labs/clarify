@@ -44,8 +44,8 @@ const mockProjectConfig: ResolvedProjectConfig = {
 
 const mockI18nProjectConfig: ResolvedProjectConfig = {
   ...mockProjectConfig,
-  i18n: {
-    defaultLocale: 'en-US',
+  locales: {
+    default: 'en-US',
     missing: 'fallback',
     locales: [
       { code: 'en-US', label: 'English' },
@@ -64,7 +64,6 @@ const mockContext: ClarifyProjectContext = {
     projectRoot: '/site',
     rootDirectory: 'source',
     outputDirectory: undefined,
-    ssg: { failOnError: true },
   },
   version: 'test',
 }
