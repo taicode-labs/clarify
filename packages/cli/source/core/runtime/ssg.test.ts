@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
+import { resolveFeaturesConfig } from '../config/config.js'
 import { readIndexHtml, injectSSRIntoTemplate, isNotFoundRoute, routeOutputFiles } from './ssg.js'
 
 type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
@@ -65,6 +66,7 @@ describe('injectSSRIntoTemplate', () => {
     assetPrefix: '/',
     theme: resolveThemeConfig(),
     variables: {},
+    features: resolveFeaturesConfig(),
   }
 
   const baseTemplate = `<!doctype html>

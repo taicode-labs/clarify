@@ -29,15 +29,17 @@ export type ClarifyLocaleConfig = {
   dir?: 'ltr' | 'rtl'
 }
 
-export type ClarifyI18nConfig = {
+export type ClarifyLocalesConfig = {
   /** Default visible locale. Content is read from rootDirectory/defaultLocale. */
-  defaultLocale?: string
+  default?: string
   /** Missing translation behavior. Fallback uses default locale content. */
   missing?: 'fallback' | '404' | 'hide'
-  locales: ClarifyLocaleConfig[]
+  options: ClarifyLocaleConfig[]
 }
 
-export type ResolvedClarifyI18nConfig = Required<Pick<ClarifyI18nConfig, 'defaultLocale' | 'missing'>> & {
+export type ResolvedClarifyI18nConfig = {
+  defaultLocale: string
+  missing: 'fallback' | '404' | 'hide'
   locales: ClarifyLocaleConfig[]
 }
 
@@ -65,9 +67,9 @@ export type ClarifyVariableValue = ClarifyVariablePrimitive | { [key: string]: C
 
 export type ClarifyVariablesConfig = Record<string, ClarifyVariableValue>
 
-export type ClarifySourceConfig = {
+export type ClarifyEditLinkConfig = {
   /** Repository web URL, for example https://github.com/owner/repo. */
-  repository: string
+  repository?: string
   /** Source branch used for edit links. Default: main. */
   branch?: string
   /** Directory prefix inside the repository that maps to rootDirectory. */
@@ -126,8 +128,6 @@ export type ClarifyThemeConfig = {
   tokens?: ClarifyThemeTokensConfig
   /** Documentation layout overrides applied on top of the selected preset. */
   layout?: ClarifyThemeLayoutConfig
-  /** Expose the live theme editor in the built site. Dev mode enables it automatically. */
-  editor?: boolean
 }
 
 export type ResolvedClarifyThemeTokensConfig = {
@@ -141,7 +141,6 @@ export type ResolvedClarifyThemeConfig = {
   preset: ClarifyThemePreset
   tokens: ResolvedClarifyThemeTokensConfig
   layout: ResolvedClarifyThemeLayoutConfig
-  editor: boolean
 }
 
 export type ClarifyPagesItem =
@@ -215,6 +214,47 @@ export type ClarifyTabItem = {
 
 export type ClarifyTabsConfig = ClarifyTabItem[]
 
+export type ClarifyNavigationConfig = {
+  /** Links displayed in the top navigation. */
+  links?: ClarifyNavbarLink[]
+  /** Top-level documentation tabs. Each tab owns its sidebar pages. */
+  tabs?: ClarifyTabsConfig
+}
+
+export type ClarifyFeatureConfig<Options extends object = Record<never, never>> = boolean | ({ enabled?: boolean } & Options)
+
+export type ClarifyFeaturesConfig = {
+  search?: ClarifyFeatureConfig<{ provider?: 'pagefind' }>
+  editLink?: ClarifyFeatureConfig<ClarifyEditLinkConfig>
+  artifacts?: ClarifyFeatureConfig<{
+    content?: boolean
+    llms?: boolean
+    sitemap?: boolean
+    robots?: boolean
+  }>
+  themeEditor?: ClarifyFeatureConfig
+  ssg?: ClarifyFeatureConfig<{ failOnError?: boolean }>
+  openapi?: ClarifyFeatureConfig<{
+    playground?: boolean
+    responsePreview?: boolean
+    responseDownload?: boolean
+  }>
+}
+
+export type ResolvedClarifyFeaturesConfig = {
+  search: { enabled: boolean; provider: 'pagefind' }
+  editLink: { enabled: boolean; repository?: string; branch?: string; directory?: string }
+  artifacts: { enabled: boolean; content: boolean; llms: boolean; sitemap: boolean; robots: boolean }
+  themeEditor: { enabled: boolean }
+  ssg: { enabled: boolean; failOnError: boolean }
+  openapi: {
+    enabled: boolean
+    playground: boolean
+    responsePreview: boolean
+    responseDownload: boolean
+  }
+}
+
 export type ClarifyProjectConfig = {
   /** Site title. Used in Header and SEO meta tags. */
   title?: string
@@ -225,9 +265,6 @@ export type ClarifyProjectConfig = {
   /** Canonical public site URL. Enables sitemap.xml and robots.txt generation. */
   siteUrl?: string
 
-  /** Source repository configuration for Edit this page links. */
-  source?: ClarifySourceConfig
-
   /** Path to site logo image (relative to rootDirectory or absolute). Supports light/dark mode. */
   logo?: ClarifyLogoConfig
 
@@ -237,19 +274,11 @@ export type ClarifyProjectConfig = {
   /** Favicon path or light/dark variants. */
   favicon?: ClarifyFaviconConfig
 
-  /** Theme preset, token overrides, and editor options. */
+  /** Theme preset, token overrides, and layout options. */
   theme?: ClarifyThemeConfig
 
-  /** Base path for the docs site. Default: '/' */
-  routePrefix?: string
-
-  /** Base path or URL for emitted static assets. Defaults to routePrefix. */
-  assetPrefix?: string
-
-  /** Top navigation links. */
-  navbar?: {
-    links?: ClarifyNavbarLink[]
-  }
+  /** Top navigation links and documentation tabs. */
+  navigation?: ClarifyNavigationConfig
 
   /** Announcement banner displayed at the top of the page. */
   banner?: ClarifyBannerConfig
@@ -260,11 +289,20 @@ export type ClarifyProjectConfig = {
   /** Reusable constants available in supported content via {{ variableName }} placeholders. */
   variables?: ClarifyVariablesConfig
 
-  /** Native multi-language support. Locale content lives under rootDirectory/{locale}. */
-  i18n?: ClarifyI18nConfig
+  /** Localized content configuration. */
+  locales?: ClarifyLocalesConfig
 
-  /** Top-level documentation tabs. Each tab owns its own sidebar pages. */
-  tabs?: ClarifyTabsConfig
+  /** Optional product capabilities. All built-in features are enabled by default. */
+  features?: ClarifyFeaturesConfig
+
+  /** Root directory for content sources. Default: 'source'. */
+  contentDir?: string
+  /** Output directory for the built site. */
+  outputDir?: string
+  /** Base path for the site. Default: '/'. */
+  base?: string
+  /** Base path or URL for emitted assets. Defaults to base. */
+  assets?: string
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -277,7 +315,7 @@ export type ResolvedProjectConfig = {
   homeUrl?: string
   description: string
   siteUrl?: string
-  source?: ClarifySourceConfig
+  source?: ClarifyEditLinkConfig
   routePrefix: string
   assetPrefix: string
   favicon?: ClarifyFaviconConfig
@@ -288,6 +326,7 @@ export type ResolvedProjectConfig = {
   variables: ClarifyVariablesConfig
   i18n?: ResolvedClarifyI18nConfig
   tabs?: ClarifyTabsConfig
+  features: ResolvedClarifyFeaturesConfig
 }
 
 // ────────────────────────────────────────────────────────────────────────────────

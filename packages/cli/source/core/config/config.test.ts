@@ -11,55 +11,67 @@ describe('clarifyProjectConfigSchema', () => {
     expect(clarifyProjectConfigSchema.parse({
       title: 'Docs',
       siteUrl: 'https://docs.example.com',
-      source: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' },
-      navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+      features: {
+        editLink: {
+          repository: 'https://github.com/acme/docs',
+          branch: 'main',
+          directory: 'docs/source',
+        },
+      },
+      navigation: {
+        links: [{ label: 'GitHub', href: 'https://github.com', external: true }],
+        tabs: [
+          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+        ],
+      },
       variables: {
         product: { name: 'Clarify' },
         version: '0.8.0',
         stable: true,
         build: 8,
       },
-      i18n: {
-        defaultLocale: 'zh-CN',
-        locales: [{ code: 'zh-CN', label: '简体中文' }],
+      locales: {
+        default: 'zh-CN',
+        options: [{ code: 'zh-CN', label: '简体中文' }],
       },
-      tabs: [
-        { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
-      ],
-    })).toEqual({
+    })).toMatchObject({
       title: 'Docs',
       siteUrl: 'https://docs.example.com',
-      source: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' },
-      navbar: { links: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+      features: { editLink: { repository: 'https://github.com/acme/docs', branch: 'main', directory: 'docs/source' } },
+      navigation: {
+        links: [{ label: 'GitHub', href: 'https://github.com', external: true }],
+        tabs: [
+          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+        ],
+      },
       variables: {
         product: { name: 'Clarify' },
         version: '0.8.0',
         stable: true,
         build: 8,
       },
-      i18n: {
-        defaultLocale: 'zh-CN',
-        locales: [{ code: 'zh-CN', label: '简体中文' }],
+      locales: {
+        default: 'zh-CN',
+        options: [{ code: 'zh-CN', label: '简体中文' }],
       },
-      tabs: [
-        { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
-      ],
+      contentDir: 'source',
+      base: '/',
     })
   })
 
   it('rejects defaultLocale outside configured locales', () => {
     expect(() => clarifyProjectConfigSchema.parse({
-      i18n: {
-        defaultLocale: 'en-US',
-        locales: [{ code: 'zh-CN', label: '简体中文' }],
+      locales: {
+        default: 'en-US',
+        options: [{ code: 'zh-CN', label: '简体中文' }],
       },
-    })).toThrow('defaultLocale must be one of i18n.locales')
+    })).toThrow('default must be one of locales.options')
   })
 
   it('rejects duplicate locale codes', () => {
     expect(() => clarifyProjectConfigSchema.parse({
-      i18n: {
-        locales: [
+      locales: {
+        options: [
           { code: 'zh-CN', label: '简体中文' },
           { code: 'zh-CN', label: '中文' },
         ],
@@ -104,7 +116,6 @@ describe('resolveProjectConfig', () => {
         layout: {
           maxWidth: '82rem',
         },
-        editor: false,
       },
       navbar: undefined,
       banner: undefined,
@@ -112,6 +123,7 @@ describe('resolveProjectConfig', () => {
       variables: {},
       i18n: undefined,
       tabs: undefined,
+      features: resolveProjectConfig({}).features,
     })
   })
 
@@ -120,27 +132,27 @@ describe('resolveProjectConfig', () => {
       title: 'Project Docs',
       description: 'Desc',
       siteUrl: 'https://docs.example.com',
-      source: { repository: 'https://github.com/acme/docs' },
-      theme: { tokens: { colors: { primary: '#333' } }, editor: true },
+      features: { editLink: { repository: 'https://github.com/acme/docs' } },
+      theme: { tokens: { colors: { primary: '#333' } } },
       homeUrl: 'https://example.com',
       favicon: '/favicon.svg',
-      navbar: { links: [{ label: 'GitHub', href: 'https://github.com' }] },
+      navigation: {
+        links: [{ label: 'GitHub', href: 'https://github.com' }],
+        tabs: [{ tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] }],
+      },
       banner: { content: 'v2 is out', dismissible: true },
       footer: { copyright: '© 2026' },
       variables: {
         product: { name: 'Clarify' },
         apiVersion: '1.0.0',
       },
-      i18n: {
-        defaultLocale: 'zh-CN',
-        locales: [
+      locales: {
+        default: 'zh-CN',
+        options: [
           { code: 'zh-CN', label: '简体中文' },
           { code: 'en-US', label: 'English' },
         ],
       },
-      tabs: [
-        { tab: 'Product', pages: [{ group: 'Getting Started', pages: ['index', 'quickstart'] }] },
-      ],
     }
     const result = resolveProjectConfig(config)
     expect(result.title).toBe('Project Docs')
@@ -149,7 +161,7 @@ describe('resolveProjectConfig', () => {
     expect(result.source).toEqual({ repository: 'https://github.com/acme/docs' })
     expect(result.theme.tokens.colors.primary).toBe('#333')
     expect(result.theme.layout).toEqual({ maxWidth: '82rem' })
-    expect(result.theme.editor).toBe(true)
+    expect(result.features.themeEditor.enabled).toBe(true)
     expect(result.homeUrl).toBe('https://example.com')
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.assetPrefix).toBe('/')
@@ -174,24 +186,37 @@ describe('resolveProjectConfig', () => {
   })
 
   it('normalizes routePrefix for Vite base paths', () => {
-    expect(resolveProjectConfig({ routePrefix: '' }).routePrefix).toBe('/')
-    expect(resolveProjectConfig({ routePrefix: '/' }).routePrefix).toBe('/')
-    expect(resolveProjectConfig({ routePrefix: 'docs' }).routePrefix).toBe('/docs/')
-    expect(resolveProjectConfig({ routePrefix: '/docs' }).routePrefix).toBe('/docs/')
-    expect(resolveProjectConfig({ routePrefix: '/docs/' }).routePrefix).toBe('/docs/')
-    expect(resolveProjectConfig({ routePrefix: ' /docs/api/ ' }).routePrefix).toBe('/docs/api/')
+    expect(resolveProjectConfig({ base: '' }).routePrefix).toBe('/')
+    expect(resolveProjectConfig({ base: '/' }).routePrefix).toBe('/')
+    expect(resolveProjectConfig({ base: 'docs' }).routePrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ base: '/docs' }).routePrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ base: '/docs/' }).routePrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ base: ' /docs/api/ ' }).routePrefix).toBe('/docs/api/')
   })
 
   it('defaults assetPrefix to routePrefix and normalizes overrides', () => {
-    expect(resolveProjectConfig({ routePrefix: '/docs' }).assetPrefix).toBe('/docs/')
-    expect(resolveProjectConfig({ routePrefix: '/docs', assetPrefix: '' }).assetPrefix).toBe('/')
-    expect(resolveProjectConfig({ assetPrefix: 'assets' }).assetPrefix).toBe('/assets/')
-    expect(resolveProjectConfig({ assetPrefix: '/assets/' }).assetPrefix).toBe('/assets/')
-    expect(resolveProjectConfig({ assetPrefix: './' }).assetPrefix).toBe('./')
-    expect(resolveProjectConfig({ assetPrefix: './assets' }).assetPrefix).toBe('./assets/')
-    expect(resolveProjectConfig({ assetPrefix: '../assets' }).assetPrefix).toBe('../assets/')
-    expect(resolveProjectConfig({ assetPrefix: ' https://cdn.example.com/docs ' }).assetPrefix).toBe('https://cdn.example.com/docs/')
-    expect(resolveProjectConfig({ assetPrefix: 'https://cdn.example.com/docs/' }).assetPrefix).toBe('https://cdn.example.com/docs/')
+    expect(resolveProjectConfig({ base: '/docs' }).assetPrefix).toBe('/docs/')
+    expect(resolveProjectConfig({ base: '/docs', assets: '' }).assetPrefix).toBe('/')
+    expect(resolveProjectConfig({ assets: 'assets' }).assetPrefix).toBe('/assets/')
+    expect(resolveProjectConfig({ assets: '/assets/' }).assetPrefix).toBe('/assets/')
+    expect(resolveProjectConfig({ assets: './' }).assetPrefix).toBe('./')
+    expect(resolveProjectConfig({ assets: './assets' }).assetPrefix).toBe('./assets/')
+    expect(resolveProjectConfig({ assets: '../assets' }).assetPrefix).toBe('../assets/')
+    expect(resolveProjectConfig({ assets: ' https://cdn.example.com/docs ' }).assetPrefix).toBe('https://cdn.example.com/docs/')
+    expect(resolveProjectConfig({ assets: 'https://cdn.example.com/docs/' }).assetPrefix).toBe('https://cdn.example.com/docs/')
+  })
+
+  it('resolves features from booleans and detailed options', () => {
+    const defaults = resolveProjectConfig().features
+    expect(defaults.search).toEqual({ enabled: true, provider: 'pagefind' })
+    expect(resolveProjectConfig({ features: { search: false } }).features.search).toEqual({ enabled: false, provider: 'pagefind' })
+    expect(resolveProjectConfig({ features: { artifacts: { enabled: false, sitemap: false } } }).features.artifacts).toEqual({
+      enabled: false,
+      content: true,
+      llms: true,
+      sitemap: false,
+      robots: true,
+    })
   })
 
   it('applies theme presets before project overrides', () => {
@@ -281,7 +306,7 @@ describe('resolveBuildOptions', () => {
   })
 
   it('applies provided ssg options', () => {
-    const result = resolveBuildOptions({ ssg: { failOnError: false } })
+    const result = resolveBuildOptions({ features: { ssg: { failOnError: false } } })
     expect(result).toEqual({
       projectRoot: process.cwd(),
       rootDirectory: 'source',

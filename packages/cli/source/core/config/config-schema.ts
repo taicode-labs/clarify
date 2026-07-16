@@ -29,28 +29,28 @@ export const clarifyLocaleConfigSchema = z.object({
   dir: z.union([z.literal('ltr'), z.literal('rtl')]).optional(),
 })
 
-export const clarifyI18nConfigSchema = z.object({
-  defaultLocale: z.string().optional(),
+export const clarifyLocalesConfigSchema = z.object({
+  default: z.string().optional(),
   missing: z.union([z.literal('fallback'), z.literal('404'), z.literal('hide')]).optional(),
-  locales: z.array(clarifyLocaleConfigSchema).min(1),
+  options: z.array(clarifyLocaleConfigSchema).min(1),
 }).superRefine((config, ctx) => {
   const localeCodes = new Set<string>()
-  for (const [index, locale] of config.locales.entries()) {
+  for (const [index, locale] of config.options.entries()) {
     if (localeCodes.has(locale.code)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `Duplicate locale code "${locale.code}"`,
-        path: ['locales', index, 'code'],
+        path: ['options', index, 'code'],
       })
     }
     localeCodes.add(locale.code)
   }
 
-  if (config.defaultLocale && !localeCodes.has(config.defaultLocale)) {
+  if (config.default && !localeCodes.has(config.default)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'defaultLocale must be one of i18n.locales',
-      path: ['defaultLocale'],
+      message: 'default must be one of locales.options',
+      path: ['default'],
     })
   }
 })
@@ -82,8 +82,8 @@ export const clarifyVariableValueSchema: z.ZodType<ClarifyVariableValue> = z.laz
 
 export const clarifyVariablesConfigSchema = z.record(z.string(), clarifyVariableValueSchema)
 
-export const clarifySourceConfigSchema = z.object({
-  repository: z.string(),
+export const clarifyEditLinkConfigSchema = z.object({
+  repository: z.string().optional(),
   branch: z.string().optional(),
   directory: z.string().optional(),
 })
@@ -174,28 +174,57 @@ export const clarifyThemeConfigSchema = z.object({
   preset: clarifyThemePresetSchema.optional(),
   tokens: clarifyThemeTokensConfigSchema.optional(),
   layout: clarifyThemeLayoutConfigSchema.optional(),
-  editor: z.boolean().optional(),
 })
+
+function featureSchema<Schema extends z.ZodRawShape>(shape: Schema, defaults: Record<string, unknown>) {
+  const objectSchema = z.object({ enabled: z.boolean().default(true), ...shape }).strict().default({ enabled: true, ...defaults } as never)
+  return z.union([
+    z.boolean(),
+    objectSchema,
+  ]).default({ enabled: true, ...defaults } as never).transform((value) => typeof value === 'boolean'
+    ? { enabled: value, ...defaults }
+    : value)
+}
+
+export const clarifyFeaturesConfigSchema = z.object({
+  search: featureSchema({ provider: z.literal('pagefind').default('pagefind') }, { provider: 'pagefind' }),
+  artifacts: featureSchema({
+    content: z.boolean().default(true),
+    llms: z.boolean().default(true),
+    sitemap: z.boolean().default(true),
+    robots: z.boolean().default(true),
+  }, { content: true, llms: true, sitemap: true, robots: true }),
+  editLink: featureSchema(clarifyEditLinkConfigSchema.shape, {}),
+  themeEditor: featureSchema({}, {}),
+  ssg: featureSchema({ failOnError: z.boolean().default(true) }, { failOnError: true }),
+  openapi: featureSchema({
+    playground: z.boolean().default(true),
+    responsePreview: z.boolean().default(true),
+    responseDownload: z.boolean().default(true),
+  }, { playground: true, responsePreview: true, responseDownload: true }),
+}).strict()
 
 export const clarifyProjectConfigSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   siteUrl: z.string().optional(),
-  source: clarifySourceConfigSchema.optional(),
   logo: clarifyLogoConfigSchema.optional(),
   homeUrl: z.string().optional(),
   favicon: clarifyFaviconConfigSchema.optional(),
   theme: clarifyThemeConfigSchema.optional(),
-  routePrefix: z.string().optional(),
-  assetPrefix: z.string().optional(),
-  navbar: z.object({
+  navigation: z.object({
     links: z.array(clarifyNavbarLinkSchema).optional(),
-  }).optional(),
+    tabs: clarifyTabsConfigSchema.optional(),
+  }).strict().optional(),
   banner: clarifyBannerConfigOptionsSchema.optional(),
   footer: clarifyFooterConfigSchema.optional(),
   variables: clarifyVariablesConfigSchema.optional(),
-  i18n: clarifyI18nConfigSchema.optional(),
-  tabs: clarifyTabsConfigSchema.optional(),
+  locales: clarifyLocalesConfigSchema.optional(),
+  features: clarifyFeaturesConfigSchema.optional(),
+  contentDir: z.string().default('source'),
+  outputDir: z.string().optional(),
+  base: z.string().default('/'),
+  assets: z.string().optional(),
 }) satisfies z.ZodType<ClarifyProjectConfig>
 
 export type ClarifyProjectConfigInput = z.input<typeof clarifyProjectConfigSchema>

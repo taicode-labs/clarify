@@ -7,9 +7,14 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { defineConfig, findClarifyConfigFile, loadClarifyConfig } from './user-config.js'
 
 describe('defineConfig', () => {
-  it('returns the provided config', () => {
-    const config = { title: 'Docs', ssg: { failOnError: false } }
-    expect(defineConfig(config)).toBe(config)
+  it('returns the validated config with defaults', () => {
+    const config = { title: 'Docs', features: { ssg: { failOnError: false } } }
+    expect(defineConfig(config)).toMatchObject({
+      title: 'Docs',
+      contentDir: 'source',
+      base: '/',
+      features: { ssg: { enabled: true, failOnError: false } },
+    })
   })
 
   it('rejects imported footer components', () => {
@@ -64,7 +69,11 @@ describe('loadClarifyConfig', () => {
   it('loads and validates clarify.json', async () => {
     writeFileSync(join(tempDir, 'clarify.json'), JSON.stringify({ title: 'JSON Docs' }), 'utf-8')
 
-    await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).resolves.toEqual({ title: 'JSON Docs' })
+    await expect(loadClarifyConfig(tempDir, { command: 'build', mode: 'production' })).resolves.toEqual({
+      title: 'JSON Docs',
+      contentDir: 'source',
+      base: '/',
+    })
   })
 
   it('rejects invalid clarify.json project fields', async () => {

@@ -7,9 +7,10 @@ import { hasLocalePrefix, isExternalHref, localizeHref, prefixHref } from './hre
 const baseConfig = {
   title: 'Test',
   description: 'Test docs',
-  theme: { preset: 'default', tokens: {}, layout: {}, editor: false },
+  theme: { preset: 'default', tokens: {}, layout: {} },
   rootDirectory: '/test',
   routePrefix: '/',
+  assetPrefix: '/',
   outputDirectory: '/test/output',
   i18n: {
     defaultLocale: 'en',

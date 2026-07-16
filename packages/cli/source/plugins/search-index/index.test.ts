@@ -63,6 +63,7 @@ describe('createSearchIndexPlugin', () => {
       projectConfig: {
         routePrefix: '/',
         i18n: { defaultLocale: 'en-US' },
+        features: { search: { enabled: true, provider: 'pagefind' } },
       },
       routes: [{
         path: '/docs',

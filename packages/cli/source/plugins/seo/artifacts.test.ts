@@ -38,14 +38,14 @@ describe('SEO artifacts', () => {
   })
 
   it('creates sitemap.xml with routePrefix and excludes 404', () => {
-    const config = resolveProjectConfig({ siteUrl: 'https://docs.example.com/', routePrefix: '/docs/' })
+    const config = resolveProjectConfig({ siteUrl: 'https://docs.example.com/', base: '/docs/' })
 
     expect(createSitemapXml(routes, config)).toContain('<loc>https://docs.example.com/docs/guide</loc>')
     expect(createSitemapXml(routes, config)).not.toContain('/404')
   })
 
   it('creates robots.txt with sitemap URL', () => {
-    const config = resolveProjectConfig({ siteUrl: 'https://docs.example.com', routePrefix: '/docs/' })
+    const config = resolveProjectConfig({ siteUrl: 'https://docs.example.com', base: '/docs/' })
 
     expect(createRobotsTxt(config)).toBe(
       'User-agent: *\nAllow: /\nSitemap: https://docs.example.com/docs/sitemap.xml\n',
@@ -82,7 +82,7 @@ describe('SEO artifacts', () => {
         source: { filePath: '/docs/source/en-US/guide.mdx' },
       },
     ]
-    const config = resolveProjectConfig({ siteUrl: 'https://docs.example.com/', routePrefix: '/docs/' })
+    const config = resolveProjectConfig({ siteUrl: 'https://docs.example.com/', base: '/docs/' })
 
     const sitemap = createSitemapXml(multilingualRoutes, config)!
 

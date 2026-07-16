@@ -32,10 +32,16 @@ export default defineConfig({
   title: 'Clarify 文档',
   description: 'Clarify 官方文档 — 开源文档发布工具',
   siteUrl: 'https://docs.example.com',
-  source: {
-    repository: 'https://github.com/acme/docs',
-    branch: 'main',
-    directory: 'docs/source',
+  contentDir: 'docs/source',
+  outputDir: 'output',
+  base: '/docs/',
+  features: {
+    editLink: {
+      repository: 'https://github.com/acme/docs',
+      branch: 'main',
+      directory: 'docs/source',
+    },
+    ssg: { failOnError: true },
   },
   logo: {
     light: '/logo-light.svg',
@@ -111,7 +117,10 @@ export default defineConfig({
 | `title` | `string` | `"Clarify Docs"` | 站点标题。会出现在侧边栏品牌区、浏览器标题、SEO 标题兜底和站点元数据中。建议使用产品或文档中心名称，而不是页面标题。 |
 | `description` | `string` | `""` | 站点级描述。用于 SEO 描述、`llms.txt` 摘要和分享卡片兜底。建议写成一句 80–160 字符的产品说明。 |
 | `siteUrl` | `string` | — | 公开访问的完整站点 URL。配置后，`clarify build` 会生成绝对 URL 形式的 `sitemap.xml` 和 `robots.txt`。 |
-| `source` | `{ repository: string; branch?: string; directory?: string }` | — | 源码仓库信息。用于生成“编辑此页面”链接，帮助读者从页面跳转到 Git 仓库中的源 MDX 或 OpenAPI 文件。 |
+| `contentDir` | `string` | `"source"` | 内容源目录。 |
+| `outputDir` | `string` | — | 构建输出目录。 |
+| `base` | `string` | `"/"` | 站点部署路径。 |
+| `assets` | `string` | `base` | 静态资源基础路径或 URL。 |
 | `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo。可以使用单一路径，也可以按亮色/暗色主题分别提供资源。路径通常放在 `public/` 或内容目录可访问的位置。 |
 | `favicon` | `string \| { light?: string; dark?: string }` | — | 浏览器标签页图标。支持单一路径或亮暗主题变体。建议使用 `.ico`、`.svg` 或尺寸完整的 `.png`。 |
 | `homeUrl` | `string` | `"/"` | 点击站点品牌标识时跳转的地址。 |
@@ -124,7 +133,7 @@ export default defineConfig({
 | `variables` | `Record<string, string \| number \| boolean \| object>` | `{}` | 全局项目变量。可在 MDX frontmatter、正文和 OpenAPI JSON/YAML 规范中用 `{{ name }}` 或 `{{ nested.name }}` 占位符复用产品名、版本号、链接、联系方式、API 基础地址和法律声明等内容。 |
 | `i18n` | `ClarifyI18nConfig` | — | 多语言配置。声明可用语言、默认语言、文本方向，以及缺失翻译的处理策略。 |
 | `tabs` | `ClarifyTabsConfig` | 按文件树自动生成 | 站点一级业务分类和每个分类下的侧边栏结构。省略时按内容目录自动生成导航。 |
-| `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | 静态生成策略。控制预渲染单个页面失败时是否中断整个构建。 |
+| `features` | `ClarifyFeaturesConfig` | 全部开启 | 可选能力及其细节配置。`editLink` 配置源码仓库，`ssg` 控制静态生成。 |
 | `plugins` | `ClarifyPlugin[]` | `[]` | 构建期插件列表。只能在 `clarify.ts` 或 `clarify.js` 中使用，不能写入 `clarify.json`。 |
 
 主题覆盖能力还包括 `theme.tokens.colors`、`theme.tokens.radius` 和 `theme.layout.maxWidth`。`theme.editor` 则控制站点是否暴露内置主题编辑器。
@@ -150,11 +159,11 @@ export default defineConfig({
 
 ---
 
-## `siteUrl` 和 `source`
+## `siteUrl` 和 `features.editLink`
 
 `siteUrl` 表示生产环境最终访问地址，必须包含协议，例如 `https://docs.example.com`。如果文档部署在子路径，请把子路径写入 `siteUrl` 或配合 `routePrefix` 使用。
 
-`source` 用于“编辑此页面”链接：
+`features.editLink` 用于“编辑此页面”链接：
 
 | 字段 | 必填 | 说明 |
 |------|------|------|
@@ -179,22 +188,22 @@ export default defineConfig({
 
 ```ts title="编辑链接"
 export default defineConfig({
-  source: {
+  features: { editLink: {
     repository: 'https://github.com/acme/docs',
     branch: 'main',
     directory: 'apps/docs/source',
-  },
+  } },
 })
 ```
 
 ```json title="JSON 配置"
 {
   "siteUrl": "https://docs.example.com",
-  "source": {
+  "features": { "editLink": {
     "repository": "https://github.com/acme/docs",
     "branch": "main",
     "directory": "source"
-  }
+  } }
 }
 ```
 
@@ -948,11 +957,14 @@ OpenAPI 页面默认展示规范中的全部接口。配置 `filter.tags` 后，
 
 ---
 
-## `ssg`
+## `features.ssg`
 
 ```ts
-ssg: {
+features: {
+  ssg: {
+    enabled?: boolean,
   failOnError?: boolean
+  }
 }
 ```
 
@@ -962,8 +974,10 @@ ssg: {
 
 ```ts
 export default defineConfig({
-  ssg: {
+  features: {
+    ssg: {
     failOnError: true,
+    },
   },
 })
 ```

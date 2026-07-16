@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, readRouteArtifactContent, readRouteContent } from './artifacts.js'
 
 type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
@@ -78,6 +79,7 @@ describe('content artifact helpers', () => {
       },
       theme: resolveThemeConfig(),
       variables: {},
+      features: resolveFeaturesConfig(),
     }
     const routes = [
       route({ path: '/guide', locale: 'en-US', title: 'Guide', description: 'Start here.', artifacts: { contentArtifactUrl: '/guide.md' } }),
@@ -109,6 +111,7 @@ describe('content artifact helpers', () => {
       },
       theme: resolveThemeConfig(),
       variables: {},
+      features: resolveFeaturesConfig(),
     }
     const routes = [
       route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', artifacts: { contentArtifactUrl: '/zh-CN/guide.md' } }),
@@ -132,6 +135,7 @@ describe('content artifact helpers', () => {
       assetPrefix: '/',
       theme: resolveThemeConfig(),
       variables: {},
+      features: resolveFeaturesConfig(),
     }
     const routes = [route({ path: '/guide', title: '快速开始', artifacts: { contentArtifactUrl: '/guide.md' } })]
 
@@ -154,6 +158,7 @@ describe('content artifact helpers', () => {
       },
       theme: resolveThemeConfig(),
       variables: {},
+      features: resolveFeaturesConfig(),
     }
     const routes = [
       route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: 'Guide', artifacts: { contentArtifactUrl: '/zh-CN/guide.md' } }),

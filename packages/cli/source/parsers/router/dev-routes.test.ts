@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import {
   toDevRouteEntry,
   resolveRouteForFile,
@@ -38,6 +39,7 @@ const mockProjectConfig: ResolvedProjectConfig = {
   assetPrefix: '/',
   theme: resolveThemeConfig(),
   variables: {},
+  features: resolveFeaturesConfig(),
 }
 
 const mockI18nProjectConfig: ResolvedProjectConfig = {

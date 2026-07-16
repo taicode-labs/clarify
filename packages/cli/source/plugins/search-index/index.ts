@@ -150,6 +150,7 @@ export function createSearchIndexPlugin(): ClarifyPlugin {
     name: 'clarify:search-index',
     hooks: {
       async 'dev:configureServer'(server, ctx) {
+        if (!ctx.projectConfig.features.search.enabled) return
         const pagefind = await import('pagefind') as PagefindModule
         let currentRoot: string | undefined
         const staleRoots = new Set<string>()
@@ -194,6 +195,7 @@ export function createSearchIndexPlugin(): ClarifyPlugin {
         })
       },
       async 'build:done'(ctx) {
+        if (!ctx.projectConfig.features.search.enabled) return
         const outputDirectory = ctx.generateOptions.outputDirectory
         if (!outputDirectory) return
 

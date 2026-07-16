@@ -124,7 +124,6 @@ export type ThemeConfig = {
   preset: ThemePreset;
   tokens: ThemeTokensConfig;
   layout: ThemeLayoutConfig;
-  editor: boolean;
 };
 
 export type PagesItem =
@@ -160,6 +159,19 @@ export type TabItem = {
 
 export type TabsConfig = TabItem[];
 
+export type FeaturesConfig = {
+  search: { enabled: boolean; provider: 'pagefind' | 'none' };
+  editLink: { enabled: boolean };
+  artifacts: { enabled: boolean; content: boolean; llms: boolean; sitemap: boolean; robots: boolean };
+  themeEditor: { enabled: boolean };
+  openapi: {
+    enabled: boolean;
+    playground: boolean;
+    responsePreview: boolean;
+    responseDownload: boolean;
+  };
+};
+
 export type Config = {
   title: string;
   logo?: LogoConfig;
@@ -178,6 +190,7 @@ export type Config = {
   footer?: FooterConfig;
   i18n?: I18nConfig;
   tabs?: TabsConfig;
+  features: FeaturesConfig;
   version?: string;
 };
 

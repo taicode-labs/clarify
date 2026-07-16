@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyHookContext } from '../../types.js'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { createHtmlShellPlugin } from './index.js'
 
 const ctx: ClarifyHookContext = {
@@ -15,6 +16,7 @@ const ctx: ClarifyHookContext = {
     assetPrefix: '/',
     theme: resolveThemeConfig(),
     variables: {},
+    features: resolveFeaturesConfig(),
   },
   generateOptions: {
     projectRoot: '/site',

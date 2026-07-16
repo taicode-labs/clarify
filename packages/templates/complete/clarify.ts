@@ -14,10 +14,10 @@ export default defineConfig({
     },
     dismissible: true,
   },
-  i18n: {
-    defaultLocale: 'en-US',
+  locales: {
+    default: 'en-US',
     missing: 'fallback',
-    locales: [
+    options: [
       { code: 'en-US', label: 'English' },
       { code: 'zh-CN', label: '简体中文' },
     ],
@@ -35,7 +35,7 @@ export default defineConfig({
       },
     },
   },
-  navbar: {
+  navigation: {
     links: [
       { label: { 'en-US': 'Guides', 'zh-CN': '指南' }, href: '/guides/writing-content' },
       { label: { 'en-US': 'API', 'zh-CN': '接口' }, href: '/api' },
@@ -53,7 +53,7 @@ export default defineConfig({
       GitHub: 'https://github.com/taicode-labs/clarify',
     },
   },
-  tabs: [
+    tabs: [
     {
       tab: { 'en-US': 'Docs', 'zh-CN': '文档' },
       icon: 'BookOpen',
@@ -92,5 +92,6 @@ export default defineConfig({
         },
       ],
     },
-  ],
+    ],
+  },
 })

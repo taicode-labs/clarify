@@ -4,6 +4,7 @@ import { buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/ro
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
+import { resolveFeaturesConfig } from '../config/config.js'
 import { buildVirtualModules, createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from './virtual-modules.js'
 
 type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
@@ -45,6 +46,7 @@ describe('generateConfigModule', () => {
       assetPrefix: '/',
       theme: resolveThemeConfig({ tokens: { colors: { primary: '#fff' } } }),
       variables: {},
+      features: resolveFeaturesConfig(),
     }
     const generateOptions: ResolvedBuildOptions = {
       projectRoot: '/site',
@@ -53,7 +55,16 @@ describe('generateConfigModule', () => {
       ssg: { failOnError: true },
     }
     const code = generateConfigModule(projectConfig, generateOptions)
-    const expected = { ...projectConfig, ...generateOptions }
+    const expected = {
+      title: projectConfig.title,
+      theme: projectConfig.theme,
+      description: projectConfig.description,
+      rootDirectory: generateOptions.rootDirectory,
+      routePrefix: projectConfig.routePrefix,
+      assetPrefix: projectConfig.assetPrefix,
+      outputDirectory: generateOptions.outputDirectory,
+      features: projectConfig.features,
+    }
     expect(code).toBe(`export const config = ${JSON.stringify(expected)};`)
   })
 })
@@ -130,6 +141,7 @@ describe('generateRoutesModule', () => {
       assetPrefix: '/',
       theme: resolveThemeConfig(),
       variables: {},
+      features: resolveFeaturesConfig(),
       tabs: [
         { tab: 'Docs', pages: [{ group: 'Guide', pages: ['index', 'about'] }] },
       ],
@@ -179,6 +191,7 @@ describe('buildVirtualModules', () => {
         assetPrefix: '/',
         theme: resolveThemeConfig(),
         variables: {},
+        features: resolveFeaturesConfig(),
       },
       generateOptions: {
         projectRoot: '/site',

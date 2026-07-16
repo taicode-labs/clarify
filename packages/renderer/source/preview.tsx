@@ -148,12 +148,18 @@ const previewConfig = {
     layout: {
       maxWidth: '88rem',
     },
-    editor: false,
   },
   i18n: {
     defaultLocale: 'en',
     missing: 'fallback',
     locales: [{ code: 'en', label: 'English' }],
+  },
+  features: {
+    search: { enabled: true, provider: 'pagefind' },
+    editLink: { enabled: true },
+    artifacts: { enabled: true, content: true, llms: true, sitemap: true, robots: true },
+    themeEditor: { enabled: true },
+    openapi: { enabled: true, playground: true, responsePreview: true, responseDownload: true },
   },
 } satisfies Config
 

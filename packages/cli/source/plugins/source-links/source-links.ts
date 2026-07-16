@@ -1,6 +1,6 @@
 import { relative } from 'node:path'
 
-import type { ClarifySourceConfig, ContentRoute } from '../../types.js'
+import type { ClarifyEditLinkConfig, ContentRoute } from '../../types.js'
 
 function trimSlashes(value: string): string {
   return value.replace(/^\/+|\/+$/g, '')
@@ -18,7 +18,8 @@ function encodePath(path: string): string {
     .join('/')
 }
 
-export function createSourceEditUrl(filePath: string, contentRoot: string, source: ClarifySourceConfig): string {
+export function createSourceEditUrl(filePath: string, contentRoot: string, source: ClarifyEditLinkConfig): string {
+  if (!source.repository) return ''
   const repository = normalizeRepositoryUrl(source.repository)
   const branch = source.branch ?? 'main'
   const directory = source.directory ? trimSlashes(source.directory) : ''
@@ -27,7 +28,7 @@ export function createSourceEditUrl(filePath: string, contentRoot: string, sourc
   return `${repository}/edit/${encodeURIComponent(branch)}/${encodePath(sourcePath)}`
 }
 
-export function attachSourceEditUrls(routes: ContentRoute[], contentRoot: string, source?: ClarifySourceConfig): void {
+export function attachSourceEditUrls(routes: ContentRoute[], contentRoot: string, source?: ClarifyEditLinkConfig): void {
   if (!source) return
   for (const route of routes) {
     route.source = {

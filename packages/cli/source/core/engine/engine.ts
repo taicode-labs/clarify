@@ -252,7 +252,7 @@ export class ClarifyEngine {
         routes: this.routes,
         navigation: this.navigation,
         plugins: this.plugins,
-        themeEditor: this.runtime.command === 'serve' || this.runtime.themeEditor === true || this.projectConfig.theme.editor,
+        themeEditor: this.runtime.command === 'serve' || this.runtime.themeEditor === true || this.projectConfig.features.themeEditor.enabled,
         version: this.ctx.version,
       })
       this.virtualModules = await runHooks(this.plugins, 'modules:before', this.virtualModules, this.ctx)
@@ -300,7 +300,7 @@ export class ClarifyEngine {
   }
 
   async runSSG(): Promise<void> {
-    if (!this.buildEnabled) return
+    if (!this.buildEnabled || !this.projectConfig.features.ssg.enabled) return
     await runPhase(this.plugins, 'ssg', this.ctx, async () => {
       if (process.env.SKIP_CLARIFY_SSG) return
 

@@ -86,9 +86,9 @@ describe('ClarifyContext', () => {
       projectRoot: '/site',
       contentRoot: '/site/source',
       projectConfig: resolveProjectConfig({
-        i18n: {
-          defaultLocale: 'en-US',
-          locales: [{ code: 'en-US', label: 'English' }],
+        locales: {
+          default: 'en-US',
+          options: [{ code: 'en-US', label: 'English' }],
         },
       }),
       generateOptions: resolveBuildOptions({ projectRoot: '/site' }),

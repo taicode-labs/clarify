@@ -29,12 +29,15 @@ export async function resolveProjectContext(options: ClarifyBuildOptions = {}, e
     ? await loadClarifyConfig(projectRoot, env)
     : {}
 
+  const rootDirectory = options.rootDirectory ?? config.contentDir ?? initialBuildOptions.rootDirectory
+  const outputDirectory = options.outputDirectory ?? config.outputDir ?? initialBuildOptions.outputDirectory
+
   const mergedOptions: ClarifyBuildOptions = {
     ...config,
     ...options,
     projectRoot,
-    rootDirectory: initialBuildOptions.rootDirectory,
-    outputDirectory: initialBuildOptions.outputDirectory,
+    rootDirectory,
+    outputDirectory,
   }
   const resolvedProjectConfig = resolveProjectConfig(mergedOptions)
   const resolvedBuildOptions = resolveBuildOptions(mergedOptions)

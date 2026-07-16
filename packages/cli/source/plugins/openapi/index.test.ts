@@ -7,6 +7,7 @@ import { describe, expect, it, afterEach, beforeEach } from 'vitest'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
+import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { createOpenAPIPlugin } from './index.js'
 
 const sectionIdExtension = 'x-clarify-section-id'
@@ -18,6 +19,7 @@ const projectConfig: ResolvedProjectConfig = {
   assetPrefix: '/',
   theme: resolveThemeConfig({ tokens: { colors: { primary: '#000000' } } }),
   variables: {},
+  features: resolveFeaturesConfig(),
 }
 
 const generateOptions: ResolvedBuildOptions = {

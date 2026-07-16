@@ -7,13 +7,16 @@ import type { ConfigEnv } from 'vite'
 import type { ClarifyProjectConfig } from '../../types.js'
 
 import { validateProjectConfig } from './config.js'
-import type { ClarifyBuildOptions } from './options.js'
+import type { ClarifyPlugin } from '../../types.js'
 
-export type ClarifyConfig = ClarifyProjectConfig & Pick<ClarifyBuildOptions, 'plugins' | 'ssg'>
+export type ClarifyConfig = ClarifyProjectConfig & {
+  plugins?: ClarifyPlugin[]
+}
 
 export function defineConfig(config: ClarifyConfig): ClarifyConfig {
-  validateProjectConfig(config)
-  return config
+  const projectConfig = validateProjectConfig(config)
+  if (!config.plugins && Object.keys(projectConfig).length === Object.keys(config).length) return config
+  return config.plugins ? { ...projectConfig, plugins: config.plugins } : projectConfig
 }
 
 /**
@@ -45,13 +48,7 @@ function assertConfigObject(config: unknown, configFile: string): Record<string,
 function loadJsonConfig(configFile: string): ClarifyConfig {
   const config = assertConfigObject(JSON.parse(readFileSync(configFile, 'utf-8')), configFile)
   const projectConfig = validateProjectConfig(config)
-  const ssg = config.ssg && typeof config.ssg === 'object' && !Array.isArray(config.ssg)
-    ? config.ssg as ClarifyConfig['ssg']
-    : undefined
-  return {
-    ...projectConfig,
-    ...(ssg ? { ssg } : {}),
-  }
+  return config.plugins ? { ...projectConfig, plugins: config.plugins as ClarifyPlugin[] } : projectConfig
 }
 
 export async function loadClarifyConfig(root: string, env: ConfigEnv): Promise<ClarifyConfig> {

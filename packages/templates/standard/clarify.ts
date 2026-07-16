@@ -18,7 +18,7 @@ export default defineConfig({
       },
     },
   },
-  navbar: {
+  navigation: {
     links: [
       { label: 'Guides', href: '/guides/writing-content' },
       { label: 'Changelog', href: '/changelog' },
@@ -36,7 +36,7 @@ export default defineConfig({
       GitHub: 'https://github.com/taicode-labs/clarify',
     },
   },
-  tabs: [
+    tabs: [
     {
       tab: 'Docs',
       icon: 'BookOpen',
@@ -53,5 +53,6 @@ export default defineConfig({
         },
       ],
     },
-  ],
+    ],
+  },
 })

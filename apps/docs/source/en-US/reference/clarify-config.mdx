@@ -32,10 +32,16 @@ export default defineConfig({
   title: 'Clarify Docs',
   description: 'Official Clarify documentation — an open-source documentation publishing tool',
   siteUrl: 'https://docs.example.com',
-  source: {
-    repository: 'https://github.com/acme/docs',
-    branch: 'main',
-    directory: 'docs/source',
+  contentDir: 'docs/source',
+  outputDir: 'output',
+  base: '/docs/',
+  features: {
+    editLink: {
+      repository: 'https://github.com/acme/docs',
+      branch: 'main',
+      directory: 'docs/source',
+    },
+    ssg: { failOnError: true },
   },
   logo: {
     light: '/logo-light.svg',
@@ -111,7 +117,10 @@ export default defineConfig({
 | `title` | `string` | `"Clarify Docs"` | Site title. Used in sidebar branding, browser titles, SEO title fallbacks, and site metadata. Prefer the product or documentation center name, not a page title. |
 | `description` | `string` | `""` | Site-level description. Used as a fallback for SEO metadata, `llms.txt`, and sharing summaries. Write one concise sentence that explains the audience and purpose. |
 | `siteUrl` | `string` | — | Public production URL, including protocol. When configured, `clarify build` generates absolute-URL `sitemap.xml` and `robots.txt` files. |
-| `source` | `{ repository: string; branch?: string; directory?: string }` | — | Source repository metadata. Used to generate “Edit this page” links from rendered pages back to source MDX or OpenAPI files. |
+| `contentDir` | `string` | `"source"` | Content source directory. |
+| `outputDir` | `string` | — | Build output directory. |
+| `base` | `string` | `"/"` | Deployment path for the site. |
+| `assets` | `string` | `base` | Base path or URL for emitted assets. |
 | `logo` | `string \| { light?: string; dark?: string }` | — | Brand logo. Use a single asset for all modes, or provide separate light/dark assets. |
 | `favicon` | `string \| { light?: string; dark?: string }` | — | Browser tab icon. Supports a single path or light/dark variants. `.ico`, `.svg`, and complete `.png` icon sets work well. |
 | `homeUrl` | `string` | `"/"` | URL used when clicking the site branding/logo in the header. |
@@ -124,7 +133,7 @@ export default defineConfig({
 | `variables` | `Record<string, string \| number \| boolean \| object>` | `{}` | Global project variables. Use them in MDX frontmatter, page body, and OpenAPI JSON/YAML specs with `{{ name }}` or `{{ nested.name }}` placeholders for product names, versions, links, contacts, API base URLs, and legal text. |
 | `i18n` | `ClarifyI18nConfig` | — | Internationalization configuration: locales, default locale, text direction, and missing-translation behavior. |
 | `tabs` | `ClarifyTabsConfig` | Generated automatically from the file tree | First-level site categories and each category’s sidebar structure. Omit it to generate navigation from the content directory. |
-| `ssg` | `{ failOnError?: boolean }` | `{ failOnError: true }` | Static generation policy. Controls whether a page prerendering error fails the entire build. |
+| `features` | `ClarifyFeaturesConfig` | All enabled | Optional capabilities and their detailed settings. `editLink` configures source repositories and `ssg` controls static generation. |
 | `plugins` | `ClarifyPlugin[]` | `[]` | Build-time plugins. Available only in `clarify.ts` or `clarify.js`, not in `clarify.json`. |
 
 Theme overrides are also available through `theme.tokens.colors`, `theme.tokens.radius`, and `theme.layout.maxWidth`. The `theme.editor` flag controls whether the built-in theme editor is exposed in the site.
@@ -150,11 +159,11 @@ Recommendations:
 
 ---
 
-## `siteUrl` and `source`
+## `siteUrl` and `features.editLink`
 
 `siteUrl` is the final production URL and must include the protocol, for example `https://docs.example.com`. If the docs are deployed under a subpath, include that subpath in `siteUrl` and configure `routePrefix` accordingly.
 
-`source` powers “Edit this page” links:
+`features.editLink` powers “Edit this page” links:
 
 | Field | Required | Description |
 |-------|----------|-------------|
@@ -179,22 +188,22 @@ export default defineConfig({
 
 ```ts title="Edit links"
 export default defineConfig({
-  source: {
+  features: { editLink: {
     repository: 'https://github.com/acme/docs',
     branch: 'main',
     directory: 'apps/docs/source',
-  },
+  } },
 })
 ```
 
 ```json title="JSON config"
 {
   "siteUrl": "https://docs.example.com",
-  "source": {
+  "features": { "editLink": {
     "repository": "https://github.com/acme/docs",
     "branch": "main",
     "directory": "source"
-  }
+  } }
 }
 ```
 
@@ -948,11 +957,14 @@ OpenAPI pages display all endpoints in the specification by default. After confi
 
 ---
 
-## `ssg`
+## `features.ssg`
 
 ```ts
-ssg: {
+features: {
+  ssg: {
+    enabled?: boolean,
   failOnError?: boolean
+  }
 }
 ```
 
@@ -962,8 +974,10 @@ ssg: {
 
 ```ts
 export default defineConfig({
-  ssg: {
+  features: {
+    ssg: {
     failOnError: true,
+    },
   },
 })
 ```

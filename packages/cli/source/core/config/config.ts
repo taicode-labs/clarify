@@ -1,9 +1,9 @@
 import type { ZodError } from 'zod'
 
 import { resolveThemeConfig } from '../../parsers/theme.js'
-import type { ClarifyI18nConfig, ClarifyProjectConfig, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyFeaturesConfig, ClarifyLocalesConfig, ClarifyProjectConfig, ResolvedClarifyFeaturesConfig, ResolvedClarifyI18nConfig, ResolvedProjectConfig } from '../../types.js'
 
-import { clarifyProjectConfigSchema } from './config-schema.js'
+import { clarifyFeaturesConfigSchema, clarifyProjectConfigSchema } from './config-schema.js'
 
 function formatIssuePath(path: PropertyKey[]): string {
   return path.reduce<string>((result, segment) => {
@@ -31,18 +31,22 @@ export function validateProjectConfig(value: unknown): ClarifyProjectConfig {
   return result.data
 }
 
-function resolveI18nConfig(i18n?: ClarifyI18nConfig): ResolvedClarifyI18nConfig | undefined {
-  if (!i18n) return undefined
+function resolveLocalesConfig(locales?: ClarifyLocalesConfig): ResolvedClarifyI18nConfig | undefined {
+  if (!locales) return undefined
 
-  const firstLocale = i18n.locales[0]?.code
-  const defaultLocale = i18n.defaultLocale ?? firstLocale
+  const firstLocale = locales.options[0]?.code
+  const defaultLocale = locales.default ?? firstLocale
   if (!defaultLocale) return undefined
 
   return {
     defaultLocale,
-    missing: i18n.missing ?? 'fallback',
-    locales: i18n.locales,
+    missing: locales.missing ?? 'fallback',
+    locales: locales.options,
   }
+}
+
+export function resolveFeaturesConfig(features: ClarifyFeaturesConfig = {}): ResolvedClarifyFeaturesConfig {
+  return clarifyFeaturesConfigSchema.parse(features) as unknown as ResolvedClarifyFeaturesConfig
 }
 
 function resolveRoutePrefix(routePrefix?: string): string {
@@ -64,24 +68,27 @@ function resolveAssetPrefix(assetPrefix: string | undefined, routePrefix: string
 }
 
 export function resolveProjectConfig(config: ClarifyProjectConfig = {}): ResolvedProjectConfig {
-  const routePrefix = resolveRoutePrefix(config.routePrefix)
+  const routePrefix = resolveRoutePrefix(config.base)
 
   return {
     title: config.title ?? 'Clarify Docs',
     description: config.description ?? '',
     siteUrl: config.siteUrl,
-    source: config.source,
+    source: config.features?.editLink && typeof config.features.editLink !== 'boolean' && config.features.editLink.repository
+      ? { repository: config.features.editLink.repository, branch: config.features.editLink.branch, directory: config.features.editLink.directory }
+      : undefined,
     logo: config.logo,
     homeUrl: config.homeUrl,
     favicon: config.favicon,
     routePrefix,
-    assetPrefix: resolveAssetPrefix(config.assetPrefix, routePrefix),
+    assetPrefix: resolveAssetPrefix(config.assets, routePrefix),
     theme: resolveThemeConfig(config.theme),
-    navbar: config.navbar,
+    navbar: config.navigation?.links ? { links: config.navigation.links } : undefined,
     banner: config.banner,
     footer: config.footer,
     variables: config.variables ?? {},
-    i18n: resolveI18nConfig(config.i18n),
-    tabs: config.tabs,
+    i18n: resolveLocalesConfig(config.locales),
+    tabs: config.navigation?.tabs,
+    features: resolveFeaturesConfig(config.features),
   }
 }

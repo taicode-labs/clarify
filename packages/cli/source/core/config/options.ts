@@ -1,5 +1,7 @@
 import type { ClarifyPlugin, ClarifyProjectConfig } from '../../types.js'
 
+import { clarifyProjectConfigSchema } from './config-schema.js'
+
 export type ClarifyBuildOptions = ClarifyProjectConfig & {
   /** Project root directory. Defaults to the current working directory. */
   projectRoot?: string
@@ -27,12 +29,15 @@ export type ResolvedBuildOptions = {
 }
 
 export function resolveBuildOptions(options: ClarifyBuildOptions = {}): ResolvedBuildOptions {
+  const config = clarifyProjectConfigSchema.parse(options)
   return {
     projectRoot: options.projectRoot ?? process.cwd(),
-    rootDirectory: options.rootDirectory ?? 'source',
-    outputDirectory: options.outputDirectory,
+    rootDirectory: options.rootDirectory ?? config.contentDir,
+    outputDirectory: options.outputDirectory ?? config.outputDir,
     ssg: {
-      failOnError: options.ssg?.failOnError ?? true,
+      failOnError: config.features?.ssg && typeof config.features.ssg !== 'boolean' && 'failOnError' in config.features.ssg
+        ? config.features.ssg.failOnError
+        : true,
     },
   }
 }

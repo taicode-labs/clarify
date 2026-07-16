@@ -77,7 +77,26 @@ export function resolveVirtualModuleId(id: string, modules: VirtualModules, rout
 }
 
 export function generateConfigModule(projectConfig: ResolvedProjectConfig, buildOptions: ResolvedBuildOptions, version?: string): string {
-  const runtimeConfig: Record<string, unknown> = { ...projectConfig, ...buildOptions }
+  const runtimeConfig: Record<string, unknown> = {
+    title: projectConfig.title,
+    logo: projectConfig.logo,
+    homeUrl: projectConfig.homeUrl,
+    favicon: projectConfig.favicon,
+    theme: projectConfig.theme,
+    description: projectConfig.description,
+    siteUrl: projectConfig.siteUrl,
+    source: projectConfig.source,
+    rootDirectory: buildOptions.rootDirectory,
+    routePrefix: projectConfig.routePrefix,
+    assetPrefix: projectConfig.assetPrefix,
+    outputDirectory: buildOptions.outputDirectory,
+    navbar: projectConfig.navbar,
+    banner: projectConfig.banner,
+    footer: projectConfig.footer,
+    i18n: projectConfig.i18n,
+    tabs: projectConfig.tabs,
+    features: projectConfig.features,
+  }
   if (version) {
     runtimeConfig.version = version
   }
