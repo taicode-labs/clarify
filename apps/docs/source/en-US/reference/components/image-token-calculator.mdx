@@ -1,0 +1,21 @@
+# ImageTokenCalculator
+
+`ImageTokenCalculator` estimates `gpt-image-2` image output tokens from quality and size. It updates the result immediately and explains invalid model dimensions.
+
+## Live demo
+
+<ImageTokenCalculator />
+
+## Basic usage
+
+```mdx
+<ImageTokenCalculator />
+```
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `model` | `'gpt-image-2'` | `'gpt-image-2'` | Image-model calculation rules |
+
+<Callout type="note">The result matches OpenAI's current public `gpt-image-2` page calculator and is an estimate, not an API billing settlement.</Callout>

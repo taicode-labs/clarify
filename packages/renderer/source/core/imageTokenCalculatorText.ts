@@ -1,0 +1,38 @@
+export const imageTokenCalculatorText = {
+  en: {
+    'imageTokenCalculator.quality': 'Quality',
+    'imageTokenCalculator.low': 'Low',
+    'imageTokenCalculator.medium': 'Medium',
+    'imageTokenCalculator.high': 'High',
+    'imageTokenCalculator.width': 'Width',
+    'imageTokenCalculator.height': 'Height',
+    'imageTokenCalculator.outputTokens': 'Output tokens',
+    'imageTokenCalculator.invalidSize': 'Invalid size',
+    'imageTokenCalculator.sizeRules': 'Size rules',
+    'imageTokenCalculator.positiveIntegers': 'Enter whole-number width and height values greater than 0.',
+    'imageTokenCalculator.divisibleBy16': 'Width and height must both be divisible by 16.',
+    'imageTokenCalculator.pixelMinimum': 'Pixel budget must be at least 655,360 pixels, inclusive.',
+    'imageTokenCalculator.pixelMaximum': 'Pixel budget must be no greater than 8,294,400 pixels, inclusive.',
+    'imageTokenCalculator.maximumEdge': 'Maximum edge length must be less than or equal to 3,840px.',
+    'imageTokenCalculator.aspectRatio': 'Aspect ratio must be no greater than 3:1.',
+  },
+  'zh-CN': {
+    'imageTokenCalculator.quality': 'Quality（质量）',
+    'imageTokenCalculator.low': 'Low（低）',
+    'imageTokenCalculator.medium': 'Medium（中）',
+    'imageTokenCalculator.high': 'High（高）',
+    'imageTokenCalculator.width': 'Width（宽度）',
+    'imageTokenCalculator.height': 'Height（高度）',
+    'imageTokenCalculator.outputTokens': '输出 Token',
+    'imageTokenCalculator.invalidSize': '尺寸无效',
+    'imageTokenCalculator.sizeRules': '尺寸规则',
+    'imageTokenCalculator.positiveIntegers': '请输入大于 0 的整数宽度和高度。',
+    'imageTokenCalculator.divisibleBy16': '宽度和高度都必须是 16 的倍数。',
+    'imageTokenCalculator.pixelMinimum': '像素总量不得少于 655,360。',
+    'imageTokenCalculator.pixelMaximum': '像素总量不得超过 8,294,400。',
+    'imageTokenCalculator.maximumEdge': '最长边不得超过 3,840px。',
+    'imageTokenCalculator.aspectRatio': '宽高比不得超过 3:1。',
+  },
+} as const
+
+export type ImageTokenCalculatorTextKey = keyof typeof imageTokenCalculatorText.en

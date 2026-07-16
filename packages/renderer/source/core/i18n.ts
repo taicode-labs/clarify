@@ -1,6 +1,7 @@
 import { useContext } from 'react'
 
 import { ConfigContext, LocaleContext } from './context'
+import { imageTokenCalculatorText, type ImageTokenCalculatorTextKey } from './imageTokenCalculatorText'
 
 export type BuiltInLocale = 'en' | 'zh-CN'
 
@@ -156,6 +157,7 @@ export type BuiltInTextKey =
   | 'mermaid.resetZoom'
   | 'mermaid.renderError'
   | 'mermaid.scrollHint'
+  | ImageTokenCalculatorTextKey
 
 const builtInText = {
   en: {
@@ -310,6 +312,7 @@ const builtInText = {
     'mermaid.resetZoom': 'Reset zoom',
     'mermaid.renderError': 'Mermaid render error',
     'mermaid.scrollHint': 'Click the diagram to enable scroll-to-zoom',
+    ...imageTokenCalculatorText.en,
   },
   'zh-CN': {
     'actions.code': '代码',
@@ -463,6 +466,7 @@ const builtInText = {
     'mermaid.resetZoom': '重置缩放',
     'mermaid.renderError': 'Mermaid 渲染错误',
     'mermaid.scrollHint': '点击图表后即可滚轮缩放',
+    ...imageTokenCalculatorText['zh-CN'],
   },
 } satisfies Record<BuiltInLocale, Record<BuiltInTextKey, string>>
 

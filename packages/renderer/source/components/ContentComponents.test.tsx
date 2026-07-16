@@ -7,6 +7,7 @@ import { AccordionGroup } from './AccordionGroup'
 import { Collapse } from './Collapse'
 import { FileTree, FileTreeItem } from './FileTree'
 import { Image } from './Image'
+import { ImageTokenCalculator } from './ImageTokenCalculator'
 import { Tooltip } from './Tooltip'
 
 describe('content components', () => {
@@ -65,6 +66,7 @@ describe('content components', () => {
     expect(components.FileTree).toBe(FileTree)
     expect(components.FileTreeItem).toBe(FileTreeItem)
     expect(components.img).toBe(Image)
+    expect(components.ImageTokenCalculator).toBe(ImageTokenCalculator)
     expect(components).not.toHaveProperty('Figure')
     expect(components.Tooltip).toBe(Tooltip)
   })

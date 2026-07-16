@@ -123,6 +123,7 @@ export default defineConfig({
                   },
                   { page: 'reference/components/steps', title: 'Steps / Step', icon: 'ListOrdered' },
                   { page: 'reference/components/tabs', title: 'Tabs / Tab', icon: 'PanelTop' },
+                  { page: 'reference/components/image-token-calculator', title: 'ImageTokenCalculator', icon: 'Calculator' },
                   { page: 'reference/components/callout', title: 'Callout', icon: 'MessageSquareWarning' },
                   { page: 'reference/components/note', title: 'Note', icon: 'StickyNote' },
                   { page: 'reference/components/card', title: 'CardGroup / Card', icon: 'PanelsTopLeft' },

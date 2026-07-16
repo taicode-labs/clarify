@@ -1,0 +1,21 @@
+# ImageTokenCalculator
+
+`ImageTokenCalculator` 根据质量和尺寸估算 `gpt-image-2` 的图片输出 Token。它会实时计算结果，并提示不符合模型要求的尺寸。
+
+## 在线体验
+
+<ImageTokenCalculator />
+
+## 基础用法
+
+```mdx
+<ImageTokenCalculator />
+```
+
+## 属性
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `model` | `'gpt-image-2'` | `'gpt-image-2'` | 使用的图片模型计算规则 |
+
+<Callout type="note">计算结果与 OpenAI 当前公开的 `gpt-image-2` 页面计算器保持一致，用于估算而非 API 计费结算。</Callout>
