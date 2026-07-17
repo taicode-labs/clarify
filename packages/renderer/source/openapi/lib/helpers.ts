@@ -193,6 +193,37 @@ export function getExampleEntries(mediaType?: OpenApiMediaType, spec?: OpenAPISp
   return typeof generated === 'undefined' ? [] : [{ key: 'schema', title: 'schema', value: generated, generated: true }]
 }
 
+export function getParameterExampleEntries(parameter: OpenApiParameter): ExampleEntry[] {
+  if (isRecord(parameter.examples)) {
+    const examples: ExampleEntry[] = []
+
+    for (const [key, example] of Object.entries(parameter.examples)) {
+      const value = getExampleValue(example)
+      if (typeof value === 'undefined') continue
+
+      const { title, summary } = getExampleTitle(key, example)
+      examples.push({ key, title, summary, value })
+    }
+
+    if (examples.length > 0) return examples
+  }
+
+  return typeof parameter.example === 'undefined' ? [] : [{ key: 'default', title: 'Example', value: parameter.example }]
+}
+
+export function getRequestExampleEntries(parameters: OpenApiParameter[], mediaType?: OpenApiMediaType): ExampleEntry[] {
+  const entries = new Map<string, ExampleEntry>()
+
+  for (const example of getExampleEntries(mediaType).filter((entry) => !entry.generated)) entries.set(example.key, example)
+  for (const parameter of parameters) {
+    for (const example of getParameterExampleEntries(parameter)) {
+      if (!entries.has(example.key)) entries.set(example.key, example)
+    }
+  }
+
+  return [...entries.values()]
+}
+
 export function getContentExample(mediaType?: OpenApiMediaType): unknown {
   return getExampleEntries(mediaType)[0]?.value
 }

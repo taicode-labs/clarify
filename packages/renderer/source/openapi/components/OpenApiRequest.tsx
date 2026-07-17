@@ -1,11 +1,11 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import clsx from 'clsx'
-import { EraserIcon, RotateCcwIcon, XIcon } from 'lucide-react'
-import { type ReactNode } from 'react'
+import { EraserIcon, RotateCcwIcon, ServerIcon, XIcon } from 'lucide-react'
+import { type ReactNode, useState } from 'react'
 
 import { useBuiltInText } from '../../core/i18n'
 import { buildApiRequest, parameterKey } from '../lib/api-request'
-import { getOperationParameters, isRecord, resolveSchema, stringifyExample } from '../lib/helpers'
+import { getOperationParameters, getRequestExampleEntries, isRecord, resolveSchema, stringifyExample } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
 import type { OpenApiParameter } from '../types'
 
@@ -35,6 +35,7 @@ type OpenApiRequestDialogProps = OpenApiRequestWorkbenchProps & {
 }
 
 function initialParameterValue(spec: OpenAPISpec, parameter: OpenApiParameter): string {
+  if (typeof parameter.example !== 'undefined') return stringifyExample(parameter.example)
   const schema = resolveSchema(spec, parameter.schema)
   if (!isRecord(schema)) return ''
   const value = schema.example ?? schema.default ?? (Array.isArray(schema.enum) ? schema.enum[0] : undefined)
@@ -53,9 +54,12 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
   const t = useBuiltInText()
   const parameters = getOperationParameters(spec, path, operation, operationSource)
   const requestTarget = useOpenApiRequestTarget(spec, path, operation, operationSource)
-  const { servers, selectedServer, selectedServerKey, serverVariables, setServerVariables, serverVariableEntries, selectServer, authOptions, selectedAuthName, setSelectedAuthName, selectedAuth, credentialScope, credentials, setCredential, clearCredential, requestContents, mediaType, selectedContent, body, setBody, bodyFiles, setBodyFile, selectMediaType } = requestTarget
-  const parameterState = useOpenApiParameterState(spec, parameters, (parameter) => initialParameterValue(spec, parameter))
-  const { parameterValues, parameterEnabled, parameterIssues, setParameterGroupValues, setParameterIncluded, updateParameterValue } = parameterState
+  const { servers, selectedServer, selectedServerKey, serverVariables, setServerVariables, serverVariableEntries, selectServer, authOptions, selectedAuthName, setSelectedAuthName, selectedAuth, credentialScope, credentials, setCredential, clearCredential, requestContents, mediaType, selectedContent, body, setBody, bodyFiles, setBodyFile, applyBodyExample, selectMediaType } = requestTarget
+  const requestExamples = getRequestExampleEntries(parameters, selectedContent?.value)
+  const [selectedRequestExampleKey, setSelectedRequestExampleKey] = useState(requestExamples[0]?.key ?? '')
+  const currentRequestExampleKey = requestExamples.some((example) => example.key === selectedRequestExampleKey) ? selectedRequestExampleKey : requestExamples[0]?.key ?? ''
+  const parameterState = useOpenApiParameterState(spec, parameters, (parameter) => initialParameterValue(spec, parameter), currentRequestExampleKey)
+  const { parameterValues, parameterEnabled, parameterIssues, setParameterGroupValues, setParameterIncluded, updateParameterValue, applyParameterExample } = parameterState
   const requestExecution = useOpenApiRequestExecution()
   const { exchange, error, sending, execute } = requestExecution
   const parameterGroups = ['cookie', 'header', 'query'].map((location) => ({
@@ -64,6 +68,20 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
   })).filter((group) => group.parameters.length > 0)
   const pathParameters = parameters.filter((parameter) => parameter.in === 'path')
   const hasRequestConfiguration = authOptions.length > 0 || serverVariableEntries.length > 0 || parameters.length > 0 || requestContents.length > 0
+
+  function applyRequestExample(exampleKey: string) {
+    setSelectedRequestExampleKey(exampleKey)
+    applyParameterExample(exampleKey)
+    applyBodyExample(exampleKey)
+  }
+
+  function selectRequestMediaType(value: string) {
+    const content = requestContents.find((entry) => entry.mediaType === value)?.value
+    const nextExampleKey = getRequestExampleEntries(parameters, content)[0]?.key ?? ''
+    selectMediaType(value)
+    setSelectedRequestExampleKey(nextExampleKey)
+    applyParameterExample(nextExampleKey)
+  }
   async function sendRequest() {
     const enabledParameters = parameters.filter((parameter) => parameterEnabled[parameterKey(parameter)] !== false)
     const issues = parameterState.validate(enabledParameters)
@@ -111,19 +129,40 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
 
   function renderHeader() {
     return (
-      <div className="flex min-w-0 items-center gap-1.5 border-b border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-2">
-        <EndpointMethodBadge method={method.toUpperCase()} />
-        {servers.length > 0 ? <InlineListbox
-          label={t('openapi.server')}
-          value={selectedServerKey}
-          options={servers.map((server, index) => ({ value: getServerKey(server, index), label: server.url ?? `Server ${index + 1}`, description: server.description }))}
-          onChange={selectServer}
-          className="min-w-0 max-w-48 shrink sm:max-w-48"
-          buttonClassName="flex h-8 min-w-0 max-w-full items-center gap-1 rounded-(--clarify-theme-tokens-radius-md) px-2 text-xs font-medium text-(--clarify-ui-text-strong) outline-hidden transition hover:bg-(--clarify-ui-hover-background) focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary)"
-        /> : null}
-        <span className="min-w-0 flex-1 overflow-x-auto border-l border-(--clarify-theme-tokens-colors-border) pl-2 font-mono text-xs text-(--clarify-theme-tokens-colors-foreground)">{path || '/'}</span>
-        <SendRequestButton label={sending ? t('openapi.sendingRequest') : t('openapi.sendRequest')} busy={sending} text={t('openapi.sendRequest')} onClick={sendRequest} />
-        {onClose ? <button type="button" onClick={onClose} aria-label={t('openapi.closeRequest')} title={t('openapi.closeRequest')} className="grid size-8 shrink-0 place-items-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)"><XIcon className="size-4" aria-hidden="true" /></button> : null}
+      <div className="border-b border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)">
+        <div className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] items-center gap-1.5 px-2.5 py-2 lg:grid-cols-[auto_auto_minmax(0,1fr)_minmax(0,14rem)_auto_auto]">
+          <div className="col-start-1 row-start-1">
+            <EndpointMethodBadge method={method.toUpperCase()} />
+          </div>
+          {servers.length > 0 ? <InlineListbox
+            label={t('openapi.server')}
+            value={selectedServerKey}
+            options={servers.map((server, index) => ({ value: getServerKey(server, index), label: server.url ?? `Server ${index + 1}`, description: server.description }))}
+            onChange={selectServer}
+            title={selectedServer.url ?? t('openapi.server')}
+            buttonContent={<ServerIcon className="size-4" aria-hidden="true" />}
+            className="col-start-2 row-start-1 size-8 shrink-0"
+            buttonClassName="grid size-8 place-items-center rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text-soft) outline-hidden transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong) focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary) data-open:bg-(--clarify-ui-active-background)"
+          /> : null}
+          <span className="col-start-3 row-start-1 min-w-0 truncate border-l border-(--clarify-theme-tokens-colors-border) pl-2 font-mono text-xs text-(--clarify-theme-tokens-colors-foreground)" title={path || '/'}>{path || '/'}</span>
+          {requestExamples.length > 1 ? <div className="col-span-full row-start-2 flex min-w-0 items-center gap-0.5 border-t border-(--clarify-theme-tokens-colors-border) pt-2 lg:col-span-1 lg:col-start-4 lg:row-start-1 lg:border-t-0 lg:pt-0">
+            <InlineListbox
+              label={t('openapi.requestExample')}
+              value={currentRequestExampleKey}
+              options={requestExamples.map((example) => ({ value: example.key, label: example.title, description: example.summary }))}
+              onChange={applyRequestExample}
+              className="min-w-0 flex-1"
+              buttonClassName="flex h-8 w-full min-w-0 max-w-full items-center gap-1 rounded-(--clarify-theme-tokens-radius-md) px-2 text-xs font-medium text-(--clarify-ui-text-strong) outline-hidden transition hover:bg-(--clarify-ui-hover-background) focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary)"
+            />
+            <button type="button" title={t('openapi.resetToExample')} aria-label={t('openapi.resetToExample')} onClick={() => applyRequestExample(currentRequestExampleKey)} className="grid size-8 shrink-0 place-items-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)">
+              <RotateCcwIcon className="size-3.5" aria-hidden="true" />
+            </button>
+          </div> : null}
+          <div className="col-start-4 row-start-1 lg:col-start-5">
+            <SendRequestButton label={sending ? t('openapi.sendingRequest') : t('openapi.sendRequest')} busy={sending} text={t('openapi.sendRequest')} onClick={sendRequest} />
+          </div>
+          {onClose ? <button type="button" onClick={onClose} aria-label={t('openapi.closeRequest')} title={t('openapi.closeRequest')} className="col-start-5 row-start-1 grid size-8 shrink-0 place-items-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-soft) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) lg:col-start-6"><XIcon className="size-4" aria-hidden="true" /></button> : null}
+        </div>
       </div>
     )
   }
@@ -146,7 +185,7 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
     if (requestContents.length === 0) return null
     return (
       <RequestSection title={t('openapi.requestBody')} count={1} defaultOpen className="open:grid open:min-h-55 open:grow open:shrink open:basis-55 open:grid-rows-[auto_minmax(11rem,1fr)]" contentClassName={clsx('grid h-full min-h-0', requestContents.length > 1 ? 'grid-rows-[auto_minmax(11rem,1fr)]' : 'grid-rows-[minmax(11rem,1fr)]')}>
-        {requestContents.length > 1 ? <div><InlineListbox label={t('openapi.mediaType')} value={mediaType} options={requestContents.map((entry) => ({ value: entry.mediaType, label: entry.mediaType }))} onChange={selectMediaType} /></div> : null}
+        {requestContents.length > 1 ? <div><InlineListbox label={t('openapi.mediaType')} value={mediaType} options={requestContents.map((entry) => ({ value: entry.mediaType, label: entry.mediaType }))} onChange={selectRequestMediaType} /></div> : null}
         <OpenApiRequestBodyEditor spec={spec} mediaType={mediaType} content={selectedContent?.value} body={body} files={bodyFiles} onBodyChange={setBody} onFileChange={setBodyFile} />
       </RequestSection>
     )

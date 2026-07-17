@@ -21,6 +21,7 @@ type InlineListboxProps = {
   invalid?: boolean
   describedBy?: string
   disabled?: boolean
+  title?: string
 }
 
 type MultiInlineListboxProps = {
@@ -55,7 +56,7 @@ function OptionContent(arg0: OptionContentProps): ReactNode {
 }
 
 export function InlineListbox(arg0: InlineListboxProps): ReactNode {
-  const { label, value, options, onChange, compact = false, buttonContent, buttonClassName, className, invalid, describedBy, disabled = false } = arg0
+  const { label, value, options, onChange, compact = false, buttonContent, buttonClassName, className, invalid, describedBy, disabled = false, title } = arg0
   const selected = options.find((option) => option.value === value)
 
   return (
@@ -65,6 +66,7 @@ export function InlineListbox(arg0: InlineListboxProps): ReactNode {
           aria-label={label}
           aria-invalid={invalid || undefined}
           aria-describedby={describedBy}
+          title={title}
           className={clsx(
             buttonClassName ?? defaultButtonClassName,
             buttonClassName ? null : compact ? 'min-h-7 max-w-32 px-2 py-0.5 text-xs' : 'min-h-8 w-full px-2 text-xs',

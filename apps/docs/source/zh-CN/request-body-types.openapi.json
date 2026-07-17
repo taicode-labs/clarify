@@ -20,6 +20,41 @@
     "summary": "请求体媒体类型测试台",
     "description": "切换文档、表单、multipart、纯文本、XML、YAML 和二进制请求体，用于测试请求编辑器与序列化行为。",
     "security": [],
+    "parameters": [
+      {
+        "name": "tenant",
+        "in": "query",
+        "description": "与请求体示例使用相同 key 的租户类型。",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "personal": {
+            "summary": "个人空间",
+            "value": "personal"
+          },
+          "enterprise": {
+            "summary": "企业空间",
+            "value": "enterprise"
+          }
+        }
+      },
+      {
+        "name": "X-Request-Mode",
+        "in": "header",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "personal": {
+            "value": "standard"
+          },
+          "enterprise": {
+            "value": "managed"
+          }
+        }
+      }
+    ],
     "requestBody": {
       "required": true,
       "description": "选择媒体类型以检查对应的请求编辑器。",
@@ -54,14 +89,32 @@
               }
             }
           },
-          "example": {
-            "title": "请求体测试数据",
-            "settings": {
-              "published": true,
-              "labels": [
-                "openapi",
-                "request"
-              ]
+          "examples": {
+            "personal": {
+              "summary": "个人空间请求",
+              "value": {
+                "title": "个人请求体测试数据",
+                "settings": {
+                  "published": true,
+                  "labels": [
+                    "openapi",
+                    "personal"
+                  ]
+                }
+              }
+            },
+            "enterprise": {
+              "summary": "企业空间请求",
+              "value": {
+                "title": "企业请求体测试数据",
+                "settings": {
+                  "published": false,
+                  "labels": [
+                    "openapi",
+                    "enterprise"
+                  ]
+                }
+              }
             }
           }
         },

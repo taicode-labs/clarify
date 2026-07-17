@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { executeApiRequest, type ApiResponseExchange } from '../lib/api-exchange'
 import { parameterKey } from '../lib/api-request'
-import { getExampleEntries, getMediaTypeEntries, getRequestBody, isRecord, resolveSchema, stringifyExample } from '../lib/helpers'
+import { getExampleEntries, getMediaTypeEntries, getParameterExampleEntries, getRequestBody, isRecord, resolveSchema, stringifyExample } from '../lib/helpers'
 import { validateRequestParameters, type RequestParameterIssue } from '../lib/request-parameters'
 import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
 import { emptyOpenApiCredentials, getOpenApiCredentialScope, useOpenApiStore } from '../store'
@@ -24,6 +24,11 @@ export function initialRequestBody(spec: OpenAPISpec, content?: OpenApiMediaType
     if (isRecord(resolved) && resolved.format === 'binary') delete value[name]
   })
   return stringifyExample(value)
+}
+
+export function requestBodyForExample(spec: OpenAPISpec, content: OpenApiMediaType | undefined, exampleKey: string): string {
+  const example = getExampleEntries(content, spec).find((entry) => !entry.generated && entry.key === exampleKey)
+  return example ? stringifyExample(example.value) : initialRequestBody(spec, content)
 }
 
 export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operation: OpenAPIOperation, operationSource: OpenAPIOperationSource) {
@@ -54,6 +59,11 @@ export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operati
     const content = requestContents.find((entry) => entry.mediaType === value)?.value
     setMediaType(value)
     setBody(initialRequestBody(spec, content))
+    setBodyFiles({})
+  }
+
+  function applyBodyExample(exampleKey: string) {
+    setBody(requestBodyForExample(spec, selectedContent?.value, exampleKey))
     setBodyFiles({})
   }
 
@@ -89,12 +99,16 @@ export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operati
     setBody,
     bodyFiles,
     setBodyFile,
+    applyBodyExample,
     selectMediaType,
   }
 }
 
-export function useOpenApiParameterState(spec: OpenAPISpec, parameters: OpenApiParameter[], initialParameterValue: (parameter: OpenApiParameter) => string) {
-  const [parameterValues, setParameterValues] = useState<Record<string, string>>(() => Object.fromEntries(parameters.map((parameter) => [parameterKey(parameter), initialParameterValue(parameter)])))
+export function useOpenApiParameterState(spec: OpenAPISpec, parameters: OpenApiParameter[], initialParameterValue: (parameter: OpenApiParameter) => string, initialExampleKey = '') {
+  const [parameterValues, setParameterValues] = useState<Record<string, string>>(() => Object.fromEntries(parameters.map((parameter) => {
+    const example = getParameterExampleEntries(parameter).find((entry) => entry.key === initialExampleKey)
+    return [parameterKey(parameter), example ? stringifyExample(example.value) : initialParameterValue(parameter)]
+  })))
   const [parameterEnabled, setParameterEnabled] = useState<Record<string, boolean>>(() => Object.fromEntries(parameters.map((parameter) => [parameterKey(parameter), true])))
   const [parameterIssues, setParameterIssues] = useState<Record<string, RequestParameterIssue>>({})
 
@@ -116,13 +130,21 @@ export function useOpenApiParameterState(spec: OpenAPISpec, parameters: OpenApiP
     setParameterIssues((current) => { const next = { ...current }; delete next[key]; return next })
   }
 
+  function applyParameterExample(exampleKey: string) {
+    setParameterValues(Object.fromEntries(parameters.map((parameter) => {
+      const example = getParameterExampleEntries(parameter).find((entry) => entry.key === exampleKey)
+      return [parameterKey(parameter), example ? stringifyExample(example.value) : initialParameterValue(parameter)]
+    })))
+    setParameterIssues({})
+  }
+
   function validate(parametersToValidate: OpenApiParameter[]) {
     const issues = validateRequestParameters(spec, parametersToValidate, parameterValues)
     setParameterIssues(issues)
     return issues
   }
 
-  return { parameterValues, parameterEnabled, parameterIssues, setParameterGroupValues, setParameterIncluded, updateParameterValue, validate }
+  return { parameterValues, parameterEnabled, parameterIssues, setParameterGroupValues, setParameterIncluded, updateParameterValue, applyParameterExample, validate }
 }
 
 export function useOpenApiRequestExecution() {

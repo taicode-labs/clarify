@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import type { OpenAPISpec } from '../lib/utils'
 
 import { OpenApiRequestBodyEditor } from './OpenApiRequestBodyEditor'
-import { initialRequestBody } from './useOpenApiRequestState'
+import { initialRequestBody, requestBodyForExample } from './useOpenApiRequestState'
 
 const spec = { openapi: '3.1.0', info: { title: 'Test', version: '1' }, paths: {} } as OpenAPISpec
 const noop = () => {}
@@ -77,5 +77,17 @@ describe('OpenApiRequestBodyEditor', () => {
     expect(initialRequestBody(spec, { schema: { type: 'string', format: 'binary' } })).toBe('')
     expect(initialRequestBody(spec, { schema: { type: 'object', properties: { title: { type: 'string' }, upload: { type: 'string', format: 'binary' } } } })).toBe('{\n  "title": "string"\n}')
     expect(initialRequestBody(spec, { example: 'document contents', schema: { type: 'string', format: 'binary' } })).toBe('document contents')
+  })
+
+  it('selects a named body example and falls back to the default example', () => {
+    const content = {
+      examples: {
+        personal: { value: { name: 'Alice' } },
+        enterprise: { value: { name: 'Acme' } },
+      },
+    }
+
+    expect(requestBodyForExample(spec, content, 'enterprise')).toBe('{\n  "name": "Acme"\n}')
+    expect(requestBodyForExample(spec, content, 'missing')).toBe('{\n  "name": "Alice"\n}')
   })
 })

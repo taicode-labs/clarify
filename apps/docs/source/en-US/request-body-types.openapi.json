@@ -20,6 +20,41 @@
     "summary": "Request body media type workbench",
     "description": "Switch between document, form, multipart, text, XML, YAML, and binary request bodies to test the request editor and serialization behavior.",
     "security": [],
+    "parameters": [
+      {
+        "name": "tenant",
+        "in": "query",
+        "description": "Tenant type sharing the same example key as the request body.",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "personal": {
+            "summary": "Personal workspace",
+            "value": "personal"
+          },
+          "enterprise": {
+            "summary": "Enterprise workspace",
+            "value": "enterprise"
+          }
+        }
+      },
+      {
+        "name": "X-Request-Mode",
+        "in": "header",
+        "schema": {
+          "type": "string"
+        },
+        "examples": {
+          "personal": {
+            "value": "standard"
+          },
+          "enterprise": {
+            "value": "managed"
+          }
+        }
+      }
+    ],
     "requestBody": {
       "required": true,
       "description": "Select a media type to inspect its dedicated request editor.",
@@ -54,14 +89,32 @@
               }
             }
           },
-          "example": {
-            "title": "Request body fixture",
-            "settings": {
-              "published": true,
-              "labels": [
-                "openapi",
-                "request"
-              ]
+          "examples": {
+            "personal": {
+              "summary": "Personal workspace request",
+              "value": {
+                "title": "Personal request body fixture",
+                "settings": {
+                  "published": true,
+                  "labels": [
+                    "openapi",
+                    "personal"
+                  ]
+                }
+              }
+            },
+            "enterprise": {
+              "summary": "Enterprise workspace request",
+              "value": {
+                "title": "Enterprise request body fixture",
+                "settings": {
+                  "published": false,
+                  "labels": [
+                    "openapi",
+                    "enterprise"
+                  ]
+                }
+              }
             }
           }
         },

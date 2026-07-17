@@ -108,6 +108,7 @@ export type BuiltInTextKey =
   | 'openapi.request'
   | 'openapi.requestBody'
   | 'openapi.requestBodyEmpty'
+  | 'openapi.requestExample'
   | 'openapi.requestCorsHint'
   | 'openapi.responseBodyProperties'
   | 'openapi.responseHeaders'
@@ -258,6 +259,7 @@ const builtInText = {
     'openapi.unknownContentType': 'Unknown content type',
     'openapi.variables': 'Variables',
     'openapi.requestConfiguration': 'Request configuration',
+    'openapi.requestExample': 'Request example',
     'openapi.requestHeaders': 'Request headers',
     'openapi.request': 'Request',
     'openapi.requestBody': 'Request body',
@@ -411,6 +413,7 @@ const builtInText = {
     'openapi.unknownContentType': '未知内容类型',
     'openapi.variables': '变量',
     'openapi.requestConfiguration': '请求配置',
+    'openapi.requestExample': '请求示例',
     'openapi.requestHeaders': '请求头',
     'openapi.request': '请求',
     'openapi.requestBody': '请求体',

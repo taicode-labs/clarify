@@ -7,6 +7,8 @@ export type OpenApiParameter = {
   in?: string
   required?: boolean
   description?: string
+  example?: unknown
+  examples?: Record<string, unknown>
   style?: string
   explode?: boolean
   allowEmptyValue?: boolean
