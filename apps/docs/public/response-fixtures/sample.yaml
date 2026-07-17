@@ -1,0 +1,6 @@
+message: YAML response fixture
+ready: true
+items:
+  - preview
+  - formatting
+  - highlighting

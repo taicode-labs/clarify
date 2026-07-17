@@ -122,8 +122,8 @@
   .clarify-app {
     --clarify-ui-text-strong: var(--clarify-theme-tokens-colors-foreground);
     --clarify-ui-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 90%, transparent);
-    --clarify-ui-text-soft: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 72%, transparent);
-    --clarify-ui-text-faint: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 58%, transparent);
+    --clarify-ui-text-soft: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 84%, var(--clarify-theme-tokens-colors-background));
+    --clarify-ui-text-faint: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 74%, var(--clarify-theme-tokens-colors-background));
     --clarify-ui-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 6%, transparent);
     --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 12%, transparent);
     --clarify-ui-tab-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 7%, var(--clarify-theme-tokens-colors-surface));
@@ -259,6 +259,15 @@
   }
 
   .clarify-api-response {
+    --shiki-color-text: var(--clarify-ui-text-strong);
+    --shiki-token-constant: #047857;
+    --shiki-token-string: #047857;
+    --shiki-token-comment: #52525b;
+    --shiki-token-keyword: #0369a1;
+    --shiki-token-parameter: #be123c;
+    --shiki-token-function: #6d28d9;
+    --shiki-token-string-expression: #047857;
+    --shiki-token-punctuation: #52525b;
     --clarify-code-background: var(--clarify-theme-tokens-colors-surface);
     --clarify-code-surface: var(--clarify-theme-tokens-colors-surface);
     --clarify-code-header-background: var(--clarify-ui-subtle-background);
@@ -270,6 +279,18 @@
     --clarify-code-control-background: var(--clarify-ui-subtle-background);
     --clarify-code-control-background-hover: var(--clarify-ui-hover-background);
     --clarify-code-control-background-active: var(--clarify-ui-active-background);
+  }
+
+  .dark .clarify-api-response {
+    --shiki-color-text: var(--color-white);
+    --shiki-token-constant: var(--color-emerald-300);
+    --shiki-token-string: var(--color-emerald-300);
+    --shiki-token-comment: var(--color-zinc-500);
+    --shiki-token-keyword: var(--color-sky-300);
+    --shiki-token-parameter: var(--color-pink-300);
+    --shiki-token-function: var(--color-violet-300);
+    --shiki-token-string-expression: var(--color-emerald-300);
+    --shiki-token-punctuation: var(--color-zinc-200);
   }
 
   .clarify-ui-control {

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+  <message>XML response fixture</message>
+  <ready>true</ready>
+  <items>
+    <item>preview</item>
+    <item>highlighting</item>
+  </items>
+</response>

@@ -18,6 +18,7 @@ export type ApiRequestInput = {
   auth?: ApiRequestAuth[]
   mediaType?: string
   body?: string
+  bodyFiles?: Record<string, File>
   baseUrl?: string
 }
 
@@ -35,7 +36,9 @@ function parseBodyObject(body: string): Record<string, unknown> | undefined {
   }
 }
 
-function buildRequestBody(body: string, mediaType: string): BodyInit {
+function buildRequestBody(body: string, mediaType: string, files: Record<string, File>): BodyInit {
+  if (files[''] && !mediaType.includes('multipart/form-data')) return files['']
+
   const values = parseBodyObject(body)
   if (mediaType.includes('application/x-www-form-urlencoded') && values) {
     const params = new URLSearchParams()
@@ -45,7 +48,19 @@ function buildRequestBody(body: string, mediaType: string): BodyInit {
 
   if (mediaType.includes('multipart/form-data') && values) {
     const form = new FormData()
-    Object.entries(values).forEach(([name, value]) => form.append(name, typeof value === 'string' ? value : JSON.stringify(value)))
+    Object.entries(values).forEach(([name, value]) => {
+      const file = files[name]
+      form.append(name, file ?? (typeof value === 'string' ? value : JSON.stringify(value)))
+    })
+    Object.entries(files).forEach(([name, file]) => {
+      if (name && !(name in values)) form.append(name, file)
+    })
+    return form
+  }
+
+  if (mediaType.includes('multipart/form-data') && Object.keys(files).length > 0) {
+    const form = new FormData()
+    Object.entries(files).forEach(([name, file]) => form.append(name, file))
     return form
   }
 
@@ -183,10 +198,11 @@ export function buildApiRequest(input: ApiRequestInput): BuiltApiRequest {
   const url = new URL(joinPath(expandServerUrl(input.server, input.serverVariables ?? {}), path), input.baseUrl)
   query.forEach((value, key) => url.searchParams.append(key, value))
 
-  const body = input.body?.trim()
+  const body = input.body?.trim() ?? ''
   const mediaType = input.mediaType || 'application/json'
-  const requestBody = body && input.method.toUpperCase() !== 'GET' && input.method.toUpperCase() !== 'HEAD'
-    ? buildRequestBody(body, mediaType)
+  const hasBody = Boolean(body) || Object.keys(input.bodyFiles ?? {}).length > 0
+  const requestBody = hasBody && input.method.toUpperCase() !== 'GET' && input.method.toUpperCase() !== 'HEAD'
+    ? buildRequestBody(body, mediaType, input.bodyFiles ?? {})
     : undefined
   if (requestBody && !(requestBody instanceof FormData)) {
     headers.set('Content-Type', mediaType)

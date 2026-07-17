@@ -1,0 +1,232 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "请求体类型测试",
+    "description": "用于测试各种媒体类型请求编辑器与请求体序列化的 OpenAPI 示例。",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.clarify.local/v1"
+    }
+  ],
+  "paths": {
+    "/examples/request-body-types": {
+      "post": {
+    "tags": [
+      "System"
+    ],
+    "operationId": "demoRequestBodyTypes",
+    "summary": "请求体媒体类型测试台",
+    "description": "切换文档、表单、multipart、纯文本、XML、YAML 和二进制请求体，用于测试请求编辑器与序列化行为。",
+    "security": [],
+    "requestBody": {
+      "required": true,
+      "description": "选择媒体类型以检查对应的请求编辑器。",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "title",
+              "settings"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "settings": {
+                "type": "object",
+                "required": [
+                  "published"
+                ],
+                "properties": {
+                  "published": {
+                    "type": "boolean"
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "example": {
+            "title": "请求体测试数据",
+            "settings": {
+              "published": true,
+              "labels": [
+                "openapi",
+                "request"
+              ]
+            }
+          }
+        },
+        "application/vnd.clarify+json": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "event",
+              "payload"
+            ],
+            "properties": {
+              "event": {
+                "type": "string",
+                "enum": [
+                  "page.created",
+                  "page.updated"
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          "example": {
+            "event": "page.created",
+            "payload": {
+              "pageId": "pg_fixture"
+            }
+          }
+        },
+        "application/x-www-form-urlencoded": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "query",
+              "limit"
+            ],
+            "properties": {
+              "query": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20
+              },
+              "includeDrafts": {
+                "type": "boolean",
+                "default": false
+              },
+              "sort": {
+                "type": "string",
+                "enum": [
+                  "relevance",
+                  "updated"
+                ],
+                "default": "relevance"
+              }
+            }
+          },
+          "encoding": {
+            "query": {
+              "style": "form",
+              "explode": true
+            }
+          }
+        },
+        "multipart/form-data": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "file",
+              "description"
+            ],
+            "properties": {
+              "file": {
+                "type": "string",
+                "format": "binary"
+              },
+              "description": {
+                "type": "string"
+              },
+              "visibility": {
+                "type": "string",
+                "enum": [
+                  "public",
+                  "private"
+                ],
+                "default": "private"
+              },
+              "metadata": {
+                "type": "object",
+                "properties": {
+                  "alt": {
+                    "type": "string"
+                  },
+                  "source": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "encoding": {
+            "file": {
+              "contentType": "image/png, image/jpeg, text/plain"
+            },
+            "metadata": {
+              "contentType": "application/json"
+            }
+          }
+        },
+        "text/plain": {
+          "schema": {
+            "type": "string"
+          },
+          "example": "这是用于测试工作台的纯文本请求体。"
+        },
+        "application/xml": {
+          "schema": {
+            "type": "string"
+          },
+          "example": "<request><title>XML 测试</title><enabled>true</enabled></request>"
+        },
+        "application/yaml": {
+          "schema": {
+            "type": "string"
+          },
+          "example": "title: YAML 测试\nenabled: true\nlabels:\n  - openapi\n  - request\n"
+        },
+        "application/octet-stream": {
+          "schema": {
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "已接受所选类型的请求体。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "accepted",
+                "contentType"
+              ],
+              "properties": {
+                "accepted": {
+                  "type": "boolean"
+                },
+                "contentType": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+      }
+    }
+  }
+}

@@ -197,4 +197,40 @@ describe('buildApiRequest', () => {
     expect(multipart.init.body).toBeInstanceOf(FormData)
     expect(new Headers(multipart.init.headers).has('Content-Type')).toBe(false)
   })
+
+  it('includes selected files in multipart bodies without setting the boundary header', () => {
+    const file = new File(['report'], 'report.txt', { type: 'text/plain' })
+    const request = buildApiRequest({
+      method: 'POST',
+      path: '/upload',
+      server: { url: 'https://api.example.com' },
+      parameters: [],
+      parameterValues: {},
+      mediaType: 'multipart/form-data',
+      body: '{"description":"Quarterly report"}',
+      bodyFiles: { upload: file },
+    })
+
+    const body = request.init.body as FormData
+    expect(body).toBeInstanceOf(FormData)
+    expect(body.get('description')).toBe('Quarterly report')
+    expect(body.get('upload')).toBe(file)
+    expect(new Headers(request.init.headers).has('Content-Type')).toBe(false)
+  })
+
+  it('uses a selected file as a binary request body', () => {
+    const file = new File(['image'], 'image.png', { type: 'image/png' })
+    const request = buildApiRequest({
+      method: 'PUT',
+      path: '/avatar',
+      server: { url: 'https://api.example.com' },
+      parameters: [],
+      parameterValues: {},
+      mediaType: 'image/png',
+      bodyFiles: { '': file },
+    })
+
+    expect(request.init.body).toBe(file)
+    expect(new Headers(request.init.headers).get('Content-Type')).toBe('image/png')
+  })
 })

@@ -1,0 +1,138 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Response Body Types",
+    "description": "Same-origin static endpoints for testing formatted text previews, HTML iframe rendering, images, and unsupported Raw fallbacks.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Current Clarify documentation site"
+    }
+  ],
+  "paths": {
+    "/response-fixtures/sample.json": {
+      "get": {
+        "operationId": "getJsonResponseFixture",
+        "summary": "JSON response",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Formatted and highlighted JSON fixture.",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "additionalProperties": true }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.yaml": {
+      "get": {
+        "operationId": "getYamlResponseFixture",
+        "summary": "YAML response",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Formatted and highlighted YAML fixture.",
+            "content": {
+              "text/yaml": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.xml": {
+      "get": {
+        "operationId": "getXmlResponseFixture",
+        "summary": "XML response",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Highlighted XML fixture.",
+            "content": {
+              "text/xml": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.html": {
+      "get": {
+        "operationId": "getHtmlResponseFixture",
+        "summary": "HTML response",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "HTML fixture rendered in a sandboxed iframe.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.txt": {
+      "get": {
+        "operationId": "getTextResponseFixture",
+        "summary": "Plain text response",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Plain text fixture.",
+            "content": {
+              "text/plain": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.csv": {
+      "get": {
+        "operationId": "getCsvResponseFixture",
+        "summary": "CSV response",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Highlighted CSV fixture.",
+            "content": {
+              "text/csv": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/clarify.png": {
+      "get": {
+        "operationId": "getImageResponseFixture",
+        "summary": "PNG image response",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "PNG rendered with the native image element.",
+            "content": {
+              "image/png": { "schema": { "type": "string", "contentEncoding": "binary" } }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.bin": {
+      "get": {
+        "operationId": "getBinaryResponseFixture",
+        "summary": "Unsupported binary response",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Unsupported binary fixture that should expose Raw only.",
+            "content": {
+              "application/octet-stream": { "schema": { "type": "string", "contentEncoding": "binary" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

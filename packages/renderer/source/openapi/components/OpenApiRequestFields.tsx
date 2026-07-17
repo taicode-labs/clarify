@@ -65,7 +65,7 @@ export function RequestField(arg0: RequestFieldProps): ReactNode {
     <Tooltip
       content={<Markdown className="max-w-80 text-left *:first:mt-0 *:last:mb-0">{description}</Markdown>}
       side="bottom"
-      className="mr-1 shrink-0 [&>[role=tooltip]]:w-80 [&>[role=tooltip]]:max-w-[min(20rem,calc(100vw-2rem))] [&>[role=tooltip]]:border [&>[role=tooltip]]:border-(--clarify-theme-tokens-colors-border) [&>[role=tooltip]]:bg-(--clarify-theme-tokens-colors-surface) [&>[role=tooltip]]:p-3 [&>[role=tooltip]]:text-(--clarify-ui-text) [&>[role=tooltip]]:shadow-xl"
+      className="mr-1 shrink-0 *:[[role=tooltip]]:w-80 *:[[role=tooltip]]:max-w-[min(20rem,calc(100vw-2rem))] *:[[role=tooltip]]:border *:[[role=tooltip]]:border-(--clarify-theme-tokens-colors-border) *:[[role=tooltip]]:bg-(--clarify-theme-tokens-colors-surface) *:[[role=tooltip]]:p-3 *:[[role=tooltip]]:text-(--clarify-ui-text) *:[[role=tooltip]]:shadow-xl"
       triggerClassName="clarify-field-description-trigger clarify-ui-control inline-flex size-7 items-center justify-center rounded-md !border-b-0 text-(--clarify-ui-text-faint) transition-colors"
     >
       <InfoIcon className="size-4" aria-hidden="true" />
@@ -92,7 +92,7 @@ export function RequestField(arg0: RequestFieldProps): ReactNode {
           {parameter.required ? <span className="text-(--clarify-error-accent-text)">*</span> : null}
         </label>
       </div>
-      <div className={clsx('col-start-2 flex min-w-0 items-center border-t border-(--clarify-theme-tokens-colors-border) sm:col-start-3 sm:row-start-1 sm:border-t-0', !enabled && 'opacity-45')}>
+      <div className={clsx('col-start-2 flex min-w-0 items-center border-t border-(--clarify-theme-tokens-colors-border) sm:col-start-3 sm:row-start-1 sm:border-t-0', !enabled && 'bg-(--clarify-ui-subtle-background)')}>
       <div className="min-w-0 flex-1">
       {itemOptions.length > 0 ? (
         <MultiInlineListbox label={parameter.name ?? ''} value={arrayValue} options={itemOptions.map((option) => ({ value: option, label: option }))} onChange={(next) => onChange(JSON.stringify(next))} invalid={Boolean(issue)} describedBy={issue ? `${fieldId}-issue` : undefined} disabled={!enabled} />

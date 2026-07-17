@@ -1,0 +1,232 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Request Body Types",
+    "description": "OpenAPI fixtures for testing request editors and request body serialization across media types.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.clarify.local/v1"
+    }
+  ],
+  "paths": {
+    "/examples/request-body-types": {
+      "post": {
+    "tags": [
+      "System"
+    ],
+    "operationId": "demoRequestBodyTypes",
+    "summary": "Request body media type workbench",
+    "description": "Switch between document, form, multipart, text, XML, YAML, and binary request bodies to test the request editor and serialization behavior.",
+    "security": [],
+    "requestBody": {
+      "required": true,
+      "description": "Select a media type to inspect its dedicated request editor.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "title",
+              "settings"
+            ],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "settings": {
+                "type": "object",
+                "required": [
+                  "published"
+                ],
+                "properties": {
+                  "published": {
+                    "type": "boolean"
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "example": {
+            "title": "Request body fixture",
+            "settings": {
+              "published": true,
+              "labels": [
+                "openapi",
+                "request"
+              ]
+            }
+          }
+        },
+        "application/vnd.clarify+json": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "event",
+              "payload"
+            ],
+            "properties": {
+              "event": {
+                "type": "string",
+                "enum": [
+                  "page.created",
+                  "page.updated"
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          },
+          "example": {
+            "event": "page.created",
+            "payload": {
+              "pageId": "pg_fixture"
+            }
+          }
+        },
+        "application/x-www-form-urlencoded": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "query",
+              "limit"
+            ],
+            "properties": {
+              "query": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "default": 20
+              },
+              "includeDrafts": {
+                "type": "boolean",
+                "default": false
+              },
+              "sort": {
+                "type": "string",
+                "enum": [
+                  "relevance",
+                  "updated"
+                ],
+                "default": "relevance"
+              }
+            }
+          },
+          "encoding": {
+            "query": {
+              "style": "form",
+              "explode": true
+            }
+          }
+        },
+        "multipart/form-data": {
+          "schema": {
+            "type": "object",
+            "required": [
+              "file",
+              "description"
+            ],
+            "properties": {
+              "file": {
+                "type": "string",
+                "format": "binary"
+              },
+              "description": {
+                "type": "string"
+              },
+              "visibility": {
+                "type": "string",
+                "enum": [
+                  "public",
+                  "private"
+                ],
+                "default": "private"
+              },
+              "metadata": {
+                "type": "object",
+                "properties": {
+                  "alt": {
+                    "type": "string"
+                  },
+                  "source": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "encoding": {
+            "file": {
+              "contentType": "image/png, image/jpeg, text/plain"
+            },
+            "metadata": {
+              "contentType": "application/json"
+            }
+          }
+        },
+        "text/plain": {
+          "schema": {
+            "type": "string"
+          },
+          "example": "A plain text request body used by the workbench."
+        },
+        "application/xml": {
+          "schema": {
+            "type": "string"
+          },
+          "example": "<request><title>XML fixture</title><enabled>true</enabled></request>"
+        },
+        "application/yaml": {
+          "schema": {
+            "type": "string"
+          },
+          "example": "title: YAML fixture\nenabled: true\nlabels:\n  - openapi\n  - request\n"
+        },
+        "application/octet-stream": {
+          "schema": {
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "The selected request body was accepted.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "accepted",
+                "contentType"
+              ],
+              "properties": {
+                "accepted": {
+                  "type": "boolean"
+                },
+                "contentType": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+      }
+    }
+  }
+}

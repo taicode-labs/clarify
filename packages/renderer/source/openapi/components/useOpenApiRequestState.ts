@@ -2,13 +2,29 @@ import { useEffect, useRef, useState } from 'react'
 
 import { executeApiRequest, type ApiResponseExchange } from '../lib/api-exchange'
 import { parameterKey } from '../lib/api-request'
-import { getExampleEntries, getMediaTypeEntries, getRequestBody, stringifyExample } from '../lib/helpers'
+import { getExampleEntries, getMediaTypeEntries, getRequestBody, isRecord, resolveSchema, stringifyExample } from '../lib/helpers'
 import { validateRequestParameters, type RequestParameterIssue } from '../lib/request-parameters'
 import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
 import { emptyOpenApiCredentials, getOpenApiCredentialScope, useOpenApiStore } from '../store'
-import type { OpenApiParameter } from '../types'
+import type { OpenApiMediaType, OpenApiParameter } from '../types'
 
 import { defaultServerVariables, getAuthOptions, getServerKey, getServers } from './ExamplePanels'
+
+export function initialRequestBody(spec: OpenAPISpec, content?: OpenApiMediaType): string {
+  const example = getExampleEntries(content, spec)[0]
+  if (!example?.generated) return stringifyExample(example?.value)
+
+  const schema = resolveSchema(spec, content?.schema)
+  if (isRecord(schema) && schema.format === 'binary') return ''
+  if (!isRecord(example.value) || !isRecord(schema) || !isRecord(schema.properties)) return stringifyExample(example.value)
+
+  const value = { ...example.value }
+  Object.entries(schema.properties).forEach(([name, propertySchema]) => {
+    const resolved = resolveSchema(spec, propertySchema)
+    if (isRecord(resolved) && resolved.format === 'binary') delete value[name]
+  })
+  return stringifyExample(value)
+}
 
 export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operation: OpenAPIOperation, operationSource: OpenAPIOperationSource) {
   const servers = getServers(spec, operation, path, operationSource)
@@ -25,7 +41,8 @@ export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operati
   const requestContents = getMediaTypeEntries(getRequestBody(spec, operation)?.content, spec)
   const [mediaType, setMediaType] = useState(requestContents[0]?.mediaType ?? '')
   const selectedContent = requestContents.find((entry) => entry.mediaType === mediaType) ?? requestContents[0]
-  const [body, setBody] = useState(stringifyExample(getExampleEntries(selectedContent?.value, spec)[0]?.value))
+  const [body, setBody] = useState(initialRequestBody(spec, selectedContent?.value))
+  const [bodyFiles, setBodyFiles] = useState<Record<string, File>>({})
 
   function selectServer(value: string) {
     const nextServer = servers.find((server, index) => getServerKey(server, index) === value) ?? servers[0]
@@ -36,7 +53,17 @@ export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operati
   function selectMediaType(value: string) {
     const content = requestContents.find((entry) => entry.mediaType === value)?.value
     setMediaType(value)
-    setBody(stringifyExample(getExampleEntries(content, spec)[0]?.value))
+    setBody(initialRequestBody(spec, content))
+    setBodyFiles({})
+  }
+
+  function setBodyFile(name: string, file?: File) {
+    setBodyFiles((current) => {
+      const next = { ...current }
+      if (file) next[name] = file
+      else delete next[name]
+      return next
+    })
   }
 
   return {
@@ -57,8 +84,11 @@ export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operati
     clearCredential,
     requestContents,
     mediaType,
+    selectedContent,
     body,
     setBody,
+    bodyFiles,
+    setBodyFile,
     selectMediaType,
   }
 }

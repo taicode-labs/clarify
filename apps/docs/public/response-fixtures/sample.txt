@@ -1,0 +1,2 @@
+Plain text response fixture.
+The preview should preserve line breaks and use text highlighting.

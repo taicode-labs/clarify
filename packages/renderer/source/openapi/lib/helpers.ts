@@ -32,6 +32,55 @@ export function resolveSchema(spec: OpenAPISpec, schema: unknown, seen = new Set
   return resolveSchema(spec, resolveOpenApiRef(spec, schema.$ref), seen) ?? schema
 }
 
+function mergeAllOfSchemas(spec: OpenAPISpec, schemas: unknown[]): OpenApiRecord {
+  const merged: OpenApiRecord = {}
+  const properties: OpenApiRecord = {}
+  const required = new Set<string>()
+
+  for (const schema of schemas) {
+    const resolved = resolveRequestSchema(spec, schema)
+    if (!isRecord(resolved)) continue
+    Object.assign(merged, resolved)
+    if (isRecord(resolved.properties)) Object.assign(properties, resolved.properties)
+    if (Array.isArray(resolved.required)) resolved.required.forEach((name) => required.add(String(name)))
+  }
+
+  if (Object.keys(properties).length > 0) merged.properties = properties
+  if (required.size > 0) merged.required = [...required]
+  delete merged.allOf
+  return merged
+}
+
+export function resolveRequestSchema(spec: OpenAPISpec, schema: unknown): unknown {
+  const resolved = resolveSchema(spec, schema)
+  if (!isRecord(resolved)) return resolved
+
+  const ownSchema = { ...resolved }
+  const allOf = Array.isArray(ownSchema.allOf) ? ownSchema.allOf : []
+  if (allOf.length === 0) return ownSchema
+
+  delete ownSchema.allOf
+  return mergeAllOfSchemas(spec, [...allOf, ownSchema])
+}
+
+export function getRequestSchemaVariants(spec: OpenAPISpec, schema: unknown): Array<{ key: string; title: string; schema: unknown }> {
+  const resolved = resolveRequestSchema(spec, schema)
+  if (!isRecord(resolved)) return []
+  const keyword = Array.isArray(resolved.oneOf) ? 'oneOf' : Array.isArray(resolved.anyOf) ? 'anyOf' : undefined
+  if (!keyword) return []
+
+  return (resolved[keyword] as unknown[]).map((branch, index) => {
+    const branchSchema = resolveRequestSchema(spec, branch)
+    const branchRecord = isRecord(branchSchema) ? branchSchema : undefined
+    const referenceTitle = isReference(branch) ? resolveReferenceName(branch.$ref) : undefined
+    return {
+      key: `${keyword}-${index}`,
+      title: typeof branchRecord?.title === 'string' ? branchRecord.title : referenceTitle ?? `${keyword}[${index}]`,
+      schema: branchSchema,
+    }
+  })
+}
+
 export function getPathItem(spec: OpenAPISpec, path: string): OpenApiPathItem | undefined {
   return resolveObjectRef<OpenApiPathItem>(spec, spec.paths?.[path])
 }
@@ -59,6 +108,7 @@ function resolveObjectRef<T extends OpenApiRecord>(spec: OpenAPISpec | undefined
 
 export function schemaHasType(schema: unknown, type: string): boolean {
   if (!isRecord(schema)) return false
+  if (type === 'null' && schema.nullable === true) return true
   return schema.type === type || (Array.isArray(schema.type) && schema.type.includes(type))
 }
 
@@ -139,7 +189,7 @@ export function getExampleEntries(mediaType?: OpenApiMediaType, spec?: OpenAPISp
     return [{ key: 'default', title: 'Example', value: mediaType.example }]
   }
 
-  const generated = schemaToExample(spec ? resolveSchema(spec, mediaType.schema) : mediaType.schema)
+  const generated = schemaToExample(spec ? resolveRequestSchema(spec, mediaType.schema) : mediaType.schema)
   return typeof generated === 'undefined' ? [] : [{ key: 'schema', title: 'schema', value: generated, generated: true }]
 }
 
@@ -167,7 +217,8 @@ export function schemaToType(schema: unknown): string | undefined {
   }
 
   const type = Array.isArray(schema.type) ? schema.type.map(String).join(' | ') : schema.type
-  return typeof type === 'string' ? [type, typeof schema.format === 'string' ? `<${schema.format}>` : undefined].filter(Boolean).join('') : undefined
+  const nullableType = schema.nullable === true && type !== 'null' ? [type, 'null'].filter(Boolean).join(' | ') : type
+  return typeof nullableType === 'string' ? [nullableType, typeof schema.format === 'string' ? `<${schema.format}>` : undefined].filter(Boolean).join('') : undefined
 }
 
 export function schemaToExample(schema: unknown, depth = 0): unknown {
@@ -177,6 +228,9 @@ export function schemaToExample(schema: unknown, depth = 0): unknown {
   if (Array.isArray(schema.enum)) return schema.enum[0]
   if (isReference(schema)) return { id: resolveReferenceName(schema.$ref) }
 
+  const variant = Array.isArray(schema.oneOf) ? schema.oneOf[0] : Array.isArray(schema.anyOf) ? schema.anyOf[0] : undefined
+  if (typeof variant !== 'undefined') return schemaToExample(variant, depth + 1)
+
   if (schemaHasType(schema, 'array')) {
     return [schemaToExample(schema.items, depth + 1) ?? 'string']
   }
@@ -184,7 +238,7 @@ export function schemaToExample(schema: unknown, depth = 0): unknown {
   if (schemaHasType(schema, 'object') || isRecord(schema.properties)) {
     const properties = isRecord(schema.properties) ? schema.properties : {}
     return Object.fromEntries(
-      Object.entries(properties).slice(0, 8).map(([name, propertySchema]) => [
+      Object.entries(properties).filter(([, propertySchema]) => !isRecord(propertySchema) || propertySchema.readOnly !== true).slice(0, 8).map(([name, propertySchema]) => [
         name,
         schemaToExample(propertySchema, depth + 1) ?? exampleForType(schemaToType(propertySchema)),
       ]),

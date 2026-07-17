@@ -1,0 +1,138 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "返回体类型测试",
+    "description": "通过同源静态文件测试文本格式化与高亮、HTML iframe、图片预览以及不支持格式的 Raw 回退。",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "当前 Clarify 文档站点"
+    }
+  ],
+  "paths": {
+    "/response-fixtures/sample.json": {
+      "get": {
+        "operationId": "getJsonResponseFixture",
+        "summary": "JSON 返回体",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "格式化并高亮 JSON 样本。",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "additionalProperties": true }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.yaml": {
+      "get": {
+        "operationId": "getYamlResponseFixture",
+        "summary": "YAML 返回体",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "格式化并高亮 YAML 样本。",
+            "content": {
+              "text/yaml": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.xml": {
+      "get": {
+        "operationId": "getXmlResponseFixture",
+        "summary": "XML 返回体",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "高亮 XML 样本。",
+            "content": {
+              "text/xml": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.html": {
+      "get": {
+        "operationId": "getHtmlResponseFixture",
+        "summary": "HTML 返回体",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "在沙箱 iframe 中渲染 HTML 样本。",
+            "content": {
+              "text/html": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.txt": {
+      "get": {
+        "operationId": "getTextResponseFixture",
+        "summary": "纯文本返回体",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "纯文本样本。",
+            "content": {
+              "text/plain": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.csv": {
+      "get": {
+        "operationId": "getCsvResponseFixture",
+        "summary": "CSV 返回体",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "高亮 CSV 样本。",
+            "content": {
+              "text/csv": { "schema": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "/clarify.png": {
+      "get": {
+        "operationId": "getImageResponseFixture",
+        "summary": "PNG 图片返回体",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "使用原生图片元素渲染 PNG。",
+            "content": {
+              "image/png": { "schema": { "type": "string", "contentEncoding": "binary" } }
+            }
+          }
+        }
+      }
+    },
+    "/response-fixtures/sample.bin": {
+      "get": {
+        "operationId": "getBinaryResponseFixture",
+        "summary": "不支持的二进制返回体",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "不支持预览的二进制样本，应只提供 Raw。",
+            "content": {
+              "application/octet-stream": { "schema": { "type": "string", "contentEncoding": "binary" } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -13,6 +13,7 @@ import { EndpointMethodBadge } from './EndpointMethodBadge'
 import { getServerKey } from './ExamplePanels'
 import { InlineListbox } from './InlineListbox'
 import { OpenApiAuthPanel } from './OpenApiAuthPanel'
+import { OpenApiRequestBodyEditor } from './OpenApiRequestBodyEditor'
 import { RequestField, RequestSection } from './OpenApiRequestFields'
 import { OpenApiResponseViewer } from './OpenApiResponseViewer'
 import { SendRequestButton } from './SendRequestButton'
@@ -52,7 +53,7 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
   const t = useBuiltInText()
   const parameters = getOperationParameters(spec, path, operation, operationSource)
   const requestTarget = useOpenApiRequestTarget(spec, path, operation, operationSource)
-  const { servers, selectedServer, selectedServerKey, serverVariables, setServerVariables, serverVariableEntries, selectServer, authOptions, selectedAuthName, setSelectedAuthName, selectedAuth, credentialScope, credentials, setCredential, clearCredential, requestContents, mediaType, body, setBody, selectMediaType } = requestTarget
+  const { servers, selectedServer, selectedServerKey, serverVariables, setServerVariables, serverVariableEntries, selectServer, authOptions, selectedAuthName, setSelectedAuthName, selectedAuth, credentialScope, credentials, setCredential, clearCredential, requestContents, mediaType, selectedContent, body, setBody, bodyFiles, setBodyFile, selectMediaType } = requestTarget
   const parameterState = useOpenApiParameterState(spec, parameters, (parameter) => initialParameterValue(spec, parameter))
   const { parameterValues, parameterEnabled, parameterIssues, setParameterGroupValues, setParameterIncluded, updateParameterValue } = parameterState
   const requestExecution = useOpenApiRequestExecution()
@@ -67,7 +68,7 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
     const enabledParameters = parameters.filter((parameter) => parameterEnabled[parameterKey(parameter)] !== false)
     const issues = parameterState.validate(enabledParameters)
     if (Object.keys(issues).length > 0) return
-    await execute(buildApiRequest({ method, path, server: selectedServer, serverVariables, parameters, parameterValues, parameterEnabled, auth: selectedAuth?.schemes.map((option) => ({ scheme: option.scheme, value: credentials[option.name] ?? '' })), mediaType, body, baseUrl: window.location.href }), t('openapi.requestCorsHint'))
+    await execute(buildApiRequest({ method, path, server: selectedServer, serverVariables, parameters, parameterValues, parameterEnabled, auth: selectedAuth?.schemes.map((option) => ({ scheme: option.scheme, value: credentials[option.name] ?? '' })), mediaType, body, bodyFiles, baseUrl: window.location.href }), t('openapi.requestCorsHint'))
   }
 
   function renderParameterField(parameter: OpenApiParameter) {
@@ -146,7 +147,7 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
     return (
       <RequestSection title={t('openapi.requestBody')} count={1} defaultOpen className="open:grid open:min-h-55 open:grow open:shrink open:basis-55 open:grid-rows-[auto_minmax(11rem,1fr)]" contentClassName={clsx('grid h-full min-h-0', requestContents.length > 1 ? 'grid-rows-[auto_minmax(11rem,1fr)]' : 'grid-rows-[minmax(11rem,1fr)]')}>
         {requestContents.length > 1 ? <div><InlineListbox label={t('openapi.mediaType')} value={mediaType} options={requestContents.map((entry) => ({ value: entry.mediaType, label: entry.mediaType }))} onChange={selectMediaType} /></div> : null}
-        <textarea aria-label={t('openapi.requestBody')} value={body} onChange={(event) => setBody(event.target.value)} spellCheck={false} className="block h-full min-h-44 w-full resize-none border-0 bg-(--clarify-code-background) p-3 font-mono text-xs/5 text-(--clarify-code-text) outline-hidden focus:ring-2 focus:ring-inset focus:ring-(--clarify-theme-tokens-colors-primary)" />
+        <OpenApiRequestBodyEditor spec={spec} mediaType={mediaType} content={selectedContent?.value} body={body} files={bodyFiles} onBodyChange={setBody} onFileChange={setBodyFile} />
       </RequestSection>
     )
   }

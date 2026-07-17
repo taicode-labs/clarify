@@ -306,6 +306,14 @@ export default defineConfig({
                 icon: 'FileJson2',
               },
               {
+                openapi: 'response-body-types.openapi.json',
+                title: {
+                  'zh-CN': '返回体类型测试',
+                  'en-US': 'Response Body Types',
+                },
+                icon: 'ScanSearch',
+              },
+              {
                 openapi: 'api.openapi.json',
                 path: 'openapi/pages',
                 title: {

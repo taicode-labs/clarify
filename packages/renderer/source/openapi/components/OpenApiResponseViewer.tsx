@@ -1,15 +1,17 @@
 import clsx from 'clsx'
 import { CheckIcon, CircleAlertIcon, CopyIcon, DownloadIcon, FileX2Icon, SearchIcon, SendIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'
 
+import { HighlightedCode } from '../../components/HighlightedCode'
 import { useBuiltInText } from '../../core/i18n'
 import { copyTextToClipboard } from '../../utils/clipboard'
 import type { ApiResponseExchange } from '../lib/api-exchange'
-import { isRecord } from '../lib/helpers'
 
 import { RequestSection } from './OpenApiRequestFields'
 
 type BodyMode = 'preview' | 'raw'
+type BodyModeSelection = { exchange: ApiResponseExchange; mode: BodyMode }
 
 type OpenApiResponseViewerProps = {
   exchange?: ApiResponseExchange
@@ -20,10 +22,10 @@ type CopyButtonProps = {
   value: string
 }
 
-type JsonPreviewProps = { value: unknown }
 type ResponsePreviewProps = { exchange: ApiResponseExchange }
 type ResponseHeadersProps = { headers: Array<[string, string]> }
 type ResponseMediaProps = { blob: Blob; type: 'image' | 'audio' | 'video' }
+type TextPreview = { code: string; language: string }
 type ResponseStateProps = {
   icon: typeof SendIcon
   title: string
@@ -45,6 +47,61 @@ function parseJson(value: string): unknown {
   }
 }
 
+const textLanguages: Record<string, string> = {
+  'application/graphql': 'graphql',
+  'application/javascript': 'javascript',
+  'application/sql': 'sql',
+  'application/typescript': 'typescript',
+  'application/xml': 'xml',
+  'application/x-httpd-php': 'php',
+  'application/x-sh': 'shellscript',
+  'application/xhtml+xml': 'html',
+  'application/x-www-form-urlencoded': 'http',
+  'text/css': 'css',
+  'text/csv': 'csv',
+  'text/html': 'html',
+  'text/javascript': 'javascript',
+  'text/markdown': 'markdown',
+  'text/plain': 'text',
+  'text/xml': 'xml',
+}
+
+function normalizedMediaType(contentType: string): string {
+  return contentType.split(';', 1)[0].trim().toLowerCase()
+}
+
+export function getResponseTextPreview(contentType: string, body: string): TextPreview | undefined {
+  const mediaType = normalizedMediaType(contentType)
+
+  if (mediaType === 'application/json' || mediaType.endsWith('+json')) {
+    const parsed = parseJson(body)
+    return { code: typeof parsed === 'undefined' ? body : JSON.stringify(parsed, null, 2), language: 'json' }
+  }
+
+  if (mediaType === 'application/yaml' || mediaType === 'application/x-yaml' || mediaType === 'text/yaml' || mediaType === 'text/x-yaml' || mediaType.endsWith('+yaml')) {
+    try {
+      return { code: stringifyYaml(parseYaml(body)).trimEnd(), language: 'yaml' }
+    } catch {
+      return { code: body, language: 'yaml' }
+    }
+  }
+
+  const language = textLanguages[mediaType]
+    ?? (mediaType.startsWith('text/') ? mediaType.slice('text/'.length) || 'text' : undefined)
+
+  return language ? { code: body, language } : undefined
+}
+
+export function canPreviewResponse(contentType: string): boolean {
+  const mediaType = normalizedMediaType(contentType)
+  return Boolean(
+    getResponseTextPreview(contentType, '')
+    || mediaType.startsWith('image/')
+    || mediaType.startsWith('audio/')
+    || mediaType.startsWith('video/'),
+  )
+}
+
 function ResponseState(arg0: ResponseStateProps): ReactNode {
   const { icon: Icon, title, description, tone = 'default' } = arg0
   const error = tone === 'error'
@@ -60,15 +117,6 @@ function ResponseState(arg0: ResponseStateProps): ReactNode {
       </div>
     </div>
   )
-}
-
-function JsonPreview(arg0: JsonPreviewProps): ReactNode {
-  const { value } = arg0
-  if (Array.isArray(value)) return <div className="space-y-1 border-l border-(--clarify-code-border) pl-3">{value.map((item, index) => <div key={index}><span className="mr-2 text-(--clarify-code-faint)">{index}</span><JsonPreview value={item} /></div>)}</div>
-  if (isRecord(value)) return <div className="space-y-1 border-l border-(--clarify-code-border) pl-3">{Object.entries(value).map(([key, item]) => <div key={key} className="grid grid-cols-[minmax(5rem,auto)_1fr] gap-3"><span className="text-(--clarify-code-property)">{key}</span><JsonPreview value={item} /></div>)}</div>
-  if (value === null) return <span className="text-(--clarify-code-faint)">null</span>
-  if (typeof value === 'string') return <span className="wrap-break-word text-(--clarify-code-string)">{value}</span>
-  return <span className="text-(--clarify-code-number)">{String(value)}</span>
 }
 
 function CopyButton(arg0: CopyButtonProps): ReactNode {
@@ -112,17 +160,14 @@ function ResponseMedia(arg0: ResponseMediaProps): ReactNode {
 function ResponsePreview(arg0: ResponsePreviewProps): ReactNode {
   const { exchange } = arg0
   const t = useBuiltInText()
-  const contentType = exchange.contentType.toLowerCase()
+  const contentType = normalizedMediaType(exchange.contentType)
   if (!exchange.size) return <ResponseState icon={FileX2Icon} title={t('openapi.responseBodyEmptyTitle')} description={t('openapi.responseBodyEmpty')} />
-  if (contentType.includes('json')) {
-    const parsed = parseJson(exchange.body)
-    return typeof parsed === 'undefined' ? <pre className="whitespace-pre-wrap wrap-break-word font-mono text-xs/5">{exchange.body}</pre> : <div className="overflow-auto font-mono text-xs/5"><JsonPreview value={parsed} /></div>
-  }
   if (contentType.startsWith('image/')) return <ResponseMedia blob={exchange.blob} type="image" />
   if (contentType.startsWith('audio/')) return <ResponseMedia blob={exchange.blob} type="audio" />
   if (contentType.startsWith('video/')) return <ResponseMedia blob={exchange.blob} type="video" />
-  if (contentType.includes('html')) return <iframe srcDoc={exchange.body} sandbox="" title="Response preview" className="h-96 w-full border-0 bg-white" />
-  if (contentType.startsWith('text/') || contentType.includes('xml') || contentType.includes('yaml')) return <pre className="whitespace-pre-wrap wrap-break-word font-mono text-xs/5">{exchange.body}</pre>
+  if (contentType === 'text/html' || contentType === 'application/xhtml+xml') return <iframe srcDoc={exchange.body} sandbox="" title="Response preview" className="h-96 w-full border-0 bg-white" />
+  const textPreview = getResponseTextPreview(exchange.contentType, exchange.body)
+  if (textPreview) return <pre className="max-h-128 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-xs/5"><HighlightedCode code={textPreview.code} language={textPreview.language} /></pre>
   return <div className="grid min-h-56 place-items-center text-xs text-(--clarify-code-faint)">{t('openapi.binaryPreview')}</div>
 }
 
@@ -164,7 +209,10 @@ function HiddenCookies(): ReactNode {
 export function OpenApiResponseViewer(arg0: OpenApiResponseViewerProps): ReactNode {
   const { exchange, error } = arg0
   const t = useBuiltInText()
-  const [bodyMode, setBodyMode] = useState<BodyMode>('preview')
+  const [bodyModeSelection, setBodyModeSelection] = useState<BodyModeSelection>()
+  const previewAvailable = exchange ? canPreviewResponse(exchange.contentType) : false
+  const selectedBodyMode = bodyModeSelection && bodyModeSelection.exchange === exchange ? bodyModeSelection.mode : 'preview'
+  const activeBodyMode = previewAvailable ? selectedBodyMode : 'raw'
 
   function downloadBody() {
     if (!exchange) return
@@ -195,7 +243,7 @@ export function OpenApiResponseViewer(arg0: OpenApiResponseViewerProps): ReactNo
           <ResponseHeaders headers={exchange.headers} />
         </RequestSection>
         <RequestSection title={t('openapi.body')} defaultOpen actions={<span className="font-mono text-2xs font-normal text-(--clarify-code-faint)">{exchange.contentType || t('openapi.unknownContentType')}</span>}>
-          <div className="min-h-72"><div className="flex h-10 items-center justify-between border-b border-(--clarify-code-border) px-3"><div role="tablist" className="flex">{(['preview', 'raw'] as BodyMode[]).map((mode) => <button key={mode} type="button" role="tab" aria-selected={bodyMode === mode} onClick={() => setBodyMode(mode)} className={clsx('border-b-2 px-2.5 py-1 text-2xs font-semibold', bodyMode === mode ? 'border-(--clarify-theme-tokens-colors-primary) text-(--clarify-code-text)' : 'border-transparent text-(--clarify-code-muted)')}>{mode === 'preview' ? t('openapi.preview') : t('openapi.raw')}</button>)}</div><div className="flex"><CopyButton value={exchange.body} /><button type="button" onClick={downloadBody} aria-label={t('openapi.downloadBody')} title={t('openapi.downloadBody')} className="grid size-8 shrink-0 place-items-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-code-muted) transition hover:bg-(--clarify-code-control-background-hover) hover:text-(--clarify-code-text) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)"><DownloadIcon className="size-4" aria-hidden="true" /></button></div></div><div className="p-4">{bodyMode === 'preview' ? <ResponsePreview exchange={exchange} /> : exchange.size ? <pre className="max-h-128 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-xs/5">{exchange.body}</pre> : <div className="py-8 text-center text-xs text-(--clarify-code-faint)">{t('openapi.responseBodyEmpty')}</div>}</div></div>
+          <div className="min-h-72"><div className="flex h-10 items-center justify-between border-b border-(--clarify-code-border) px-3"><div role="tablist" className="flex">{(['preview', 'raw'] as BodyMode[]).filter(mode => mode === 'raw' || previewAvailable).map((mode) => <button key={mode} type="button" role="tab" aria-selected={activeBodyMode === mode} onClick={() => setBodyModeSelection({ exchange, mode })} className={clsx('border-b-2 px-2.5 py-1 text-2xs font-semibold', activeBodyMode === mode ? 'border-(--clarify-theme-tokens-colors-primary) text-(--clarify-code-text)' : 'border-transparent text-(--clarify-code-muted)')}>{mode === 'preview' ? t('openapi.preview') : t('openapi.raw')}</button>)}</div><div className="flex"><CopyButton value={exchange.body} /><button type="button" onClick={downloadBody} aria-label={t('openapi.downloadBody')} title={t('openapi.downloadBody')} className="grid size-8 shrink-0 place-items-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-code-muted) transition hover:bg-(--clarify-code-control-background-hover) hover:text-(--clarify-code-text) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)"><DownloadIcon className="size-4" aria-hidden="true" /></button></div></div><div className="p-4">{activeBodyMode === 'preview' ? <ResponsePreview exchange={exchange} /> : exchange.size ? <pre className="max-h-128 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-xs/5">{exchange.body}</pre> : <div className="py-8 text-center text-xs text-(--clarify-code-faint)">{t('openapi.responseBodyEmpty')}</div>}</div></div>
         </RequestSection>
       </div> : null}
     </section>
