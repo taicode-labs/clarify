@@ -3,8 +3,8 @@ import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
 
-import { Dialog, DialogPanel } from '../../components/primitives/interactive'
-import Link from '../../components/primitives/router-link'
+import { Dialog, DialogPanel } from '../primitives/interactive'
+import Link from '../primitives/router-link'
 
 type NavbarLinkProps = { href: string } & Omit<ComponentProps<'a'>, 'href'>
 type NavbarLogoProps = { href: string } & Omit<ComponentProps<'a'>, 'href'>
@@ -16,12 +16,7 @@ type NavbarWithLinksActionsAndCenteredLogoProps = {
 } & ComponentProps<'header'>
 
 export function NavbarLink(arg0: NavbarLinkProps) {
-  const {
-    children,
-    href,
-    className,
-    ...props
-  } = arg0
+  const { children, href, className, ...props } = arg0
 
   return (
     <Link
@@ -49,15 +44,7 @@ export function NavbarLogo(arg0: NavbarLogoProps) {
 }
 
 export function NavbarWithLinksActionsAndCenteredLogo(arg0: NavbarWithLinksActionsAndCenteredLogoProps) {
-  const {
-    links,
-    logo,
-    controls,
-    actions,
-    className,
-    ...props
-  } = arg0
-
+  const { links, logo, controls, actions, className, ...props } = arg0
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   return (
@@ -77,7 +64,6 @@ export function NavbarWithLinksActionsAndCenteredLogo(arg0: NavbarWithLinksActio
             <div className="flex flex-1 items-center justify-end gap-2 lg:gap-5">
               <div className="flex shrink-0 items-center gap-1 lg:gap-2">{controls}</div>
               <div className="flex shrink-0 items-center gap-5 max-lg:hidden">{actions}</div>
-
               <button
                 type="button"
                 aria-expanded={isMobileMenuOpen}
@@ -107,12 +93,10 @@ export function NavbarWithLinksActionsAndCenteredLogo(arg0: NavbarWithLinksActio
                 <X className="size-5" aria-hidden="true" />
               </button>
             </div>
-
             <div className="flex min-h-0 flex-1 flex-col px-3 py-5">
               <div onClick={() => setIsMobileMenuOpen(false)} className="flex flex-col gap-1">
                 {links}
               </div>
-
               <div className="mt-auto border-t border-(--clarify-theme-tokens-colors-border) px-3 pt-5" onClick={() => setIsMobileMenuOpen(false)}>
                 <div className="grid grid-cols-2 gap-3 *:min-h-12 *:text-base/7">{actions}</div>
               </div>

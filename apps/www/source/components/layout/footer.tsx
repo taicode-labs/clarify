@@ -1,9 +1,9 @@
 import { clsx } from 'clsx/lite'
 import type { ComponentProps, ReactNode } from 'react'
 
-import { Container } from '../../components/elements/container'
-import { ArrowNarrowRightIcon } from '../../components/icons/arrow-narrow-right-icon'
-import Link from '../../components/primitives/router-link'
+import { Container } from '../elements/container'
+import { ArrowNarrowRightIcon } from '../icons/arrow-narrow-right-icon'
+import Link from '../primitives/router-link'
 
 type FooterCategoryProps = { title: ReactNode } & ComponentProps<'div'>
 type FooterLinkProps = { href: string } & Omit<ComponentProps<'a'>, 'href'>

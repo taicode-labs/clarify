@@ -23,6 +23,6 @@ export default {
 
     await rm(clientDirectory, { recursive: true })
   },
-  prerender: ['/', '/about/', '/pricing/', '/privacy-policy/'],
+  prerender: ['/', '/about/', '/pricing/', '/privacy-policy/', '/api/track'],
   ssr: false,
 } satisfies Config

@@ -2,23 +2,23 @@ import { Monitor, Moon, Sun } from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ButtonLink, PlainButtonLink } from './components/elements/button'
 import {
   FooterCategory,
   FooterLink,
   FooterWithNewsletterFormCategoriesAndSocialIcons,
   NewsletterForm,
   SocialLink,
-} from './app/components/footer'
-import { GitHubIcon } from './app/components/github-icon'
-import { ClarifyLogo } from './app/components/logo'
-import { Main } from './app/components/main'
+} from './components/layout/footer'
+import { GitHubIcon } from './components/layout/github-icon'
+import { ClarifyLogo } from './components/layout/logo'
+import { Main } from './components/layout/main'
 import {
   NavbarLink,
   NavbarLogo,
   NavbarWithLinksActionsAndCenteredLogo,
-} from './app/components/navbar'
-import { XIcon } from './app/components/x-icon'
-import { ButtonLink, PlainButtonLink } from './components/elements/button'
+} from './components/layout/navbar'
+import { XIcon } from './components/layout/x-icon'
 import { type AppLocale, isAppLocale, localeLabels, locales } from './i18n'
 import { site } from './site'
 import { cookieMaxAge, localeCookieName, readCookieValue, storeSharedCookie, themeCookieName } from './utils/cookies'
