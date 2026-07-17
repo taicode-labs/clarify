@@ -1,7 +1,6 @@
 import { Menu, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
-import { MemoryRouter } from 'react-router-dom'
 
 import { SectionProvider } from './app/SectionProvider'
 import type { Section } from './app/SectionProvider'
@@ -179,20 +178,18 @@ const mainPreviewSections = [
 type PreviewEnvironmentProps = { children: ReactNode; initialEntry?: string; sections?: Section[] }
 
 function PreviewEnvironment(arg0: PreviewEnvironmentProps) {
-  const { children, initialEntry = '/preview', sections = [] } = arg0
+  const { children, sections = [] } = arg0
 
   return (
-    <MemoryRouter initialEntries={[initialEntry]}>
-      <ConfigContext.Provider value={previewConfig}>
-        <LocaleContext.Provider value={previewConfig.locales.default}>
-          <OpenApiSpecsContext.Provider value={{}}>
-            <SectionProvider sections={sections}>
-              {children}
-            </SectionProvider>
-          </OpenApiSpecsContext.Provider>
-        </LocaleContext.Provider>
-      </ConfigContext.Provider>
-    </MemoryRouter>
+    <ConfigContext.Provider value={previewConfig}>
+      <LocaleContext.Provider value={previewConfig.locales.default}>
+        <OpenApiSpecsContext.Provider value={{}}>
+          <SectionProvider sections={sections}>
+            {children}
+          </SectionProvider>
+        </OpenApiSpecsContext.Provider>
+      </LocaleContext.Provider>
+    </ConfigContext.Provider>
   )
 }
 

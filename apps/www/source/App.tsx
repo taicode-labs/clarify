@@ -1,43 +1,39 @@
 import { Monitor, Moon, Sun } from 'lucide-react'
-import { type ReactElement, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { navLinks, site } from './content'
-import { cookieMaxAge, localeCookieName, readCookieValue, storeSharedCookie, themeCookieName } from './cookies'
-import { type AppLocale, isAppLocale, localeLabels, locales } from './i18n'
-import { AboutPage, HomePage, NotFoundPage, PricingPage, PrivacyPolicyPage } from './pages'
-import { resolveAppRoute, type AppRoute } from './ssg-routes'
-import { ButtonLink, PlainButtonLink } from './ui/elements/button'
-import { Main } from './ui/elements/main'
-import { GitHubIcon } from './ui/icons/social/github-icon'
-import { XIcon } from './ui/icons/social/x-icon'
-import { ClarifyLogo } from './ui/Logo'
 import {
   FooterCategory,
   FooterLink,
   FooterWithNewsletterFormCategoriesAndSocialIcons,
   NewsletterForm,
   SocialLink,
-} from './ui/sections/footer-with-newsletter-form-categories-and-social-icons'
+} from './app/components/footer'
+import { GitHubIcon } from './app/components/github-icon'
+import { ClarifyLogo } from './app/components/logo'
+import { Main } from './app/components/main'
 import {
   NavbarLink,
   NavbarLogo,
   NavbarWithLinksActionsAndCenteredLogo,
-} from './ui/sections/navbar-with-links-actions-and-centered-logo'
+} from './app/components/navbar'
+import { XIcon } from './app/components/x-icon'
+import { ButtonLink, PlainButtonLink } from './components/elements/button'
+import { type AppLocale, isAppLocale, localeLabels, locales } from './i18n'
+import { site } from './site'
+import { cookieMaxAge, localeCookieName, readCookieValue, storeSharedCookie, themeCookieName } from './utils/cookies'
 
 type ThemePreference = 'light' | 'dark' | 'system'
 type ResolvedTheme = 'light' | 'dark'
 
-type AppProps = { path?: string }
+type AppProps = { children: ReactNode }
 
 export default function App(props: AppProps) {
-  const normalizedPath = resolveAppRoute(props.path)
-
   return (
     <div className="www-app clarify-app min-h-screen">
       <AppEffects />
       <Navbar />
-      <Main>{renderRoute(normalizedPath)}</Main>
+      <Main>{props.children}</Main>
       <Footer />
     </div>
   )
@@ -48,11 +44,12 @@ function AppEffects() {
 
   useEffect(() => {
     const storedLocale = readCookieValue(localeCookieName)
-    const browserLocale = navigator.language === 'zh-CN' || navigator.language.startsWith('zh') ? 'zh-CN' : 'en'
-    const locale = storedLocale && isAppLocale(storedLocale) ? storedLocale : browserLocale
+    const detectedLocale = storedLocale && isAppLocale(storedLocale)
+      ? storedLocale
+      : toAppLocale(navigator.language)
 
-    if (i18n.language !== locale) {
-      void i18n.changeLanguage(locale)
+    if (detectedLocale !== i18n.language) {
+      void i18n.changeLanguage(detectedLocale)
     }
   }, [i18n])
 
@@ -63,20 +60,14 @@ function AppEffects() {
   return null
 }
 
-const routeComponents: Record<AppRoute, () => ReactElement> = {
-  '/': HomePage,
-  '/pricing/': PricingPage,
-  '/about/': AboutPage,
-  '/privacy-policy/': PrivacyPolicyPage,
-  '/404.html': NotFoundPage,
-}
-
-function renderRoute(path: AppRoute) {
-  return routeComponents[path]()
-}
-
 function Navbar() {
   const { i18n, t } = useTranslation()
+  const navLinks = [
+    { href: '/#features', label: t('nav.features') },
+    { href: '/pricing/', label: t('nav.pricing') },
+    { href: '/about/', label: t('nav.about') },
+    { href: site.docsUrl, label: t('nav.docs') },
+  ]
 
   return (
     <NavbarWithLinksActionsAndCenteredLogo
@@ -181,7 +172,6 @@ function LanguageToggle(props: LanguageToggleProps) {
       type="button"
       aria-label={t('common.language.switchTo', { language: localeLabels[nextLocale] })}
       onClick={() => {
-        storeSharedCookie(localeCookieName, nextLocale)
         void i18n.changeLanguage(nextLocale)
       }}
       className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sm/7 font-medium text-(--clarify-ui-text-strong) transition hover:bg-(--clarify-ui-hover-background)"
@@ -289,7 +279,7 @@ function Footer() {
       fineprint={t('footer.fineprint')}
       socialLinks={
         <>
-          <SocialLink href="https://x.com/yxulai" name="X">
+          <SocialLink href="https://x.com/yinxulai" name="X">
             <XIcon />
           </SocialLink>
           <SocialLink href={site.githubUrl} name="GitHub">

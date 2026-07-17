@@ -1,0 +1,263 @@
+{
+  "common": {
+    "github": "GitHub",
+    "getStarted": "Get started",
+    "email": "Email",
+    "subscribe": "Subscribe",
+    "included": "Included",
+    "notIncluded": "Not included",
+    "compareFeatures": "Compare features",
+    "theme": {
+      "switchToDark": "Switch to dark theme",
+      "switchToLight": "Switch to light theme",
+      "switchToSystem": "Follow system theme"
+    },
+    "language": {
+      "switchTo": "Switch language to {{language}}"
+    }
+  },
+  "nav": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "about": "About",
+    "docs": "Docs"
+  },
+  "footer": {
+    "newsletterHeadline": "Stay close to Clarify",
+    "newsletterSubheadline": "Product notes, release updates, and practical guidance for source-owned developer documentation.",
+    "product": "Product",
+    "company": "Company",
+    "resources": "Resources",
+    "legal": "Legal",
+    "documentation": "Documentation",
+    "contact": "Contact",
+    "gettingStarted": "Getting started",
+    "guides": "Guides",
+    "apiReference": "API Reference",
+    "privacyPolicy": "Privacy Policy",
+    "commercialServices": "Commercial Services",
+    "fineprint": "AGPL-3.0-only © 2026 Taicode Labs"
+  },
+  "hero": {
+    "badge": "Open-source documentation publishing for MDX and OpenAPI",
+    "badgeCta": "See the workflow",
+    "headline": "Own your developer docs from source to static output.",
+    "subheadline": "Clarify brings MDX, OpenAPI, typed TypeScript configuration, native internationalization, theme tokens, responsive layouts, and AI-readable output into one local-first publishing workflow.",
+    "startBuilding": "Start building",
+    "viewGithub": "View GitHub"
+  },
+  "stats": {
+    "eyebrow": "Local-first by design",
+    "headline": "Polished docs without giving up source ownership.",
+    "subheadline": "Keep content, configuration, OpenAPI specs, and theme settings in Git, then ship self-hostable static output anywhere.",
+    "items": [
+      {
+        "stat": "Git",
+        "text": "Docs, configuration, OpenAPI specs, and theme settings stay in your repository."
+      },
+      {
+        "stat": "MDX",
+        "text": "Write guides with Markdown, React components, and product-like documentation blocks."
+      },
+      {
+        "stat": "OpenAPI",
+        "text": "Publish full API references or embed individual operations inside any MDX page."
+      },
+      {
+        "stat": "AI",
+        "text": "Generate raw Markdown, OpenAPI artifacts, and llms.txt for assistants and search systems."
+      }
+    ]
+  },
+  "features": {
+    "eyebrow": "Product capabilities",
+    "headline": "One publishing layer for guides, API reference, localization, and AI-ready output.",
+    "subheadline": "Clarify combines the parts teams usually stitch together manually: MDX authoring, OpenAPI rendering, TypeScript configuration, theming, responsive navigation, and static exports.",
+    "mdxHeadline": "MDX pages with reusable documentation components",
+    "mdxSubheadline": "Keep tutorials, onboarding flows, SDK guides, and release notes as source files while using components for cards, buttons, API embeds, and richer product explanations.",
+    "mdxCta": "Explore MDX authoring",
+    "openApiHeadline": "OpenAPI that belongs inside the docs journey",
+    "openApiSubheadline": "Generate full API reference pages and embed exact operations beside the workflow step where readers need endpoints, parameters, examples, and request code.",
+    "openApiCta": "View OpenAPI support"
+  },
+  "workflow": {
+    "eyebrow": "Workflow",
+    "headline": "Write in Git, configure in TypeScript, publish static output.",
+    "subheadline": "Clarify is built for teams that want hosted-platform polish while keeping the portability of an open-source project.",
+    "items": [
+      {
+        "label": "01",
+        "title": "Own the source",
+        "text": "Keep MDX pages, localized content, OpenAPI specs, navigation, and theme settings versioned with your product code."
+      },
+      {
+        "label": "02",
+        "title": "Shape the reader experience",
+        "text": "Configure locales, routes, navigation, theme tokens, dark mode, API panels, and responsive layouts in TypeScript."
+      },
+      {
+        "label": "03",
+        "title": "Ship static and AI-ready",
+        "text": "Build self-hostable HTML plus raw Markdown, OpenAPI artifacts, and llms.txt for humans, agents, and internal knowledge systems."
+      }
+    ]
+  },
+  "testimonials": {
+    "headline": "Built for the documentation teams Clarify serves.",
+    "subheadline": "Clarify is especially useful when docs need to be source-owned, API-aware, multilingual, self-hostable, and readable by both people and AI tools.",
+    "items": [
+      [
+        "Open-source projects can publish credible docs without moving content out of Git or depending on a proprietary publishing runtime.",
+        "Open-source maintainers",
+        "Source-owned publishing"
+      ],
+      [
+        "API platform teams can place endpoint details directly inside tutorials, onboarding flows, and SDK guides instead of sending readers to a separate reference silo.",
+        "API platform teams",
+        "Integrated OpenAPI"
+      ],
+      [
+        "Developer tooling teams can self-host static output while still giving readers modern navigation, search, code blocks, and responsive layouts.",
+        "Developer tooling teams",
+        "Static and portable"
+      ],
+      [
+        "Technical writing teams can manage English and translated content side by side while sharing one navigation model and site structure.",
+        "Technical writing teams",
+        "Native localization"
+      ],
+      [
+        "Product teams can tune dark and light theme tokens so docs feel aligned with the brand without rebuilding the renderer.",
+        "Product teams",
+        "Theme control"
+      ],
+      [
+        "AI and knowledge teams can consume raw Markdown, OpenAPI artifacts, and llms.txt from the same source that powers the human-facing site.",
+        "AI knowledge teams",
+        "Agent-ready content"
+      ]
+    ]
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "previewHeadline": "Free core, optional delivery partnership.",
+    "previewSubheadline": "Use Clarify freely, then work with Taicode Labs when you need migration, customization, and launch support.",
+    "comparePlans": "Compare plans",
+    "pageHeadline": "Free when you self-host, custom when we deliver.",
+    "pageSubheadline": "Clarify has no fixed paid tier. The product stays free to use; commercial work is scoped as a Delivery Partner engagement.",
+    "ctaHeadline": "Need a documentation partner?",
+    "ctaSubheadline": "Taicode Labs can help migrate content, tune the visual system, and prepare a static deployment pipeline.",
+    "ctaButton": "Talk to Delivery Partner services",
+    "freeName": "Free",
+    "freePrice": "Free",
+    "freePeriod": "forever",
+    "freeSubheadline": "For individuals, open-source projects, and teams that want to run Clarify themselves.",
+    "freeFeatures": [
+      "AGPL-licensed core",
+      "MDX pages",
+      "OpenAPI references and embeds",
+      "Native i18n",
+      "Theme tokens",
+      "Static and AI-ready output"
+    ],
+    "freeCta": "Get the source",
+    "partnerName": "Delivery Partner",
+    "partnerPrice": "Custom",
+    "partnerPeriod": "project",
+    "partnerBadge": "Commercial service",
+    "partnerSubheadline": "For organizations that want Taicode Labs to migrate content, model API docs, customize themes, and launch the documentation site.",
+    "partnerFeatures": [
+      "Everything in Free",
+      "Content migration",
+      "OpenAPI modeling",
+      "Theme customization",
+      "Static deployment pipeline",
+      "Team enablement"
+    ],
+    "partnerCta": "Book a scope call",
+    "comparison": {
+      "publishing": "Publishing",
+      "support": "Support",
+      "customization": "Customization",
+      "staticSiteGeneration": "Static site generation",
+      "mdxPages": "MDX documentation pages",
+      "openApiGeneration": "OpenAPI reference generation",
+      "customDomainReview": "Custom domain deployment review",
+      "communitySupport": "Community issue support",
+      "privateSupport": "Private implementation support",
+      "migrationPlanning": "Migration planning",
+      "doneForYouDelivery": "Done-for-you delivery",
+      "themeTokens": "Theme tokens",
+      "rendererReuse": "Renderer component reuse",
+      "customLandingSections": "Custom landing sections",
+      "bespokeIntegrations": "Bespoke integrations",
+      "selfServe": "Self-serve"
+    }
+  },
+  "faqs": {
+    "headline": "Questions teams ask before adopting Clarify.",
+    "subheadline": "Clarify is designed to start as a local-first docs tool and scale into a complete developer documentation workflow.",
+    "items": [
+      {
+        "question": "Where does our documentation source live?",
+        "answer": "In your repository. MDX pages, translations, OpenAPI specs, navigation, theme settings, and TypeScript configuration can be reviewed and versioned with the product code."
+      },
+      {
+        "question": "Can Clarify publish both guides and API reference?",
+        "answer": "Yes. Clarify can generate full OpenAPI reference pages and embed individual operations inside MDX pages so endpoint details appear directly inside tutorials and onboarding flows."
+      },
+      {
+        "question": "Can we self-host the output?",
+        "answer": "Yes. Clarify builds static HTML, CSS, JavaScript, raw content files, OpenAPI artifacts, and llms.txt that can be deployed to any static hosting platform."
+      },
+      {
+        "question": "Does Clarify support multilingual docs and custom themes?",
+        "answer": "Yes. Locale-aware routes, navigation labels, fallback behavior, dark/light themes, and configurable theme tokens are built into the publishing workflow."
+      }
+    ]
+  },
+  "finalCta": {
+    "headline": "Publish documentation that stays owned, portable, and ready for readers.",
+    "subheadline": "Start with the open-source project, connect MDX and OpenAPI, then ship static docs that work for humans, teams, and AI tools.",
+    "docs": "Read the docs",
+    "services": "Commercial services"
+  },
+  "about": {
+    "eyebrow": "About Clarify",
+    "headline": "An open-source documentation publishing layer for MDX, OpenAPI, and AI-ready knowledge bases.",
+    "subheadline": "Clarify exists for teams that want hosted-platform polish without giving up source ownership, self-hosting, multilingual content, responsive layouts, or brand control.",
+    "docs": "Read the docs",
+    "source": "Explore source",
+    "statsHeadline": "What we optimize for",
+    "statsSubheadline": "Source-owned documentation infrastructure for teams that need credible developer docs across guides, APIs, and AI-readable output.",
+    "stats": [
+      {
+        "stat": "Open",
+        "text": "Open-source by default, with docs and configuration kept in Git."
+      },
+      {
+        "stat": "API",
+        "text": "OpenAPI references and embedded operations live beside guides and examples."
+      },
+      {
+        "stat": "Global",
+        "text": "Native internationalization keeps localized content in one shared site structure."
+      },
+      {
+        "stat": "AI",
+        "text": "Raw Markdown, OpenAPI artifacts, and llms.txt make the same source useful to agents."
+      }
+    ]
+  },
+  "privacy": {
+    "eyebrow": "Privacy",
+    "headline": "Privacy Policy",
+    "subheadline": "Clarify's marketing site is a static website. If you contact Taicode Labs, the information you provide is used to respond to your request and deliver the requested service.",
+    "contact": "Contact us"
+  },
+  "notFound": {
+    "headline": "Page not found",
+    "subheadline": "The page you are looking for does not exist or has moved.",
+    "home": "Back home"
+  }
+}

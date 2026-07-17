@@ -5,24 +5,30 @@
   "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5174",
-    "build": "tsc -p tsconfig.json --noEmit && vite build",
-    "preview": "vite preview",
+    "dev": "react-router dev",
+    "build": "react-router build",
+    "preview": "vite preview --config vite.preview.config.ts",
     "lint": "eslint source/",
     "lint:fix": "eslint source/ --fix",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@clarify-labs/renderer": "workspace:^",
+    "@react-router/node": "7.17.0",
     "clsx": "^2.1.1",
     "i18next": "^25.7.3",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-http-backend": "^4.0.0",
+    "isbot": "^5.2.1",
     "lucide-react": "^1.20.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^16.4.0",
-    "react-router-dom": "^7.0.0"
+    "react-router": "7.17.0",
+    "react-router-dom": "^7.9.4"
   },
   "devDependencies": {
+    "@react-router/dev": "7.17.0",
     "@tailwindcss/vite": "^4.3.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
