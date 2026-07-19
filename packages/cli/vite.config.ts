@@ -17,6 +17,12 @@ const pkg = cliPackageJson as {
 const external = [
   ...Object.keys(pkg.dependencies ?? {}),
   ...Object.keys(pkg.peerDependencies ?? {}),
+  // Sub-paths of dependencies (e.g. `@modelcontextprotocol/sdk/server/mcp.js`,
+  // `vite/plugin-react`). Object.keys above only matches the bare package name;
+  // deep imports need a pattern.
+  /^@modelcontextprotocol\/sdk\//,
+  /^@clarify-labs\/[^/]+\//,
+  /^react-router[^/]*\//,
   // Node built-ins (both `node:` prefixed and bare forms)
   ...builtinModules,
   ...builtinModules.map(m => `node:${m}`),

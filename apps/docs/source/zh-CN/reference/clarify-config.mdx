@@ -113,7 +113,7 @@ export default defineConfig({
   },
   features: {
     search: {
-      provider: 'pagefind',
+      mcp: true,
     },
     repository: {
       url: 'https://github.com/acme/docs',
@@ -429,7 +429,7 @@ type ClarifyFeatureConfig<Options> =
   | ({ enabled?: boolean } & Options)
 
 type ClarifyFeaturesConfig = {
-  search?: ClarifyFeatureConfig<{ provider?: 'pagefind' }>
+  search?: ClarifyFeatureConfig<{ mcp?: boolean }>
   repository?: ClarifyFeatureConfig<{
     url?: string
     branch?: string
@@ -446,7 +446,7 @@ type ClarifyFeaturesConfig = {
 
 | 字段 | 默认解析结果 | 说明 |
 |------|--------------|------|
-| `search` | `{ enabled: true, provider: 'pagefind' }` | 站内全文搜索。当前 provider 仅支持 `pagefind`。 |
+| `search` | `{ enabled: true, mcp: true }` | 站内全文搜索（基于 Pagefind）。设置 `mcp: false` 可关闭 MCP 搜索索引与 `mcp.json` 清单的生成。 |
 | `repository` | `{ enabled: true }` | 文档源码关联的代码仓库。配置 `url` 后可启用页面编辑链接等仓库能力；`branch` 默认使用 `main`，`directory` 对应仓库内的内容目录。 |
 | `themeEditor` | `{ enabled: true }` | 内置主题编辑器。开发服务器始终提供编辑器；生产站点是否展示由此项控制。 |
 | `openapi` | `{ enabled: true, playground: true }` | OpenAPI 页面及请求工作台。响应预览和下载是页面内置能力。 |

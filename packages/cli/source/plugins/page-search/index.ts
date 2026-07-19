@@ -4,7 +4,8 @@ import { extname, join, relative, resolve } from 'node:path'
 import type { ViteDevServer } from 'vite'
 
 import { createClarifyTempDir, removeClarifyTempDir } from '../../core/project/temp-dir.js'
-import type { ClarifyHookContext, ClarifyPlugin, ContentRoute } from '../../types.js'
+import type { ClarifyHookContext, ClarifyPlugin } from '../../types.js'
+import { routeSearchContent } from '../mcp-search/orama-index.js'
 
 import { toPagefindLanguage } from './search-language.js'
 
@@ -59,16 +60,6 @@ async function generatePagefindIndex(options: GeneratePagefindIndexOptions, page
       await runtime.close()
     }
   }
-}
-
-function routeSearchContent(route: ContentRoute): string {
-  return [
-    route.meta.title,
-    route.meta.description,
-    route.meta.keywords?.join(' '),
-    route.meta.sections?.map(section => section.title).join(' '),
-    route.source.content,
-  ].filter(Boolean).join('\n\n')
 }
 
 async function generateDevSearchIndex(ctx: ClarifyHookContext, root: string, pagefind: PagefindModule): Promise<void> {
@@ -145,9 +136,9 @@ function serveDevPagefind(server: ViteDevServer, getRoot: () => string | undefin
   })
 }
 
-export function createSearchIndexPlugin(): ClarifyPlugin {
+export function createPageSearchPlugin(): ClarifyPlugin {
   return {
-    name: 'clarify:search-index',
+    name: 'clarify:page-search',
     hooks: {
       async 'dev:configureServer'(server, ctx) {
         if (!ctx.projectConfig.features.search.enabled) return
@@ -201,7 +192,7 @@ export function createSearchIndexPlugin(): ClarifyPlugin {
 
         const outputRoot = resolve(ctx.generateOptions.projectRoot, outputDirectory)
         const pageCount = await generatePagefindIndex({ outputRoot })
-        console.log(`[clarify] Search index generated for ${pageCount} pages.`)
+        console.log(`[clarify] Page search index generated for ${pageCount} pages.`)
       },
     },
   }

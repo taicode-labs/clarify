@@ -224,7 +224,10 @@ export type ClarifyNavigationConfig = {
 export type ClarifyFeatureConfig<Options extends object = Record<never, never>> = boolean | ({ enabled?: boolean } & Options)
 
 export type ClarifyFeaturesConfig = {
-  search?: ClarifyFeatureConfig<{ provider?: 'pagefind' }>
+  search?: ClarifyFeatureConfig<{
+    /** Whether to emit the MCP search index + descriptor for `clarify mcp`. Default: true. */
+    mcp?: boolean
+  }>
   repository?: ClarifyFeatureConfig<ClarifyRepositoryConfig>
   themeEditor?: ClarifyFeatureConfig
   openapi?: ClarifyFeatureConfig<{
@@ -233,7 +236,7 @@ export type ClarifyFeaturesConfig = {
 }
 
 export type ResolvedClarifyFeaturesConfig = {
-  search: { enabled: boolean; provider: 'pagefind' }
+  search: { enabled: boolean; mcp: boolean }
   repository: { enabled: boolean; url?: string; branch?: string; directory?: string }
   themeEditor: { enabled: boolean }
   openapi: {

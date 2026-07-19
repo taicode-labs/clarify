@@ -165,7 +165,7 @@ export type NavigationConfig = {
 };
 
 export type FeaturesConfig = {
-  search: { enabled: boolean; provider: 'pagefind' | 'none' };
+  search: { enabled: boolean; mcp: boolean };
   repository: { enabled: boolean; url?: string; branch?: string; directory?: string };
   themeEditor: { enabled: boolean };
   openapi: {

@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createSearchIndexPlugin } from './index.js'
+import { createPageSearchPlugin } from './index.js'
 
 const { createIndexMock, closeMock } = vi.hoisted(() => ({
   createIndexMock: vi.fn(),
@@ -14,7 +14,7 @@ vi.mock('pagefind', () => ({
   close: closeMock,
 }))
 
-describe('createSearchIndexPlugin', () => {
+describe('createPageSearchPlugin', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     createIndexMock.mockReset()
@@ -50,7 +50,7 @@ describe('createSearchIndexPlugin', () => {
       }
     })
 
-    const plugin = createSearchIndexPlugin()
+    const plugin = createPageSearchPlugin()
     const watcher = new EventEmitter()
     const httpServer = new EventEmitter()
     const server = {
@@ -67,7 +67,7 @@ describe('createSearchIndexPlugin', () => {
           missing: 'fallback',
           locales: [{ code: 'en-US', label: 'English' }],
         },
-        features: { search: { enabled: true, provider: 'pagefind' } },
+        features: { search: { enabled: true, mcp: true } },
       },
       routes: [{
         path: '/docs',
