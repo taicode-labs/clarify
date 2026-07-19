@@ -96,7 +96,7 @@ export async function renderSSGRoutes(routes: ContentRoute[], contextOrConfig: C
     )
   }
 
-  for (const route of routes) {
+  await Promise.all(routes.map(async (route) => {
     try {
       const appHtml = await render(route.path)
       const finalHtml = injectSSRIntoTemplate(template, appHtml, contextOrConfig, route)
@@ -109,5 +109,5 @@ export async function renderSSGRoutes(routes: ContentRoute[], contextOrConfig: C
       console.error(`[clarify] Failed to render route "${route.path}":`, err)
       throw err
     }
-  }
+  }))
 }

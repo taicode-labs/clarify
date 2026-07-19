@@ -5,7 +5,7 @@ import { runCheck, type CheckCommandOptions } from './commands/check.js'
 import { runDev } from './commands/dev.js'
 import { runInit } from './commands/init.js'
 import { runMcp, type McpCliOptions } from './commands/mcp.js'
-import { resolveCliOptions, type CliOptions, type ResolvedCliOptions } from './options.js'
+import { resolveCliOptions, type CliOptions } from './options.js'
 import { cliPackageVersion } from './package.js'
 
 type InitCommandOptions = CliOptions & {
@@ -19,22 +19,11 @@ function withBuildOptions(command: ReturnType<ReturnType<typeof cac>['command']>
     .option('--content <dir>', 'Content directory relative to root')
 }
 
-function resolveInitOptions(directory: string | undefined, options: InitCommandOptions): ResolvedCliOptions {
-  return resolveOptions({
-    ...options,
-    root: directory,
-  })
-}
-
 function withSharedOptions(command: ReturnType<ReturnType<typeof cac>['command']>) {
   return command
     .option('--root <dir>', 'Project root directory')
     .option('--content <dir>', 'Content directory relative to root')
     .option('--output <dir>', 'Build output directory relative to root')
-}
-
-function resolveOptions(options: CliOptions): ResolvedCliOptions {
-  return resolveCliOptions(options)
 }
 
 function createCli() {
@@ -49,12 +38,12 @@ function createCli() {
     .option('--port <port>', 'Dev server port')
     .option('--open [path]', 'Open the dev server in a browser')
     .action(async (options: CliOptions) => {
-      await runDev(resolveOptions(options))
+      await runDev(resolveCliOptions(options))
     })
 
   withSharedOptions(cli.command('build', 'Build the static documentation site'))
     .action(async (options: CliOptions) => {
-      await runBuild(resolveOptions(options))
+      await runBuild(resolveCliOptions(options))
     })
 
   withSharedOptions(cli.command('check', 'Validate the documentation project'))
@@ -69,7 +58,7 @@ function createCli() {
     .option('--template <name>', 'Template to use: minimal, standard, or complete')
     .option('--install', 'Install dependencies after init')
     .action((directory: string | undefined, options: InitCommandOptions) => {
-      runInit(resolveInitOptions(directory, options), options.force === true, options.template, options.install === true)
+      runInit(resolveCliOptions({ ...options, root: directory }), options.force === true, options.template, options.install === true)
     })
 
   cli

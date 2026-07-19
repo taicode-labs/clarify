@@ -8,7 +8,8 @@ import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 import { resolveFeaturesConfig } from '../config/config.js'
 
-import { readIndexHtml, injectSSRIntoTemplate, isNotFoundRoute, routeOutputFiles } from './ssg.js'
+import { injectSSRIntoTemplate } from './html-template.js'
+import { readIndexHtml, isNotFoundRoute, routeOutputFiles } from './ssg.js'
 
 type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
   title?: string
