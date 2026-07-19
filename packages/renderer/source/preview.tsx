@@ -153,7 +153,7 @@ const previewConfig = {
   },
   variables: {},
   features: {
-    search: { enabled: true, provider: 'pagefind' },
+    search: { enabled: true, mcp: true },
     repository: { enabled: true },
     themeEditor: { enabled: true },
     openapi: { enabled: true, playground: true },

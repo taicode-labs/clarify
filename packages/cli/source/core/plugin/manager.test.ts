@@ -15,7 +15,8 @@ describe('plugin manager', () => {
       'clarify:source-links',
       'clarify:content-artifacts',
       'clarify:seo',
-      'clarify:search-index',
+      'clarify:page-search',
+      'clarify:mcp-search',
       'user-plugin',
     ])
   })

@@ -25,6 +25,9 @@ export type BuiltInTextKey =
   | 'contentActions.copyLlms'
   | 'contentActions.copyLlmsDescription'
   | 'contentActions.copiedLlms'
+  | 'contentActions.copiedMcpConfig'
+  | 'contentActions.mcpConfig'
+  | 'contentActions.mcpConfigDescription'
   | 'contentActions.editPage'
   | 'contentActions.editPageDescription'
   | 'contentActions.copyOptions'
@@ -180,6 +183,9 @@ const builtInText = {
     'contentActions.copyLlms': 'Copy llms.txt',
     'contentActions.copyLlmsDescription': 'Copy the llms.txt link for this site',
     'contentActions.copiedLlms': 'Copied llms.txt',
+    'contentActions.copiedMcpConfig': 'Copied MCP config',
+    'contentActions.mcpConfig': 'Copy MCP config',
+    'contentActions.mcpConfigDescription': "Copy this site's MCP server configuration",
     'contentActions.editPage': 'Edit this page',
     'contentActions.editPageDescription': 'Open the source file for this page',
     'contentActions.copyOptions': 'Choose copy option',
@@ -334,6 +340,9 @@ const builtInText = {
     'contentActions.copyLlms': '复制 llms.txt',
     'contentActions.copyLlmsDescription': '复制此站点的 llms.txt 链接',
     'contentActions.copiedLlms': '已复制 llms.txt',
+    'contentActions.copiedMcpConfig': '已复制 MCP 配置',
+    'contentActions.mcpConfig': '复制 MCP 配置',
+    'contentActions.mcpConfigDescription': '复制站点的 MCP server 配置',
     'contentActions.editPage': '编辑此页面',
     'contentActions.editPageDescription': '打开当前页面的源文件',
     'contentActions.copyOptions': '选择复制选项',

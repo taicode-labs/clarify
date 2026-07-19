@@ -4,6 +4,7 @@ import { runBuild } from './commands/build.js'
 import { runCheck, type CheckCommandOptions } from './commands/check.js'
 import { runDev } from './commands/dev.js'
 import { runInit } from './commands/init.js'
+import { runMcp, type McpCliOptions } from './commands/mcp.js'
 import { resolveCliOptions, type CliOptions, type ResolvedCliOptions } from './options.js'
 import { cliPackageVersion } from './package.js'
 
@@ -69,6 +70,13 @@ function createCli() {
     .option('--install', 'Install dependencies after init')
     .action((directory: string | undefined, options: InitCommandOptions) => {
       runInit(resolveInitOptions(directory, options), options.force === true, options.template, options.install === true)
+    })
+
+  cli
+    .command('mcp <...site>', 'Start a local MCP server exposing full-text search over one or more deployed sites')
+    .option('--no-cache', 'Skip the local search index cache and always fetch fresh')
+    .action(async (sites: string[], options: McpCliOptions) => {
+      await runMcp(sites, { noCache: options.noCache === true })
     })
 
   return cli

@@ -1,5 +1,5 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
-import { Check, ChevronDown, Copy, ExternalLink, FileText, Link2, LoaderCircle, PencilLine, X } from 'lucide-react'
+import { Check, ChevronDown, Copy, ExternalLink, FileText, Link2, LoaderCircle, PencilLine, Terminal, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { useBuiltInText } from '../i18n'
@@ -12,7 +12,7 @@ type ContentActionsProps = {
   routePrefix?: string
 }
 
-type CopyState = 'idle' | 'content' | 'link' | 'llms'
+type CopyState = 'idle' | 'content' | 'link' | 'llms' | 'mcp'
 type CopyPhase = 'idle' | 'copying' | 'copied' | 'failed'
 type CopyAction = {
   key: Exclude<CopyState, 'idle'>
@@ -87,6 +87,23 @@ export function ContentActions(arg0: ContentActionsProps) {
     await runCopy('llms', () => getAbsoluteUrl(llmsArtifactUrl))
   }
 
+  async function handleCopyMcp() {
+    await runCopy('mcp', () => mcpConfig)
+  }
+
+  const mcpConfig = JSON.stringify(
+    {
+      mcpServers: {
+        clarify: {
+          command: 'npx',
+          args: ['@clarify-labs/cli', 'mcp', window.location.origin],
+        },
+      },
+    },
+    null,
+    2,
+  )
+
   const actions: CopyAction[] = contentArtifactUrl
     ? [
         {
@@ -116,10 +133,18 @@ export function ContentActions(arg0: ContentActionsProps) {
     run: handleCopyLlms,
     copiedLabel: t('contentActions.copiedLlms'),
   }
+  const mcpAction: CopyAction = {
+    key: 'mcp',
+    label: t('contentActions.mcpConfig'),
+    description: t('contentActions.mcpConfigDescription'),
+    icon: Terminal,
+    run: handleCopyMcp,
+    copiedLabel: t('contentActions.copiedMcpConfig'),
+  }
   const primaryAction = actions[0]
   const primaryPhase = primaryAction && copied === primaryAction.key ? copyPhase : 'idle'
   const PrimaryIcon = primaryPhase === 'copying' ? LoaderCircle : primaryPhase === 'copied' ? Check : primaryPhase === 'failed' ? X : primaryAction?.icon ?? PencilLine
-  const feedbackAction = copied === 'content' ? actions[0] : copied === 'link' ? actions[1] : copied === 'llms' ? llmsAction : undefined
+  const feedbackAction = copied === 'content' ? actions[0] : copied === 'link' ? actions[1] : copied === 'llms' ? llmsAction : copied === 'mcp' ? mcpAction : undefined
   const feedbackLabel = copyPhase === 'copying'
     ? t('actions.copying')
     : copyPhase === 'failed'
@@ -274,6 +299,22 @@ export function ContentActions(arg0: ContentActionsProps) {
                 <span className="clarify-ui-menu-description truncate">{llmsAction.description}</span>
               </span>
               <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${copied === llmsAction.key ? 'opacity-100' : 'opacity-0'}`} />
+            </button>
+          </MenuItem>
+          <MenuItem key={mcpAction.key}>
+            <button
+              type="button"
+              onClick={mcpAction.run}
+              className="clarify-content-actions-item clarify-ui-menu-item group flex w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) px-1.5 py-1.5 text-left transition"
+            >
+              <span className="clarify-ui-menu-icon flex shrink-0 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) p-1.5">
+                <Terminal className="h-4 w-4" />
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col px-1">
+                <span className="clarify-ui-menu-title">{copied === mcpAction.key ? mcpAction.copiedLabel ?? mcpAction.label : mcpAction.label}</span>
+                <span className="clarify-ui-menu-description truncate">{mcpAction.description}</span>
+              </span>
+              <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${copied === mcpAction.key ? 'opacity-100' : 'opacity-0'}`} />
             </button>
           </MenuItem>
         </MenuItems>

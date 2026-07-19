@@ -113,7 +113,7 @@ export default defineConfig({
   },
   features: {
     search: {
-      provider: 'pagefind',
+      mcp: true,
     },
     repository: {
       url: 'https://github.com/acme/docs',
@@ -429,7 +429,7 @@ type ClarifyFeatureConfig<Options> =
   | ({ enabled?: boolean } & Options)
 
 type ClarifyFeaturesConfig = {
-  search?: ClarifyFeatureConfig<{ provider?: 'pagefind' }>
+  search?: ClarifyFeatureConfig<{ mcp?: boolean }>
   repository?: ClarifyFeatureConfig<{
     url?: string
     branch?: string
@@ -446,7 +446,7 @@ All built-in features are enabled by default. Every feature supports a boolean s
 
 | Field | Resolved default | Description |
 |-------|------------------|-------------|
-| `search` | `{ enabled: true, provider: 'pagefind' }` | Full-text site search. `pagefind` is currently the only provider. |
+| `search` | `{ enabled: true, mcp: true }` | Full-text site search backed by Pagefind. Set `mcp: false` to opt out of emitting the MCP search index and `mcp.json` manifest. |
 | `repository` | `{ enabled: true }` | Repository associated with the documentation source. Set `url` to enable repository-aware capabilities such as page edit links; `branch` defaults to `main`, and `directory` maps to the content directory inside the repository. |
 | `themeEditor` | `{ enabled: true }` | Built-in theme editor. The development server always provides it; this option controls its availability in production sites. |
 | `openapi` | `{ enabled: true, playground: true }` | OpenAPI pages and the request playground. Response preview and download are built-in page capabilities. |

@@ -23,6 +23,9 @@ type Pages = {
   "/privacy-policy": {
     params: {};
   };
+  "/api/track": {
+    params: {};
+  };
   "/*": {
     params: {
       "*": string;
@@ -33,7 +36,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/about" | "/pricing" | "/privacy-policy" | "/*";
+    page: "/" | "/about" | "/pricing" | "/privacy-policy" | "/api/track" | "/*";
   };
   "pages/home/index.tsx": {
     id: "pages/home/index";
@@ -51,6 +54,10 @@ type RouteFiles = {
     id: "pages/privacy-policy/index";
     page: "/privacy-policy";
   };
+  "pages/track/index.tsx": {
+    id: "pages/track/index";
+    page: "/api/track";
+  };
   "pages/not-found/index.tsx": {
     id: "pages/not-found/index";
     page: "/*";
@@ -63,5 +70,6 @@ type RouteModules = {
   "pages/about/index": typeof import("./source/pages/about/index.tsx");
   "pages/pricing/index": typeof import("./source/pages/pricing/index.tsx");
   "pages/privacy-policy/index": typeof import("./source/pages/privacy-policy/index.tsx");
+  "pages/track/index": typeof import("./source/pages/track/index.tsx");
   "pages/not-found/index": typeof import("./source/pages/not-found/index.tsx");
 };

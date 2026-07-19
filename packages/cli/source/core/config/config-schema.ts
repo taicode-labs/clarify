@@ -187,7 +187,7 @@ function featureSchema<Schema extends z.ZodRawShape>(shape: Schema, defaults: Re
 }
 
 export const clarifyFeaturesConfigSchema = z.object({
-  search: featureSchema({ provider: z.literal('pagefind').default('pagefind') }, { provider: 'pagefind' }),
+  search: featureSchema({ mcp: z.boolean().default(true) }, { mcp: true }),
   repository: featureSchema(clarifyRepositoryConfigSchema.shape, {}),
   themeEditor: featureSchema({}, {}),
   openapi: featureSchema({

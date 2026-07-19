@@ -141,6 +141,14 @@ export default tseslint.config(
     },
   },
 
+  // React Router route modules may export metadata alongside their component.
+  {
+    files: ['apps/www/source/pages/**/index.tsx'],
+    rules: {
+      'react-refresh/only-export-components': ['warn', { allowExportNames: ['meta'] }],
+    },
+  },
+
   // Renderer 是可复用组件库，入口和 provider 文件会导出 hooks/types/helpers。
   {
     files: ['packages/renderer/source/**/*.{ts,tsx}'],

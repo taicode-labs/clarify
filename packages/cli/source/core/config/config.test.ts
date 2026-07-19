@@ -259,8 +259,9 @@ describe('resolveProjectConfig', () => {
 
   it('resolves features from booleans and detailed options', () => {
     const defaults = resolveProjectConfig().features
-    expect(defaults.search).toEqual({ enabled: true, provider: 'pagefind' })
-    expect(resolveProjectConfig({ features: { search: false } }).features.search).toEqual({ enabled: false, provider: 'pagefind' })
+    expect(defaults.search).toEqual({ enabled: true, mcp: true })
+    expect(resolveProjectConfig({ features: { search: false } }).features.search).toEqual({ enabled: false, mcp: true })
+    expect(resolveProjectConfig({ features: { search: { mcp: false } } }).features.search).toEqual({ enabled: true, mcp: false })
   })
 
   it('rejects the removed artifacts feature', () => {
@@ -273,6 +274,7 @@ describe('resolveProjectConfig', () => {
     expect(() => clarifyProjectConfigSchema.parse({ features: { repository: { repository: 'https://github.com/acme/docs' } } })).toThrow(/repository/)
     expect(() => clarifyProjectConfigSchema.parse({ features: { openapi: { responsePreview: false } } })).toThrow(/responsePreview/)
     expect(() => clarifyProjectConfigSchema.parse({ features: { openapi: { responseDownload: false } } })).toThrow(/responseDownload/)
+    expect(() => clarifyProjectConfigSchema.parse({ features: { search: { provider: 'pagefind' } } })).toThrow(/provider/)
   })
 
   it('applies theme presets before project overrides', () => {
