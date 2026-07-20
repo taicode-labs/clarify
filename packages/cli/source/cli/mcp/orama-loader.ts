@@ -79,8 +79,9 @@ async function fetchBufferWithTimeout(url: string, fetchImpl: typeof fetch, log:
  * Load the Orama binary index for a remote site and return a ready-to-search
  * handle.
  *
- * The `.msp` index is a single binary file (msgpack-serialized Orama `save()`
- * output). It is cached on disk so repeated MCP starts don't re-download.
+ * The `.msp` index is a single versioned binary file containing a
+ * Brotli-compressed, MessagePack-serialized Orama `save()` payload. It is
+ * cached on disk so repeated MCP starts don't re-download.
  * Cache validity is keyed by `capabilities.search.indexHash` when available.
  * For older sites that do not emit `indexHash`, we fall back to document
  * count + locale fingerprint matching.

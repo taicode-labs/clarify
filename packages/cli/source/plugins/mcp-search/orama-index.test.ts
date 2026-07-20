@@ -2,6 +2,8 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
+import { encode } from '@msgpack/msgpack'
+import { save } from '@orama/orama'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import type { ContentRoute } from '../../types.js'
@@ -268,6 +270,29 @@ describe('serialize / deserialize round-trip', () => {
     const buffer = serializeSearchIndex(original.db)
     // A single small document should serialize to well under 10KB.
     expect(buffer.byteLength).toBeLessThan(10_000)
+  })
+
+  it('does not embed source documents as contiguous plaintext', () => {
+    const plaintext = 'CONFIDENTIAL_MCP_SEARCH_DOCUMENT_7f42a9'
+    const original = buildSearchIndex([
+      makeRoute({ source: { filePath: '/tmp/private.md', content: plaintext } }),
+    ], 'zh-CN')
+
+    const buffer = serializeSearchIndex(original.db)
+    const serialized = Buffer.from(buffer).toString('utf8')
+    expect(Buffer.from(buffer.subarray(0, 10)).toString('ascii')).toBe('CLARIFYMSP')
+    expect(serialized).not.toContain(plaintext)
+
+    const restored = deserializeSearchIndex(buffer, 'zh-CN')
+    expect(searchMcpIndex(restored, { query: plaintext }).count).toBe(1)
+  })
+
+  it('reads legacy uncompressed MessagePack indexes', () => {
+    const original = buildSearchIndex([makeRoute()], 'zh-CN')
+    const legacyBuffer = encode(save(original.db))
+
+    const restored = deserializeSearchIndex(legacyBuffer, 'zh-CN')
+    expect(searchMcpIndex(restored, { query: '文档' }).count).toBeGreaterThan(0)
   })
 })
 

@@ -1,10 +1,18 @@
 import { readFileSync, writeFileSync } from 'node:fs'
+import { brotliCompressSync, brotliDecompressSync, constants as zlibConstants } from 'node:zlib'
 
 import { decode, encode } from '@msgpack/msgpack'
 import { create, insertMultiple, search, save, load } from '@orama/orama'
 import type { AnyOrama, Results } from '@orama/orama'
 
 import type { ContentRoute } from '../../types.js'
+
+const MSP_MAGIC = new Uint8Array([0x43, 0x4c, 0x41, 0x52, 0x49, 0x46, 0x59, 0x4d, 0x53, 0x50, 0x01])
+
+function hasMspMagic(buffer: Uint8Array): boolean {
+  return buffer.byteLength >= MSP_MAGIC.byteLength
+    && MSP_MAGIC.every((byte, index) => buffer[index] === byte)
+}
 
 /**
  * Orama schema for the MCP search index.
@@ -313,19 +321,29 @@ function guessTitleFromPath(path: string): string {
 }
 
 /**
- * Serialize an Orama index to a msgpack binary buffer.
+ * Serialize an Orama index to a versioned, Brotli-compressed binary buffer.
  *
- * Uses `save()` to extract the raw index data, then msgpack-encodes it for a
- * compact binary representation. The same schema + tokenizer must be supplied
- * when loading so query-time tokenization matches indexing-time tokenization.
+ * Uses `save()` to extract the raw index data, MessagePack-encodes it, then
+ * compresses the payload so source documents are not embedded as contiguous
+ * plaintext. The leading magic bytes identify the container and its version.
  */
 export function serializeSearchIndex(db: McpSearchDb): Uint8Array {
   const raw = save(db)
-  return encode(raw)
+  const packed = encode(raw)
+  const compressed = brotliCompressSync(packed, {
+    params: {
+      [zlibConstants.BROTLI_PARAM_QUALITY]: 9,
+    },
+  })
+  const buffer = new Uint8Array(MSP_MAGIC.byteLength + compressed.byteLength)
+  buffer.set(MSP_MAGIC)
+  buffer.set(compressed, MSP_MAGIC.byteLength)
+  return buffer
 }
 
 /**
- * Deserialize a msgpack binary buffer into a ready-to-search Orama index.
+ * Deserialize a current compressed container or legacy MessagePack buffer
+ * into a ready-to-search Orama index.
  *
  * The caller must supply the same `defaultLocale` used when the index was
  * built, so the tokenizer matches. A mismatch would not corrupt data but
@@ -333,21 +351,24 @@ export function serializeSearchIndex(db: McpSearchDb): Uint8Array {
  * as a single token instead of split into "文" + "档").
  */
 export function deserializeSearchIndex(buffer: Uint8Array, defaultLocale?: string): McpSearchDb {
-  const raw = decode(buffer) as ReturnType<typeof save>
+  const packed = hasMspMagic(buffer)
+    ? brotliDecompressSync(buffer.subarray(MSP_MAGIC.byteLength))
+    : buffer
+  const raw = decode(packed) as ReturnType<typeof save>
   const db = createMcpSearchIndex(defaultLocale)
   load(db, raw)
   return db
 }
 
 /**
- * Write an Orama index to a `.msp` (msgpack) file on disk.
+ * Write an Orama index to a versioned `.msp` file on disk.
  */
 export function writeSearchIndex(db: McpSearchDb, filePath: string): void {
   writeFileSync(filePath, serializeSearchIndex(db))
 }
 
 /**
- * Read an Orama index from a `.msp` (msgpack) file on disk.
+ * Read a current or legacy Orama `.msp` index from disk.
  */
 export function readSearchIndex(filePath: string, defaultLocale?: string): McpSearchDb {
   return deserializeSearchIndex(readFileSync(filePath), defaultLocale)
