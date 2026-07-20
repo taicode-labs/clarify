@@ -132,8 +132,9 @@ describe('EndpointRequest', () => {
     expect(markup).toMatch(/<a href="https:\/\/example\.com\/keys"[^>]*>Manage keys<\/a>/)
     expect(markup).toContain('Scopes: pets:read')
     expect(markup).toContain('AND')
-    expect(markup).toContain('OR')
-    expect(markup).toContain('No authentication required')
+    expect(markup).toContain('role="tablist"')
+    expect(markup).toContain('aria-selected="true"')
+    expect(markup).toContain('None')
   })
 })
 
