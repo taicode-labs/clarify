@@ -55,6 +55,13 @@ export type BuiltInTextKey =
   | 'notFound.title'
   | 'openapi.apiDocumentation'
   | 'openapi.authentication'
+  | 'openapi.authAnd'
+  | 'openapi.authApiKey'
+  | 'openapi.authBearerFormat'
+  | 'openapi.authLocation'
+  | 'openapi.authNoAuth'
+  | 'openapi.authOr'
+  | 'openapi.authScopes'
   | 'openapi.bodyProperties'
   | 'openapi.collapse'
   | 'openapi.clear'
@@ -213,6 +220,13 @@ const builtInText = {
     'notFound.title': 'Page not found',
     'openapi.apiDocumentation': 'API Documentation',
     'openapi.authentication': 'Authentication',
+    'openapi.authAnd': 'AND',
+    'openapi.authApiKey': 'API key',
+    'openapi.authBearerFormat': 'Bearer format: {format}',
+    'openapi.authLocation': '{in} parameter: {name}',
+    'openapi.authNoAuth': 'No authentication required',
+    'openapi.authOr': 'OR',
+    'openapi.authScopes': 'Scopes: {scopes}',
     'openapi.bodyProperties': 'Body properties',
     'openapi.collapse': 'Collapse',
     'openapi.clear': 'Clear',
@@ -370,6 +384,13 @@ const builtInText = {
     'notFound.title': '页面未找到',
     'openapi.apiDocumentation': 'API 文档',
     'openapi.authentication': '认证方式',
+    'openapi.authAnd': '并且',
+    'openapi.authApiKey': 'API 密钥',
+    'openapi.authBearerFormat': 'Bearer 格式：{format}',
+    'openapi.authLocation': '{in} 参数：{name}',
+    'openapi.authNoAuth': '无需认证',
+    'openapi.authOr': '或者',
+    'openapi.authScopes': 'Scopes：{scopes}',
     'openapi.bodyProperties': '请求体属性',
     'openapi.collapse': '收起',
     'openapi.clear': '清除',

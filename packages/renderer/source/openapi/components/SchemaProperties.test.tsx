@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
+import { ConfigContext } from '../../core/context'
+import type { Config } from '../../core/types'
 import { schemaToType } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 
@@ -33,10 +35,105 @@ describe('EndpointRequest', () => {
         onSelectRequestMediaType={() => {}}
         selectedServer={{ url: 'https://api.example.com' }}
         serverVariables={{}}
+        authOptions={[]}
       />,
     )
 
     expect(markup).toContain('No request body')
+  })
+
+  it('renders authentication requirements in the endpoint documentation', () => {
+    const markup = renderToStaticMarkup(
+      <EndpointRequest
+        spec={{ openapi: '3.1.0', info: { title: 'Test API', version: '1.0.0' }, paths: {} }}
+        path="/pets"
+        method="get"
+        groupedParameters={{ path: [], query: [], header: [] }}
+        parameters={[]}
+        requestContents={[]}
+        requestSchema={undefined}
+        selectedRequestMediaType=""
+        onSelectRequestMediaType={() => {}}
+        selectedServer={{ url: 'https://api.example.com' }}
+        serverVariables={{}}
+        authOptions={[
+          {
+            key: 'requirement:0',
+            label: 'bearerAuth',
+            schemes: [
+              {
+                name: 'bearerAuth',
+                scheme: {
+                  type: 'http',
+                  scheme: 'bearer',
+                },
+                scopes: [],
+              },
+            ],
+          },
+        ]}
+      />,
+    )
+
+    expect(markup).toContain('Authentication')
+    expect(markup).toContain('bearerAuth')
+  })
+
+  it('renders authentication alternatives, combinations, and scheme metadata', () => {
+    const config = {
+      routePrefix: '/',
+      assetPrefix: '/',
+    } as Config
+    const markup = renderToStaticMarkup(
+      <ConfigContext.Provider value={config}>
+        <EndpointRequest
+          spec={{ openapi: '3.1.0', info: { title: 'Test API', version: '1.0.0' }, paths: {} }}
+          path="/pets"
+          method="get"
+          groupedParameters={{ path: [], query: [], header: [] }}
+          parameters={[]}
+          requestContents={[]}
+          requestSchema={undefined}
+          selectedRequestMediaType=""
+          onSelectRequestMediaType={() => {}}
+          selectedServer={{ url: 'https://api.example.com' }}
+          serverVariables={{}}
+          authOptions={[
+            {
+              key: 'requirement:0',
+              label: 'apiKey + oauth',
+              schemes: [
+                {
+                  name: 'apiKey',
+                  scheme: {
+                    type: 'apiKey',
+                    in: 'header',
+                    name: 'X-API-Key',
+                    description: 'Send a project key in `X-API-Key`. [Manage keys](https://example.com/keys).',
+                  },
+                  scopes: [],
+                },
+                {
+                  name: 'oauth',
+                  scheme: { type: 'oauth2' },
+                  scopes: ['pets:read'],
+                },
+              ],
+            },
+            { key: 'requirement:1', label: '', schemes: [] },
+          ]}
+        />
+      </ConfigContext.Provider>,
+    )
+
+    expect(markup).toContain('API key')
+    expect(markup).toContain('header parameter: X-API-Key')
+    expect(markup).toMatch(/<code[^>]*>X-API-Key<\/code>/)
+    expect(markup).toMatch(/<a href="https:\/\/example\.com\/keys"[^>]*>Manage keys<\/a>/)
+    expect(markup).toContain('Scopes: pets:read')
+    expect(markup).toContain('AND')
+    expect(markup).toContain('OR')
+    expect(markup).toContain('No authentication required')
   })
 })
 

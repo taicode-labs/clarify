@@ -6,7 +6,8 @@ import { Col, Row } from '../../mdx/primitives'
 import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
 import type { MediaTypeEntry, OpenApiParameter, OpenApiRecord, OpenApiServer, RequestAuthInputs } from '../types'
 
-import { RequestExamplesPanel, ResponseExamplesPanel } from './ExamplePanels'
+import { type AuthOption, RequestExamplesPanel, ResponseExamplesPanel } from './ExamplePanels'
+import { OpenApiAuthDocumentation } from './OpenApiAuthDocumentation'
 import { ParameterList, ResponseList, SchemaProperties } from './SchemaProperties'
 
 type EndpointRequestProps = {
@@ -28,6 +29,7 @@ type EndpointRequestProps = {
   onSelectRequestMediaType: (value: string) => void
   selectedServer: OpenApiServer
   serverVariables: Record<string, string>
+  authOptions: AuthOption[]
   auth?: RequestAuthInputs
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
@@ -49,6 +51,7 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
     onSelectRequestMediaType,
     selectedServer,
     serverVariables,
+    authOptions,
     auth,
     sharedExampleKey,
     onSelectExampleKey,
@@ -81,6 +84,7 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
       <Row className="clarify-openapi-request-workspace relative mt-8 pt-6">
         <Col>
           <div className="w-full">
+            <OpenApiAuthDocumentation options={authOptions} />
             <ParameterList title={t('openapi.pathParameters')} parameters={groupedParameters.path} />
             <ParameterList title={t('openapi.queryParameters')} parameters={groupedParameters.query} />
             <ParameterList title={t('openapi.headers')} parameters={groupedParameters.header} />

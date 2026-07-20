@@ -59,7 +59,7 @@ function getSecurityRequirements(spec: OpenAPISpec, operation: OpenAPIOperation)
   return Array.isArray(specSecurity) ? specSecurity.filter(isRecord) as OpenApiSecurityRequirement[] : []
 }
 
-export type AuthSchemeOption = { name: string; scheme: OpenApiSecurityScheme }
+export type AuthSchemeOption = { name: string; scheme: OpenApiSecurityScheme; scopes: string[] }
 export type AuthOption = { key: string; label: string; schemes: AuthSchemeOption[] }
 
 export function getAuthOptions(spec: OpenAPISpec, operation: OpenAPIOperation): AuthOption[] {
@@ -68,7 +68,7 @@ export function getAuthOptions(spec: OpenAPISpec, operation: OpenAPIOperation): 
 
   return requirements.map((requirement, index) => {
     const requirementSchemes = Object.keys(requirement)
-      .map((name) => ({ name, scheme: schemes[name] }))
+      .map((name) => ({ name, scheme: schemes[name], scopes: requirement[name] ?? [] }))
       .filter((option): option is AuthSchemeOption => Boolean(option.scheme))
     return {
       key: `requirement:${index}`,

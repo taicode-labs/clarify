@@ -437,6 +437,11 @@
         "operationId": "demoComplexRequestBody",
         "summary": "复杂请求体示例",
         "description": "在一个接口中覆盖嵌套 JSON 示例、YAML 示例、多种响应状态以及多种响应媒体类型。",
+        "security": [
+          {
+            "OpenIdConnect": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "description": "复杂示例定义，可使用 JSON 或 YAML。",
@@ -1952,20 +1957,24 @@
       "BearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT"
+        "bearerFormat": "JWT",
+        "description": "通过 `Authorization: Bearer <token>` 发送访问令牌。令牌由 Clarify 身份服务签发。"
       },
       "ApiKeyAuth": {
         "type": "apiKey",
         "in": "header",
-        "name": "X-API-Key"
+        "name": "X-API-Key",
+        "description": "项目 API 密钥，通过请求头 `X-API-Key` 发送。[管理项目密钥](https://clarify.local/settings/api-keys)。"
       },
       "QueryApiKeyAuth": {
         "type": "apiKey",
         "in": "query",
-        "name": "api_key"
+        "name": "api_key",
+        "description": "通过查询参数 `api_key` 传递的短期 API 密钥。长期凭证应使用 Header 认证。"
       },
       "OAuth2": {
         "type": "oauth2",
+        "description": "面向用户授权访问的 OAuth 2.0 Authorization Code 流程。请仅申请当前操作所需的 Scopes。",
         "flows": {
           "authorizationCode": {
             "authorizationUrl": "https://auth.clarify.local/oauth/authorize",
@@ -1979,7 +1988,8 @@
       },
       "OpenIdConnect": {
         "type": "openIdConnect",
-        "openIdConnectUrl": "https://auth.clarify.local/.well-known/openid-configuration"
+        "openIdConnectUrl": "https://auth.clarify.local/.well-known/openid-configuration",
+        "description": "使用 OpenID Connect 提供方完成认证，客户端可通过下方配置地址发现认证端点。"
       }
     },
     "links": {

@@ -28,14 +28,14 @@ describe('getAuthOptions', () => {
         key: 'requirement:0',
         label: 'bearerAuth + apiKey',
         schemes: [
-          { name: 'bearerAuth', scheme: bearerAuth },
-          { name: 'apiKey', scheme: apiKey },
+          { name: 'bearerAuth', scheme: bearerAuth, scopes: [] },
+          { name: 'apiKey', scheme: apiKey, scopes: [] },
         ],
       },
       {
         key: 'requirement:1',
         label: 'basicAuth',
-        schemes: [{ name: 'basicAuth', scheme: basicAuth }],
+        schemes: [{ name: 'basicAuth', scheme: basicAuth, scopes: [] }],
       },
     ])
   })

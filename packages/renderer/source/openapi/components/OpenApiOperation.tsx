@@ -390,6 +390,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
         onSelectRequestMediaType={requestState.setSelectedRequestMediaType}
         selectedServer={serverState.selectedServer}
         serverVariables={serverState.serverVariables}
+        authOptions={authState.authOptions}
         auth={authState.authInput}
         sharedExampleKey={linkedExampleKey}
         onSelectExampleKey={setLinkedExampleKey}

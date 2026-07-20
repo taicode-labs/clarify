@@ -45,6 +45,7 @@ export type OpenApiServer = {
 }
 
 export type OpenApiSecurityScheme = {
+  description?: string
   type?: string
   scheme?: string
   bearerFormat?: string

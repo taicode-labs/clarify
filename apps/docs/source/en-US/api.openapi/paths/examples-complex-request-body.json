@@ -6,6 +6,11 @@
     "operationId": "demoComplexRequestBody",
     "summary": "Complex request body example",
     "description": "Covers nested JSON examples, YAML examples, multiple response statuses, and multiple response media types in one operation.",
+    "security": [
+      {
+        "OpenIdConnect": []
+      }
+    ],
     "requestBody": {
       "required": true,
       "description": "Complex example definition in JSON or YAML.",

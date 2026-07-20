@@ -1235,20 +1235,24 @@
       "BearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT"
+        "bearerFormat": "JWT",
+        "description": "Send the access token as `Authorization: Bearer <token>`. Tokens are issued by the Clarify identity service."
       },
       "ApiKeyAuth": {
         "type": "apiKey",
         "in": "header",
-        "name": "X-API-Key"
+        "name": "X-API-Key",
+        "description": "A project API key sent in the `X-API-Key` request header. [Manage project keys](https://clarify.local/settings/api-keys)."
       },
       "QueryApiKeyAuth": {
         "type": "apiKey",
         "in": "query",
-        "name": "api_key"
+        "name": "api_key",
+        "description": "A short-lived API key passed through the `api_key` query parameter. Use header authentication for long-lived credentials."
       },
       "OAuth2": {
         "type": "oauth2",
+        "description": "OAuth 2.0 authorization code flow for user-delegated access. Request only the scopes required by the operation.",
         "flows": {
           "authorizationCode": {
             "authorizationUrl": "https://auth.clarify.local/oauth/authorize",
@@ -1262,7 +1266,8 @@
       },
       "OpenIdConnect": {
         "type": "openIdConnect",
-        "openIdConnectUrl": "https://auth.clarify.local/.well-known/openid-configuration"
+        "openIdConnectUrl": "https://auth.clarify.local/.well-known/openid-configuration",
+        "description": "Authenticate with an OpenID Connect provider discovered from the configuration URL below."
       }
     },
     "links": {
