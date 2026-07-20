@@ -10,7 +10,6 @@ import { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Feedback, 
 import { OpenApiSpecsContext, useOpenApiSpecs } from './context'
 import { useMDXComponents } from './mdx/components'
 import { DocShell } from './mdx/DocShell'
-import { Markdown } from './mdx/Markdown'
 import { markdownRemarkPlugins, parseCodeMeta } from './mdx/remark'
 import { OpenApiRequest, OpenApiDocument, OpenApiOperation, createOpenApiRouteComponent } from './openapi'
 import { render } from './runtime/render'
@@ -36,7 +35,7 @@ export { AppShell, render, OpenApiSpecsContext, useOpenApiSpecs, BuiltWithClarif
 export { Button, Callout, Card, CardGroup, Code, CodeGroup, Collapse, Pre, Prose, Heading, Logo, Mermaid, GridPattern, HeroPattern, Feedback, Step, Steps, Tab, Tabs, Tag, WebFrame }
 
 // MDX integration helpers
-export { DocShell, Markdown, useMDXComponents, markdownRemarkPlugins, parseCodeMeta }
+export { DocShell, useMDXComponents, markdownRemarkPlugins, parseCodeMeta }
 
 // Plugin runtime UI slots
 export { SlotProvider, RuntimeSlot, RuntimeSlotsProvider, useSlot }

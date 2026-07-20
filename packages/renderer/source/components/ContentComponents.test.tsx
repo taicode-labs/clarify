@@ -66,6 +66,7 @@ describe('content components', () => {
     expect(components.FileTreeItem).toBe(FileTreeItem)
     expect(components.img).toBe(Image)
     expect(components).not.toHaveProperty('Figure')
+    expect(components).not.toHaveProperty('Markdown')
     expect(components.Tooltip).toBe(Tooltip)
   })
 })
