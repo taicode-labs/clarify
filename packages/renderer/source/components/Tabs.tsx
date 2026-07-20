@@ -29,6 +29,8 @@ export type TabsProps = {
   spacingClassName?: string
   listClassName?: string
   panelsClassName?: string
+  actions?: ReactNode
+  variant?: 'content' | 'code'
 }
 
 type TabClassNameProps = {
@@ -36,7 +38,7 @@ type TabClassNameProps = {
 }
 
 export function Tabs(arg0: TabsProps) {
-  const { items, children, defaultValue, selectedIndex, onChange, className, spacingClassName = 'my-6', listClassName, panelsClassName } = arg0
+  const { items, children, defaultValue, selectedIndex, onChange, className, spacingClassName = 'my-6', listClassName, panelsClassName, actions, variant = 'content' } = arg0
   const childItems = Children.toArray(children)
     .filter((child): child is ReactElement<TabProps> => isValidElement(child) && child.type === TabItem)
     .map((child, index) => ({
@@ -58,13 +60,19 @@ export function Tabs(arg0: TabsProps) {
 
   return (
     <TabGroup selectedIndex={resolvedIndex} onChange={handleChange} className={clsx('clarify-tabs', spacingClassName, className)}>
-      <TabList className={clsx('flex max-w-full items-stretch gap-1 overflow-x-auto border-b border-(--clarify-theme-tokens-colors-border)', listClassName)}>
+      <TabList className={clsx(
+        'flex max-w-full items-stretch overflow-x-auto border-b',
+        variant === 'content' ? 'gap-1 border-(--clarify-theme-tokens-colors-border)' : 'h-10 gap-0 border-(--clarify-code-border) px-3',
+        listClassName,
+      )}>
         {resolvedItems.map((item) => (
           <Tab
             key={item.id}
             className={({ selected }: TabClassNameProps) => clsx(
-              'clarify-content-tab clarify-ui-tab relative my-1 inline-flex h-9 shrink-0 items-center rounded-(--clarify-theme-tokens-radius-md) px-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
-              selected && 'clarify-ui-tab-active',
+              'relative inline-flex shrink-0 items-center px-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
+              variant === 'content' ? 'clarify-content-tab clarify-ui-tab my-1 h-9 rounded-(--clarify-theme-tokens-radius-md)' : 'text-2xs font-semibold',
+              selected && (variant === 'content' ? 'clarify-ui-tab-active' : 'text-(--clarify-code-text)'),
+              variant === 'code' && !selected && 'text-(--clarify-code-muted)',
             )}
           >
             {({ selected }: TabClassNameProps) => (
@@ -73,7 +81,10 @@ export function Tabs(arg0: TabsProps) {
                 {selected ? (
                   <motion.span
                     layoutId={indicatorLayoutId}
-                    className="absolute inset-x-2.5 -bottom-1 h-0.5 rounded-full bg-(--clarify-ui-tab-indicator)"
+                    className={clsx(
+                      'absolute inset-x-2.5 h-0.5 bg-(--clarify-ui-tab-indicator)',
+                      variant === 'content' ? '-bottom-1 rounded-full' : '-bottom-px',
+                    )}
                     transition={{ type: 'tween', duration: 0.16, ease: 'easeOut' }}
                   />
                 ) : null}
@@ -81,6 +92,7 @@ export function Tabs(arg0: TabsProps) {
             )}
           </Tab>
         ))}
+        {actions ? <div className="sticky right-0 ml-auto flex shrink-0 items-center bg-(--clarify-code-background)">{actions}</div> : null}
       </TabList>
       <TabPanels className={panelsClassName ?? 'mt-5'}>
         {resolvedItems.map((item) => (

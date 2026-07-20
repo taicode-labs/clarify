@@ -187,6 +187,7 @@ function ServerVariableControl(arg0: ServerVariableControlProps): ReactNode {
         options={variable.enum.map((option) => ({ value: option, label: option }))}
         onChange={onChange}
         compact={compact}
+        buttonClassName="inline-flex min-h-8 w-full min-w-0 items-center justify-between gap-1 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) focus:ring-2 focus:ring-inset focus:ring-(--clarify-theme-tokens-colors-primary) data-open:bg-(--clarify-ui-active-background)"
       />
     )
   }
@@ -234,6 +235,7 @@ function ServerPanel(arg0: ServerPanelProps): ReactNode {
                 description: server.description,
               }))}
               onChange={onSelectServer}
+              buttonClassName="inline-flex min-h-8 w-full min-w-0 items-center justify-between gap-1 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) focus:ring-2 focus:ring-inset focus:ring-(--clarify-theme-tokens-colors-primary) data-open:bg-(--clarify-ui-active-background)"
             />
           </label>
         ) : null}

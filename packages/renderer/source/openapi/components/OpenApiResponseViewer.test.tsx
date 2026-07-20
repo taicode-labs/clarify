@@ -71,6 +71,14 @@ describe('response body previews', () => {
 })
 
 describe('OpenApiResponseViewer', () => {
+  it('uses the shared code tabs with the active indicator aligned to the toolbar border', () => {
+    const markup = renderToStaticMarkup(<OpenApiResponseViewer exchange={createExchange('application/json', '{"ok":true}')} />)
+
+    expect(markup).toContain('clarify-tabs m-0 min-h-72')
+    expect(markup).toContain('h-10 gap-0 border-(--clarify-code-border) px-3')
+    expect(markup).toContain('absolute inset-x-2.5 h-0.5 bg-(--clarify-ui-tab-indicator) -bottom-px')
+  })
+
   it('renders a designed empty state on the theme-scoped response surface', () => {
     const markup = renderToStaticMarkup(<OpenApiResponseViewer />)
 

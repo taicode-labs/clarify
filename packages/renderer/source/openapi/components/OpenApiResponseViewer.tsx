@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'
 
 import { HighlightedCode } from '../../components/HighlightedCode'
+import { Tabs } from '../../components/Tabs'
 import { useBuiltInText } from '../../core/i18n'
 import { copyTextToClipboard } from '../../utils/clipboard'
 import type { ApiResponseExchange } from '../lib/api-exchange'
@@ -213,6 +214,7 @@ export function OpenApiResponseViewer(arg0: OpenApiResponseViewerProps): ReactNo
   const previewAvailable = exchange ? canPreviewResponse(exchange.contentType) : false
   const selectedBodyMode = bodyModeSelection && bodyModeSelection.exchange === exchange ? bodyModeSelection.mode : 'preview'
   const activeBodyMode = previewAvailable ? selectedBodyMode : 'raw'
+  const bodyModes = (['preview', 'raw'] as BodyMode[]).filter(mode => mode === 'raw' || previewAvailable)
 
   function downloadBody() {
     if (!exchange) return
@@ -243,7 +245,23 @@ export function OpenApiResponseViewer(arg0: OpenApiResponseViewerProps): ReactNo
           <ResponseHeaders headers={exchange.headers} />
         </RequestSection>
         <RequestSection title={t('openapi.body')} defaultOpen actions={<span className="font-mono text-2xs font-normal text-(--clarify-code-faint)">{exchange.contentType || t('openapi.unknownContentType')}</span>}>
-          <div className="min-h-72"><div className="flex h-10 items-center justify-between border-b border-(--clarify-code-border) px-3"><div role="tablist" className="flex">{(['preview', 'raw'] as BodyMode[]).filter(mode => mode === 'raw' || previewAvailable).map((mode) => <button key={mode} type="button" role="tab" aria-selected={activeBodyMode === mode} onClick={() => setBodyModeSelection({ exchange, mode })} className={clsx('border-b-2 px-2.5 py-1 text-2xs font-semibold', activeBodyMode === mode ? 'border-(--clarify-theme-tokens-colors-primary) text-(--clarify-code-text)' : 'border-transparent text-(--clarify-code-muted)')}>{mode === 'preview' ? t('openapi.preview') : t('openapi.raw')}</button>)}</div><div className="flex"><CopyButton value={exchange.body} /><button type="button" onClick={downloadBody} aria-label={t('openapi.downloadBody')} title={t('openapi.downloadBody')} className="grid size-8 shrink-0 place-items-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-code-muted) transition hover:bg-(--clarify-code-control-background-hover) hover:text-(--clarify-code-text) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)"><DownloadIcon className="size-4" aria-hidden="true" /></button></div></div><div className="p-4">{activeBodyMode === 'preview' ? <ResponsePreview exchange={exchange} /> : exchange.size ? <pre className="max-h-128 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-xs/5">{exchange.body}</pre> : <div className="py-8 text-center text-xs text-(--clarify-code-faint)">{t('openapi.responseBodyEmpty')}</div>}</div></div>
+          <Tabs
+            items={bodyModes.map(mode => ({
+              id: mode,
+              label: mode === 'preview' ? t('openapi.preview') : t('openapi.raw'),
+              panel: mode === 'preview'
+                ? <ResponsePreview exchange={exchange} />
+                : exchange.size
+                  ? <pre className="max-h-128 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-xs/5">{exchange.body}</pre>
+                  : <div className="py-8 text-center text-xs text-(--clarify-code-faint)">{t('openapi.responseBodyEmpty')}</div>,
+            }))}
+            selectedIndex={bodyModes.indexOf(activeBodyMode)}
+            onChange={(index) => setBodyModeSelection({ exchange, mode: bodyModes[index] ?? 'raw' })}
+            spacingClassName="m-0 min-h-72"
+            panelsClassName="p-4"
+            variant="code"
+            actions={<><CopyButton value={exchange.body} /><button type="button" onClick={downloadBody} aria-label={t('openapi.downloadBody')} title={t('openapi.downloadBody')} className="grid size-8 shrink-0 place-items-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-code-muted) transition hover:bg-(--clarify-code-control-background-hover) hover:text-(--clarify-code-text) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)"><DownloadIcon className="size-4" aria-hidden="true" /></button></>}
+          />
         </RequestSection>
       </div> : null}
     </section>
