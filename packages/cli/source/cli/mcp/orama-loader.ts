@@ -81,8 +81,9 @@ async function fetchBufferWithTimeout(url: string, fetchImpl: typeof fetch, log:
  *
  * The `.msp` index is a single binary file (msgpack-serialized Orama `save()`
  * output). It is cached on disk so repeated MCP starts don't re-download.
- * Cache validity is keyed by the document count and locale list recorded in
- * `mcp.json`; if either changes, the cached index is stale and refetched.
+ * Cache validity is keyed by `capabilities.search.indexHash` when available.
+ * For older sites that do not emit `indexHash`, we fall back to document
+ * count + locale fingerprint matching.
  *
  * The caller must supply the same `defaultLocale` recorded in `mcp.json` so
  * the tokenizer matches the one used at build time. A mismatch would not
@@ -112,11 +113,21 @@ export async function loadSearchIndex(siteUrl: string, config: McpSiteConfig, op
   // locale fingerprint recorded at last fetch match the caller-provided
   // config. These change whenever the index is rebuilt with different content.
   const fingerprint = localeFingerprint(config)
+  const indexHash = search.indexHash
   let useCache = !options.noCache
   if (useCache) {
     try {
-      const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as { documentCount: number; fingerprint: string }
-      if (manifest.documentCount !== search.documentCount || manifest.fingerprint !== fingerprint) {
+      const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as {
+        documentCount?: number
+        fingerprint?: string
+        indexHash?: string
+      }
+      if (indexHash) {
+        if (manifest.indexHash !== indexHash) {
+          log('Cache stale (index hash changed); refetching')
+          useCache = false
+        }
+      } else if (manifest.documentCount !== search.documentCount || manifest.fingerprint !== fingerprint) {
         log('Cache stale (document count or locales changed); refetching')
         useCache = false
       }
@@ -150,6 +161,7 @@ export async function loadSearchIndex(siteUrl: string, config: McpSiteConfig, op
             fetchedAt: new Date().toISOString(),
             documentCount: search.documentCount,
             fingerprint,
+            indexHash,
           },
           null,
           2,

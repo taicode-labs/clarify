@@ -79,5 +79,8 @@ export async function fetchMcpConfig(siteUrl: string, fetchImpl: typeof fetch, l
   if (!search.indexPath) {
     throw new Error(`[clarify] mcp.json at ${configUrl} is missing capabilities.search.indexPath.`)
   }
+  if (search.indexHash !== undefined && (typeof search.indexHash !== 'string' || search.indexHash.length === 0)) {
+    throw new Error(`[clarify] mcp.json at ${configUrl} has an invalid capabilities.search.indexHash.`)
+  }
   return config
 }

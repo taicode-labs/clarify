@@ -10,6 +10,7 @@ function makeConfig(overrides: Record<string, unknown> = {}): Record<string, unk
       search: {
         type: 'search',
         indexPath: '/mcp-search.msp',
+        indexHash: 'hash-v1',
         defaultLocale: 'en-us',
         documentCount: 5,
         locales: ['en-us'],
@@ -77,5 +78,17 @@ describe('fetchMcpConfig', () => {
     await expect(
       fetchMcpConfig('https://docs.example.com', fetchImpl, () => {}),
     ).rejects.toThrow(/missing capabilities.search.indexPath/)
+  })
+
+  it('throws when indexHash is invalid', async () => {
+    const fetchImpl = vi.fn(async () => {
+      const cfg = makeConfig()
+      ;(cfg.capabilities as Record<string, Record<string, unknown>>).search!.indexHash = ''
+      return new Response(JSON.stringify(cfg), { status: 200 })
+    }) as unknown as typeof fetch
+
+    await expect(
+      fetchMcpConfig('https://docs.example.com', fetchImpl, () => {}),
+    ).rejects.toThrow(/invalid capabilities.search.indexHash/)
   })
 })

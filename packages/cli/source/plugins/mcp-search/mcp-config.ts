@@ -22,6 +22,8 @@ export type McpSearchCapability = {
    * routePrefix when one is configured.
    */
   indexPath: string
+  /** SHA-256 hash of the index payload at indexPath, for cache freshness checks. */
+  indexHash?: string
   /** Locale used when the caller does not specify one. Drives tokenizer. */
   defaultLocale?: string
   /** Number of documents stored in the index. */
@@ -74,6 +76,7 @@ function normalizePrefix(routePrefix: string | undefined): string {
 export type CreateMcpSiteConfigOptions = {
   documentCount: number
   locales: string[]
+  indexHash: string
 }
 
 /**
@@ -98,6 +101,7 @@ export function createMcpSiteConfig(projectConfig: ResolvedProjectConfig, option
       search: {
         type: 'search',
         indexPath: `${prefix}/mcp-search.msp`,
+        indexHash: options.indexHash,
         defaultLocale: projectConfig.locales?.default,
         documentCount: options.documentCount,
         locales: options.locales,

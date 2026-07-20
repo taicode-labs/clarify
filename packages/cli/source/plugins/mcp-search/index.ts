@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import type { ClarifyEmitAsset, ClarifyPlugin } from '../../types.js'
 
 import { createMcpSiteConfig } from './mcp-config.js'
@@ -27,13 +29,15 @@ export function createMcpSearchPlugin(): ClarifyPlugin {
         const defaultLocale = ctx.projectConfig.locales?.default
         const { db, documentCount } = buildSearchIndex(ctx.routes, defaultLocale)
         const locales = collectIndexedLocales(ctx.routes, defaultLocale)
-        const mcpConfig = createMcpSiteConfig(ctx.projectConfig, { documentCount, locales })
+        const indexBytes = serializeSearchIndex(db)
+        const indexHash = createHash('sha256').update(indexBytes).digest('hex')
+        const mcpConfig = createMcpSiteConfig(ctx.projectConfig, { documentCount, locales, indexHash })
 
         const prefix = mcpConfig.capabilities.search?.indexPath.replace(/\/mcp-search\.msp$/, '') ?? ''
         const assets: ClarifyEmitAsset[] = [
           {
             fileName: `${prefix}/mcp-search.msp`.replace(/^\//, ''),
-            source: serializeSearchIndex(db),
+            source: indexBytes,
           },
           {
             fileName: 'mcp.json',

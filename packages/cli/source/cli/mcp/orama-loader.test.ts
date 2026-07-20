@@ -18,6 +18,7 @@ function makeConfig(overrides: Partial<McpSiteConfig['capabilities']['search']> 
       search: {
         type: 'search',
         indexPath: '/mcp-search.msp',
+        indexHash: 'hash-v1',
         defaultLocale: 'zh-CN',
         documentCount: 1,
         locales: ['zh-CN'],
@@ -99,24 +100,35 @@ describe('loadSearchIndex', () => {
     expect(existsSync(join(tempDir, siteDirs[0], 'mcp-search.msp'))).toBe(true)
   })
 
-  it('refetches when documentCount changes (cache stale)', async () => {
-    const config = makeConfig({ documentCount: 1 })
+  it('refetches when indexHash changes (cache stale)', async () => {
+    const config = makeConfig({ indexHash: 'hash-v1', documentCount: 1 })
     await loadSearchIndex('https://docs.example.com', config, { cacheDir: tempDir, fetchImpl, log: () => {} })
     expect(fetchImpl).toHaveBeenCalledTimes(1)
 
-    // Same site, different documentCount -> cache stale.
-    const config2 = makeConfig({ documentCount: 99 })
+    // Same site, new hash -> cache stale.
+    const config2 = makeConfig({ indexHash: 'hash-v2', documentCount: 99 })
     await loadSearchIndex('https://docs.example.com', config2, { cacheDir: tempDir, fetchImpl, log: () => {} })
     expect(fetchImpl).toHaveBeenCalledTimes(2)
   })
 
-  it('refetches when the locale set changes (cache stale)', async () => {
-    const config = makeConfig({ locales: ['zh-CN'] })
+  it('legacy config without indexHash refetches when documentCount changes (cache stale)', async () => {
+    const config = makeConfig({ indexHash: undefined, documentCount: 1 })
+    await loadSearchIndex('https://docs.example.com', config, { cacheDir: tempDir, fetchImpl, log: () => {} })
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+
+    // Same site, no hash, different documentCount -> stale by legacy rule.
+    const config2 = makeConfig({ indexHash: undefined, documentCount: 99 })
+    await loadSearchIndex('https://docs.example.com', config2, { cacheDir: tempDir, fetchImpl, log: () => {} })
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+
+  it('legacy config without indexHash refetches when the locale set changes (cache stale)', async () => {
+    const config = makeConfig({ indexHash: undefined, locales: ['zh-CN'] })
     await loadSearchIndex('https://docs.example.com', config, { cacheDir: tempDir, fetchImpl, log: () => {} })
     expect(fetchImpl).toHaveBeenCalledTimes(1)
 
     // Same count, different locales -> fingerprint changes -> refetch.
-    const config2 = makeConfig({ locales: ['zh-CN', 'en-US'] })
+    const config2 = makeConfig({ indexHash: undefined, locales: ['zh-CN', 'en-US'] })
     await loadSearchIndex('https://docs.example.com', config2, { cacheDir: tempDir, fetchImpl, log: () => {} })
     expect(fetchImpl).toHaveBeenCalledTimes(2)
   })

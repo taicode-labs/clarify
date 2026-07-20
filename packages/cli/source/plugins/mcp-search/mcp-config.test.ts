@@ -21,7 +21,7 @@ describe('createMcpSiteConfig', () => {
       makeProjectConfig({
         locales: { default: 'zh-cn', missing: 'fallback', locales: [{ code: 'zh-cn', label: '简体中文' }, { code: 'en-us', label: 'English' }] } as never,
       }),
-      { documentCount: 42, locales: ['zh-cn', 'en-us'] },
+      { documentCount: 42, locales: ['zh-cn', 'en-us'], indexHash: 'abc123' },
     )
 
     expect(config).toEqual({
@@ -36,6 +36,7 @@ describe('createMcpSiteConfig', () => {
         search: {
           type: 'search',
           indexPath: '/mcp-search.msp',
+          indexHash: 'abc123',
           defaultLocale: 'zh-cn',
           documentCount: 42,
           locales: ['zh-cn', 'en-us'],
@@ -47,7 +48,7 @@ describe('createMcpSiteConfig', () => {
   it('prefixes indexPath with routePrefix when site is mounted on a subpath', () => {
     const config = createMcpSiteConfig(
       makeProjectConfig({ routePrefix: '/docs' }),
-      { documentCount: 1, locales: ['en-us'] },
+      { documentCount: 1, locales: ['en-us'], indexHash: 'hash-docs' },
     )
     expect(config.capabilities.search?.indexPath).toBe('/docs/mcp-search.msp')
   })
@@ -55,18 +56,18 @@ describe('createMcpSiteConfig', () => {
   it('falls back to /mcp-search.msp when routePrefix is "/"', () => {
     const config = createMcpSiteConfig(
       makeProjectConfig({ routePrefix: '/' }),
-      { documentCount: 1, locales: ['en-us'] },
+      { documentCount: 1, locales: ['en-us'], indexHash: 'hash-root' },
     )
     expect(config.capabilities.search?.indexPath).toBe('/mcp-search.msp')
   })
 
   it('omits defaultLocale when locales config is absent', () => {
-    const config = createMcpSiteConfig(makeProjectConfig(), { documentCount: 1, locales: ['en-us'] })
+    const config = createMcpSiteConfig(makeProjectConfig(), { documentCount: 1, locales: ['en-us'], indexHash: 'hash-locale' })
     expect(config.capabilities.search?.defaultLocale).toBeUndefined()
   })
 
   it('preserves an empty locale list when no locales are indexed', () => {
-    const config = createMcpSiteConfig(makeProjectConfig(), { documentCount: 0, locales: [] })
+    const config = createMcpSiteConfig(makeProjectConfig(), { documentCount: 0, locales: [], indexHash: 'hash-empty' })
     expect(config.capabilities.search?.locales).toEqual([])
     expect(config.capabilities.search?.documentCount).toBe(0)
   })
