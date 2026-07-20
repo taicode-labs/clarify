@@ -38,6 +38,17 @@ describe('Tabs', () => {
     expect(html).toContain('npm install clarify')
   })
 
+  it('uses an explicit panel class in place of the default spacing', () => {
+    const html = renderToStaticMarkup(
+      <Tabs panelsClassName="mt-2">
+        <TabItem title="Authentication">Bearer token</TabItem>
+      </Tabs>,
+    )
+    const panelsClassName = html.match(/<div class="([^"]*)"><div[^>]*role="tabpanel"/)?.[1]
+
+    expect(panelsClassName).toBe('mt-2')
+  })
+
   it('registers Steps and Tabs as built-in MDX components', () => {
     const components = useMDXComponents()
 

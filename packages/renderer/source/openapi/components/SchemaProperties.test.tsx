@@ -76,6 +76,7 @@ describe('EndpointRequest', () => {
 
     expect(markup).toContain('Authentication')
     expect(markup).toContain('bearerAuth')
+    expect(markup).toContain('<section class="clarify-openapi-document-section">')
   })
 
   it('renders authentication alternatives, combinations, and scheme metadata', () => {
@@ -220,7 +221,8 @@ describe('SchemaProperties', () => {
 
     const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
 
-    expect(markup).toContain('clarify-schema-properties not-prose my-6')
+    expect(markup).toContain('<section class="clarify-openapi-document-section"><h4')
+    expect(markup).toContain('class="mt-2 clarify-schema-properties not-prose"')
     expect(markup).toContain('clarify-schema-node m-0 p-0')
     expect(markup).toMatch(/<button[^>]*class="[^"]*rounded-\(--clarify-theme-tokens-radius-md\)[^"]*hover:bg-/)
     expect(markup).toContain('ml-2 border-l border-(--clarify-theme-tokens-colors-border) pl-2')

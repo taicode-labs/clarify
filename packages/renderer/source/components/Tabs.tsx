@@ -26,6 +26,7 @@ export type TabsProps = {
   selectedIndex?: number
   onChange?: (index: number) => void
   className?: string
+  spacingClassName?: string
   listClassName?: string
   panelsClassName?: string
 }
@@ -35,7 +36,7 @@ type TabClassNameProps = {
 }
 
 export function Tabs(arg0: TabsProps) {
-  const { items, children, defaultValue, selectedIndex, onChange, className, listClassName, panelsClassName } = arg0
+  const { items, children, defaultValue, selectedIndex, onChange, className, spacingClassName = 'my-6', listClassName, panelsClassName } = arg0
   const childItems = Children.toArray(children)
     .filter((child): child is ReactElement<TabProps> => isValidElement(child) && child.type === TabItem)
     .map((child, index) => ({
@@ -56,7 +57,7 @@ export function Tabs(arg0: TabsProps) {
   }
 
   return (
-    <TabGroup selectedIndex={resolvedIndex} onChange={handleChange} className={clsx('clarify-tabs my-6', className)}>
+    <TabGroup selectedIndex={resolvedIndex} onChange={handleChange} className={clsx('clarify-tabs', spacingClassName, className)}>
       <TabList className={clsx('flex max-w-full items-stretch gap-1 overflow-x-auto border-b border-(--clarify-theme-tokens-colors-border)', listClassName)}>
         {resolvedItems.map((item) => (
           <Tab
@@ -81,7 +82,7 @@ export function Tabs(arg0: TabsProps) {
           </Tab>
         ))}
       </TabList>
-      <TabPanels className={clsx('mt-5', panelsClassName)}>
+      <TabPanels className={panelsClassName ?? 'mt-5'}>
         {resolvedItems.map((item) => (
           <TabPanel key={item.id} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)">
             {item.panel}

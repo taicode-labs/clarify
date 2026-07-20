@@ -5,6 +5,7 @@ import { useBuiltInText } from '../../core/i18n'
 import { Markdown } from '../../mdx/Markdown'
 
 import type { AuthOption } from './ExamplePanels'
+import { OpenApiDocumentSection } from './OpenApiDocumentSection'
 
 function authSchemeType(option: AuthOption['schemes'][number], apiKeyLabel: string): string {
   const { scheme } = option
@@ -25,10 +26,10 @@ export function OpenApiAuthDocumentation(props: OpenApiAuthDocumentationProps): 
 
   if (options.length === 0) return null
 
-  const renderOption = (option: AuthOption, tabbed = false) => option.schemes.length === 0 ? (
-    <div className={`${tabbed ? 'border-b' : 'border-y'} border-(--clarify-theme-tokens-colors-border) py-4 text-sm/6 font-medium text-(--clarify-theme-tokens-colors-foreground)`}>{t('openapi.authNoAuth')}</div>
+  const renderOption = (option: AuthOption) => option.schemes.length === 0 ? (
+    <div className="border-b border-(--clarify-theme-tokens-colors-border) pt-2 pb-4 text-sm/6 font-medium text-(--clarify-theme-tokens-colors-foreground)">{t('openapi.authNoAuth')}</div>
   ) : (
-    <div className={`divide-y divide-(--clarify-theme-tokens-colors-border) ${tabbed ? 'border-b' : 'border-y'} border-(--clarify-theme-tokens-colors-border)`}>
+    <div className="divide-y divide-(--clarify-theme-tokens-colors-border) border-b border-(--clarify-theme-tokens-colors-border)">
       {option.schemes.map((schemeOption, schemeIndex) => {
         const { scheme } = schemeOption
         const details = [
@@ -51,7 +52,7 @@ export function OpenApiAuthDocumentation(props: OpenApiAuthDocumentationProps): 
                 <span className="absolute top-0 left-4 -translate-y-1/2 bg-(--clarify-theme-tokens-colors-background) px-1.5 text-2xs font-semibold text-(--clarify-ui-text-faint)">{t('openapi.authAnd')}</span>
               </div>
             ) : null}
-            <div className="py-4">
+            <div className="py-4 first:pt-2">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-mono text-sm/6 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{schemeOption.name}</span>
                 <span className="rounded bg-(--clarify-ui-subtle-background) px-1.5 py-0.5 text-2xs font-semibold text-(--clarify-ui-text-soft)">{authSchemeType(schemeOption, t('openapi.authApiKey'))}</span>
@@ -70,22 +71,18 @@ export function OpenApiAuthDocumentation(props: OpenApiAuthDocumentationProps): 
   )
 
   return (
-    <div>
-      <h3>{t('openapi.authentication')}</h3>
-      <div className="not-prose">
-        {options.length === 1 ? (
-          <div className="my-6">{renderOption(options[0])}</div>
-        ) : (
-          <Tabs
-            items={options.map((option) => ({
-              id: option.key,
-              label: option.label || t('openapi.none'),
-              panel: renderOption(option, true),
-            }))}
-            panelsClassName="mt-2"
-          />
-        )}
-      </div>
-    </div>
+    <OpenApiDocumentSection title={t('openapi.authentication')} bodyClassName="not-prose">
+      {options.length === 1 ? renderOption(options[0]) : (
+        <Tabs
+          items={options.map((option) => ({
+            id: option.key,
+            label: option.label || t('openapi.none'),
+            panel: renderOption(option),
+          }))}
+          spacingClassName="m-0"
+          panelsClassName="mt-2"
+        />
+      )}
+    </OpenApiDocumentSection>
   )
 }

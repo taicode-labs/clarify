@@ -87,13 +87,13 @@ export function Col(arg0: ColProps) {
   return <div className={clsx('clarify-col *:first:mt-0 *:last:mb-0', sticky && 'xl:sticky xl:top-[calc(var(--clarify-header-offset,3.5rem)+1.5rem)] xl:self-start')}>{children}</div>
 }
 
-type PropertiesProps = { children: ReactNode }
+type PropertiesProps = { children: ReactNode; className?: string; spacingClassName?: string }
 
 export function Properties(arg0: PropertiesProps) {
-  const { children } = arg0
+  const { children, className, spacingClassName = 'my-6' } = arg0
 
   return (
-    <div className="clarify-properties my-6">
+    <div className={clsx('clarify-properties', spacingClassName, className)}>
       <ul
         role="list"
         className="m-0 list-none divide-y divide-(--clarify-theme-tokens-colors-border) p-0"

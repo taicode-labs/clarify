@@ -10,6 +10,8 @@ import { getJsonLikeContent, getResponseEntries, isRecord, isReference, resolveR
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 import type { OpenApiParameter, OpenApiResponse } from '../types'
 
+import { OpenApiDocumentSection } from './OpenApiDocumentSection'
+
 type SchemaTreeNode = {
   key: string
   name: string
@@ -356,12 +358,9 @@ export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {
   if (!root || root.children.length === 0) return null
 
   return (
-    <div>
-      <h3>{title}</h3>
-      <div className="clarify-schema-properties not-prose my-6">
-        <SchemaTree nodes={root.children} />
-      </div>
-    </div>
+    <OpenApiDocumentSection title={title} level={4} bodyClassName="clarify-schema-properties not-prose">
+      <SchemaTree nodes={root.children} />
+    </OpenApiDocumentSection>
   )
 }
 
@@ -374,9 +373,8 @@ export function ParameterList(arg0: ParameterListProps): ReactNode {
   if (parameters.length === 0) return null
 
   return (
-    <div>
-      <h3>{title}</h3>
-      <Properties>
+    <OpenApiDocumentSection title={title} bodyClassName="not-prose">
+      <Properties spacingClassName="m-0">
         {parameters.map((parameter) => (
           <Property
             key={`${parameter.in}-${parameter.name}`}
@@ -387,7 +385,7 @@ export function ParameterList(arg0: ParameterListProps): ReactNode {
           </Property>
         ))}
       </Properties>
-    </div>
+    </OpenApiDocumentSection>
   )
 }
 
@@ -433,7 +431,7 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
           {response.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{response.description}</Markdown> : `${t('openapi.response')}.`}
         </div>
         {responseSchema && spec ? (
-          <div className="mt-4">
+          <div className="mt-6">
             <SchemaProperties title={t('openapi.responseBodyProperties')} schema={responseSchema} spec={spec} />
           </div>
         ) : null}
@@ -444,16 +442,14 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
   if (orderedResponses.length === 1) {
     const [{ status, response }] = orderedResponses
     return (
-      <div>
-        <h3>{title ?? t('openapi.responses')}</h3>
+      <OpenApiDocumentSection title={title ?? t('openapi.responses')}>
         {renderResponsePanel({ status, response })}
-      </div>
+      </OpenApiDocumentSection>
     )
   }
 
   return (
-    <div>
-      <h3>{title ?? t('openapi.responses')}</h3>
+    <OpenApiDocumentSection title={title ?? t('openapi.responses')} bodyClassName="not-prose">
       <Tabs
         selectedIndex={selectedIndex}
         onChange={(index) => {
@@ -464,9 +460,9 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
           label: status,
           panel: renderResponsePanel({ status, response }),
         }))}
-        className="mt-4 mb-6"
-        panelsClassName="mt-5"
+        spacingClassName="m-0"
+        panelsClassName="mt-2"
       />
-    </div>
+    </OpenApiDocumentSection>
   )
 }

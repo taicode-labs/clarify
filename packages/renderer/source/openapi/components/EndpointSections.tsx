@@ -8,6 +8,7 @@ import type { MediaTypeEntry, OpenApiParameter, OpenApiRecord, OpenApiServer, Re
 
 import { type AuthOption, RequestExamplesPanel, ResponseExamplesPanel } from './ExamplePanels'
 import { OpenApiAuthDocumentation } from './OpenApiAuthDocumentation'
+import { OpenApiDocumentSection } from './OpenApiDocumentSection'
 import { ParameterList, ResponseList, SchemaProperties } from './SchemaProperties'
 
 type EndpointRequestProps = {
@@ -83,15 +84,14 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
       {renderDescription()}
       <Row className="clarify-openapi-request-workspace relative mt-8 pt-6">
         <Col>
-          <div className="w-full">
+          <div className="flex w-full flex-col gap-6">
             <OpenApiAuthDocumentation options={authOptions} />
             <ParameterList title={t('openapi.pathParameters')} parameters={groupedParameters.path} />
             <ParameterList title={t('openapi.queryParameters')} parameters={groupedParameters.query} />
             <ParameterList title={t('openapi.headers')} parameters={groupedParameters.header} />
-            <div>
-              <h3>{t('openapi.requestBody')}</h3>
+            <OpenApiDocumentSection title={t('openapi.requestBody')}>
               {renderRequestBody()}
-            </div>
+            </OpenApiDocumentSection>
           </div>
         </Col>
         <Col sticky>
