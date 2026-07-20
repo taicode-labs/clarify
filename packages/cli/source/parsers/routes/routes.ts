@@ -8,6 +8,7 @@ import { visit } from 'unist-util-visit'
 
 import type { ClarifyPage, ClarifyPageRouteIntent, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyRouteIntent, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, NavigationSection, ResolvedClarifyLocalesConfig, TabbedNavigation } from '../../types.js'
 import { createContentProcessor, type ContentProcessor } from '../content/content.js'
+import { compileMarkdownContent } from '../markdown/markdown.js'
 import { compileMdxContent } from '../markdown/mdx.js'
 
 export type FindContentRoutesOptions = {
@@ -26,11 +27,8 @@ function parseMdxTree(content: string) {
 }
 
 async function compileRouteDiagnostic(content: string, filePath: string, baseDir: string) {
-  // `.md` routes intentionally skip JSX/MDX syntax validation.
-  // Markdown and MDX follow separate compiler semantics in the adapter layer.
-  if (extname(filePath).toLowerCase() !== '.mdx') return undefined
-
-  const result = await compileMdxContent(content, filePath, baseDir)
+  const compile = extname(filePath).toLowerCase() === '.md' ? compileMarkdownContent : compileMdxContent
+  const result = await compile(content, { filePath, projectRoot: baseDir })
   return result.ok ? undefined : result.diagnostic
 }
 

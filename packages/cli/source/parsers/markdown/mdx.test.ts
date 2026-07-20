@@ -192,7 +192,7 @@ describe('mdx rehype plugins', () => {
   })
 
   it('uses the provided root directory when normalizing diagnostic file paths', async () => {
-    const result = await compileMdxContent('<BrokenComponent>\nThis tag never closes\n', '/tmp/project/source/broken.mdx', '/tmp/project')
+    const result = await compileMdxContent('<BrokenComponent>\nThis tag never closes\n', { filePath: '/tmp/project/source/broken.mdx', projectRoot: '/tmp/project' })
 
     expect(result.ok).toBe(false)
 

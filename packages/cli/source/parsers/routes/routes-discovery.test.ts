@@ -158,7 +158,7 @@ describe('findContentRoutes', () => {
     })
   })
 
-  it('skips MDX diagnostics for .md files', async () => {
+  it('compiles valid .md files without producing a diagnostic', async () => {
     writeFileSync(join(tempDir, 'quick-start.md'), '# Quick Start\n\n<img src="/hero.png">', 'utf-8')
 
     const result = await findContentRoutes(tempDir)
