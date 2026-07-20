@@ -158,9 +158,13 @@ export type BuiltInTextKey =
   | 'renderError.title'
   | 'renderError.version'
   | 'renderError.type'
+  | 'theme.dark'
+  | 'theme.light'
+  | 'theme.switch'
   | 'theme.switchToDark'
   | 'theme.switchToLight'
   | 'theme.switchToSystem'
+  | 'theme.system'
   | 'language.switch'
   | 'mermaid.zoomIn'
   | 'mermaid.zoomOut'
@@ -323,9 +327,13 @@ const builtInText = {
     'renderError.title': 'Route render failed',
     'renderError.type': 'Error type',
     'renderError.version': 'Clarify version',
+    'theme.dark': 'Dark',
+    'theme.light': 'Light',
+    'theme.switch': 'Switch theme',
     'theme.switchToDark': 'Switch to dark theme',
     'theme.switchToLight': 'Switch to light theme',
     'theme.switchToSystem': 'Follow system theme',
+    'theme.system': 'System',
     'language.switch': 'Switch language',
     'mermaid.zoomIn': 'Zoom in',
     'mermaid.zoomOut': 'Zoom out',
@@ -487,9 +495,13 @@ const builtInText = {
     'renderError.title': '路由渲染失败',
     'renderError.type': '错误类型',
     'renderError.version': 'Clarify 版本',
+    'theme.dark': '深色',
+    'theme.light': '浅色',
+    'theme.switch': '切换主题',
     'theme.switchToDark': '切换到深色主题',
     'theme.switchToLight': '切换到浅色主题',
     'theme.switchToSystem': '跟随系统主题',
+    'theme.system': '跟随系统',
     'language.switch': '切换语言',
     'mermaid.zoomIn': '放大',
     'mermaid.zoomOut': '缩小',
