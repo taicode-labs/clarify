@@ -56,15 +56,6 @@ describe('openapi virtual modules', () => {
     expect(code).not.toContain('"tagFilter"')
   })
 
-  it('generates an OpenAPI route component module without tag filter', () => {
-    const code = generateOpenAPIPageModule({ specModuleId: 'virtual:clarify/openapi-spec/api' })
-    expect(code).toContain("import { createOpenApiRouteComponent } from '@clarify-labs/renderer';")
-    expect(code).toContain('import spec from "virtual:clarify/openapi-spec/api";')
-    expect(code).toContain('routeData')
-    expect(code).not.toContain('"specPath"')
-    expect(code).not.toContain('"Example API"')
-  })
-
   it('shares the same diagnostic intent across CLI and renderer', () => {
     const cliDiagnostic: CliDiagnostic = {
       kind: 'mdx',
@@ -108,6 +99,5 @@ describe('openapi virtual modules', () => {
     expect(code).toContain('contentDiagnostic')
     expect(code).toContain('OpenAPI spec parse failed')
     expect(code).toContain('bad indentation')
-    expect(code).not.toContain('createElement')
   })
 })

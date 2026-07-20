@@ -38,17 +38,16 @@ describe('PageNavigation', () => {
   it('renders a single next link without an empty placeholder or separator', () => {
     const markup = render('/first')
 
-    expect(markup).not.toContain('@3xl:grid-cols-2')
-    expect(markup).not.toContain('hidden @3xl:block')
-    expect(markup).not.toContain('@3xl:border-l')
+    expect(markup.match(/<a /g)).toHaveLength(1)
+    expect(markup).toContain('href="/middle"')
     expect(markup).toContain('Middle')
   })
 
   it('renders a single previous link without an empty placeholder', () => {
     const markup = render('/last')
 
-    expect(markup).not.toContain('@3xl:grid-cols-2')
-    expect(markup).not.toContain('hidden @3xl:block')
+    expect(markup.match(/<a /g)).toHaveLength(1)
+    expect(markup).toContain('href="/middle"')
     expect(markup).toContain('Middle')
   })
 })

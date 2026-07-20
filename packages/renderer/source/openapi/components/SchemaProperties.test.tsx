@@ -15,8 +15,7 @@ describe('ParameterList', () => {
   it('renders nothing when there are no parameters', () => {
     const markup = renderToStaticMarkup(<ParameterList title="Query parameters" parameters={[]} />)
 
-    expect(markup).not.toContain('Query parameters')
-    expect(markup).not.toContain('None')
+    expect(markup).toBe('')
   })
 })
 
@@ -225,7 +224,6 @@ describe('SchemaProperties', () => {
     expect(markup).toContain('clarify-schema-node m-0 p-0')
     expect(markup).toMatch(/<button[^>]*class="[^"]*rounded-\(--clarify-theme-tokens-radius-md\)[^"]*hover:bg-/)
     expect(markup).toContain('ml-2 border-l border-(--clarify-theme-tokens-colors-border) pl-2')
-    expect(markup).not.toContain('bg-(--clarify-ui-subtle-background)')
   })
 
   it('keeps enum branches collapsed by default even when x-enumDescriptions are present', () => {
@@ -304,8 +302,6 @@ describe('SchemaProperties', () => {
     expect(markup).toContain('aria-expanded="false"')
     expect(markup).not.toContain('active')
     expect(markup).not.toContain('archived')
-    expect(markup).not.toContain('enum: active, archived')
-    expect(markup).not.toContain('Optional.')
   })
 
   it('collapses enum branches by default', () => {

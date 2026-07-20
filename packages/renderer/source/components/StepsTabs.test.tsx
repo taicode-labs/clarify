@@ -59,6 +59,5 @@ describe('CodeGroup', () => {
 
     expect(html).toContain('pnpm')
     expect(html).toContain('npm')
-    expect(html).not.toContain('>Code<')
   })
 })

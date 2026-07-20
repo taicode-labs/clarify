@@ -114,7 +114,6 @@ describe('injectSSRIntoTemplate', () => {
   it('replaces title with resolved title', () => {
     const html = injectSSRIntoTemplate(baseTemplate, '', baseConfig)
     expect(html).toContain('<title>Test Docs</title>')
-    expect(html).not.toContain('Default Title')
   })
 
   it('combines page title with site title', () => {

@@ -104,7 +104,6 @@ describe('buildSearchItems', () => {
     // Should only have 2 items (zh-CN and en-US), not the bare alias
     expect(items).toHaveLength(2)
     expect(items.map(item => item.url)).toEqual(['/zh-CN/guide', '/en-US/guide'])
-    expect(items.map(item => item.url)).not.toContain('/guide')
   })
 
   it('handles routes without sections correctly', () => {

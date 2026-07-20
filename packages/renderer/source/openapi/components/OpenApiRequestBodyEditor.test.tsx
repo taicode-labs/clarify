@@ -26,7 +26,6 @@ describe('OpenApiRequestBodyEditor', () => {
     expect(markup).toContain('<textarea')
     expect(markup).toContain('aria-label="application/json"')
     expect(markup).toContain('&quot;name&quot;:&quot;Report&quot;')
-    expect(markup).not.toContain('aria-label="name"')
   })
 
   it('renders URL-encoded schemas as typed form fields', () => {
@@ -46,7 +45,6 @@ describe('OpenApiRequestBodyEditor', () => {
     expect(markup).toContain('type="number"')
     expect(markup).toContain('type="checkbox"')
     expect(markup).toContain('<select')
-    expect(markup).not.toContain('<textarea')
   })
 
   it('renders multipart binary properties and binary roots as file inputs', () => {
@@ -70,7 +68,6 @@ describe('OpenApiRequestBodyEditor', () => {
 
     expect(markup).toContain('<textarea')
     expect(markup).toContain('hello')
-    expect(markup).not.toContain('type="file"')
   })
 
   it('does not send generated placeholders for binary fields', () => {

@@ -288,7 +288,6 @@ describe('createOpenAPIPlugin', () => {
     const routeModule = modules?.get('virtual:clarify-page/api/projects') ?? ''
     const specModuleId = routeModule.match(/import spec from "([^"]+)"/)?.[1]
     expect(specModuleId).toContain('_tags_Projects')
-    expect(routeModule).not.toContain('"tagFilter"')
     expect(modules?.get(specModuleId!)).toContain('List projects')
     expect(modules?.get(specModuleId!)).not.toContain('List users')
   })

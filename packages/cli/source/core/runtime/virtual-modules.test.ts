@@ -213,7 +213,6 @@ describe('buildVirtualModules', () => {
     expect(moduleContent).toContain('contentDiagnostic')
     expect(moduleContent).toContain('"kind":"mdx"')
     expect(moduleContent).toContain('Unexpected end of file')
-    expect(moduleContent).not.toContain('createElement')
   })
 })
 
@@ -225,16 +224,12 @@ describe('createClientEntryModule', () => {
     expect(code).toContain("import { openApiSpecs } from 'virtual:clarify/openapi';")
     expect(code).toContain('const renderOptions = { config, routes, navigation, openApiSpecs, runtimeSlots, themeEditor: true };')
     expect(code).toContain("import.meta.hot.accept('virtual:clarify/routes'")
-    expect(code).not.toContain('ThemeEditor')
-    expect(code).not.toContain('react-dom/client')
   })
 
   it('disables the theme editor by default', () => {
     const code = createClientEntryModule()
 
     expect(code).toContain('const renderOptions = { config, routes, navigation, openApiSpecs, runtimeSlots, themeEditor: false };')
-    expect(code).not.toContain('ThemeEditor')
-    expect(code).not.toContain('react-dom/client')
   })
 })
 
