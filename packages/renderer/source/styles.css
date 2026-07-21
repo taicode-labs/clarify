@@ -328,11 +328,7 @@
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 42%, transparent);
   }
 
-  .clarify-mdx-page .clarify-page-title-row:first-child {
-    margin-bottom: 1rem;
-  }
-
-  .clarify-mdx-page .clarify-prose > .clarify-page-title-row:first-child .clarify-page-title,
+  .clarify-mdx-page .clarify-prose > .clarify-page-title:first-child,
   .clarify-openapi-header .clarify-page-title {
     max-width: 48rem;
     font-size: clamp(2rem, 5vw, 3rem);
@@ -340,12 +336,19 @@
     letter-spacing: -0.04em;
   }
 
-  .clarify-mdx-page .clarify-prose > .clarify-page-title-row:first-child + p,
   .clarify-openapi-header .lead {
     max-width: 44rem;
     color: var(--clarify-ui-text-soft);
     font-size: var(--text-base);
     line-height: var(--text-base--line-height);
+  }
+
+  @media (width >= 40rem) {
+    .clarify-mdx-page > .clarify-prose > :first-child,
+    .clarify-openapi-header > :first-child,
+    .clarify-openapi-header > .clarify-page-title {
+      max-width: min(48rem, calc(100% - 12rem)) !important;
+    }
   }
 
   .clarify-hero-pattern-mask:is(.dark *) {

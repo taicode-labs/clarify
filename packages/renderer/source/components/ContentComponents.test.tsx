@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
 import { useMDXComponents } from '../mdx/components'
+import { h1, wrapper } from '../mdx/primitives'
 
 import { AccordionGroup } from './AccordionGroup'
 import { Collapse } from './Collapse'
@@ -10,6 +11,27 @@ import { Image } from './Image'
 import { Tooltip } from './Tooltip'
 
 describe('content components', () => {
+  it('keeps page headings independent from page actions', () => {
+    const html = renderToStaticMarkup(
+      wrapper({
+        children: [
+          h1({ children: 'Page title' }),
+          h1({ children: 'Unexpected second title' }),
+        ],
+      }),
+    )
+
+    expect(html).not.toContain('clarify-page-title-row')
+    expect(html.match(/class="clarify-page-title/g)).toHaveLength(2)
+  })
+
+  it('renders a page without a heading', () => {
+    const html = renderToStaticMarkup(wrapper({ children: <p>Page content</p> }))
+
+    expect(html).toContain('Page content')
+    expect(html).toContain('clarify-mdx-page')
+  })
+
   it('renders grouped collapses as one surface', () => {
     const html = renderToStaticMarkup(
       <AccordionGroup>

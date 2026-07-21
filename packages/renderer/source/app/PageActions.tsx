@@ -24,7 +24,7 @@ export function PageActionsProvider(props: PageActionsProviderProps) {
   )
 }
 
-export function PageTitleActions() {
+export function PageActions() {
   const { route, routePrefix } = useContext(PageActionsContext)
 
   return <ContentActions route={route} routePrefix={routePrefix} />
