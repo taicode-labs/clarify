@@ -1,5 +1,6 @@
 import { relative } from 'node:path'
 
+import { pageVirtualModuleId } from '../../core/runtime/module-ids.js'
 import { generateContentDiagnosticModule, type VirtualModules } from '../../core/runtime/virtual-modules.js'
 import { createProjectContentProcessor } from '../../parsers/content/content.js'
 import type { ClarifyHookContext, ContentRoute, OpenAPISpec } from '../../types.js'
@@ -22,10 +23,9 @@ function openAPIRegistryKeys(route: ContentRoute): string[] {
   const path = (route.path || '/').replace(/^\//, '')
   const base = (route.basePath ?? route.path).replace(/^\//, '')
 
-  if (route.locale) keys.add(`virtual:clarify-page/${route.locale}/${base}`)
-  if (path) keys.add(`virtual:clarify-page/${path}`)
-  else keys.add('virtual:clarify-page/index')
-  if (!route.locale && base) keys.add(`virtual:clarify-page/${base}`)
+  if (route.locale) keys.add(pageVirtualModuleId(`${route.locale}/${base}`))
+  keys.add(pageVirtualModuleId(path))
+  if (!route.locale && base) keys.add(pageVirtualModuleId(base))
 
   return [...keys]
 }

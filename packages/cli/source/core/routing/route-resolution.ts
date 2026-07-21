@@ -5,18 +5,36 @@ import { runHooks } from '../plugin/hooks.js'
 import { describeRouteConflict, findRouteConflicts, formatRouteConflicts, type RouteConflict } from './route-analysis.js'
 
 export async function resolveRoutePages(routes: ContentRoute[], plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<ContentRoute[]> {
-  const pages = routes.map<ClarifyPage>(route => ({
+  const routeToken = Symbol('clarifyRouteToken')
+  type RoutedPage = ClarifyPage & { [routeToken]: number }
+
+  const pages = routes.map<RoutedPage>((route, routeIndex) => ({
     path: route.path,
     filePath: route.source.filePath,
     frontmatter: route.source.frontmatter ?? {},
     content: route.source.content ?? '',
+    [routeToken]: routeIndex,
   }))
   const resolvedPages = await runHooks(plugins, 'pages:resolved', pages, ctx)
-  const pageByPath = new Map(resolvedPages.map(page => [page.path, page]))
+  const pageByRouteIndex = new Map<number, ClarifyPage>()
 
-  return routes.map(route => {
-    const page = pageByPath.get(route.path)
-    if (!page) return route
+  for (const page of resolvedPages) {
+    const routeIndex = (page as RoutedPage)[routeToken]
+    if (!Number.isInteger(routeIndex) || routeIndex < 0 || routeIndex >= routes.length) {
+      throw new Error('[clarify] pages:resolved hooks must preserve each page route identity')
+    }
+    if (pageByRouteIndex.has(routeIndex)) {
+      throw new Error('[clarify] pages:resolved hooks returned the same page route identity more than once')
+    }
+    pageByRouteIndex.set(routeIndex, page)
+  }
+
+  if (pageByRouteIndex.size !== routes.length) {
+    throw new Error('[clarify] pages:resolved hooks must return exactly one page for each route')
+  }
+
+  return routes.map((route, routeIndex) => {
+    const page = pageByRouteIndex.get(routeIndex)!
     return {
       ...route,
       source: {

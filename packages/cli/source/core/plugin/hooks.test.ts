@@ -5,7 +5,7 @@ import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyPlugin, ClarifyHookContext, ClarifyPage } from '../../types.js'
 import { resolveFeaturesConfig } from '../config/config.js'
 
-import { runDevConfigureServerHooks, runHooks } from './hooks.js'
+import { runBuildAssetsHooks, runDevConfigureServerHooks, runHooks } from './hooks.js'
 
 const mockCtx: ClarifyHookContext = {
   projectRoot: '/site',
@@ -151,5 +151,30 @@ describe('runDevConfigureServerHooks', () => {
 
     for (const postHook of postHooks) postHook()
     expect(calls).toEqual(['first:configure', 'second:configure', 'first:post', 'second:post'])
+  })
+})
+
+describe('runBuildAssetsHooks', () => {
+  it('collects assets from plugins in order', async () => {
+    const plugins: ClarifyPlugin[] = [
+      { name: 'first', hooks: { 'build:assets': () => [{ fileName: 'first.txt', source: 'first' }] } },
+      { name: 'second', hooks: { 'build:assets': () => [{ fileName: 'second.txt', source: 'second' }] } },
+    ]
+
+    await expect(runBuildAssetsHooks(plugins, mockCtx)).resolves.toEqual([
+      { fileName: 'first.txt', source: 'first' },
+      { fileName: 'second.txt', source: 'second' },
+    ])
+  })
+
+  it('rejects duplicate normalized asset file names with plugin names', async () => {
+    const plugins: ClarifyPlugin[] = [
+      { name: 'first', hooks: { 'build:assets': () => [{ fileName: '/docs\\index.md', source: 'first' }] } },
+      { name: 'second', hooks: { 'build:assets': () => [{ fileName: 'docs/index.md', source: 'second' }] } },
+    ]
+
+    await expect(runBuildAssetsHooks(plugins, mockCtx)).rejects.toThrow(
+      '[clarify] build asset "docs/index.md" is emitted by both plugin "first" and plugin "second"'
+    )
   })
 })

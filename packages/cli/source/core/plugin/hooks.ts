@@ -31,23 +31,33 @@ export async function runDevConfigureServerHooks(plugins: ClarifyPlugin[], serve
   return postHooks
 }
 
-async function runCollectorHooks<T>(plugins: ClarifyPlugin[], hookName: string, ctx: ClarifyHookContext): Promise<T[]> {
-  const results: T[] = []
+export async function runBuildAssetsHooks(plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<ClarifyEmitAsset[]> {
+  const assets: ClarifyEmitAsset[] = []
+  const producerByFileName = new Map<string, string>()
+
   for (const plugin of plugins) {
-    const hook = plugin.hooks?.[hookName as 'build:assets']
+    const hook = plugin.hooks?.['build:assets']
     if (!hook) continue
+
+    let pluginAssets: ClarifyEmitAsset[]
     try {
-      const pluginResults = await (hook as (ctx: ClarifyHookContext) => Promise<T[]> | T[])(ctx)
-      results.push(...pluginResults)
+      pluginAssets = await hook(ctx)
     } catch (err) {
-      throw new Error(`[clarify] plugin "${plugin.name}" hook "${hookName}" failed: ${err}`, { cause: err })
+      throw new Error(`[clarify] plugin "${plugin.name}" hook "build:assets" failed: ${err}`, { cause: err })
+    }
+
+    for (const asset of pluginAssets) {
+      const fileName = asset.fileName.replace(/\\/g, '/').replace(/^\/+/, '')
+      const previousProducer = producerByFileName.get(fileName)
+      if (previousProducer) {
+        throw new Error(`[clarify] build asset "${fileName}" is emitted by both plugin "${previousProducer}" and plugin "${plugin.name}"`)
+      }
+      producerByFileName.set(fileName, plugin.name)
+      assets.push({ ...asset, fileName })
     }
   }
-  return results
-}
 
-export async function runBuildAssetsHooks(plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<ClarifyEmitAsset[]> {
-  return runCollectorHooks<ClarifyEmitAsset>(plugins, 'build:assets', ctx)
+  return assets
 }
 
 export async function runBuildDoneHooks(plugins: ClarifyPlugin[], ctx: ClarifyHookContext): Promise<void> {

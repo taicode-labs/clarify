@@ -51,6 +51,29 @@ describe('route resolution', () => {
     })
   })
 
+  it('writes page hook results back to the matching route when paths conflict', async () => {
+    const routes = [
+      contentRoute({ path: '/api', filePath: '/site/source/api.md', content: 'markdown' }),
+      contentRoute({ path: '/api', kind: 'openapi', filePath: '/site/source/api.openapi.json', content: 'openapi' }),
+    ]
+    const plugins: ClarifyPlugin[] = [{
+      name: 'page-transform',
+      hooks: {
+        'pages:resolved': pages => pages.map(page => ({
+          ...page,
+          content: `${page.content}:resolved`,
+        })),
+      },
+    }]
+
+    const resolved = await resolveRoutePages(routes, plugins, createContext())
+
+    expect(resolved.map(route => route.source.content)).toEqual([
+      'markdown:resolved',
+      'openapi:resolved',
+    ])
+  })
+
   it('checks conflicts after routes:resolved hooks in production', async () => {
     const route = contentRoute({ path: '/guide', pageVirtualModuleId: 'virtual:clarify-page/guide' })
     const plugins: ClarifyPlugin[] = [{
