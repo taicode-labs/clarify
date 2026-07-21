@@ -63,6 +63,73 @@ export function resolveRequestSchema(spec: OpenAPISpec, schema: unknown): unknow
   return mergeAllOfSchemas(spec, [...allOf, ownSchema])
 }
 
+export function fuzzyMatch(value: string, query: string): boolean {
+  const candidate = value.toLocaleLowerCase()
+  const needle = query.trim().toLocaleLowerCase()
+  let candidateIndex = 0
+
+  for (const character of needle) {
+    candidateIndex = candidate.indexOf(character, candidateIndex)
+    if (candidateIndex === -1) return false
+    candidateIndex += 1
+  }
+
+  return true
+}
+
+const noExampleMatch = Symbol('no-example-match')
+
+export function getSchemaSearchText(name: string, schema: unknown): string {
+  if (!isRecord(schema)) return name
+
+  return [
+    name,
+    schema.type,
+    schema.description,
+    schema.pattern,
+    schema.const,
+    schema.default,
+    schema.minimum,
+    schema.maximum,
+    schema.additionalProperties,
+  ].filter((value) => typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean').join(' ')
+}
+
+function filterExampleValue(spec: OpenAPISpec, schema: unknown, value: unknown, query: string): unknown | typeof noExampleMatch {
+  const resolved = resolveRequestSchema(spec, schema)
+
+  if (Array.isArray(value)) {
+    const itemSchema = isRecord(resolved) ? resolved.items : undefined
+    const items = value
+      .map((item) => filterExampleValue(spec, itemSchema, item, query))
+      .filter((item) => item !== noExampleMatch)
+    return items.length > 0 ? items : noExampleMatch
+  }
+
+  if (isRecord(value)) {
+    const properties = isRecord(resolved) && isRecord(resolved.properties) ? resolved.properties : {}
+    const filtered = Object.entries(value).flatMap(([name, propertyValue]) => {
+      const propertySchema = properties[name] ?? (isRecord(resolved) && isRecord(resolved.additionalProperties) ? resolved.additionalProperties : undefined)
+      if (fuzzyMatch(getSchemaSearchText(name, resolveRequestSchema(spec, propertySchema)), query)) return [[name, propertyValue] as const]
+
+      const child = filterExampleValue(spec, propertySchema, propertyValue, query)
+      return child === noExampleMatch ? [] : [[name, child] as const]
+    })
+
+    return filtered.length > 0 ? Object.fromEntries(filtered) : noExampleMatch
+  }
+
+  return fuzzyMatch(getSchemaSearchText('', resolved), query) ? value : noExampleMatch
+}
+
+export function filterExampleBySchema(spec: OpenAPISpec, schema: unknown, value: unknown, query: string): unknown {
+  if (!query.trim()) return value
+
+  const filtered = filterExampleValue(spec, schema, value, query)
+  if (filtered !== noExampleMatch) return filtered
+  return Array.isArray(value) ? [] : isRecord(value) ? {} : value
+}
+
 export function getRequestSchemaVariants(spec: OpenAPISpec, schema: unknown): Array<{ key: string; title: string; schema: unknown }> {
   const resolved = resolveRequestSchema(spec, schema)
   if (!isRecord(resolved)) return []

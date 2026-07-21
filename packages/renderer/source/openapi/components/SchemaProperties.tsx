@@ -6,7 +6,7 @@ import { Tabs } from '../../components'
 import { useBuiltInText } from '../../core/i18n'
 import { Markdown } from '../../mdx/Markdown'
 import { Properties, Property } from '../../mdx/primitives'
-import { getJsonLikeContent, getResponseEntries, isRecord, isReference, resolveReferenceName, resolveSchema, schemaHasType, schemaToType } from '../lib/helpers'
+import { fuzzyMatch, getJsonLikeContent, getResponseEntries, getSchemaSearchText, isRecord, isReference, resolveReferenceName, resolveSchema, schemaHasType, schemaToType } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 import type { OpenApiParameter, OpenApiResponse } from '../types'
 
@@ -244,6 +244,7 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown, defaultExpanded?:
 }
 
 type SchemaNodeProps = { node: SchemaTreeNode; depth?: number; defaultExpanded?: boolean }
+type ExpandableSchemaNodeProps = SchemaNodeProps & { forceExpanded?: boolean }
 
 function EnumValueNode(arg0: SchemaNodeProps): ReactNode {
   const { node } = arg0
@@ -267,7 +268,7 @@ function EnumValueNode(arg0: SchemaNodeProps): ReactNode {
   )
 }
 
-function SchemaNode(arg0: SchemaNodeProps & { forceExpanded?: boolean }): ReactNode {
+function SchemaNode(arg0: ExpandableSchemaNodeProps): ReactNode {
   const { node, depth = 0, defaultExpanded, forceExpanded = false } = arg0
 
   const t = useBuiltInText()
@@ -349,36 +350,33 @@ function SchemaTree(arg0: SchemaTreeProps): ReactNode {
   )
 }
 
-function fuzzyMatch(value: string, query: string): boolean {
-  const candidate = value.toLocaleLowerCase()
-  const needle = query.trim().toLocaleLowerCase()
-  let candidateIndex = 0
-
-  for (const character of needle) {
-    candidateIndex = candidate.indexOf(character, candidateIndex)
-    if (candidateIndex === -1) return false
-    candidateIndex += 1
-  }
-
-  return true
-}
-
 function filterSchemaNodes(nodes: SchemaTreeNode[], query: string): SchemaTreeNode[] {
   if (!query.trim()) return nodes
 
   return nodes.flatMap((node) => {
     const children = filterSchemaNodes(node.children, query)
-    const searchableText = [node.name, node.type, node.description, node.details].filter(Boolean).join(' ')
+    const searchableText = getSchemaSearchText(node.name, {
+      type: node.type,
+      description: node.description,
+      pattern: node.details,
+    })
     return fuzzyMatch(searchableText, query) || children.length > 0
       ? [{ ...node, children }]
       : []
   })
 }
 
-type SchemaPropertiesProps = { title: string; schema: unknown; spec: OpenAPISpec; defaultExpanded?: boolean; query?: string }
+type SchemaPropertiesProps = {
+  title: string
+  schema: unknown
+  spec: OpenAPISpec
+  defaultExpanded?: boolean
+  query?: string
+  emptyText?: string
+}
 
 export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {
-  const { title, schema, spec, defaultExpanded, query = '' } = arg0
+  const { title, schema, spec, defaultExpanded, query = '', emptyText } = arg0
   const t = useBuiltInText()
 
   const root = getRootSchemaNode(spec, schema, defaultExpanded)
@@ -386,12 +384,14 @@ export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {
   if (!root || root.children.length === 0) return null
 
   const filteredNodes = filterSchemaNodes(root.children, query)
+  const hasQuery = Boolean(query.trim())
+  const resolvedEmptyText = emptyText ?? t('openapi.noBodyProperties')
 
   return (
     <OpenApiDocumentSection title={title} level={4} bodyClassName="clarify-schema-properties not-prose">
       {filteredNodes.length > 0
-        ? <SchemaTree nodes={filteredNodes} forceExpanded={Boolean(query.trim())} />
-        : <p className="m-0 py-2 text-sm/5 text-(--clarify-ui-text-soft)">{t('openapi.noBodyProperties')}</p>}
+        ? <SchemaTree nodes={filteredNodes} forceExpanded={hasQuery} />
+        : <p className="m-0 py-2 text-sm/5 text-(--clarify-ui-text-soft)">{resolvedEmptyText}</p>}
     </OpenApiDocumentSection>
   )
 }
@@ -421,7 +421,19 @@ export function ParameterList(arg0: ParameterListProps): ReactNode {
   )
 }
 
-type ResponseListProps = { title?: string; operation: OpenAPIOperation; spec?: OpenAPISpec; selectedStatus?: string; onSelectStatus?: (value: string) => void }
+type ResponseListProps = {
+  title?: string
+  operation: OpenAPIOperation
+  spec?: OpenAPISpec
+  selectedStatus?: string
+  onSelectStatus?: (value: string) => void
+  query?: string
+  search?: {
+    action: ReactNode
+    input: ReactNode
+    open: boolean
+  }
+}
 
 type RenderResponsePanelArgs = {
   status: string
@@ -429,7 +441,7 @@ type RenderResponsePanelArgs = {
 }
 
 export function ResponseList(arg0: ResponseListProps): ReactNode {
-  const { title, operation, spec, selectedStatus, onSelectStatus } = arg0
+  const { title, operation, spec, selectedStatus, onSelectStatus, query = '', search } = arg0
 
   const t = useBuiltInText()
   const responses = getResponseEntries(operation, spec)
@@ -464,7 +476,13 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
         </div>
         {responseSchema && spec ? (
           <div className="mt-6">
-            <SchemaProperties title={t('openapi.responseBodyProperties')} schema={responseSchema} spec={spec} />
+            <SchemaProperties
+              title={t('openapi.responseBodyProperties')}
+              schema={responseSchema}
+              spec={spec}
+              query={query}
+              emptyText={t('openapi.noResponseBodyProperties')}
+            />
           </div>
         ) : null}
       </div>
@@ -474,14 +492,16 @@ export function ResponseList(arg0: ResponseListProps): ReactNode {
   if (orderedResponses.length === 1) {
     const [{ status, response }] = orderedResponses
     return (
-      <OpenApiDocumentSection title={title ?? t('openapi.responses')}>
+      <OpenApiDocumentSection title={title ?? t('openapi.responses')} action={search?.action}>
+        {search?.open ? search.input : null}
         {renderResponsePanel({ status, response })}
       </OpenApiDocumentSection>
     )
   }
 
   return (
-    <OpenApiDocumentSection title={title ?? t('openapi.responses')} bodyClassName="not-prose">
+    <OpenApiDocumentSection title={title ?? t('openapi.responses')} action={search?.action} bodyClassName="not-prose">
+      {search?.open ? search.input : null}
       <Tabs
         selectedIndex={selectedIndex}
         onChange={(index) => {

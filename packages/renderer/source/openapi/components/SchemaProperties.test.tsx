@@ -415,4 +415,71 @@ describe('ResponseList', () => {
     expect(markup.indexOf('default')).toBeLessThan(markup.indexOf('200'))
     expect(markup.indexOf('200')).toBeLessThan(markup.indexOf('400'))
   })
+
+  it('fuzzy filters response body properties and keeps their parent path visible', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {},
+    }
+
+    const operation: OpenAPIOperation = {
+      responses: {
+        '200': {
+          description: 'OK',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  address: {
+                    type: 'object',
+                    properties: {
+                      postalCode: { type: 'string', description: 'Delivery ZIP code' },
+                      city: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+
+    const markup = renderToStaticMarkup(<ResponseList operation={operation} spec={spec} query="pstl" />)
+
+    expect(markup).toContain('address')
+    expect(markup).toContain('postalCode')
+    expect(markup).toContain('aria-expanded="true"')
+  })
+
+  it('renders a localized empty state when no response body properties match', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {},
+    }
+
+    const operation: OpenAPIOperation = {
+      responses: {
+        '200': {
+          description: 'OK',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { name: { type: 'string' } },
+              },
+            },
+          },
+        },
+      },
+    }
+
+    const markup = renderToStaticMarkup(<ResponseList operation={operation} spec={spec} query="unmatched" />)
+
+    expect(markup).toContain('No response body properties match the current search.')
+  })
 })

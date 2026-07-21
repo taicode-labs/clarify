@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 
 import { HighlightedCode } from '../../components/HighlightedCode'
 import { useBuiltInText } from '../../core/i18n'
-import { codeLanguageForMediaType, getExampleEntries, getMediaTypeEntries, getResponseEntries, stringifyExample } from '../lib/helpers'
+import { codeLanguageForMediaType, filterExampleBySchema, getExampleEntries, getMediaTypeEntries, getResponseEntries, stringifyExample } from '../lib/helpers'
 import { buildRequestCodeExamples } from '../lib/request-code'
 import type { OpenAPIOperation, OpenAPIOperationSource, OpenAPISpec } from '../lib/utils'
 import type {
@@ -163,6 +163,7 @@ type RequestExamplesPanelProps = {
   operationSource?: OpenAPIOperationSource
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
+  query?: string
 }
 
 type UseRequestExamplesStateArgs = {
@@ -179,10 +180,15 @@ type UseRequestExamplesStateArgs = {
   operationSource?: OpenAPIOperationSource
   sharedExampleKey?: string
   onSelectExampleKey?: (value: string) => void
+  query?: string
 }
 
 function firstExampleKeyForMediaType(requestContents: MediaTypeEntry[], mediaType: string, spec?: OpenAPISpec): string {
   return getExampleEntries(requestContents.find((content) => content.mediaType === mediaType)?.value, spec)[0]?.key ?? ''
+}
+
+function isStructuredMediaType(mediaType: string): boolean {
+  return mediaType.includes('json') || mediaType.includes('yaml') || mediaType.includes('yml')
 }
 
 function useRequestExamplesState(arg0: UseRequestExamplesStateArgs) {
@@ -200,6 +206,7 @@ function useRequestExamplesState(arg0: UseRequestExamplesStateArgs) {
     operationSource,
     sharedExampleKey,
     onSelectExampleKey,
+    query = '',
   } = arg0
 
   const selectedContent = requestContents.find((content) => content.mediaType === selectedMediaType) ?? requestContents[0]
@@ -211,7 +218,10 @@ function useRequestExamplesState(arg0: UseRequestExamplesStateArgs) {
   const linkedExampleKey = sharedExampleKey && examples.some((example) => example.key === sharedExampleKey) ? sharedExampleKey : undefined
   const currentExampleKey = linkedExampleKey ?? selectedExampleKey
   const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
-  const requestContent = selectedContent ? { ...selectedContent, value: { ...selectedContent.value, example: selectedExample?.value, examples: undefined } } : undefined
+  const requestExample = selectedContent && isStructuredMediaType(selectedContent.mediaType)
+    ? filterExampleBySchema(spec, selectedContent.value.schema, selectedExample?.value, query)
+    : selectedExample?.value
+  const requestContent = selectedContent ? { ...selectedContent, value: { ...selectedContent.value, example: requestExample, examples: undefined } } : undefined
 
   const codeOptions = buildRequestCodeExamples({
     spec,
@@ -270,6 +280,7 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
     operationSource,
     sharedExampleKey,
     onSelectExampleKey,
+    query,
   } = arg0
 
   const t = useBuiltInText()
@@ -287,6 +298,7 @@ export function RequestExamplesPanel(arg0: RequestExamplesPanelProps): ReactNode
     operationSource,
     sharedExampleKey,
     onSelectExampleKey,
+    query,
   })
 
   return (
@@ -320,6 +332,7 @@ type ResponseExamplesPanelProps = {
   onSelectExampleKey?: (value: string) => void
   selectedStatus?: string
   onSelectStatus?: (value: string) => void
+  query?: string
 }
 
 type UseResponseExamplesStateArgs = {
@@ -329,14 +342,19 @@ type UseResponseExamplesStateArgs = {
   onSelectExampleKey?: (value: string) => void
   selectedStatus?: string
   onSelectStatus?: (value: string) => void
+  query?: string
 }
 
 function firstExampleKeyForResponseContent(content?: MediaTypeEntry, spec?: OpenAPISpec): string {
   return getExampleEntries(content?.value, spec)[0]?.key ?? ''
 }
 
-export function getResponseExampleBody(content: MediaTypeEntry | undefined, example: ExampleEntry | undefined): string {
-  return content ? stringifyExample(example?.value) : ''
+export function getResponseExampleBody(content: MediaTypeEntry | undefined, example: ExampleEntry | undefined, spec?: OpenAPISpec, query = ''): string {
+  if (!content) return ''
+  const value = spec && isStructuredMediaType(content.mediaType)
+    ? filterExampleBySchema(spec, content.value.schema, example?.value, query)
+    : example?.value
+  return stringifyExample(value)
 }
 
 type ResponseSelectionState = {
@@ -346,7 +364,7 @@ type ResponseSelectionState = {
 }
 
 function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
-  const { operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
+  const { operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus, query = '' } = arg0
   const responses = getResponseEntries(operation, spec)
   const orderedResponses = [...responses].sort((left, right) => {
     if (left.status === 'default') return -1
@@ -384,7 +402,7 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
   const linkedExampleKey = sharedExampleKey && examples.some((example) => example.key === sharedExampleKey) ? sharedExampleKey : undefined
   const currentExampleKey = linkedExampleKey ?? selectedExampleKey
   const selectedExample = examples.find((example) => example.key === currentExampleKey) ?? examples[0]
-  const responseBody = getResponseExampleBody(selectedContent, selectedExample)
+  const responseBody = getResponseExampleBody(selectedContent, selectedExample, spec, query)
 
   return {
     responses: orderedResponses,
@@ -424,10 +442,10 @@ function useResponseExamplesState(arg0: UseResponseExamplesStateArgs) {
 }
 
 export function ResponseExamplesPanel(arg0: ResponseExamplesPanelProps): ReactNode {
-  const { operation, spec, title, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus } = arg0
+  const { operation, spec, title, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus, query } = arg0
 
   const t = useBuiltInText()
-  const state = useResponseExamplesState({ operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus })
+  const state = useResponseExamplesState({ operation, spec, sharedExampleKey, onSelectExampleKey, selectedStatus, onSelectStatus, query })
 
   if (!state.selectedContent || !state.responseBody) return null
 

@@ -1,6 +1,4 @@
-import clsx from 'clsx'
-import { SearchIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 import { useBuiltInText } from '../../core/i18n'
 import { Markdown } from '../../mdx/Markdown'
@@ -12,6 +10,7 @@ import { type AuthOption, RequestExamplesPanel, ResponseExamplesPanel } from './
 import { OpenApiAuthDocumentation } from './OpenApiAuthDocumentation'
 import { OpenApiDocumentSection } from './OpenApiDocumentSection'
 import { ParameterList, ResponseList, SchemaProperties } from './SchemaProperties'
+import { SchemaSearchButton, SchemaSearchInput, useSchemaSearch } from './SchemaSearch'
 
 type EndpointRequestProps = {
   spec: OpenAPISpec
@@ -62,15 +61,7 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
 
   const t = useBuiltInText()
   const hasRequestBody = Boolean(requestBody && requestContents.length > 0)
-  const [requestBodySearchOpen, setRequestBodySearchOpen] = useState(false)
-  const [requestBodyQuery, setRequestBodyQuery] = useState('')
-
-  const toggleRequestBodySearch = () => {
-    setRequestBodySearchOpen((open) => {
-      if (open) setRequestBodyQuery('')
-      return !open
-    })
-  }
+  const requestBodySearch = useSchemaSearch()
 
   const renderDescription = () => {
     if (!description) return null
@@ -84,22 +75,11 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
 
     return (
       <>
-        {requestBodySearchOpen ? (
-          <label className="not-prose mb-3 flex h-9 items-center gap-2 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-3 transition focus-within:border-(--clarify-theme-tokens-colors-primary) focus-within:ring-2 focus-within:ring-(--clarify-theme-tokens-colors-primary)/15">
-            <SearchIcon className="size-4 shrink-0 text-(--clarify-ui-text-faint)" aria-hidden="true" />
-            <span className="sr-only">{t('openapi.searchBodyProperties')}</span>
-            <input
-              type="search"
-              value={requestBodyQuery}
-              onChange={(event) => setRequestBodyQuery(event.target.value)}
-              placeholder={t('openapi.searchBodyProperties')}
-              autoFocus
-              className="min-w-0 flex-1 bg-transparent text-sm text-(--clarify-theme-tokens-colors-foreground) outline-none placeholder:text-(--clarify-ui-text-faint)"
-            />
-          </label>
+        {requestBodySearch.open ? (
+          <SchemaSearchInput label={t('openapi.searchBodyProperties')} value={requestBodySearch.query} onChange={requestBodySearch.onChange} />
         ) : null}
         {typeof requestBody?.description === 'string' ? <Markdown>{requestBody.description}</Markdown> : null}
-        <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} query={requestBodyQuery} />
+        <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} query={requestBodySearch.query} />
       </>
     )
   }
@@ -116,22 +96,7 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
             <ParameterList title={t('openapi.headers')} parameters={groupedParameters.header} />
             <OpenApiDocumentSection
               title={t('openapi.requestBody')}
-              action={hasRequestBody ? (
-                <button
-                  type="button"
-                  aria-label={t('openapi.searchBodyProperties')}
-                  aria-pressed={requestBodySearchOpen}
-                  onClick={toggleRequestBodySearch}
-                  className={clsx(
-                    'flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
-                    requestBodySearchOpen
-                      ? 'bg-(--clarify-ui-hover-background) text-(--clarify-theme-tokens-colors-primary)'
-                      : 'text-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground)',
-                  )}
-                >
-                  <SearchIcon className="size-4" aria-hidden="true" />
-                </button>
-              ) : null}
+              action={hasRequestBody ? <SchemaSearchButton label={t('openapi.searchBodyProperties')} open={requestBodySearch.open} onClick={requestBodySearch.toggle} /> : null}
             >
               {renderRequestBody()}
             </OpenApiDocumentSection>
@@ -153,6 +118,7 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
               operationSource={operationSource}
               sharedExampleKey={sharedExampleKey}
               onSelectExampleKey={onSelectExampleKey}
+              query={requestBodySearch.query}
             />
           </div>
         </Col>
@@ -176,13 +142,26 @@ export function EndpointResponse(arg0: EndpointResponseProps): ReactNode {
   const t = useBuiltInText()
   const responseTitle = operationSource === 'webhook' ? t('openapi.webhookResponses') : t('openapi.responses')
   const responseExampleTitle = operationSource === 'webhook' ? t('openapi.webhookResponse') : t('openapi.response')
+  const responseBodySearch = useSchemaSearch()
 
   return (
     <div className="mt-10 pt-6">
       <Row className="clarify-openapi-response-workspace relative">
         <Col>
           <div className="w-full">
-            <ResponseList title={responseTitle} operation={operation} spec={spec} selectedStatus={selectedStatus} onSelectStatus={onSelectStatus} />
+            <ResponseList
+              title={responseTitle}
+              operation={operation}
+              spec={spec}
+              selectedStatus={selectedStatus}
+              onSelectStatus={onSelectStatus}
+              query={responseBodySearch.query}
+              search={{
+                open: responseBodySearch.open,
+                action: <SchemaSearchButton label={t('openapi.searchResponseBodyProperties')} open={responseBodySearch.open} onClick={responseBodySearch.toggle} />,
+                input: <SchemaSearchInput label={t('openapi.searchResponseBodyProperties')} value={responseBodySearch.query} onChange={responseBodySearch.onChange} />,
+              }}
+            />
           </div>
         </Col>
         <Col sticky>
@@ -195,6 +174,7 @@ export function EndpointResponse(arg0: EndpointResponseProps): ReactNode {
               onSelectExampleKey={onSelectExampleKey}
               selectedStatus={selectedStatus}
               onSelectStatus={onSelectStatus}
+              query={responseBodySearch.query}
             />
           </div>
         </Col>
