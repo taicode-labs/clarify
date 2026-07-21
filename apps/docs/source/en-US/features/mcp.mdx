@@ -1,0 +1,107 @@
+# MCP Documentation Search
+
+Clarify can expose a deployed documentation site as a local [Model Context Protocol](https://modelcontextprotocol.io/) server. MCP-aware AI clients can then call `search_docs` to search the site's published content instead of relying on a general web search.
+
+The server runs locally over stdio. It downloads the search metadata and index from the deployed site, while the documentation itself remains a static deployment.
+
+## Connect an MCP client
+
+Open the page actions menu on any Clarify documentation page and choose **Copy MCP config**. The generated configuration points the client at the current site:
+
+```json title="MCP client configuration"
+{
+  "mcpServers": {
+    "clarify": {
+      "command": "npx",
+      "args": ["@clarify-labs/cli", "mcp", "https://docs.example.com"]
+    }
+  }
+}
+```
+
+Add the copied object to an MCP client that supports stdio servers, then restart or reload the client. The client starts `clarify mcp` when it needs the documentation search tool.
+
+<Callout type="info" title="Published site required">
+  Use the root URL of a deployed Clarify site. The command reads `mcp.json` and `mcp-search.msp` from that deployment; it does not start a local Clarify dev server.
+</Callout>
+
+You can also run the command directly to inspect its startup diagnostics:
+
+```bash
+npx @clarify-labs/cli mcp https://docs.example.com
+```
+
+## Search multiple documentation sites
+
+Pass multiple site URLs to expose one search tool across related documentation sets:
+
+```json title="Search multiple sites"
+{
+  "mcpServers": {
+    "product-docs": {
+      "command": "npx",
+      "args": [
+        "@clarify-labs/cli",
+        "mcp",
+        "https://product.example.com",
+        "https://api.example.com"
+      ]
+    }
+  }
+}
+```
+
+Results are ranked across all configured sites and include their source site URL.
+
+## The `search_docs` tool
+
+The MCP server provides one tool:
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `query` | Yes | Full-text query. CJK text is segmented automatically. |
+| `locale` | No | Restricts results to one locale published by the configured sites. |
+| `limit` | No | Maximum number of results. Defaults to `10`; maximum `50`. |
+
+Each result contains a title, URL, source site, excerpt, score, and locale. Full page content is intentionally omitted to keep tool responses compact; the client can open the returned URL when it needs the complete page.
+
+## Build artifacts and caching
+
+MCP search is enabled with site search by default. A production build emits:
+
+- `mcp.json`: the site descriptor, available locales, index metadata, and capability manifest.
+- `mcp-search.msp`: the serialized full-text search index consumed by the local MCP server.
+
+Downloaded indexes are cached under `~/.clarify/mcp-cache`. The cache is refreshed when the deployed index metadata changes. Use `--no-cache` while diagnosing a stale deployment:
+
+```bash
+npx @clarify-labs/cli mcp https://docs.example.com --no-cache
+```
+
+To stop publishing MCP artifacts while keeping browser search enabled:
+
+```ts title="clarify.ts"
+export default defineConfig({
+  features: {
+    search: {
+      mcp: false,
+    },
+  },
+})
+```
+
+See the [configuration reference](/reference/clarify-config#features) for the complete feature schema.
+
+## Troubleshooting
+
+- **`mcp.json` returns 404**: rebuild and redeploy the site with a recent Clarify CLI version, then verify `<site>/mcp.json` is publicly accessible.
+- **No indexed documents**: make sure search is enabled and the build contains indexable MDX or OpenAPI routes.
+- **The client cannot start `npx`**: install Node.js in the environment used by the MCP client, or replace `npx` with an absolute executable path supported by that client.
+- **Results look stale**: confirm the latest build is deployed, then restart the client or add `--no-cache` to the MCP server arguments.
+- **A locale returns no results**: use one of the locales listed by the deployed site in `mcp.json`, or omit `locale` to search all indexed languages.
+
+## Related docs
+
+- [CLI Commands Reference](/reference/cli-commands#clarify-mcp)
+- [Deployment](/guides/deployment)
+- [Configuration Reference](/reference/clarify-config#features)

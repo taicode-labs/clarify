@@ -211,6 +211,29 @@ Common options:
 
 ---
 
+## `clarify mcp`
+
+Starts a local stdio MCP server that exposes the `search_docs` tool for one or more deployed Clarify sites.
+
+```bash
+npx @clarify-labs/cli mcp https://docs.example.com
+```
+
+The command fetches `<site>/mcp.json`, downloads the search index declared by that manifest, and caches it under `~/.clarify/mcp-cache`. Pass multiple URLs to search several documentation sites through one MCP server:
+
+```bash
+npx @clarify-labs/cli mcp https://product.example.com https://api.example.com
+```
+
+| Argument or option | Description | Default |
+| --- | --- | --- |
+| `<site> [site...]` | Root URLs of deployed Clarify sites | Required |
+| `--no-cache` | Always fetch a fresh index instead of using the local cache | `false` |
+
+This command uses stdout for the MCP JSON-RPC transport and writes diagnostics to stderr. It is normally launched by an MCP client rather than run as a persistent interactive shell command. See [MCP Documentation Search](/features/mcp) for client configuration, tool parameters, generated artifacts, and troubleshooting.
+
+---
+
 ## Configuration file
 
 We recommend using `clarify.ts` as the single project configuration entry. It can configure both the site display fields and the build-time extension capabilities:

@@ -182,6 +182,14 @@ export default defineConfig({
                 icon: 'Braces',
               },
               {
+                page: 'features/mcp',
+                title: {
+                  'zh-CN': 'MCP 文档搜索',
+                  'en-US': 'MCP Documentation Search',
+                },
+                icon: 'Bot',
+              },
+              {
                 page: 'features/vscode-extension',
                 title: {
                   'zh-CN': 'VS Code 扩展',

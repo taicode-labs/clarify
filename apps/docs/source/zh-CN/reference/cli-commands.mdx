@@ -211,6 +211,29 @@ pnpm exec clarify check
 
 ---
 
+## `clarify mcp`
+
+启动本地 stdio MCP server，为一个或多个已部署的 Clarify 站点提供 `search_docs` 工具。
+
+```bash
+npx @clarify-labs/cli mcp https://docs.example.com
+```
+
+该命令会获取 `<site>/mcp.json`，下载清单中声明的搜索索引，并缓存到 `~/.clarify/mcp-cache`。传入多个 URL，可以通过一个 MCP server 搜索多个文档站点：
+
+```bash
+npx @clarify-labs/cli mcp https://product.example.com https://api.example.com
+```
+
+| 参数或选项 | 说明 | 默认值 |
+| --- | --- | --- |
+| `<site> [site...]` | 已部署 Clarify 站点的根 URL | 必填 |
+| `--no-cache` | 跳过本地缓存，每次获取最新索引 | `false` |
+
+该命令将 stdout 用作 MCP JSON-RPC 通道，诊断信息写入 stderr。通常应由 MCP 客户端启动它，而不是把它作为持续运行的交互式终端命令。客户端配置、工具参数、构建产物和故障排查参见 [MCP 文档搜索](/features/mcp)。
+
+---
+
 ## 配置文件
 
 推荐使用 `clarify.ts` 作为唯一项目配置入口。它既可以配置站点展示字段，也可以配置构建期扩展能力：

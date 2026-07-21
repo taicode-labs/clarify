@@ -1,8 +1,107 @@
 # Writing Content
 
-This page brings together the core capabilities related to "writing content" in Clarify: MDX, frontmatter, file routing, OpenAPI file routing, code blocks, and built-in components.
+This is a writing specification that you can hand directly to a documentation author or an AI. A page completed with this guide should meet four conditions: a reader can finish one clear task, Clarify can build the page, site search can find its key sections, and an AI can understand and cite it through the raw Markdown and `llms.txt`.
 
-The goal is to let authors know: where files should go, how pages are generated, how to write metadata, and when to use components.
+<Callout type="tip" title="Shortest path">
+  When you are unsure where to start, name the file after the user task, use `.md` by default, write one explicit H1 and a one-sentence goal, then divide prerequisites, actions, verification, and troubleshooting into H2 sections. Switch to `.mdx` only when the page needs Clarify components.
+</Callout>
+
+---
+
+## From a requirement to a correct document
+
+<Steps>
+  <Step title="Define the reader and result">
+    Complete the sentence “A [reader] needs to [result].” For example: “A backend developer creates an API key locally and verifies that the first request succeeds.” If the sentence contains two independent results, create two pages.
+  </Step>
+  <Step title="Choose the content type and location">
+    Use `.md` for tutorials and conceptual explanations. Use `.mdx` when you need Tabs, Steps, Callouts, embedded OpenAPI, or custom React components. Put endpoint facts in `.openapi.json` or `.openapi.yaml`. The file path becomes the page route.
+  </Step>
+  <Step title="Write a completable main path first">
+    Organize it as prerequisites, actions, and expected results. Commands and configuration examples must include enough context to complete the current step instead of presenting isolated fragments.
+  </Step>
+  <Step title="Choose the Clarify capability">
+    Use `Steps` for ordered actions, `Tabs` for mutually exclusive alternatives, `Callout` for consequential information, `CodeGroup` for equivalent code samples, and OpenAPI for endpoint facts. Components should improve understanding, not decorate a page.
+  </Step>
+  <Step title="Preview, check, and build">
+    In the development server, inspect the route, table of contents, links, and narrow-screen layout. Then run `clarify check` and `clarify build`. A successful build confirms that the MDX and OpenAPI sources meet the publishing contract.
+  </Step>
+</Steps>
+
+### Ready-to-use page template
+
+This template deliberately uses plain Markdown. Delete sections that do not apply. Rename the file to `.mdx` when you need components.
+
+````md title="source/guides/create-api-key.md"
+---
+title: Create an API key
+description: Create an API key and verify that it can access the Acme API.
+keywords:
+  - API key
+  - authentication
+---
+
+# Create an API key
+
+This guide helps backend developers create an API key and confirm it with a test request.
+
+## Prerequisites
+
+- You have administrator access to an Acme project.
+- You have curl 8 or later installed.
+
+## Create the key
+
+1. Open the **API keys** page in the console.
+2. Select **Create key**, enter a purpose, and save it.
+3. Store the key in an environment variable immediately. It is shown only once.
+
+```bash
+export ACME_API_KEY="your-api-key"
+```
+
+## Verify the result
+
+```bash
+curl https://api.example.com/v1/me \
+  --header "Authorization: Bearer $ACME_API_KEY"
+```
+
+A successful request returns the current account with HTTP status `200`.
+
+## Troubleshooting
+
+### The request returns 401
+
+Check that the environment variable has no extra whitespace and that the key has not been revoked.
+
+## Next step
+
+Continue to [API Documentation](/features/openapi).
+````
+
+The template contains searchable headings, complete inputs, an observable result, and a next step. “Click the button” or “run the command below” is not enough: name the control, explain the command's purpose, state the success signal, and describe how to recover from a likely failure.
+
+---
+
+## Choose a Clarify capability by content need
+
+| What you are writing | What to use | Why |
+|------|------|------|
+| Installation, migration, or configuration flow | `Steps` / `Step` | Make sequence and completion boundaries explicit |
+| Mutually exclusive language, framework, or platform options | `Tabs` / `Tab` | Let readers focus on the option that applies to them |
+| Risk, prerequisite, or success result | `Callout` or `Note` | Separate consequential information from optional context |
+| Equivalent implementations | `CodeGroup` | Compare and copy code in one place |
+| Project structure | `FileTree` / `FileTreeItem` | Show exact file hierarchy and placement |
+| Configuration fields or component props | `Properties` / `Property` | Present names, types, and descriptions consistently |
+| Architecture, state, or call sequence | Mermaid code block | Keep diagrams versioned, searchable, and theme-aware |
+| Feature entry points and recommended reading | `CardGroup` / `Card` | Create a clear path across pages |
+| One endpoint inside a tutorial | `OpenApiOperation` | Keep endpoint facts in the spec and business context in the guide |
+| A complete API reference | `.openapi.json/.yaml` or `OpenApiDocument` | Generate authentication, parameters, examples, and request code |
+| Repeated product names, versions, and URLs | [Project Variables](/features/variables) | Maintain one value across MDX, frontmatter, and OpenAPI |
+| Searchable and AI-readable output | Clear H2/H3 sections, raw content, and `llms.txt` | Clarify generates a full-text index and AI discovery entry point at build time |
+
+See [Built-in Components](/reference/built-in-components) for complete props and examples, and [API Documentation](/features/openapi) for the OpenAPI workflow.
 
 ---
 
@@ -297,9 +396,31 @@ import { Alert } from '../components/Alert'
 ## Writing suggestions
 
 - **One document solves one user task** — don't create a separate document for each internal capability.
-- **Explain why first, then how**, so readers understand the value of the current step.
+- **Lead with the goal and result, then move into the steps** instead of delaying the answer with product promotion or broad background.
 - **Put field lists in the reference pages**, keeping only the most common configuration on task pages.
 - **Use clear H2/H3 to carry search entries**, so users can jump from search results straight to a specific section.
-- **Use tables and short code examples** to reduce long paragraphs.
+- **Keep examples complete and consistent** so paths, variable names, ports, and return values do not contradict one another.
 - **Let OpenAPI be the source of endpoint facts**, with tutorials only explaining the business flow.
 - **Write content in a structure AI can also consume**: clear headings, explicit steps, and complete examples — the built `.md` and `llms.txt` preserve this structure.
+
+---
+
+## Pre-publish checklist
+
+Before submitting content, an author or AI should verify every item:
+
+- [ ] The page solves one primary task and states the reader, goal, and completion result at the start.
+- [ ] The file is in the correct content directory, uses a lowercase hyphenated name, and does not create a duplicate route.
+- [ ] The page uses `.md` by default and uses `.mdx` only for JSX, built-in components, or imports.
+- [ ] There is one H1, and each H2/H3 names a task or question instead of weak labels such as “Introduction” or “Other.”
+- [ ] Every procedure includes prerequisites, actions, and an observable success signal.
+- [ ] Code fences specify a language, examples include required context, and names and paths remain consistent throughout the page.
+- [ ] Link text describes its destination instead of using isolated “click here” text or bare URLs.
+- [ ] Callouts, Tabs, Steps, Cards, and OpenAPI components follow the selection rules above.
+- [ ] The prose, examples, images, and OpenAPI files contain no secrets, internal addresses, or real user data.
+- [ ] The local preview has a correct table of contents, search result, links, code-copy behavior, and mobile layout.
+- [ ] `pnpm exec clarify check` and `pnpm exec clarify build` both finish successfully.
+
+<Callout type="success" title="Definition of done">
+  A reader who does not know the implementation can complete the task and determine whether it succeeded from this page alone. Search can jump directly to the key sections. An AI without extra context can restate the prerequisites, steps, examples, and result. The document is complete only when all three are true.
+</Callout>

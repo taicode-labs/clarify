@@ -1,0 +1,107 @@
+# MCP 文档搜索
+
+Clarify 可以把已部署的文档站点接入本地 [Model Context Protocol](https://modelcontextprotocol.io/) server。支持 MCP 的 AI 客户端可以调用 `search_docs` 搜索站点发布的内容，不必依赖通用网页搜索。
+
+MCP server 通过 stdio 在本地运行。它从已部署站点下载搜索元数据和索引，文档站本身仍然是纯静态部署。
+
+## 连接 MCP 客户端
+
+打开任意 Clarify 文档页面的页面操作菜单，选择 **复制 MCP 配置**。生成的配置会自动指向当前站点：
+
+```json title="MCP 客户端配置"
+{
+  "mcpServers": {
+    "clarify": {
+      "command": "npx",
+      "args": ["@clarify-labs/cli", "mcp", "https://docs.example.com"]
+    }
+  }
+}
+```
+
+把复制的对象加入支持 stdio server 的 MCP 客户端，然后重启或重新加载客户端。客户端会在需要搜索文档时启动 `clarify mcp`。
+
+<Callout type="info" title="需要已部署的站点">
+  请使用已部署 Clarify 站点的根 URL。该命令会读取部署中的 `mcp.json` 和 `mcp-search.msp`，不会启动本地 Clarify dev server。
+</Callout>
+
+也可以直接运行命令查看启动诊断：
+
+```bash
+npx @clarify-labs/cli mcp https://docs.example.com
+```
+
+## 搜索多个文档站点
+
+传入多个站点 URL，即可用同一个搜索工具查询一组相关文档：
+
+```json title="搜索多个站点"
+{
+  "mcpServers": {
+    "product-docs": {
+      "command": "npx",
+      "args": [
+        "@clarify-labs/cli",
+        "mcp",
+        "https://product.example.com",
+        "https://api.example.com"
+      ]
+    }
+  }
+}
+```
+
+搜索结果会跨站点统一排序，并标注来源站点 URL。
+
+## `search_docs` 工具
+
+MCP server 提供一个工具：
+
+| 参数 | 必填 | 说明 |
+| --- | --- | --- |
+| `query` | 是 | 全文搜索词，CJK 文本会自动分词。 |
+| `locale` | 否 | 将结果限制为配置站点已发布的某一种语言。 |
+| `limit` | 否 | 最大结果数，默认 `10`，最大 `50`。 |
+
+每条结果包含标题、URL、来源站点、摘要、分数和语言。为了控制工具响应的 Token 体积，结果不会包含完整页面正文；客户端需要完整内容时可以继续打开返回的 URL。
+
+## 构建产物与缓存
+
+MCP 搜索默认随站内搜索启用。生产构建会生成：
+
+- `mcp.json`：站点描述、可用语言、索引元数据和能力清单。
+- `mcp-search.msp`：供本地 MCP server 使用的序列化全文搜索索引。
+
+下载的索引会缓存到 `~/.clarify/mcp-cache`。部署索引的元数据变化后，缓存会自动更新。排查旧索引问题时可以使用 `--no-cache`：
+
+```bash
+npx @clarify-labs/cli mcp https://docs.example.com --no-cache
+```
+
+如果需要保留浏览器搜索，但不再发布 MCP 产物：
+
+```ts title="clarify.ts"
+export default defineConfig({
+  features: {
+    search: {
+      mcp: false,
+    },
+  },
+})
+```
+
+完整配置结构参见[配置参考](/reference/clarify-config#features)。
+
+## 常见问题
+
+- **访问 `mcp.json` 返回 404**：使用较新的 Clarify CLI 重新构建和部署，并确认 `<site>/mcp.json` 可以公开访问。
+- **没有可索引文档**：确认搜索功能已启用，且构建中包含可索引的 MDX 或 OpenAPI 路由。
+- **客户端无法启动 `npx`**：在 MCP 客户端使用的环境中安装 Node.js，或根据客户端要求把 `npx` 替换为可执行文件的绝对路径。
+- **搜索结果没有更新**：确认最新构建已经部署，然后重启客户端，或在 MCP server 参数中添加 `--no-cache`。
+- **指定语言没有结果**：使用站点 `mcp.json` 中列出的语言，或省略 `locale` 搜索全部已索引语言。
+
+## 相关文档
+
+- [CLI 命令参考](/reference/cli-commands#clarify-mcp)
+- [部署上线](/guides/deployment)
+- [配置参考](/reference/clarify-config#features)
