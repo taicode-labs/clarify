@@ -5,10 +5,11 @@ import { fileURLToPath } from 'node:url'
 import SwaggerParser from '@apidevtools/swagger-parser'
 import { slug } from 'github-slugger'
 
+import { pageVirtualModuleIdFromRef } from '../../core/runtime/module-ids.js'
 import type { ContentProcessor } from '../../parsers/content/content.js'
 import { createContentDiagnostic } from '../../parsers/content/diagnostic.js'
-import { kebabToTitle, routePathFromRef, virtualModuleIdFromRef } from '../../parsers/routes/routes.js'
-import type { ContentDiagnostic, ContentRoute, ContentSection, OpenAPISpec } from '../../types.js'
+import { kebabToTitle, routePathFromRef } from '../../parsers/routes/routes.js'
+import type { ContentDiagnostic, ContentSection, OpenAPIContentRoute, OpenAPISpec } from '../../types.js'
 
 const OPENAPI_HTTP_METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const
 const CLARIFY_OPENAPI_SECTION_ID_EXTENSION = 'x-clarify-section-id'
@@ -27,8 +28,8 @@ function isSameOpenAPIFile(url: string, filePath: string): boolean {
   }
 }
 
-export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute[] {
-  const routes: ContentRoute[] = []
+export function findOpenAPIRoutes(dir: string, base: string = dir): OpenAPIContentRoute[] {
+  const routes: OpenAPIContentRoute[] = []
   if (!existsSync(dir)) return routes
 
   const entries = readdirSync(dir, { withFileTypes: true })
@@ -50,7 +51,7 @@ export function findOpenAPIRoutes(dir: string, base: string = dir): ContentRoute
         title: kebabToTitle(cleanPath.split('/').pop() ?? 'API'),
       },
       module: {
-        virtualModuleId: virtualModuleIdFromRef(ref),
+        pageVirtualModuleId: pageVirtualModuleIdFromRef(ref),
       },
       source: {
         filePath: fullPath,

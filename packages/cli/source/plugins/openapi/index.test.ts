@@ -6,7 +6,7 @@ import { describe, expect, it, afterEach, beforeEach } from 'vitest'
 
 import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
-import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyHookContext, ClarifyPlugin, ContentRoute, OpenAPIContentRoute, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 import { createOpenAPIPlugin } from './index.js'
 
@@ -80,16 +80,16 @@ function createContextWithVariables(routes: ContentRoute[]): ClarifyHookContext 
   }
 }
 
-type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
+type RouteFixture = Partial<Omit<OpenAPIContentRoute, 'kind' | 'meta' | 'module' | 'source'>> & {
   title?: string
   sections?: ContentRoute['meta']['sections']
   filePath?: string
-  virtualModuleId?: string
+  pageVirtualModuleId?: string
   content?: string
 }
 
-function route(overrides: RouteFixture): ContentRoute {
-  const { title, sections, filePath, virtualModuleId, content, ...rest } = overrides
+function route(overrides: RouteFixture): OpenAPIContentRoute {
+  const { title, sections, filePath, pageVirtualModuleId, content, ...rest } = overrides
   return {
     path: '/api',
     kind: 'openapi',
@@ -97,7 +97,7 @@ function route(overrides: RouteFixture): ContentRoute {
       title: title ?? 'API',
       sections,
     },
-    module: { virtualModuleId: virtualModuleId ?? 'virtual:clarify-page/api' },
+    module: { pageVirtualModuleId: pageVirtualModuleId ?? 'virtual:clarify-page/api' },
     source: {
       filePath: filePath ?? '/site/source/api.openapi.json',
       content,
@@ -149,7 +149,7 @@ describe('createOpenAPIPlugin', () => {
     expect(routes).toMatchObject([{
       path: '/api',
       source: { filePath: specPath },
-      module: { virtualModuleId: 'virtual:clarify-page/api' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/api' },
       kind: 'openapi',
     }])
 
@@ -183,7 +183,7 @@ describe('createOpenAPIPlugin', () => {
       path: '/broken',
       title: 'Broken',
       filePath: specPath,
-      virtualModuleId: 'virtual:clarify-page/broken',
+      pageVirtualModuleId: 'virtual:clarify-page/broken',
       content: '{ invalid json',
     })]
     const plugin = createOpenAPIPlugin()
@@ -237,7 +237,7 @@ describe('createOpenAPIPlugin', () => {
       path: '/api',
       title: 'API',
       filePath: specPath,
-      virtualModuleId: 'virtual:clarify-page/api',
+      pageVirtualModuleId: 'virtual:clarify-page/api',
     })]
 
     const discovered = await plugin.hooks?.['routes:discovered']?.(routes, createContextWithVariables(routes))
@@ -277,7 +277,7 @@ describe('createOpenAPIPlugin', () => {
 
     expect(taggedRoute).toMatchObject({
       basePath: '/api/projects',
-      module: { virtualModuleId: 'virtual:clarify-page/api/projects' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/api/projects' },
       openapi: { tagFilter: ['Projects'] },
     })
     expect(taggedRoute?.meta.sections).toEqual([
@@ -366,7 +366,7 @@ describe('createOpenAPIPlugin', () => {
 
     expect(taggedRoute).toMatchObject({
       basePath: '/reference/projects',
-      module: { virtualModuleId: 'virtual:clarify-page/reference/projects' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/reference/projects' },
       openapi: { tagFilter: ['Projects'] },
     })
     expect(taggedRoute?.meta.sections).toEqual([
@@ -394,8 +394,8 @@ describe('createOpenAPIPlugin', () => {
 
     const plugin = createOpenAPIPlugin()
     const routes: ContentRoute[] = [
-      route({ path: '/api', basePath: '/api', locale: 'zh-CN', title: 'API', filePath: specPath, virtualModuleId: 'virtual:clarify-page/zh-CN/api' }),
-      route({ path: '/en-US/api', basePath: '/api', locale: 'en-US', title: 'API', filePath: specPath, virtualModuleId: 'virtual:clarify-page/en-US/api' }),
+      route({ path: '/api', basePath: '/api', locale: 'zh-CN', title: 'API', filePath: specPath, pageVirtualModuleId: 'virtual:clarify-page/zh-CN/api' }),
+      route({ path: '/en-US/api', basePath: '/api', locale: 'en-US', title: 'API', filePath: specPath, pageVirtualModuleId: 'virtual:clarify-page/en-US/api' }),
     ]
     const ctx = createContext(routes)
     ctx.projectConfig.locales = {
@@ -415,19 +415,19 @@ describe('createOpenAPIPlugin', () => {
     expect(discovered?.find(route => route.path === '/zh-CN/openapi/pages')).toMatchObject({
       basePath: '/openapi/pages',
       locale: 'zh-CN',
-      module: { virtualModuleId: 'virtual:clarify-page/zh-CN/openapi/pages' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/zh-CN/openapi/pages' },
       openapi: { tagFilter: ['Projects'] },
     })
     expect(discovered?.find(route => route.path === '/openapi/pages')).toMatchObject({
       basePath: '/openapi/pages',
-      module: { virtualModuleId: 'virtual:clarify-page/openapi/pages' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/openapi/pages' },
       isBareAlias: true,
       openapi: { tagFilter: ['Projects'] },
     })
     expect(discovered?.find(route => route.path === '/en-US/openapi/pages')).toMatchObject({
       basePath: '/openapi/pages',
       locale: 'en-US',
-      module: { virtualModuleId: 'virtual:clarify-page/en-US/openapi/pages' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/en-US/openapi/pages' },
       openapi: { tagFilter: ['Projects'] },
     })
 
@@ -458,8 +458,8 @@ describe('createOpenAPIPlugin', () => {
 
     const plugin = createOpenAPIPlugin()
     const routes: ContentRoute[] = [
-      route({ path: '/api', basePath: '/api', locale: 'zh-CN', title: 'API', filePath: zhSpecPath, virtualModuleId: 'virtual:clarify-page/zh-CN/api' }),
-      route({ path: '/en-US/api', basePath: '/api', locale: 'en-US', title: 'API', filePath: enSpecPath, virtualModuleId: 'virtual:clarify-page/en-US/api' }),
+      route({ path: '/api', basePath: '/api', locale: 'zh-CN', title: 'API', filePath: zhSpecPath, pageVirtualModuleId: 'virtual:clarify-page/zh-CN/api' }),
+      route({ path: '/en-US/api', basePath: '/api', locale: 'en-US', title: 'API', filePath: enSpecPath, pageVirtualModuleId: 'virtual:clarify-page/en-US/api' }),
     ]
     const ctx = createContext(routes)
     ctx.contentRoot = tempDir
@@ -479,13 +479,13 @@ describe('createOpenAPIPlugin', () => {
 
     expect(discovered?.find(route => route.path === '/openapi/pages')).toMatchObject({
       basePath: '/openapi/pages',
-      module: { virtualModuleId: 'virtual:clarify-page/openapi/pages' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/openapi/pages' },
       isBareAlias: true,
       openapi: { tagFilter: ['Pages'] },
     })
     expect(discovered?.find(route => route.path === '/en-US/openapi/pages')).toMatchObject({
       basePath: '/openapi/pages',
-      module: { virtualModuleId: 'virtual:clarify-page/en-US/openapi/pages' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/en-US/openapi/pages' },
       openapi: { tagFilter: ['Pages'] },
     })
   })
@@ -514,12 +514,12 @@ describe('createOpenAPIPlugin', () => {
     expect(discovered?.find(route => route.path === '/zh-CN/api')).toMatchObject({
       basePath: '/api',
       locale: 'zh-CN',
-      module: { virtualModuleId: 'virtual:clarify-page/zh-CN/api' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/zh-CN/api' },
     })
     expect(discovered?.find(route => route.path === '/en-US/api')).toMatchObject({
       basePath: '/api',
       locale: 'en-US',
-      module: { virtualModuleId: 'virtual:clarify-page/en-US/api' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/en-US/api' },
     })
   })
 
@@ -548,7 +548,7 @@ describe('createOpenAPIPlugin', () => {
 
     expect(aliasRoute).toMatchObject({
       basePath: '/reference',
-      module: { virtualModuleId: 'virtual:clarify-page/reference' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/reference' },
       openapi: { tagFilter: undefined },
     })
     expect(aliasRoute?.meta.sections).toEqual([

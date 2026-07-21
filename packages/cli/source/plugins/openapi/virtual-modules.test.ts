@@ -58,7 +58,7 @@ describe('openapi virtual modules', () => {
 
   it('shares the same diagnostic intent across CLI and renderer', () => {
     const cliDiagnostic: CliDiagnostic = {
-      kind: 'mdx',
+      kind: 'markdown+jsx',
       title: 'CLI diagnostic',
       message: 'Something failed',
       filePath: '/docs/example.md',

@@ -333,9 +333,19 @@ export type ContentRouteMeta = {
   sections?: ContentSection[]
 }
 
-export type ContentRouteModule = {
-  virtualModuleId: string
+export type PageRouteModule = {
+  pageVirtualModuleId: string
 }
+
+export type MarkdownRouteModule = PageRouteModule & {
+  contentVirtualModuleId: string
+}
+
+export type OpenAPIRouteModule = PageRouteModule & {
+  contentVirtualModuleId?: never
+}
+
+export type ContentRouteModule = MarkdownRouteModule | OpenAPIRouteModule
 
 export type OpenAPIContentRouteState = {
   /** Operation tag filter applied to this route. Undefined means all operations. */
@@ -360,7 +370,7 @@ export type ContentRouteSource = {
   sourceEditUrl?: string
 }
 
-export type ContentRoute = {
+type ContentRouteBase = {
   path: string
   basePath?: string
   locale?: string
@@ -368,15 +378,25 @@ export type ContentRoute = {
   /** Indicates this route is a bare alias for the default locale (e.g., /path instead of /locale/path). Should not be indexed. */
   isBareAlias?: boolean
   alternates?: Record<string, string>
-  kind: string
   meta: ContentRouteMeta
-  module: ContentRouteModule
   source: ContentRouteSource
-  /** OpenAPI-specific route state. Present only for OpenAPI routes. */
-  openapi?: OpenAPIContentRouteState
   diagnostic?: ContentDiagnostic
   artifacts?: ContentRouteArtifacts
 }
+
+export type MarkdownContentRoute = ContentRouteBase & {
+  kind: 'markdown' | 'markdown+jsx'
+  module: MarkdownRouteModule
+  openapi?: never
+}
+
+export type OpenAPIContentRoute = ContentRouteBase & {
+  kind: 'openapi'
+  module: OpenAPIRouteModule
+  openapi?: OpenAPIContentRouteState
+}
+
+export type ContentRoute = MarkdownContentRoute | OpenAPIContentRoute
 
 export type ClarifyNavigationTab = {
   type: 'tab'
@@ -467,7 +487,7 @@ export type ClarifyRouteDiscoveryInput = {
   routes: ContentRoute[]
 }
 
-export type ClarifyContentKind = 'mdx' | 'openapi'
+export type ClarifyContentKind = 'markdown' | 'markdown+jsx' | 'openapi'
 
 export type ClarifyContentTransformInput = {
   kind: ClarifyContentKind
@@ -544,8 +564,10 @@ export type ClarifyBuildHooks = {
   'ssg:shouldRun'?: ClarifyInterceptHook
 }
 
+export type ClarifyDevServerPostHook = () => void
+
 export type ClarifyDevHooks = {
-  'dev:configureServer'?: (server: ViteDevServer, ctx: ClarifyHookContext) => MaybePromise<void>
+  'dev:configureServer'?: (server: ViteDevServer, ctx: ClarifyHookContext) => MaybePromise<void | ClarifyDevServerPostHook>
 }
 
 export type ClarifyHooks = ClarifyLifecycleHooks & ClarifyPipelineHooks & ClarifyBuildHooks & ClarifyDevHooks

@@ -1,6 +1,6 @@
-import type { ContentRoute, ResolvedClarifyLocalesConfig } from '../../types.js'
+import type { ContentRoute, MarkdownContentRoute, OpenAPIContentRoute, ResolvedClarifyLocalesConfig } from '../../types.js'
 
-type ContentRouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'source'>> & {
+type ContentRouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'source' | 'openapi'>> & {
   kind?: ContentRoute['kind']
   title?: string
   description?: string
@@ -10,7 +10,9 @@ type ContentRouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module'
   frontmatter?: ContentRoute['source']['frontmatter']
   content?: string
   sourceEditUrl?: string
-  virtualModuleId?: string
+  pageVirtualModuleId?: string
+  contentVirtualModuleId?: string
+  openapi?: OpenAPIContentRoute['openapi']
   meta?: Partial<ContentRoute['meta']>
   module?: Partial<ContentRoute['module']>
   source?: Partial<ContentRoute['source']>
@@ -26,25 +28,23 @@ export function contentRoute(route: ContentRouteFixture = {}): ContentRoute {
     frontmatter,
     content,
     sourceEditUrl,
-    virtualModuleId,
+    pageVirtualModuleId: fixturePageVirtualModuleId,
+    contentVirtualModuleId: fixtureContentVirtualModuleId,
     meta,
     module,
     source,
-    kind = 'mdx',
+    openapi,
+    kind = 'markdown+jsx',
     ...rest
   } = route
 
-  return {
+  const common = {
     path: '/',
-    kind,
     meta: {
       title: title ?? meta?.title ?? 'Home',
       description: description ?? meta?.description,
       keywords: keywords ?? meta?.keywords,
       sections: sections ?? meta?.sections,
-    },
-    module: {
-      virtualModuleId: virtualModuleId ?? module?.virtualModuleId ?? 'virtual:clarify-page/index',
     },
     source: {
       filePath: filePath ?? source?.filePath ?? 'index.mdx',
@@ -54,10 +54,29 @@ export function contentRoute(route: ContentRouteFixture = {}): ContentRoute {
     },
     ...rest,
   }
+
+  const pageVirtualModuleId = fixturePageVirtualModuleId ?? module?.pageVirtualModuleId ?? 'virtual:clarify-page/index'
+  if (kind === 'openapi') {
+    return {
+      ...common,
+      kind,
+      module: { pageVirtualModuleId },
+      openapi,
+    } satisfies OpenAPIContentRoute
+  }
+
+  return {
+    ...common,
+    kind,
+    module: {
+      pageVirtualModuleId,
+      contentVirtualModuleId: fixtureContentVirtualModuleId ?? module?.contentVirtualModuleId ?? 'virtual:clarify-content/index.mdx',
+    },
+  } satisfies MarkdownContentRoute
 }
 
 export function mdxRoute(route: ContentRouteFixture = {}): ContentRoute {
-  return contentRoute({ ...route, kind: 'mdx' })
+  return contentRoute({ ...route, kind: 'markdown+jsx' })
 }
 
 export const testI18n: ResolvedClarifyLocalesConfig = {

@@ -72,9 +72,9 @@ describe('createPageSearchPlugin', () => {
       routes: [{
         path: '/docs',
         locale: 'en-US',
-        kind: 'mdx',
+        kind: 'markdown+jsx',
         meta: { title: 'Docs' },
-        module: { virtualModuleId: 'virtual:clarify-page/docs' },
+        module: { pageVirtualModuleId: 'virtual:clarify-page/docs' },
         source: { filePath: '/site/source/docs.mdx', content: 'Docs content' },
       }],
     } as never

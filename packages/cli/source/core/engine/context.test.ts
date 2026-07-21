@@ -36,9 +36,12 @@ describe('ClarifyContext', () => {
 
     ctx.routes = [{
       path: '/',
-      kind: 'mdx',
+      kind: 'markdown+jsx',
       meta: { title: 'Home' },
-      module: { virtualModuleId: 'virtual:clarify/routes/index' },
+      module: {
+        pageVirtualModuleId: 'virtual:clarify-page/index',
+        contentVirtualModuleId: 'virtual:clarify-content/index.md',
+      },
       source: { filePath: '/site/source/index.md' },
     }]
     ctx.navigation = { kind: 'flat', nodes: [{ path: '/', title: 'Home' }] }
@@ -63,9 +66,12 @@ describe('ClarifyContext', () => {
     const ctx = createContext()
     ctx.routes = [{
       path: '/',
-      kind: 'mdx',
+      kind: 'markdown+jsx',
       meta: { title: 'Home' },
-      module: { virtualModuleId: 'virtual:clarify/routes/index' },
+      module: {
+        pageVirtualModuleId: 'virtual:clarify-page/index',
+        contentVirtualModuleId: 'virtual:clarify-content/index.md',
+      },
       source: { filePath: '/site/source/index.md' },
     }]
 

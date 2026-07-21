@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest'
 
 import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
-import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
+import type { ContentRoute, MarkdownContentRoute, OpenAPIContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, readRouteArtifactContent, readRouteContent } from './artifacts.js'
 
-type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
+type RouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'source' | 'openapi'>> & {
+  kind?: ContentRoute['kind']
   title?: string
   description?: string
   sections?: ContentRoute['meta']['sections']
@@ -15,22 +16,33 @@ type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & 
 }
 
 function route(overrides: RouteFixture): ContentRoute {
-  const { title, description, sections, filePath, content, ...rest } = overrides
-  return {
+  const { title, description, sections, filePath, content, kind = 'markdown+jsx', ...rest } = overrides
+  const common = {
     path: '/',
-    kind: 'mdx',
     meta: {
       title: title ?? 'Home',
       description,
       sections,
     },
-    module: { virtualModuleId: 'virtual:clarify-page/index' },
     source: {
       filePath: filePath ?? '/tmp/index.mdx',
       content,
     },
     ...rest,
   }
+
+  if (kind === 'openapi') {
+    return { ...common, kind, module: { pageVirtualModuleId: 'virtual:clarify-page/index' } } satisfies OpenAPIContentRoute
+  }
+
+  return {
+    ...common,
+    kind,
+    module: {
+      pageVirtualModuleId: 'virtual:clarify-page/index',
+      contentVirtualModuleId: 'virtual:clarify-content/index.mdx',
+    },
+  } satisfies MarkdownContentRoute
 }
 
 describe('content artifact helpers', () => {

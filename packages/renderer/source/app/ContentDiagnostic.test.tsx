@@ -10,7 +10,7 @@ import { RenderErrorPanel } from './RenderErrorPanel.js'
 describe('ContentDiagnostic', () => {
   it('renders content diagnostics with the shared render-error layout', () => {
     const Component = createContentDiagnosticComponent({
-      kind: 'mdx',
+      kind: 'markdown+jsx',
       title: 'MDX compile error',
       message: 'This page could not be compiled.',
       details: 'Expected a closing tag for <BrokenComponent>.',

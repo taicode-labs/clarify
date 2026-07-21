@@ -5,31 +5,34 @@ import { join } from 'node:path'
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 import { resolveThemeConfig } from '../../parsers/theme.js'
-import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
+import type { MarkdownContentRoute, ResolvedProjectConfig } from '../../types.js'
 import { resolveFeaturesConfig } from '../config/config.js'
 
 import { injectSSRIntoTemplate } from './html-template.js'
 import { readIndexHtml, isNotFoundRoute, routeOutputFiles } from './ssg.js'
 
-type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
+type RouteFixture = Partial<Omit<MarkdownContentRoute, 'kind' | 'meta' | 'module' | 'source'>> & {
   title?: string
   description?: string
   keywords?: string[]
   filePath?: string
-  virtualModuleId?: string
+  pageVirtualModuleId?: string
 }
 
-function route(overrides: RouteFixture): ContentRoute {
-  const { title, description, keywords, filePath, virtualModuleId, ...rest } = overrides
+function route(overrides: RouteFixture): MarkdownContentRoute {
+  const { title, description, keywords, filePath, pageVirtualModuleId, ...rest } = overrides
   return {
     path: '/guide',
-    kind: 'mdx',
+    kind: 'markdown+jsx',
     meta: {
       title: title ?? 'Guide',
       description,
       keywords,
     },
-    module: { virtualModuleId: virtualModuleId ?? 'virtual:guide' },
+    module: {
+      pageVirtualModuleId: pageVirtualModuleId ?? 'virtual:clarify-page/guide',
+      contentVirtualModuleId: 'virtual:clarify-content/guide.mdx',
+    },
     source: { filePath: filePath ?? '/content/guide.mdx' },
     ...rest,
   }
@@ -106,7 +109,6 @@ describe('injectSSRIntoTemplate', () => {
       locale: 'ar',
       title: 'Guide',
       filePath: '/content/ar/guide.mdx',
-      virtualModuleId: 'virtual:guide',
     }))
     expect(html).toContain('<html lang="ar" dir="rtl">')
   })
@@ -121,7 +123,6 @@ describe('injectSSRIntoTemplate', () => {
       path: '/guide',
       title: 'Guide',
       filePath: '/content/guide.mdx',
-      virtualModuleId: 'virtual:guide',
     }))
     expect(html).toContain('<title>Guide - Test Docs</title>')
   })
@@ -137,7 +138,6 @@ describe('injectSSRIntoTemplate', () => {
       title: 'Guide',
       description: 'Guide description',
       filePath: '/content/guide.mdx',
-      virtualModuleId: 'virtual:guide',
     }))
     expect(html).toContain('<meta name="description" content="Guide description" />')
   })
@@ -165,7 +165,6 @@ describe('injectSSRIntoTemplate', () => {
       title: 'Guide',
       keywords: ['docs', 'api'],
       filePath: '/content/guide.mdx',
-      virtualModuleId: 'virtual:guide',
     }))
     expect(html).toContain('<meta name="keywords" content="docs, api" />')
   })
@@ -195,7 +194,6 @@ describe('injectSSRIntoTemplate', () => {
       isBareAlias: true,
       title: 'Guide',
       filePath: '/content/guide.mdx',
-      virtualModuleId: 'virtual:guide',
     }))
     expect(html).toContain('<div id="root" data-pagefind-ignore><h1>Content</h1></div>')
   })
@@ -205,7 +203,6 @@ describe('injectSSRIntoTemplate', () => {
       path: '/guide',
       title: 'Guide',
       filePath: '/content/guide.mdx',
-      virtualModuleId: 'virtual:guide',
     }))
     expect(html).toContain('<div id="root"><h1>Content</h1></div>')
     expect(html).not.toContain('data-pagefind-ignore')
@@ -229,7 +226,6 @@ describe('injectSSRIntoTemplate', () => {
       locale: 'en-US',
       title: 'Guide',
       filePath: '/content/en-US/guide.mdx',
-      virtualModuleId: 'virtual:guide',
     }))
     expect(html).toContain('<div id="root"><h1>Content</h1></div>')
     expect(html).not.toContain('data-pagefind-ignore')
@@ -238,11 +234,10 @@ describe('injectSSRIntoTemplate', () => {
 
 describe('routeOutputFiles', () => {
   const outputDirectory = '/site/output'
-  const baseRoute: ContentRoute = route({
+  const baseRoute: MarkdownContentRoute = route({
     path: '/guide',
     title: 'Guide',
     filePath: '/content/guide.mdx',
-    virtualModuleId: 'virtual:guide',
   })
 
   it('returns the nested index file for regular routes', () => {

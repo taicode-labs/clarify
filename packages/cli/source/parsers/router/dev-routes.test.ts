@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest'
 
 import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
-import type { ClarifyProjectContext, ContentRoute, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyProjectContext, MarkdownContentRoute, ResolvedProjectConfig } from '../../types.js'
 
 import {
   toDevRouteEntry,
@@ -14,19 +14,22 @@ import {
   handleDevRouteRequest,
 } from './dev-routes.js'
 
-type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
+type RouteFixture = Partial<Omit<MarkdownContentRoute, 'kind' | 'meta' | 'module' | 'source'>> & {
   title?: string
   filePath?: string
-  virtualModuleId?: string
+  pageVirtualModuleId?: string
 }
 
-function makeRoute(overrides: RouteFixture): ContentRoute {
-  const { title, filePath, virtualModuleId, ...rest } = overrides
+function makeRoute(overrides: RouteFixture): MarkdownContentRoute {
+  const { title, filePath, pageVirtualModuleId, ...rest } = overrides
   return {
     path: '/x',
-    kind: 'mdx',
+    kind: 'markdown+jsx',
     meta: { title: title ?? 'X' },
-    module: { virtualModuleId: virtualModuleId ?? 'virtual:clarify-page/x' },
+    module: {
+      pageVirtualModuleId: pageVirtualModuleId ?? 'virtual:clarify-page/x',
+      contentVirtualModuleId: 'virtual:clarify-content/x.mdx',
+    },
     source: { filePath: filePath ?? '/site/source/x.mdx' },
     ...rest,
   }
@@ -99,13 +102,13 @@ function mockReq(body: unknown = {}): IncomingMessage {
 
 describe('toDevRouteEntry', () => {
   it('serializes a route to the minimal dev shape', () => {
-    const route = makeRoute({ path: '/about', filePath: '/a/about.mdx', locale: 'en-US', basePath: '/about', kind: 'mdx', title: 'About' })
+    const route = makeRoute({ path: '/about', filePath: '/a/about.mdx', locale: 'en-US', basePath: '/about', title: 'About' })
     expect(toDevRouteEntry(route)).toEqual({
       path: '/about',
       filePath: '/a/about.mdx',
       locale: 'en-US',
       basePath: '/about',
-      kind: 'mdx',
+      kind: 'markdown+jsx',
       title: 'About',
     })
   })
@@ -158,7 +161,7 @@ describe('inferRouteForFile', () => {
       path: '/zh-CN/drafts/new',
       basePath: '/drafts/new',
       locale: 'zh-CN',
-      kind: 'mdx',
+      kind: 'markdown+jsx',
       inferred: true,
     })
   })
@@ -168,7 +171,7 @@ describe('inferRouteForFile', () => {
     expect(entry).toMatchObject({
       path: '/drafts/new',
       basePath: '/drafts/new',
-      kind: 'mdx',
+      kind: 'markdown+jsx',
       inferred: true,
     })
     expect(entry?.locale).toBeUndefined()

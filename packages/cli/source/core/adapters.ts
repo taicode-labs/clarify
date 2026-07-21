@@ -63,14 +63,14 @@ function createNormalizedContentPlugin(engine: ClarifyEngine): Plugin {
     transform(_code, id) {
       if (!/\.mdx?(?:\?|$)/.test(id)) return null
       const filePath = id.replace(/\?.*$/, '')
-      const route = engine.routes.find(route => route.kind === 'mdx' && route.source.filePath === filePath)
+      const route = engine.routes.find(route => (route.kind === 'markdown+jsx' || route.kind === 'markdown') && route.source.filePath === filePath)
       if (!route || route.source.content === undefined) return null
       return { code: route.source.content, map: null }
     },
   }
 }
 
-type ContentFormat = 'markdown' | 'mdx'
+type ContentFormat = 'markdown' | 'markdown+jsx'
 type ContentCompileErrorPolicy = 'diagnostic' | 'throw'
 type TransformHook = NonNullable<Plugin['transform']> extends infer Hook ? Hook extends (...args: never[]) => unknown ? Hook : never : never
 
@@ -203,7 +203,12 @@ function createClarifyViteCorePlugin(engine: ClarifyEngine, normalizedContentPlu
 
       server.watcher.on('add', handleContentTreeChange)
       server.watcher.on('unlink', handleContentTreeChange)
-      await engine.configureDevServer(server)
+      const postHooks = await engine.configureDevServer(server)
+      if (postHooks.length > 0) {
+        return () => {
+          for (const postHook of postHooks) postHook()
+        }
+      }
     },
     transformIndexHtml: {
       order: 'pre',
@@ -258,7 +263,7 @@ export function createViteAdapter(engine: ClarifyEngine): Plugin[] {
   const errorPolicy = () => contentCompileErrorPolicy
   const normalizedContentPlugin = createNormalizedContentPlugin(engine)
   const markdown = createContentCompilerPlugin('markdown', engine.root, errorPolicy)
-  const mdx = createContentCompilerPlugin('mdx', engine.root, errorPolicy)
+  const mdx = createContentCompilerPlugin('markdown+jsx', engine.root, errorPolicy)
   const compilePolicyPlugin: Plugin = {
     name: 'clarify:content-compile-policy',
     configResolved(config) {

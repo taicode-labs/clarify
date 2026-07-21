@@ -2,39 +2,59 @@ import { describe, it, expect } from 'vitest'
 
 import { buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
-import type { ClarifyPlugin, ContentRoute, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyPlugin, ContentRoute, MarkdownContentRoute, OpenAPIContentRoute, ResolvedProjectConfig } from '../../types.js'
 import { resolveFeaturesConfig } from '../config/config.js'
 
-import { buildVirtualModules, createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule } from './virtual-modules.js'
+import { buildVirtualModules, createClientEntryModule, createRuntimeSlotsModule, generateConfigModule, generateRoutesModule, virtualContentModuleId } from './virtual-modules.js'
 
-type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
+type RouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'source' | 'openapi'>> & {
+  kind?: ContentRoute['kind']
   title?: string
   description?: string
   keywords?: string[]
   sections?: ContentRoute['meta']['sections']
   filePath?: string
-  virtualModuleId?: string
+  pageVirtualModuleId?: string
+  contentVirtualModuleId?: string
   sourceEditUrl?: string
+  openapi?: OpenAPIContentRoute['openapi']
 }
 
 function route(overrides: RouteFixture): ContentRoute {
-  const { title, description, keywords, sections, filePath, virtualModuleId, sourceEditUrl, ...rest } = overrides
-  return {
+  const { title, description, keywords, sections, filePath, pageVirtualModuleId, contentVirtualModuleId, sourceEditUrl, openapi, kind = 'markdown+jsx', ...rest } = overrides
+  const common = {
     path: '/',
-    kind: 'mdx',
     meta: {
       title: title ?? 'Home',
       description,
       keywords,
       sections,
     },
-    module: { virtualModuleId: virtualModuleId ?? 'virtual:clarify-page/index' },
     source: {
       filePath: filePath ?? 'index.mdx',
       sourceEditUrl,
     },
     ...rest,
   }
+
+  const resolvedPageVirtualModuleId = pageVirtualModuleId ?? 'virtual:clarify-page/index'
+  if (kind === 'openapi') {
+    return {
+      ...common,
+      kind,
+      module: { pageVirtualModuleId: resolvedPageVirtualModuleId },
+      openapi,
+    } satisfies OpenAPIContentRoute
+  }
+
+  return {
+    ...common,
+    kind,
+    module: {
+      pageVirtualModuleId: resolvedPageVirtualModuleId,
+      contentVirtualModuleId: contentVirtualModuleId ?? 'virtual:clarify-content/index.mdx',
+    },
+  } satisfies MarkdownContentRoute
 }
 
 describe('generateConfigModule', () => {
@@ -73,8 +93,8 @@ describe('generateRoutesModule', () => {
 
   it('generates lazy imports and routes array', () => {
     const routes: ContentRoute[] = [
-      route({ path: '/', title: 'Home', filePath: '/a/index.mdx', virtualModuleId: 'virtual:clarify-page/index', sourceEditUrl: 'https://github.com/acme/docs/edit/main/index.mdx' }),
-      route({ path: '/about', title: 'About', filePath: '/a/about.mdx', virtualModuleId: 'virtual:clarify-page/about' }),
+      route({ path: '/', title: 'Home', filePath: '/a/index.mdx', pageVirtualModuleId: 'virtual:clarify-page/index', sourceEditUrl: 'https://github.com/acme/docs/edit/main/index.mdx' }),
+      route({ path: '/about', title: 'About', filePath: '/a/about.mdx', pageVirtualModuleId: 'virtual:clarify-page/about' }),
     ]
     const code = generateRoutesModule(routes, { kind: 'flat', nodes: [] })
     expect(code).not.toContain('import Page')
@@ -90,7 +110,7 @@ describe('generateRoutesModule', () => {
 
   it('omits plugin-specific route fields from the runtime route manifest', () => {
     const routes: ContentRoute[] = [
-      route({ path: '/api', title: 'API', filePath: '/a/api.openapi.json', virtualModuleId: 'virtual:clarify-page/api', kind: 'openapi', openapi: { tagFilter: ['Projects'] } }),
+      route({ path: '/api', title: 'API', filePath: '/a/api.openapi.json', pageVirtualModuleId: 'virtual:clarify-page/api', kind: 'openapi', openapi: { tagFilter: ['Projects'] } }),
     ]
     const code = generateRoutesModule(routes, { kind: 'flat', nodes: [] })
     expect(code).toContain('kind: "openapi"')
@@ -101,7 +121,7 @@ describe('generateRoutesModule', () => {
 
   it('escapes route module specifiers', () => {
     const routes: ContentRoute[] = [
-      route({ path: '/quote', title: 'Quote', filePath: '/a/quote.mdx', virtualModuleId: 'virtual:clarify-page/doc\'s/quote' }),
+      route({ path: '/quote', title: 'Quote', filePath: '/a/quote.mdx', pageVirtualModuleId: 'virtual:clarify-page/doc\'s/quote' }),
     ]
     const clientCode = generateRoutesModule(routes, { kind: 'flat', nodes: [] })
     const serverCode = generateRoutesModule(routes, { kind: 'flat', nodes: [] }, 'server')
@@ -109,9 +129,24 @@ describe('generateRoutesModule', () => {
     expect(serverCode).toContain('import Page0 from "virtual:clarify-page/doc\'s/quote";')
   })
 
+  it('uses a separate virtual module for source Markdown', () => {
+    const markdownRoute = route({ path: '/guide', filePath: '/site/source/guide.md', pageVirtualModuleId: 'virtual:clarify-page/guide', contentVirtualModuleId: 'virtual:clarify-content/source/guide.md' })
+    if (markdownRoute.kind === 'openapi') throw new Error('Expected a Markdown route')
+
+    expect(virtualContentModuleId(markdownRoute)).toBe('virtual:clarify-content/source/guide.md')
+    const modules = buildVirtualModules({
+      projectConfig: {
+        title: 'Docs', description: 'Docs', routePrefix: '/', assetPrefix: '/', theme: resolveThemeConfig(), variables: {}, features: resolveFeaturesConfig(),
+      },
+      generateOptions: { projectRoot: '/site', rootDirectory: 'source', outputDirectory: 'dist' },
+      routes: [markdownRoute], navigation: { kind: 'flat', nodes: [] },
+    })
+    expect(modules.get('virtual:clarify-page/guide')).toContain('virtual:clarify-content/source/guide.md')
+  })
+
   it('wraps client route imports with a fallback error module', () => {
     const routes: ContentRoute[] = [
-      route({ path: '/broken', title: 'Broken', filePath: '/a/broken.mdx', virtualModuleId: 'virtual:clarify-page/broken' }),
+      route({ path: '/broken', title: 'Broken', filePath: '/a/broken.mdx', pageVirtualModuleId: 'virtual:clarify-page/broken' }),
     ]
 
     const code = generateRoutesModule(routes, { kind: 'flat', nodes: [] })
@@ -124,8 +159,8 @@ describe('generateRoutesModule', () => {
 
   it('uses tabbed navigation when tabs are provided', () => {
     const routes: ContentRoute[] = [
-      route({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
-      route({ path: '/about', title: 'About', filePath: 'about.mdx', virtualModuleId: 'v' }),
+      route({ path: '/', title: 'Home', filePath: 'index.mdx', pageVirtualModuleId: 'virtual:clarify-page/shared' }),
+      route({ path: '/about', title: 'About', filePath: 'about.mdx', pageVirtualModuleId: 'virtual:clarify-page/shared' }),
     ]
     const projectConfig: ResolvedProjectConfig = {
       title: 'Docs',
@@ -150,8 +185,8 @@ describe('generateRoutesModule', () => {
 
   it('uses auto navigation when tabs are omitted', () => {
     const routes: ContentRoute[] = [
-      route({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
-      route({ path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' }),
+      route({ path: '/', title: 'Home', filePath: 'index.mdx', pageVirtualModuleId: 'virtual:clarify-page/shared' }),
+      route({ path: '/guide', title: 'Guide', filePath: 'guide.mdx', pageVirtualModuleId: 'virtual:clarify-page/shared' }),
     ]
     const code = generateRoutesModule(routes, { kind: 'flat', nodes: buildNavigation(routes) })
     expect(code).toContain('"title": "Guide"')
@@ -160,9 +195,9 @@ describe('generateRoutesModule', () => {
 
   it('exports isBareAlias flag for multilingual sites', () => {
     const routes: ContentRoute[] = [
-      route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: 'Guide', filePath: '/a/guide.mdx', virtualModuleId: 'virtual:clarify-page/guide' }),
-      route({ path: '/guide', basePath: '/guide', isBareAlias: true, title: 'Guide', filePath: '/a/guide.mdx', virtualModuleId: 'virtual:clarify-page/guide' }),
-      route({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: '/a/guide.mdx', virtualModuleId: 'virtual:clarify-page/guide' }),
+      route({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: 'Guide', filePath: '/a/guide.mdx', pageVirtualModuleId: 'virtual:clarify-page/guide' }),
+      route({ path: '/guide', basePath: '/guide', isBareAlias: true, title: 'Guide', filePath: '/a/guide.mdx', pageVirtualModuleId: 'virtual:clarify-page/guide' }),
+      route({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: '/a/guide.mdx', pageVirtualModuleId: 'virtual:clarify-page/guide' }),
     ]
     const code = generateRoutesModule(routes, { kind: 'flat', nodes: [] })
     
@@ -197,9 +232,9 @@ describe('buildVirtualModules', () => {
         path: '/broken',
         title: 'Broken',
         filePath: '/site/source/broken.mdx',
-        virtualModuleId: 'virtual:clarify-page/broken',
+        pageVirtualModuleId: 'virtual:clarify-page/broken',
         diagnostic: {
-          kind: 'mdx',
+          kind: 'markdown+jsx',
           title: 'MDX syntax error',
           message: 'This page could not be compiled.',
           filePath: '/site/source/broken.mdx',
@@ -211,8 +246,21 @@ describe('buildVirtualModules', () => {
 
     const moduleContent = modules.get('virtual:clarify-page/broken')
     expect(moduleContent).toContain('contentDiagnostic')
-    expect(moduleContent).toContain('"kind":"mdx"')
+    expect(moduleContent).toContain('"kind":"markdown+jsx"')
     expect(moduleContent).toContain('Unexpected end of file')
+  })
+
+  it('maps source Markdown virtual modules to the source file', () => {
+    const markdownRoute = route({ path: '/guide', filePath: '/site/source/guide.md', pageVirtualModuleId: 'virtual:clarify-page/guide', contentVirtualModuleId: 'virtual:clarify-content/source/guide.md' })
+    const modules = buildVirtualModules({
+      projectConfig: {
+        title: 'Docs', description: 'Docs', routePrefix: '/', assetPrefix: '/', theme: resolveThemeConfig(), variables: {}, features: resolveFeaturesConfig(),
+      },
+      generateOptions: { projectRoot: '/site', rootDirectory: 'source', outputDirectory: 'dist' },
+      routes: [markdownRoute], navigation: { kind: 'flat', nodes: [] },
+    })
+
+    expect(modules.has('virtual:clarify-content/guide.md')).toBe(false)
   })
 })
 

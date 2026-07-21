@@ -6,7 +6,8 @@ import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
 import { visit } from 'unist-util-visit'
 
-import type { ClarifyPage, ClarifyPageRouteIntent, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyRouteIntent, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, NavigationSection, ResolvedClarifyLocalesConfig, TabbedNavigation } from '../../types.js'
+import { contentVirtualModuleId, pageVirtualModuleId, pageVirtualModuleIdFromRef } from '../../core/runtime/module-ids.js'
+import type { ClarifyPage, ClarifyPageRouteIntent, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyRouteIntent, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, MarkdownContentRoute, NavigationSection, ResolvedClarifyLocalesConfig, TabbedNavigation } from '../../types.js'
 import { createContentProcessor, type ContentProcessor } from '../content/content.js'
 import { compileMarkdownContent } from '../markdown/markdown.js'
 import { compileMdxContent } from '../markdown/mdx.js'
@@ -94,13 +95,6 @@ export function routePathFromRef(ref: string, explicitPath?: string): string {
   return explicitPath ? normalizePath(explicitPath) : basePathFromRef(ref)
 }
 
-export function virtualModuleIdFromRef(ref: string): string {
-  return 'virtual:clarify-page/' + ref
-    .replace(/\.mdx?$/, '')
-    .replace(/\.openapi\.(json|yaml|yml)$/, '')
-    .replace(/\/+/g, '/')
-}
-
 export function localizedRoutePath(basePath: string, locale: string, _i18n: ResolvedClarifyLocalesConfig): string {
   const normalizedBasePath = normalizePath(basePath)
   const prefix = normalizePath(locale)
@@ -113,8 +107,8 @@ function resolveLocalizedText(text: ClarifyLocalizedText | undefined, locale: st
   return text[locale] ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0]
 }
 
-export async function findContentRoutes(dir: string, base: string = dir, options: FindContentRoutesOptions = {}): Promise<ContentRoute[]> {
-  const routes: ContentRoute[] = []
+export async function findContentRoutes(dir: string, base: string = dir, options: FindContentRoutesOptions = {}): Promise<MarkdownContentRoute[]> {
+  const routes: MarkdownContentRoute[] = []
   // Skip directories that do not exist instead of throwing; `stat` rejects for
   // missing paths, so treat that as an empty result.
   let dirStat
@@ -156,7 +150,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
       }
 
       routes.push({
-        kind: 'mdx',
+        kind: entry.name.toLowerCase().endsWith('.mdx') ? 'markdown+jsx' : 'markdown',
         path: cleanPath,
         basePath: cleanPath,
         meta: {
@@ -166,7 +160,8 @@ export async function findContentRoutes(dir: string, base: string = dir, options
           sections: extractMdxSections(page.content),
         },
         module: {
-          virtualModuleId: 'virtual:clarify-page/' + relativePath.replace(/\.mdx?$/, '').replace(/\/+/g, '/'),
+          pageVirtualModuleId: pageVirtualModuleId(relativePath.replace(/\.mdx?$/, '')),
+          contentVirtualModuleId: contentVirtualModuleId(fullPath, base),
         },
         source: {
           filePath: fullPath,
@@ -180,11 +175,8 @@ export async function findContentRoutes(dir: string, base: string = dir, options
   return routes
 }
 
-function virtualModuleIdForLocalizedRoute(contentRoot: string, filePath: string): string {
-  return 'virtual:clarify-page/' + relative(contentRoot, filePath)
-    .replace(/\.mdx?$/, '')
-    .replace(/\.openapi\.(json|yaml|yml)$/, '')
-    .replace(/\/+/g, '/')
+function pageVirtualModuleIdForLocalizedRoute(contentRoot: string, filePath: string): string {
+  return pageVirtualModuleIdFromRef(relative(contentRoot, filePath))
 }
 
 function frontmatterKeywords(frontmatter: Record<string, unknown>): string[] | undefined {
@@ -198,7 +190,15 @@ function frontmatterKeywords(frontmatter: Record<string, unknown>): string[] | u
   return keywords.length > 0 ? keywords : undefined
 }
 
-export function withAlternates(route: ContentRoute, routes: ContentRoute[], locales: ResolvedClarifyLocalesConfig): ContentRoute {
+function withPageIdentity<T extends ContentRoute>(route: T, path: string): T {
+  return {
+    ...route,
+    path,
+    module: { ...route.module, pageVirtualModuleId: pageVirtualModuleId(path) },
+  }
+}
+
+export function withAlternates<T extends ContentRoute>(route: T, routes: ContentRoute[], locales: ResolvedClarifyLocalesConfig): T {
   const basePath = route.basePath ?? route.path
   // 排除裸路径别名，避免覆盖带 locale 前缀的路径
   const routeByLocaleAndBase = new Map(
@@ -219,23 +219,23 @@ export function withAlternates(route: ContentRoute, routes: ContentRoute[], loca
  * 为默认语言的 locale-prefixed 路由生成无前缀的"裸路径别名"，方便不带语言
  * 前缀的 URL 也能访问。标记 `isBareAlias` 以便搜索索引生成时过滤重复索引。
  */
-function generateBareAliases(routes: ContentRoute[], locales: ResolvedClarifyLocalesConfig): ContentRoute[] {
-  const bareRoutes: ContentRoute[] = []
+function generateBareAliases(routes: MarkdownContentRoute[], locales: ResolvedClarifyLocalesConfig): MarkdownContentRoute[] {
+  const bareRoutes: MarkdownContentRoute[] = []
   const seenBare = new Set(routes.map(r => r.path))
   for (const route of routes) {
     if (route.locale !== locales.default) continue
     const bp = route.basePath ?? route.path
     if (bp === route.path || seenBare.has(bp)) continue
     seenBare.add(bp)
-    bareRoutes.push({ ...route, path: bp, isBareAlias: true })
+    bareRoutes.push({ ...withPageIdentity(route, bp), isBareAlias: true })
   }
   return bareRoutes
 }
 
-export async function findLocalizedContentRoutes(contentRoot: string, locales?: ResolvedClarifyLocalesConfig, options: FindContentRoutesOptions = {}): Promise<ContentRoute[]> {
+export async function findLocalizedContentRoutes(contentRoot: string, locales?: ResolvedClarifyLocalesConfig, options: FindContentRoutesOptions = {}): Promise<MarkdownContentRoute[]> {
   if (!locales) return findContentRoutes(contentRoot, contentRoot, options)
 
-  const localizedRoutes: ContentRoute[] = []
+  const localizedRoutes: MarkdownContentRoute[] = []
   for (const locale of locales.locales) {
     const localeRoot = join(contentRoot, locale.code)
     const discovered = await findContentRoutes(localeRoot, localeRoot, options)
@@ -246,7 +246,11 @@ export async function findLocalizedContentRoutes(contentRoot: string, locales?: 
         path: localizedRoutePath(basePath, locale.code, locales),
         basePath,
         locale: locale.code,
-        module: { virtualModuleId: virtualModuleIdForLocalizedRoute(contentRoot, route.source.filePath) },
+        module: {
+          ...route.module,
+          pageVirtualModuleId: pageVirtualModuleIdForLocalizedRoute(contentRoot, route.source.filePath),
+          contentVirtualModuleId: contentVirtualModuleId(route.source.filePath, contentRoot),
+        },
       })
     }
   }
@@ -259,9 +263,9 @@ export async function findLocalizedContentRoutes(contentRoot: string, locales?: 
       for (const locale of locales.locales) {
         const key = `${locale.code}:${basePath}`
         if (routeByLocaleAndBase.has(key)) continue
+        const path = localizedRoutePath(basePath, locale.code, locales)
         localizedRoutes.push({
-          ...sourceRoute,
-          path: localizedRoutePath(basePath, locale.code, locales),
+          ...withPageIdentity(sourceRoute, path),
           locale: locale.code,
           isFallback: true,
         })
@@ -349,7 +353,7 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
   const pageIntents = collectExplicitPagePathIntents(tabs)
   if (!pageIntents.length) return routes
 
-  const additions: ContentRoute[] = []
+  const additions: MarkdownContentRoute[] = []
   const existingKeys = new Set(routes.map(route => `${route.locale ?? ''}:${route.basePath ?? route.path}`))
 
   for (const intent of pageIntents) {
@@ -358,15 +362,15 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
     if (sourceBasePath === targetBasePath) continue
 
     for (const route of routes) {
-      if (route.kind !== 'mdx' || (route.basePath ?? route.path) !== sourceBasePath) continue
+      if (route.kind === 'openapi' || (route.basePath ?? route.path) !== sourceBasePath) continue
 
       const key = `${route.locale ?? ''}:${targetBasePath}`
       if (existingKeys.has(key)) continue
       existingKeys.add(key)
 
+      const path = route.locale && locales ? localizedRoutePath(targetBasePath, route.locale, locales) : targetBasePath
       additions.push({
-        ...route,
-        path: route.locale && locales ? localizedRoutePath(targetBasePath, route.locale, locales) : targetBasePath,
+        ...withPageIdentity(route, path),
         basePath: targetBasePath,
       })
     }
@@ -377,7 +381,8 @@ export function applyConfiguredPageRoutePaths(routes: ContentRoute[], tabs?: Cla
 
   if (!locales) return routesWithAlternates
 
-  return [...routesWithAlternates, ...generateBareAliases(routesWithAlternates, locales)]
+  const markdownRoutes = routesWithAlternates.filter((route): route is MarkdownContentRoute => route.kind !== 'openapi')
+  return [...routesWithAlternates, ...generateBareAliases(markdownRoutes, locales)]
 }
 
 function buildNavigationFromPagesConfig(routes: ContentRoute[], config?: ClarifyPagesConfig): ClarifyNavigationNode[] {

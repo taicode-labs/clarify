@@ -1,7 +1,7 @@
 import type { ViteDevServer } from 'vite'
 import { describe, expect, it } from 'vitest'
 
-import { assertNoContentDiagnostics, ClarifyEngine } from './engine.js'
+import { assertNoContentDiagnostics, assertNoRouteConflicts, ClarifyEngine, createDevRouteConflictRoutes } from './engine.js'
 
 function createEngineWithHooks(calls: string[]): ClarifyEngine {
   const engine = new ClarifyEngine({ projectRoot: '/site' })
@@ -35,12 +35,15 @@ describe('ClarifyEngine phase hooks', () => {
     expect(() => assertNoContentDiagnostics([
       {
         path: '/broken',
-        kind: 'mdx',
+        kind: 'markdown+jsx',
         meta: { title: 'Broken' },
-        module: { virtualModuleId: 'virtual:clarify-page/broken' },
+        module: {
+          pageVirtualModuleId: 'virtual:clarify-page/broken',
+          contentVirtualModuleId: 'virtual:clarify-content/broken.mdx',
+        },
         source: { filePath: '/site/source/broken.mdx' },
         diagnostic: {
-          kind: 'mdx',
+          kind: 'markdown+jsx',
           title: 'MDX syntax error',
           message: 'Invalid JSX',
           filePath: 'source/broken.mdx',
@@ -51,6 +54,78 @@ describe('ClarifyEngine phase hooks', () => {
 
   it('accepts routes without content diagnostics', () => {
     expect(() => assertNoContentDiagnostics([])).not.toThrow()
+  })
+
+  it('rejects routes that would overwrite a page path', () => {
+    expect(() => assertNoRouteConflicts([
+      {
+        path: '/api',
+        kind: 'markdown',
+        meta: { title: 'API' },
+        module: {
+          pageVirtualModuleId: 'virtual:clarify-page/api',
+          contentVirtualModuleId: 'virtual:clarify-content/api.md',
+        },
+        source: { filePath: '/site/source/api.md' },
+      },
+      {
+        path: '/api',
+        kind: 'openapi',
+        meta: { title: 'API reference' },
+        module: { pageVirtualModuleId: 'virtual:clarify-page/api' },
+        source: { filePath: '/site/source/api.openapi.json' },
+      },
+    ])).toThrow('[clarify] Route conflicts prevent the site from being built:\n- path /api: markdown /site/source/api.md, openapi /site/source/api.openapi.json')
+  })
+
+  it('rejects routes that reuse a virtual page module for different paths', () => {
+    expect(() => assertNoRouteConflicts([
+      {
+        path: '/api',
+        kind: 'openapi',
+        meta: { title: 'API' },
+        module: { pageVirtualModuleId: 'virtual:clarify-page/shared' },
+        source: { filePath: '/site/source/api.openapi.json' },
+      },
+      {
+        path: '/reference',
+        kind: 'openapi',
+        meta: { title: 'Reference' },
+        module: { pageVirtualModuleId: 'virtual:clarify-page/shared' },
+        source: { filePath: '/site/source/api.openapi.json' },
+      },
+    ])).toThrow('page module virtual:clarify-page/shared')
+  })
+
+  it('turns route conflicts into a single diagnostic page in dev mode', () => {
+    const routes = createDevRouteConflictRoutes([
+      {
+        path: '/api',
+        kind: 'markdown',
+        meta: { title: 'API' },
+        module: {
+          pageVirtualModuleId: 'virtual:clarify-page/api',
+          contentVirtualModuleId: 'virtual:clarify-content/api.md',
+        },
+        source: { filePath: '/site/source/api.md' },
+      },
+      {
+        path: '/api',
+        kind: 'openapi',
+        meta: { title: 'API reference' },
+        module: { pageVirtualModuleId: 'virtual:clarify-page/api' },
+        source: { filePath: '/site/source/api.openapi.json' },
+      },
+    ])
+
+    expect(routes).toHaveLength(1)
+    expect(routes[0]?.diagnostic).toMatchObject({
+      kind: 'route-load',
+      title: 'Route conflict',
+      message: 'This page cannot be rendered because path /api is used by multiple routes.',
+    })
+    expect(routes[0]?.diagnostic?.details).toContain('/site/source/api.openapi.json')
+    expect(routes[0]?.module.pageVirtualModuleId).toBe('virtual:clarify-page/api__conflict')
   })
 
   it('wraps project config initialization with config phase hooks', async () => {

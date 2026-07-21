@@ -8,16 +8,16 @@ import { contentRoute, mdxRoute, testI18n } from './routes.test-utils.js'
 describe('buildNavigation', () => {
   it('returns empty array for only home route', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'virtual:clarify-page/index' }),
+      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', pageVirtualModuleId: 'virtual:clarify-page/index' }),
     ]
     expect(buildNavigation(routes)).toEqual([])
   })
 
   it('builds flat navigation', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/config', title: 'Config', filePath: 'config.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx' }),
+      mdxRoute({ path: '/guide', title: 'Guide', filePath: 'guide.mdx' }),
+      mdxRoute({ path: '/config', title: 'Config', filePath: 'config.mdx' }),
     ]
     const tree = buildNavigation(routes)
     expect(tree).toHaveLength(2)
@@ -27,8 +27,8 @@ describe('buildNavigation', () => {
 
   it('builds nested navigation', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/guide/getting-started', title: 'Getting Started', filePath: 'a.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/guide/advanced', title: 'Advanced', filePath: 'b.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/guide/getting-started', title: 'Getting Started', filePath: 'a.mdx' }),
+      mdxRoute({ path: '/guide/advanced', title: 'Advanced', filePath: 'b.mdx' }),
     ]
     const tree = buildNavigation(routes)
     expect(tree).toHaveLength(1)
@@ -42,10 +42,10 @@ describe('buildNavigation', () => {
 describe('buildLocalizedNavigation', () => {
   it('builds localized navigation from one manual pages config', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/zh-CN', basePath: '/', locale: 'zh-CN', title: '首页', filePath: 'zh-CN/index.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/en-US', basePath: '/', locale: 'en-US', title: 'Home', filePath: 'en-US/index.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/zh-CN', basePath: '/', locale: 'zh-CN', title: '首页', filePath: 'zh-CN/index.mdx' }),
+      mdxRoute({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx' }),
+      mdxRoute({ path: '/en-US', basePath: '/', locale: 'en-US', title: 'Home', filePath: 'en-US/index.mdx' }),
+      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx' }),
     ]
     const pages: ClarifyPagesGroup[] = [
       { group: { 'zh-CN': '指南', 'en-US': 'Guide' }, pages: ['index', { page: 'guide', title: { 'zh-CN': '开始', 'en-US': 'Start' } }] },
@@ -64,9 +64,9 @@ describe('buildLocalizedNavigation', () => {
 describe('buildNavigationFromTabsConfig', () => {
   it('builds tabbed navigation from per-tab pages config', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/api', title: 'API', filePath: 'api.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx' }),
+      mdxRoute({ path: '/guide', title: 'Guide', filePath: 'guide.mdx' }),
+      mdxRoute({ path: '/api', title: 'API', filePath: 'api.mdx' }),
     ]
 
     const navigation = buildNavigationFromTabsConfig(routes, [
@@ -82,8 +82,8 @@ describe('buildNavigationFromTabsConfig', () => {
 
   it('builds localized tabbed navigation', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx' }),
+      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx' }),
     ]
 
     const navigation = buildLocalizedNavigationFromTabsConfig(routes, [
@@ -98,8 +98,8 @@ describe('buildNavigationFromTabsConfig', () => {
 
   it('builds localized tabbed navigation with explicit page paths', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/zh-CN/docs/start', basePath: '/docs/start', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/en-US/docs/start', basePath: '/docs/start', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/zh-CN/docs/start', basePath: '/docs/start', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx' }),
+      mdxRoute({ path: '/en-US/docs/start', basePath: '/docs/start', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx' }),
     ]
 
     const navigation = buildLocalizedNavigationFromTabsConfig(routes, [
@@ -116,7 +116,7 @@ describe('buildNavigationFromTabsConfig', () => {
 describe('applyConfiguredPageRoutePaths', () => {
   it('adds explicit page path route aliases', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/guide', basePath: '/guide', title: 'Guide', filePath: 'guide.mdx', virtualModuleId: 'virtual:clarify-page/guide' }),
+      mdxRoute({ path: '/guide', basePath: '/guide', title: 'Guide', filePath: 'guide.mdx', pageVirtualModuleId: 'virtual:clarify-page/guide' }),
     ]
 
     const nextRoutes = applyConfiguredPageRoutePaths(routes, [
@@ -126,14 +126,14 @@ describe('applyConfiguredPageRoutePaths', () => {
     expect(nextRoutes.find(route => route.path === '/docs/start')).toMatchObject({
       basePath: '/docs/start',
       source: { filePath: 'guide.mdx' },
-      module: { virtualModuleId: 'virtual:clarify-page/guide' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/docs/start' },
     })
   })
 
   it('adds localized explicit page path route aliases', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/zh-CN/guide', basePath: '/guide', locale: 'zh-CN', title: '指南', filePath: 'zh-CN/guide.mdx' }),
+      mdxRoute({ path: '/en-US/guide', basePath: '/guide', locale: 'en-US', title: 'Guide', filePath: 'en-US/guide.mdx' }),
     ]
 
     const nextRoutes = applyConfiguredPageRoutePaths(routes, [
@@ -148,9 +148,9 @@ describe('applyConfiguredPageRoutePaths', () => {
 describe('buildNavigationFromConfig', () => {
   it('builds navigation from explicit config', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/quickstart', title: 'Quick Start', filePath: 'quickstart.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/advanced/ssg', title: 'SSG', filePath: 'ssg.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/', title: 'Home', filePath: 'index.mdx' }),
+      mdxRoute({ path: '/quickstart', title: 'Quick Start', filePath: 'quickstart.mdx' }),
+      mdxRoute({ path: '/advanced/ssg', title: 'SSG', filePath: 'ssg.mdx' }),
     ]
     const config: ClarifyPagesGroup[] = [
       { group: 'Getting Started', icon: 'BookOpen', pages: ['index', { page: 'quickstart', icon: 'Rocket' }] },
@@ -168,8 +168,8 @@ describe('buildNavigationFromConfig', () => {
 
   it('builds nested navigation groups from explicit config', () => {
     const routes: ContentRoute[] = [
-      mdxRoute({ path: '/guides/auth/setup', title: 'Setup', filePath: 'setup.mdx', virtualModuleId: 'v' }),
-      mdxRoute({ path: '/guides/auth/sso', title: 'SSO', filePath: 'sso.mdx', virtualModuleId: 'v' }),
+      mdxRoute({ path: '/guides/auth/setup', title: 'Setup', filePath: 'setup.mdx' }),
+      mdxRoute({ path: '/guides/auth/sso', title: 'SSO', filePath: 'sso.mdx' }),
     ]
     const config: ClarifyPagesGroup[] = [
       {
@@ -214,7 +214,7 @@ describe('buildNavigationFromConfig', () => {
         basePath: '/docs/start',
         title: 'Getting Started',
         filePath: 'guide.mdx',
-        virtualModuleId: 'virtual:clarify-page/guide',
+        pageVirtualModuleId: 'virtual:clarify-page/guide',
         sections: [{ id: 'intro', title: 'Intro', level: 2 }],
       }),
     ]
@@ -237,7 +237,7 @@ describe('buildNavigationFromConfig', () => {
         basePath: '/reference/projects',
         title: 'Tagged API',
         filePath: 'api.openapi.json',
-        virtualModuleId: 'virtual:clarify-page/reference/projects',
+        pageVirtualModuleId: 'virtual:clarify-page/reference/projects',
         kind: 'openapi',
         sections: [{ id: 'get-projects', title: 'List projects', level: 2, badge: 'GET', tags: ['Projects'] }],
       }),
@@ -261,7 +261,7 @@ describe('buildNavigationFromConfig', () => {
         basePath: '/api/projects',
         title: 'API',
         filePath: 'api.openapi.json',
-        virtualModuleId: 'virtual:clarify-page/api/projects',
+        pageVirtualModuleId: 'virtual:clarify-page/api/projects',
         kind: 'openapi',
         sections: [{ id: 'get-projects', title: 'List projects', level: 2, badge: 'GET', tags: ['Projects'] }],
       }),

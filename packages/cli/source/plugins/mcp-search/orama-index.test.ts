@@ -6,7 +6,7 @@ import { encode } from '@msgpack/msgpack'
 import { save } from '@orama/orama'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import type { ContentRoute } from '../../types.js'
+import type { MarkdownContentRoute } from '../../types.js'
 
 import {
   buildSearchIndex,
@@ -22,9 +22,10 @@ import {
   type McpSearchDocument,
 } from './orama-index.js'
 
-function makeRoute(overrides: Partial<ContentRoute> = {}): ContentRoute {
+function makeRoute(overrides: Partial<Omit<MarkdownContentRoute, 'kind'>> = {}): MarkdownContentRoute {
   return {
     path: '/zh-CN/guide',
+    kind: 'markdown',
     locale: 'zh-CN',
     isBareAlias: false,
     meta: {
@@ -33,9 +34,13 @@ function makeRoute(overrides: Partial<ContentRoute> = {}): ContentRoute {
       keywords: ['入门', '教程'],
       sections: [],
     },
+    module: {
+      pageVirtualModuleId: 'virtual:clarify-page/zh-CN/guide',
+      contentVirtualModuleId: 'virtual:clarify-content/guide.md',
+    },
     source: { filePath: '/tmp/guide.md', content: '这是文档的正文内容，介绍如何快速开始使用 Clarify。' },
     ...overrides,
-  } as ContentRoute
+  }
 }
 
 describe('tokenizeForSearch', () => {

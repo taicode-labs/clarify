@@ -1,6 +1,6 @@
 import type { ViteDevServer } from 'vite'
 
-import type { ClarifyEmitAsset, ClarifyHookContext, ClarifyPipelineHooks, ClarifyPlugin } from '../../types.js'
+import type { ClarifyDevServerPostHook, ClarifyEmitAsset, ClarifyHookContext, ClarifyPipelineHooks, ClarifyPlugin } from '../../types.js'
 
 export async function runHooks<K extends keyof ClarifyPipelineHooks>(plugins: ClarifyPlugin[], hookName: K, input: Parameters<NonNullable<ClarifyPipelineHooks[K]>>[0], ctx: ClarifyHookContext): Promise<Parameters<NonNullable<ClarifyPipelineHooks[K]>>[0]> {
   let result = input
@@ -16,16 +16,19 @@ export async function runHooks<K extends keyof ClarifyPipelineHooks>(plugins: Cl
   return result
 }
 
-export async function runDevConfigureServerHooks(plugins: ClarifyPlugin[], server: ViteDevServer, ctx: ClarifyHookContext): Promise<void> {
+export async function runDevConfigureServerHooks(plugins: ClarifyPlugin[], server: ViteDevServer, ctx: ClarifyHookContext): Promise<ClarifyDevServerPostHook[]> {
+  const postHooks: ClarifyDevServerPostHook[] = []
   for (const plugin of plugins) {
     const hook = plugin.hooks?.['dev:configureServer']
     if (!hook) continue
     try {
-      await hook(server, ctx)
+      const postHook = await hook(server, ctx)
+      if (postHook) postHooks.push(postHook)
     } catch (err) {
       throw new Error(`[clarify] plugin "${plugin.name}" hook "dev:configureServer" failed: ${err}`, { cause: err })
     }
   }
+  return postHooks
 }
 
 async function runCollectorHooks<T>(plugins: ClarifyPlugin[], hookName: string, ctx: ClarifyHookContext): Promise<T[]> {

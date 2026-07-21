@@ -2,6 +2,7 @@ import { lstat, stat } from 'node:fs/promises'
 import { dirname, extname, isAbsolute, join, normalize, relative, resolve } from 'node:path'
 
 import { createClarifyEngine } from '../../core/engine/engine.js'
+import { findRouteConflicts } from '../../core/routing/route-analysis.js'
 import type { ContentRoute } from '../../types.js'
 import type { CliOptions } from '../options.js'
 
@@ -102,19 +103,12 @@ async function checkContentDirectory(contentRoot: string, result: CheckResult): 
 }
 
 function checkDuplicateRoutes(routes: ContentRoute[], result: CheckResult): void {
-  const byPath = new Map<string, ContentRoute[]>()
-  for (const route of routes) {
-    const key = `${route.locale ?? ''}:${route.path}`
-    byPath.set(key, [...(byPath.get(key) ?? []), route])
-  }
-
-  for (const duplicated of byPath.values()) {
-    if (duplicated.length < 2) continue
-    for (const route of duplicated) {
+  for (const conflict of findRouteConflicts(routes)) {
+    for (const route of conflict.routes) {
       addDiagnostic(result, {
         level: 'error',
-        code: 'duplicate-route',
-        message: `Route "${route.path}" is defined by multiple files: ${duplicated.map(route => relative(process.cwd(), route.source.filePath)).join(', ')}`,
+        code: conflict.kind === 'path' ? 'duplicate-route' : 'duplicate-page-module',
+        message: `${conflict.label} is defined by multiple files: ${conflict.routes.map(route => relative(process.cwd(), route.source.filePath)).join(', ')}`,
         filePath: route.source.filePath,
         routePath: route.path,
       })
@@ -139,7 +133,7 @@ async function checkLocalLinks(routes: ContentRoute[], contentRoot: string, resu
   const routePaths = new Set(routes.map(route => route.path))
 
   for (const route of routes) {
-    if (route.kind !== 'mdx' || !route.source.content) continue
+    if (!['markdown', 'markdown+jsx'].includes(route.kind) || !route.source.content) continue
     for (const match of route.source.content.matchAll(LOCAL_LINK_PATTERN)) {
       const href = match[1] ?? match[2]
       if (!href || !isLocalHref(href)) continue

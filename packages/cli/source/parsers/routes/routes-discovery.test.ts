@@ -56,7 +56,7 @@ describe('findContentRoutes', () => {
     const result = await findContentRoutes(tempDir)
     const indexRoute = result.find(r => r.path === '/')
     expect(indexRoute).toBeDefined()
-    expect(indexRoute?.module.virtualModuleId).toBe('virtual:clarify-page/index')
+    expect(indexRoute?.module.pageVirtualModuleId).toBe('virtual:clarify-page/index')
     expect(indexRoute?.meta.title).toBe('Home')
   })
 
@@ -67,16 +67,40 @@ describe('findContentRoutes', () => {
     expect(result).toHaveLength(1)
     expect(result[0].path).toBe('/page')
     expect(result[0].meta.title).toBe('Page')
+    expect(result[0].kind).toBe('markdown')
   })
 
-  it('generates correct virtualModuleId', async () => {
+  it('distinguishes Markdown from Markdown with JSX', async () => {
+    writeFileSync(join(tempDir, 'plain.md'), '# Plain', 'utf-8')
+    writeFileSync(join(tempDir, 'component.mdx'), '# Component', 'utf-8')
+
+    const result = await findContentRoutes(tempDir)
+
+    expect(result.find(route => route.path === '/plain')?.kind).toBe('markdown')
+    expect(result.find(route => route.path === '/component')?.kind).toBe('markdown+jsx')
+  })
+
+  it('generates correct pageVirtualModuleId', async () => {
     const subDir = join(tempDir, 'api', 'auth')
     mkdirSync(subDir, { recursive: true })
     writeFileSync(join(subDir, 'login.mdx'), '# Login', 'utf-8')
 
     const result = await findContentRoutes(tempDir)
     expect(result).toHaveLength(1)
-    expect(result[0].module.virtualModuleId).toBe('virtual:clarify-page/api/auth/login')
+    expect(result[0].module.pageVirtualModuleId).toBe('virtual:clarify-page/api/auth/login')
+    expect(result[0].module.contentVirtualModuleId).toBe('virtual:clarify-content/api/auth/login.mdx')
+  })
+
+  it('uses locale-qualified content module identities', async () => {
+    for (const locale of ['zh-CN', 'en-US']) {
+      mkdirSync(join(tempDir, locale), { recursive: true })
+      writeFileSync(join(tempDir, locale, 'guide.md'), `# ${locale}`, 'utf-8')
+    }
+
+    const result = await findLocalizedContentRoutes(tempDir, testI18n)
+
+    expect(result.find(route => route.locale === 'zh-CN')?.module.contentVirtualModuleId).toBe('virtual:clarify-content/zh-CN/guide.md')
+    expect(result.find(route => route.locale === 'en-US')?.module.contentVirtualModuleId).toBe('virtual:clarify-content/en-US/guide.md')
   })
 
   it('extracts frontmatter title', async () => {
@@ -150,7 +174,7 @@ describe('findContentRoutes', () => {
     const result = await findContentRoutes(tempDir)
 
     expect(result[0].diagnostic).toMatchObject({
-      kind: 'mdx',
+      kind: 'markdown+jsx',
       title: 'MDX syntax error',
       filePath: 'broken.mdx',
       message: expect.stringContaining('could not be compiled'),

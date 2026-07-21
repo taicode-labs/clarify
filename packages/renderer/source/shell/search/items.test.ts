@@ -11,13 +11,13 @@ describe('buildSearchItems', () => {
         path: '/guide',
         title: 'Guide',
         component: () => Promise.resolve({ default: () => null }),
-        kind: 'mdx',
+        kind: 'markdown+jsx',
       },
       {
         path: '/reference',
         title: 'Reference',
         component: () => Promise.resolve({ default: () => null }),
-        kind: 'mdx',
+        kind: 'markdown+jsx',
         sections: [
           { id: 'api', title: 'API', level: 2 },
           { id: 'config', title: 'Config', level: 2 },
@@ -70,7 +70,7 @@ describe('buildSearchItems', () => {
         locale: 'zh-CN',
         title: 'Guide',
         component: () => Promise.resolve({ default: () => null }),
-        kind: 'mdx',
+        kind: 'markdown+jsx',
       },
       {
         path: '/guide',
@@ -78,7 +78,7 @@ describe('buildSearchItems', () => {
         isBareAlias: true,
         title: 'Guide',
         component: () => Promise.resolve({ default: () => null }),
-        kind: 'mdx',
+        kind: 'markdown+jsx',
       },
       {
         path: '/en-US/guide',
@@ -86,7 +86,7 @@ describe('buildSearchItems', () => {
         locale: 'en-US',
         title: 'Guide',
         component: () => Promise.resolve({ default: () => null }),
-        kind: 'mdx',
+        kind: 'markdown+jsx',
       },
     ]
     const navigation: NavigationNode[] = [
@@ -112,7 +112,7 @@ describe('buildSearchItems', () => {
         path: '/about',
         title: 'About',
         component: () => Promise.resolve({ default: () => null }),
-        kind: 'mdx',
+        kind: 'markdown+jsx',
       },
     ]
     const navigation: NavigationNode[] = []
@@ -151,7 +151,7 @@ describe('buildSearchItems', () => {
         path: '/docs',
         title: 'Documentation',
         component: () => Promise.resolve({ default: () => null }),
-        kind: 'mdx',
+        kind: 'markdown+jsx',
         sections: [
           { id: 'intro', title: 'Introduction', level: 2 },
         ],
@@ -177,7 +177,7 @@ describe('buildSearchItems', () => {
         path: '/guide',
         title: 'Getting Started',
         component: () => Promise.resolve({ default: () => null }),
-        kind: 'mdx',
+        kind: 'markdown+jsx',
         sections: [
           { id: 'setup', title: 'Setup', level: 2 },
           { id: 'install', title: 'Installation', level: 2 },

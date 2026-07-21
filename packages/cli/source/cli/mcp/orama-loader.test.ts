@@ -35,9 +35,12 @@ function makeRoute(): ContentRoute {
     isBareAlias: false,
     meta: { title: '快速入门', description: '指南', keywords: ['入门'], sections: [] },
     source: { filePath: '/tmp/guide.md', content: '这是文档正文，介绍 Clarify 快速入门。' },
-    kind: 'page',
-    module: { virtualModuleId: 'test' },
-  } as ContentRoute
+    kind: 'markdown',
+    module: {
+      pageVirtualModuleId: 'test',
+      contentVirtualModuleId: 'virtual:clarify-content/guide.md',
+    },
+  }
 }
 
 /** Build a real Orama index from the test route and serialize it to bytes. */

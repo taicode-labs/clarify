@@ -43,7 +43,7 @@ describe('createVariablesPlugin', () => {
   it('expands project variables in MDX content and route frontmatter fields', async () => {
     const plugin = createVariablesPlugin()
     const result = await plugin.hooks?.['content:transform']?.({
-      kind: 'mdx',
+      kind: 'markdown+jsx',
       source: '# {{ product.name }}',
       filePath: '/site/source/page.mdx',
       frontmatter: {

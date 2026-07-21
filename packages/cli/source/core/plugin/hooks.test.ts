@@ -1,10 +1,11 @@
+import type { ViteDevServer } from 'vite'
 import { describe, it, expect } from 'vitest'
 
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ClarifyPlugin, ClarifyHookContext, ClarifyPage } from '../../types.js'
 import { resolveFeaturesConfig } from '../config/config.js'
 
-import { runHooks } from './hooks.js'
+import { runDevConfigureServerHooks, runHooks } from './hooks.js'
 
 const mockCtx: ClarifyHookContext = {
   projectRoot: '/site',
@@ -118,5 +119,37 @@ describe('runHooks', () => {
     ]
     const result = await runHooks(plugins, 'pages:resolved', input, mockCtx)
     expect(result.map(r => r.content)).toEqual(['hello!'])
+  })
+})
+
+describe('runDevConfigureServerHooks', () => {
+  it('collects post hooks in plugin order', async () => {
+    const calls: string[] = []
+    const plugins: ClarifyPlugin[] = [
+      {
+        name: 'first',
+        hooks: {
+          'dev:configureServer': () => {
+            calls.push('first:configure')
+            return () => calls.push('first:post')
+          },
+        },
+      },
+      {
+        name: 'second',
+        hooks: {
+          'dev:configureServer': async () => {
+            calls.push('second:configure')
+            return () => calls.push('second:post')
+          },
+        },
+      },
+    ]
+
+    const postHooks = await runDevConfigureServerHooks(plugins, {} as ViteDevServer, mockCtx)
+    expect(calls).toEqual(['first:configure', 'second:configure'])
+
+    for (const postHook of postHooks) postHook()
+    expect(calls).toEqual(['first:configure', 'second:configure', 'first:post', 'second:post'])
   })
 })

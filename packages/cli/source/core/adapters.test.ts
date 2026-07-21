@@ -1,10 +1,11 @@
 import type { HmrContext, ModuleNode, Plugin, ViteDevServer } from 'vite'
 import { describe, expect, it } from 'vitest'
 
-import type { ContentRoute } from '../types.js'
+import type { MarkdownContentRoute } from '../types.js'
 
 import { createContentCompileTransform, createViteAdapter } from './adapters.js'
 import { ClarifyEngine } from './engine/engine.js'
+import { contentVirtualModuleId } from './runtime/module-ids.js'
 import { resolveVirtualId, VIRTUAL_ROUTES } from './runtime/virtual-modules.js'
 
 function createServer(sends: unknown[] = [], modules = new Map<string, ModuleNode>()): ViteDevServer {
@@ -28,22 +29,26 @@ function createServer(sends: unknown[] = [], modules = new Map<string, ModuleNod
   } as unknown as ViteDevServer
 }
 
-type RouteFixture = Partial<Omit<ContentRoute, 'meta' | 'module' | 'source'>> & {
+type RouteFixture = Partial<Omit<MarkdownContentRoute, 'kind' | 'meta' | 'module' | 'source'>> & {
   title?: string
   filePath?: string
-  virtualModuleId?: string
+  pageVirtualModuleId?: string
   content?: string
 }
 
-function createRoute(overrides: RouteFixture = {}): ContentRoute {
-  const { title, filePath, virtualModuleId, content, ...rest } = overrides
+function createRoute(overrides: RouteFixture = {}): MarkdownContentRoute {
+  const { title, filePath, pageVirtualModuleId, content, ...rest } = overrides
+  const sourceFilePath = filePath ?? '/site/source/guide.md'
   return {
     path: '/guide',
-    kind: 'mdx',
+    kind: 'markdown+jsx',
     meta: { title: title ?? 'Guide' },
-    module: { virtualModuleId: virtualModuleId ?? 'virtual:clarify-page/guide' },
+    module: {
+      pageVirtualModuleId: pageVirtualModuleId ?? 'virtual:clarify-page/guide',
+      contentVirtualModuleId: contentVirtualModuleId(sourceFilePath, '/site/source'),
+    },
     source: {
-      filePath: filePath ?? '/site/source/guide.md',
+      filePath: sourceFilePath,
       content: content ?? '# Guide',
     },
     ...rest,
@@ -78,7 +83,7 @@ function resultCode(result: Awaited<ReturnType<typeof transform>>): string {
 describe('createViteAdapter', () => {
   it.each([
     ['markdown', 'md', 'Markdown'],
-    ['mdx', 'mdx', 'MDX'],
+    ['markdown+jsx', 'mdx', 'MDX'],
   ] as const)('exposes %s transform failures as content diagnostics', async (format, extension, label) => {
     const transformContent = createContentCompileTransform(async () => {
       throw new Error(`${label} plugin failed`)
@@ -125,7 +130,7 @@ describe('createViteAdapter', () => {
     engine.ctx.routes = [createRoute({
       path: '/en/quick-start',
       filePath,
-      virtualModuleId: 'virtual:clarify-page/en/quick-start',
+      pageVirtualModuleId: 'virtual:clarify-page/en/quick-start',
       content,
     })]
     await engine.buildModules()
@@ -144,7 +149,9 @@ describe('createViteAdapter', () => {
     const normalizedContent = await transform(normalizedContentPlugin, '', filePath)
     const markdownModule = await transform(markdownPlugin, resultCode(normalizedContent) || content, filePath)
 
-    expect(String(virtualModule)).toContain(filePath)
+    expect(String(virtualModule)).toContain('virtual:clarify-content/en/quick-start.md')
+    const sourceModuleId = await resolveId.call({} as never, 'virtual:clarify-content/en/quick-start.md', undefined, { isEntry: false })
+    expect(sourceModuleId).toBe(filePath)
     expect(resultCode(markdownModule)).toContain('Quick Start')
     expect(resultCode(markdownModule)).toContain('hero.png')
   })

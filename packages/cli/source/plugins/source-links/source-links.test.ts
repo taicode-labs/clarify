@@ -17,9 +17,12 @@ describe('source links', () => {
     const routes: ContentRoute[] = [
       {
         path: '/',
-        kind: 'mdx',
+        kind: 'markdown+jsx',
         meta: { title: 'Home' },
-        module: { virtualModuleId: '/repo/source/index.mdx' },
+        module: {
+          pageVirtualModuleId: '/repo/source/index.mdx',
+          contentVirtualModuleId: 'virtual:clarify-content/index.mdx',
+        },
         source: { filePath: '/repo/source/index.mdx' },
       },
     ]

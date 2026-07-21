@@ -1,6 +1,6 @@
 import type { UISlotRegistration } from '@clarify-labs/renderer'
 
-import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, ContentSection, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
+import type { ClarifyPlugin, ContentDiagnostic, ContentRoute, ContentSection, MarkdownContentRoute, NavigationTree, ResolvedBuildOptions, ResolvedProjectConfig } from '../../types.js'
 
 // 新的虚拟模块命名 - 更清晰的职责划分
 const VIRTUAL_CONFIG = 'virtual:clarify/config'
@@ -37,6 +37,10 @@ export function stripVirtualPrefix(id: string): string {
   return id.startsWith('\0') ? id.slice(1) : id
 }
 
+export function virtualContentModuleId(route: MarkdownContentRoute): string {
+  return route.module.contentVirtualModuleId
+}
+
 /**
  * Fixed virtual module IDs (excluding the client entry, which has a special
  * resolved form). Used to avoid hardcoding the constant list in every
@@ -70,8 +74,11 @@ export function resolveVirtualModuleId(id: string, modules: VirtualModules, rout
   const moduleId = stripVirtualPrefix(id)
   if (modules.has(moduleId)) return resolveVirtualId(moduleId)
 
-  const route = routes.find(route => route.module.virtualModuleId === id || route.module.virtualModuleId === moduleId)
-  if (route) return resolveVirtualId(route.module.virtualModuleId)
+  const contentRoute = routes.find(route => (route.kind === 'markdown' || route.kind === 'markdown+jsx') && route.module.contentVirtualModuleId === moduleId)
+  if (contentRoute) return contentRoute.source.filePath
+
+  const route = routes.find(route => route.module.pageVirtualModuleId === id || route.module.pageVirtualModuleId === moduleId)
+  if (route) return resolveVirtualId(route.module.pageVirtualModuleId)
 
   return null
 }
@@ -160,7 +167,7 @@ function routeToRuntimeManifestEntry(route: ContentRoute, component: RuntimeRout
 
 export function generateRoutesModule(routes: ContentRoute[], navigation: NavigationTree, mode: 'client' | 'server' = 'client'): string {
   const imports = mode === 'server'
-    ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.module.virtualModuleId)};`).join('\n')
+    ? routes.map((r, i) => `import Page${i} from ${moduleSpecifier(r.module.pageVirtualModuleId)};`).join('\n')
     : `import { createContentDiagnosticComponent } from '@clarify-labs/renderer';`
 
   // `component` is a raw JS expression (an identifier or arrow function),
@@ -171,7 +178,7 @@ export function generateRoutesModule(routes: ContentRoute[], navigation: Navigat
   const routeEntries = routes.map((r, i) => {
     const component = mode === 'server'
       ? `Page${i}`
-      : `() => import(${moduleSpecifier(r.module.virtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
+      : `() => import(${moduleSpecifier(r.module.pageVirtualModuleId)}).catch((error) => Promise.resolve({ default: createContentDiagnosticComponent({ kind: 'route-load', title: 'This page could not be loaded', message: error instanceof Error ? error.message : String(error), details: error instanceof Error ? error.stack : undefined }) }))`
     const placeholder = `__COMPONENT_${i}__`
     const manifestEntry = routeToRuntimeManifestEntry(r, placeholder, mode)
     const json = JSON.stringify(manifestEntry, null, 0)
@@ -281,16 +288,19 @@ export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModul
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, 'server'))
   modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))
-  modules.set(VIRTUAL_OPENAPI, 'export const openApiSpecs = {};')
   modules.set(VIRTUAL_SLOT, "export { useSlot } from '@clarify-labs/renderer';\n")
-  modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
+  modules.set(VIRTUAL_OPENAPI, 'export const openApiSpecs = {};')
   modules.set(RESOLVED_CLIENT_ENTRY, clientEntryModule)
+  modules.set(VIRTUAL_CLIENT_ENTRY, clientEntryModule)
 
   for (const route of args.routes) {
     const moduleContent = route.diagnostic
       ? generateContentDiagnosticModule(route.diagnostic)
-      : `export { default } from ${moduleSpecifier(route.source.filePath)};`
-    modules.set(route.module.virtualModuleId, moduleContent)
+      : route.kind === 'markdown' || route.kind === 'markdown+jsx'
+        ? `export { default } from ${moduleSpecifier(virtualContentModuleId(route))};`
+        : null
+    if (moduleContent === null) continue
+    modules.set(route.module.pageVirtualModuleId, moduleContent)
   }
 
   return modules

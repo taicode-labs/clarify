@@ -61,7 +61,7 @@ export const rehypePlugins: NonNullable<CompileOptions['rehypePlugins']> = [
 ]
 
 type ContentCompileDiagnosticOptions = {
-  format: 'markdown' | 'mdx'
+  format: 'markdown' | 'markdown+jsx'
   phase: 'syntax' | 'compilation'
   error: unknown
   filePath?: string
@@ -70,7 +70,7 @@ type ContentCompileDiagnosticOptions = {
 
 export function createContentCompileDiagnostic(options: ContentCompileDiagnosticOptions): ContentDiagnostic {
   const { format, phase, error, filePath, projectRoot } = options
-  const label = format === 'mdx' ? 'MDX' : 'Markdown'
+  const label = format === 'markdown+jsx' ? 'MDX' : 'Markdown'
   return createContentDiagnostic({
     kind: format,
     title: `${label} ${phase} error`,
@@ -124,7 +124,7 @@ export async function compileMdxContent(content: string, options: CompileContent
   } catch (error) {
     return {
       ok: false,
-      diagnostic: createContentCompileDiagnostic({ format: 'mdx', phase: 'syntax', error, filePath, projectRoot }),
+      diagnostic: createContentCompileDiagnostic({ format: 'markdown+jsx', phase: 'syntax', error, filePath, projectRoot }),
     }
   }
 }

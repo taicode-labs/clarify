@@ -17,7 +17,7 @@ function withUtf8Signature(content: string): string {
 }
 
 function shouldUseUtf8Signature(route: ContentRoute): boolean {
-  if (route.kind === 'mdx') return true
+  if (route.kind === 'markdown+jsx' || route.kind === 'markdown') return true
   return false
 }
 
@@ -130,9 +130,9 @@ export function createLlmsTxt(routes: ContentRoute[], projectConfig: ResolvedPro
   lines.push('This file lists the source-ready Markdown and OpenAPI artifacts for this documentation site.', '')
 
   // Exclude bare alias routes (e.g., /path without language prefix) in multilingual sites
-  const mdxRoutes = routes.filter(route => route.kind === 'mdx' && isLlmsTxtRoute(route) && !route.isBareAlias)
-  if (mdxRoutes.length > 0) {
-    const localizedGroups = groupLlmsTxtRoutesByLocale(mdxRoutes, projectConfig)
+  const markdownRoutes = routes.filter(route => (route.kind === 'markdown+jsx' || route.kind === 'markdown') && isLlmsTxtRoute(route) && !route.isBareAlias)
+  if (markdownRoutes.length > 0) {
+    const localizedGroups = groupLlmsTxtRoutesByLocale(markdownRoutes, projectConfig)
     for (const [locale, localeRoutes] of localizedGroups) {
       lines.push(`## ${llmsTxtDocsSectionTitle(locale, localizedGroups.size, projectConfig)}`)
 

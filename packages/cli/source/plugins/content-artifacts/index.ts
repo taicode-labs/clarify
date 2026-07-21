@@ -15,10 +15,12 @@ export function createContentArtifactsPlugin(): ClarifyPlugin {
         return input
       },
       'dev:configureServer': (server: ViteDevServer, ctx) => {
-        server.middlewares.use((req, res, next) => {
-          if (serveContentArtifacts(req, res, ctx.projectConfig, ctx.routes)) return
-          next()
-        })
+        return () => {
+          server.middlewares.use((req, res, next) => {
+            if (serveContentArtifacts(req, res, ctx.projectConfig, ctx.routes)) return
+            next()
+          })
+        }
       },
       'build:assets': (ctx) => {
         const assets: ClarifyEmitAsset[] = []

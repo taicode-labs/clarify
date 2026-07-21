@@ -110,7 +110,7 @@ export function inferRouteForFile(filePath: string, contentRoot: string, default
     filePath,
     locale: fileLocale,
     basePath: normalizePath(basePath),
-    kind: isMdx ? 'mdx' : 'openapi',
+    kind: isMdx ? 'markdown+jsx' : 'openapi',
     title,
     inferred: true,
   }
