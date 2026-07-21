@@ -202,6 +202,38 @@ describe('schemaToType', () => {
 })
 
 describe('SchemaProperties', () => {
+  it('fuzzy filters nested properties and keeps their parent path visible', () => {
+    const spec = { openapi: '3.1.0', info: { title: 'Test API', version: '1.0.0' }, paths: {} }
+    const schema = {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        address: {
+          type: 'object',
+          properties: {
+            postalCode: { type: 'string', description: 'Delivery ZIP code' },
+            city: { type: 'string' },
+          },
+        },
+      },
+    }
+
+    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} query="pstl" />)
+
+    expect(markup).toContain('address')
+    expect(markup).toContain('postalCode')
+    expect(markup).toContain('aria-expanded="true"')
+  })
+
+  it('renders a localized empty state when no properties match', () => {
+    const spec = { openapi: '3.1.0', info: { title: 'Test API', version: '1.0.0' }, paths: {} }
+    const schema = { type: 'object', properties: { name: { type: 'string' } } }
+
+    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} query="unmatched" />)
+
+    expect(markup).toContain('No request body properties match the current search.')
+  })
+
   it('renders nested properties as an indented tree outside prose styles', () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',

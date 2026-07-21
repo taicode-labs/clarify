@@ -267,12 +267,13 @@ function EnumValueNode(arg0: SchemaNodeProps): ReactNode {
   )
 }
 
-function SchemaNode(arg0: SchemaNodeProps): ReactNode {
-  const { node, depth = 0, defaultExpanded } = arg0
+function SchemaNode(arg0: SchemaNodeProps & { forceExpanded?: boolean }): ReactNode {
+  const { node, depth = 0, defaultExpanded, forceExpanded = false } = arg0
 
   const t = useBuiltInText()
-  const [expanded, setExpanded] = useState(defaultExpanded ?? depth < 1)
+  const [locallyExpanded, setLocallyExpanded] = useState(defaultExpanded ?? depth < 1)
   const hasChildren = node.children.length > 0
+  const expanded = forceExpanded || locallyExpanded
 
   if (node.kind === 'enum') {
     return <EnumValueNode node={node} depth={depth} />
@@ -313,7 +314,7 @@ function SchemaNode(arg0: SchemaNodeProps): ReactNode {
           type="button"
           aria-label={expanded ? t('openapi.collapse') : t('openapi.expand')}
           aria-expanded={expanded}
-          onClick={() => setExpanded((value) => !value)}
+          onClick={() => setLocallyExpanded((value) => !value)}
           className={clsx(rowClassName, 'cursor-pointer transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)')}
         >
           {content}
@@ -321,15 +322,15 @@ function SchemaNode(arg0: SchemaNodeProps): ReactNode {
       ) : (
         <div className={rowClassName}>{content}</div>
       )}
-      {hasChildren && expanded ? <SchemaTree nodes={node.children} depth={depth + 1} /> : null}
+      {hasChildren && expanded ? <SchemaTree nodes={node.children} depth={depth + 1} forceExpanded={forceExpanded} /> : null}
     </li>
   )
 }
 
-type SchemaTreeProps = { nodes: SchemaTreeNode[]; depth?: number }
+type SchemaTreeProps = { nodes: SchemaTreeNode[]; depth?: number; forceExpanded?: boolean }
 
 function SchemaTree(arg0: SchemaTreeProps): ReactNode {
-  const { nodes, depth = 0 } = arg0
+  const { nodes, depth = 0, forceExpanded = false } = arg0
 
   if (nodes.length === 0) return null
 
@@ -343,23 +344,54 @@ function SchemaTree(arg0: SchemaTreeProps): ReactNode {
           : 'ml-2 border-l border-(--clarify-theme-tokens-colors-border) pl-2',
       )}
     >
-      {nodes.map((node) => <SchemaNode key={node.key} node={node} depth={depth} defaultExpanded={node.defaultExpanded} />)}
+      {nodes.map((node) => <SchemaNode key={node.key} node={node} depth={depth} defaultExpanded={node.defaultExpanded} forceExpanded={forceExpanded} />)}
     </ul>
   )
 }
 
-type SchemaPropertiesProps = { title: string; schema: unknown; spec: OpenAPISpec; defaultExpanded?: boolean }
+function fuzzyMatch(value: string, query: string): boolean {
+  const candidate = value.toLocaleLowerCase()
+  const needle = query.trim().toLocaleLowerCase()
+  let candidateIndex = 0
+
+  for (const character of needle) {
+    candidateIndex = candidate.indexOf(character, candidateIndex)
+    if (candidateIndex === -1) return false
+    candidateIndex += 1
+  }
+
+  return true
+}
+
+function filterSchemaNodes(nodes: SchemaTreeNode[], query: string): SchemaTreeNode[] {
+  if (!query.trim()) return nodes
+
+  return nodes.flatMap((node) => {
+    const children = filterSchemaNodes(node.children, query)
+    const searchableText = [node.name, node.type, node.description, node.details].filter(Boolean).join(' ')
+    return fuzzyMatch(searchableText, query) || children.length > 0
+      ? [{ ...node, children }]
+      : []
+  })
+}
+
+type SchemaPropertiesProps = { title: string; schema: unknown; spec: OpenAPISpec; defaultExpanded?: boolean; query?: string }
 
 export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {
-  const { title, schema, spec, defaultExpanded } = arg0
+  const { title, schema, spec, defaultExpanded, query = '' } = arg0
+  const t = useBuiltInText()
 
   const root = getRootSchemaNode(spec, schema, defaultExpanded)
 
   if (!root || root.children.length === 0) return null
 
+  const filteredNodes = filterSchemaNodes(root.children, query)
+
   return (
     <OpenApiDocumentSection title={title} level={4} bodyClassName="clarify-schema-properties not-prose">
-      <SchemaTree nodes={root.children} />
+      {filteredNodes.length > 0
+        ? <SchemaTree nodes={filteredNodes} forceExpanded={Boolean(query.trim())} />
+        : <p className="m-0 py-2 text-sm/5 text-(--clarify-ui-text-soft)">{t('openapi.noBodyProperties')}</p>}
     </OpenApiDocumentSection>
   )
 }

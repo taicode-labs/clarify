@@ -1,4 +1,6 @@
-import { type ReactNode } from 'react'
+import clsx from 'clsx'
+import { SearchIcon } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 
 import { useBuiltInText } from '../../core/i18n'
 import { Markdown } from '../../mdx/Markdown'
@@ -60,6 +62,15 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
 
   const t = useBuiltInText()
   const hasRequestBody = Boolean(requestBody && requestContents.length > 0)
+  const [requestBodySearchOpen, setRequestBodySearchOpen] = useState(false)
+  const [requestBodyQuery, setRequestBodyQuery] = useState('')
+
+  const toggleRequestBodySearch = () => {
+    setRequestBodySearchOpen((open) => {
+      if (open) setRequestBodyQuery('')
+      return !open
+    })
+  }
 
   const renderDescription = () => {
     if (!description) return null
@@ -73,8 +84,22 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
 
     return (
       <>
+        {requestBodySearchOpen ? (
+          <label className="not-prose mb-3 flex h-9 items-center gap-2 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-3 transition focus-within:border-(--clarify-theme-tokens-colors-primary) focus-within:ring-2 focus-within:ring-(--clarify-theme-tokens-colors-primary)/15">
+            <SearchIcon className="size-4 shrink-0 text-(--clarify-ui-text-faint)" aria-hidden="true" />
+            <span className="sr-only">{t('openapi.searchBodyProperties')}</span>
+            <input
+              type="search"
+              value={requestBodyQuery}
+              onChange={(event) => setRequestBodyQuery(event.target.value)}
+              placeholder={t('openapi.searchBodyProperties')}
+              autoFocus
+              className="min-w-0 flex-1 bg-transparent text-sm text-(--clarify-theme-tokens-colors-foreground) outline-none placeholder:text-(--clarify-ui-text-faint)"
+            />
+          </label>
+        ) : null}
         {typeof requestBody?.description === 'string' ? <Markdown>{requestBody.description}</Markdown> : null}
-        <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} />
+        <SchemaProperties title={t('openapi.bodyProperties')} schema={requestSchema} spec={spec} query={requestBodyQuery} />
       </>
     )
   }
@@ -89,7 +114,25 @@ export function EndpointRequest(arg0: EndpointRequestProps): ReactNode {
             <ParameterList title={t('openapi.pathParameters')} parameters={groupedParameters.path} />
             <ParameterList title={t('openapi.queryParameters')} parameters={groupedParameters.query} />
             <ParameterList title={t('openapi.headers')} parameters={groupedParameters.header} />
-            <OpenApiDocumentSection title={t('openapi.requestBody')}>
+            <OpenApiDocumentSection
+              title={t('openapi.requestBody')}
+              action={hasRequestBody ? (
+                <button
+                  type="button"
+                  aria-label={t('openapi.searchBodyProperties')}
+                  aria-pressed={requestBodySearchOpen}
+                  onClick={toggleRequestBodySearch}
+                  className={clsx(
+                    'flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
+                    requestBodySearchOpen
+                      ? 'bg-(--clarify-ui-hover-background) text-(--clarify-theme-tokens-colors-primary)'
+                      : 'text-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground)',
+                  )}
+                >
+                  <SearchIcon className="size-4" aria-hidden="true" />
+                </button>
+              ) : null}
+            >
               {renderRequestBody()}
             </OpenApiDocumentSection>
           </div>

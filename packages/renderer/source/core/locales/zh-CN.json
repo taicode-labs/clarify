@@ -105,6 +105,8 @@
   "openapi.responseUrl": "最终 URL",
   "openapi.redirected": "已重定向",
   "openapi.searchHeaders": "搜索响应头",
+  "openapi.searchBodyProperties": "搜索请求体属性",
+  "openapi.noBodyProperties": "没有匹配当前搜索的请求体属性。",
   "openapi.unknownContentType": "未知内容类型",
   "openapi.variables": "变量",
   "openapi.requestConfiguration": "请求配置",
