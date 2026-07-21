@@ -442,13 +442,13 @@ type ClarifyFeaturesConfig = {
 }
 ```
 
-All built-in features are enabled by default. Every feature supports a boolean shorthand: `false` disables the entire feature, while `true` uses its default options. Use an object with `enabled` when you need finer control.
+Built-in features are enabled by default except for the production theme editor. Every feature supports a boolean shorthand: `false` disables the entire feature, while `true` uses its default options. Use an object with `enabled` when you need finer control.
 
 | Field | Resolved default | Description |
 |-------|------------------|-------------|
 | `search` | `{ enabled: true, mcp: true }` | Full-text site search backed by Pagefind. Set `mcp: false` to opt out of emitting the MCP search index and `mcp.json` manifest. See [MCP Documentation Search](/features/mcp) for client setup and generated artifacts. |
 | `repository` | `{ enabled: true }` | Repository associated with the documentation source. Set `url` to enable repository-aware capabilities such as page edit links; `branch` defaults to `main`, and `directory` maps to the content directory inside the repository. |
-| `themeEditor` | `{ enabled: true }` | Built-in theme editor. The development server always provides it; this option controls its availability in production sites. |
+| `themeEditor` | `{ enabled: false }` | Built-in theme editor. The development server always provides it; set this to `true` to expose it in production sites. |
 | `openapi` | `{ enabled: true, playground: true }` | OpenAPI pages and the request playground. Response preview and download are built-in page capabilities. |
 
 ```ts title="Configure features selectively"

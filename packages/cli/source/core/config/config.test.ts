@@ -131,6 +131,11 @@ describe('clarifyProjectConfigSchema', () => {
 })
 
 describe('resolveProjectConfig', () => {
+  it('disables the theme editor by default and allows explicit opt-in', () => {
+    expect(resolveProjectConfig({}).features.themeEditor).toEqual({ enabled: false })
+    expect(resolveProjectConfig({ features: { themeEditor: true } }).features.themeEditor).toEqual({ enabled: true })
+  })
+
   it('uses defaults when no config provided', () => {
     const result = resolveProjectConfig()
     expect(result).toEqual({
@@ -212,7 +217,7 @@ describe('resolveProjectConfig', () => {
     })
     expect(result.theme.tokens.colors.primary).toBe('#333')
     expect(result.theme.layout).toEqual({ maxWidth: '82rem' })
-    expect(result.features.themeEditor.enabled).toBe(true)
+    expect(result.features.themeEditor.enabled).toBe(false)
     expect(result.homeUrl).toBe('https://example.com')
     expect(result.favicon).toBe('/favicon.svg')
     expect(result.assetPrefix).toBe('/')

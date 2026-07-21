@@ -442,13 +442,13 @@ type ClarifyFeaturesConfig = {
 }
 ```
 
-所有内置功能默认启用。每项都支持布尔简写：`false` 禁用整项，`true` 使用默认选项；需要细粒度控制时使用带 `enabled` 的对象。
+除生产环境的主题编辑器外，其他内置功能默认启用。每项都支持布尔简写：`false` 禁用整项，`true` 使用默认选项；需要细粒度控制时使用带 `enabled` 的对象。
 
 | 字段 | 默认解析结果 | 说明 |
 |------|--------------|------|
 | `search` | `{ enabled: true, mcp: true }` | 站内全文搜索（基于 Pagefind）。设置 `mcp: false` 可关闭 MCP 搜索索引与 `mcp.json` 清单的生成。客户端接入和构建产物参见 [MCP 文档搜索](/features/mcp)。 |
 | `repository` | `{ enabled: true }` | 文档源码关联的代码仓库。配置 `url` 后可启用页面编辑链接等仓库能力；`branch` 默认使用 `main`，`directory` 对应仓库内的内容目录。 |
-| `themeEditor` | `{ enabled: true }` | 内置主题编辑器。开发服务器始终提供编辑器；生产站点是否展示由此项控制。 |
+| `themeEditor` | `{ enabled: false }` | 内置主题编辑器。开发服务器始终提供编辑器；生产站点需显式设为 `true` 才会展示。 |
 | `openapi` | `{ enabled: true, playground: true }` | OpenAPI 页面及请求工作台。响应预览和下载是页面内置能力。 |
 
 ```ts title="按需配置功能"

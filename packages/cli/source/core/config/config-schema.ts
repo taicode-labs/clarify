@@ -176,12 +176,13 @@ const clarifyThemeConfigSchema = z.object({
   layout: clarifyThemeLayoutConfigSchema.optional(),
 }).strict()
 
-function featureSchema<Schema extends z.ZodRawShape>(shape: Schema, defaults: Record<string, unknown>) {
-  const objectSchema = z.object({ enabled: z.boolean().default(true), ...shape }).strict().default({ enabled: true, ...defaults } as never)
+function featureSchema<Schema extends z.ZodRawShape>(shape: Schema, defaults: Record<string, unknown>, enabledByDefault = true) {
+  const resolvedDefaults = { enabled: enabledByDefault, ...defaults }
+  const objectSchema = z.object({ enabled: z.boolean().default(enabledByDefault), ...shape }).strict().default(resolvedDefaults as never)
   return z.union([
     z.boolean(),
     objectSchema,
-  ]).default({ enabled: true, ...defaults } as never).transform((value) => typeof value === 'boolean'
+  ]).default(resolvedDefaults as never).transform((value) => typeof value === 'boolean'
     ? { enabled: value, ...defaults }
     : value)
 }
@@ -189,7 +190,7 @@ function featureSchema<Schema extends z.ZodRawShape>(shape: Schema, defaults: Re
 export const clarifyFeaturesConfigSchema = z.object({
   search: featureSchema({ mcp: z.boolean().default(true) }, { mcp: true }),
   repository: featureSchema(clarifyRepositoryConfigSchema.shape, {}),
-  themeEditor: featureSchema({}, {}),
+  themeEditor: featureSchema({}, {}, false),
   openapi: featureSchema({
     playground: z.boolean().default(true),
   }, { playground: true }),
