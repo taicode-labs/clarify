@@ -46,7 +46,7 @@ export function MermaidViewer(arg0: MermaidViewerProps): ReactNode {
       onPointerDown={() => containerRef.current?.focus()}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
-      className={clsx('clarify-mermaid group not-prose relative my-6 overflow-hidden rounded-2xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)', className)}
+      className={clsx('clarify-mermaid group not-prose relative my-6 resize-y overflow-hidden rounded-2xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)', className)}
     >
       <TransformWrapper
         minScale={0.5}
@@ -59,10 +59,10 @@ export function MermaidViewer(arg0: MermaidViewerProps): ReactNode {
       >
         <ZoomControls />
         <TransformComponent
-          wrapperClass="!w-full !cursor-grab active:!cursor-grabbing"
-          contentClass="!w-full justify-center [&_svg]:h-auto [&_svg]:max-w-full"
+          wrapperClass="!h-full !w-full !cursor-grab active:!cursor-grabbing"
+          contentClass="!h-full !w-full justify-center [&_svg]:h-auto [&_svg]:max-w-full"
         >
-          <div className="flex w-full items-center justify-center p-4" dangerouslySetInnerHTML={{ __html: svg }} />
+          <div className="flex h-full w-full items-center justify-center p-4" dangerouslySetInnerHTML={{ __html: svg }} />
         </TransformComponent>
         <p
           className={clsx(
