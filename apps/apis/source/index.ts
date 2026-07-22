@@ -12,11 +12,25 @@ type TrackPayload = {
   params?: unknown
 }
 
+type ValidTrackPayload = {
+  client_id: string
+  user_id?: string
+  event_name: string
+  params?: Record<string, EventParam>
+}
+
 type Fetcher = typeof fetch
 
 type AnalyticsResult = {
   ok: boolean
   status: number
+}
+
+type TrackEventOptions = {
+  payload: ValidTrackPayload
+  ipOverride?: string
+  env: Env
+  fetcher: Fetcher
 }
 
 const eventNamePattern = /^[a-zA-Z][a-zA-Z0-9_]{0,39}$/
@@ -54,12 +68,7 @@ function isEventParams(value: unknown): value is Record<string, EventParam> {
   )
 }
 
-function isValidPayload(payload: TrackPayload): payload is {
-  client_id: string
-  user_id?: string
-  event_name: string
-  params?: Record<string, EventParam>
-} {
+function isValidPayload(payload: TrackPayload): payload is ValidTrackPayload {
   return (
     typeof payload.client_id === 'string' &&
     payload.client_id.length > 0 &&
@@ -72,29 +81,23 @@ function isValidPayload(payload: TrackPayload): payload is {
   )
 }
 
-async function trackEvent(payload: TrackPayload, ipOverride: string | null, env: Env, fetcher: Fetcher): Promise<AnalyticsResult> {
+async function trackEvent(options: TrackEventOptions): Promise<AnalyticsResult> {
+  const { payload, ipOverride, env, fetcher } = options
   const endpoint = new URL('https://www.google-analytics.com/mp/collect')
   endpoint.searchParams.set('measurement_id', env.GA_MEASUREMENT_ID)
   endpoint.searchParams.set('api_secret', env.GA_API_SECRET)
-
-  const body = payload as {
-    client_id: string
-    user_id?: string
-    event_name: string
-    params?: Record<string, EventParam>
-  }
 
   const result = await fetcher(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      client_id: body.client_id,
-      ...(body.user_id ? { user_id: body.user_id } : {}),
+      client_id: payload.client_id,
+      ...(payload.user_id ? { user_id: payload.user_id } : {}),
       ...(ipOverride ? { ip_override: ipOverride } : {}),
       events: [
         {
-          name: body.event_name,
-          params: body.params ?? {},
+          name: payload.event_name,
+          params: payload.params ?? {},
         },
       ],
     }),
@@ -144,12 +147,12 @@ export async function handleRequest(request: Request, env: Env, fetcher: Fetcher
   }
 
   try {
-    const analyticsResult = await trackEvent(
+    const analyticsResult = await trackEvent({
       payload,
-      request.headers.get('CF-Connecting-IP'),
+      ipOverride: request.headers.get('CF-Connecting-IP') ?? undefined,
       env,
       fetcher,
-    )
+    })
     if (!analyticsResult.ok) {
       console.error('GA4 Measurement Protocol request failed', {
         status: analyticsResult.status,
