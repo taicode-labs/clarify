@@ -62,6 +62,32 @@ describe('analytics API', () => {
     expect(fetcher).not.toHaveBeenCalled()
   })
 
+  it('logs the GA4 status without exposing it to the client', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(null, { status: 403 }),
+    )
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const response = await handleRequest(
+      new Request('https://api.example.com/track', {
+        method: 'POST',
+        body: JSON.stringify({
+          client_id: 'client-123',
+          event_name: 'docs_search',
+        }),
+      }),
+      env,
+      fetcher,
+    )
+
+    expect(response.status).toBe(502)
+    expect(await response.json()).toEqual({ error: 'Analytics request failed' })
+    expect(consoleError).toHaveBeenCalledWith(
+      'GA4 Measurement Protocol request failed',
+      { status: 403 },
+    )
+  })
+
   it('allows preflight requests from any origin', async () => {
     const response = await handleRequest(
       new Request('https://api.example.com/track', {

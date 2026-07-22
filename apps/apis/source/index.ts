@@ -14,6 +14,11 @@ type TrackPayload = {
 
 type Fetcher = typeof fetch
 
+type AnalyticsResult = {
+  ok: boolean
+  status: number
+}
+
 const eventNamePattern = /^[a-zA-Z][a-zA-Z0-9_]{0,39}$/
 const maxParams = 25
 
@@ -67,7 +72,7 @@ function isValidPayload(payload: TrackPayload): payload is {
   )
 }
 
-async function trackEvent(payload: TrackPayload, env: Env, fetcher: Fetcher): Promise<boolean> {
+async function trackEvent(payload: TrackPayload, env: Env, fetcher: Fetcher): Promise<AnalyticsResult> {
   const endpoint = new URL('https://www.google-analytics.com/mp/collect')
   endpoint.searchParams.set('measurement_id', env.GA_MEASUREMENT_ID)
   endpoint.searchParams.set('api_secret', env.GA_API_SECRET)
@@ -94,7 +99,10 @@ async function trackEvent(payload: TrackPayload, env: Env, fetcher: Fetcher): Pr
     }),
   })
 
-  return result.ok
+  return {
+    ok: result.ok,
+    status: result.status,
+  }
 }
 
 export async function handleRequest(request: Request, env: Env, fetcher: Fetcher = fetch): Promise<Response> {
@@ -135,10 +143,17 @@ export async function handleRequest(request: Request, env: Env, fetcher: Fetcher
   }
 
   try {
-    if (!(await trackEvent(payload, env, fetcher))) {
+    const analyticsResult = await trackEvent(payload, env, fetcher)
+    if (!analyticsResult.ok) {
+      console.error('GA4 Measurement Protocol request failed', {
+        status: analyticsResult.status,
+      })
       return jsonResponse({ error: 'Analytics request failed' }, 502)
     }
-  } catch {
+  } catch (error) {
+    console.error('GA4 Measurement Protocol request threw', {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return jsonResponse({ error: 'Analytics request failed' }, 502)
   }
 
