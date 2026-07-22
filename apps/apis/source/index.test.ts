@@ -18,6 +18,7 @@ describe('analytics API', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'CF-Connecting-IP': '203.0.113.42',
           Origin: 'https://clarify.dev',
         },
         body: JSON.stringify({
@@ -37,6 +38,7 @@ describe('analytics API', () => {
     )
     expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toEqual({
       client_id: 'client-123',
+      ip_override: '203.0.113.42',
       events: [
         {
           name: 'docs_search',
@@ -66,6 +68,9 @@ describe('analytics API', () => {
 
     expect(response.status).toBe(204)
     expect(fetcher).toHaveBeenCalledOnce()
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).not.toHaveProperty(
+      'ip_override',
+    )
     vi.unstubAllGlobals()
   })
 

@@ -72,7 +72,7 @@ function isValidPayload(payload: TrackPayload): payload is {
   )
 }
 
-async function trackEvent(payload: TrackPayload, env: Env, fetcher: Fetcher): Promise<AnalyticsResult> {
+async function trackEvent(payload: TrackPayload, ipOverride: string | null, env: Env, fetcher: Fetcher): Promise<AnalyticsResult> {
   const endpoint = new URL('https://www.google-analytics.com/mp/collect')
   endpoint.searchParams.set('measurement_id', env.GA_MEASUREMENT_ID)
   endpoint.searchParams.set('api_secret', env.GA_API_SECRET)
@@ -90,6 +90,7 @@ async function trackEvent(payload: TrackPayload, env: Env, fetcher: Fetcher): Pr
     body: JSON.stringify({
       client_id: body.client_id,
       ...(body.user_id ? { user_id: body.user_id } : {}),
+      ...(ipOverride ? { ip_override: ipOverride } : {}),
       events: [
         {
           name: body.event_name,
@@ -143,7 +144,12 @@ export async function handleRequest(request: Request, env: Env, fetcher: Fetcher
   }
 
   try {
-    const analyticsResult = await trackEvent(payload, env, fetcher)
+    const analyticsResult = await trackEvent(
+      payload,
+      request.headers.get('CF-Connecting-IP'),
+      env,
+      fetcher,
+    )
     if (!analyticsResult.ok) {
       console.error('GA4 Measurement Protocol request failed', {
         status: analyticsResult.status,
