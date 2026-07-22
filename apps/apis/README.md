@@ -11,12 +11,7 @@ pnpm --filter @clarify-labs/apis exec wrangler secret put GA_MEASUREMENT_ID
 pnpm --filter @clarify-labs/apis exec wrangler secret put GA_API_SECRET
 ```
 
-Set allowed browser origins in `wrangler.toml` as a comma-separated list:
-
-```toml
-[vars]
-ALLOWED_ORIGINS = "https://clarify.dev,http://localhost:3000"
-```
+The API accepts requests from any browser origin. No origin allowlist is required.
 
 ## Development
 

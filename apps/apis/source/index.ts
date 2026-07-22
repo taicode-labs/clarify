@@ -1,7 +1,6 @@
 export interface Env {
   GA_API_SECRET: string
   GA_MEASUREMENT_ID: string
-  ALLOWED_ORIGINS?: string
 }
 
 type EventParam = string | number | boolean
@@ -18,36 +17,19 @@ type Fetcher = typeof fetch
 const eventNamePattern = /^[a-zA-Z][a-zA-Z0-9_]{0,39}$/
 const maxParams = 25
 
-function getAllowedOrigin(request: Request, env: Env): string | null {
-  const origin = request.headers.get('Origin')
-  if (!origin) return null
-
-  const allowedOrigins = env.ALLOWED_ORIGINS
-    ?.split(',')
-    .map(value => value.trim())
-    .filter(Boolean)
-
-  return allowedOrigins?.includes(origin) ? origin : null
-}
-
-function responseHeaders(request: Request, env: Env): Headers {
+function responseHeaders(): Headers {
   const headers = new Headers({
     'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': '*',
   })
-  const allowedOrigin = getAllowedOrigin(request, env)
-
-  if (allowedOrigin) {
-    headers.set('Access-Control-Allow-Origin', allowedOrigin)
-    headers.set('Vary', 'Origin')
-  }
 
   return headers
 }
 
-function jsonResponse(request: Request, env: Env, body: Record<string, string>, status: number): Response {
+function jsonResponse(body: Record<string, string>, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: responseHeaders(request, env),
+    headers: responseHeaders(),
   })
 }
 
@@ -117,47 +99,43 @@ async function trackEvent(payload: TrackPayload, env: Env, fetcher: Fetcher): Pr
 
 export async function handleRequest(request: Request, env: Env, fetcher: Fetcher = fetch): Promise<Response> {
   const url = new URL(request.url)
-  const headers = responseHeaders(request, env)
+  const headers = responseHeaders()
 
   if (request.method === 'OPTIONS') {
-    if (!getAllowedOrigin(request, env)) {
-      return new Response(null, { status: 403, headers })
-    }
-
     headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
     headers.set('Access-Control-Allow-Headers', 'Content-Type')
     return new Response(null, { status: 204, headers })
   }
 
   if (url.pathname === '/health' && request.method === 'GET') {
-    return jsonResponse(request, env, { status: 'ok' }, 200)
+    return jsonResponse({ status: 'ok' }, 200)
   }
 
   if (url.pathname !== '/track' || request.method !== 'POST') {
-    return jsonResponse(request, env, { error: 'Not found' }, 404)
+    return jsonResponse({ error: 'Not found' }, 404)
   }
 
   if (!env.GA_API_SECRET || !env.GA_MEASUREMENT_ID) {
-    return jsonResponse(request, env, { error: 'Analytics is not configured' }, 503)
+    return jsonResponse({ error: 'Analytics is not configured' }, 503)
   }
 
   let payload: TrackPayload
   try {
     payload = (await request.json()) as TrackPayload
   } catch {
-    return jsonResponse(request, env, { error: 'Invalid JSON' }, 400)
+    return jsonResponse({ error: 'Invalid JSON' }, 400)
   }
 
   if (!isValidPayload(payload)) {
-    return jsonResponse(request, env, { error: 'Invalid event payload' }, 400)
+    return jsonResponse({ error: 'Invalid event payload' }, 400)
   }
 
   try {
     if (!(await trackEvent(payload, env, fetcher))) {
-      return jsonResponse(request, env, { error: 'Analytics request failed' }, 502)
+      return jsonResponse({ error: 'Analytics request failed' }, 502)
     }
   } catch {
-    return jsonResponse(request, env, { error: 'Analytics request failed' }, 502)
+    return jsonResponse({ error: 'Analytics request failed' }, 502)
   }
 
   return new Response(null, { status: 204, headers })

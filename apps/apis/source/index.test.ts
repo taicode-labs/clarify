@@ -5,7 +5,6 @@ import { handleRequest, type Env } from '../source/index'
 const env: Env = {
   GA_API_SECRET: 'secret',
   GA_MEASUREMENT_ID: 'G-test123',
-  ALLOWED_ORIGINS: 'https://clarify.dev',
 }
 
 describe('analytics API', () => {
@@ -63,7 +62,7 @@ describe('analytics API', () => {
     expect(fetcher).not.toHaveBeenCalled()
   })
 
-  it('rejects preflight requests from unknown origins', async () => {
+  it('allows preflight requests from any origin', async () => {
     const response = await handleRequest(
       new Request('https://api.example.com/track', {
         method: 'OPTIONS',
@@ -72,6 +71,7 @@ describe('analytics API', () => {
       env,
     )
 
-    expect(response.status).toBe(403)
+    expect(response.status).toBe(204)
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*')
   })
 })

@@ -3,7 +3,6 @@ main = "source/index.ts"
 compatibility_date = "2026-07-22"
 
 [vars]
-ALLOWED_ORIGINS = ""
 
 [observability]
 enabled = true
