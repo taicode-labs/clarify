@@ -10,11 +10,15 @@
 <WebFrame src="https://clarify.pub" title="Clarify 官网" height={360} />
 ```
 
+<WebFrame src="https://clarify.pub" title="Clarify 官网" height={360} />
+
 设置 `showWindow={false}` 可以隐藏模拟浏览器标题栏：
 
 ```mdx
 <WebFrame src="https://clarify.pub" title="组件预览" showWindow={false} height={320} />
 ```
+
+<WebFrame src="https://clarify.pub" title="组件预览" showWindow={false} height={320} />
 
 ## 外框样式
 
@@ -56,15 +60,15 @@
 
 ## 属性
 
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `src` | `string` | - | iframe URL；省略时渲染 `children` |
-| `title` | `string` | `'Embedded content'` | iframe 可访问名称和窗口标题 |
-| `showWindow` | `boolean` | `true` | 是否显示模拟窗口外壳 |
-| `height` | `CSSProperties['height']` | `420` | 内容高度 |
-| `className` | `string` | - | 外层容器类名 |
-| `iframeClassName` | `string` | - | iframe 或内联容器类名 |
-| `children` | `ReactNode` | - | 未提供 `src` 时的内容 |
+<Properties>
+  <Property name="src" type="string">可选的 iframe URL，省略时渲染 `children`。</Property>
+  <Property name="title" type="string">iframe 可访问名称和窗口标题。默认值为 `'Embedded content'`。</Property>
+  <Property name="showWindow" type="boolean">是否显示模拟窗口外壳。默认值为 `true`。</Property>
+  <Property name="height" type="CSSProperties['height']">内容高度。默认值为 `420`。</Property>
+  <Property name="className" type="string">可选的外层容器类名。</Property>
+  <Property name="iframeClassName" type="string">可选的 iframe 或内联容器类名。</Property>
+  <Property name="children" type="ReactNode">未提供 `src` 时的可选内容。</Property>
+</Properties>
 
 其他原生 iframe 属性也会透传，例如 `allow`、`sandbox` 和 `referrerPolicy`。
 

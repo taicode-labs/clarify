@@ -30,9 +30,13 @@ In generated MDX, call the component directly with `chart`:
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `chart` | `string` | Required | Mermaid diagram source |
-| `className` | `string` | - | Class name for the diagram container |
+<Properties>
+  <Property name="chart" type="string">
+    Required. Mermaid diagram source.
+  </Property>
+  <Property name="className" type="string">
+    Optional class name for the diagram container.
+  </Property>
+</Properties>
 
 <Callout type="tip">Prefer labels that still explain the flow when the raw source is shown during loading or when rendering fails.</Callout>

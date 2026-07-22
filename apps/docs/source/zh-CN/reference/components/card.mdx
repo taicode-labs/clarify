@@ -24,14 +24,21 @@
 
 `icon` 使用 `lucide-react` 图标名，支持 kebab-case 自动转换，例如 `badge-info` 和 `file-code-2`。
 
-| 组件 | 属性 | 类型 | 默认值 | 说明 |
-|------|------|------|--------|------|
-| `CardGroup` | `cols` | `1 \| 2 \| 3 \| 4` | `2` | 桌面端列数；窄屏自动堆叠 |
-| `CardGroup` | `className` | `string` | - | 网格类名 |
-| `Card` | `title` | `string` | 必填 | 卡片标题 |
-| `Card` | `icon` | `string` | - | Lucide 图标名 |
-| `Card` | `href` | `string` | - | 站内或外部链接 |
-| `Card` | `children` | `ReactNode` | - | 简短描述 |
-| `Card` | `className` | `string` | - | 卡片类名 |
+### CardGroup
+
+<Properties>
+  <Property name="cols" type="1 | 2 | 3 | 4">桌面端列数，窄屏自动堆叠。默认值为 `2`。</Property>
+  <Property name="className" type="string">可选的网格类名。</Property>
+</Properties>
+
+### Card
+
+<Properties>
+  <Property name="title" type="string">必填的卡片标题。</Property>
+  <Property name="icon" type="string">可选的 Lucide 图标名。</Property>
+  <Property name="href" type="string">可选的站内或外部链接。</Property>
+  <Property name="children" type="ReactNode">可选的简短描述。</Property>
+  <Property name="className" type="string">可选的卡片类名。</Property>
+</Properties>
 
 <Callout type="warning">卡片应作为入口而不是正文容器。描述保持简短，详细内容放到目标页面。</Callout>

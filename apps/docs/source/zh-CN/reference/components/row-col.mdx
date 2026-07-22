@@ -42,11 +42,18 @@
 
 ## 属性
 
-| 组件 | 属性 | 类型 | 默认值 | 说明 |
-|------|------|------|--------|------|
-| `Row` | `children` | `ReactNode` | 必填 | 通常为两个 `Col` |
-| `Row` | `className` | `string` | - | 网格类名 |
-| `Col` | `children` | `ReactNode` | 必填 | 当前列内容 |
-| `Col` | `sticky` | `boolean` | `false` | 大屏时吸顶 |
+### Row
+
+<Properties>
+  <Property name="children" type="ReactNode">必填。通常为两个 `Col`。</Property>
+  <Property name="className" type="string">可选的网格类名。</Property>
+</Properties>
+
+### Col
+
+<Properties>
+  <Property name="children" type="ReactNode">必填的当前列内容。</Property>
+  <Property name="sticky" type="boolean">大屏时吸顶。默认值为 `false`。</Property>
+</Properties>
 
 <Callout type="warning">移动端会按源码顺序显示内容，因此第一列应先提供理解第二列所需的上下文。</Callout>

@@ -22,11 +22,20 @@
 
 ## 属性
 
-| 组件 | 属性 | 类型 | 说明 |
-|------|------|------|------|
-| `Properties` | `children` | `ReactNode` | 一个或多个 `Property` |
-| `Property` | `name` | `string` | 字段或属性名 |
-| `Property` | `type` | `string` | 可选类型说明 |
-| `Property` | `children` | `ReactNode` | 详细说明，支持 MDX |
+### Properties
+
+<Properties>
+  <Property name="children" type="ReactNode">一个或多个 `Property`。</Property>
+  <Property name="className" type="string">可选的外层容器类名。</Property>
+  <Property name="spacingClassName" type="string">可选的间距类名。默认值为 `my-6`。</Property>
+</Properties>
+
+### Property
+
+<Properties>
+  <Property name="name" type="string">字段或属性名。</Property>
+  <Property name="type" type="string">可选的类型说明。</Property>
+  <Property name="children" type="ReactNode">详细说明，支持 MDX。</Property>
+</Properties>
 
 <Callout type="tip">短且可比较的数据仍适合表格；说明包含多段文字、链接或示例时使用 `Properties`。</Callout>

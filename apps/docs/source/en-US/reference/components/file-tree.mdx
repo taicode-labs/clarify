@@ -24,11 +24,20 @@
 
 ## Props
 
-`FileTree` accepts native `div` props. Give it an `aria-label` when the surrounding text does not identify the tree.
+### FileTree
 
-| FileTreeItem prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `name` | `ReactNode` | Required | File or directory name |
-| `type` | `'file' \| 'folder'` | Inferred | Item icon; children imply a folder |
-| `description` | `ReactNode` | - | Short inline purpose or note |
-| `children` | `ReactNode` | - | Nested files and directories |
+<Properties>
+  <Property name="aria-label" type="string">Optional accessible label. Provide one when the surrounding text does not identify the tree.</Property>
+  <Property name="children" type="ReactNode">One or more `FileTreeItem` elements.</Property>
+</Properties>
+
+`FileTree` also accepts native `div` props.
+
+### FileTreeItem
+
+<Properties>
+  <Property name="name" type="ReactNode">Required file or directory name.</Property>
+  <Property name="type" type="'file' | 'folder'">Item icon. Inferred as a folder when children are present.</Property>
+  <Property name="description" type="ReactNode">Optional short inline purpose or note.</Property>
+  <Property name="children" type="ReactNode">Optional nested files and directories.</Property>
+</Properties>

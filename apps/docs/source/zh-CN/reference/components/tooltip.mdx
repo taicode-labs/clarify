@@ -14,11 +14,11 @@ Clarify 在 Markdown 和 MDX 页面中支持 <Tooltip content="GitHub Flavored M
 
 ## Props
 
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `content` | `ReactNode` | 必填 | 简短的补充解释 |
-| `children` | `ReactNode` | 必填 | 可见并可通过键盘聚焦的触发内容 |
-| `side` | `'top' \| 'bottom'` | `'top'` | 首选显示方向 |
-| `className` | `string` | - | 外层容器的类名 |
+<Properties>
+	<Property name="content" type="ReactNode">必填的简短补充解释。</Property>
+	<Property name="children" type="ReactNode">必填的可见且可通过键盘聚焦的触发内容。</Property>
+	<Property name="side" type="'top' | 'bottom'">首选显示方向。默认值为 `'top'`。</Property>
+	<Property name="className" type="string">可选的外层容器类名。</Property>
+</Properties>
 
 <Callout type="warning">不要把前置条件、警告、链接或长说明放进 Tooltip。触屏和辅助技术用户不应依赖发现隐藏内容才能理解页面。</Callout>

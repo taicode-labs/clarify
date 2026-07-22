@@ -46,12 +46,19 @@ Each `Step` accepts paragraphs, lists, links, code blocks, and other built-in co
 
 ## Props
 
-| Component | Prop | Type | Description |
-|-----------|------|------|-------------|
-| `Steps` | `children` | `ReactNode` | One or more `Step` elements |
-| `Steps` | `className` | `string` | Class name for the ordered list |
-| `Step` | `title` | `ReactNode` | Optional step heading |
-| `Step` | `children` | `ReactNode` | Step content with full MDX support |
-| `Step` | `className` | `string` | Class name for this step |
+### Steps
+
+<Properties>
+  <Property name="children" type="ReactNode">One or more `Step` elements.</Property>
+  <Property name="className" type="string">Optional class name for the ordered list.</Property>
+</Properties>
+
+### Step
+
+<Properties>
+  <Property name="title" type="ReactNode">Optional step heading.</Property>
+  <Property name="children" type="ReactNode">Step content with full MDX support.</Property>
+  <Property name="className" type="string">Optional class name for this step.</Property>
+</Properties>
 
 <Callout type="warning">Avoid nesting another `Steps` sequence inside a step. Use `Tabs` for alternative paths or link to a dedicated page.</Callout>

@@ -32,10 +32,10 @@ npm install --save-dev @clarify-labs/cli
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `title` | `string` | - | Heading for the code group |
-| `children` | `ReactNode` | Required | Two or more fenced code blocks |
+<Properties>
+	<Property name="title" type="string">Optional heading for the code group.</Property>
+	<Property name="children" type="ReactNode">Required. Two or more fenced code blocks.</Property>
+</Properties>
 
 The fence language controls syntax highlighting and the `title` metadata supplies the tab label. Use a normal code fence when there is only one sample.
 

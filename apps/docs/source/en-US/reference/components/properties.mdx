@@ -22,11 +22,20 @@
 
 ## Props
 
-| Component | Prop | Type | Description |
-|-----------|------|------|-------------|
-| `Properties` | `children` | `ReactNode` | One or more `Property` elements |
-| `Property` | `name` | `string` | Field or property name |
-| `Property` | `type` | `string` | Optional type label |
-| `Property` | `children` | `ReactNode` | Detailed description with MDX support |
+### Properties
+
+<Properties>
+  <Property name="children" type="ReactNode">One or more `Property` elements.</Property>
+  <Property name="className" type="string">Optional class name for the outer container.</Property>
+  <Property name="spacingClassName" type="string">Optional spacing class name. Defaults to `my-6`.</Property>
+</Properties>
+
+### Property
+
+<Properties>
+  <Property name="name" type="string">Field or property name.</Property>
+  <Property name="type" type="string">Optional type label.</Property>
+  <Property name="children" type="ReactNode">Detailed description with MDX support.</Property>
+</Properties>
 
 <Callout type="tip">Use a table for short, comparable data. Use `Properties` when descriptions contain paragraphs, links, or examples.</Callout>

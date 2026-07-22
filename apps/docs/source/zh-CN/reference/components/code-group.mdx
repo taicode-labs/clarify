@@ -32,10 +32,10 @@ npm install --save-dev @clarify-labs/cli
 
 ## 属性
 
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `title` | `string` | - | 代码组标题 |
-| `children` | `ReactNode` | 必填 | 两个或更多围栏代码块 |
+<Properties>
+	<Property name="title" type="string">可选的代码组标题。</Property>
+	<Property name="children" type="ReactNode">必填。两个或更多围栏代码块。</Property>
+</Properties>
 
 代码块语言决定语法高亮，`title` 元数据决定标签文案。只有一个代码块时，直接使用普通代码围栏更简洁。
 

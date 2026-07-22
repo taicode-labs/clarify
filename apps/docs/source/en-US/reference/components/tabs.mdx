@@ -39,13 +39,20 @@
 
 ## Props
 
-| Component | Prop | Type | Description |
-|-----------|------|------|-------------|
-| `Tabs` | `defaultValue` | `string` | Initially selected tab value |
-| `Tabs` | `children` | `ReactNode` | One or more `Tab` elements |
-| `Tabs` | `className` | `string` | Class name for the container |
-| `Tab` | `title` | `ReactNode` | Tab label |
-| `Tab` | `value` | `string` | Stable unique value for the tab |
-| `Tab` | `children` | `ReactNode` | Panel content with full MDX support |
+### Tabs
+
+<Properties>
+  <Property name="defaultValue" type="string">Initially selected tab value.</Property>
+  <Property name="children" type="ReactNode">One or more `Tab` elements.</Property>
+  <Property name="className" type="string">Optional class name for the container.</Property>
+</Properties>
+
+### Tab
+
+<Properties>
+  <Property name="title" type="ReactNode">Tab label.</Property>
+  <Property name="value" type="string">Stable unique value for the tab.</Property>
+  <Property name="children" type="ReactNode">Panel content with full MDX support.</Property>
+</Properties>
 
 <Callout type="tip">Keep the structure of each tab comparable. Split long or independently linkable content into separate pages.</Callout>

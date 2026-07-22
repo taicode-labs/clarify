@@ -25,12 +25,12 @@
 
 ## 属性
 
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `title` | `ReactNode` | - | 折叠标题，优先于 `summary` |
-| `summary` | `ReactNode` | `'Details'` | 未提供 `title` 时的标题 |
-| `defaultOpen` | `boolean` | `false` | 是否初始展开 |
-| `children` | `ReactNode` | 必填 | 展开后的内容，支持完整 MDX |
-| `className` | `string` | - | 外层容器类名 |
+<Properties>
+  <Property name="title" type="ReactNode">可选的折叠标题，优先于 `summary`。</Property>
+  <Property name="summary" type="ReactNode">未提供 `title` 时的标题。默认值为 `'Details'`。</Property>
+  <Property name="defaultOpen" type="boolean">是否初始展开。默认值为 `false`。</Property>
+  <Property name="children" type="ReactNode">必填的展开内容，支持完整 MDX。</Property>
+  <Property name="className" type="string">可选的外层容器类名。</Property>
+</Properties>
 
 <Callout type="tip">标题应说明展开后能看到什么，例如“查看代理配置”，避免只写“更多”。</Callout>

@@ -42,15 +42,27 @@ Limit the reference by tags:
 
 ## Props
 
-| Component | Prop | Type | Description |
-|-----------|------|------|-------------|
-| `OpenApiOperation` | `specPath` | `string` | Configured OpenAPI specification path |
-| `OpenApiOperation` | `operationId` | `string` | Unique OpenAPI operation identifier |
-| `OpenApiRequest` | `specPath` | `string` | Configured OpenAPI specification path |
-| `OpenApiRequest` | `operationId` | `string` | Unique OpenAPI operation identifier |
-| `OpenApiRequest` | `requestExample` | `string` | Initial request body or parameter example key |
-| `OpenApiDocument` | `specPath` | `string` | Configured OpenAPI specification path |
-| `OpenApiDocument` | `tagFilter` | `string[]` | Includes only operations with matching tags |
+### OpenApiOperation
+
+<Properties>
+	<Property name="specPath" type="string">Configured OpenAPI specification path.</Property>
+	<Property name="operationId" type="string">Unique OpenAPI operation identifier.</Property>
+</Properties>
+
+### OpenApiRequest
+
+<Properties>
+	<Property name="specPath" type="string">Configured OpenAPI specification path.</Property>
+	<Property name="operationId" type="string">Unique OpenAPI operation identifier.</Property>
+	<Property name="requestExample" type="string">Initial request body or parameter example key.</Property>
+</Properties>
+
+### OpenApiDocument
+
+<Properties>
+	<Property name="specPath" type="string">Configured OpenAPI specification path.</Property>
+	<Property name="tagFilter" type="string[]">Includes only operations with matching tags.</Property>
+</Properties>
 
 <Callout type="tip">Let guides explain tasks and decisions while OpenAPI components own interface facts, preventing hand-written parameter tables from drifting.</Callout>
 

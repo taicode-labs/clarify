@@ -19,13 +19,13 @@
 
 ## 属性
 
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `type` | `'info' \| 'note' \| 'tip' \| 'warning' \| 'danger' \| 'success'` | `'info'` | 语义颜色和默认图标 |
-| `title` | `ReactNode` | 根据 `type` 生成 | 标题；传空值可隐藏 |
-| `icon` | `boolean` | `true` | 是否显示类型图标 |
-| `children` | `ReactNode` | 必填 | 正文，支持 MDX |
-| `className` | `string` | - | 外层容器类名 |
+<Properties>
+  <Property name="type" type="'info' | 'note' | 'tip' | 'warning' | 'danger' | 'success'">语义颜色和默认图标。默认值为 `'info'`。</Property>
+  <Property name="title" type="ReactNode">默认根据 `type` 生成标题，传空值可隐藏。</Property>
+  <Property name="icon" type="boolean">是否显示类型图标。默认值为 `true`。</Property>
+  <Property name="children" type="ReactNode">必填的正文，支持 MDX。</Property>
+  <Property name="className" type="string">可选的外层容器类名。</Property>
+</Properties>
 
 ## 使用原则
 

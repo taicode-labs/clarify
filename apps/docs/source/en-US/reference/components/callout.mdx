@@ -19,13 +19,13 @@
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `type` | `'info' \| 'note' \| 'tip' \| 'warning' \| 'danger' \| 'success'` | `'info'` | Semantic color and default icon |
-| `title` | `ReactNode` | Derived from `type` | Heading; pass an empty value to hide it |
-| `icon` | `boolean` | `true` | Whether to show the variant icon |
-| `children` | `ReactNode` | Required | Body with MDX support |
-| `className` | `string` | - | Class name for the container |
+<Properties>
+  <Property name="type" type="'info' | 'note' | 'tip' | 'warning' | 'danger' | 'success'">Semantic color and default icon. Defaults to `'info'`.</Property>
+  <Property name="title" type="ReactNode">Heading derived from `type` by default; pass an empty value to hide it.</Property>
+  <Property name="icon" type="boolean">Whether to show the variant icon. Defaults to `true`.</Property>
+  <Property name="children" type="ReactNode">Required body with MDX support.</Property>
+  <Property name="className" type="string">Optional class name for the container.</Property>
+</Properties>
 
 ## Guidelines
 

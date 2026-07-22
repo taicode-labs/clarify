@@ -144,7 +144,6 @@ export default defineConfig({
                   { page: 'reference/components/mermaid', title: 'Mermaid', icon: 'Workflow' },
                   { page: 'reference/components/row-col', title: 'Row / Col', icon: 'Columns2' },
                   { page: 'reference/components/properties', title: 'Properties / Property', icon: 'ListTree' },
-                  { page: 'reference/components/markdown', title: 'Markdown', icon: 'FileText' },
                   { page: 'reference/components/openapi', title: 'OpenAPI', icon: 'FileJson2' },
                 ],
               },

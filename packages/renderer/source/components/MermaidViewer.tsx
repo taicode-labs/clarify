@@ -54,7 +54,7 @@ export function MermaidViewer(arg0: MermaidViewerProps): ReactNode {
         initialScale={1}
         centerOnInit
         smooth
-        wheel={{ step: 0.05, wheelDisabled: !focused, touchPadDisabled: !focused }}
+        wheel={{ step: 0.01, wheelDisabled: !focused, touchPadDisabled: !focused }}
         doubleClick={{ mode: 'reset' }}
       >
         <ZoomControls />

@@ -24,11 +24,20 @@
 
 ## Props
 
-`FileTree` 支持原生 `div` 属性。如果上下文没有说明目录内容，请提供 `aria-label`。
+### FileTree
 
-| FileTreeItem 属性 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `name` | `ReactNode` | 必填 | 文件或目录名称 |
-| `type` | `'file' \| 'folder'` | 自动推断 | 项目图标；存在子项时自动视为目录 |
-| `description` | `ReactNode` | - | 简短的用途或备注 |
-| `children` | `ReactNode` | - | 嵌套的文件和目录 |
+<Properties>
+  <Property name="aria-label" type="string">可选的无障碍标签。上下文没有说明目录内容时应提供。</Property>
+  <Property name="children" type="ReactNode">一个或多个 `FileTreeItem` 元素。</Property>
+</Properties>
+
+`FileTree` 还支持原生 `div` 属性。
+
+### FileTreeItem
+
+<Properties>
+  <Property name="name" type="ReactNode">必填的文件或目录名称。</Property>
+  <Property name="type" type="'file' | 'folder'">项目图标，存在子项时自动推断为目录。</Property>
+  <Property name="description" type="ReactNode">可选的简短用途或备注。</Property>
+  <Property name="children" type="ReactNode">可选的嵌套文件和目录。</Property>
+</Properties>

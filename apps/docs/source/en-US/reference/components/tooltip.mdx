@@ -14,11 +14,11 @@ Use `side="bottom"` when there is not enough room above the term.
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `content` | `ReactNode` | Required | Short supplementary explanation |
-| `children` | `ReactNode` | Required | Visible, keyboard-focusable trigger content |
-| `side` | `'top' \| 'bottom'` | `'top'` | Preferred placement |
-| `className` | `string` | - | Class name for the outer wrapper |
+<Properties>
+	<Property name="content" type="ReactNode">Required short supplementary explanation.</Property>
+	<Property name="children" type="ReactNode">Required visible, keyboard-focusable trigger content.</Property>
+	<Property name="side" type="'top' | 'bottom'">Preferred placement. Defaults to `'top'`.</Property>
+	<Property name="className" type="string">Optional class name for the outer wrapper.</Property>
+</Properties>
 
 <Callout type="warning">Do not place prerequisites, warnings, links, or long instructions inside a tooltip. Touch and assistive technology users must be able to understand the page without discovering hidden content.</Callout>

@@ -43,13 +43,13 @@ Arrows communicate progression or return. Native button props are forwarded, so 
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `variant` | `'primary' \| 'secondary' \| 'filled' \| 'outline' \| 'text'` | `'primary'` | Visual style |
-| `arrow` | `'left' \| 'right'` | - | Shows a directional arrow |
-| `href` | `string` | - | Renders a link when present |
-| `children` | `ReactNode` | Required | Button label |
-| `className` | `string` | - | Additional class name |
+<Properties>
+  <Property name="variant" type="'primary' | 'secondary' | 'filled' | 'outline' | 'text'">Visual style. Defaults to `'primary'`.</Property>
+  <Property name="arrow" type="'left' | 'right'">Optional directional arrow.</Property>
+  <Property name="href" type="string">Optional URL. Renders a link when present.</Property>
+  <Property name="children" type="ReactNode">Required button label.</Property>
+  <Property name="className" type="string">Optional additional class name.</Property>
+</Properties>
 
 Native `<a>` or `<button>` props are forwarded, including `target`, `rel`, `type`, and `disabled`.
 

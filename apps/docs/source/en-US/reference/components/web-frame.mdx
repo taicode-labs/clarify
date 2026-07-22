@@ -10,11 +10,15 @@ Use the browser chrome when the URL or page context matters. Hide it for focused
 <WebFrame src="https://clarify.pub" title="Clarify website" height={360} />
 ```
 
+<WebFrame src="https://clarify.pub" title="Clarify website" height={360} />
+
 Set `showWindow={false}` to hide the simulated browser header:
 
 ```mdx
 <WebFrame src="https://clarify.pub" title="Component preview" showWindow={false} height={320} />
 ```
+
+<WebFrame src="https://clarify.pub" title="Component preview" showWindow={false} height={320} />
 
 ## Frame styles
 
@@ -56,15 +60,15 @@ Rendered result with browser context:
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `src` | `string` | - | iframe URL; omit to render `children` |
-| `title` | `string` | `'Embedded content'` | Accessible iframe name and window title |
-| `showWindow` | `boolean` | `true` | Whether to show the simulated window chrome |
-| `height` | `CSSProperties['height']` | `420` | Content height |
-| `className` | `string` | - | Class name for the outer container |
-| `iframeClassName` | `string` | - | Class name for the iframe or inline container |
-| `children` | `ReactNode` | - | Content when `src` is absent |
+<Properties>
+  <Property name="src" type="string">Optional iframe URL; omit to render `children`.</Property>
+  <Property name="title" type="string">Accessible iframe name and window title. Defaults to `'Embedded content'`.</Property>
+  <Property name="showWindow" type="boolean">Whether to show the simulated window chrome. Defaults to `true`.</Property>
+  <Property name="height" type="CSSProperties['height']">Content height. Defaults to `420`.</Property>
+  <Property name="className" type="string">Optional class name for the outer container.</Property>
+  <Property name="iframeClassName" type="string">Optional class name for the iframe or inline container.</Property>
+  <Property name="children" type="ReactNode">Optional content when `src` is absent.</Property>
+</Properties>
 
 Other native iframe props are forwarded, including `allow`, `sandbox`, and `referrerPolicy`.
 

@@ -24,14 +24,21 @@
 
 `icon` accepts a `lucide-react` icon name and converts kebab-case automatically, including `badge-info` and `file-code-2`.
 
-| Component | Prop | Type | Default | Description |
-|-----------|------|------|---------|-------------|
-| `CardGroup` | `cols` | `1 \| 2 \| 3 \| 4` | `2` | Desktop columns; stacks on narrow screens |
-| `CardGroup` | `className` | `string` | - | Class name for the grid |
-| `Card` | `title` | `string` | Required | Card heading |
-| `Card` | `icon` | `string` | - | Lucide icon name |
-| `Card` | `href` | `string` | - | Internal or external URL |
-| `Card` | `children` | `ReactNode` | - | Short description |
-| `Card` | `className` | `string` | - | Class name for the card |
+### CardGroup
+
+<Properties>
+  <Property name="cols" type="1 | 2 | 3 | 4">Desktop columns; stacks on narrow screens. Defaults to `2`.</Property>
+  <Property name="className" type="string">Optional class name for the grid.</Property>
+</Properties>
+
+### Card
+
+<Properties>
+  <Property name="title" type="string">Required card heading.</Property>
+  <Property name="icon" type="string">Optional Lucide icon name.</Property>
+  <Property name="href" type="string">Optional internal or external URL.</Property>
+  <Property name="children" type="ReactNode">Optional short description.</Property>
+  <Property name="className" type="string">Optional class name for the card.</Property>
+</Properties>
 
 <Callout type="warning">Treat cards as entry points, not containers for long-form content. Keep descriptions short and put details on the destination page.</Callout>

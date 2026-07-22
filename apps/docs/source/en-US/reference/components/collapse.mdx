@@ -25,12 +25,12 @@ The first disclosure keeps optional material out of the reading path. `defaultOp
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `title` | `ReactNode` | - | Disclosure label, preferred over `summary` |
-| `summary` | `ReactNode` | `'Details'` | Label when `title` is absent |
-| `defaultOpen` | `boolean` | `false` | Whether the content starts expanded |
-| `children` | `ReactNode` | Required | Expanded content with full MDX support |
-| `className` | `string` | - | Class name for the container |
+<Properties>
+  <Property name="title" type="ReactNode">Optional disclosure label, preferred over `summary`.</Property>
+  <Property name="summary" type="ReactNode">Label when `title` is absent. Defaults to `'Details'`.</Property>
+  <Property name="defaultOpen" type="boolean">Whether the content starts expanded. Defaults to `false`.</Property>
+  <Property name="children" type="ReactNode">Required expanded content with full MDX support.</Property>
+  <Property name="className" type="string">Optional class name for the container.</Property>
+</Properties>
 
 <Callout type="tip">Describe what opening the disclosure reveals, such as “Show proxy configuration,” instead of using a vague “More.”</Callout>

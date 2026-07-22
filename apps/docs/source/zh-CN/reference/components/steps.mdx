@@ -46,12 +46,19 @@
 
 ## 属性
 
-| 组件 | 属性 | 类型 | 说明 |
-|------|------|------|------|
-| `Steps` | `children` | `ReactNode` | 一个或多个 `Step` |
-| `Steps` | `className` | `string` | 外层有序列表类名 |
-| `Step` | `title` | `ReactNode` | 可选步骤标题 |
-| `Step` | `children` | `ReactNode` | 步骤正文，支持完整 MDX |
-| `Step` | `className` | `string` | 当前步骤类名 |
+### Steps
+
+<Properties>
+  <Property name="children" type="ReactNode">一个或多个 `Step`。</Property>
+  <Property name="className" type="string">可选的外层有序列表类名。</Property>
+</Properties>
+
+### Step
+
+<Properties>
+  <Property name="title" type="ReactNode">可选的步骤标题。</Property>
+  <Property name="children" type="ReactNode">步骤正文，支持完整 MDX。</Property>
+  <Property name="className" type="string">可选的当前步骤类名。</Property>
+</Properties>
 
 <Callout type="warning">不要在一个流程中嵌套另一组 `Steps`。需要分支方案时，在步骤内使用 `Tabs` 或链接到独立页面。</Callout>

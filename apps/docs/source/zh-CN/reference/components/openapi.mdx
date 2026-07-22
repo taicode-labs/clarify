@@ -42,15 +42,27 @@
 
 ## 属性
 
-| 组件 | 属性 | 类型 | 说明 |
-|------|------|------|------|
-| `OpenApiOperation` | `specPath` | `string` | 配置中的 OpenAPI 规范路径 |
-| `OpenApiOperation` | `operationId` | `string` | 唯一的 OpenAPI operation 标识 |
-| `OpenApiRequest` | `specPath` | `string` | 配置中的 OpenAPI 规范路径 |
-| `OpenApiRequest` | `operationId` | `string` | 唯一的 OpenAPI operation 标识 |
-| `OpenApiRequest` | `requestExample` | `string` | 初始请求体或参数示例的 key |
-| `OpenApiDocument` | `specPath` | `string` | 配置中的 OpenAPI 规范路径 |
-| `OpenApiDocument` | `tagFilter` | `string[]` | 仅展示匹配标签的接口 |
+### OpenApiOperation
+
+<Properties>
+	<Property name="specPath" type="string">配置中的 OpenAPI 规范路径。</Property>
+	<Property name="operationId" type="string">唯一的 OpenAPI operation 标识。</Property>
+</Properties>
+
+### OpenApiRequest
+
+<Properties>
+	<Property name="specPath" type="string">配置中的 OpenAPI 规范路径。</Property>
+	<Property name="operationId" type="string">唯一的 OpenAPI operation 标识。</Property>
+	<Property name="requestExample" type="string">初始请求体或参数示例的 key。</Property>
+</Properties>
+
+### OpenApiDocument
+
+<Properties>
+	<Property name="specPath" type="string">配置中的 OpenAPI 规范路径。</Property>
+	<Property name="tagFilter" type="string[]">仅展示匹配标签的接口。</Property>
+</Properties>
 
 <Callout type="tip">指南负责解释任务和决策，把接口事实交给 OpenAPI 组件，避免手写参数表与规范漂移。</Callout>
 

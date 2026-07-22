@@ -39,13 +39,20 @@
 
 ## 属性
 
-| 组件 | 属性 | 类型 | 说明 |
-|------|------|------|------|
-| `Tabs` | `defaultValue` | `string` | 首次渲染时选中的标签值 |
-| `Tabs` | `children` | `ReactNode` | 一个或多个 `Tab` |
-| `Tabs` | `className` | `string` | 外层容器类名 |
-| `Tab` | `title` | `ReactNode` | 标签标题 |
-| `Tab` | `value` | `string` | 标签的稳定唯一值 |
-| `Tab` | `children` | `ReactNode` | 标签面板内容，支持完整 MDX |
+### Tabs
+
+<Properties>
+  <Property name="defaultValue" type="string">首次渲染时选中的标签值。</Property>
+  <Property name="children" type="ReactNode">一个或多个 `Tab`。</Property>
+  <Property name="className" type="string">可选的外层容器类名。</Property>
+</Properties>
+
+### Tab
+
+<Properties>
+  <Property name="title" type="ReactNode">标签标题。</Property>
+  <Property name="value" type="string">标签的稳定唯一值。</Property>
+  <Property name="children" type="ReactNode">标签面板内容，支持完整 MDX。</Property>
+</Properties>
 
 <Callout type="tip">保持各标签内容结构相近。若每项内容很长或需要独立链接，应拆成不同页面。</Callout>

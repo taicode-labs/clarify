@@ -42,11 +42,18 @@ Rendered result:
 
 ## Props
 
-| Component | Prop | Type | Default | Description |
-|-----------|------|------|---------|-------------|
-| `Row` | `children` | `ReactNode` | Required | Usually two `Col` elements |
-| `Row` | `className` | `string` | - | Class name for the grid |
-| `Col` | `children` | `ReactNode` | Required | Content for this column |
-| `Col` | `sticky` | `boolean` | `false` | Sticks on large screens |
+### Row
+
+<Properties>
+  <Property name="children" type="ReactNode">Required. Usually two `Col` elements.</Property>
+  <Property name="className" type="string">Optional class name for the grid.</Property>
+</Properties>
+
+### Col
+
+<Properties>
+  <Property name="children" type="ReactNode">Required content for this column.</Property>
+  <Property name="sticky" type="boolean">Sticks on large screens. Defaults to `false`.</Property>
+</Properties>
 
 <Callout type="warning">Mobile layouts follow source order, so the first column should provide the context needed to understand the second.</Callout>
