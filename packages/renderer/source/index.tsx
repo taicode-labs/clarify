@@ -11,7 +11,7 @@ import { OpenApiSpecsContext, useOpenApiSpecs } from './context'
 import { useMDXComponents } from './mdx/components'
 import { DocShell } from './mdx/DocShell'
 import { markdownRemarkPlugins, parseCodeMeta } from './mdx/remark'
-import { OpenApiRequest, OpenApiDocument, OpenApiOperation, createOpenApiRouteComponent } from './openapi'
+import { OpenApiRequest, OpenApiDocument, OpenApiLink, OpenApiOperation, createOpenApiRouteComponent } from './openapi'
 import { render } from './runtime/render'
 import { SlotProvider, RuntimeSlot, RuntimeSlotsProvider, useSlot } from './slots'
 import { applyThemeVariables, themeEditorPresets, ThemeEditor } from './theme/ThemeEditor'
@@ -21,7 +21,7 @@ import { themePresets, themeBootstrapScript } from './theme/variables'
 import type { Config, RouteItem, RouteSection, RenderOptions, ServerRenderOptions } from './types'
 import { remToPx } from './utils/remToPx'
 
-export type { OpenApiRequestProps, OpenApiOperationProps, OpenApiDocumentProps, OpenAPIOperation, OpenAPISpec, OpenApiRouteData } from './openapi'
+export type { OpenApiRequestProps, OpenApiOperationProps, OpenApiDocumentProps, OpenApiLinkProps, OpenAPIOperation, OpenAPISpec, OpenApiRouteData } from './openapi'
 export type { ThemeEditorProps } from './theme/ThemeEditor'
 export type { StepProps, StepsProps, TabItem, TabProps, TabsProps } from './components'
 export type { ContentDiagnostic, ContentDiagnosticKind }
@@ -41,4 +41,4 @@ export { DocShell, useMDXComponents, markdownRemarkPlugins, parseCodeMeta }
 export { SlotProvider, RuntimeSlot, RuntimeSlotsProvider, useSlot }
 
 // OpenAPI components
-export { OpenApiRequest, OpenApiDocument, OpenApiOperation }
+export { OpenApiRequest, OpenApiDocument, OpenApiLink, OpenApiOperation }

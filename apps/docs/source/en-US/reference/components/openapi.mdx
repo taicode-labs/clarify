@@ -14,6 +14,30 @@ Rendered result:
 
 <OpenApiOperation specPath="/api" operationId="demoBasicRequest" />
 
+## Endpoint link
+
+Use `OpenApiLink` when the guide should point readers to the full API reference without embedding the complete operation details:
+
+```mdx
+<OpenApiLink specPath="/api" operationId="demoBasicRequest" />
+```
+
+For a link inside a paragraph, set `inline` to keep the endpoint compact:
+
+```mdx
+Read more about <OpenApiLink specPath="/api" operationId="demoBasicRequest" inline /> in the API reference.
+```
+
+Read more about <OpenApiLink specPath="/api" operationId="demoBasicRequest" inline /> in the API reference.
+
+It renders the HTTP method, operation summary, and path in a compact endpoint-style link. The target includes the generated operation anchor. Use `href` when the spec registry path and the public API reference path are different:
+
+```mdx
+<OpenApiLink specPath="/api" href="/reference/api" operationId="demoBasicRequest" />
+```
+
+<OpenApiLink specPath="/api" operationId="demoBasicRequest" />
+
 The play button in the endpoint bar opens an interactive request tester. Users can select a server and authentication scheme, edit parameters and the request body, then inspect the status, duration, headers, and response body.
 
 ## Inline request tester
@@ -47,6 +71,16 @@ Limit the reference by tags:
 <Properties>
 	<Property name="specPath" type="string">Configured OpenAPI specification path.</Property>
 	<Property name="operationId" type="string">Unique OpenAPI operation identifier.</Property>
+</Properties>
+
+### OpenApiLink
+
+<Properties>
+	<Property name="specPath" type="string">Configured OpenAPI specification path.</Property>
+	<Property name="operationId" type="string">Unique OpenAPI operation identifier.</Property>
+	<Property name="href" type="string">Optional public API reference path. Defaults to `specPath`.</Property>
+	<Property name="inline" type="boolean">Use a compact inline link instead of the endpoint card. Defaults to `false`.</Property>
+	<Property name="className" type="string">Optional class name for the link.</Property>
 </Properties>
 
 ### OpenApiRequest

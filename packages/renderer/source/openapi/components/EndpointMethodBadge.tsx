@@ -10,15 +10,17 @@ const endpointMethodStyleVars: Record<string, string> = {
   WEBHOOK: 'bg-(--clarify-http-method-webhook-background) text-(--clarify-http-method-webhook-text)',
 }
 
-type EndpointMethodBadgeProps = { method: string }
+type EndpointMethodBadgeProps = { method: string; compact?: boolean }
 
 export function EndpointMethodBadge(arg0: EndpointMethodBadgeProps): ReactNode {
-  const { method } = arg0
+  const { method, compact = false } = arg0
 
   return (
     <span
       className={clsx(
-        'rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-0.5 text-xs/6 font-black tracking-wide',
+        compact
+          ? 'rounded px-1.5 py-0.5 text-[0.625rem]/4 font-bold'
+          : 'rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-0.5 text-xs/6 font-black tracking-wide',
         endpointMethodStyleVars[method] ?? 'bg-(--clarify-http-method-default-background) text-(--clarify-http-method-default-text)',
       )}
     >

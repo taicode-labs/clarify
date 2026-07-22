@@ -14,6 +14,30 @@
 
 <OpenApiOperation specPath="/api" operationId="demoBasicRequest" />
 
+## 接口跳转
+
+当指南只需要引导读者前往完整 API Reference，而不需要在当前页面展开完整接口详情时，可以使用 `OpenApiLink`：
+
+```mdx
+<OpenApiLink specPath="/api" operationId="demoBasicRequest" />
+```
+
+如果需要把链接放进段落中，可以设置 `inline`，使用更紧凑的行内样式：
+
+```mdx
+更多信息请参考 <OpenApiLink specPath="/api" operationId="demoBasicRequest" inline /> 的 API 文档。
+```
+
+更多信息请参考 <OpenApiLink specPath="/api" operationId="demoBasicRequest" inline /> 的 API 文档。
+
+组件会以紧凑的接口样式展示 HTTP 方法、operation 摘要和路径，并自动链接到对应的 operation 锚点。如果规范注册路径和公开的 API Reference 路径不同，可以使用 `href`：
+
+```mdx
+<OpenApiLink specPath="/api" href="/reference/api" operationId="demoBasicRequest" />
+```
+
+<OpenApiLink specPath="/api" operationId="demoBasicRequest" />
+
 接口栏中的播放按钮会打开交互式请求测试器。用户可以选择服务地址和认证方式，编辑参数与请求体，并查看状态码、耗时、响应头和响应体。
 
 ## 内嵌请求测试器
@@ -47,6 +71,16 @@
 <Properties>
 	<Property name="specPath" type="string">配置中的 OpenAPI 规范路径。</Property>
 	<Property name="operationId" type="string">唯一的 OpenAPI operation 标识。</Property>
+</Properties>
+
+### OpenApiLink
+
+<Properties>
+	<Property name="specPath" type="string">配置中的 OpenAPI 规范路径。</Property>
+	<Property name="operationId" type="string">唯一的 OpenAPI operation 标识。</Property>
+	<Property name="href" type="string">可选的公开 API Reference 路径，默认使用 `specPath`。</Property>
+	<Property name="inline" type="boolean">使用紧凑的行内链接，而不是 endpoint 卡片。默认值为 `false`。</Property>
+	<Property name="className" type="string">可选的链接类名。</Property>
 </Properties>
 
 ### OpenApiRequest
