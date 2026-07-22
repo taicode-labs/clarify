@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
+import { OpenApiRequestWorkbench } from './OpenApiRequest'
 import { RequestField } from './OpenApiRequestFields'
 import { canPreviewResponse, getResponseTextPreview, OpenApiResponseViewer } from './OpenApiResponseViewer'
 
@@ -93,6 +94,66 @@ describe('OpenApiResponseViewer', () => {
     expect(markup).toContain('role="alert"')
     expect(markup).toContain('Request failed')
     expect(markup).toContain('Network unavailable')
+  })
+})
+
+describe('OpenApiRequestWorkbench', () => {
+  it('renders as an embeddable request workbench', () => {
+    const spec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      servers: [{ url: 'https://api.example.com' }],
+      paths: {},
+    }
+    const markup = renderToStaticMarkup(
+      <OpenApiRequestWorkbench spec={spec} path="/users" method="GET" operation={{ responses: { 200: { description: 'OK' } } }} />,
+    )
+
+    expect(markup).toContain('clarify-openapi-request')
+    expect(markup).toContain('rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border)')
+    expect(markup).toContain('/users')
+    expect(markup).not.toContain('Ready for a request')
+  })
+
+  it('keeps the empty response module in the request dialog', () => {
+    const spec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {},
+    }
+    const markup = renderToStaticMarkup(
+      <OpenApiRequestWorkbench spec={spec} path="/users" method="GET" operation={{ responses: { 200: { description: 'OK' } } }} compact />,
+    )
+
+    expect(markup).toContain('Ready for a request')
+  })
+
+  it('initializes parameters and the request body from the selected request example', () => {
+    const spec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {},
+    }
+    const operation = {
+      parameters: [{ name: 'account', in: 'query', examples: { personal: { value: 'personal' }, enterprise: { value: 'enterprise' } } }],
+      requestBody: {
+        content: {
+          'application/json': {
+            examples: {
+              personal: { value: { name: 'Alice' } },
+              enterprise: { value: { name: 'Acme' } },
+            },
+          },
+        },
+      },
+      responses: { 200: { description: 'OK' } },
+    }
+    const markup = renderToStaticMarkup(
+      <OpenApiRequestWorkbench spec={spec} path="/users" method="POST" operation={operation} requestExample="enterprise" />,
+    )
+
+    expect(markup).toContain('value="enterprise"')
+    expect(markup).toContain('&quot;name&quot;: &quot;Acme&quot;')
   })
 })
 

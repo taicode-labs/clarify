@@ -108,7 +108,7 @@ Clarify 会生成：
 
 使用访问令牌调用受保护接口。令牌过期后，重新创建会话。
 
-<OpenApiOperation specPath="/api" path="/sessions" method="post" />
+<OpenApiOperation specPath="/api" operationId="createSession" />
 ```
 
 `OpenApiOperation` 参数：
@@ -116,8 +116,7 @@ Clarify 会生成：
 | 参数 | 说明 |
 |------|------|
 | `specPath` | OpenAPI 路由，不写 `.openapi.json` 后缀，例如 `/api` |
-| `path` | OpenAPI `paths` 中的路径，必须完全一致 |
-| `method` | HTTP 方法，建议小写，例如 `get`、`post`、`patch` |
+| `operationId` | operation 唯一的 OpenAPI `operationId` |
 
 如果要在 MDX 中插入完整 Reference，可以使用：
 
@@ -205,6 +204,6 @@ API Reference 的质量主要取决于 OpenAPI 规范本身。建议至少补齐
     检查 OpenAPI 文件是否在 `source` 下，文件名是否使用 `.openapi.json`、`.openapi.yaml` 或 `.openapi.yml`，以及 `specPath` 是否写的是路由而不是文件名。
   </Collapse>
   <Collapse title="Endpoint not found？">
-    检查 `path` 是否和 OpenAPI `paths` 键完全一致，路径参数是否使用 `{id}` 形式，`method` 是否存在于该路径下。
+    检查 operation 是否定义了指定的 `operationId`，并确认该 ID 在 paths 和 webhooks 中唯一。
   </Collapse>
 </AccordionGroup>

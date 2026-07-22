@@ -31,7 +31,7 @@ export function requestBodyForExample(spec: OpenAPISpec, content: OpenApiMediaTy
   return example ? stringifyExample(example.value) : initialRequestBody(spec, content)
 }
 
-export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operation: OpenAPIOperation, operationSource: OpenAPIOperationSource) {
+export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operation: OpenAPIOperation, operationSource: OpenAPIOperationSource, requestExample = '') {
   const servers = getServers(spec, operation, path, operationSource)
   const [selectedServerKey, setSelectedServerKey] = useState(getServerKey(servers[0], 0))
   const selectedServer = servers.find((server, index) => getServerKey(server, index) === selectedServerKey) ?? servers[0]
@@ -46,7 +46,7 @@ export function useOpenApiRequestTarget(spec: OpenAPISpec, path: string, operati
   const requestContents = getMediaTypeEntries(getRequestBody(spec, operation)?.content, spec)
   const [mediaType, setMediaType] = useState(requestContents[0]?.mediaType ?? '')
   const selectedContent = requestContents.find((entry) => entry.mediaType === mediaType) ?? requestContents[0]
-  const [body, setBody] = useState(initialRequestBody(spec, selectedContent?.value))
+  const [body, setBody] = useState(requestBodyForExample(spec, selectedContent?.value, requestExample))
   const [bodyFiles, setBodyFiles] = useState<Record<string, File>>({})
 
   function selectServer(value: string) {

@@ -20,18 +20,18 @@ OpenAPI 的 `description` 字符串会在完整参考页和嵌入式操作中渲
 ## 嵌入单个操作
 
 ```mdx
-<OpenApiOperation specPath="/api" path="/v1/projects" method="get" />
+<OpenApiOperation specPath="/api" operationId="listProjects" />
 ```
 
-<OpenApiOperation specPath="/api" path="/v1/projects" method="get" />
+<OpenApiOperation specPath="/api" operationId="listProjects" />
 
 ## 嵌入带请求体的操作
 
 ```mdx
-<OpenApiOperation specPath="/api" path="/v1/projects" method="post" />
+<OpenApiOperation specPath="/api" operationId="createProject" />
 ```
 
-<OpenApiOperation specPath="/api" path="/v1/projects" method="post" />
+<OpenApiOperation specPath="/api" operationId="createProject" />
 
 ## 嵌入完整 API 页面
 

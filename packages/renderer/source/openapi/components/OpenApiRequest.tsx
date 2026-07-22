@@ -25,6 +25,7 @@ type OpenApiRequestWorkbenchProps = {
   method: string
   operation: OpenAPIOperation
   operationSource?: OpenAPIOperationSource
+  requestExample?: string
   compact?: boolean
   onClose?: () => void
 }
@@ -50,13 +51,13 @@ function parameterGroupLabel(location: string, t: ReturnType<typeof useBuiltInTe
 }
 
 export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): ReactNode {
-  const { spec, path, method, operation, operationSource = 'path', compact = false, onClose } = arg0
+  const { spec, path, method, operation, operationSource = 'path', requestExample, compact = false, onClose } = arg0
   const t = useBuiltInText()
   const parameters = getOperationParameters(spec, path, operation, operationSource)
-  const requestTarget = useOpenApiRequestTarget(spec, path, operation, operationSource)
+  const requestTarget = useOpenApiRequestTarget(spec, path, operation, operationSource, requestExample)
   const { servers, selectedServer, selectedServerKey, serverVariables, setServerVariables, serverVariableEntries, selectServer, authOptions, selectedAuthName, setSelectedAuthName, selectedAuth, credentialScope, credentials, setCredential, clearCredential, requestContents, mediaType, selectedContent, body, setBody, bodyFiles, setBodyFile, applyBodyExample, selectMediaType } = requestTarget
   const requestExamples = getRequestExampleEntries(parameters, selectedContent?.value)
-  const [selectedRequestExampleKey, setSelectedRequestExampleKey] = useState(requestExamples[0]?.key ?? '')
+  const [selectedRequestExampleKey, setSelectedRequestExampleKey] = useState(requestExample ?? requestExamples[0]?.key ?? '')
   const currentRequestExampleKey = requestExamples.some((example) => example.key === selectedRequestExampleKey) ? selectedRequestExampleKey : requestExamples[0]?.key ?? ''
   const parameterState = useOpenApiParameterState(spec, parameters, (parameter) => initialParameterValue(spec, parameter), currentRequestExampleKey)
   const { parameterValues, parameterEnabled, parameterIssues, setParameterGroupValues, setParameterIncluded, updateParameterValue, applyParameterExample } = parameterState
@@ -68,6 +69,7 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
   })).filter((group) => group.parameters.length > 0)
   const pathParameters = parameters.filter((parameter) => parameter.in === 'path')
   const hasRequestConfiguration = authOptions.length > 0 || serverVariableEntries.length > 0 || parameters.length > 0 || requestContents.length > 0
+  const showResponse = compact || Boolean(exchange || error)
 
   function applyRequestExample(exampleKey: string) {
     setSelectedRequestExampleKey(exampleKey)
@@ -192,10 +194,10 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
   }
 
   return (
-    <div className={clsx('clarify-api-request flex min-h-0 min-w-0 flex-col not-prose bg-(--clarify-theme-tokens-colors-surface) [--clarify-theme-tokens-radius-lg:6px] [--clarify-theme-tokens-radius-md:4px] [--clarify-theme-tokens-radius-sm:2px] [--clarify-theme-tokens-radius-xl:8px] [--clarify-ui-accent-background:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_10%,transparent)] [--clarify-ui-accent-border:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_22%,transparent)] [--clarify-ui-accent-text:var(--clarify-theme-tokens-colors-foreground)] [--clarify-ui-active-background:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_12%,transparent)] [--clarify-ui-subtle-background:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)]', compact ? 'h-full' : 'my-6')}>
+    <div className={clsx('clarify-openapi-request flex min-h-0 min-w-0 flex-col not-prose bg-(--clarify-theme-tokens-colors-surface) [--clarify-ui-accent-background:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_10%,transparent)] [--clarify-ui-accent-border:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_22%,transparent)] [--clarify-ui-accent-text:var(--clarify-theme-tokens-colors-foreground)] [--clarify-ui-active-background:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_12%,transparent)] [--clarify-ui-subtle-background:color-mix(in_srgb,var(--clarify-theme-tokens-colors-foreground)_5%,transparent)]', compact ? 'h-full' : 'my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border)')}>
       {renderHeader()}
 
-      <div className="grid min-h-0 flex-1 gap-0 px-0 lg:grid-cols-[minmax(0,1.12fr)_minmax(22rem,0.88fr)]">
+      <div className={clsx('grid min-h-0 flex-1 gap-0 px-0', showResponse && 'lg:grid-cols-[minmax(0,1.12fr)_minmax(22rem,0.88fr)]')}>
         <div className="flex min-h-0 min-w-0 flex-col overflow-y-auto">
           {authOptions.length > 0 ? <RequestSection title={t('openapi.authentication')} count={selectedAuth?.schemes.length ?? 0} defaultOpen>
             <OpenApiAuthPanel authOptions={authOptions} selectedAuthName={selectedAuthName} selectedAuth={selectedAuth} authValues={credentials} onSelectAuth={setSelectedAuthName} onChangeAuthValue={(name, value) => setCredential(credentialScope, name, value)} onClearAuthValue={(name) => clearCredential(credentialScope, name)} />
@@ -217,9 +219,9 @@ export function OpenApiRequestWorkbench(arg0: OpenApiRequestWorkbenchProps): Rea
 
         </div>
 
-        <div className="h-full min-h-0 min-w-0 overflow-hidden border-t border-(--clarify-theme-tokens-colors-border) lg:border-t-0 lg:border-l">
+        {showResponse ? <div className="h-full min-h-0 min-w-0 overflow-hidden border-t border-(--clarify-theme-tokens-colors-border) lg:border-t-0 lg:border-l">
           <OpenApiResponseViewer exchange={exchange} error={error} />
-        </div>
+        </div> : null}
       </div>
     </div>
   )
@@ -233,7 +235,7 @@ export function OpenApiRequestDialog(arg0: OpenApiRequestDialogProps): ReactNode
     <Dialog open={open} onClose={() => {}} className="relative z-50">
       <DialogBackdrop className="fixed inset-0 bg-(--clarify-ui-overlay-background) backdrop-blur-sm" />
       <div className="fixed inset-0 grid place-items-center overflow-y-auto p-3 sm:p-6">
-          <DialogPanel className="relative flex h-[min(46rem,calc(100dvh-1.5rem))] w-full max-w-7xl flex-col overflow-hidden rounded-lg border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) shadow-2xl sm:h-[min(46rem,calc(100dvh-3rem))]">
+          <DialogPanel className="relative flex h-[min(46rem,calc(100dvh-1.5rem))] w-full max-w-7xl flex-col overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) shadow-2xl sm:h-[min(46rem,calc(100dvh-3rem))]">
             <DialogTitle className="sr-only">{t('openapi.tryRequest')}</DialogTitle>
             <OpenApiRequestWorkbench {...workbenchProps} compact onClose={onClose} />
           </DialogPanel>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { getOpenApiOperationEntry, getOpenApiOperationSectionId, listOpenApiOperations, type OpenAPISpec } from './utils'
+import { getOpenApiOperationEntry, getOpenApiOperationEntryById, getOpenApiOperationSectionId, listOpenApiOperations, type OpenAPISpec } from './utils'
 
 describe('OpenAPI operation section ids', () => {
   it('normalizes section ids when listing operations from a raw spec', () => {
@@ -60,5 +60,32 @@ describe('OpenAPI operation section ids', () => {
 
     expect(entry?.source).toBe('webhook')
     expect(entry ? getOpenApiOperationSectionId(entry.operation) : '').toBe('pageLifecycleWebhook')
+  })
+
+  it('resolves a unique operation by operationId', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {
+        '/pets': {
+          get: { operationId: 'listPets', responses: { 200: { description: 'OK' } } },
+        },
+      },
+    }
+
+    expect(getOpenApiOperationEntryById(spec, 'listPets')).toMatchObject({ path: '/pets', method: 'get', source: 'path' })
+  })
+
+  it('does not resolve duplicate operationIds', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {
+        '/pets': { get: { operationId: 'listItems', responses: { 200: { description: 'OK' } } } },
+        '/users': { get: { operationId: 'listItems', responses: { 200: { description: 'OK' } } } },
+      },
+    }
+
+    expect(getOpenApiOperationEntryById(spec, 'listItems')).toBeUndefined()
   })
 })

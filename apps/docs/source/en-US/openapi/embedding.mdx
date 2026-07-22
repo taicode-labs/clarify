@@ -10,6 +10,7 @@ Clarify can render `.openapi.json` / `.openapi.yaml` files as complete API Refer
 |----------|----------------------|
 | Explain which endpoint to call for a step in a tutorial | `OpenApiOperation` |
 | Show complete parameters and responses for a core endpoint on a topic page | `OpenApiOperation` |
+| Let readers send a request and inspect the response without leaving the guide | `OpenApiRequest` |
 | Add explanatory content in an MDX page before showing a complete API Reference | `OpenApiDocument` |
 | Let readers see business explanations and machine-readable specs together | MDX explanation + OpenAPI embedding + raw spec link |
 
@@ -47,7 +48,7 @@ In multilingual sites, English specs can be placed at `source/en-US/api.openapi.
 Use `OpenApiOperation`:
 
 ```mdx
-<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiOperation specPath="/api" operationId="demoBasicRequest" />
 ```
 
 Parameters:
@@ -55,20 +56,23 @@ Parameters:
 | Parameter | Required | Description |
 |-----------|----------|-------------|
 | `specPath` | Yes | Route of the OpenAPI Reference, without the `.openapi.json` suffix, such as `/api` |
-| `path` | Yes | Path in OpenAPI `paths`; it must exactly match the spec, such as `/examples/path-parameters/{pageId}` |
-| `method` | Yes | HTTP method; lowercase is recommended, such as `get`, `post`, `patch` |
+| `operationId` | Yes | Unique OpenAPI `operationId`, such as `demoBasicRequest` |
 
 Rendered result:
 
-<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiOperation specPath="/api" operationId="demoBasicRequest" />
 
 The play button in the operation panel opens an interactive request tester. If sending the request is itself part of the guide flow, you can embed the same tester directly:
 
 ```mdx
-<OpenApiRequest specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiRequest specPath="/api" operationId="demoBasicRequest" requestExample="published" />
 ```
 
-`OpenApiRequest` takes the same parameters as `OpenApiOperation`. It renders only the request workbench, which is ideal when a tutorial wants readers to actually send a request and inspect the response.
+`OpenApiRequest` takes the same parameters as `OpenApiOperation`. Set `requestExample` to an OpenAPI request body or parameter `examples` key to choose the initial example. Matching parameter and request body examples are applied together. It renders only the request workbench, which is ideal when a tutorial wants readers to actually send a request and inspect the response.
+
+Rendered result:
+
+<OpenApiRequest specPath="/api" operationId="demoBasicRequest" requestExample="published" />
 
 ---
 
@@ -77,12 +81,12 @@ The play button in the operation panel opens an interactive request tester. If s
 When an endpoint contains multiple request bodies, multiple examples, multi-status responses, or callbacks, you can embed it with the same component. The following `POST /examples/complex-request-body` covers JSON / YAML request bodies, multiple examples, JSON / text responses, and error responses:
 
 ```mdx
-<OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
+<OpenApiOperation specPath="/api" operationId="demoComplexRequestBody" />
 ```
 
 Rendered result:
 
-<OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
+<OpenApiOperation specPath="/api" operationId="demoComplexRequestBody" />
 
 ---
 

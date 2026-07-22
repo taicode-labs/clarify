@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import { useMDXComponents } from '../mdx/components'
 import { h1, wrapper } from '../mdx/primitives'
+import { OpenApiRequest } from '../openapi'
 
 import { AccordionGroup } from './AccordionGroup'
 import { Collapse } from './Collapse'
@@ -90,5 +91,6 @@ describe('content components', () => {
     expect(components).not.toHaveProperty('Figure')
     expect(components).not.toHaveProperty('Markdown')
     expect(components.Tooltip).toBe(Tooltip)
+    expect(components.OpenApiRequest).toBe(OpenApiRequest)
   })
 })

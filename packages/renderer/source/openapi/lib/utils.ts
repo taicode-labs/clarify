@@ -103,6 +103,11 @@ export function getOpenApiOperationEntry(spec: OpenAPISpec, path: string, method
   return undefined
 }
 
+export function getOpenApiOperationEntryById(spec: OpenAPISpec, operationId: string): OpenAPIOperationEntry | undefined {
+  const matches = listOpenApiOperations(spec).filter(({ operation }) => operation.operationId === operationId)
+  return matches.length === 1 ? matches[0] : undefined
+}
+
 export function listOpenApiOperations(spec: OpenAPISpec): OpenAPIOperationEntry[] {
   const paths = spec.paths ?? {}
   const webhooks = (spec as OpenApiRecord).webhooks

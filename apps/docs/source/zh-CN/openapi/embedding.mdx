@@ -10,6 +10,7 @@ Clarify 不只会把 `.openapi.json` / `.openapi.yaml` 渲染成完整 API Refer
 |------|----------|
 | 在教程中解释某一步调用哪个接口 | `OpenApiOperation` |
 | 在专题页中展示某个核心接口的完整参数和响应 | `OpenApiOperation` |
+| 让读者不离开指南就能发起请求并查看响应 | `OpenApiRequest` |
 | 在 MDX 页面里补充说明后再展示完整 API Reference | `OpenApiDocument` |
 | 让读者同时看到业务说明和机器可读规范 | MDX 说明 + OpenAPI 嵌入 + 原始规范链接 |
 
@@ -47,7 +48,7 @@ Clarify 不只会把 `.openapi.json` / `.openapi.yaml` 渲染成完整 API Refer
 使用 `OpenApiOperation`：
 
 ```mdx
-<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiOperation specPath="/api" operationId="demoBasicRequest" />
 ```
 
 参数说明：
@@ -55,20 +56,23 @@ Clarify 不只会把 `.openapi.json` / `.openapi.yaml` 渲染成完整 API Refer
 | 参数 | 必填 | 说明 |
 |------|------|------|
 | `specPath` | 是 | OpenAPI Reference 的路由，不写 `.openapi.json` 后缀，例如 `/api` |
-| `path` | 是 | OpenAPI `paths` 中的路径，必须和规范完全一致，例如 `/examples/path-parameters/{pageId}` |
-| `method` | 是 | HTTP 方法，建议小写，例如 `get`、`post`、`patch` |
+| `operationId` | 是 | 唯一的 OpenAPI `operationId`，例如 `demoBasicRequest` |
 
 渲染效果：
 
-<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiOperation specPath="/api" operationId="demoBasicRequest" />
 
 接口栏中的播放按钮会打开交互式请求测试器。如果发起请求本身就是指南流程的一部分，可以直接嵌入同一个测试器：
 
 ```mdx
-<OpenApiRequest specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiRequest specPath="/api" operationId="demoBasicRequest" requestExample="published" />
 ```
 
-`OpenApiRequest` 的参数与 `OpenApiOperation` 一致。它只渲染请求工作台，适合在教程中引导读者实际发起一次请求并查看响应。
+`OpenApiRequest` 的基础参数与 `OpenApiOperation` 一致。通过 `requestExample` 指定 OpenAPI 请求体或参数 `examples` 中的 key；同名的参数和请求体示例会一起应用。它只渲染请求工作台，适合在教程中引导读者实际发起一次请求并查看响应。
+
+渲染效果：
+
+<OpenApiRequest specPath="/api" operationId="demoBasicRequest" requestExample="published" />
 
 ---
 
@@ -77,12 +81,12 @@ Clarify 不只会把 `.openapi.json` / `.openapi.yaml` 渲染成完整 API Refer
 当接口包含多种请求体、多个 examples、多状态码响应或回调时，也可以直接嵌入同一个组件。下面的 `POST /examples/complex-request-body` 覆盖 JSON / YAML 请求体、多示例、JSON / text 响应和错误响应：
 
 ```mdx
-<OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
+<OpenApiOperation specPath="/api" operationId="demoComplexRequestBody" />
 ```
 
 渲染效果：
 
-<OpenApiOperation specPath="/api" path="/examples/complex-request-body" method="post" />
+<OpenApiOperation specPath="/api" operationId="demoComplexRequestBody" />
 
 ---
 

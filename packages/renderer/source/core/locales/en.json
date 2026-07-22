@@ -60,7 +60,7 @@
   "openapi.collapse": "Collapse",
   "openapi.clear": "Clear",
   "openapi.codeSnippet": "Code snippet",
-  "openapi.endpointNotFound": "Endpoint not found: {endpoint}",
+  "openapi.endpointNotFound": "Operation not found or operationId is not unique: {endpoint}",
   "openapi.example": "Example",
   "openapi.expand": "Expand",
   "openapi.headers": "Headers",

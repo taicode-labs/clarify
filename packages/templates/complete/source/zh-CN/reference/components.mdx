@@ -60,6 +60,6 @@ export const feature: Feature = {
 
 使用 `OpenApiOperation` 可以从站点的 OpenAPI spec 中嵌入单个操作：
 
-<OpenApiOperation specPath="/api" path="/v1/projects" method="get" />
+<OpenApiOperation specPath="/api" operationId="listProjects" />
 
-<OpenApiOperation specPath="/api" path="/v1/projects" method="post" />
+<OpenApiOperation specPath="/api" operationId="createProject" />

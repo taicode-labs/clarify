@@ -58,7 +58,7 @@ const embeddedGuide = {
   label: 'source/en-US/openapi/embedding.mdx',
   title: 'Embed OpenAPI in MDX',
   body: 'Use MDX for workflow context, then render the exact operation from the spec.',
-  embed: '<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />',
+  embed: '<OpenApiOperation specPath="/api" operationId="demoBasicRequest" />',
   outputs: ['/openapi/embedding', '/api', '/api.openapi.json', '/llms.txt'],
 } satisfies PreviewGuide
 

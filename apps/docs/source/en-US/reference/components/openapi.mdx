@@ -5,14 +5,14 @@
 ## One operation
 
 ```mdx
-<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiOperation specPath="/api" operationId="demoBasicRequest" />
 ```
 
-`path` and `method` must match an operation in the specification.
+`operationId` must uniquely identify an operation in the specification.
 
 Rendered result:
 
-<OpenApiOperation specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiOperation specPath="/api" operationId="demoBasicRequest" />
 
 The play button in the endpoint bar opens an interactive request tester. Users can select a server and authentication scheme, edit parameters and the request body, then inspect the status, duration, headers, and response body.
 
@@ -21,10 +21,12 @@ The play button in the endpoint bar opens an interactive request tester. Users c
 Embed the same request tester directly in a guide when trying the endpoint is part of the workflow:
 
 ```mdx
-<OpenApiRequest specPath="/api" path="/examples/basic-request" method="get" />
+<OpenApiRequest specPath="/api" operationId="demoBasicRequest" requestExample="published" />
 ```
 
-<OpenApiRequest specPath="/api" path="/examples/basic-request" method="get" />
+`requestExample` selects the initial OpenAPI request body or parameter example by key. Matching parameter and request body examples are applied together.
+
+<OpenApiRequest specPath="/api" operationId="demoBasicRequest" requestExample="published" />
 
 ## Complete reference
 
@@ -43,11 +45,10 @@ Limit the reference by tags:
 | Component | Prop | Type | Description |
 |-----------|------|------|-------------|
 | `OpenApiOperation` | `specPath` | `string` | Configured OpenAPI specification path |
-| `OpenApiOperation` | `path` | `string` | Operation path, such as `/sessions` |
-| `OpenApiOperation` | `method` | `string` | Case-insensitive HTTP method |
+| `OpenApiOperation` | `operationId` | `string` | Unique OpenAPI operation identifier |
 | `OpenApiRequest` | `specPath` | `string` | Configured OpenAPI specification path |
-| `OpenApiRequest` | `path` | `string` | Operation path, such as `/sessions` |
-| `OpenApiRequest` | `method` | `string` | Case-insensitive HTTP method |
+| `OpenApiRequest` | `operationId` | `string` | Unique OpenAPI operation identifier |
+| `OpenApiRequest` | `requestExample` | `string` | Initial request body or parameter example key |
 | `OpenApiDocument` | `specPath` | `string` | Configured OpenAPI specification path |
 | `OpenApiDocument` | `tagFilter` | `string[]` | Includes only operations with matching tags |
 

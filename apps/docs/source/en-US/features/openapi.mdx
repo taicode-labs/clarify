@@ -108,7 +108,7 @@ Product-level API documentation should not be just a reference. We recommend wri
 
 Use an access token to call protected endpoints. After the token expires, recreate the session.
 
-<OpenApiOperation specPath="/api" path="/sessions" method="post" />
+<OpenApiOperation specPath="/api" operationId="createSession" />
 ```
 
 `OpenApiOperation` parameters:
@@ -116,8 +116,7 @@ Use an access token to call protected endpoints. After the token expires, recrea
 | Parameter | Description |
 |------|------|
 | `specPath` | The OpenAPI route, without the `.openapi.json` suffix, e.g. `/api` |
-| `path` | The path in the OpenAPI `paths`, which must match exactly |
-| `method` | The HTTP method, lowercase is recommended, e.g. `get`, `post`, `patch` |
+| `operationId` | The unique OpenAPI `operationId` for the operation |
 
 To insert a complete reference in MDX, use:
 
@@ -205,6 +204,6 @@ The quality of an API reference depends largely on the OpenAPI spec itself. We r
     Check whether the OpenAPI file is under `source`, whether its name uses `.openapi.json`, `.openapi.yaml`, or `.openapi.yml`, and whether `specPath` is written as a route rather than a file name.
   </Collapse>
   <Collapse title="Endpoint not found?">
-    Check whether `path` matches the OpenAPI `paths` key exactly, whether path parameters use the `{id}` form, and whether `method` exists under that path.
+    Check whether the operation defines the requested `operationId` and whether that ID is unique across paths and webhooks.
   </Collapse>
 </AccordionGroup>

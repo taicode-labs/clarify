@@ -60,7 +60,7 @@
   "openapi.collapse": "收起",
   "openapi.clear": "清除",
   "openapi.codeSnippet": "代码示例",
-  "openapi.endpointNotFound": "未找到端点：{endpoint}",
+  "openapi.endpointNotFound": "未找到 operation，或 operationId 不唯一：{endpoint}",
   "openapi.example": "示例",
   "openapi.expand": "展开",
   "openapi.headers": "请求头",
