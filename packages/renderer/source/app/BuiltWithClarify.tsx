@@ -28,14 +28,6 @@ function getSiteHostname(): string {
   return window.location.hostname.slice(0, 100)
 }
 
-function getPagePath(): string {
-  return window.location.pathname.slice(0, 100)
-}
-
-function getPageTitle(): string {
-  return document.title.slice(0, 100)
-}
-
 function getPageLanguage(): string {
   return (document.documentElement.lang || (typeof navigator === 'undefined' ? '' : navigator.language)).slice(0, 100)
 }
@@ -58,28 +50,35 @@ function getClarifyVersion(version?: string): string {
   return version?.slice(0, 100) ?? ''
 }
 
-function trackClarifySiteView(version?: string): void {
-  if (typeof fetch === 'undefined') return
+function createClarifySiteViewPayload(version?: string): string {
+  return JSON.stringify({
+    client_id: getClientId(),
+    event_name: 'clarify_site_view',
+    params: {
+      timezone: getTimezone(),
+      site_hostname: getSiteHostname(),
+      page_language: getPageLanguage(),
+      clarify_version: getClarifyVersion(version),
+      viewport_category: getViewportCategory(),
+    },
+  })
+}
+
+function registerClarifySiteView(version?: string): (() => void) | undefined {
   if (typeof window === 'undefined') return
   if (typeof document === 'undefined') return
+  if (typeof navigator === 'undefined' || typeof navigator.sendBeacon !== 'function') return
 
-  void fetch(CLARIFY_TRACKING_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      client_id: getClientId(),
-      event_name: 'clarify_site_view',
-      params: {
-        timezone: getTimezone(),
-        page_path: getPagePath(),
-        page_title: getPageTitle(),
-        site_hostname: getSiteHostname(),
-        page_language: getPageLanguage(),
-        clarify_version: getClarifyVersion(version),
-        viewport_category: getViewportCategory(),
-      },
-    }),
-  }).catch(() => {})
+  let sent = false
+  const send = () => {
+    if (sent) return
+    sent = true
+    navigator.sendBeacon(CLARIFY_TRACKING_URL, createClarifySiteViewPayload(version))
+  }
+
+  window.addEventListener('pagehide', send)
+
+  return () => window.removeEventListener('pagehide', send)
 }
 
 export function BuiltWithClarify(props: BuiltWithClarifyProps) {
@@ -87,7 +86,7 @@ export function BuiltWithClarify(props: BuiltWithClarifyProps) {
   const t = useBuiltInText()
 
   useEffect(() => {
-    trackClarifySiteView(version)
+    return registerClarifySiteView(version)
   }, [version])
 
   return (
