@@ -1,27 +1,69 @@
+import { useEffect } from 'react'
+
 import clarifyMarkUrl from '../assets/clarify.svg?url'
 import { useBuiltInText } from '../core/i18n'
 
-// Tracking endpoint hosted on clarify.pub. Loaded via a hidden iframe so the
-// host site never runs our analytics scripts - the iframe reports a page view
-// to our GA4 property with the host site as the HTTP referrer, which is all we
-// need to know which sites use Clarify. Zero impact on the host site.
-const CLARIFY_TRACKING_URL = 'https://clarify.pub/api/track'
+const CLARIFY_TRACKING_URL = 'https://api.clarify.pub/track'
+const CLARIFY_CLIENT_ID_KEY = 'clarify.client_id'
+
+function getClientId(): string {
+  const newClientId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}.${Math.random()}`
+
+  try {
+    const clientId = window.localStorage.getItem(CLARIFY_CLIENT_ID_KEY)
+    if (clientId) return clientId
+
+    window.localStorage.setItem(CLARIFY_CLIENT_ID_KEY, newClientId)
+    return newClientId
+  } catch {
+    return newClientId
+  }
+}
+
+function getSiteHostname(): string {
+  return window.location.hostname.slice(0, 100)
+}
+
+function getPagePath(): string {
+  return window.location.pathname.slice(0, 100)
+}
+
+function getPageTitle(): string {
+  return document.title.slice(0, 100)
+}
+
+function getPageLanguage(): string {
+  return (document.documentElement.lang || (typeof navigator === 'undefined' ? '' : navigator.language)).slice(0, 100)
+}
+
+function trackClarifySiteView(): void {
+  if (typeof window === 'undefined' || typeof document === 'undefined' || typeof window.fetch !== 'function') return
+
+  void window.fetch(CLARIFY_TRACKING_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      client_id: getClientId(),
+      event_name: 'clarify_site_view',
+      params: {
+        page_path: getPagePath(),
+        page_title: getPageTitle(),
+        site_hostname: getSiteHostname(),
+        page_language: getPageLanguage(),
+      },
+    }),
+  }).catch(() => {})
+}
 
 export function BuiltWithClarify() {
   const t = useBuiltInText()
 
+  useEffect(() => {
+    trackClarifySiteView()
+  }, [])
+
   return (
     <div className="clarify-built-with inline-flex items-center gap-1.5">
-      <iframe
-        tabIndex={-1}
-        aria-hidden="true"
-        title={t('builtWith.label')}
-        src={CLARIFY_TRACKING_URL}
-        // Hidden but still loads: display:none would still load in most
-        // browsers, but width/height:0 + position:absolute keeps it out of
-        // layout and accessibility tree reliably.
-        style={{ position: 'absolute', width: 0, height: 0, border: 0, overflow: 'hidden' }}
-      />
       <a
         href="https://clarify.pub"
         target="_blank"
