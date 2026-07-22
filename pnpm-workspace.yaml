@@ -7,4 +7,9 @@ allowBuilds:
   '@vscode/vsce-sign': true
   esbuild: true
   keytar: true
+  sharp: set this to true or false
   unrs-resolver: true
+  workerd: set this to true or false
+
+minimumReleaseAgeExclude:
+  - '@cloudflare/workers-types@5.20260722.1'
