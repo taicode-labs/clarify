@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { handleRequest, type Env } from '../source/index'
+import { handleRequest, type Env, workerFetch } from '../source/index'
 
 const env: Env = {
   GA_API_SECRET: 'secret',
@@ -44,6 +44,29 @@ describe('analytics API', () => {
         },
       ],
     })
+  })
+
+  it('uses the global fetcher when invoked as a Cloudflare handler', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(null, { status: 204 }),
+    )
+    vi.stubGlobal('fetch', fetcher)
+
+    const response = await workerFetch(
+      new Request('https://api.example.com/track', {
+        method: 'POST',
+        body: JSON.stringify({
+          client_id: 'client-123',
+          event_name: 'docs_search',
+        }),
+      }),
+      env,
+      {} as ExecutionContext,
+    )
+
+    expect(response.status).toBe(204)
+    expect(fetcher).toHaveBeenCalledOnce()
+    vi.unstubAllGlobals()
   })
 
   it('rejects invalid event names before calling GA4', async () => {

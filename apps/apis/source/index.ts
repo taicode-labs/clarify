@@ -160,6 +160,10 @@ export async function handleRequest(request: Request, env: Env, fetcher: Fetcher
   return new Response(null, { status: 204, headers })
 }
 
-export default {
-  fetch: handleRequest,
+export function workerFetch(request: Request, env: Env, _context: ExecutionContext): Promise<Response> {
+  return handleRequest(request, env)
 }
+
+export default {
+  fetch: workerFetch,
+} satisfies ExportedHandler<Env>
