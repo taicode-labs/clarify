@@ -61,9 +61,8 @@ export function MermaidViewer(arg0: MermaidViewerProps): ReactNode {
         <TransformComponent
           wrapperClass="!w-full !cursor-grab active:!cursor-grabbing"
           contentClass="!w-full justify-center [&_svg]:h-auto [&_svg]:max-w-full"
-          wrapperStyle={{ height: 'min(70vh, 32rem)' }}
         >
-          <div className="flex h-full w-full items-center justify-center p-4" dangerouslySetInnerHTML={{ __html: svg }} />
+          <div className="flex w-full items-center justify-center p-4" dangerouslySetInnerHTML={{ __html: svg }} />
         </TransformComponent>
         <p
           className={clsx(
