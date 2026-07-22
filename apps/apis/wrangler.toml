@@ -2,7 +2,8 @@ name = "clarify-apis"
 main = "source/index.ts"
 compatibility_date = "2026-07-22"
 
-[vars]
+[secrets]
+required = ["GA_API_SECRET", "GA_MEASUREMENT_ID"]
 
 [observability]
 enabled = true
