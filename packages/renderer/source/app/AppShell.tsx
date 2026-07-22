@@ -526,7 +526,7 @@ export function AppShell(arg0: AppShellProps) {
           <RuntimeSlot name="page.footer.replace" default={DefaultFooterComponent} />
         </div>
         <div className="clarify-page-attribution flex justify-end sm:self-end">
-          <BuiltWithClarify />
+          <BuiltWithClarify version={config.version} />
         </div>
       </div>
     )

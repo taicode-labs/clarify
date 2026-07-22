@@ -6,6 +6,10 @@ import { useBuiltInText } from '../core/i18n'
 const CLARIFY_TRACKING_URL = 'https://api.clarify.pub/track'
 const CLARIFY_CLIENT_ID_KEY = 'clarify.client_id'
 
+type BuiltWithClarifyProps = {
+  version?: string
+}
+
 function getClientId(): string {
   const newClientId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}.${Math.random()}`
 
@@ -36,38 +40,62 @@ function getPageLanguage(): string {
   return (document.documentElement.lang || (typeof navigator === 'undefined' ? '' : navigator.language)).slice(0, 100)
 }
 
-function trackClarifySiteView(): void {
-  if (typeof window === 'undefined' || typeof document === 'undefined' || typeof window.fetch !== 'function') return
+function getViewportCategory(): string {
+  if (window.innerWidth < 768) return 'mobile'
+  if (window.innerWidth < 1024) return 'tablet'
+  return 'desktop'
+}
 
-  void window.fetch(CLARIFY_TRACKING_URL, {
+function getTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone.slice(0, 100)
+  } catch {
+    return ''
+  }
+}
+
+function getClarifyVersion(version?: string): string {
+  return version?.slice(0, 100) ?? ''
+}
+
+function trackClarifySiteView(version?: string): void {
+  if (typeof fetch === 'undefined') return
+  if (typeof window === 'undefined') return
+  if (typeof document === 'undefined') return
+
+  void fetch(CLARIFY_TRACKING_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       client_id: getClientId(),
       event_name: 'clarify_site_view',
       params: {
+        timezone: getTimezone(),
         page_path: getPagePath(),
         page_title: getPageTitle(),
         site_hostname: getSiteHostname(),
         page_language: getPageLanguage(),
+        clarify_version: getClarifyVersion(version),
+        viewport_category: getViewportCategory(),
       },
     }),
   }).catch(() => {})
 }
 
-export function BuiltWithClarify() {
+export function BuiltWithClarify(props: BuiltWithClarifyProps) {
+  const { version } = props
   const t = useBuiltInText()
 
   useEffect(() => {
-    trackClarifySiteView()
-  }, [])
+    trackClarifySiteView(version)
+  }, [version])
 
   return (
     <div className="clarify-built-with inline-flex items-center gap-1.5">
       <a
-        href="https://clarify.pub"
         target="_blank"
         rel="noreferrer"
+        href="https://clarify.pub"
         aria-label={t('builtWith.label')}
         className="clarify-built-with inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-medium no-underline transition"
       >
