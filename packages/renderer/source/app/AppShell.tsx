@@ -84,32 +84,49 @@ function resolveRouteComponent(route: RouteItem): ComponentType {
   return route.component as ComponentType
 }
 
-function scrollToHash(hash: string) {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return
-  if (!hash) return
+const HASH_SCROLL_RETRY_DELAYS = [0, 100, 300, 700, 1200]
+const HASH_SCROLL_SUPPRESSION_MS = 1500
+
+export function scrollToHash(hash: string): () => void {
+  if (typeof window === 'undefined' || typeof document === 'undefined' || !hash) return () => {}
 
   const targetId = safeDecodeURIComponent(hash.slice(1))
-  const tryScrollToTarget = (attempt = 0) => {
+  const timeouts: ReturnType<typeof setTimeout>[] = []
+  let cancelled = false
+
+  const cancel = () => {
+    cancelled = true
+    timeouts.forEach(clearTimeout)
+  }
+  const cancelOnScrollKey = (event: KeyboardEvent) => {
+    if (['ArrowDown', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp', ' '].includes(event.key)) cancel()
+  }
+  const tryScrollToTarget = (attempt: number) => {
+    if (cancelled) return
     const target = document.getElementById(targetId)
+    if (!target) return
 
-    if (!target) {
-      if (attempt < 12) {
-        window.requestAnimationFrame(() => {
-          tryScrollToTarget(attempt + 1)
-        })
-      }
-      return
-    }
-
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    target.scrollIntoView({ behavior: attempt === 0 ? 'smooth' : 'auto', block: 'start' })
     window.requestAnimationFrame(() => {
       window.dispatchEvent(new Event('scroll'))
     })
   }
 
-  window.requestAnimationFrame(() => {
-    tryScrollToTarget()
+  window.addEventListener('wheel', cancel, { passive: true })
+  window.addEventListener('touchmove', cancel, { passive: true })
+  window.addEventListener('pointerdown', cancel, { passive: true })
+  window.addEventListener('keydown', cancelOnScrollKey)
+  HASH_SCROLL_RETRY_DELAYS.forEach((delay, attempt) => {
+    timeouts.push(setTimeout(() => tryScrollToTarget(attempt), delay))
   })
+
+  return () => {
+    cancel()
+    window.removeEventListener('wheel', cancel)
+    window.removeEventListener('touchmove', cancel)
+    window.removeEventListener('pointerdown', cancel)
+    window.removeEventListener('keydown', cancelOnScrollKey)
+  }
 }
 
 function explicitLocaleForPath(config: Config, pathname: string): string | undefined {
@@ -285,12 +302,11 @@ function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
     if (typeof window === 'undefined') return
 
     if (location.hash) {
-      hashScrollSuppressedUntilRef.current = Date.now() + 1200
-      scrollToHash(location.hash)
-      return
+      hashScrollSuppressedUntilRef.current = Number.POSITIVE_INFINITY
+      return scrollToHash(location.hash)
     }
 
-    hashScrollSuppressedUntilRef.current = Date.now() + 1200
+    hashScrollSuppressedUntilRef.current = Date.now() + HASH_SCROLL_SUPPRESSION_MS
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     window.requestAnimationFrame(() => {
       window.dispatchEvent(new Event('scroll'))

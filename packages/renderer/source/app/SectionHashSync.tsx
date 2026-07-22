@@ -2,8 +2,6 @@ import { useEffect, useRef } from 'react'
 import type { RefObject } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { safeDecodeURIComponent } from '../utils/hash'
-
 import { useSectionStore } from './SectionProvider'
 
 type SectionHashSyncProps = {
@@ -61,12 +59,9 @@ export function SectionHashSync(arg0: SectionHashSyncProps) {
 
   useEffect(() => {
     if (!sections.length || !visibleSections.length) return
-    if (!location.hash && Date.now() < hashScrollSuppressedUntilRef.current) return
+    if (Date.now() < hashScrollSuppressedUntilRef.current) return
 
     const visibleSectionId = visibleSections.find((id) => id !== '_top' && sections.some((section) => section.id === id))
-    const hashSectionId = location.hash ? safeDecodeURIComponent(location.hash.slice(1)) : undefined
-
-    if (hashSectionId && Date.now() < hashScrollSuppressedUntilRef.current && !visibleSections.includes(hashSectionId)) return
 
     hashUpdateTimeoutRef.current = setTimeout(() => {
       replaceHash(visibleSections[0] === '_top' ? undefined : visibleSectionId)
