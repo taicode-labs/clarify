@@ -96,7 +96,7 @@ export function Tabs(arg0: TabsProps) {
       </TabList>
       <TabPanels className={panelsClassName ?? 'mt-5'}>
         {resolvedItems.map((item) => (
-          <TabPanel key={item.id} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)">
+          <TabPanel key={item.id} unmount={false} className="focus:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)">
             {item.panel}
           </TabPanel>
         ))}

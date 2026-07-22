@@ -225,7 +225,7 @@ function CodeGroupPanels(arg0: CodeGroupPanelsProps) {  const { children, ...pro
     return (
       <TabPanels>
         {Children.map(children, (child) => (
-          <TabPanel>
+          <TabPanel unmount={false}>
             <CodePanel {...props}>{child}</CodePanel>
           </TabPanel>
         ))}

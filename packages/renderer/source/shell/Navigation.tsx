@@ -200,29 +200,28 @@ function NavigationBranch(arg0: NavigationBranchProps) {
         <ChevronRight className="clarify-navigation-chevron ml-2 h-3.5 w-3.5 shrink-0 transition-transform duration-150 group-aria-expanded:rotate-90" />
       </button>
 
-      <AnimatePresence initial={false}>
-        {expanded ? (
-          <motion.div
-            id={controlsId}
-            className="clarify-navigation-branch-content grid grid-cols-[auto_minmax(0,1fr)] overflow-hidden"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1, transition: { duration: 0.18, ease: 'easeOut' } }}
-            exit={{ height: 0, opacity: 0, transition: { duration: 0.12, ease: 'easeIn' } }}
-          >
-            <div className="grid">
-              <ChevronRight aria-hidden="true" className="invisible col-start-1 row-start-1 h-3.5 w-3.5" />
-            </div>
-            <div className="col-start-2">
-              <NavigationNodes
-                nodes={node.children ?? []}
-                pathname={pathname}
-                currentLocale={currentLocale}
-                ancestorsExpanded={ancestorsExpanded && expanded}
-              />
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      <motion.div
+        id={controlsId}
+        aria-hidden={!expanded}
+        inert={!expanded}
+        className="clarify-navigation-branch-content grid grid-cols-[auto_minmax(0,1fr)] overflow-hidden"
+        initial={false}
+        animate={expanded
+          ? { height: 'auto', opacity: 1, visibility: 'visible', transition: { duration: 0.18, ease: 'easeOut' } }
+          : { height: 0, opacity: 0, visibility: 'hidden', transition: { duration: 0.12, ease: 'easeIn', visibility: { delay: 0.12 } } }}
+      >
+        <div className="grid">
+          <ChevronRight aria-hidden="true" className="invisible col-start-1 row-start-1 h-3.5 w-3.5" />
+        </div>
+        <div className="col-start-2">
+          <NavigationNodes
+            nodes={node.children ?? []}
+            pathname={pathname}
+            currentLocale={currentLocale}
+            ancestorsExpanded={ancestorsExpanded && expanded}
+          />
+        </div>
+      </motion.div>
     </li>
   )
 }

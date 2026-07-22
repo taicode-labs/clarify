@@ -47,6 +47,9 @@ describe('Navigation', () => {
 
     expect(html).toContain('aria-expanded="true"')
     expect(html).toContain('aria-expanded="false"')
+    expect(html).toContain('Advanced')
+    expect(html).toContain('href="/guides/advanced/performance"')
+    expect(html).toContain('Performance')
     expect(html).toMatch(/aria-current="page"[^>]+href="\/guides\/configure"/)
     expect(html).not.toMatch(/aria-current="page"[^>]+href="\/guides\/start"/)
     expect(html).toMatch(/clarify-navigation-section-indent[^>]*>\s*<svg[^>]*>.*?<\/svg>\s*<\/span>.*?Overview/)

@@ -323,7 +323,11 @@ function SchemaNode(arg0: ExpandableSchemaNodeProps): ReactNode {
       ) : (
         <div className={rowClassName}>{content}</div>
       )}
-      {hasChildren && expanded ? <SchemaTree nodes={node.children} depth={depth + 1} forceExpanded={forceExpanded} /> : null}
+      {hasChildren ? (
+        <div hidden={!expanded}>
+          <SchemaTree nodes={node.children} depth={depth + 1} forceExpanded={forceExpanded} />
+        </div>
+      ) : null}
     </li>
   )
 }

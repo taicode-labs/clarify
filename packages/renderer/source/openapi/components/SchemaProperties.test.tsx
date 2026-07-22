@@ -282,8 +282,9 @@ describe('SchemaProperties', () => {
 
     expect(markup).toContain('status')
     expect(markup).toContain('aria-expanded="false"')
-    expect(markup).not.toContain('Draft content')
-    expect(markup).not.toContain('Published content')
+    expect(markup).toContain('hidden=""')
+    expect(markup).toContain('Draft content')
+    expect(markup).toContain('Published content')
   })
 
   it('renders enum value descriptions from object-form x-enumDescriptions when present', () => {
@@ -334,8 +335,9 @@ describe('SchemaProperties', () => {
 
     expect(markup).toContain('status')
     expect(markup).toContain('aria-expanded="false"')
-    expect(markup).not.toContain('active')
-    expect(markup).not.toContain('archived')
+    expect(markup).toContain('hidden=""')
+    expect(markup).toContain('active')
+    expect(markup).toContain('archived')
   })
 
   it('collapses enum branches by default', () => {

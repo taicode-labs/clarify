@@ -35,6 +35,7 @@ describe('Tabs', () => {
     expect(html).toContain('role="tablist"')
     expect(html).toContain('role="tab"')
     expect(html).toContain('aria-selected="true"')
+    expect(html).toContain('pnpm add clarify')
     expect(html).toContain('npm install clarify')
   })
 
@@ -70,5 +71,7 @@ describe('CodeGroup', () => {
 
     expect(html).toContain('pnpm')
     expect(html).toContain('npm')
+    expect(html).toContain('pnpm add clarify')
+    expect(html).toContain('npm install clarify')
   })
 })
