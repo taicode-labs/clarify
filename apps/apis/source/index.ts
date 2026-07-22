@@ -103,7 +103,11 @@ export async function handleRequest(request: Request, env: Env, fetcher: Fetcher
 
   if (request.method === 'OPTIONS') {
     headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    headers.set('Access-Control-Allow-Headers', 'Content-Type')
+    headers.set(
+      'Access-Control-Allow-Headers',
+      request.headers.get('Access-Control-Request-Headers') ?? '*',
+    )
+    headers.set('Access-Control-Max-Age', '86400')
     return new Response(null, { status: 204, headers })
   }
 

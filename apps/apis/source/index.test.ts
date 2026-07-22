@@ -66,12 +66,18 @@ describe('analytics API', () => {
     const response = await handleRequest(
       new Request('https://api.example.com/track', {
         method: 'OPTIONS',
-        headers: { Origin: 'https://unknown.example' },
+        headers: {
+          Origin: 'https://docs.clarify.pub',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'cache-control, content-type, x-custom-header',
+        },
       }),
       env,
     )
 
     expect(response.status).toBe(204)
     expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*')
+    expect(response.headers.get('Access-Control-Allow-Headers')).toBe('cache-control, content-type, x-custom-header')
+    expect(response.headers.get('Access-Control-Max-Age')).toBe('86400')
   })
 })
