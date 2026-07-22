@@ -1,39 +1,48 @@
-name: Lint & Test
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  lint-test:
+  check:
+    name: Lint, typecheck, test & build
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [24]
+    timeout-minutes: 30
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Setup Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: Setup Node 24
+        uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 24
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Lint
+        run: pnpm lint
+
       - name: Typecheck
         run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
 
       - name: Build
         run: pnpm build
@@ -43,11 +52,4 @@ jobs:
         run: pnpm exec vsce package --no-dependencies
 
       - name: Verify VS Code extension artifact
-        run: ls extensions/vscode/*.vsix
-
-      - name: Test
-        run: pnpm test
-
-      # Uncomment when lint tools are configured
-      # - name: Lint
-      #   run: pnpm lint
+        run: test -n "$(find extensions/vscode -maxdepth 1 -name '*.vsix' -print -quit)"

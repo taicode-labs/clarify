@@ -8,6 +8,7 @@
     "dev": "wrangler dev",
     "build": "wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
+    "lint": "eslint source/",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

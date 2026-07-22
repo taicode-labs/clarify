@@ -6,6 +6,7 @@ dist
 *.tsbuildinfo
 .vite
 .turbo
+.wrangler
 .reference
 .clarify.log
 .react-router

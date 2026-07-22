@@ -15,6 +15,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout release tag
         uses: actions/checkout@v6
@@ -32,6 +33,32 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify release version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs')
+          const paths = [
+            'package.json',
+            'apps/apis/package.json',
+            'apps/docs/package.json',
+            'apps/www/package.json',
+            'extensions/vscode/package.json',
+            'packages/cli/package.json',
+            'packages/renderer/package.json',
+            'packages/templates/package.json',
+          ]
+          const releaseVersion = process.env.RELEASE_TAG.replace(/^v/, '')
+          const mismatches = paths.filter(path => JSON.parse(fs.readFileSync(path, 'utf8')).version !== releaseVersion)
+          if (mismatches.length > 0) {
+            throw new Error(`Release ${releaseVersion} does not match: ${mismatches.join(', ')}`)
+          }
+          NODE
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Typecheck
         run: pnpm typecheck

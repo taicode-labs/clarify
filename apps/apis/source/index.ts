@@ -44,12 +44,7 @@ function responseHeaders(request: Request, env: Env): Headers {
   return headers
 }
 
-function jsonResponse(
-  request: Request,
-  env: Env,
-  body: Record<string, string>,
-  status: number,
-): Response {
+function jsonResponse(request: Request, env: Env, body: Record<string, string>, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: responseHeaders(request, env),
@@ -90,11 +85,7 @@ function isValidPayload(payload: TrackPayload): payload is {
   )
 }
 
-async function trackEvent(
-  payload: TrackPayload,
-  env: Env,
-  fetcher: Fetcher,
-): Promise<boolean> {
+async function trackEvent(payload: TrackPayload, env: Env, fetcher: Fetcher): Promise<boolean> {
   const endpoint = new URL('https://www.google-analytics.com/mp/collect')
   endpoint.searchParams.set('measurement_id', env.GA_MEASUREMENT_ID)
   endpoint.searchParams.set('api_secret', env.GA_API_SECRET)
@@ -124,11 +115,7 @@ async function trackEvent(
   return result.ok
 }
 
-export async function handleRequest(
-  request: Request,
-  env: Env,
-  fetcher: Fetcher = fetch,
-): Promise<Response> {
+export async function handleRequest(request: Request, env: Env, fetcher: Fetcher = fetch): Promise<Response> {
   const url = new URL(request.url)
   const headers = responseHeaders(request, env)
 
