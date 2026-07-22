@@ -222,6 +222,7 @@ describe('SchemaProperties', () => {
 
     expect(markup).toContain('address')
     expect(markup).toContain('postalCode')
+    expect(markup).toContain('city')
     expect(markup).toContain('aria-expanded="true"')
   })
 
@@ -231,6 +232,7 @@ describe('SchemaProperties', () => {
 
     const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} query="unmatched" />)
 
+    expect(markup).toContain('name')
     expect(markup).toContain('No request body properties match the current search.')
   })
 
@@ -282,7 +284,7 @@ describe('SchemaProperties', () => {
 
     expect(markup).toContain('status')
     expect(markup).toContain('aria-expanded="false"')
-    expect(markup).toContain('hidden=""')
+    expect(markup).toContain('hidden')
     expect(markup).toContain('Draft content')
     expect(markup).toContain('Published content')
   })
@@ -335,7 +337,7 @@ describe('SchemaProperties', () => {
 
     expect(markup).toContain('status')
     expect(markup).toContain('aria-expanded="false"')
-    expect(markup).toContain('hidden=""')
+    expect(markup).toContain('hidden')
     expect(markup).toContain('active')
     expect(markup).toContain('archived')
   })

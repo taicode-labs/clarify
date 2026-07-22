@@ -22,6 +22,7 @@ type SchemaTreeNode = {
   required: boolean
   defaultExpanded?: boolean
   children: SchemaTreeNode[]
+  visible?: boolean
 }
 
 function getEnumDescriptions(schema: Record<string, unknown>): Array<string | undefined> {
@@ -250,7 +251,7 @@ function EnumValueNode(arg0: SchemaNodeProps): ReactNode {
   const { node } = arg0
 
   return (
-    <li className="clarify-schema-node m-0 p-0">
+    <li className={clsx('clarify-schema-node m-0 p-0', node.visible === false && 'hidden')}>
       <div className="flex min-w-0 items-start rounded-(--clarify-theme-tokens-radius-md) px-2 py-2 text-left">
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -309,7 +310,7 @@ function SchemaNode(arg0: ExpandableSchemaNodeProps): ReactNode {
   )
 
   return (
-    <li className="clarify-schema-node m-0 p-0">
+    <li className={clsx('clarify-schema-node m-0 p-0', node.visible === false && 'hidden')}>
       {hasChildren ? (
         <button
           type="button"
@@ -324,7 +325,7 @@ function SchemaNode(arg0: ExpandableSchemaNodeProps): ReactNode {
         <div className={rowClassName}>{content}</div>
       )}
       {hasChildren ? (
-        <div hidden={!expanded}>
+        <div className={clsx(!expanded && 'hidden')}>
           <SchemaTree nodes={node.children} depth={depth + 1} forceExpanded={forceExpanded} />
         </div>
       ) : null}
@@ -354,19 +355,17 @@ function SchemaTree(arg0: SchemaTreeProps): ReactNode {
   )
 }
 
-function filterSchemaNodes(nodes: SchemaTreeNode[], query: string): SchemaTreeNode[] {
-  if (!query.trim()) return nodes
+function markSchemaNodesVisibility(nodes: SchemaTreeNode[], query: string): SchemaTreeNode[] {
+  if (!query) return nodes.map((node) => ({ ...node, visible: true, children: markSchemaNodesVisibility(node.children, query) }))
 
-  return nodes.flatMap((node) => {
-    const children = filterSchemaNodes(node.children, query)
+  return nodes.map((node) => {
+    const children = markSchemaNodesVisibility(node.children, query)
     const searchableText = getSchemaSearchText(node.name, {
       type: node.type,
       description: node.description,
       pattern: node.details,
     })
-    return fuzzyMatch(searchableText, query) || children.length > 0
-      ? [{ ...node, children }]
-      : []
+    return { ...node, visible: fuzzyMatch(searchableText, query) || children.some((child) => child.visible), children }
   })
 }
 
@@ -387,15 +386,16 @@ export function SchemaProperties(arg0: SchemaPropertiesProps): ReactNode {
 
   if (!root || root.children.length === 0) return null
 
-  const filteredNodes = filterSchemaNodes(root.children, query)
-  const hasQuery = Boolean(query.trim())
+  const normalizedQuery = query.trim()
+  const nodes = markSchemaNodesVisibility(root.children, normalizedQuery)
+  const hasQuery = Boolean(normalizedQuery)
+  const hasVisibleNodes = nodes.some((node) => node.visible)
   const resolvedEmptyText = emptyText ?? t('openapi.noBodyProperties')
 
   return (
     <OpenApiDocumentSection title={title} level={4} bodyClassName="clarify-schema-properties not-prose">
-      {filteredNodes.length > 0
-        ? <SchemaTree nodes={filteredNodes} forceExpanded={hasQuery} />
-        : <p className="m-0 py-2 text-sm/5 text-(--clarify-ui-text-soft)">{resolvedEmptyText}</p>}
+      <SchemaTree nodes={nodes} forceExpanded={hasQuery} />
+      <p className={clsx('m-0 py-2 text-sm/5 text-(--clarify-ui-text-soft)', hasVisibleNodes && 'hidden')}>{resolvedEmptyText}</p>
     </OpenApiDocumentSection>
   )
 }

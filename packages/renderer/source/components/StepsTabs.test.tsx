@@ -37,6 +37,8 @@ describe('Tabs', () => {
     expect(html).toContain('aria-selected="true"')
     expect(html).toContain('pnpm add clarify')
     expect(html).toContain('npm install clarify')
+    expect(html).toMatch(/class="[^"]*hidden[^"]*"[^>]*role="tabpanel"/)
+    expect(html).not.toContain(' hidden=""')
   })
 
   it('uses an explicit panel class in place of the default spacing', () => {
@@ -73,5 +75,7 @@ describe('CodeGroup', () => {
     expect(html).toContain('npm')
     expect(html).toContain('pnpm add clarify')
     expect(html).toContain('npm install clarify')
+    expect(html).toMatch(/class="hidden data-selected:block"[^>]*role="tabpanel"/)
+    expect(html).not.toContain(' hidden=""')
   })
 })

@@ -217,7 +217,8 @@ function CodeGroupHeader(arg0: CodeGroupHeaderProps) {  const { title, children,
 
 type CodeGroupPanelsProps = ComponentPropsWithoutRef<typeof CodePanel>
 
-function CodeGroupPanels(arg0: CodeGroupPanelsProps) {  const { children, ...props } = arg0
+function CodeGroupPanels(arg0: CodeGroupPanelsProps) {
+  const { children, ...props } = arg0
 
   const hasTabs = Children.count(children) > 1
 
@@ -225,7 +226,7 @@ function CodeGroupPanels(arg0: CodeGroupPanelsProps) {  const { children, ...pro
     return (
       <TabPanels>
         {Children.map(children, (child) => (
-          <TabPanel unmount={false}>
+          <TabPanel static className="hidden data-selected:block">
             <CodePanel {...props}>{child}</CodePanel>
           </TabPanel>
         ))}
