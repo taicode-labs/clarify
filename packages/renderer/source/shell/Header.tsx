@@ -10,7 +10,7 @@ import { useBuiltInText } from '../i18n'
 import { storeLocalePreference } from '../theme/cookies'
 import { ThemeToggle } from '../theme/ThemeToggle'
 import type { Config, LocaleConfig, NavbarLink, NavigationNode, NavigationTab, RouteItem } from '../types'
-import { isExternalHref, localizeHref } from '../utils/href'
+import { isExternalHref, localizeHref, resolveHomeHref } from '../utils/href'
 import { resolveLocalizedText } from '../utils/localized-text'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
@@ -125,11 +125,6 @@ function TopLevelNavItem(arg0: TopLevelNavItemProps) {  const { href, active = f
 }
 
 type MobileNavbarMenuProps = { links?: NavbarLink[]; config: Config; currentLocale?: string }
-
-function resolveHomeHref(config: Config, currentLocale?: string): string {
-  const homeUrl = config.homeUrl ?? '/'
-  return isExternalHref(homeUrl) ? homeUrl : localizeHref(homeUrl, config, currentLocale)
-}
 
 function MobileNavbarMenu(arg0: MobileNavbarMenuProps) {
   const { links, config, currentLocale } = arg0
@@ -376,7 +371,7 @@ export const Header = forwardRef<
       <div className="clarify-header-actions flex shrink-0 items-center gap-1">
         {renderTopLinks()}
         {hasNavbarLinks ? <div className="mx-2 hidden h-5 w-px bg-(--clarify-theme-tokens-colors-border) md:block md:dark:bg-white/15" /> : null}
-        <MobileSearch routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
+        <MobileSearch routes={routes} navigation={navigation} />
         <LanguageSwitcher config={config} currentLocale={currentLocale} currentRoute={currentRoute} />
         <ThemeToggle />
         <MobileNavbarMenu links={config.navigation?.links} config={config} currentLocale={currentLocale} />
@@ -400,7 +395,7 @@ export const Header = forwardRef<
           {renderBrand()}
         </div>
         <div className="clarify-header-center absolute left-1/2 hidden -translate-x-1/2 lg:block">
-          <Search routes={routes} navigation={navigation} routePrefix={config.routePrefix} currentLocale={currentLocale} />
+          <Search routes={routes} navigation={navigation} />
         </div>
         {renderHeaderActions()}
       </div>

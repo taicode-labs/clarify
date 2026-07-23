@@ -3,6 +3,7 @@ import { CheckIcon, ChevronDownIcon, CopyIcon, ServerIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 
 import { Heading } from '../../components/Heading'
+import { useConfigOptional } from '../../core/context'
 import { useBuiltInText } from '../../core/i18n'
 import { copyTextToClipboard } from '../../utils/clipboard'
 import { getMediaTypeEntries, getResponseEntries, joinPath } from '../lib/helpers'
@@ -346,6 +347,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
 
 export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
   const { spec, path, method, operation, operationSource = 'path' } = arg0
+  const playgroundEnabled = useConfigOptional()?.features.openapi.playground ?? true
 
   const id = getOpenApiOperationSectionId(operation)
   const summary = operation.summary ?? `${method} ${path}`
@@ -374,9 +376,9 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
         onSelectServer={serverState.onSelectServer}
         onChangeServerVariable={serverState.onChangeServerVariable}
         onToggleServer={serverState.onToggleServer}
-        onTryRequest={() => setRequestOpen(true)}
+        onTryRequest={playgroundEnabled ? () => setRequestOpen(true) : undefined}
       />
-      <OpenApiRequestDialog open={requestOpen} onClose={() => setRequestOpen(false)} spec={spec} path={path} method={method} operation={operation} operationSource={operationSource} />
+      {playgroundEnabled ? <OpenApiRequestDialog open={requestOpen} onClose={() => setRequestOpen(false)} spec={spec} path={path} method={method} operation={operation} operationSource={operationSource} /> : null}
       <EndpointRequest
         spec={spec}
         path={path}

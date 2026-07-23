@@ -49,6 +49,10 @@ describe('content artifacts plugin server helpers', () => {
     expect(resolveContentArtifactPath('/docs/guide.md', { ...projectConfig, routePrefix: '/docs' })).toBe('/guide.md')
   })
 
+  it('preserves paths that only share the route prefix text', () => {
+    expect(resolveContentArtifactPath('/docs-extra/guide.md', { ...projectConfig, routePrefix: '/docs' })).toBe('/docs-extra/guide.md')
+  })
+
   it('uses markdown content type for mdx routes', () => {
     expect(resolveContentArtifactType(createRoute('markdown+jsx', '/guide.md'))).toBe('text/markdown; charset=utf-8')
   })

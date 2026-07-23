@@ -18,6 +18,11 @@ export function localizeHref(href: string, config: Config, locale?: string): str
   return `/${locale}${cleanHref ? `/${cleanHref}` : ''}`
 }
 
+export function resolveHomeHref(config: Config, locale?: string): string {
+  const homeUrl = config.homeUrl ?? '/'
+  return isExternalHref(homeUrl) ? homeUrl : localizeHref(homeUrl, config, locale)
+}
+
 export function prefixHref(href: string, routePrefix: string = '/'): string {
   if (isExternalHref(href) || href.startsWith('#')) return href
   if (!routePrefix || routePrefix === '/') return href.startsWith('/') ? href : `/${href}`
@@ -27,4 +32,13 @@ export function prefixHref(href: string, routePrefix: string = '/'): string {
   if (!path) return `/${prefix}`
   if (path === prefix || path.startsWith(`${prefix}/`)) return `/${path}`
   return `/${prefix}/${path}`
+}
+
+export function resolveAbsoluteSiteHref(href: string, config: Config, fallbackBase?: string): string {
+  const path = prefixHref(href, config.routePrefix)
+  if (isExternalHref(path)) return path
+
+  const base = config.siteUrl ?? fallbackBase
+  if (!base) return path
+  return new URL(path, base.endsWith('/') ? base : `${base}/`).href
 }

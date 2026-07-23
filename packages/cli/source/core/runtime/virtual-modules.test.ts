@@ -78,7 +78,15 @@ describe('generateConfigModule', () => {
       variables: projectConfig.variables,
       features: projectConfig.features,
     }
-    expect(code).toBe(`export const config = ${JSON.stringify(expected)};`)
+    expect(code).toBe(`export const config = ${JSON.stringify(expected)};\nexport const runtime = {"themeEditor":false};`)
+  })
+
+  it('exports the resolved theme editor runtime flag', () => {
+    const projectConfig: ResolvedProjectConfig = {
+      title: 'Test', description: 'Desc', routePrefix: '/', assetPrefix: '/', theme: resolveThemeConfig(), variables: {}, features: resolveFeaturesConfig(),
+    }
+
+    expect(generateConfigModule(projectConfig, undefined, true)).toContain('export const runtime = {"themeEditor":true};')
   })
 })
 
@@ -265,19 +273,14 @@ describe('buildVirtualModules', () => {
 })
 
 describe('createClientEntryModule', () => {
-  it('passes the theme editor flag to the renderer', () => {
-    const code = createClientEntryModule({ themeEditor: true })
+  it('passes the resolved runtime theme editor flag to the renderer', () => {
+    const code = createClientEntryModule()
 
     expect(code).toContain("import { runtimeSlots } from 'virtual:clarify/slots';")
     expect(code).toContain("import { openApiSpecs } from 'virtual:clarify/openapi';")
-    expect(code).toContain('const renderOptions = { config, routes, navigation, openApiSpecs, runtimeSlots, themeEditor: true };')
+    expect(code).toContain("import { config, runtime } from 'virtual:clarify/config';")
+    expect(code).toContain('const renderOptions = { config, routes, navigation, openApiSpecs, runtimeSlots, themeEditor: runtime.themeEditor };')
     expect(code).toContain("import.meta.hot.accept('virtual:clarify/routes'")
-  })
-
-  it('disables the theme editor by default', () => {
-    const code = createClientEntryModule()
-
-    expect(code).toContain('const renderOptions = { config, routes, navigation, openApiSpecs, runtimeSlots, themeEditor: false };')
   })
 })
 

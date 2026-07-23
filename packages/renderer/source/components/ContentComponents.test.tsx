@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
+import { ConfigContext } from '../core/context'
+import type { Config } from '../core/types'
 import { useMDXComponents } from '../mdx/components'
 import { h1, wrapper } from '../mdx/primitives'
 import { OpenApiRequest } from '../openapi'
@@ -11,9 +13,28 @@ import { FileTree, FileTreeItem } from './FileTree'
 import { Image } from './Image'
 import { Tooltip } from './Tooltip'
 
+const config = {
+  routePrefix: '/',
+  assetPrefix: '/',
+  features: {
+    search: { enabled: true, mcp: true },
+    repository: { enabled: true },
+    themeEditor: { enabled: false },
+    openapi: { enabled: true, playground: true },
+  },
+} as Config
+
+function renderPage(children: React.ReactNode): string {
+  return renderToStaticMarkup(
+    <ConfigContext.Provider value={config}>
+      {children}
+    </ConfigContext.Provider>,
+  )
+}
+
 describe('content components', () => {
   it('keeps page headings independent from page actions', () => {
-    const html = renderToStaticMarkup(
+    const html = renderPage(
       wrapper({
         children: [
           h1({ children: 'Page title' }),
@@ -27,7 +48,7 @@ describe('content components', () => {
   })
 
   it('renders a page without a heading', () => {
-    const html = renderToStaticMarkup(wrapper({ children: <p>Page content</p> }))
+    const html = renderPage(wrapper({ children: <p>Page content</p> }))
 
     expect(html).toContain('Page content')
     expect(html).toContain('clarify-mdx-page')

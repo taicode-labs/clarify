@@ -39,7 +39,7 @@ export function routeOutputFiles(outputDirectory: string, route: ContentRoute): 
 
 export const SSR_ENTRY_CODE = `import { renderToHTML } from '@clarify-labs/renderer/server';
 import { routes, navigation } from 'virtual:clarify/routes/server';
-import { config } from 'virtual:clarify/config';
+import { config, runtime } from 'virtual:clarify/config';
 import { openApiSpecs } from 'virtual:clarify/openapi/server';
 import { runtimeSlots } from 'virtual:clarify/slots';
 
@@ -51,7 +51,7 @@ export async function render(url) {
     const mod = await entry.loadComponent()
     entry._resolved = mod.default
   }))
-  return renderToHTML({ config, routes, navigation, openApiSpecs, runtimeSlots, url, themeEditor: config.theme.editor });
+  return renderToHTML({ config, routes, navigation, openApiSpecs, runtimeSlots, url, themeEditor: runtime.themeEditor });
 }`
 
 export function createTempEntryFile(content: string): string {

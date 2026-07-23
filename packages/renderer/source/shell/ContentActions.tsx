@@ -2,14 +2,14 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Check, ChevronDown, Copy, ExternalLink, FileText, Link2, LoaderCircle, PencilLine, Terminal, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { useConfig } from '../core/context'
 import { useBuiltInText } from '../i18n'
 import type { RouteItem } from '../types'
 import { copyTextToClipboard } from '../utils/clipboard'
-import { prefixHref } from '../utils/href'
+import { prefixHref, resolveAbsoluteSiteHref } from '../utils/href'
 
 type ContentActionsProps = {
   route?: RouteItem
-  routePrefix?: string
 }
 
 type CopyState = 'idle' | 'content' | 'link' | 'llms' | 'mcp'
@@ -27,13 +27,11 @@ function resolveContentArtifactUrl(contentArtifactUrl: string, routePrefix: stri
   return prefixHref(contentArtifactUrl, routePrefix)
 }
 
-function getAbsoluteUrl(path: string): string {
-  if (typeof window === 'undefined') return path
-  return new URL(path, window.location.href).href
-}
-
 export function ContentActions(arg0: ContentActionsProps) {
-  const { route, routePrefix } = arg0
+  const { route } = arg0
+  const config = useConfig()
+  const routePrefix = config.routePrefix
+  const mcpEnabled = config.features.search.enabled && config.features.search.mcp
   const t = useBuiltInText()
   const [copied, setCopied] = useState<CopyState>('idle')
   const [copyPhase, setCopyPhase] = useState<CopyPhase>('idle')
@@ -78,6 +76,10 @@ export function ContentActions(arg0: ContentActionsProps) {
 
   const llmsArtifactUrl = resolveContentArtifactUrl('/llms.txt', routePrefix)
 
+  function getAbsoluteUrl(path: string): string {
+    return resolveAbsoluteSiteHref(path, config, typeof window === 'undefined' ? undefined : window.location.href)
+  }
+
   async function handleCopyLink() {
     if (!contentArtifactUrl) return
     await runCopy('link', () => getAbsoluteUrl(contentArtifactUrl))
@@ -88,21 +90,22 @@ export function ContentActions(arg0: ContentActionsProps) {
   }
 
   async function handleCopyMcp() {
-    await runCopy('mcp', () => mcpConfig)
-  }
-
-  const mcpConfig = JSON.stringify(
-    {
-      mcpServers: {
-        clarify: {
-          command: 'npx',
-          args: ['@clarify-labs/cli', 'mcp', window.location.origin],
+    await runCopy('mcp', () => {
+      const siteUrl = getAbsoluteUrl('/')
+      return JSON.stringify(
+        {
+          mcpServers: {
+            clarify: {
+              command: 'npx',
+              args: ['@clarify-labs/cli', 'mcp', siteUrl],
+            },
+          },
         },
-      },
-    },
-    null,
-    2,
-  )
+        null,
+        2,
+      )
+    })
+  }
 
   const actions: CopyAction[] = contentArtifactUrl
     ? [
@@ -301,7 +304,7 @@ export function ContentActions(arg0: ContentActionsProps) {
               <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${copied === llmsAction.key ? 'opacity-100' : 'opacity-0'}`} />
             </button>
           </MenuItem>
-          <MenuItem key={mcpAction.key}>
+          {mcpEnabled ? <MenuItem key={mcpAction.key}>
             <button
               type="button"
               onClick={mcpAction.run}
@@ -316,7 +319,7 @@ export function ContentActions(arg0: ContentActionsProps) {
               </span>
               <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${copied === mcpAction.key ? 'opacity-100' : 'opacity-0'}`} />
             </button>
-          </MenuItem>
+          </MenuItem> : null}
         </MenuItems>
       </Menu>
     </div>

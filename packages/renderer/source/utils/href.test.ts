@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { Config } from '../types'
 
-import { hasLocalePrefix, isExternalHref, localizeHref, prefixHref } from './href'
+import { hasLocalePrefix, isExternalHref, localizeHref, prefixHref, resolveAbsoluteSiteHref, resolveHomeHref } from './href'
 
 const baseConfig = {
   title: 'Test',
@@ -88,6 +88,20 @@ describe('localizeHref', () => {
   })
 })
 
+describe('resolveHomeHref', () => {
+  it('localizes the configured internal home URL', () => {
+    expect(resolveHomeHref({ ...baseConfig, homeUrl: '/start' }, 'zh-CN')).toBe('/zh-CN/start')
+  })
+
+  it('localizes the default root home URL', () => {
+    expect(resolveHomeHref(baseConfig, 'zh-CN')).toBe('/zh-CN')
+  })
+
+  it('preserves an external home URL', () => {
+    expect(resolveHomeHref({ ...baseConfig, homeUrl: 'https://example.com' }, 'zh-CN')).toBe('https://example.com')
+  })
+})
+
 describe('prefixHref', () => {
   it('returns href unchanged when no prefix', () => {
     expect(prefixHref('/docs')).toBe('/docs')
@@ -103,5 +117,18 @@ describe('prefixHref', () => {
 
   it('returns external URLs unchanged', () => {
     expect(prefixHref('https://example.com', '/app')).toBe('https://example.com')
+  })
+})
+
+describe('resolveAbsoluteSiteHref', () => {
+  it('uses the configured site URL instead of the runtime origin', () => {
+    const config = { ...baseConfig, siteUrl: 'https://docs.example.com', routePrefix: '/reference/' }
+
+    expect(resolveAbsoluteSiteHref('/', config, 'https://preview.example.com/current')).toBe('https://docs.example.com/reference')
+    expect(resolveAbsoluteSiteHref('/llms.txt', config, 'https://preview.example.com/current')).toBe('https://docs.example.com/reference/llms.txt')
+  })
+
+  it('falls back to a runtime base when siteUrl is not configured', () => {
+    expect(resolveAbsoluteSiteHref('/llms.txt', baseConfig, 'https://preview.example.com/current')).toBe('https://preview.example.com/llms.txt')
   })
 })

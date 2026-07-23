@@ -1,6 +1,7 @@
 import { Search as SearchIcon } from 'lucide-react'
 import { lazy, Suspense } from 'react'
 
+import { useConfig, useLocale } from '../core/context'
 import { useBuiltInText } from '../i18n'
 import type { NavigationNode, RouteItem } from '../types'
 
@@ -13,13 +14,17 @@ function getModifierKey() {
   return /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? '⌘' : 'Ctrl '
 }
 
-export type SearchProps = { routes: RouteItem[]; navigation: NavigationNode[]; routePrefix?: string; currentLocale?: string }
+export type SearchProps = { routes: RouteItem[]; navigation: NavigationNode[] }
 
-export function Search(arg0: SearchProps) {  const { routes, navigation, routePrefix, currentLocale } = arg0
+export function Search(arg0: SearchProps) {  const { routes, navigation } = arg0
 
+  const config = useConfig()
+  const currentLocale = useLocale() ?? config.locales?.default
   const t = useBuiltInText()
   const modifierKey = getModifierKey()
   const { buttonProps, dialogProps } = useSearchProps()
+
+  if (!config.features.search.enabled) return null
 
   return (
     <div className="clarify-search hidden w-80 max-w-(--clarify-search-max-width) lg:block">
@@ -36,7 +41,7 @@ export function Search(arg0: SearchProps) {  const { routes, navigation, routePr
         </kbd>
       </button>
       <Suspense fallback={null}>
-        <SearchDialog className="hidden lg:block" routes={routes} navigation={navigation} routePrefix={routePrefix} currentLocale={currentLocale} {...dialogProps} />
+        <SearchDialog className="hidden lg:block" routes={routes} navigation={navigation} routePrefix={config.routePrefix} assetPrefix={config.assetPrefix} currentLocale={currentLocale} {...dialogProps} />
       </Suspense>
     </div>
   )
@@ -45,21 +50,21 @@ export function Search(arg0: SearchProps) {  const { routes, navigation, routePr
 export type MobileSearchProps = {
   routes: RouteItem[]
   navigation: NavigationNode[]
-  routePrefix?: string
-  currentLocale?: string
   onNavigate?: () => void
 }
 
 export function MobileSearch(arg0: MobileSearchProps) {  const {
   routes,
   navigation,
-  routePrefix,
-  currentLocale,
   onNavigate,
 } = arg0
 
+  const config = useConfig()
+  const currentLocale = useLocale() ?? config.locales?.default
   const t = useBuiltInText()
   const { buttonProps, dialogProps } = useSearchProps()
+
+  if (!config.features.search.enabled) return null
 
   return (
     <div className="clarify-mobile-search contents lg:hidden">
@@ -73,7 +78,7 @@ export function MobileSearch(arg0: MobileSearchProps) {  const {
         <SearchIcon className="h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-white" />
       </button>
       <Suspense fallback={null}>
-        <SearchDialog className="lg:hidden" routes={routes} navigation={navigation} routePrefix={routePrefix} currentLocale={currentLocale} onNavigate={onNavigate} {...dialogProps} />
+        <SearchDialog className="lg:hidden" routes={routes} navigation={navigation} routePrefix={config.routePrefix} assetPrefix={config.assetPrefix} currentLocale={currentLocale} onNavigate={onNavigate} {...dialogProps} />
       </Suspense>
     </div>
   )

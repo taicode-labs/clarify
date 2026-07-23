@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import { LocalizedLink } from '../../components/LocalizedLink'
 import { useConfig, useLocale } from '../../core/context'
 import { useBuiltInText } from '../../core/i18n'
-import { localizeHref, prefixHref } from '../../utils/href'
+import { localizeHref } from '../../utils/href'
 import { useOpenApiSpec } from '../lib/spec-path'
 import { getOpenApiOperationEntryById, getOpenApiOperationSectionId } from '../lib/utils'
 
@@ -41,7 +41,7 @@ export function OpenApiLink(arg0: OpenApiLinkProps): ReactNode {
 
   const sectionId = getOpenApiOperationSectionId(entry.operation) || operationId
   const targetPath = hrefOverride ?? specPath
-  const href = `${prefixHref(localizeHref(targetPath, config, locale), config.routePrefix)}#${sectionId}`
+  const href = `${localizeHref(targetPath, config, locale)}#${sectionId}`
   const method = entry.method.toUpperCase()
   const title = entry.operation.summary?.trim() || ''
 

@@ -1,17 +1,10 @@
 import clsx from 'clsx'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
-import { useConfig } from '../core/context'
+import { useConfig, useLocale } from '../core/context'
 import type { Config, NavbarLink } from '../core/types'
 import { isExternalHref, localizeHref } from '../utils/href'
 import { resolveLocalizedText } from '../utils/localized-text'
-
-function localeForPath(config: Config, pathname: string): string | undefined {
-  const locales = config.locales
-  if (!locales) return undefined
-  const firstSegment = pathname.split('/').filter(Boolean)[0]
-  return locales.locales.find((locale) => locale.code === firstSegment)?.code ?? locales.default
-}
 
 type FooterLinkProps = { link: NavbarLink; locale?: string; config: Config }
 
@@ -56,8 +49,7 @@ function SocialLink(arg0: SocialLinkProps) {
 
 export function PageFooter() {
   const config = useConfig()
-  const location = useLocation()
-  const locale = localeForPath(config, location.pathname)
+  const locale = useLocale() ?? config.locales?.default
   const footer = config.footer
   const links = footer?.links ?? []
   const socials = Object.entries(footer?.socials ?? {})

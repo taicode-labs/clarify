@@ -29,10 +29,10 @@ const spec: OpenAPISpec = {
   },
 }
 
-function render(operationId: string, href?: string, inline = false) {
+function render(operationId: string, href?: string, inline = false, routePrefix = '/') {
   return renderToStaticMarkup(
-    <MemoryRouter initialEntries={['/guide']}>
-      <ConfigContext.Provider value={config}>
+    <MemoryRouter basename={routePrefix} initialEntries={[`${routePrefix === '/' ? '' : routePrefix}/guide`]}>
+      <ConfigContext.Provider value={{ ...config, routePrefix }}>
         <OpenApiSpecsContext.Provider value={{ 'virtual:clarify-page/api': spec }}>
           <OpenApiLink specPath="/api" operationId={operationId} href={href} inline={inline} />
         </OpenApiSpecsContext.Provider>
@@ -61,6 +61,10 @@ describe('OpenApiLink', () => {
 
   it('supports a different public OpenAPI document path', () => {
     expect(render('listPets', '/reference/api')).toContain('href="/reference/api#listPets"')
+  })
+
+  it('lets the router apply the configured route prefix once', () => {
+    expect(render('listPets', undefined, false, '/docs')).toContain('href="/docs/api#listPets"')
   })
 
   it('renders a compact inline link when requested', () => {

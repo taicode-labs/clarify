@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { Suspense, lazy, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { ComponentType, CSSProperties } from 'react'
-import { Link, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
 import { LocaleContext } from '../context'
 import { useBuiltInText } from '../core/i18n'
@@ -13,6 +13,7 @@ import { safeDecodeURIComponent } from '../utils/hash'
 import { resolveLocalizedText } from '../utils/localized-text'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
+import { BuiltInNotFoundPage } from './BuiltInNotFoundPage'
 import { BuiltWithClarify } from './BuiltWithClarify'
 import { PageErrorBoundary } from './ErrorBoundary'
 import { PageActionsProvider } from './PageActions'
@@ -381,23 +382,6 @@ function getAppShellLayoutConfig(hasTabs: boolean, hasBanner: boolean): LayoutCo
   return appShellLayoutConfig[getLayoutVariant(hasTabs, hasBanner)]
 }
 
-function BuiltInNotFoundPage() {
-  const text = useBuiltInText()
-
-  return (
-    <section className="mx-auto flex min-h-(--clarify-error-page-min-height) max-w-2xl flex-col justify-center py-16 text-(--clarify-theme-tokens-colors-foreground)" aria-labelledby="clarify-not-found-title">
-      <p className="text-sm/6 font-semibold text-(--clarify-theme-tokens-colors-primary)">{text('notFound.label')}</p>
-      <h1 id="clarify-not-found-title" className="mt-3 text-3xl/9 font-semibold tracking-tight text-(--clarify-theme-tokens-colors-foreground)">{text('notFound.title')}</h1>
-      <p className="mt-4 text-sm/6 text-(--clarify-theme-tokens-colors-muted)">{text('notFound.description')}</p>
-      <div className="mt-8">
-        <Link className="inline-flex items-center rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-theme-tokens-colors-primary) px-3 py-2 text-sm/5 font-semibold text-white shadow-xs transition hover:opacity-90" to="/">
-          {text('notFound.home')}
-        </Link>
-      </div>
-    </section>
-  )
-}
-
 type NotFoundRouteElementProps = {
   component?: ComponentType;
 }
@@ -535,7 +519,7 @@ export function AppShell(arg0: AppShellProps) {
   function renderContent() {
     return (
       <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10', layoutConfig.contentClassName)}>
-        <PageActionsProvider route={currentRoute} routePrefix={config.routePrefix}>
+        <PageActionsProvider route={currentRoute}>
           {renderMain()}
           <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
           {renderFooter()}

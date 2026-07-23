@@ -25,10 +25,6 @@ type BuildVirtualModulesArgs = {
   themeEditor?: boolean
 }
 
-type CreateClientEntryModuleOptions = {
-  themeEditor?: boolean
-}
-
 export function resolveVirtualId(id: string): string {
   return '\0' + id
 }
@@ -83,7 +79,7 @@ export function resolveVirtualModuleId(id: string, modules: VirtualModules, rout
   return null
 }
 
-export function generateConfigModule(projectConfig: ResolvedProjectConfig, version?: string): string {
+export function generateConfigModule(projectConfig: ResolvedProjectConfig, version?: string, themeEditor = false): string {
   const runtimeConfig: Record<string, unknown> = {
     title: projectConfig.title,
     description: projectConfig.description,
@@ -104,7 +100,7 @@ export function generateConfigModule(projectConfig: ResolvedProjectConfig, versi
   if (version) {
     runtimeConfig.version = version
   }
-  return `export const config = ${JSON.stringify(runtimeConfig)};`
+  return `export const config = ${JSON.stringify(runtimeConfig)};\nexport const runtime = ${JSON.stringify({ themeEditor })};`
 }
 
 function moduleSpecifier(value: string): string {
@@ -197,15 +193,15 @@ export function generateRoutesModule(routes: ContentRoute[], navigation: Navigat
   return `${imports}\n\nexport const routes = [\n${routeEntries}\n];\n\nexport const navigation = ${JSON.stringify(navigation, null, 2)};\n`
 }
 
-export function createClientEntryModule(options: CreateClientEntryModuleOptions = {}): string {
+export function createClientEntryModule(): string {
   return `
 import '@clarify-labs/renderer/style.css';
 import { render } from '@clarify-labs/renderer/client';
 import { routes, navigation } from '${VIRTUAL_ROUTES}';
-import { config } from '${VIRTUAL_CONFIG}';
+import { config, runtime } from '${VIRTUAL_CONFIG}';
 import { openApiSpecs } from '${VIRTUAL_OPENAPI}';
 import { runtimeSlots } from '${VIRTUAL_SLOTS}';
-const renderOptions = { config, routes, navigation, openApiSpecs, runtimeSlots, themeEditor: ${JSON.stringify(options.themeEditor ?? false)} };
+const renderOptions = { config, routes, navigation, openApiSpecs, runtimeSlots, themeEditor: runtime.themeEditor };
 render(renderOptions);
 if (import.meta.hot) {
   import.meta.hot.accept('${VIRTUAL_ROUTES}', (mod) => {
@@ -279,12 +275,12 @@ export default createContentDiagnosticComponent(contentDiagnostic);
 
 export function buildVirtualModules(args: BuildVirtualModulesArgs): VirtualModules {
   const modules: VirtualModules = new Map()
-  const clientEntryModule = createClientEntryModule({ themeEditor: args.themeEditor })
+  const clientEntryModule = createClientEntryModule()
   
   // Collect all plugins
   const allPlugins: ClarifyPlugin[] = [...(args.plugins ?? [])]
   
-  modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.version))
+  modules.set(VIRTUAL_CONFIG, generateConfigModule(args.projectConfig, args.version, args.themeEditor))
   modules.set(VIRTUAL_ROUTES, generateRoutesModule(args.routes, args.navigation, 'client'))
   modules.set(VIRTUAL_SERVER_ROUTES, generateRoutesModule(args.routes, args.navigation, 'server'))
   modules.set(VIRTUAL_SLOTS, createRuntimeSlotsModule(allPlugins, args.generateOptions.projectRoot))

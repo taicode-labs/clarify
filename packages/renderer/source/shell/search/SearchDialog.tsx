@@ -18,7 +18,8 @@ type SearchDialogProps = {
   setOpen: (open: boolean) => void
   routes: RouteItem[]
   navigation: NavigationNode[]
-  routePrefix?: string
+  routePrefix: string
+  assetPrefix: string
   currentLocale?: string
   className?: string
   onNavigate?: () => void
@@ -68,6 +69,7 @@ type UseSearchDataArgs = {
   query: string
   searchItems: ReturnType<typeof buildSearchItems>
   routePrefix: string
+  assetPrefix: string
   currentLocale?: string
 }
 
@@ -78,7 +80,7 @@ type SearchDataState = {
 }
 
 function useSearchData(arg0: UseSearchDataArgs): SearchDataState {
-  const { query, searchItems, routePrefix, currentLocale } = arg0
+  const { query, searchItems, routePrefix, assetPrefix, currentLocale } = arg0
   const [fullTextState, setFullTextState] = useState<FullTextSearchState | null>(null)
   const [pagefindState, setPagefindState] = useState<PagefindState | null>(null)
 
@@ -88,7 +90,7 @@ function useSearchData(arg0: UseSearchDataArgs): SearchDataState {
     return searchItems.filter((item) => item.keywords.includes(normalizedQuery)).slice(0, 8).map((item) => ({ ...item, type: 'quick' as const }))
   }, [query, searchItems])
 
-  const pagefindKey = pagefindCacheKey(routePrefix, currentLocale)
+  const pagefindKey = pagefindCacheKey(assetPrefix, currentLocale)
   const activePagefindState = pagefindState?.key === pagefindKey ? pagefindState : null
   const pagefind = activePagefindState?.pagefind ?? null
   const pagefindAvailable = activePagefindState?.available ?? null
@@ -102,7 +104,7 @@ function useSearchData(arg0: UseSearchDataArgs): SearchDataState {
   useEffect(() => {
     let cancelled = false
 
-    loadPagefind(routePrefix, currentLocale).then((loadedPagefind) => {
+    loadPagefind(assetPrefix, currentLocale).then((loadedPagefind) => {
       if (cancelled) return
       setPagefindState({ key: pagefindKey, pagefind: loadedPagefind, available: Boolean(loadedPagefind) })
     })
@@ -110,7 +112,7 @@ function useSearchData(arg0: UseSearchDataArgs): SearchDataState {
     return () => {
       cancelled = true
     }
-  }, [currentLocale, pagefindKey, routePrefix])
+  }, [assetPrefix, currentLocale, pagefindKey])
 
   useEffect(() => {
     let cancelled = false
@@ -157,7 +159,8 @@ export function SearchDialog(arg0: SearchDialogProps) {
     setOpen,
     routes,
     navigation,
-    routePrefix = '/',
+    routePrefix,
+    assetPrefix,
     currentLocale,
     className,
     onNavigate = () => {},
@@ -171,7 +174,7 @@ export function SearchDialog(arg0: SearchDialogProps) {
   const searchItems = useMemo(() => buildSearchItems(routes, navigation), [navigation, routes])
 
   useSearchDialogLifecycle({ open, setOpen })
-  const { results, searchInputLoading, showNoResults } = useSearchData({ query, searchItems, routePrefix, currentLocale })
+  const { results, searchInputLoading, showNoResults } = useSearchData({ query, searchItems, routePrefix, assetPrefix, currentLocale })
 
   const updateQuery = (value: string) => {
     setQuery(value)

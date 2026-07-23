@@ -5,7 +5,6 @@ import type { RouteItem } from '../types'
 
 type PageActionsContextValue = {
   route?: RouteItem
-  routePrefix?: string
 }
 
 type PageActionsProviderProps = PageActionsContextValue & {
@@ -15,17 +14,17 @@ type PageActionsProviderProps = PageActionsContextValue & {
 const PageActionsContext = createContext<PageActionsContextValue>({})
 
 export function PageActionsProvider(props: PageActionsProviderProps) {
-  const { children, route, routePrefix } = props
+  const { children, route } = props
 
   return (
-    <PageActionsContext.Provider value={{ route, routePrefix }}>
+    <PageActionsContext.Provider value={{ route }}>
       {children}
     </PageActionsContext.Provider>
   )
 }
 
 export function PageActions() {
-  const { route, routePrefix } = useContext(PageActionsContext)
+  const { route } = useContext(PageActionsContext)
 
-  return <ContentActions route={route} routePrefix={routePrefix} />
+  return <ContentActions route={route} />
 }

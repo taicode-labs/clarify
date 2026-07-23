@@ -14,7 +14,8 @@ function normalizeRoutePrefix(routePrefix: string): string {
 export function resolveContentArtifactPath(url: string | undefined, projectConfig: ResolvedProjectConfig): string {
   const requestPath = url?.split('?')[0] ?? ''
   const basePath = normalizeRoutePrefix(projectConfig.routePrefix)
-  return basePath && requestPath.startsWith(basePath)
+  const hasBasePath = requestPath === basePath || requestPath.startsWith(`${basePath}/`)
+  return basePath && hasBasePath
     ? requestPath.slice(basePath.length) || '/'
     : requestPath
 }
