@@ -2,7 +2,7 @@
   "name": "clarify-vscode-extension",
   "displayName": "Clarify",
   "description": "Preview Clarify documentation sites directly in VS Code with a local live dev server.",
-  "version": "0.11.7",
+  "version": "0.11.8",
   "icon": "assets/clarify.png",
   "homepage": "https://clarify.dev",
   "bugs": {
