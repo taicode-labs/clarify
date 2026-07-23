@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { AppShell } from '../app/AppShell'
-import { ConfigContext, OpenApiSpecsContext } from '../core/context'
+import { ConfigProvider, OpenApiSpecsContext } from '../core/context'
 import type { Config, NavigationTree, OpenApiRegistry, RouteItem } from '../core/types'
 import type { RuntimeSlotRegistry } from '../slots'
 import { ThemeProvider } from '../theme/ThemeProvider'
@@ -35,12 +35,11 @@ export function ClarifyShell(props: ClarifyShellProps) {
     themeEditor = false,
   } = props
   return (
-    <ConfigContext.Provider value={config}>
+    <ConfigProvider config={config}>
       <OpenApiSpecsContext.Provider value={openApiSpecs}>
         <ThemeProvider>
-          <ThemeRoot theme={config.theme} themeEditor={themeEditor}>
+          <ThemeRoot themeEditor={themeEditor}>
             <AppShell
-              config={config}
               routes={routes}
               navigation={navigation ?? { kind: 'flat', nodes: [] }}
               runtimeSlots={runtimeSlots}
@@ -48,6 +47,6 @@ export function ClarifyShell(props: ClarifyShellProps) {
           </ThemeRoot>
         </ThemeProvider>
       </OpenApiSpecsContext.Provider>
-    </ConfigContext.Provider>
+    </ConfigProvider>
   )
 }

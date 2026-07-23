@@ -6,6 +6,7 @@ import { forwardRef, useCallback, useEffect, useId, useRef, useState } from 'rea
 import type { RefObject } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
+import { useConfig } from '../core/context'
 import { useBuiltInText } from '../i18n'
 import { storeLocalePreference } from '../theme/cookies'
 import { ThemeToggle } from '../theme/ThemeToggle'
@@ -121,6 +122,32 @@ function TopLevelNavItem(arg0: TopLevelNavItemProps) {  const { href, active = f
         {children}
       </Link>
     </li>
+  )
+}
+
+type NavbarTabsProps = { tabs?: NavigationTab[]; currentLocale?: string }
+
+function NavbarTabs(arg0: NavbarTabsProps) {  const { tabs, currentLocale } = arg0
+
+  const pathname = normalizeRoutePath(useLocation().pathname)
+  const t = useBuiltInText()
+
+  if (!tabs?.length) return null
+
+  return (
+    <nav className="clarify-tabs-navbar hidden md:block" aria-label={t('navbar.sections')}>
+      <ul role="list" className="flex items-center gap-0.5">
+        {tabs.map((tab) => {
+          const active = isActiveTab(tab, pathname, currentLocale)
+          return (
+            <TopLevelNavItem key={`${tab.title}-${tab.path}`} href={tab.path} active={active}>
+              <NavigationIcon name={tab.icon} className="mr-1.5 h-4 w-4" />
+              <span>{tab.title}</span>
+            </TopLevelNavItem>
+          )
+        })}
+      </ul>
+    </nav>
   )
 }
 
@@ -304,7 +331,6 @@ function ProductTabs(arg0: ProductTabsProps) {  const { tabs, currentLocale } = 
 export const Header = forwardRef<
   React.ComponentRef<'header'>,
   React.ComponentPropsWithoutRef<typeof motion.header> & {
-    config: Config
     navigation: NavigationNode[]
     tabs?: NavigationTab[]
     routes: RouteItem[]
@@ -313,7 +339,9 @@ export const Header = forwardRef<
     banner?: React.ReactNode
     topAreaRef?: RefObject<HTMLDivElement | null>
   }
->(function Header(arg0, ref) {  const { config, navigation, tabs, routes, currentLocale, currentRoute, banner, topAreaRef, className, ...props } = arg0
+>(function Header(arg0, ref) {
+  const { navigation, tabs, routes, currentLocale, currentRoute, banner, topAreaRef, className, ...props } = arg0
+  const config = useConfig()
 
   const t = useBuiltInText()
   const pathname = normalizeRoutePath(useLocation().pathname)
@@ -326,6 +354,7 @@ export const Header = forwardRef<
   const bgOpacityLight = useTransform(scrollY, [0, 72], ['70%', '95%'])
   const bgOpacityDark = useTransform(scrollY, [0, 72], ['60%', '92%'])
   const hasNavbarLinks = Boolean(config.navigation?.links?.length)
+  const tabsInNavbar = config.layout?.tabs === 'navbar'
 
   function renderBrand() {
     if (homeExternal) {
@@ -369,6 +398,7 @@ export const Header = forwardRef<
   function renderHeaderActions() {
     return (
       <div className="clarify-header-actions flex shrink-0 items-center gap-1">
+        {tabsInNavbar ? <Search compact routes={routes} navigation={navigation} /> : null}
         {renderTopLinks()}
         {hasNavbarLinks ? <div className="mx-2 hidden h-5 w-px bg-(--clarify-theme-tokens-colors-border) md:block md:dark:bg-white/15" /> : null}
         <MobileSearch routes={routes} navigation={navigation} />
@@ -390,12 +420,14 @@ export const Header = forwardRef<
       >
         <div className="clarify-header-left flex min-w-0 items-center gap-5">
           <div className="clarify-mobile-brand flex items-center gap-5 lg:hidden">
-            <MobileNavigation config={config} navigation={navigation} tabs={tabs} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
+            <MobileNavigation navigation={navigation} tabs={tabs} routes={routes} currentLocale={currentLocale} currentRoute={currentRoute} />
           </div>
           {renderBrand()}
         </div>
         <div className="clarify-header-center absolute left-1/2 hidden -translate-x-1/2 lg:block">
-          <Search routes={routes} navigation={navigation} />
+          {tabsInNavbar
+            ? <NavbarTabs tabs={tabs} currentLocale={currentLocale} />
+            : <Search routes={routes} navigation={navigation} />}
         </div>
         {renderHeaderActions()}
       </div>
@@ -407,7 +439,7 @@ export const Header = forwardRef<
       <div ref={topAreaRef}>
         {renderHeaderMain()}
         <div data-clarify-header-banner>{banner}</div>
-        <ProductTabs tabs={tabs} currentLocale={currentLocale} />
+        {!tabsInNavbar ? <ProductTabs tabs={tabs} currentLocale={currentLocale} /> : null}
       </div>
     )
   }

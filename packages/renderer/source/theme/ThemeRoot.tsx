@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
 
-import type { ThemeConfig } from '../types'
+import { useConfig, useConfigUpdater } from '../core/context'
 
 import { ThemeEditor } from './ThemeEditor'
 import { useTheme } from './ThemeProvider'
@@ -9,12 +9,14 @@ import { applyThemeCssVariables, resolveThemeVariableTargets, themeToCssVariable
 
 type ThemeRootProps = {
   children: ReactNode
-  theme: ThemeConfig
   themeEditor?: boolean
 }
 
 export function ThemeRoot(props: ThemeRootProps) {
-  const { children, theme, themeEditor = false } = props
+  const { children, themeEditor = false } = props
+  const config = useConfig()
+  const updateConfig = useConfigUpdater()
+  const theme = config.theme
   const { resolvedTheme } = useTheme()
   const themeVariables = useMemo(() => themeToCssVariables(theme, resolvedTheme), [resolvedTheme, theme])
 
@@ -26,7 +28,7 @@ export function ThemeRoot(props: ThemeRootProps) {
       data-theme-preset={theme.preset}
     >
       {children}
-      {themeEditor ? <ThemeEditor initialTheme={theme} /> : null}
+      {themeEditor ? <ThemeEditor initialTheme={theme} onChange={(nextTheme) => updateConfig(currentConfig => ({ ...currentConfig, theme: nextTheme }))} /> : null}
     </div>
   )
 }

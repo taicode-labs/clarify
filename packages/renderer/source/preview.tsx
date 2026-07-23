@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 import { SectionProvider } from './app/SectionProvider'
 import type { Section } from './app/SectionProvider'
-import { ConfigContext, LocaleContext, OpenApiSpecsContext } from './core/context'
+import { ConfigProvider, LocaleContext, OpenApiSpecsContext } from './core/context'
 import { OpenApiExamplesPreview } from './preview/openapi'
 import type { PreviewEndpoint } from './preview/openapi'
 import { Navigation } from './shell'
@@ -181,7 +181,7 @@ function PreviewEnvironment(arg0: PreviewEnvironmentProps) {
   const { children, sections = [] } = arg0
 
   return (
-    <ConfigContext.Provider value={previewConfig}>
+    <ConfigProvider config={previewConfig}>
       <LocaleContext.Provider value={previewConfig.locales.default}>
         <OpenApiSpecsContext.Provider value={{}}>
           <SectionProvider sections={sections}>
@@ -189,7 +189,7 @@ function PreviewEnvironment(arg0: PreviewEnvironmentProps) {
           </SectionProvider>
         </OpenApiSpecsContext.Provider>
       </LocaleContext.Provider>
-    </ConfigContext.Provider>
+    </ConfigProvider>
   )
 }
 

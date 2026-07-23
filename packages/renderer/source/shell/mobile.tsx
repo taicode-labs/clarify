@@ -7,7 +7,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { create } from 'zustand'
 
 import { useBuiltInText } from '../i18n'
-import type { Config, NavigationNode, NavigationTab, RouteItem } from '../types'
+import type { NavigationNode, NavigationTab, RouteItem } from '../types'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { Header } from './Header'
@@ -71,7 +71,6 @@ function MobileTabsSelect(arg0: MobileTabsSelectProps) {
 }
 
 type MobileNavigationDialogProps = {
-  config: Config
   isOpen: boolean
   navigation: NavigationNode[]
   tabs?: NavigationTab[]
@@ -82,7 +81,6 @@ type MobileNavigationDialogProps = {
 }
 
 function MobileNavigationDialog(arg0: MobileNavigationDialogProps) {  const {
-  config,
   isOpen,
   navigation,
   tabs,
@@ -102,7 +100,6 @@ function MobileNavigationDialog(arg0: MobileNavigationDialogProps) {  const {
       <DialogPanel>
         <TransitionChild>
           <Header
-            config={config}
             navigation={navigation}
             tabs={tabs}
             routes={routes}
@@ -143,7 +140,6 @@ export const useMobileNavigationStore = create<{
 }))
 
 export type MobileNavigationProps = {
-  config: Config
   navigation: NavigationNode[]
   tabs?: NavigationTab[]
   routes: RouteItem[]
@@ -152,7 +148,6 @@ export type MobileNavigationProps = {
 }
 
 export function MobileNavigation(arg0: MobileNavigationProps) {  const {
-  config,
   navigation,
   tabs,
   routes,
@@ -179,7 +174,6 @@ export function MobileNavigation(arg0: MobileNavigationProps) {  const {
       {!isInsideMobileNavigation ? (
         <Suspense fallback={null}>
           <MobileNavigationDialog
-            config={config}
             navigation={navigation}
             tabs={tabs}
             routes={routes}

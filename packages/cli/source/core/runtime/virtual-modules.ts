@@ -90,6 +90,7 @@ export function generateConfigModule(projectConfig: ResolvedProjectConfig, versi
     homeUrl: projectConfig.homeUrl,
     favicon: projectConfig.favicon,
     theme: projectConfig.theme,
+    layout: projectConfig.layout,
     navigation: projectConfig.navigation,
     banner: projectConfig.banner,
     footer: projectConfig.footer,

@@ -80,6 +80,9 @@ export function resolveProjectConfig(config: ClarifyProjectConfig = {}): Resolve
     homeUrl: config.homeUrl,
     favicon: config.favicon,
     theme: resolveThemeConfig(config.theme),
+    layout: {
+      tabs: config.layout?.tabs ?? 'subnav',
+    },
     navigation: config.navigation,
     banner: config.banner,
     footer: config.footer,

@@ -3,6 +3,7 @@ import { ChevronDown, Settings, WandSparkles, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent } from 'react'
 
+import { useConfigOptional, useConfigUpdaterOptional } from '../core/context'
 import type {
   ThemeColorTokensConfig,
   ThemeColorValue,
@@ -12,7 +13,7 @@ import type {
   ThemeRadiusTokensConfig,
 } from '../types'
 
-import { createRandomTheme } from './randomTheme'
+import { createRandomTabsLayout, createRandomTheme } from './randomTheme'
 import { useTheme } from './ThemeProvider'
 import { applyThemeCssVariables, themePresets, cloneTheme, resolveThemeColorValue, resolveThemeVariableTargets, themeToCssVariables } from './variables'
 import type { ThemeVariableTarget } from './variables'
@@ -176,7 +177,7 @@ function ColorModeInput(props: ColorModeInputProps) {
   )
 }
 
-function themeToConfigSource(theme: ThemeConfig): string {
+function configToSource(theme: ThemeConfig, tabs: 'subnav' | 'navbar' = 'subnav'): string {
   return JSON.stringify(
     {
       theme: {
@@ -184,6 +185,7 @@ function themeToConfigSource(theme: ThemeConfig): string {
         tokens: theme.tokens,
         layout: theme.layout,
       },
+      layout: { tabs },
     },
     null,
     2,
@@ -201,7 +203,8 @@ function useThemeEditorState(arg0: UseThemeEditorStateArgs) {
   const { initialTheme, onChange, target, resolvedTheme } = arg0
   const [theme, setTheme] = useState<ThemeConfig>(() => cloneTheme(initialTheme ?? themeEditorPresets.default))
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
-  const configSource = useMemo(() => themeToConfigSource(theme), [theme])
+  const config = useConfigOptional()
+  const configSource = useMemo(() => configToSource(theme, config?.layout?.tabs), [config?.layout?.tabs, theme])
 
   useEffect(() => applyThemeCssVariables(themeToCssVariables(theme, resolvedTheme), resolveThemeVariableTargets(target)), [resolvedTheme, target, theme])
 
@@ -275,6 +278,8 @@ function useThemeEditorState(arg0: UseThemeEditorStateArgs) {
 
 export function ThemeEditor(props: ThemeEditorProps) {
   const { initialTheme, onChange, target, defaultOpen = false, className } = props
+  const config = useConfigOptional()
+  const updateConfig = useConfigUpdaterOptional()
   const { resolvedTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const {
@@ -287,6 +292,14 @@ export function ThemeEditor(props: ThemeEditorProps) {
     updateLayoutToken,
     copyConfig,
   } = useThemeEditorState({ initialTheme, onChange, target, resolvedTheme })
+
+  function randomize() {
+    commit(createRandomTheme())
+    updateConfig?.(currentConfig => ({
+      ...currentConfig,
+      layout: { ...currentConfig.layout, tabs: createRandomTabsLayout() },
+    }))
+  }
 
   function renderPanelHeader() {
     return (
@@ -359,6 +372,26 @@ export function ThemeEditor(props: ThemeEditorProps) {
 
           <fieldset className="grid gap-3">
             <legend className="mb-2 text-xs/5 font-semibold uppercase tracking-wide text-(--clarify-ui-text-faint)">Layout</legend>
+            {config && updateConfig ? (
+              <label htmlFor="clarify-theme-editor-tabs-position" className="grid gap-1.5 text-xs/5 font-medium text-(--clarify-ui-text)">
+                Tabs position
+                <span className="relative block">
+                  <select
+                    id="clarify-theme-editor-tabs-position"
+                    value={config.layout?.tabs ?? 'subnav'}
+                    className="h-9 w-full appearance-none rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 pr-9 text-sm text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
+                    onChange={(event) => updateConfig(currentConfig => ({
+                      ...currentConfig,
+                      layout: { ...currentConfig.layout, tabs: event.target.value as 'subnav' | 'navbar' },
+                    }))}
+                  >
+                    <option value="subnav">Below navbar</option>
+                    <option value="navbar">Inside navbar</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 stroke-current stroke-2 text-(--clarify-ui-text-faint)" />
+                </span>
+              </label>
+            ) : null}
             {layoutFields.map((field) => (
               <TextField
                 key={field.key}
@@ -388,7 +421,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
           <button
             type="button"
             className="inline-flex items-center gap-1.5 rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-1.5 text-xs/5 font-semibold text-(--clarify-ui-text) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-ui-text-strong)"
-            onClick={() => commit(createRandomTheme())}
+            onClick={randomize}
           >
             <WandSparkles className="size-3.5 stroke-current stroke-2" />
             Random

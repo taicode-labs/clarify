@@ -1,6 +1,6 @@
 name = "clarify-apis"
 main = "source/index.ts"
-compatibility_date = "2026-07-22"
+compatibility_date = "2026-07-21"
 
 [secrets]
 required = ["GA_API_SECRET", "GA_MEASUREMENT_ID"]

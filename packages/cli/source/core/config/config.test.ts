@@ -24,6 +24,7 @@ describe('clarifyProjectConfigSchema', () => {
           { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
         ],
       },
+      layout: { tabs: 'navbar' },
       variables: {
         product: { name: 'Clarify' },
         version: '0.8.0',
@@ -44,6 +45,7 @@ describe('clarifyProjectConfigSchema', () => {
           { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
         ],
       },
+      layout: { tabs: 'navbar' },
       variables: {
         product: { name: 'Clarify' },
         version: '0.8.0',
@@ -73,6 +75,7 @@ describe('clarifyProjectConfigSchema', () => {
         tabs: [{ pages: 'FileTree', icon: 'BookOpen', tab: 'Docs' }],
         links: [{ external: true, href: 'https://example.com', label: 'Website' }],
       },
+      layout: { tabs: 'navbar' },
       routePrefix: '/docs',
       title: 'Docs',
     })).toMatchObject({
@@ -154,6 +157,9 @@ describe('resolveProjectConfig', () => {
       favicon: undefined,
       routePrefix: '/',
       assetPrefix: '/',
+      layout: {
+        tabs: 'subnav',
+      },
       theme: {
         preset: 'default',
         tokens: {
@@ -185,6 +191,11 @@ describe('resolveProjectConfig', () => {
       locales: undefined,
       features: resolveProjectConfig({}).features,
     })
+  })
+
+  it('defaults layout tabs to the sub-navigation', () => {
+    expect(resolveProjectConfig({}).layout).toEqual({ tabs: 'subnav' })
+    expect(resolveProjectConfig({ layout: { tabs: 'navbar' } }).layout).toEqual({ tabs: 'navbar' })
   })
 
   it('merges project config with defaults', () => {

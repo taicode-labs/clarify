@@ -1,4 +1,4 @@
-import type { ThemeConfig, ThemeRadiusTokensConfig } from '../types'
+import type { LayoutConfig, ThemeConfig, ThemeRadiusTokensConfig } from '../types'
 
 type RandomThemeAccentPair = {
   primary: string;
@@ -83,6 +83,7 @@ const randomRadiusSets = [
 ] as const satisfies ReadonlyArray<ThemeRadiusTokensConfig>
 
 const randomLayoutWidths = ['72rem', '76rem', '78rem', '80rem', '82rem', '86rem', '90rem', '96rem', '104rem', '112rem', '120rem', '128rem', '144rem'] as const
+const randomTabsLayouts = ['subnav', 'navbar'] as const satisfies readonly LayoutConfig['tabs'][]
 
 type RandomThemeSelection = {
   palette: RandomThemePalette;
@@ -153,4 +154,8 @@ export function createRandomTheme(): ThemeConfig {
     },
     layout: { maxWidth: selection.maxWidth },
   }
+}
+
+export function createRandomTabsLayout(): LayoutConfig['tabs'] {
+  return randomItem(randomTabsLayouts)
 }

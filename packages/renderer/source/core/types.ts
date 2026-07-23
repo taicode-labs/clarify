@@ -126,6 +126,10 @@ export type ThemeConfig = {
   layout: ThemeLayoutConfig;
 };
 
+export type LayoutConfig = {
+  tabs: 'subnav' | 'navbar';
+};
+
 export type PagesItem =
   | string
   | {
@@ -184,6 +188,7 @@ export type Config = {
   homeUrl?: string;
   favicon?: FaviconConfig;
   theme: ThemeConfig;
+  layout?: LayoutConfig;
   navigation?: NavigationConfig;
   banner?: BannerConfig;
   footer?: FooterConfig;

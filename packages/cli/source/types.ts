@@ -130,6 +130,11 @@ export type ClarifyThemeConfig = {
   layout?: ClarifyThemeLayoutConfig
 }
 
+export type ClarifyLayoutConfig = {
+  /** Desktop location for top-level navigation tabs. */
+  tabs?: 'subnav' | 'navbar'
+}
+
 export type ResolvedClarifyThemeTokensConfig = {
   colors: Required<ClarifyThemeColorTokensConfig>
   radius: Required<ClarifyThemeRadiusTokensConfig>
@@ -273,6 +278,9 @@ export type ClarifyProjectConfig = {
   /** Theme preset, token overrides, and layout options. */
   theme?: ClarifyThemeConfig
 
+  /** Placement of built-in documentation layout regions. */
+  layout?: ClarifyLayoutConfig
+
   /** Top navigation links and documentation tabs. */
   navigation?: ClarifyNavigationConfig
 
@@ -306,6 +314,7 @@ export type ResolvedProjectConfig = {
   homeUrl?: string
   favicon?: ClarifyFaviconConfig
   theme: ResolvedClarifyThemeConfig
+  layout?: Required<ClarifyLayoutConfig>
   navigation?: ClarifyNavigationConfig
   banner?: ClarifyBannerConfig
   footer?: ClarifyFooterConfig

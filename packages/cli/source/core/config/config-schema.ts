@@ -190,6 +190,10 @@ const clarifyThemeConfigSchema = z.object({
   layout: clarifyThemeLayoutConfigSchema.optional(),
 }).strict()
 
+const clarifyLayoutConfigSchema = z.object({
+  tabs: z.enum(['subnav', 'navbar']).optional(),
+}).strict()
+
 function featureSchema<Schema extends z.ZodRawShape>(shape: Schema, defaults: Record<string, unknown>, enabledByDefault = true) {
   const resolvedDefaults = { enabled: enabledByDefault, ...defaults }
   const objectSchema = z.object({ enabled: z.boolean().default(enabledByDefault), ...shape }).strict().default(resolvedDefaults as never)
@@ -220,6 +224,7 @@ export const clarifyProjectConfigSchema = z.object({
   homeUrl: z.string().optional(),
   favicon: clarifyFaviconConfigSchema.optional(),
   theme: clarifyThemeConfigSchema.optional(),
+  layout: clarifyLayoutConfigSchema.optional(),
   navigation: z.object({
     links: z.array(clarifyNavbarLinkSchema).optional(),
     tabs: clarifyTabsConfigSchema.optional(),

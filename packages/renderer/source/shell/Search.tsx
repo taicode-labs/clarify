@@ -14,9 +14,9 @@ function getModifierKey() {
   return /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? '⌘' : 'Ctrl '
 }
 
-export type SearchProps = { routes: RouteItem[]; navigation: NavigationNode[] }
+export type SearchProps = { routes: RouteItem[]; navigation: NavigationNode[]; compact?: boolean }
 
-export function Search(arg0: SearchProps) {  const { routes, navigation } = arg0
+export function Search(arg0: SearchProps) {  const { routes, navigation, compact = false } = arg0
 
   const config = useConfig()
   const currentLocale = useLocale() ?? config.locales?.default
@@ -27,18 +27,25 @@ export function Search(arg0: SearchProps) {  const { routes, navigation } = arg0
   if (!config.features.search.enabled) return null
 
   return (
-    <div className="clarify-search hidden w-80 max-w-(--clarify-search-max-width) lg:block">
+    <div className={compact ? 'clarify-search hidden lg:block' : 'clarify-search hidden w-80 max-w-(--clarify-search-max-width) lg:block'}>
       <button
         type="button"
-        className="clarify-search-button hidden h-9 w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) pr-3 pl-2.5 font-medium ring-1 ring-(--clarify-theme-tokens-colors-border) transition hover:bg-(--clarify-theme-tokens-colors-background) lg:flex dark:bg-white/5 dark:ring-white/10 dark:ring-inset dark:hover:bg-white/10"
+        className={compact
+          ? 'clarify-search-button clarify-ui-control hidden size-9 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition lg:flex'
+          : 'clarify-search-button hidden h-9 w-full items-center gap-2 rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) pr-3 pl-2.5 font-medium ring-1 ring-(--clarify-theme-tokens-colors-border) transition hover:bg-(--clarify-theme-tokens-colors-background) lg:flex dark:bg-white/5 dark:ring-white/10 dark:ring-inset dark:hover:bg-white/10'}
+        aria-label={compact ? t('search.placeholder') : undefined}
         {...buttonProps}
       >
         <SearchIcon className="h-5 w-5 stroke-current" />
-        {t('search.button')}
-        <kbd className="clarify-search-shortcut ml-auto rounded-(--clarify-theme-tokens-radius-sm) bg-(--clarify-theme-tokens-colors-background) px-1.5 py-0.5 ring-1 ring-(--clarify-theme-tokens-colors-border) dark:bg-white/5 dark:ring-white/10">
-          <kbd className="font-sans">{modifierKey}</kbd>
-          <kbd className="font-sans">K</kbd>
-        </kbd>
+        {!compact ? (
+          <>
+            {t('search.button')}
+            <kbd className="clarify-search-shortcut ml-auto rounded-(--clarify-theme-tokens-radius-sm) bg-(--clarify-theme-tokens-colors-background) px-1.5 py-0.5 ring-1 ring-(--clarify-theme-tokens-colors-border) dark:bg-white/5 dark:ring-white/10">
+              <kbd className="font-sans">{modifierKey}</kbd>
+              <kbd className="font-sans">K</kbd>
+            </kbd>
+          </>
+        ) : null}
       </button>
       <Suspense fallback={null}>
         <SearchDialog className="hidden lg:block" routes={routes} navigation={navigation} routePrefix={config.routePrefix} assetPrefix={config.assetPrefix} currentLocale={currentLocale} {...dialogProps} />

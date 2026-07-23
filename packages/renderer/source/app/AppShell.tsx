@@ -4,6 +4,7 @@ import type { ComponentType, CSSProperties } from 'react'
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 
 import { LocaleContext } from '../context'
+import { useConfig } from '../core/context'
 import { useBuiltInText } from '../core/i18n'
 import { Header, Navigation } from '../shell'
 import { RuntimeSlot, RuntimeSlotsProvider, type RuntimeSlotRegistry } from '../slots'
@@ -25,7 +26,6 @@ import { SectionHashSync } from './SectionHashSync'
 import { SectionProvider, type Section } from './SectionProvider'
 
 export type AppShellProps = {
-  config: Config
   routes: RouteItem[]
   navigation: NavigationTree
   runtimeSlots?: RuntimeSlotRegistry
@@ -393,7 +393,8 @@ function NotFoundRouteElement(props: NotFoundRouteElementProps) {
 }
 
 export function AppShell(arg0: AppShellProps) {
-  const { config, routes, navigation, runtimeSlots } = arg0
+  const { routes, navigation, runtimeSlots } = arg0
+  const config = useConfig()
   const location = useLocation()
   const navigate = useNavigate()
   const pathname = normalizeRoutePath(location.pathname)
@@ -413,7 +414,8 @@ export function AppShell(arg0: AppShellProps) {
   const text = useBuiltInText(currentLocale)
   const { activeBannerKey, bannerResolved, dismissedBannerKey, hasBanner, dismissBanner } = useBannerState(config, currentLocale)
   const hasTabs = Boolean(currentNavigation.tabs?.length)
-  const layoutConfig = getAppShellLayoutConfig(hasTabs, hasBanner)
+  const hasSubnavTabs = hasTabs && config.layout?.tabs !== 'navbar'
+  const layoutConfig = getAppShellLayoutConfig(hasSubnavTabs, hasBanner)
   const { renderRoutes, NotFoundRouteComponent } = useRenderedRoutes(routes, notFoundRoute)
 
   useAppShellNavigationEffects({ config, currentRoute, explicitLocale, hashScrollSuppressedUntilRef, location, navigate, pathname, storedLocale })
@@ -441,7 +443,6 @@ export function AppShell(arg0: AppShellProps) {
       <Header
         ref={headerRef}
         topAreaRef={headerTopAreaRef}
-        config={config}
         navigation={currentNavigation.items}
         tabs={currentNavigation.tabs}
         routes={routes}
