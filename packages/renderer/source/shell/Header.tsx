@@ -399,6 +399,7 @@ export const Header = forwardRef<
     return (
       <div className="clarify-header-actions flex shrink-0 items-center gap-1">
         {tabsInNavbar ? <Search compact routes={routes} navigation={navigation} /> : null}
+        {tabsInNavbar ? <NavbarTabs tabs={tabs} currentLocale={currentLocale} /> : null}
         {renderTopLinks()}
         {hasNavbarLinks ? <div className="mx-2 hidden h-5 w-px bg-(--clarify-theme-tokens-colors-border) md:block md:dark:bg-white/15" /> : null}
         <MobileSearch routes={routes} navigation={navigation} />
@@ -424,11 +425,11 @@ export const Header = forwardRef<
           </div>
           {renderBrand()}
         </div>
-        <div className="clarify-header-center absolute left-1/2 hidden -translate-x-1/2 lg:block">
-          {tabsInNavbar
-            ? <NavbarTabs tabs={tabs} currentLocale={currentLocale} />
-            : <Search routes={routes} navigation={navigation} />}
-        </div>
+        {!tabsInNavbar ? (
+          <div className="clarify-header-center absolute left-1/2 hidden -translate-x-1/2 lg:block">
+            <Search routes={routes} navigation={navigation} />
+          </div>
+        ) : null}
         {renderHeaderActions()}
       </div>
     )
