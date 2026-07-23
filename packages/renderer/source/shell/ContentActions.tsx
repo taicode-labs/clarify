@@ -31,7 +31,7 @@ export function ContentActions(arg0: ContentActionsProps) {
   const { route } = arg0
   const config = useConfig()
   const routePrefix = config.routePrefix
-  const mcpEnabled = config.features.search.enabled && config.features.search.mcp
+  const mcpEnabled = config.features.search.enabled && config.features.search.mcp && Boolean(config.siteUrl)
   const t = useBuiltInText()
   const [copied, setCopied] = useState<CopyState>('idle')
   const [copyPhase, setCopyPhase] = useState<CopyPhase>('idle')

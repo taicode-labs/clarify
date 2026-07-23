@@ -94,6 +94,13 @@ describe('clarifyProjectConfigSchema', () => {
     expect(() => clarifyProjectConfigSchema.parse({ outputDir: 'dist' })).toThrow(/outputDir/)
   })
 
+  it('requires siteUrl to be an absolute HTTP(S) origin', () => {
+    expect(clarifyProjectConfigSchema.parse({ siteUrl: 'https://docs.example.com/' }).siteUrl).toBe('https://docs.example.com/')
+    expect(() => clarifyProjectConfigSchema.parse({ siteUrl: '/docs' })).toThrow(/absolute HTTP\(S\) origin/)
+    expect(() => clarifyProjectConfigSchema.parse({ siteUrl: 'https://docs.example.com/docs' })).toThrow(/routePrefix/)
+    expect(() => clarifyProjectConfigSchema.parse({ siteUrl: 'https://docs.example.com?preview=1' })).toThrow(/without a path, query, or hash/)
+  })
+
   it('rejects unknown fields in nested config objects', () => {
     expect(() => clarifyProjectConfigSchema.parse({ theme: { legacyPreset: 'base' } })).toThrow(/legacyPreset/)
     expect(() => clarifyProjectConfigSchema.parse({ logo: { light: '/logo.svg', legacyDark: '/dark.svg' } })).toThrow(/legacyDark/)

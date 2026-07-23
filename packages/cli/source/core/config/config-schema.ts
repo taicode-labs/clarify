@@ -82,6 +82,20 @@ const clarifyVariableValueSchema: z.ZodType<ClarifyVariableValue> = z.lazy(() =>
 
 const clarifyVariablesConfigSchema = z.record(z.string(), clarifyVariableValueSchema)
 
+const clarifySiteUrlSchema = z.string().superRefine((value, ctx) => {
+  let url: URL
+  try {
+    url = new URL(value)
+  } catch {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'must be an absolute HTTP(S) origin' })
+    return
+  }
+
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'must be an HTTP(S) origin without a path, query, or hash; configure deployment subpaths with routePrefix' })
+  }
+})
+
 const clarifyRepositoryConfigSchema = z.object({
   url: z.string().optional(),
   branch: z.string().optional(),
@@ -199,7 +213,7 @@ export const clarifyFeaturesConfigSchema = z.object({
 export const clarifyProjectConfigSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
-  siteUrl: z.string().optional(),
+  siteUrl: clarifySiteUrlSchema.optional(),
   routePrefix: z.string().default('/'),
   assetPrefix: z.string().optional(),
   logo: clarifyLogoConfigSchema.optional(),

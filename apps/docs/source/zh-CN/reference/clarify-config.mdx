@@ -137,7 +137,7 @@ export default defineConfig({
 |------|------|--------|------|
 | `title` | `string` | `"Clarify Docs"` | 站点标题。会出现在侧边栏品牌区、浏览器标题、SEO 标题兜底和站点元数据中。建议使用产品或文档中心名称，而不是页面标题。 |
 | `description` | `string` | `""` | 站点级描述。用于 SEO 描述、`llms.txt` 摘要和分享卡片兜底。建议写成一句 80–160 字符的产品说明。 |
-| `siteUrl` | `string` | — | 公开访问的完整站点 URL。配置后，`clarify build` 会生成绝对 URL 形式的 `sitemap.xml` 和 `robots.txt`。 |
+| `siteUrl` | `string` | — | 公开访问的站点 origin，必须包含协议且不包含 `routePrefix`。配置后会启用依赖稳定公网绝对地址的 SEO 和 MCP 能力。 |
 | `routePrefix` | `string` | `"/"` | 站点页面路由的挂载前缀。 |
 | `assetPrefix` | `string` | `routePrefix` | 构建产物中静态资源的路径或绝对 URL 前缀。 |
 | `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo。可以使用单一路径，也可以按亮色/暗色主题分别提供资源。路径通常放在 `public/` 或内容目录可访问的位置。 |
@@ -177,7 +177,7 @@ export default defineConfig({
 
 ## `siteUrl` 和 `features.repository`
 
-`siteUrl` 表示生产环境最终访问地址，必须包含协议，例如 `https://docs.example.com`。如果文档部署在子路径，请把子路径写入 `siteUrl` 并配合 `routePrefix` 使用。
+`siteUrl` 表示生产环境的公开 origin，必须包含协议，例如 `https://docs.example.com`。如果文档部署在子路径，只在 `routePrefix` 中配置该子路径；Clarify 会在生成绝对地址时组合两者。
 
 `features.repository` 描述文档源码所属的代码仓库。Clarify 当前用它生成“编辑此页面”链接；这份仓库级配置未来还可以承载更多仓库集成能力。
 
@@ -197,7 +197,7 @@ export default defineConfig({
 
 ```ts title="子路径部署"
 export default defineConfig({
-  siteUrl: 'https://acme.github.io/docs',
+  siteUrl: 'https://acme.github.io',
   routePrefix: '/docs/',
 })
 ```
@@ -225,7 +225,7 @@ export default defineConfig({
 
 </CodeGroup>
 
-配置 `siteUrl` 后，`clarify build` 会生成 `sitemap.xml` 和 `robots.txt`。没有配置时，站点仍可正常构建，只是不会输出依赖绝对 URL 的 SEO 文件。
+配置 `siteUrl` 后，`clarify build` 会生成 `sitemap.xml` 和 `robots.txt`，页面也会提供可直接使用的 MCP 配置。没有配置时，站点仍可正常构建和浏览，但不会输出依赖绝对 URL 的 SEO 文件，也不会展示 MCP 配置入口；浏览器内复制普通页面链接时会临时使用当前页面地址。
 
 ---
 
@@ -308,7 +308,7 @@ export default defineConfig({
 
 ```ts
 export default defineConfig({
-  siteUrl: 'https://acme.github.io/docs',
+  siteUrl: 'https://acme.github.io',
   routePrefix: '/docs/',
   assetPrefix: 'https://cdn.example.com/acme-docs/',
 })
