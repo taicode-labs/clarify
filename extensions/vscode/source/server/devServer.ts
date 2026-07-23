@@ -10,8 +10,8 @@ import { createServer } from 'node:net'
 
 import * as vscode from 'vscode'
 
-import { DependencyManager } from './dependencyManager'
-import { resolveLocalClarifyBin } from './utils'
+import { DependencyManager } from '../cli/dependencyManager'
+import { resolveLocalClarifyBin } from '../cli/localCli'
 
 // Give Vite up to 120 seconds to compile and start on first run
 const SERVER_READY_TIMEOUT_MS = 120_000
