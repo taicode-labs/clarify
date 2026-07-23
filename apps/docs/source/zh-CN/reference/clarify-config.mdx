@@ -137,7 +137,7 @@ export default defineConfig({
 |------|------|--------|------|
 | `title` | `string` | `"Clarify Docs"` | 站点标题。会出现在侧边栏品牌区、浏览器标题、SEO 标题兜底和站点元数据中。建议使用产品或文档中心名称，而不是页面标题。 |
 | `description` | `string` | `""` | 站点级描述。用于 SEO 描述、`llms.txt` 摘要和分享卡片兜底。建议写成一句 80–160 字符的产品说明。 |
-| `siteUrl` | `string` | — | 公开访问的站点 origin，必须包含协议且不包含 `routePrefix`。配置后会启用依赖稳定公网绝对地址的 SEO 和 MCP 能力。 |
+| `siteUrl` | `string` | — | 公开访问的站点 origin，必须包含协议且不包含 `routePrefix`。配置后会启用依赖稳定公网绝对地址的 SEO 产物和复制操作。 |
 | `routePrefix` | `string` | `"/"` | 站点页面路由的挂载前缀。 |
 | `assetPrefix` | `string` | `routePrefix` | 构建产物中静态资源的路径或绝对 URL 前缀。 |
 | `logo` | `string \| { light?: string; dark?: string }` | — | 品牌 Logo。可以使用单一路径，也可以按亮色/暗色主题分别提供资源。路径通常放在 `public/` 或内容目录可访问的位置。 |
@@ -225,7 +225,7 @@ export default defineConfig({
 
 </CodeGroup>
 
-配置 `siteUrl` 后，`clarify build` 会生成 `sitemap.xml` 和 `robots.txt`，页面也会提供可直接使用的 MCP 配置。没有配置时，站点仍可正常构建和浏览，但不会输出依赖绝对 URL 的 SEO 文件，也不会展示 MCP 配置入口；浏览器内复制普通页面链接时会临时使用当前页面地址。
+配置 `siteUrl` 后，`clarify build` 会生成 `sitemap.xml` 和 `robots.txt`，页面也会提供复制原始内容链接、`llms.txt` 链接和 MCP 配置的操作。没有配置时，所有支持相对地址的能力仍然可用，包括页面路由、静态资源、原始内容文件、`llms.txt`、`mcp.json` 和搜索索引；依赖稳定公网绝对 URL 的 SEO 文件和上述复制操作不会生成或显示。MCP 仍可通过手动传入实际站点地址来启动，例如 `clarify mcp https://docs.example.com`。
 
 ---
 

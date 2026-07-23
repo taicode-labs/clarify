@@ -31,7 +31,8 @@ export function ContentActions(arg0: ContentActionsProps) {
   const { route } = arg0
   const config = useConfig()
   const routePrefix = config.routePrefix
-  const mcpEnabled = config.features.search.enabled && config.features.search.mcp && Boolean(config.siteUrl)
+  const absoluteLinksEnabled = Boolean(config.siteUrl)
+  const mcpEnabled = absoluteLinksEnabled && config.features.search.enabled && config.features.search.mcp
   const t = useBuiltInText()
   const [copied, setCopied] = useState<CopyState>('idle')
   const [copyPhase, setCopyPhase] = useState<CopyPhase>('idle')
@@ -76,22 +77,19 @@ export function ContentActions(arg0: ContentActionsProps) {
 
   const llmsArtifactUrl = resolveContentArtifactUrl('/llms.txt', routePrefix)
 
-  function getAbsoluteUrl(path: string): string {
-    return resolveAbsoluteSiteHref(path, config, typeof window === 'undefined' ? undefined : window.location.href)
-  }
-
   async function handleCopyLink() {
     if (!contentArtifactUrl) return
-    await runCopy('link', () => getAbsoluteUrl(contentArtifactUrl))
+    await runCopy('link', () => resolveAbsoluteSiteHref(contentArtifactUrl, config) ?? contentArtifactUrl)
   }
 
   async function handleCopyLlms() {
-    await runCopy('llms', () => getAbsoluteUrl(llmsArtifactUrl))
+    await runCopy('llms', () => resolveAbsoluteSiteHref(llmsArtifactUrl, config) ?? llmsArtifactUrl)
   }
 
   async function handleCopyMcp() {
     await runCopy('mcp', () => {
-      const siteUrl = getAbsoluteUrl('/')
+      const siteUrl = resolveAbsoluteSiteHref('/', config)
+      if (!siteUrl) throw new Error('siteUrl is required for MCP configuration')
       return JSON.stringify(
         {
           mcpServers: {
@@ -117,14 +115,14 @@ export function ContentActions(arg0: ContentActionsProps) {
           run: handleCopyContent,
           copiedLabel: t('contentActions.copiedContent'),
         },
-        {
+        ...(absoluteLinksEnabled ? [{
           key: 'link',
           label: t('contentActions.copyLink', replacements),
           description: t('contentActions.copyLinkDescription', replacements),
           icon: Link2,
           run: handleCopyLink,
           copiedLabel: t('contentActions.copiedLink'),
-        },
+        } satisfies CopyAction] : []),
       ]
     : []
 
@@ -288,7 +286,7 @@ export function ContentActions(arg0: ContentActionsProps) {
               </MenuItem>
             )
           })}
-          <MenuItem key={llmsAction.key}>
+          {absoluteLinksEnabled ? <MenuItem key={llmsAction.key}>
             <button
               type="button"
               onClick={llmsAction.run}
@@ -303,7 +301,7 @@ export function ContentActions(arg0: ContentActionsProps) {
               </span>
               <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${copied === llmsAction.key ? 'opacity-100' : 'opacity-0'}`} />
             </button>
-          </MenuItem>
+          </MenuItem> : null}
           {mcpEnabled ? <MenuItem key={mcpAction.key}>
             <button
               type="button"

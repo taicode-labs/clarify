@@ -121,14 +121,14 @@ describe('prefixHref', () => {
 })
 
 describe('resolveAbsoluteSiteHref', () => {
-  it('uses the configured site URL instead of the runtime origin', () => {
+  it('resolves production URLs from the configured site URL', () => {
     const config = { ...baseConfig, siteUrl: 'https://docs.example.com', routePrefix: '/reference/' }
 
-    expect(resolveAbsoluteSiteHref('/', config, 'https://preview.example.com/current')).toBe('https://docs.example.com/reference')
-    expect(resolveAbsoluteSiteHref('/llms.txt', config, 'https://preview.example.com/current')).toBe('https://docs.example.com/reference/llms.txt')
+    expect(resolveAbsoluteSiteHref('/', config)).toBe('https://docs.example.com/reference')
+    expect(resolveAbsoluteSiteHref('/llms.txt', config)).toBe('https://docs.example.com/reference/llms.txt')
   })
 
-  it('falls back to a runtime base when siteUrl is not configured', () => {
-    expect(resolveAbsoluteSiteHref('/llms.txt', baseConfig, 'https://preview.example.com/current')).toBe('https://preview.example.com/llms.txt')
+  it('does not guess an absolute URL when siteUrl is not configured', () => {
+    expect(resolveAbsoluteSiteHref('/llms.txt', baseConfig)).toBeUndefined()
   })
 })

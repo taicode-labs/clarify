@@ -137,7 +137,7 @@ export default defineConfig({
 |-------|------|---------|-------------|
 | `title` | `string` | `"Clarify Docs"` | Site title. Used in sidebar branding, browser titles, SEO title fallbacks, and site metadata. Prefer the product or documentation center name, not a page title. |
 | `description` | `string` | `""` | Site-level description. Used as a fallback for SEO metadata, `llms.txt`, and sharing summaries. Write one concise sentence that explains the audience and purpose. |
-| `siteUrl` | `string` | — | Public production origin, including protocol and excluding `routePrefix`. Enables SEO and MCP features that require a stable public absolute URL. |
+| `siteUrl` | `string` | — | Public production origin, including protocol and excluding `routePrefix`. Enables SEO artifacts and copy actions that require a stable public absolute URL. |
 | `routePrefix` | `string` | `"/"` | Route prefix where the site is mounted. |
 | `assetPrefix` | `string` | `routePrefix` | Path or absolute URL prefix for emitted assets. |
 | `logo` | `string \| { light?: string; dark?: string }` | — | Brand logo. Use a single asset for all modes, or provide separate light/dark assets. |
@@ -225,7 +225,7 @@ export default defineConfig({
 
 </CodeGroup>
 
-With `siteUrl`, `clarify build` generates `sitemap.xml` and `robots.txt`, and pages expose a ready-to-use MCP configuration. Without it, the site still builds and can be browsed, but SEO files that require absolute URLs are omitted and the MCP configuration action is hidden. Copying an ordinary page link in the browser temporarily falls back to the current page URL.
+With `siteUrl`, `clarify build` generates `sitemap.xml` and `robots.txt`, and pages expose actions for copying raw content links, the `llms.txt` link, and a ready-to-use MCP configuration. Without it, every capability that supports relative URLs remains available, including page routing, static assets, raw content files, `llms.txt`, `mcp.json`, and the search index. SEO files and the copy actions above are omitted because they require a stable public absolute URL. MCP can still be started by passing the deployed site URL manually, for example `clarify mcp https://docs.example.com`.
 
 ---
 

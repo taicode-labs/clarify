@@ -34,11 +34,11 @@ export function prefixHref(href: string, routePrefix: string = '/'): string {
   return `/${prefix}/${path}`
 }
 
-export function resolveAbsoluteSiteHref(href: string, config: Config, fallbackBase?: string): string {
+export function resolveAbsoluteSiteHref(href: string, config: Config): string | undefined {
   const path = prefixHref(href, config.routePrefix)
   if (isExternalHref(path)) return path
 
-  const base = config.siteUrl ?? fallbackBase
-  if (!base) return path
+  const base = config.siteUrl
+  if (!base) return undefined
   return new URL(path, base.endsWith('/') ? base : `${base}/`).href
 }
