@@ -5,6 +5,7 @@ The Clarify VS Code extension brings your documentation site directly into Visua
 ## Features
 
 - Automatically detects Clarify documentation workspaces and supported content files (`.md`, `.mdx`, `.openapi.json`, `.openapi.yaml`, `.openapi.yml`).
+- Automatically installs and manages the Clarify CLI with visible progress when a project does not provide a local installation.
 - Starts a local Clarify preview server for the current project.
 - Opens a preview panel in VS Code and refreshes it as you switch files or edit content.
 - Provides commands to open, refresh, and stop the preview from the command palette or editor toolbar.

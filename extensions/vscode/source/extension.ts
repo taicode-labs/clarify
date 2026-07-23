@@ -10,6 +10,9 @@
  */
 import * as vscode from 'vscode'
 
+import { existsSync } from 'node:fs'
+
+import { DependencyManager } from './dependencyManager'
 import { DevServerManager } from './devServer'
 import { PreviewPanel } from './previewPanel'
 import { fetchProjectInfo } from './projectInfo'
@@ -20,16 +23,24 @@ import {
   findClarifyProjectRoot,
   resolveClarifyContentFile,
   resolveLocalClarifyBin,
-  resolveGlobalClarifyBin,
   type ProjectConventions,
 } from './utils'
 
 let devServer: DevServerManager
+let dependencies: DependencyManager
 let routeResolver: RouteResolver | undefined
 let previewPanel: PreviewPanel
 let autoOpenDisposable: vscode.Disposable | undefined
 let statusBar: vscode.StatusBarItem
 let extensionContext: vscode.ExtensionContext
+let managedInstall: Promise<void> | undefined
+let isInstallingCli = false
+let isUpgradingCli = false
+
+const CLI_UPDATE_CHECKED_AT_KEY = 'clarify.cliUpdateCheckedAt'
+const CLI_LATEST_VERSION_KEY = 'clarify.cliLatestVersion'
+const CLI_DISMISSED_VERSION_KEY = 'clarify.cliDismissedVersion'
+const CLI_UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000
 
 // Current project conventions for file detection. Replaced by live CLI values
 // after `/dev/project-info` has been fetched.
@@ -49,7 +60,8 @@ let conventions: ProjectConventions = BOOTSTRAP_CONVENTIONS
  */
 export function activate(context: vscode.ExtensionContext): void {
   extensionContext = context
-  devServer = new DevServerManager()
+  dependencies = new DependencyManager(context)
+  devServer = new DevServerManager(dependencies)
   previewPanel = new PreviewPanel(context)
 
   statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
@@ -58,7 +70,16 @@ export function activate(context: vscode.ExtensionContext): void {
 
   updateStatusBar()
 
-  // Auto-start the dev server silently in the background
+  const projectRoot = detectProjectRoot()
+  if (projectRoot) {
+    void ensureCliAvailable(projectRoot)
+      .then(() => checkForCliUpgrade(projectRoot))
+      .catch((error) => {
+        vscode.window.showErrorMessage(`Clarify: failed to install CLI — ${formatError(error)}`)
+      })
+  }
+
+  // Auto-start the dev server in the background after the CLI is available.
   const autoStart = vscode.workspace.getConfiguration('clarify').get<boolean>('autoStartServer', true)
   if (autoStart) {
     void backgroundStart()
@@ -107,6 +128,10 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): Promise<void> {
+  autoOpenDisposable?.dispose()
+  autoOpenDisposable = undefined
+  routeResolver = undefined
+  previewPanel?.dispose()
   return devServer?.stop() ?? Promise.resolve()
 }
 
@@ -157,9 +182,15 @@ async function backgroundStart(): Promise<void> {
  */
 async function ensureServerReady(projectRoot: string, withProgress: boolean): Promise<string> {
   // Already fully ready
-  if (devServer.isRunning() && routeResolver) {
+  if (devServer.isRunning() && devServer.getWorkspaceRoot() === projectRoot && routeResolver) {
     return devServer.getServerUrl()!
   }
+
+  if (routeResolver && devServer.getWorkspaceRoot() !== projectRoot) {
+    routeResolver = undefined
+  }
+
+  await ensureCliAvailable(projectRoot)
 
   const doStart = (): Promise<string> => devServer.start(projectRoot)
   const serverUrl = withProgress
@@ -249,6 +280,17 @@ function detectProjectRoot(): string | undefined {
 }
 
 function updateStatusBar(): void {
+  if (isInstallingCli) {
+    statusBar.text = isUpgradingCli
+      ? '$(loading~spin) Clarify: Upgrading CLI...'
+      : '$(loading~spin) Clarify: Installing CLI...'
+    statusBar.tooltip = isUpgradingCli
+      ? 'Upgrading the Clarify CLI managed by this extension'
+      : 'Installing the Clarify CLI managed by this extension'
+    statusBar.show()
+    return
+  }
+
   if (devServer.isRunning()) {
     statusBar.text = '$(vm-active) Clarify'
     statusBar.tooltip = `Dev server running at ${devServer.getServerUrl() ?? 'unknown'}\nClick to open preview`
@@ -265,25 +307,106 @@ function updateStatusBar(): void {
   statusBar.text = hasCli ? '$(circle-outline) Clarify' : '$(warning) Clarify'
   statusBar.tooltip = hasCli
     ? 'Clarify project detected — click to open preview'
-    : 'Clarify project detected — CLI not found, click to see installation instructions'
+    : 'Clarify project detected — the CLI will be installed automatically'
   statusBar.show()
 }
 
 /**
- * Check if a Clarify CLI is available in the workspace, globally, or via explicit config.
+ * Ensure a workspace-local or extension-managed Clarify CLI is available.
  */
-function hasAvailableClarifyCli(): boolean {
-  // If the user explicitly configured `clarify.cliPath`, prefer it.
+function ensureCliAvailable(projectRoot: string): Promise<void> {
   const cliPath = vscode.workspace.getConfiguration('clarify').get<string>('cliPath', '')
-  if (cliPath) return true
-  
-  // Check for workspace-local install
+  if (cliPath && existsSync(cliPath)) return Promise.resolve()
+  if (resolveLocalClarifyBin(projectRoot)) return Promise.resolve()
+
+  const version = vscode.workspace.getConfiguration('clarify').get<string>('cliVersion', 'latest')
+  if (dependencies.isVersionInstalled(version)) return Promise.resolve()
+  if (managedInstall) return managedInstall
+
+  isInstallingCli = true
+  updateStatusBar()
+  managedInstall = dependencies.ensureInstalled(version).finally(() => {
+    managedInstall = undefined
+    isInstallingCli = false
+    updateStatusBar()
+  })
+  return managedInstall
+}
+
+async function checkForCliUpgrade(projectRoot: string): Promise<void> {
+  const configuration = vscode.workspace.getConfiguration('clarify')
+  if (configuration.get<string>('cliVersion', 'latest') !== 'latest') return
+
+  const cliPath = configuration.get<string>('cliPath', '')
+  if ((cliPath && existsSync(cliPath)) || resolveLocalClarifyBin(projectRoot)) return
+
+  const installedVersion = dependencies.getInstalledVersion()
+  if (!installedVersion) return
+
+  const latestVersion = await getCachedLatestCliVersion()
+  if (!latestVersion || latestVersion === installedVersion) return
+
+  const dismissedVersion = extensionContext.globalState.get<string>(CLI_DISMISSED_VERSION_KEY)
+  if (dismissedVersion === latestVersion) return
+
+  const action = await vscode.window.showInformationMessage(
+    `Clarify CLI ${latestVersion} is available (installed: ${installedVersion}).`,
+    'Upgrade',
+    'Later',
+  )
+  if (action !== 'Upgrade') {
+    await extensionContext.globalState.update(CLI_DISMISSED_VERSION_KEY, latestVersion)
+    return
+  }
+
+  isInstallingCli = true
+  isUpgradingCli = true
+  updateStatusBar()
+  try {
+    await dependencies.ensureInstalled(latestVersion)
+    const restartNote = devServer.isRunning()
+      ? ' It will be used the next time the preview server starts.'
+      : ''
+    vscode.window.showInformationMessage(
+      `Clarify CLI upgraded from ${installedVersion} to ${latestVersion}.${restartNote}`,
+    )
+  } catch (error) {
+    vscode.window.showErrorMessage(`Clarify: failed to upgrade CLI — ${formatError(error)}`)
+  } finally {
+    isInstallingCli = false
+    isUpgradingCli = false
+    updateStatusBar()
+  }
+}
+
+async function getCachedLatestCliVersion(): Promise<string | undefined> {
+  const now = Date.now()
+  const checkedAt = extensionContext.globalState.get<number>(CLI_UPDATE_CHECKED_AT_KEY, 0)
+  const cachedVersion = extensionContext.globalState.get<string>(CLI_LATEST_VERSION_KEY)
+
+  if (cachedVersion && now - checkedAt < CLI_UPDATE_CHECK_INTERVAL_MS) {
+    return cachedVersion
+  }
+
+  const latestVersion = await dependencies.getLatestVersion()
+  await extensionContext.globalState.update(CLI_UPDATE_CHECKED_AT_KEY, now)
+  if (latestVersion) {
+    await extensionContext.globalState.update(CLI_LATEST_VERSION_KEY, latestVersion)
+  }
+  return latestVersion ?? cachedVersion
+}
+
+/** Check if an explicit, workspace-local, or managed CLI is already available. */
+function hasAvailableClarifyCli(): boolean {
+  const cliPath = vscode.workspace.getConfiguration('clarify').get<string>('cliPath', '')
+  if (cliPath && existsSync(cliPath)) return true
+
   for (const folder of vscode.workspace.workspaceFolders ?? []) {
     if (resolveLocalClarifyBin(folder.uri.fsPath)) return true
   }
-  
-  // Check for global CLI
-  return !!resolveGlobalClarifyBin()
+
+  const version = vscode.workspace.getConfiguration('clarify').get<string>('cliVersion', 'latest')
+  return dependencies.isVersionInstalled(version)
 }
 
 function formatError(err: unknown): string {

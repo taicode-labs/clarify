@@ -63,10 +63,15 @@
     "configuration": {
       "title": "Clarify",
       "properties": {
+        "clarify.cliVersion": {
+          "type": "string",
+          "default": "latest",
+          "description": "Clarify CLI version managed by this extension when the project has no local install (for example, `latest` or `0.11.8`)."
+        },
         "clarify.cliPath": {
           "type": "string",
           "default": "",
-          "description": "Absolute path to a `clarify` binary. When set, this overrides all automatic resolution (local install, global install). Useful for monorepo development or pointing at a custom build."
+          "description": "Absolute path to a `clarify` binary. When set, this overrides local and extension-managed CLI resolution. Useful for monorepo development or pointing at a custom build."
         },
         "clarify.autoStartServer": {
           "type": "boolean",

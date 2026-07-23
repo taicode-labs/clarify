@@ -10,7 +10,8 @@ import { createServer } from 'node:net'
 
 import * as vscode from 'vscode'
 
-import { resolveLocalClarifyBin, resolveGlobalClarifyBin } from './utils'
+import { DependencyManager } from './dependencyManager'
+import { resolveLocalClarifyBin } from './utils'
 
 // Give Vite up to 120 seconds to compile and start on first run
 const SERVER_READY_TIMEOUT_MS = 120_000
@@ -35,8 +36,13 @@ function getFreePort(): Promise<number> {
 export class DevServerManager {
   private process?: ChildProcess
   private serverUrl?: string
+  private workspaceRoot?: string
   /** Shared promise for any in-progress start. Callers await this directly. */
   private starting?: Promise<string>
+  private startingRoot?: string
+  private generation = 0
+
+  constructor(private readonly dependencies: DependencyManager) {}
 
   isRunning(): boolean {
     return this.process !== undefined && !this.process.killed
@@ -46,57 +52,95 @@ export class DevServerManager {
     return this.serverUrl
   }
 
+  getWorkspaceRoot(): string | undefined {
+    return this.workspaceRoot ?? this.startingRoot
+  }
+
   /**
    * Start the dev server and resolve once it is accepting HTTP requests.
    * If a start is already in progress, all callers share the same Promise.
    * If the server is already running and ready, resolves immediately.
    */
-  start(workspaceRoot: string): Promise<string> {
+  async start(workspaceRoot: string): Promise<string> {
     // Already running and healthy — return immediately
-    if (!this.starting && this.isRunning() && this.serverUrl) {
+    if (
+      !this.starting &&
+      this.workspaceRoot === workspaceRoot &&
+      this.isRunning() &&
+      this.serverUrl
+    ) {
       return Promise.resolve(this.serverUrl)
     }
 
     // A start is already in progress — share it
     if (this.starting) {
-      return this.starting
+      if (this.startingRoot === workspaceRoot) return this.starting
+      await this.starting.catch(() => {})
     }
 
+    if (this.process) await this.stop()
+
     // Kick off a new start and store the shared promise
-    this.starting = this.doStart(workspaceRoot).finally(() => {
-      this.starting = undefined
+    const generation = ++this.generation
+    this.startingRoot = workspaceRoot
+    this.starting = this.doStart(workspaceRoot, generation).finally(() => {
+      if (this.startingRoot === workspaceRoot && this.generation === generation) {
+        this.starting = undefined
+        this.startingRoot = undefined
+      }
     })
 
     return this.starting
   }
 
-  private async doStart(workspaceRoot: string): Promise<string> {
+  private async doStart(workspaceRoot: string, generation: number): Promise<string> {
     const bin = await this.resolveClarifyBin(workspaceRoot)
+    this.assertCurrent(generation)
     console.log(`[clarify] Starting: ${bin} dev in ${workspaceRoot}`)
 
     const port = await getFreePort()
+    this.assertCurrent(generation)
     const url = `http://localhost:${port}`
-    this.serverUrl = url
-
-    this.process = spawn(bin, ['dev', '--port', String(port), '--no-open'], {
+    const child = spawn(bin, ['dev', '--port', String(port), '--no-open'], {
       cwd: workspaceRoot,
       env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' },
     })
+    this.process = child
+    this.workspaceRoot = workspaceRoot
 
-    this.process.stdout?.on('data', (chunk: Buffer) => process.stdout.write(chunk))
-    this.process.stderr?.on('data', (chunk: Buffer) => process.stderr.write(chunk))
-    this.process.on('exit', (code) => {
+    child.stdout?.on('data', (chunk: Buffer) => process.stdout.write(chunk))
+    child.stderr?.on('data', (chunk: Buffer) => process.stderr.write(chunk))
+    child.on('exit', (code) => {
       console.log(`[clarify] Process exited with code ${code}`)
-      this.process = undefined
-      this.serverUrl = undefined
+      if (this.process === child) {
+        this.process = undefined
+        this.serverUrl = undefined
+        this.workspaceRoot = undefined
+      }
       if (code !== null && code !== 0) {
         vscode.window.showErrorMessage(`Clarify dev server exited with code ${code}.`)
       }
     })
 
-    await this.pollUntilReady(url)
-    console.log(`[clarify] Server ready at ${url}`)
-    return url
+    try {
+      await this.pollUntilReady(url, child, generation)
+      console.log(`[clarify] Server ready at ${url}`)
+      return url
+    } catch (error) {
+      await this.stopProcess(child)
+      if (this.process === child) {
+        this.process = undefined
+        this.serverUrl = undefined
+        this.workspaceRoot = undefined
+      }
+      throw error
+    }
+  }
+
+  private assertCurrent(generation: number): void {
+    if (this.generation !== generation) {
+      throw new Error('Dev server start was superseded by a newer request')
+    }
   }
 
   /**
@@ -105,12 +149,12 @@ export class DevServerManager {
    * The dev server may return 404 before the preview route exists, so we
    * treat any response as readiness if the process is still alive.
    */
-  private pollUntilReady(url: string): Promise<void> {
+  private pollUntilReady(url: string, child: ChildProcess, generation: number): Promise<void> {
     const deadline = Date.now() + SERVER_READY_TIMEOUT_MS
 
     return new Promise((resolve, reject) => {
       const attempt = async () => {
-        if (!this.process) {
+        if (this.generation !== generation || this.process !== child || child.exitCode !== null) {
           reject(new Error('Dev server process exited before becoming ready'))
           return
         }
@@ -141,12 +185,24 @@ export class DevServerManager {
    * if it does not exit within a short timeout.
    */
   async stop(): Promise<void> {
-    if (!this.process) return
+    this.generation += 1
+    this.starting = undefined
+    this.startingRoot = undefined
+    if (!this.process) {
+      this.serverUrl = undefined
+      this.workspaceRoot = undefined
+      return
+    }
     const proc = this.process
     this.process = undefined
     this.serverUrl = undefined
+    this.workspaceRoot = undefined
     // pollUntilReady checks this.process and will reject the in-flight start naturally
 
+    return this.stopProcess(proc)
+  }
+
+  private stopProcess(proc: ChildProcess): Promise<void> {
     return new Promise((resolve) => {
       proc.once('exit', () => resolve())
       if (!proc.kill('SIGTERM')) proc.kill('SIGKILL')
@@ -160,8 +216,7 @@ export class DevServerManager {
    * Resolution order:
    *   1. `clarify.cliPath` configuration (explicit path, useful for dev mode)
    *   2. Workspace-local install (`node_modules/.bin/clarify`)
-   *   3. Global CLI (`which clarify` / `where clarify`)
-   *   4. Prompt user to install
+   *   3. Extension-managed install in VS Code global storage
    */
   private async resolveClarifyBin(workspaceRoot: string): Promise<string> {
     // 1. Explicit cliPath configuration
@@ -178,19 +233,10 @@ export class DevServerManager {
       return localBin
     }
 
-    // 3. Global CLI
-    const globalBin = resolveGlobalClarifyBin()
-    if (globalBin) {
-      console.log(`[clarify] Using global CLI: ${globalBin}`)
-      return globalBin
-    }
-
-    // 4. No CLI found — prompt user to install
-    throw new Error(
-      'Clarify CLI not found. Please install it:\n\n' +
-      '  • Locally: pnpm add -D @clarify-labs/cli\n' +
-      '  • Globally: pnpm add -g @clarify-labs/cli\n' +
-      '  • Or set "clarify.cliPath" in settings'
-    )
+    // 3. Extension-managed install
+    const version = vscode.workspace.getConfiguration('clarify').get<string>('cliVersion', 'latest')
+    await this.dependencies.ensureInstalled(version)
+    console.log(`[clarify] Using extension-managed CLI: ${this.dependencies.binPath}`)
+    return this.dependencies.binPath
   }
 }
