@@ -3,6 +3,25 @@ import { describe, expect, it, vi } from 'vitest'
 import { executeApiRequest } from './api-exchange'
 
 describe('executeApiRequest', () => {
+  it('emits incremental exchanges for SSE responses', async () => {
+    const encoder = new TextEncoder()
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(encoder.encode('event: message\ndata: first\n\n'))
+        controller.enqueue(encoder.encode('data: second\n\n'))
+        controller.close()
+      },
+    })
+    const progress: string[] = []
+    const exchange = await executeApiRequest({ url: 'https://api.example.com/events', init: {} }, {
+      fetch: async () => new Response(stream, { headers: { 'Content-Type': 'text/event-stream' } }),
+      onProgress: (value) => progress.push(value.body),
+    })
+
+    expect(progress).toEqual(['', 'event: message\ndata: first\n\n', 'event: message\ndata: first\n\ndata: second\n\n', 'event: message\ndata: first\n\ndata: second\n\n'])
+    expect(exchange.streaming).toBe(false)
+    expect(exchange.contentType).toBe('text/event-stream')
+  })
   it('captures the request and complete response metadata', async () => {
     const fetch = vi.fn(async () => new Response('{"ok":true}', {
       status: 201,

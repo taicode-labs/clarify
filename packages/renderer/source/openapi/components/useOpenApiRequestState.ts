@@ -162,7 +162,10 @@ export function useOpenApiRequestExecution() {
     setError('')
     setExchange(undefined)
     try {
-      setExchange(await executeApiRequest(request, { signal: controller.signal }))
+      setExchange(await executeApiRequest(request, {
+        signal: controller.signal,
+        onProgress: (progress) => setExchange(progress),
+      }))
     } catch (cause) {
       if (cause instanceof DOMException && cause.name === 'AbortError') return
       const message = cause instanceof Error ? cause.message : String(cause)

@@ -19,12 +19,14 @@ export type ApiResponseExchange = {
   contentType: string
   body: string
   blob: Blob
+  streaming?: boolean
 }
 
 export type ExecuteApiRequestOptions = {
   signal?: AbortSignal
   fetch?: typeof fetch
   now?: () => number
+  onProgress?: (exchange: ApiResponseExchange) => void
 }
 
 export class ApiRequestError extends Error {
@@ -52,9 +54,14 @@ function requestSnapshot(request: BuiltApiRequest): ApiRequestSnapshot {
   }
 }
 
+function isEventStream(contentType: string): boolean {
+  return contentType.split(';', 1)[0].trim().toLowerCase() === 'text/event-stream'
+}
+
 export async function executeApiRequest(request: BuiltApiRequest, options: ExecuteApiRequestOptions = {}): Promise<ApiResponseExchange> {
   const fetchRequest = options.fetch ?? fetch
   const now = options.now ?? (() => performance.now())
+  const onProgress = options.onProgress
   const startedAt = now()
   let response: Response
 
@@ -66,18 +73,47 @@ export async function executeApiRequest(request: BuiltApiRequest, options: Execu
     throw new ApiRequestError(message, { cause })
   }
 
+  const contentType = response.headers.get('content-type') ?? ''
+  const headers = Array.from(response.headers.entries())
+  const requestSnapshotValue = requestSnapshot(request)
+
+  if (isEventStream(contentType) && response.body) {
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let body = ''
+    let totalSize = 0
+    const emit = (streaming: boolean) => {
+      const blob = new Blob([body], { type: contentType })
+      onProgress?.({ request: requestSnapshotValue, status: response.status, statusText: response.statusText, url: response.url || request.url, redirected: response.redirected, duration: Math.round(now() - startedAt), size: totalSize, headers, contentType, body, blob, streaming })
+    }
+
+    emit(true)
+    while (true) {
+      const result = await reader.read()
+      if (result.done) break
+      totalSize += result.value.byteLength
+      body += decoder.decode(result.value, { stream: true })
+      emit(true)
+    }
+    body += decoder.decode()
+    const blob = new Blob([body], { type: contentType })
+    const exchange = { request: requestSnapshotValue, status: response.status, statusText: response.statusText, url: response.url || request.url, redirected: response.redirected, duration: Math.round(now() - startedAt), size: totalSize, headers, contentType, body, blob, streaming: false }
+    onProgress?.(exchange)
+    return exchange
+  }
+
   const blob = await response.blob()
 
   return {
-    request: requestSnapshot(request),
+    request: requestSnapshotValue,
     status: response.status,
     statusText: response.statusText,
     url: response.url || request.url,
     redirected: response.redirected,
     duration: Math.round(now() - startedAt),
     size: blob.size,
-    headers: Array.from(response.headers.entries()),
-    contentType: response.headers.get('content-type') ?? blob.type,
+    headers,
+    contentType: contentType || blob.type,
     body: await blob.text(),
     blob,
   }

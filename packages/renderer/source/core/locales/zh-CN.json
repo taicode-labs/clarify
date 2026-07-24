@@ -128,6 +128,7 @@
   "openapi.responseEmpty": "发送请求后在这里查看响应。",
   "openapi.responseEmptyTitle": "等待发送请求",
   "openapi.responseErrorTitle": "请求失败",
+  "openapi.streaming": "正在接收",
   "openapi.responses": "响应",
   "openapi.schemaExample": "Schema 示例",
   "openapi.sendRequest": "发送",

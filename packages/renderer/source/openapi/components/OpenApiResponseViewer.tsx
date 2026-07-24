@@ -59,6 +59,7 @@ const textLanguages: Record<string, string> = {
   'application/xhtml+xml': 'html',
   'application/x-www-form-urlencoded': 'http',
   'text/css': 'css',
+  'text/event-stream': 'text',
   'text/csv': 'csv',
   'text/html': 'html',
   'text/javascript': 'javascript',
@@ -230,7 +231,7 @@ export function OpenApiResponseViewer(arg0: OpenApiResponseViewerProps): ReactNo
     <section className="clarify-api-response flex h-full min-h-96 min-w-0 flex-col bg-(--clarify-code-background) text-(--clarify-code-text)" aria-label={t('openapi.response')}>
       <div className="sticky top-0 z-10 flex min-h-11 flex-wrap items-center gap-2 border-b border-(--clarify-code-border) bg-(--clarify-code-header-background) px-2.5 text-sm font-medium">
         <span className="mr-auto text-(--clarify-code-text)">{t('openapi.response')}</span>
-        {exchange ? <><span className="text-xs font-semibold text-(--clarify-code-muted)">{exchange.duration} ms</span><span className="text-xs text-(--clarify-code-faint)">{formatBytes(exchange.size)}</span><span className={clsx('size-2 rounded-full', exchange.status < 400 ? 'bg-(--clarify-code-success)' : 'bg-(--clarify-code-danger)')} /><span className={clsx('text-xs font-semibold', exchange.status < 400 ? 'text-(--clarify-code-success)' : 'text-(--clarify-code-danger)')}>{exchange.status} {exchange.statusText}</span></> : null}
+        {exchange ? <><span className="text-xs font-semibold text-(--clarify-code-muted)">{exchange.duration} ms</span><span className="text-xs text-(--clarify-code-faint)">{formatBytes(exchange.size)}</span>{exchange.streaming ? <span className="text-xs font-semibold text-(--clarify-code-success)">{t('openapi.streaming')}</span> : null}<span className={clsx('size-2 rounded-full', exchange.status < 400 ? 'bg-(--clarify-code-success)' : 'bg-(--clarify-code-danger)')} /><span className={clsx('text-xs font-semibold', exchange.status < 400 ? 'text-(--clarify-code-success)' : 'text-(--clarify-code-danger)')}>{exchange.status} {exchange.statusText}</span></> : null}
       </div>
       {error ? <ResponseState icon={CircleAlertIcon} title={t('openapi.responseErrorTitle')} description={error} tone="error" /> : null}
       {!error && !exchange ? <ResponseState icon={SendIcon} title={t('openapi.responseEmptyTitle')} description={t('openapi.responseEmpty')} /> : null}
