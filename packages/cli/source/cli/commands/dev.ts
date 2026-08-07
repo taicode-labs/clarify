@@ -3,8 +3,10 @@ import { createServer } from 'vite'
 import { createClarifyEngine } from '../../core/engine/engine.js'
 import { createViteConfig } from '../../core/runtime/vite-config.js'
 import type { ResolvedCliOptions } from '../options.js'
+import { printCliVersion } from '../package.js'
 
 export async function runDev(options: ResolvedCliOptions): Promise<void> {
+  printCliVersion()
   const env = { command: 'serve' as const, mode: 'development' }
   const engine = createClarifyEngine({
     projectRoot: options.root,

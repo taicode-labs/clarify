@@ -7,3 +7,7 @@ export const cliPackageVersionWithCaret = `^${cliPackageVersion}`
 export function readPackageVersion(): string {
   return cliPackageVersion
 }
+
+export function printCliVersion(): void {
+  console.error(`[clarify] v${cliPackageVersion}`)
+}

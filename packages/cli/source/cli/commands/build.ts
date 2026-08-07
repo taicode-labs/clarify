@@ -4,8 +4,10 @@ import { createClarifyEngine } from '../../core/engine/engine.js'
 import { logBuildError } from '../../core/runtime/log.js'
 import { createViteConfig } from '../../core/runtime/vite-config.js'
 import type { ResolvedCliOptions } from '../options.js'
+import { printCliVersion } from '../package.js'
 
 export async function runBuild(options: ResolvedCliOptions): Promise<void> {
+  printCliVersion()
   const env = { command: 'build' as const, mode: 'production' }
   const engine = createClarifyEngine({
     projectRoot: options.root,

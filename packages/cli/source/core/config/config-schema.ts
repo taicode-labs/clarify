@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { ClarifyNavbarMenuItem, ClarifyProjectConfig, ClarifyVariableValue } from '../../types.js'
+import type { ClarifyNavbarMenuItem, ClarifyPagesGroup, ClarifyProjectConfig, ClarifyVariableValue } from '../../types.js'
 
 const clarifyLogoConfigSchema = z.union([
   z.string(),
@@ -152,15 +152,16 @@ const clarifyPagesItemSchema: z.ZodType<
   }).strict(),
 ]))
 
-const clarifyPagesGroupSchema: z.ZodType<
-  import('../../types.js').ClarifyPagesGroup,
-  import('../../types.js').ClarifyPagesGroup
-> = z.lazy(() => z.object({
+const clarifyPagesGroupShape = {
   group: clarifyLocalizedTextSchema,
   icon: z.string().optional(),
+  visible: z.enum(['always', 'active', 'never']).optional(),
+  searchable: z.boolean().optional(),
   layout: z.enum(['documentation', 'blog']).optional(),
   pages: z.array(clarifyPagesItemSchema),
-}).strict())
+} satisfies Record<keyof ClarifyPagesGroup, z.ZodType>
+
+const clarifyPagesGroupSchema: z.ZodType<ClarifyPagesGroup, ClarifyPagesGroup> = z.lazy(() => z.object(clarifyPagesGroupShape).strict())
 
 const clarifyPagesConfigSchema = z.union([
   z.array(clarifyPagesGroupSchema),

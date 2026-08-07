@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 
 import { themePresets } from '../../parsers/theme.js'
+import type { ClarifyProjectConfig } from '../../types.js'
 
 import { clarifyProjectConfigSchema } from './config-schema.js'
-import { resolveProjectConfig } from './config.js'
+import { resolveProjectConfig, validateProjectConfig } from './config.js'
 import { resolveBuildOptions } from './options.js'
 
 describe('clarifyProjectConfigSchema', () => {
@@ -21,7 +22,7 @@ describe('clarifyProjectConfigSchema', () => {
       navigation: {
         menus: [{ label: 'GitHub', href: 'https://github.com' }],
         tabs: [
-          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', visible: 'active', searchable: false, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
         ],
       },
       layout: { tabs: 'navbar' },
@@ -42,7 +43,7 @@ describe('clarifyProjectConfigSchema', () => {
       navigation: {
         menus: [{ label: 'GitHub', href: 'https://github.com' }],
         tabs: [
-          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', visible: 'active', searchable: false, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
         ],
       },
       layout: { tabs: 'navbar' },
@@ -108,6 +109,40 @@ describe('clarifyProjectConfigSchema', () => {
     expect(() => clarifyProjectConfigSchema.parse({ theme: { legacyPreset: 'base' } })).toThrow(/legacyPreset/)
     expect(() => clarifyProjectConfigSchema.parse({ logo: { light: '/logo.svg', legacyDark: '/dark.svg' } })).toThrow(/legacyDark/)
     expect(() => clarifyProjectConfigSchema.parse({ navigation: { tabs: [{ tab: 'Docs', legacyPages: [] }] } })).toThrow(/legacyPages/)
+  })
+
+  it('preserves supported navigation group controls through runtime validation', () => {
+    const config = {
+      navigation: {
+        tabs: [{
+          tab: 'Docs',
+          pages: [{
+            group: 'Guides',
+            visible: 'active',
+            searchable: false,
+            pages: [{
+              group: 'Advanced',
+              visible: 'never',
+              searchable: true,
+              pages: ['advanced/ssg'],
+            }],
+          }],
+        }],
+      },
+    } satisfies ClarifyProjectConfig
+
+    expect(validateProjectConfig(config).navigation).toEqual(config.navigation)
+  })
+
+  it('rejects invalid navigation group controls at runtime', () => {
+    expect(() => validateProjectConfig({
+      navigation: {
+        tabs: [{
+          tab: 'Docs',
+          pages: [{ group: 'Guides', visible: 'sometimes', pages: ['index'] }],
+        }],
+      },
+    })).toThrow('[clarify] config field "navigation.tabs[0].pages" is invalid')
   })
 
   it('rejects default outside configured locales', () => {

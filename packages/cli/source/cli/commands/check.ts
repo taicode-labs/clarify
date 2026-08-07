@@ -5,6 +5,7 @@ import { createClarifyEngine } from '../../core/engine/engine.js'
 import { findRouteConflicts } from '../../core/routing/route-analysis.js'
 import type { ContentRoute } from '../../types.js'
 import type { CliOptions } from '../options.js'
+import { printCliVersion } from '../package.js'
 
 export type CheckCommandOptions = CliOptions & {
   strict?: boolean
@@ -171,6 +172,7 @@ function printTextResult(result: CheckResult, strict: boolean): void {
 }
 
 export async function runCheck(options: CheckCommandOptions = {}): Promise<void> {
+  printCliVersion()
   const root = resolve(options.root ?? process.cwd())
   const engine = createClarifyEngine({
     projectRoot: root,
