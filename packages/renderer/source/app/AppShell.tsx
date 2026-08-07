@@ -15,11 +15,10 @@ import { resolveLocalizedText } from '../utils/localized-text'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { BuiltInNotFoundPage } from './BuiltInNotFoundPage'
-import { BuiltWithClarify } from './BuiltWithClarify'
 import { PageErrorBoundary } from './ErrorBoundary'
+import { FooterRegion } from './FooterRegion'
 import { PageActionsProvider, PageMetadata } from './PageActions'
 import { PageBanner } from './PageBanner'
-import { PageFooter } from './PageFooter'
 import { PageNavigation } from './PageNavigation'
 import { PageSkeleton } from './PageSkeleton'
 import { SectionHashSync } from './SectionHashSync'
@@ -50,10 +49,6 @@ function BannerSlot(props: BannerSlotProps) {
   }
   
   return <RuntimeSlot name="page.banner.replace" default={DefaultBannerComponent} />
-}
-
-function DefaultFooterComponent() {
-  return <PageFooter />
 }
 
 function routeForPath(routes: RouteItem[], pathname: string): RouteItem | undefined {
@@ -535,20 +530,6 @@ export function AppShell(arg0: AppShellProps) {
     )
   }
 
-  function renderFooter() {
-    return (
-      <div className="clarify-page-footer-region mt-8 grid gap-5 border-t border-(--clarify-theme-tokens-colors-border) pt-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-        <div className="clarify-page-footer-slot min-w-0">
-          <RuntimeSlot name="page.footer.before" />
-          <RuntimeSlot name="page.footer.replace" default={DefaultFooterComponent} />
-        </div>
-        <div className="clarify-page-attribution flex justify-end sm:self-end">
-          <BuiltWithClarify version={config.version} />
-        </div>
-      </div>
-    )
-  }
-
   function renderContent() {
     return (
       <div className={clsx('clarify-content @container relative flex min-h-screen min-w-0 flex-col px-4 pb-12 sm:px-6 lg:px-8 xl:px-10', layoutConfig.contentClassName, layout === 'blog' && 'clarify-content-blog')}>
@@ -556,7 +537,7 @@ export function AppShell(arg0: AppShellProps) {
           {renderMain()}
           <PageMetadata updatedAt={currentRoute?.updatedAt} locale={currentLocale} />
           <PageNavigation navigation={currentNavigation.items} currentRoute={currentRoute} />
-          {renderFooter()}
+          <FooterRegion version={config.version} />
         </PageActionsProvider>
       </div>
     )
