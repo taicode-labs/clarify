@@ -69,9 +69,15 @@ export function createRootOpenAPISpec(routes: ContentRoute[], projectConfig: Res
   const webhooks: Record<string, unknown> = {}
   const components: Record<string, Record<string, unknown>> = {}
   const tags = new Map<string, unknown>()
+  const defaultLocale = projectConfig.locales?.default
 
   for (const route of routes) {
-    if (route.kind !== 'openapi' || route.diagnostic || !route.source.content) continue
+    if (
+      route.kind !== 'openapi' ||
+      route.diagnostic ||
+      !route.source.content ||
+      (defaultLocale && route.locale && route.locale !== defaultLocale)
+    ) continue
     const filePath = route.source.filePath
     const spec = JSON.parse(route.source.content) as OpenAPISpec
     mergeOpenAPIRecord(paths, spec.paths as Record<string, unknown>, 'paths', filePath)

@@ -13,6 +13,7 @@ import { findClarifyConfigFile } from '../config/user-config.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from '../plugin/hooks.js'
 import { loadBuildPlugins } from '../plugin/manager.js'
 import { resolveProjectContext } from '../project/project-context.js'
+import { createClarifyTempDir, removeClarifyTempDir } from '../project/temp-dir.js'
 import { resolveRoutePages, resolveRouteState } from '../routing/route-resolution.js'
 import { writeClarifyEnvDts } from '../runtime/env-types.js'
 import {
@@ -284,7 +285,7 @@ export class ClarifyEngine {
       const outputDir = this.runtime.outputDirectory ?? this.generateOptions.outputDirectory
       if (!outputDir) throw new Error('[clarify] outputDirectory is required before SSG runs')
 
-      const ssrOutputDir = join(outputDir, '.ssr')
+      const ssrOutputDir = createClarifyTempDir('ssr-output')
       let tempEntryPath: string | undefined
 
       try {
@@ -304,6 +305,7 @@ export class ClarifyEngine {
         console.error('[clarify] SSG failed:', err)
         throw err
       } finally {
+        removeClarifyTempDir(ssrOutputDir)
         if (tempEntryPath) {
           try {
             rmSync(tempEntryPath, { force: true })

@@ -154,6 +154,68 @@ describe('content artifact helpers', () => {
     })
   })
 
+  it('aggregates only the default locale when the project is localized', () => {
+    const config: ResolvedProjectConfig = {
+      title: 'Platform API',
+      description: 'All public endpoints.',
+      routePrefix: '',
+      assetPrefix: '/',
+      theme: resolveThemeConfig(),
+      variables: {},
+      features: resolveFeaturesConfig(),
+      locales: {
+        default: 'zh-CN',
+        missing: 'fallback',
+        locales: [
+          { code: 'zh-CN', label: '简体中文' },
+          { code: 'en-US', label: 'English' },
+        ],
+      },
+    }
+
+    const spec = (path: string) => JSON.stringify({
+      openapi: '3.0.3',
+      info: { title: path, version: '1.0.0' },
+      paths: { [path]: { get: { responses: { 200: { description: 'OK' } } } } },
+    })
+
+    const rootSpec = createRootOpenAPISpec([
+      route({ path: '/projects', kind: 'openapi', locale: 'zh-CN', content: spec('/projects') }),
+      route({ path: '/users', kind: 'openapi', locale: 'en-US', content: spec('/users') }),
+    ], config)
+
+    expect(rootSpec.paths).toEqual({
+      '/projects': { get: { responses: { 200: { description: 'OK' } } } },
+    })
+  })
+
+  it('aggregates all OpenAPI routes when localization is disabled', () => {
+    const config: ResolvedProjectConfig = {
+      title: 'Platform API',
+      description: 'All public endpoints.',
+      routePrefix: '',
+      assetPrefix: '/',
+      theme: resolveThemeConfig(),
+      variables: {},
+      features: resolveFeaturesConfig(),
+    }
+    const spec = (path: string) => JSON.stringify({
+      openapi: '3.0.3',
+      info: { title: path, version: '1.0.0' },
+      paths: { [path]: { get: { responses: { 200: { description: 'OK' } } } } },
+    })
+
+    const rootSpec = createRootOpenAPISpec([
+      route({ path: '/projects', kind: 'openapi', locale: 'zh-CN', content: spec('/projects') }),
+      route({ path: '/users', kind: 'openapi', locale: 'en-US', content: spec('/users') }),
+    ], config)
+
+    expect(rootSpec.paths).toEqual({
+      '/projects': { get: { responses: { 200: { description: 'OK' } } } },
+      '/users': { get: { responses: { 200: { description: 'OK' } } } },
+    })
+  })
+
   it('rejects conflicting OpenAPI path entries instead of overwriting them', () => {
     const config: ResolvedProjectConfig = {
       title: 'Docs',
