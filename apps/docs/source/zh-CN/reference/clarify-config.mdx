@@ -474,7 +474,7 @@ export default defineConfig({
 })
 ```
 
-Clarify 始终输出可直接读取的 Markdown/OpenAPI 源文件和 `llms.txt`。配置 `siteUrl` 后，还会输出 `sitemap.xml` 和 `robots.txt`。这些核心构建产物不需要 feature 配置。
+Clarify 始终输出可直接读取的 Markdown/OpenAPI 源文件、`llms.txt`，以及汇聚项目中全部 OpenAPI 规范的根目录 `openapi.json`/`openapi.yml`。配置 `siteUrl` 后，还会输出 `sitemap.xml` 和 `robots.txt`。这些核心构建产物不需要 feature 配置。
 
 `enabled: false` 会禁用整项，即使同一对象中仍填写了子选项也不会生效。
 

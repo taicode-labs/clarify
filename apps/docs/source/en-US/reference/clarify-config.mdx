@@ -474,7 +474,7 @@ export default defineConfig({
 })
 ```
 
-Clarify always emits source-ready Markdown/OpenAPI files and `llms.txt`. When `siteUrl` is configured, it also emits `sitemap.xml` and `robots.txt`. These core build outputs do not require feature configuration.
+Clarify always emits source-ready Markdown/OpenAPI files, `llms.txt`, and root-level `openapi.json`/`openapi.yml` files that aggregate every OpenAPI specification in the project. When `siteUrl` is configured, it also emits `sitemap.xml` and `robots.txt`. These core build outputs do not require feature configuration.
 
 `enabled: false` disables the whole feature, even when child options remain in the same object.
 

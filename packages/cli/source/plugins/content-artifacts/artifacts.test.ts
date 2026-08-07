@@ -4,7 +4,7 @@ import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, MarkdownContentRoute, OpenAPIContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, readRouteArtifactContent, readRouteContent } from './artifacts.js'
+import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, createRootOpenAPISpec, readRouteArtifactContent, readRouteContent } from './artifacts.js'
 
 type RouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'source' | 'openapi'>> & {
   kind?: ContentRoute['kind']
@@ -76,6 +76,160 @@ describe('content artifact helpers', () => {
   it('reads artifact content without a UTF-8 signature for ASCII-only text', () => {
     const r = route({ path: '/guide', content: '# Getting Started' })
     expect(readRouteArtifactContent(r)).toBe('# Getting Started')
+  })
+
+  it('aggregates unique OpenAPI sources into one root spec', () => {
+    const config: ResolvedProjectConfig = {
+      title: 'Platform API',
+      description: 'All public endpoints.',
+      routePrefix: '',
+      assetPrefix: '/',
+      theme: resolveThemeConfig(),
+      variables: {},
+      features: resolveFeaturesConfig(),
+    }
+    const projectsSpec = JSON.stringify({
+      openapi: '3.0.3',
+      info: { title: 'Projects', version: '1.0.0' },
+      paths: { '/projects': { get: { responses: { 200: { description: 'OK' } } } } },
+      components: { schemas: { Project: { type: 'object' } } },
+      tags: [{ name: 'Projects' }],
+    })
+    const routes = [
+      route({ path: '/projects', kind: 'openapi', filePath: '/tmp/projects.openapi.json', content: projectsSpec }),
+      route({
+        path: '/projects/archive',
+        kind: 'openapi',
+        filePath: '/tmp/projects.openapi.json',
+        content: JSON.stringify({
+          openapi: '3.0.3',
+          info: { title: 'Projects', version: '1.0.0' },
+          paths: { '/projects/archive': { get: { responses: { 200: { description: 'OK' } } } } },
+          components: { schemas: { Project: { type: 'object' } } },
+          tags: [{ name: 'Projects' }],
+        }),
+      }),
+      route({
+        path: '/users',
+        kind: 'openapi',
+        filePath: '/tmp/users.openapi.yaml',
+        content: JSON.stringify({
+          openapi: '3.1.0',
+          info: { title: 'Users', version: '1.0.0' },
+          paths: { '/users': { get: { responses: { 200: { description: 'OK' } } } } },
+          components: { schemas: { User: { type: 'object' } } },
+          tags: [{ name: 'Users' }],
+        }),
+      }),
+    ]
+
+    expect(createRootOpenAPISpec(routes, config)).toEqual({
+      openapi: '3.1.0',
+      info: { title: 'Platform API', description: 'All public endpoints.', version: '1.0.0' },
+      paths: {
+        '/projects': { get: { responses: { 200: { description: 'OK' } } } },
+        '/projects/archive': { get: { responses: { 200: { description: 'OK' } } } },
+        '/users': { get: { responses: { 200: { description: 'OK' } } } },
+      },
+      components: { schemas: { Project: { type: 'object' }, User: { type: 'object' } } },
+      tags: [{ name: 'Projects' }, { name: 'Users' }],
+    })
+  })
+
+  it('creates an empty root OpenAPI spec when the project has no API routes', () => {
+    const config: ResolvedProjectConfig = {
+      title: 'Docs',
+      description: '',
+      routePrefix: '',
+      assetPrefix: '/',
+      theme: resolveThemeConfig(),
+      variables: {},
+      features: resolveFeaturesConfig(),
+    }
+
+    expect(createRootOpenAPISpec([], config)).toEqual({
+      openapi: '3.1.0',
+      info: { title: 'Docs', description: '', version: '1.0.0' },
+      paths: {},
+    })
+  })
+
+  it('rejects conflicting OpenAPI path entries instead of overwriting them', () => {
+    const config: ResolvedProjectConfig = {
+      title: 'Docs',
+      description: '',
+      routePrefix: '',
+      assetPrefix: '/',
+      theme: resolveThemeConfig(),
+      variables: {},
+      features: resolveFeaturesConfig(),
+    }
+    const routes = [
+      route({
+        path: '/projects-a',
+        kind: 'openapi',
+        filePath: '/tmp/projects-a.openapi.json',
+        content: JSON.stringify({
+          openapi: '3.1.0',
+          info: { title: 'Projects A', version: '1.0.0' },
+          paths: { '/projects': { get: { responses: { 200: { description: 'OK' } } } } },
+        }),
+      }),
+      route({
+        path: '/projects-b',
+        kind: 'openapi',
+        filePath: '/tmp/projects-b.openapi.json',
+        content: JSON.stringify({
+          openapi: '3.1.0',
+          info: { title: 'Projects B', version: '1.0.0' },
+          paths: { '/projects': { post: { responses: { 201: { description: 'Created' } } } } },
+        }),
+      }),
+    ]
+
+    expect(() => createRootOpenAPISpec(routes, config)).toThrow(
+      '[clarify] Cannot aggregate OpenAPI specs: conflicting paths entry "/projects" in /tmp/projects-b.openapi.json.',
+    )
+  })
+
+  it('rejects conflicting component schemas instead of overwriting them', () => {
+    const config: ResolvedProjectConfig = {
+      title: 'Docs',
+      description: '',
+      routePrefix: '',
+      assetPrefix: '/',
+      theme: resolveThemeConfig(),
+      variables: {},
+      features: resolveFeaturesConfig(),
+    }
+    const routes = [
+      route({
+        path: '/projects',
+        kind: 'openapi',
+        filePath: '/tmp/projects.openapi.json',
+        content: JSON.stringify({
+          openapi: '3.1.0',
+          info: { title: 'Projects', version: '1.0.0' },
+          paths: {},
+          components: { schemas: { Resource: { type: 'object' } } },
+        }),
+      }),
+      route({
+        path: '/users',
+        kind: 'openapi',
+        filePath: '/tmp/users.openapi.json',
+        content: JSON.stringify({
+          openapi: '3.1.0',
+          info: { title: 'Users', version: '1.0.0' },
+          paths: {},
+          components: { schemas: { Resource: { type: 'string' } } },
+        }),
+      }),
+    ]
+
+    expect(() => createRootOpenAPISpec(routes, config)).toThrow(
+      '[clarify] Cannot aggregate OpenAPI specs: conflicting components.schemas entry "Resource" in /tmp/users.openapi.json.',
+    )
   })
 
   it('creates an llms.txt sitemap with described markdown and OpenAPI links', () => {

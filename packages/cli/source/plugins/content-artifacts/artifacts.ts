@@ -1,4 +1,4 @@
-import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
+import type { ContentRoute, OpenAPISpec, ResolvedProjectConfig } from '../../types.js'
 
 const UTF8_SIGNATURE = '\uFEFF'
 
@@ -50,6 +50,59 @@ export function readRouteContent(route: ContentRoute): string {
 export function readRouteArtifactContent(route: ContentRoute): string {
   const content = readRouteContent(route)
   return shouldUseUtf8Signature(route) ? withUtf8Signature(content) : content
+}
+
+function mergeOpenAPIRecord(target: Record<string, unknown>, source: Record<string, unknown> | undefined, section: string, filePath: string): void {
+  if (!source) return
+
+  for (const [key, value] of Object.entries(source)) {
+    const existing = target[key]
+    if (existing !== undefined && JSON.stringify(existing) !== JSON.stringify(value)) {
+      throw new Error(`[clarify] Cannot aggregate OpenAPI specs: conflicting ${section} entry "${key}" in ${filePath}.`)
+    }
+    target[key] = value
+  }
+}
+
+export function createRootOpenAPISpec(routes: ContentRoute[], projectConfig: ResolvedProjectConfig): OpenAPISpec {
+  const paths: Record<string, unknown> = {}
+  const webhooks: Record<string, unknown> = {}
+  const components: Record<string, Record<string, unknown>> = {}
+  const tags = new Map<string, unknown>()
+
+  for (const route of routes) {
+    if (route.kind !== 'openapi' || route.diagnostic || !route.source.content) continue
+    const filePath = route.source.filePath
+    const spec = JSON.parse(route.source.content) as OpenAPISpec
+    mergeOpenAPIRecord(paths, spec.paths as Record<string, unknown>, 'paths', filePath)
+    mergeOpenAPIRecord(webhooks, 'webhooks' in spec ? spec.webhooks as Record<string, unknown> : undefined, 'webhooks', filePath)
+
+    for (const [section, entries] of Object.entries(spec.components ?? {})) {
+      components[section] ??= {}
+      mergeOpenAPIRecord(components[section], entries as Record<string, unknown>, `components.${section}`, filePath)
+    }
+
+    for (const tag of spec.tags ?? []) {
+      const existing = tags.get(tag.name)
+      if (existing !== undefined && JSON.stringify(existing) !== JSON.stringify(tag)) {
+        throw new Error(`[clarify] Cannot aggregate OpenAPI specs: conflicting tag "${tag.name}" in ${filePath}.`)
+      }
+      tags.set(tag.name, tag)
+    }
+  }
+
+  return {
+    openapi: '3.1.0',
+    info: {
+      title: projectConfig.title,
+      description: projectConfig.description,
+      version: '1.0.0',
+    },
+    paths,
+    ...(Object.keys(webhooks).length > 0 ? { webhooks } : {}),
+    ...(Object.keys(components).length > 0 ? { components } : {}),
+    ...(tags.size > 0 ? { tags: [...tags.values()] } : {}),
+  } as OpenAPISpec
 }
 
 function isLlmsTxtRoute(route: ContentRoute): boolean {

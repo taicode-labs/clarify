@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
+import { parse as yamlParse } from 'yaml'
 
 import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, MarkdownContentRoute, OpenAPIContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { resolveContentArtifactPath, resolveContentArtifactType } from './server.js'
+import { resolveContentArtifactPath, resolveContentArtifactType, serveContentArtifacts } from './server.js'
 
 import { createContentArtifactsPlugin } from './index.js'
 
@@ -63,6 +64,76 @@ describe('content artifacts plugin server helpers', () => {
 
   it('uses json content type for OpenAPI routes', () => {
     expect(resolveContentArtifactType(createRoute('openapi', '/api.openapi.json'))).toBe('application/json; charset=utf-8')
+  })
+
+  it('serves the aggregated root OpenAPI artifacts', () => {
+    const route = createRoute('openapi', '/api.openapi.json')
+    route.source.content = JSON.stringify({
+      openapi: '3.1.0',
+      info: { title: 'API', version: '1.0.0' },
+      paths: { '/projects': { get: { responses: { 200: { description: 'OK' } } } } },
+    })
+    const response = {
+      setHeader: vi.fn(),
+      end: vi.fn(),
+    }
+
+    expect(serveContentArtifacts({ url: '/openapi.json' } as never, response as never, projectConfig, [route])).toBe(true)
+    expect(response.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json; charset=utf-8')
+    expect(JSON.parse(response.end.mock.calls[0]![0])).toMatchObject({
+      openapi: '3.1.0',
+      paths: { '/projects': expect.any(Object) },
+    })
+  })
+
+  it('serves the aggregated root OpenAPI artifact as parseable YAML', () => {
+    const route = createRoute('openapi', '/api.openapi.json')
+    route.source.content = JSON.stringify({
+      openapi: '3.1.0',
+      info: { title: 'API', version: '1.0.0' },
+      paths: { '/users': { get: { responses: { 200: { description: 'OK' } } } } },
+    })
+    const response = {
+      setHeader: vi.fn(),
+      end: vi.fn(),
+    }
+
+    expect(serveContentArtifacts({ url: '/openapi.yml' } as never, response as never, projectConfig, [route])).toBe(true)
+    expect(response.setHeader).toHaveBeenCalledWith('Content-Type', 'text/yaml; charset=utf-8')
+    expect(yamlParse(response.end.mock.calls[0]![0])).toMatchObject({
+      openapi: '3.1.0',
+      paths: { '/users': expect.any(Object) },
+    })
+  })
+
+  it('emits root OpenAPI JSON and YAML build assets', async () => {
+    const route = createRoute('openapi', '/api.openapi.json')
+    route.source.content = JSON.stringify({
+      openapi: '3.1.0',
+      info: { title: 'API', version: '1.0.0' },
+      paths: { '/projects': {} },
+    })
+    const buildAssets = createContentArtifactsPlugin().hooks?.['build:assets']
+    if (!buildAssets) throw new Error('build:assets hook is missing')
+
+    const assets = await buildAssets({ routes: [route], projectConfig } as never)
+
+    expect(assets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ fileName: 'openapi.json' }),
+      expect.objectContaining({ fileName: 'openapi.yml' }),
+    ]))
+  })
+
+  it('emits valid empty root OpenAPI assets when there are no API routes', async () => {
+    const buildAssets = createContentArtifactsPlugin().hooks?.['build:assets']
+    if (!buildAssets) throw new Error('build:assets hook is missing')
+
+    const assets = await buildAssets({ routes: [], projectConfig } as never)
+    const jsonAsset = assets.find(asset => asset.fileName === 'openapi.json')
+    const yamlAsset = assets.find(asset => asset.fileName === 'openapi.yml')
+
+    expect(JSON.parse(String(jsonAsset?.source))).toMatchObject({ openapi: '3.1.0', paths: {} })
+    expect(yamlParse(String(yamlAsset?.source))).toMatchObject({ openapi: '3.1.0', paths: {} })
   })
 
   it('registers artifact serving after Vite internal middleware', async () => {
