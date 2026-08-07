@@ -284,6 +284,7 @@ export class ClarifyEngine {
 
       const outputDir = this.runtime.outputDirectory ?? this.generateOptions.outputDirectory
       if (!outputDir) throw new Error('[clarify] outputDirectory is required before SSG runs')
+      const resolvedOutputDir = resolve(this.root, outputDir)
 
       const ssrOutputDir = createClarifyTempDir('ssr-output')
       let tempEntryPath: string | undefined
@@ -300,7 +301,7 @@ export class ClarifyEngine {
         })
 
         const ssrBundlePath = join(ssrOutputDir, 'entry-server.js')
-        await renderSSGRoutes(this.routes, this.runtimeContext(), outputDir, ssrBundlePath)
+        await renderSSGRoutes(this.routes, this.runtimeContext(), resolvedOutputDir, ssrBundlePath)
       } catch (err) {
         console.error('[clarify] SSG failed:', err)
         throw err

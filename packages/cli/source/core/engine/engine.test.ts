@@ -1,3 +1,7 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
 import type { ViteDevServer } from 'vite'
 import { describe, expect, it } from 'vitest'
 
@@ -252,5 +256,26 @@ describe('ClarifyEngine phase hooks', () => {
     }
 
     expect(calls).toEqual(['before:ssg', 'after:ssg', 'build:done'])
+  })
+
+  it('resolves a relative SSG output directory from the project root', async () => {
+    const projectRoot = mkdtempSync(join(tmpdir(), 'clarify-engine-'))
+    const outputDir = join(projectRoot, 'output')
+    mkdirSync(outputDir)
+    writeFileSync(join(outputDir, 'index.html'), '<div id="root"></div>')
+
+    const engine = new ClarifyEngine({ projectRoot, outputDirectory: 'output' })
+    engine.configureRuntime({
+      outputDirectory: 'output',
+      buildSSRBundle: async ({ ssrOutDir }) => {
+        writeFileSync(join(ssrOutDir, 'entry-server.js'), 'export async function render() { return "" }')
+      },
+    })
+
+    try {
+      await expect(engine.runSSG()).resolves.toBeUndefined()
+    } finally {
+      rmSync(projectRoot, { recursive: true, force: true })
+    }
   })
 })
