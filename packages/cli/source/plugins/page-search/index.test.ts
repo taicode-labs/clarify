@@ -76,6 +76,14 @@ describe('createPageSearchPlugin', () => {
         meta: { title: 'Docs' },
         module: { pageVirtualModuleId: 'virtual:clarify-page/docs' },
         source: { filePath: '/site/source/docs.mdx', content: 'Docs content' },
+      }, {
+        path: '/internal',
+        locale: 'en-US',
+        kind: 'markdown+jsx',
+        searchable: false,
+        meta: { title: 'Internal' },
+        module: { pageVirtualModuleId: 'virtual:clarify-page/internal' },
+        source: { filePath: '/site/source/internal.mdx', content: 'Internal content' },
       }],
     } as never
 
@@ -92,6 +100,8 @@ describe('createPageSearchPlugin', () => {
     await vi.runAllTimersAsync()
 
     expect(createIndexMock).toHaveBeenCalledTimes(3)
+    expect(addCustomRecord).toHaveBeenCalledTimes(3)
+    expect(addCustomRecord.mock.calls.map(([record]) => record.url)).toEqual(['/docs', '/docs', '/docs'])
     expect(backendClosed).toBe(false)
     httpServer.emit('close')
   })

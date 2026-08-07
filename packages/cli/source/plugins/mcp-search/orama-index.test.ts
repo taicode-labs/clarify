@@ -96,6 +96,11 @@ describe('routeToSearchDocument', () => {
     expect(doc).toBeNull()
   })
 
+  it('returns null for routes excluded from search', () => {
+    const doc = routeToSearchDocument(makeRoute({ searchable: false }), 'zh-CN')
+    expect(doc).toBeNull()
+  })
+
   it('returns null for routes with no searchable content', () => {
     const doc = routeToSearchDocument(
       makeRoute({
@@ -302,6 +307,22 @@ describe('serialize / deserialize round-trip', () => {
 })
 
 describe('buildSearchIndex', () => {
+  it('excludes routes marked as not searchable', async () => {
+    const excludedRoute = makeRoute({
+      path: '/zh-CN/internal',
+      searchable: false,
+      meta: { title: 'Internal', description: '', keywords: [], sections: [] },
+      source: { filePath: '/tmp/internal.md', content: 'internalonlytoken' },
+    })
+
+    const { db, documentCount } = buildSearchIndex([makeRoute(), excludedRoute], 'zh-CN')
+    const result = searchMcpIndex(db, { query: 'internalonlytoken' })
+
+    expect(documentCount).toBe(1)
+    expect(result.count).toBe(0)
+    expect(result.hits).toEqual([])
+  })
+
   it('skips bare alias and empty routes', () => {
     const { db, documentCount } = buildSearchIndex(
       [
