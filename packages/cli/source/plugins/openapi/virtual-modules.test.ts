@@ -56,6 +56,15 @@ describe('openapi virtual modules', () => {
     expect(code).not.toContain('"tagFilter"')
   })
 
+  it('serializes operation order into route data', () => {
+    const code = generateOpenAPIPageModule({
+      specModuleId: 'virtual:clarify/openapi-spec/api',
+      operationOrder: ['createUser', 'getUser'],
+    })
+
+    expect(code).toContain('export const routeData = {"operationOrder":["createUser","getUser"]};')
+  })
+
   it('shares the same diagnostic intent across CLI and renderer', () => {
     const cliDiagnostic: CliDiagnostic = {
       kind: 'markdown+jsx',

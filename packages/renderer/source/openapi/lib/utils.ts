@@ -108,12 +108,20 @@ export function getOpenApiOperationEntryById(spec: OpenAPISpec, operationId: str
   return matches.length === 1 ? matches[0] : undefined
 }
 
-export function listOpenApiOperations(spec: OpenAPISpec): OpenAPIOperationEntry[] {
+export function listOpenApiOperations(spec: OpenAPISpec, operationOrder?: string[]): OpenAPIOperationEntry[] {
   const paths = spec.paths ?? {}
   const webhooks = (spec as OpenApiRecord).webhooks
 
-  return [
+  const operations = [
     ...listOperationsFromPathItems(paths, 'path', spec),
     ...(isRecord(webhooks) ? listOperationsFromPathItems(webhooks, 'webhook', spec) : []),
   ]
+
+  if (!operationOrder?.length) return operations
+
+  const orderByOperationId = new Map(operationOrder.map((operationId, index) => [operationId, index]))
+  return operations
+    .map((entry, index) => ({ entry, index, order: entry.operation.operationId ? orderByOperationId.get(entry.operation.operationId) : undefined }))
+    .sort((left, right) => (left.order ?? operationOrder.length) - (right.order ?? operationOrder.length) || left.index - right.index)
+    .map(({ entry }) => entry)
 }

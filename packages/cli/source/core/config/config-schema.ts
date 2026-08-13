@@ -144,6 +144,7 @@ const clarifyPagesItemSchema: z.ZodType<
   z.object({
     openapi: z.string(),
     path: z.string().optional(),
+    operationOrder: z.array(z.string()).optional(),
     icon: z.string().optional(),
     title: clarifyLocalizedTextSchema.optional(),
     filter: z.object({

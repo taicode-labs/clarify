@@ -179,6 +179,8 @@ export type ClarifyPagesItem =
     openapi: string
     /** Explicit route path. Defaults to the path generated from openapi and filter. */
     path?: string
+    /** Operation IDs to render first, in the configured order. Unlisted operations keep their stable order after these. */
+    operationOrder?: string[]
     /** Icon name from lucide-react, e.g. "Webhook". */
     icon?: string
     /** Override the page title. Defaults to spec.info.title. */
@@ -221,6 +223,7 @@ export type ClarifyOpenAPIRouteIntent = {
   kind: 'openapi'
   ref: string
   path?: string
+  operationOrder?: string[]
   tagFilter?: string[]
   title?: ClarifyLocalizedText
   icon?: string
@@ -384,6 +387,8 @@ export type ContentRouteModule = MarkdownRouteModule | OpenAPIRouteModule
 export type OpenAPIContentRouteState = {
   /** Operation tag filter applied to this route. Undefined means all operations. */
   tagFilter?: string[]
+  /** Operation IDs to render first, in the configured order. */
+  operationOrder?: string[]
   /** Deduplicated id derived from the source OpenAPI spec file path. */
   sourceSpecId?: string
   /** Spec virtual module id fragment used by this route after route-level filtering. */

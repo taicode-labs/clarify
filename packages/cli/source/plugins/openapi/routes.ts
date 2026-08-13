@@ -16,7 +16,7 @@ function collectOpenAPIPageIntents(config: ResolvedProjectConfig): ClarifyOpenAP
         continue
       }
       const intent = routeIntentFromPagesItem(item)
-      if (intent.kind === 'openapi' && (intent.path || intent.tagFilter?.length)) intents.push(intent)
+      if (intent.kind === 'openapi' && (intent.path || intent.tagFilter?.length || intent.operationOrder?.length)) intents.push(intent)
     }
   }
 
@@ -35,7 +35,13 @@ function cloneOpenAPIRoute(route: OpenAPIContentRoute, overrides: Partial<OpenAP
     meta: { ...route.meta, sections: route.meta.sections ? [...route.meta.sections] : undefined },
     module: { ...route.module },
     source: { ...route.source },
-    openapi: route.openapi ? { ...route.openapi, tagFilter: route.openapi.tagFilter ? [...route.openapi.tagFilter] : undefined } : undefined,
+    openapi: route.openapi
+      ? {
+          ...route.openapi,
+          tagFilter: route.openapi.tagFilter ? [...route.openapi.tagFilter] : undefined,
+          operationOrder: route.openapi.operationOrder ? [...route.openapi.operationOrder] : undefined,
+        }
+      : undefined,
     alternates: route.alternates ? { ...route.alternates } : undefined,
     ...overrides,
   }
@@ -91,9 +97,20 @@ export function expandConfiguredOpenAPIRoutes(routes: ContentRoute[], config: Re
 
   for (const intent of openAPIIntents) {
     const tagFilter = intent.tagFilter?.filter(Boolean)
+    const operationOrder = intent.operationOrder?.filter(Boolean)
     const sourceBasePath = openAPIPagePathFromRef(intent.ref)
     const targetBasePath = openAPIPagePathFromRef(intent.ref, tagFilter, intent.path)
-    if (sourceBasePath === targetBasePath && !tagFilter?.length) continue
+    if (sourceBasePath === targetBasePath && !tagFilter?.length) {
+      if (!operationOrder?.length) continue
+      for (let index = 0; index < routes.length; index++) {
+        const route = routes[index]
+        if (route.kind !== 'openapi' || (route.basePath ?? route.path) !== sourceBasePath) continue
+        routes[index] = cloneOpenAPIRoute(route, {
+          openapi: { ...route.openapi, operationOrder: [...operationOrder] },
+        })
+      }
+      continue
+    }
 
     for (const route of routes) {
       if (route.kind !== 'openapi' || (route.basePath ?? route.path) !== sourceBasePath) continue
@@ -106,7 +123,11 @@ export function expandConfiguredOpenAPIRoutes(routes: ContentRoute[], config: Re
         path,
         basePath: targetBasePath,
         module: { pageVirtualModuleId: pageVirtualModuleId(path) },
-        openapi: { ...route.openapi, tagFilter: tagFilter?.length ? tagFilter : undefined },
+        openapi: {
+          ...route.openapi,
+          tagFilter: tagFilter?.length ? tagFilter : undefined,
+          operationOrder: operationOrder?.length ? [...operationOrder] : undefined,
+        },
       }))
     }
   }

@@ -65,7 +65,7 @@ export class OpenAPIPluginState {
       route.meta.title = spec.info?.title ?? route.meta.title
       route.meta.description = spec.info?.description ?? route.meta.description
       route.meta.updatedAt = updatedAt
-      route.meta.sections = extractOpenAPISections(spec, route.openapi.tagFilter)
+      route.meta.sections = extractOpenAPISections(spec, route.openapi.tagFilter, route.openapi.operationOrder)
 
       const pageSpec = route.openapi.tagFilter?.length ? filterSpecByTags(specWithMetadata, route.openapi.tagFilter) : specWithMetadata
       const routeSpecModuleId = routeSpecModuleIdFromSourceSpecId(sourceSpecId, route.openapi.tagFilter)
@@ -110,6 +110,7 @@ export class OpenAPIPluginState {
       if (!this.specModules.has(routeSpecModuleId)) continue
       modules.set(route.module.pageVirtualModuleId, generateOpenAPIPageModule({
         specModuleId: specVirtualModuleId(routeSpecModuleId),
+        operationOrder: route.openapi.operationOrder,
       }))
     }
 

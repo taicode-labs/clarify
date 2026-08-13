@@ -11,7 +11,7 @@ import { useOpenApiSpec } from './lib/spec-path'
 import { getOpenApiOperationEntryById, listOpenApiOperations } from './lib/utils'
 import type { OpenAPISpec } from './lib/utils'
 
-type OpenApiPathsProps = { spec: OpenAPISpec; tagFilter?: string[] }
+type OpenApiPathsProps = { spec: OpenAPISpec; tagFilter?: string[]; operationOrder?: string[] }
 
 type OpenApiHeaderProps = { spec: OpenAPISpec }
 
@@ -24,10 +24,12 @@ export type OpenApiDocumentProps = {
   spec?: OpenAPISpec
   specPath?: string
   tagFilter?: string[]
+  operationOrder?: string[]
 }
 
 export type OpenApiRouteData = {
   spec: OpenAPISpec
+  operationOrder?: string[]
 }
 
 type OpenApiOperationWithSpecProps = {
@@ -66,9 +68,9 @@ function operationMatchesTags(operationTags: string[] | undefined, filterTags: s
 }
 
 function OpenApiPaths(arg0: OpenApiPathsProps): ReactNode {
-  const { spec, tagFilter } = arg0
+  const { spec, tagFilter, operationOrder } = arg0
 
-  const entries = listOpenApiOperations(spec)
+  const entries = listOpenApiOperations(spec, operationOrder)
     .filter(({ operation }) => operationMatchesTags(operation.tags, tagFilter))
     .map(({ path, method, operation, source }) => ({
       path,
@@ -97,7 +99,7 @@ function WarningBox(arg0: WarningBoxProps): ReactNode {
 }
 
 export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
-  const { spec, specPath, tagFilter } = arg0
+  const { spec, specPath, tagFilter, operationOrder } = arg0
   const t = useBuiltInText()
   const { spec: resolved, loading } = useOpenApiSpec(spec, specPath)
 
@@ -115,7 +117,7 @@ export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
       </div>
       <Prose className="flex-auto">
         <OpenApiHeader spec={resolved} />
-        <OpenApiPaths spec={resolved} tagFilter={tagFilter} />
+        <OpenApiPaths spec={resolved} tagFilter={tagFilter} operationOrder={operationOrder} />
       </Prose>
     </article>
   )
@@ -174,6 +176,6 @@ export function OpenApiRequest(arg0: OpenApiRequestProps): ReactNode {
 
 export function createOpenApiRouteComponent(data: OpenApiRouteData) {
   return function OpenApiRoutePage() {
-    return <OpenApiDocument spec={data.spec} />
+    return <OpenApiDocument spec={data.spec} operationOrder={data.operationOrder} />
   }
 }

@@ -60,4 +60,21 @@ describe('OpenAPI routes', () => {
     ])
     expect(expanded[2]?.module.pageVirtualModuleId).toBe('virtual:clarify-page/reference')
   })
+
+  it('applies operation order to the default OpenAPI route', () => {
+    const routes = [
+      contentRoute({ path: '/api', kind: 'openapi', pageVirtualModuleId: 'virtual:clarify-page/api' }),
+    ]
+    const config = resolveProjectConfig({
+      navigation: { tabs: [{ tab: 'API', pages: [{ group: 'Reference', pages: [{ openapi: 'api.openapi.json', operationOrder: ['createUser', 'getUser'] }] }] }] },
+    })
+
+    const expanded = expandConfiguredOpenAPIRoutes(routes, config)
+
+    expect(expanded).toHaveLength(1)
+    expect(expanded[0]).toMatchObject({
+      path: '/api',
+      openapi: { operationOrder: ['createUser', 'getUser'] },
+    })
+  })
 })

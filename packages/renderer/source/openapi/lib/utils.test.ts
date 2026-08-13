@@ -88,4 +88,30 @@ describe('OpenAPI operation section ids', () => {
 
     expect(getOpenApiOperationEntryById(spec, 'listItems')).toBeUndefined()
   })
+
+  it('orders configured operation IDs first and appends the rest in stable order', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Assets API', version: '1.0.0' },
+      paths: {
+        '/assets': {
+          get: { operationId: 'listAssets', responses: { 200: { description: 'OK' } } },
+          post: { operationId: 'createAsset', responses: { 201: { description: 'Created' } } },
+        },
+        '/assets/{assetId}': {
+          get: { operationId: 'getAsset', responses: { 200: { description: 'OK' } } },
+          delete: { operationId: 'deleteAsset', responses: { 204: { description: 'Deleted' } } },
+        },
+      },
+    }
+
+    const entries = listOpenApiOperations(spec, ['createAsset', 'getAsset'])
+
+    expect(entries.map(({ operation }) => operation.operationId)).toEqual([
+      'createAsset',
+      'getAsset',
+      'listAssets',
+      'deleteAsset',
+    ])
+  })
 })

@@ -21,7 +21,7 @@ describe('clarifyProjectConfigSchema', () => {
       navigation: {
         menus: [{ label: 'GitHub', href: 'https://github.com' }],
         tabs: [
-          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', visible: 'active', searchable: false, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', visible: 'active', searchable: false, pages: ['index', { openapi: 'api', operationOrder: ['createUser', 'getUser'], title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
         ],
       },
       layout: { tabs: 'navbar' },
@@ -42,7 +42,7 @@ describe('clarifyProjectConfigSchema', () => {
       navigation: {
         menus: [{ label: 'GitHub', href: 'https://github.com' }],
         tabs: [
-          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', visible: 'active', searchable: false, pages: ['index', { openapi: 'api', title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
+          { tab: { 'zh-CN': '产品', 'en-US': 'Product' }, icon: 'Boxes', pages: [{ group: 'Overview', visible: 'active', searchable: false, pages: ['index', { openapi: 'api', operationOrder: ['createUser', 'getUser'], title: { 'zh-CN': '接口', 'en-US': 'API' } }] }] },
         ],
       },
       layout: { tabs: 'navbar' },

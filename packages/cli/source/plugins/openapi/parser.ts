@@ -116,10 +116,10 @@ export function filterSpecByTags(spec: OpenAPISpec, tags: string[]): OpenAPISpec
 }
 
 /** Extract endpoint operations from an OpenAPI spec as page sections. */
-export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[]): ContentSection[] {
+export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[], operationOrder?: string[]): ContentSection[] {
   normalizeOpenAPISpecSectionIds(spec)
 
-  const sections: ContentSection[] = []
+  const entries: Array<{ section: ContentSection; operationId?: string }> = []
   const items = [
     ...Object.entries(spec.paths ?? {}).map(([path, pathItem]) => ({ path, pathItem, kind: 'path' })),
     ...Object.entries(((spec as Record<string, unknown>).webhooks ?? {}) as Record<string, unknown>).map(([path, pathItem]) => ({ path, pathItem, kind: 'webhook' })),
@@ -132,10 +132,19 @@ export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[])
       const tags = Array.isArray(op?.tags) ? op.tags as string[] : undefined
       if (!op || !operationMatchesTags(tags, filterTags)) continue
       const title = typeof op.summary === 'string' ? op.summary : `${method.toUpperCase()} ${path}`
-      sections.push({ id: operationSectionId(op), title, level: 2, badge: kind === 'webhook' ? 'WEBHOOK' : method.toUpperCase(), tags })
+      entries.push({
+        section: { id: operationSectionId(op), title, level: 2, badge: kind === 'webhook' ? 'WEBHOOK' : method.toUpperCase(), tags },
+        operationId: typeof op.operationId === 'string' ? op.operationId : undefined,
+      })
     }
   }
-  return sections
+  if (!operationOrder?.length) return entries.map(({ section }) => section)
+
+  const orderById = new Map(operationOrder.map((operationId, index) => [operationId, index]))
+  return entries
+    .map((entry, index) => ({ ...entry, index, order: entry.operationId ? orderById.get(entry.operationId) : undefined }))
+    .sort((left, right) => (left.order ?? operationOrder.length) - (right.order ?? operationOrder.length) || left.index - right.index)
+    .map(({ section }) => section)
 }
 
 export async function readOpenAPISpec(filePath: string, contentProcessor?: ContentProcessor, projectRoot?: string): Promise<OpenAPIParseResult> {

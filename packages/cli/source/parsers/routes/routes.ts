@@ -337,7 +337,7 @@ export function routeIntentFromPagesItem(
 ): ClarifyRouteIntent {
   if (typeof item === 'string') return { kind: 'page', ref: item }
   if ('group' in item) throw new Error('Navigation groups do not resolve to route intents')
-  if ('openapi' in item) return { kind: 'openapi', ref: item.openapi, tagFilter: item.filter?.tags, path: item.path, title: item.title, icon: item.icon }
+  if ('openapi' in item) return { kind: 'openapi', ref: item.openapi, tagFilter: item.filter?.tags, operationOrder: item.operationOrder, path: item.path, title: item.title, icon: item.icon }
   return { kind: 'page', ref: item.page, path: item.path, redirect: item.redirect, title: item.title, icon: item.icon }
 }
 
