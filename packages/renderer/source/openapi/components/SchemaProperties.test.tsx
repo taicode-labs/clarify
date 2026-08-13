@@ -236,6 +236,26 @@ describe('SchemaProperties', () => {
     expect(markup).toContain('No request body properties match the current search.')
   })
 
+  it('allows selecting enum property names', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {},
+    }
+
+    const schema = {
+      type: 'object',
+      properties: {
+        prompt: { type: 'string' },
+        size: { type: 'string', enum: ['720p', '1080p'] },
+      },
+    }
+
+    const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
+
+    expect(markup).toMatch(/<button[^>]*class="[^"]*select-text[^"]*"[^>]*>[\s\S]*?size/)
+  })
+
   it('renders nested properties as an indented tree outside prose styles', () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',
