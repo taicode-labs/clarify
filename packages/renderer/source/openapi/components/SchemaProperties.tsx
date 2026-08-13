@@ -334,7 +334,7 @@ function SchemaNode(arg0: ExpandableSchemaNodeProps): ReactNode {
           aria-label={expanded ? t('openapi.collapse') : t('openapi.expand')}
           aria-expanded={expanded}
           onClick={() => setLocallyExpanded((value) => !value)}
-          className={clsx(rowClassName, 'cursor-pointer transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)')}
+          className={clsx(rowClassName, 'cursor-pointer select-text transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)')}
         >
           {content}
         </button>
