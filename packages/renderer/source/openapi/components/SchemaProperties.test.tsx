@@ -9,7 +9,7 @@ import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 
 import { EndpointRequest } from './EndpointSections'
 import { EndpointPath } from './OpenApiOperation'
-import { ParameterList, ResponseList, SchemaProperties } from './SchemaProperties'
+import { ParameterList, ResponseList, SchemaProperties, shouldToggleSchemaNode } from './SchemaProperties'
 
 describe('ParameterList', () => {
   it('renders nothing when there are no parameters', () => {
@@ -202,6 +202,12 @@ describe('schemaToType', () => {
 })
 
 describe('SchemaProperties', () => {
+  it('does not toggle for pointer clicks that finish a text selection', () => {
+    expect(shouldToggleSchemaNode(1, false)).toBe(false)
+    expect(shouldToggleSchemaNode(1, true)).toBe(true)
+    expect(shouldToggleSchemaNode(0, false)).toBe(true)
+  })
+
   it('fuzzy filters nested properties and keeps their parent path visible', () => {
     const spec = { openapi: '3.1.0', info: { title: 'Test API', version: '1.0.0' }, paths: {} }
     const schema = {

@@ -247,6 +247,10 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown, defaultExpanded?:
 type SchemaNodeProps = { node: SchemaTreeNode; depth?: number; defaultExpanded?: boolean }
 type ExpandableSchemaNodeProps = SchemaNodeProps & { forceExpanded?: boolean }
 
+export function shouldToggleSchemaNode(clickDetail: number, selectionIsCollapsed: boolean | undefined): boolean {
+  return clickDetail === 0 || selectionIsCollapsed !== false
+}
+
 function EnumValueWithDescription(arg0: SchemaNodeProps): ReactNode {
   const { node } = arg0
 
@@ -333,7 +337,10 @@ function SchemaNode(arg0: ExpandableSchemaNodeProps): ReactNode {
           type="button"
           aria-label={expanded ? t('openapi.collapse') : t('openapi.expand')}
           aria-expanded={expanded}
-          onClick={() => setLocallyExpanded((value) => !value)}
+          onClick={(event) => {
+            if (!shouldToggleSchemaNode(event.detail, window.getSelection()?.isCollapsed)) return
+            setLocallyExpanded((value) => !value)
+          }}
           className={clsx(rowClassName, 'cursor-pointer select-text transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)')}
         >
           {content}
