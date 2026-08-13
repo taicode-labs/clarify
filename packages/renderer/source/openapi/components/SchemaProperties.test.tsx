@@ -9,7 +9,7 @@ import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 
 import { EndpointRequest } from './EndpointSections'
 import { EndpointPath } from './OpenApiOperation'
-import { ParameterList, ResponseList, SchemaProperties, shouldToggleSchemaNode } from './SchemaProperties'
+import { ParameterList, ResponseList, SchemaProperties, shouldToggleSchemaRow } from './SchemaProperties'
 
 describe('ParameterList', () => {
   it('renders nothing when there are no parameters', () => {
@@ -145,6 +145,12 @@ describe('EndpointPath', () => {
     expect(markup).toContain('/pets/{id}')
     expect(markup).not.toContain('https://api.example.com')
   })
+
+  it('adds a leading slash to webhook names', () => {
+    const markup = renderToStaticMarkup(<EndpointPath path="pageLifecycle" />)
+
+    expect(markup).toContain('>/pageLifecycle</span>')
+  })
 })
 
 describe('schemaToType', () => {
@@ -202,10 +208,10 @@ describe('schemaToType', () => {
 })
 
 describe('SchemaProperties', () => {
-  it('does not toggle for pointer clicks that finish a text selection', () => {
-    expect(shouldToggleSchemaNode(1, false)).toBe(false)
-    expect(shouldToggleSchemaNode(1, true)).toBe(true)
-    expect(shouldToggleSchemaNode(0, false)).toBe(true)
+  it('toggles rows except when selecting text or using an interactive child', () => {
+    expect(shouldToggleSchemaRow(false, false)).toBe(true)
+    expect(shouldToggleSchemaRow(false, true)).toBe(false)
+    expect(shouldToggleSchemaRow(true, false)).toBe(false)
   })
 
   it('fuzzy filters nested properties and keeps their parent path visible', () => {
@@ -242,7 +248,7 @@ describe('SchemaProperties', () => {
     expect(markup).toContain('No request body properties match the current search.')
   })
 
-  it('allows selecting enum property names', () => {
+  it('keeps enum property text outside the disclosure button while making the row clickable', () => {
     const spec: OpenAPISpec = {
       openapi: '3.1.0',
       info: { title: 'Test API', version: '1.0.0' },
@@ -259,7 +265,8 @@ describe('SchemaProperties', () => {
 
     const markup = renderToStaticMarkup(<SchemaProperties title="Body properties" schema={schema} spec={spec} />)
 
-    expect(markup).toMatch(/<button[^>]*class="[^"]*select-text[^"]*"[^>]*>[\s\S]*?size/)
+    expect(markup).toMatch(/<div[^>]*class="[^"]*cursor-pointer[^"]*"/)
+    expect(markup).toMatch(/<div[^>]*class="[^"]*select-text[^"]*"[^>]*>[\s\S]*?size[\s\S]*?<\/div>[\s\S]*?<button[^>]*aria-label="Expand: size"/)
   })
 
   it('renders nested properties as an indented tree outside prose styles', () => {
@@ -284,7 +291,7 @@ describe('SchemaProperties', () => {
     expect(markup).toContain('<section class="clarify-openapi-document-section"><h4')
     expect(markup).toContain('class="mt-2 clarify-schema-properties not-prose"')
     expect(markup).toContain('clarify-schema-node m-0 p-0')
-    expect(markup).toMatch(/<button[^>]*class="[^"]*rounded-\(--clarify-theme-tokens-radius-md\)[^"]*hover:bg-/)
+    expect(markup).toMatch(/<button[^>]*aria-expanded="true"[^>]*class="[^"]*rounded-\(--clarify-theme-tokens-radius-md\)[^"]*hover:bg-/)
     expect(markup).toContain('ml-2 border-l border-(--clarify-theme-tokens-colors-border) pl-2')
   })
 

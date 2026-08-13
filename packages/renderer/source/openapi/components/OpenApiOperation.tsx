@@ -29,11 +29,12 @@ type EndpointPathProps = { path: string; copied?: boolean; onCopy?: () => void }
 export function EndpointPath(arg0: EndpointPathProps): ReactNode {
   const { path, copied = false, onCopy } = arg0
   const t = useBuiltInText()
+  const displayPath = path ? (path.startsWith('/') ? path : `/${path}`) : '/'
 
   return (
     <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
       <div className="min-w-0 flex-1 overflow-x-auto text-sm font-bold leading-6 whitespace-nowrap">
-        <span className="select-text font-mono text-(--clarify-theme-tokens-colors-foreground)">{path || '/'}</span>
+        <span className="select-text font-mono text-(--clarify-theme-tokens-colors-foreground)">{displayPath}</span>
       </div>
       {onCopy ? (
         <button

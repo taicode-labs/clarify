@@ -6,6 +6,7 @@ import { Tabs } from '../../components'
 import { useBuiltInText } from '../../core/i18n'
 import { Markdown } from '../../mdx/Markdown'
 import { Properties, Property } from '../../mdx/primitives'
+import { getEnumOptions } from '../lib/enum-options'
 import { fuzzyMatch, getJsonLikeContent, getResponseEntries, getSchemaSearchText, isRecord, isReference, resolveReferenceName, resolveSchema, schemaHasType, schemaToType } from '../lib/helpers'
 import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
 import type { OpenApiParameter, OpenApiResponse } from '../types'
@@ -23,25 +24,6 @@ type SchemaTreeNode = {
   defaultExpanded?: boolean
   children: SchemaTreeNode[]
   visible?: boolean
-}
-
-function getEnumDescriptions(schema: Record<string, unknown>): Array<string | undefined> {
-  const descriptions = schema['x-enumDescriptions']
-
-  if (Array.isArray(descriptions)) {
-    return descriptions.map((value) => (typeof value === 'string' ? value : undefined))
-  }
-
-  if (isRecord(descriptions)) {
-    return Array.isArray(schema.enum)
-      ? schema.enum.map((value) => {
-          const description = descriptions[String(value)]
-          return typeof description === 'string' ? description : undefined
-        })
-      : []
-  }
-
-  return []
 }
 
 type SchemaTreeBranch = {
@@ -73,13 +55,11 @@ function getSchemaNodeType(schema: unknown): string | undefined {
 function getEnumChildren(schema: Record<string, unknown>, path: string): SchemaTreeNode[] {
   if (!Array.isArray(schema.enum) || schema.enum.length === 0) return []
 
-  const descriptions = getEnumDescriptions(schema)
-
-  return schema.enum.map((value, index) => ({
-    key: `${path || 'root'}.enum[${index}]`,
-    name: String(value),
+  return getEnumOptions(schema).map((option) => ({
+    key: `${path || 'root'}.enum.${option.key}`,
+    name: option.valueText,
     kind: 'enum',
-    description: descriptions[index],
+    description: option.description,
     required: false,
     children: [],
   }))
@@ -247,8 +227,8 @@ function getRootSchemaNode(spec: OpenAPISpec, schema: unknown, defaultExpanded?:
 type SchemaNodeProps = { node: SchemaTreeNode; depth?: number; defaultExpanded?: boolean }
 type ExpandableSchemaNodeProps = SchemaNodeProps & { forceExpanded?: boolean }
 
-export function shouldToggleSchemaNode(clickDetail: number, selectionIsCollapsed: boolean | undefined): boolean {
-  return clickDetail === 0 || selectionIsCollapsed !== false
+export function shouldToggleSchemaRow(interactiveTarget: boolean, selectionInRow: boolean): boolean {
+  return !interactiveTarget && !selectionInRow
 }
 
 function EnumValueWithDescription(arg0: SchemaNodeProps): ReactNode {
@@ -311,40 +291,42 @@ function SchemaNode(arg0: ExpandableSchemaNodeProps): ReactNode {
   const rowClassName = 'flex w-full min-w-0 items-start rounded-(--clarify-theme-tokens-radius-md) px-2 py-2 text-left'
 
   const content = (
-    <>
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
-          <span className="text-sm/5 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{node.name}</span>
-          {type ? <span className="text-xs text-(--clarify-theme-tokens-colors-muted)">{type}</span> : null}
-        </div>
-        <div className="mt-0.5 text-sm/5 text-(--clarify-ui-text-soft) *:first:mt-0 *:last:mb-0">
-          {node.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{node.description}</Markdown> : fallbackDescription}
-          {node.details ? <p className="text-xs text-(--clarify-ui-text-soft)">{node.details}</p> : null}
-        </div>
+    <div className="min-w-0 flex-1 select-text">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+        <span className="text-sm/5 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{node.name}</span>
+        {type ? <span className="text-xs text-(--clarify-theme-tokens-colors-muted)">{type}</span> : null}
       </div>
-      {hasChildren ? (
-        <span className="ml-2 flex h-5 w-5 flex-none items-center justify-center text-(--clarify-ui-text-faint)" aria-hidden="true">
-          {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        </span>
-      ) : null}
-    </>
+      <div className="mt-0.5 text-sm/5 text-(--clarify-ui-text-soft) *:first:mt-0 *:last:mb-0">
+        {node.description ? <Markdown className="*:first:mt-0 *:last:mb-0">{node.description}</Markdown> : fallbackDescription}
+        {node.details ? <p className="text-xs text-(--clarify-ui-text-soft)">{node.details}</p> : null}
+      </div>
+    </div>
   )
 
   return (
     <li className={clsx('clarify-schema-node m-0 p-0', node.visible === false && 'hidden')}>
       {hasChildren ? (
-        <button
-          type="button"
-          aria-label={expanded ? t('openapi.collapse') : t('openapi.expand')}
-          aria-expanded={expanded}
+        <div
           onClick={(event) => {
-            if (!shouldToggleSchemaNode(event.detail, window.getSelection()?.isCollapsed)) return
-            setLocallyExpanded((value) => !value)
+            const target = event.target instanceof Element ? event.target : undefined
+            const interactiveTarget = Boolean(target?.closest('button, a, input, select, textarea, [role="button"]'))
+            const selection = window.getSelection()
+            const selectionInRow = Boolean(selection && !selection.isCollapsed && selection.containsNode(event.currentTarget, true))
+            if (shouldToggleSchemaRow(interactiveTarget, selectionInRow)) setLocallyExpanded((value) => !value)
           }}
-          className={clsx(rowClassName, 'cursor-pointer select-text transition hover:bg-(--clarify-ui-hover-background) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)')}
+          className={clsx(rowClassName, 'cursor-pointer transition hover:bg-(--clarify-ui-hover-background)')}
         >
           {content}
-        </button>
+          <button
+            type="button"
+            aria-label={`${expanded ? t('openapi.collapse') : t('openapi.expand')}: ${node.name}`}
+            aria-expanded={expanded}
+            onClick={() => setLocallyExpanded((value) => !value)}
+            className="ml-2 flex h-5 w-5 flex-none cursor-pointer items-center justify-center rounded-(--clarify-theme-tokens-radius-md) text-(--clarify-ui-text-faint) outline-hidden transition hover:bg-(--clarify-ui-active-background) focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)"
+          >
+            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </button>
+        </div>
       ) : (
         <div className={rowClassName}>{content}</div>
       )}

@@ -1,5 +1,6 @@
 import type { ChangeEvent, ReactNode } from 'react'
 
+import { getEnumOptions } from '../lib/enum-options'
 import { isRecord, resolveSchema, schemaHasType, schemaToType } from '../lib/helpers'
 import type { OpenAPISpec } from '../lib/utils'
 import type { OpenApiMediaType } from '../types'
@@ -43,6 +44,8 @@ function isFormMediaType(mediaType: string): boolean {
 
 function valueFromInput(schema: unknown, value: string): unknown {
   if (!isRecord(schema)) return value
+  const enumOption = getEnumOptions(schema).find((option) => option.valueText === value)
+  if (enumOption) return enumOption.value
   if (schemaHasType(schema, 'integer')) return value === '' ? '' : Number.parseInt(value, 10)
   if (schemaHasType(schema, 'number')) return value === '' ? '' : Number(value)
   if (schemaHasType(schema, 'boolean')) return value === 'true'
@@ -74,7 +77,7 @@ export function OpenApiRequestBodyEditor(arg0: OpenApiRequestBodyEditorProps): R
     const type = schemaToType(propertySchema) ?? 'string'
     const value = values[name]
     const fieldId = `openapi-request-body-${name}`.replace(/[^a-zA-Z0-9_-]/g, '-')
-    const options = Array.isArray(propertyRecord?.enum) ? propertyRecord.enum : []
+    const options = getEnumOptions(propertySchema)
     const structured = schemaHasType(propertySchema, 'array') || schemaHasType(propertySchema, 'object')
     const serializedValue = structured && typeof value !== 'undefined' ? JSON.stringify(value, null, 2) : String(value ?? '')
 
@@ -82,7 +85,7 @@ export function OpenApiRequestBodyEditor(arg0: OpenApiRequestBodyEditorProps): R
     if (isBinarySchema(propertySchema)) {
       control = <input id={fieldId} aria-label={name} type="file" required={required.has(name)} onChange={(event: ChangeEvent<HTMLInputElement>) => onFileChange(name, event.target.files?.[0])} className="min-h-8 w-full px-2 py-1 text-xs text-(--clarify-theme-tokens-colors-foreground) file:mr-2 file:rounded-(--clarify-theme-tokens-radius-md) file:border file:border-(--clarify-theme-tokens-colors-border) file:bg-(--clarify-ui-subtle-background) file:px-2 file:py-1 file:text-xs file:text-(--clarify-ui-text-strong)" />
     } else if (options.length > 0) {
-      control = <select id={fieldId} aria-label={name} value={serializedValue} required={required.has(name)} onChange={(event) => updateProperty(name, propertySchema, event.target.value)} className="h-8 w-full border-0 bg-transparent px-2 font-mono text-xs text-(--clarify-theme-tokens-colors-foreground) outline-hidden focus:bg-(--clarify-ui-hover-background)">{!required.has(name) ? <option value="" /> : null}{options.map((option) => <option key={String(option)} value={String(option)}>{String(option)}</option>)}</select>
+      control = <select id={fieldId} aria-label={name} value={serializedValue} required={required.has(name)} onChange={(event) => updateProperty(name, propertySchema, event.target.value)} className="h-8 w-full border-0 bg-transparent px-2 font-mono text-xs text-(--clarify-theme-tokens-colors-foreground) outline-hidden focus:bg-(--clarify-ui-hover-background)">{!required.has(name) ? <option value="" /> : null}{options.map((option) => <option key={option.key} value={option.valueText}>{option.label}</option>)}</select>
     } else if (schemaHasType(propertySchema, 'boolean')) {
       control = <input id={fieldId} aria-label={name} type="checkbox" checked={value === true} onChange={(event) => updateProperty(name, propertySchema, String(event.target.checked))} className="size-4 accent-(--clarify-theme-tokens-colors-primary)" />
     } else if (structured) {

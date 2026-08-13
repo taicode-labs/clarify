@@ -1,6 +1,7 @@
 import type { OpenApiParameter } from '../types'
 
 import { parameterKey } from './api-request'
+import { getEnumOptions } from './enum-options'
 import { isRecord, resolveSchema, schemaToType } from './helpers'
 import type { OpenAPISpec } from './utils'
 
@@ -34,7 +35,7 @@ export function validateRequestParameter(spec: OpenAPISpec, parameter: OpenApiPa
   const schema = resolveSchema(spec, parameter.schema)
   const schemaRecord = isRecord(schema) ? schema : undefined
   const type = schemaToType(schema) ?? 'string'
-  const options = Array.isArray(schemaRecord?.enum) ? schemaRecord.enum.map(String) : []
+  const options = getEnumOptions(schema).map(({ valueText }) => valueText)
 
   if (options.length > 0 && !options.includes(value)) return 'invalidEnum'
   return structuredIssue(value, type) ?? scalarIssue(value, type, schemaRecord?.format)

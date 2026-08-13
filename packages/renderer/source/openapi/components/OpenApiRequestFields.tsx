@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { Tooltip } from '../../components/Tooltip'
 import { useBuiltInText } from '../../core/i18n'
 import { Markdown } from '../../mdx/Markdown'
+import { getEnumOptions } from '../lib/enum-options'
 import { isRecord, resolveSchema, schemaToType } from '../lib/helpers'
 import type { RequestParameterIssue } from '../lib/request-parameters'
 import type { OpenAPISpec } from '../lib/utils'
@@ -38,8 +39,8 @@ export function RequestField(arg0: RequestFieldProps): ReactNode {
   const schema = resolveSchema(spec, parameter.schema)
   const schemaRecord = isRecord(schema) ? schema : undefined
   const itemSchema = isRecord(schemaRecord?.items) ? schemaRecord.items : undefined
-  const options = Array.isArray(schemaRecord?.enum) ? schemaRecord.enum.map(String) : []
-  const itemOptions = Array.isArray(itemSchema?.enum) ? itemSchema.enum.map(String) : []
+  const options = getEnumOptions(schema).map(({ valueText, label, description }) => ({ value: valueText, label, description }))
+  const itemOptions = getEnumOptions(itemSchema).map(({ valueText, label, description }) => ({ value: valueText, label, description }))
   const type = schemaToType(schema) ?? 'string'
   const description = parameter.description ?? (typeof schemaRecord?.description === 'string' ? schemaRecord.description : undefined)
   const structured = type.includes('[]') || type.includes('object')
@@ -95,9 +96,9 @@ export function RequestField(arg0: RequestFieldProps): ReactNode {
       <div className={clsx('col-start-2 flex min-w-0 items-center border-t border-(--clarify-theme-tokens-colors-border) sm:col-start-3 sm:row-start-1 sm:border-t-0', !enabled && 'bg-(--clarify-ui-subtle-background)')}>
       <div className="min-w-0 flex-1">
       {itemOptions.length > 0 ? (
-        <MultiInlineListbox label={parameter.name ?? ''} value={arrayValue} options={itemOptions.map((option) => ({ value: option, label: option }))} onChange={(next) => onChange(JSON.stringify(next))} invalid={Boolean(issue)} describedBy={issue ? `${fieldId}-issue` : undefined} disabled={!enabled} />
+        <MultiInlineListbox label={parameter.name ?? ''} value={arrayValue} options={itemOptions} onChange={(next) => onChange(JSON.stringify(next))} invalid={Boolean(issue)} describedBy={issue ? `${fieldId}-issue` : undefined} disabled={!enabled} />
       ) : options.length > 0 ? (
-        <InlineListbox label={parameter.name ?? ''} value={value} options={[...(parameter.required ? [] : [{ value: '', label: t('openapi.none') }]), ...options.map((option) => ({ value: option, label: option }))]} onChange={onChange} invalid={Boolean(issue)} describedBy={issue ? `${fieldId}-issue` : undefined} disabled={!enabled} />
+        <InlineListbox label={parameter.name ?? ''} value={value} options={[...(parameter.required ? [] : [{ value: '', label: t('openapi.none') }]), ...options]} onChange={onChange} invalid={Boolean(issue)} describedBy={issue ? `${fieldId}-issue` : undefined} disabled={!enabled} />
       ) : boolean ? (
         <input {...controlProps} id={fieldId} type="checkbox" checked={value === 'true'} onChange={(event) => onChange(String(event.target.checked))} className="size-4 accent-(--clarify-theme-tokens-colors-primary)" />
       ) : structured ? (
