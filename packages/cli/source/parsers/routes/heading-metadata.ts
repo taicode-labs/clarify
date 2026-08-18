@@ -29,7 +29,7 @@ export function headingMetadata(analysis: HeadingAnalysis): Pick<ContentRoute['m
 
 function resolvedRouteTitle(route: ContentRoute, analysis: HeadingAnalysis): string {
   const frontmatterTitle = route.source.frontmatter?.title
-  if (typeof frontmatterTitle === 'string') return frontmatterTitle
+  if (typeof frontmatterTitle === 'string' && frontmatterTitle) return frontmatterTitle
 
   const routePath = route.basePath ?? route.path
   const stem = routePath === '/'

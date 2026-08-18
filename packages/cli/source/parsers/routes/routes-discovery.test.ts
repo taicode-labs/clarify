@@ -225,6 +225,42 @@ describe('findContentRoutes', () => {
     })
   })
 
+  it('reports raw HTML ID conflicts with Markdown canonical IDs at both source locations', async () => {
+    // Catches raw HTML headings bypassing the analyzer namespace and leaving
+    // duplicate IDs for the browser to resolve ambiguously.
+    writeFileSync(join(tempDir, 'raw-conflict.md'), [
+      '<h2 id="stable">Raw</h2>',
+      '',
+      '## Markdown {#stable}',
+    ].join('\n'), 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.diagnostic).toMatchObject({
+      title: 'Heading ID error',
+      filePath: 'raw-conflict.md',
+      details: expect.stringContaining('Heading ID "stable" at 3:1 conflicts with the heading at 1:1'),
+    })
+  })
+
+  it('keeps raw HTML headings out of route sections while reserving Markdown aliases', async () => {
+    // Catches namespace analysis accidentally promoting raw H2/H3 elements
+    // into navigation sections while protecting their rendered fallback IDs.
+    writeFileSync(join(tempDir, 'raw-section.md'), [
+      '<h2>Duplicate</h2>',
+      '',
+      '## Duplicate {#stable}',
+    ].join('\n'), 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.meta.sections).toEqual([
+      { id: 'stable', title: 'Duplicate', level: 2, aliases: ['duplicate'] },
+    ])
+    expect(route?.meta.headingAliases).toEqual({ duplicate: 'stable' })
+    expect(route?.diagnostic).toBeUndefined()
+  })
+
   it('suffixes repeated automatic headings without producing a diagnostic', async () => {
     writeFileSync(join(tempDir, 'repeated.mdx'), '# 标题\n\n## 重复\n\n### 重复', 'utf-8')
 

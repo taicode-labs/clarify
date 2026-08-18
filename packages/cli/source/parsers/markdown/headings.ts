@@ -1,6 +1,7 @@
 import { createProcessor } from '@mdx-js/mdx'
 import GithubSlugger from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
+import rehypeRaw from 'rehype-raw'
 import { remark } from 'remark'
 
 import type { ContentDiagnostic } from '../../types.js'
@@ -44,6 +45,15 @@ type MarkdownNode = {
   position?: { start: Position; end: Position }
 }
 
+type HastNode = {
+  type: string
+  tagName?: string
+  value?: string
+  properties?: Record<string, unknown>
+  children?: HastNode[]
+  position?: { start: Position; end: Position }
+}
+
 type SourceEdit = {
   start: number
   end: number
@@ -61,12 +71,42 @@ type IdOwner = {
   position: AnalyzedHeading['position']
 }
 
+type RawHtmlHeading = {
+  title: string
+  id?: string
+  position: AnalyzedHeading['position']
+  offset: number
+  openingTagEnd: number
+}
+
+type DocumentHeading = {
+  title: string
+  offset: number
+  markdown?: AnalyzedHeading
+  raw?: RawHtmlHeading
+}
+
 const INTERNAL_HEADING_ID_PREFIX = 'clarify-internal-heading-id:'
 const EXPLICIT_ID_PATTERN = /\s+\{#([^{}]*)\}$/
 
 function visitHeadings(node: MarkdownNode, callback: (heading: MarkdownNode) => void): void {
   if (node.type === 'heading') callback(node)
   for (const child of node.children ?? []) visitHeadings(child, callback)
+}
+
+function visitHtml(node: MarkdownNode, callback: (html: MarkdownNode) => void): void {
+  if (node.type === 'html') callback(node)
+  for (const child of node.children ?? []) visitHtml(child, callback)
+}
+
+function visitHastHeadings(node: HastNode, callback: (heading: HastNode) => void): void {
+  if (node.type === 'element' && node.tagName && /^h[1-6]$/.test(node.tagName)) callback(node)
+  for (const child of node.children ?? []) visitHastHeadings(child, callback)
+}
+
+function hastText(node: HastNode): string {
+  if (node.type === 'text') return node.value ?? ''
+  return (node.children ?? []).map(hastText).join('')
 }
 
 function applySourceEdits(content: string, edits: SourceEdit[]): string {
@@ -151,22 +191,86 @@ function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind'])
   }
 }
 
+function openingTagEnd(content: string, start: number, end: number): number | undefined {
+  let quote: '"' | "'" | undefined
+  for (let index = start; index < end; index++) {
+    const character = content[index]
+    if (quote) {
+      if (character === quote) quote = undefined
+    } else if (character === '"' || character === "'") {
+      quote = character
+    } else if (character === '>') {
+      return index
+    }
+  }
+  return undefined
+}
+
+function rawHtmlHeadings(tree: MarkdownNode, content: string): RawHtmlHeading[] {
+  let hasRawHtml = false
+  visitHtml(tree, () => { hasRawHtml = true })
+  if (!hasRawHtml) return []
+
+  const markdownOffsets = new Set<number>()
+  visitHeadings(tree, (heading) => {
+    const offset = heading.position?.start.offset
+    if (offset !== undefined) markdownOffsets.add(offset)
+  })
+
+  let hast: HastNode | undefined
+  const captureHast = () => (tree: HastNode) => { hast = tree }
+  const processor = createProcessor({
+    format: 'md',
+    remarkRehypeOptions: { allowDangerousHtml: true },
+    rehypePlugins: [rehypeRaw, captureHast],
+  })
+  processor.runSync(tree as never, { value: content } as never)
+  if (!hast) return []
+
+  const headings: RawHtmlHeading[] = []
+  visitHastHeadings(hast, (heading) => {
+    const offset = heading.position?.start.offset
+    const headingEnd = heading.position?.end.offset
+    if (offset === undefined || headingEnd === undefined || markdownOffsets.has(offset)) return
+    const tagEnd = openingTagEnd(content, offset, headingEnd)
+    if (tagEnd === undefined) return
+    const rawId = heading.properties?.id
+    headings.push({
+      title: hastText(heading),
+      ...(typeof rawId === 'string' && rawId ? { id: rawId } : {}),
+      position: {
+        line: heading.position?.start.line ?? 1,
+        column: heading.position?.start.column ?? 1,
+      },
+      offset,
+      openingTagEnd: tagEnd,
+    })
+  })
+
+  return headings
+}
+
+function escapeHtmlAttribute(value: string): string {
+  return value.replaceAll('&', '&amp;').replaceAll('"', '&quot;')
+}
+
 export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions): HeadingAnalysis {
   const slugger = new GithubSlugger()
   const headings: AnalyzedHeading[] = []
   const edits: SourceEdit[] = []
   const errors: string[] = []
   const ids = new Map<string, IdOwner>()
+  const documentHeadings: DocumentHeading[] = []
   const tree = parseHeadingTree(content, options.kind)
   if (!tree) return { headings, normalizedContent: content }
 
-  const claimId = (id: string, heading: AnalyzedHeading) => {
+  const claimId = (id: string, position: AnalyzedHeading['position']) => {
     const owner = ids.get(id)
     if (owner) {
-      errors.push(`Heading ID "${id}" at ${formatPosition(heading.position)} conflicts with the heading at ${formatPosition(owner.position)}.`)
+      errors.push(`Heading ID "${id}" at ${formatPosition(position)} conflicts with the heading at ${formatPosition(owner.position)}.`)
       return
     }
-    ids.set(id, { id, position: heading.position })
+    ids.set(id, { id, position })
   }
 
   visitHeadings(tree, (node) => {
@@ -188,9 +292,12 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
       errors.push(`Invalid heading ID "${marker.id}" at ${formatPosition(heading.position)}. IDs must match [a-z0-9]+(?:-[a-z0-9]+)*.`)
     }
 
-    claimId(canonicalId, heading)
-    for (const legacyId of legacyIds) claimId(legacyId, heading)
     headings.push(heading)
+    documentHeadings.push({
+      title,
+      offset: node.position?.start.offset ?? 0,
+      markdown: heading,
+    })
 
     const link = ` [](clarify-internal-heading-id:${canonicalId})`
     const contentEnd = contentEndOffset(node)
@@ -200,6 +307,37 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
       edits.push({ start: contentEnd, end: contentEnd, replacement: link })
     }
   })
+
+  if (options.kind === 'markdown') {
+    for (const raw of rawHtmlHeadings(tree, content)) {
+      documentHeadings.push({ title: raw.title, offset: raw.offset, raw })
+    }
+  }
+
+  documentHeadings.sort((left, right) => left.offset - right.offset)
+  for (const documentHeading of documentHeadings) {
+    if (documentHeading.markdown) {
+      claimId(documentHeading.markdown.canonicalId, documentHeading.markdown.position)
+      for (const legacyId of documentHeading.markdown.legacyIds) claimId(legacyId, documentHeading.markdown.position)
+    } else if (documentHeading.raw?.id) {
+      claimId(documentHeading.raw.id, documentHeading.raw.position)
+    }
+  }
+
+  const fallbackSlugger = new GithubSlugger()
+  const reservedIds = new Set(ids.keys())
+  for (const documentHeading of documentHeadings) {
+    let fallbackId = fallbackSlugger.slug(documentHeading.title)
+    const raw = documentHeading.raw
+    if (!raw || raw.id) continue
+    while (reservedIds.has(fallbackId)) fallbackId = fallbackSlugger.slug(documentHeading.title)
+    reservedIds.add(fallbackId)
+    edits.push({
+      start: raw.openingTagEnd,
+      end: raw.openingTagEnd,
+      replacement: ` id="${escapeHtmlAttribute(fallbackId)}"`,
+    })
+  }
 
   const diagnostic = errors.length === 0 ? undefined : createContentDiagnostic({
     kind: options.kind,
