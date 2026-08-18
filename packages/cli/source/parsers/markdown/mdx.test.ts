@@ -102,6 +102,29 @@ describe('mdx rehype plugins', () => {
     expect(analysis.diagnostic).toBeUndefined()
   })
 
+  it('preserves exact origin/main compiler output when an empty intrinsic ID precedes an implicit heading', async () => {
+    // Catches an existing-but-empty intrinsic ID advancing the legacy slugger
+    // even though origin/main leaves the intrinsic ID and slug order unchanged.
+    const source = '<h2 id="">Duplicate</h2>\n\n## Duplicate'
+    const baseline = String(await compile(source, {
+      jsx: true,
+      remarkPlugins: baselineRemarkPlugins,
+      rehypePlugins: [rehypeSlug],
+    }))
+    const analysis = analyzeHeadings(source, { kind: 'markdown+jsx' })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(compiled).toBe(baseline)
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ canonicalId: 'duplicate', legacyIds: [] }),
+    ])
+    expect(analysis.diagnostic).toBeUndefined()
+  })
+
   it('keeps the origin/main implicit slug as the alias of a following canonical heading', async () => {
     // Catches an ID-less intrinsic heading consuming `duplicate`, which changes
     // both the old implicit ID and the compatibility alias to `duplicate-1`.
@@ -122,6 +145,23 @@ describe('mdx rehype plugins', () => {
       expect.objectContaining({ canonicalId: 'stable', legacyIds: ['duplicate'] }),
     ])
     expect(compiled).toContain('<h2>{"Duplicate"}</h2>{"\\n"}<_components.h2 id="stable">')
+    expect(analysis.diagnostic).toBeUndefined()
+  })
+
+  it('keeps the origin/main implicit slug when an empty intrinsic ID precedes a canonical heading', async () => {
+    // Catches an existing-but-empty intrinsic ID being mistaken for a missing
+    // ID and consuming the compatibility slug before the Markdown heading.
+    const analysis = analyzeHeadings('<h2 id="">Duplicate</h2>\n\n## Duplicate {#stable}', { kind: 'markdown+jsx' })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ canonicalId: 'stable', legacyIds: ['duplicate'] }),
+    ])
+    expect(compiled).toContain('<h2 id="">{"Duplicate"}</h2>{"\\n"}<_components.h2 id="stable">')
     expect(analysis.diagnostic).toBeUndefined()
   })
 
