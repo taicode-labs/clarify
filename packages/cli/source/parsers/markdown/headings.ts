@@ -204,6 +204,10 @@ function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind'])
   }
 }
 
+function isHtmlWhitespace(character: string | undefined): boolean {
+  return character === '\t' || character === '\n' || character === '\f' || character === '\r' || character === ' '
+}
+
 function openingTagAttributeOffset(content: string, start: number, end: number): number | undefined {
   type State = 'tagName' | 'beforeAttributeName' | 'attributeName' | 'afterAttributeName'
     | 'beforeAttributeValue' | 'quotedAttributeValue' | 'afterQuotedAttributeValue' | 'unquotedAttributeValue'
@@ -224,34 +228,34 @@ function openingTagAttributeOffset(content: string, start: number, end: number):
     }
     if (state === 'unquotedAttributeValue') {
       if (closesTag) return index
-      if (/\s/.test(character ?? '')) state = 'beforeAttributeName'
+      if (isHtmlWhitespace(character)) state = 'beforeAttributeName'
       continue
     }
     if (closesTag) return index
     if (selfClosesTag && state !== 'beforeAttributeValue') {
       let cursor = index
-      while (cursor > start && /\s/.test(content[cursor - 1] ?? '')) cursor--
+      while (cursor > start && isHtmlWhitespace(content[cursor - 1])) cursor--
       return cursor
     }
 
     if (state === 'tagName') {
-      if (/\s/.test(character ?? '')) state = 'beforeAttributeName'
+      if (isHtmlWhitespace(character)) state = 'beforeAttributeName'
     } else if (state === 'beforeAttributeName') {
-      if (!/\s/.test(character ?? '')) state = 'attributeName'
+      if (!isHtmlWhitespace(character)) state = 'attributeName'
     } else if (state === 'attributeName') {
       if (character === '=') state = 'beforeAttributeValue'
-      else if (/\s/.test(character ?? '')) state = 'afterAttributeName'
+      else if (isHtmlWhitespace(character)) state = 'afterAttributeName'
     } else if (state === 'afterAttributeName') {
       if (character === '=') state = 'beforeAttributeValue'
-      else if (!/\s/.test(character ?? '')) state = 'attributeName'
+      else if (!isHtmlWhitespace(character)) state = 'attributeName'
     } else if (state === 'beforeAttributeValue') {
       if (character === '"' || character === "'") {
         quote = character
         state = 'quotedAttributeValue'
-      } else if (!/\s/.test(character ?? '')) {
+      } else if (!isHtmlWhitespace(character)) {
         state = 'unquotedAttributeValue'
       }
-    } else if (state === 'afterQuotedAttributeValue' && /\s/.test(character ?? '')) {
+    } else if (state === 'afterQuotedAttributeValue' && isHtmlWhitespace(character)) {
       state = 'beforeAttributeName'
     }
   }
