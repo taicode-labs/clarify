@@ -2,6 +2,7 @@ import { compile, type CompileOptions } from '@mdx-js/mdx'
 import rehypeRaw from 'rehype-raw'
 import { describe, expect, it, vi } from 'vitest'
 
+import { analyzeHeadings } from './headings.js'
 import { compileMdxContent, rehypeParseCodeBlocks, rehypePlugins, remarkPlugins } from './mdx.js'
 
 const testRemarkPlugins = remarkPlugins as CompileOptions['remarkPlugins']
@@ -36,6 +37,72 @@ function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties:
 }
 
 describe('mdx rehype plugins', () => {
+  it('preserves entity source offsets from analysis through Markdown compilation', async () => {
+    // Catches decoded mdast text indices being reused as raw source offsets,
+    // which corrupts content before an explicit marker when an entity shrinks.
+    const analysis = analyzeHeadings('## A &amp; B {#stable}', { kind: 'markdown' })
+
+    expect(analysis.normalizedContent).toBe('## A &amp; B [](clarify-internal-heading-id:stable)')
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ title: 'A & B', canonicalId: 'stable', legacyIds: ['a--b'] }),
+    ])
+
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+
+    expect(compiled).toContain('<_components.h2 id="stable">')
+    expect(compiled).toContain('{"A & B"}')
+    expect(compiled).not.toContain('{#stable}')
+  })
+
+  it('preserves escaped source offsets from analysis through MDX compilation', async () => {
+    // Catches backslash escapes shortening mdast text and shifting the raw
+    // marker edit into visible heading content.
+    const analysis = analyzeHeadings('## Use \\*literal\\* {#escaped}', { kind: 'markdown+jsx' })
+
+    expect(analysis.normalizedContent).toBe('## Use \\*literal\\* [](clarify-internal-heading-id:escaped)')
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ title: 'Use *literal*', canonicalId: 'escaped', legacyIds: ['use-literal'] }),
+    ])
+
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(compiled).toContain('<_components.h2 id="escaped">')
+    expect(compiled).toContain('{"Use *literal*"}')
+    expect(compiled).not.toContain('{#escaped}')
+  })
+
+  it('adds IDs to raw HTML Markdown headings without replacing canonical Markdown IDs', async () => {
+    // Catches removing rehype-slug from the Markdown raw-HTML pipeline without
+    // restoring IDs for H1-H6 elements the Markdown analyzer cannot see.
+    const analysis = analyzeHeadings([
+      '# Markdown heading {#canonical-heading}',
+      '',
+      '<h2>Raw HTML heading</h2>',
+    ].join('\n'), { kind: 'markdown' })
+
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+
+    expect(compiled).toContain('<_components.h1 id="canonical-heading">')
+    expect(compiled).toContain('<_components.h2 id="raw-html-heading">')
+    expect(compiled).not.toContain('<_components.h1 id="markdown-heading">')
+  })
+
   it('applies canonical IDs from normalized headings through the shared pipeline', async () => {
     // Catches a regression where the compiler leaves its internal link in the
     // output or lets the generic slugger derive a non-canonical heading ID.

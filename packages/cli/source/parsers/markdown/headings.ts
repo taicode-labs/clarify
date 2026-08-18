@@ -1,3 +1,4 @@
+import { createProcessor } from '@mdx-js/mdx'
 import GithubSlugger from 'github-slugger'
 import { toString } from 'mdast-util-to-string'
 import { remark } from 'remark'
@@ -62,6 +63,7 @@ type IdOwner = {
 
 const INTERNAL_HEADING_ID_PREFIX = 'clarify-internal-heading-id:'
 const EXPLICIT_ID_PATTERN = /\s+\{#([^{}]*)\}$/
+const EXPLICIT_ID_CANDIDATE_PATTERN = /\{#[^{}\r\n]*\}/g
 
 function visitHeadings(node: MarkdownNode, callback: (heading: MarkdownNode) => void): void {
   if (node.type === 'heading') callback(node)
@@ -95,31 +97,50 @@ function contentEndOffset(heading: MarkdownNode): number | undefined {
   return finalChild?.position?.end.offset ?? heading.position?.end.offset
 }
 
-function explicitIdInfo(heading: MarkdownNode): ExplicitHeadingId | undefined {
+function explicitIdInfo(heading: MarkdownNode, content: string): ExplicitHeadingId | undefined {
   const text = finalTextNode(heading)
-  if (!text?.position || text.value === undefined) return undefined
+  if (!text?.position) return undefined
 
-  const match = text.value.match(EXPLICIT_ID_PATTERN)
   const startOffset = text.position.start.offset
   const endOffset = text.position.end.offset
-  if (!match || match.index === undefined || startOffset === undefined || endOffset === undefined) return undefined
+  if (startOffset === undefined || endOffset === undefined) return undefined
+
+  const source = content.slice(startOffset, endOffset)
+  const match = source.match(EXPLICIT_ID_PATTERN)
+  if (!match || match.index === undefined) return undefined
 
   return {
     id: match[1] ?? '',
     start: startOffset + match.index,
-    end: endOffset,
+    end: startOffset + match.index + match[0].length,
   }
 }
 
 function headingTitle(heading: MarkdownNode, marker: ExplicitHeadingId | undefined): string {
   const text = finalTextNode(heading)
-  if (!text || !marker || text.value === undefined || text.position?.start.offset === undefined) return toString(heading as never)
+  if (!text || !marker || text.value === undefined) return toString(heading as never)
 
   const original = text.value
-  text.value = original.slice(0, marker.start - text.position.start.offset).replace(/\s+$/, '')
+  text.value = original.slice(0, -(marker.end - marker.start)).replace(/\s+$/, '')
   const title = toString(heading as never)
   text.value = original
   return title
+}
+
+function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind']): MarkdownNode {
+  if (kind === 'markdown') return remark.parse(content) as unknown as MarkdownNode
+
+  // Explicit heading markers use braces, which MDX would otherwise parse as
+  // expressions. Mask candidates only for parsing, preserving every UTF-16
+  // offset so edits can still be derived from the untouched author source.
+  const maskedContent = content.replace(EXPLICIT_ID_CANDIDATE_PATTERN, marker => 'x'.repeat(marker.length))
+  try {
+    return createProcessor({ format: 'mdx' }).parse(maskedContent) as unknown as MarkdownNode
+  } catch {
+    // Keep invalid MDX on the diagnostic path instead of aborting discovery.
+    // The later MDX compile reports the syntax error with the original source.
+    return remark.parse(maskedContent) as unknown as MarkdownNode
+  }
 }
 
 export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions): HeadingAnalysis {
@@ -128,7 +149,7 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
   const edits: SourceEdit[] = []
   const errors: string[] = []
   const ids = new Map<string, IdOwner>()
-  const tree = remark.parse(content) as unknown as MarkdownNode
+  const tree = parseHeadingTree(content, options.kind)
 
   const claimId = (id: string, heading: AnalyzedHeading) => {
     const owner = ids.get(id)
@@ -140,7 +161,7 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
   }
 
   visitHeadings(tree, (node) => {
-    const marker = explicitIdInfo(node)
+    const marker = explicitIdInfo(node, content)
     const title = headingTitle(node, marker)
     const legacySlug = slugger.slug(title)
     const hasValidExplicitId = marker !== undefined && HEADING_ID_PATTERN.test(marker.id)

@@ -137,6 +137,25 @@ describe('generateRoutesModule', () => {
     }
   })
 
+  it('preserves __proto__ as an own heading-alias key at runtime', async () => {
+    // Catches generated object-literal syntax interpreting __proto__ as a
+    // prototype setter instead of a dynamic manifest record key.
+    const headingAliases = Object.fromEntries([['__proto__', 'stable-heading']])
+    const routes: ContentRoute[] = [
+      route({ path: '/guide', headingAliases }),
+    ]
+    const code = generateRoutesModule(routes, { kind: 'flat', nodes: [] })
+      .replace(
+        "import { createContentDiagnosticComponent } from '@clarify-labs/renderer';",
+        'const createContentDiagnosticComponent = () => undefined;',
+      )
+    const runtime = await import(`data:text/javascript,${encodeURIComponent(code)}#heading-alias-proto`)
+    const aliases = runtime.routes[0].headingAliases as Record<string, string>
+
+    expect(Object.hasOwn(aliases, '__proto__')).toBe(true)
+    expect(aliases.__proto__).toBe('stable-heading')
+  })
+
   it('omits plugin-specific route fields from the runtime route manifest', () => {
     const routes: ContentRoute[] = [
       route({ path: '/api', title: 'API', filePath: '/a/api.openapi.json', pageVirtualModuleId: 'virtual:clarify-page/api', kind: 'openapi', openapi: { tagFilter: ['Projects'] } }),

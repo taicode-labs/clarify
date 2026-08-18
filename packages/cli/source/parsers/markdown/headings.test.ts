@@ -3,6 +3,49 @@ import { describe, expect, it } from 'vitest'
 import { analyzeHeadings } from './headings.js'
 
 describe('analyzeHeadings', () => {
+  it.each([
+    ['ESM template', [
+      'export const snippet = `',
+      '## Not an ESM heading {#esm-fake}',
+      '`',
+    ].join('\n')],
+    ['expression', [
+      '{`',
+      '## Not an expression heading {#expression-fake}',
+      '`}',
+    ].join('\n')],
+    ['comment', [
+      '{/*',
+      '## Not a comment heading {#comment-fake}',
+      '*/}',
+    ].join('\n')],
+    ['JSX attribute', [
+      '<Example label="',
+      '## Not a JSX heading {#jsx-fake}',
+      '" />',
+    ].join('\n')],
+  ])('does not analyze heading-like text inside an MDX %s', (_label, mdxBoundary) => {
+    // Catches plain Markdown parsing crossing an MDX syntax boundary and
+    // rewriting JavaScript or JSX values as document headings.
+    const source = [
+      mdxBoundary,
+      '',
+      '## Real section {#real-section}',
+    ].join('\n')
+
+    const result = analyzeHeadings(source, { kind: 'markdown+jsx' })
+
+    expect(result.headings).toEqual([
+      expect.objectContaining({ level: 2, title: 'Real section', canonicalId: 'real-section' }),
+    ])
+    expect(result.normalizedContent).toContain(mdxBoundary)
+    expect(result.normalizedContent).toContain('## Real section [](clarify-internal-heading-id:real-section)')
+    expect(result.normalizedContent).not.toContain('clarify-internal-heading-id:esm-fake')
+    expect(result.normalizedContent).not.toContain('clarify-internal-heading-id:expression-fake')
+    expect(result.normalizedContent).not.toContain('clarify-internal-heading-id:comment-fake')
+    expect(result.normalizedContent).not.toContain('clarify-internal-heading-id:jsx-fake')
+  })
+
   it('keeps display titles while assigning explicit and legacy IDs in document order', () => {
     // Catches a regression where the explicit marker is included in the title,
     // or an explicit ID stops the shared legacy slug sequence.

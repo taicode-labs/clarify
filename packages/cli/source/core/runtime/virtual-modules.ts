@@ -196,6 +196,7 @@ export function generateRoutesModule(routes: ContentRoute[], navigation: Navigat
     // turned into a bare key.
     const jsObject = json
       .replace(`"${placeholder}"`, component)
+      .replace(/"__proto__":/g, '["__proto__"]:')
       .replace(/"([A-Za-z_$][\w$]*)":/g, '$1: ')
     return `  ${jsObject}`
   }).join(',\n')
