@@ -205,20 +205,54 @@ function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind'])
 }
 
 function openingTagAttributeOffset(content: string, start: number, end: number): number | undefined {
+  type State = 'tagName' | 'beforeAttributeName' | 'attributeName' | 'afterAttributeName'
+    | 'beforeAttributeValue' | 'quotedAttributeValue' | 'afterQuotedAttributeValue' | 'unquotedAttributeValue'
+
+  let state: State = 'tagName'
   let quote: '"' | "'" | undefined
   for (let index = start; index < end; index++) {
     const character = content[index]
-    if (quote) {
-      if (character === quote) quote = undefined
-    } else if (character === '"' || character === "'") {
-      quote = character
-    } else if (character === '>') {
-      if (content[index - 1] === '/') {
-        let cursor = index - 1
-        while (cursor > start && /\s/.test(content[cursor - 1] ?? '')) cursor--
-        return cursor
+    const closesTag = character === '>'
+    const selfClosesTag = character === '/' && content[index + 1] === '>'
+
+    if (state === 'quotedAttributeValue') {
+      if (character === quote) {
+        quote = undefined
+        state = 'afterQuotedAttributeValue'
       }
-      return index
+      continue
+    }
+    if (state === 'unquotedAttributeValue') {
+      if (closesTag) return index
+      if (/\s/.test(character ?? '')) state = 'beforeAttributeName'
+      continue
+    }
+    if (closesTag) return index
+    if (selfClosesTag && state !== 'beforeAttributeValue') {
+      let cursor = index
+      while (cursor > start && /\s/.test(content[cursor - 1] ?? '')) cursor--
+      return cursor
+    }
+
+    if (state === 'tagName') {
+      if (/\s/.test(character ?? '')) state = 'beforeAttributeName'
+    } else if (state === 'beforeAttributeName') {
+      if (!/\s/.test(character ?? '')) state = 'attributeName'
+    } else if (state === 'attributeName') {
+      if (character === '=') state = 'beforeAttributeValue'
+      else if (/\s/.test(character ?? '')) state = 'afterAttributeName'
+    } else if (state === 'afterAttributeName') {
+      if (character === '=') state = 'beforeAttributeValue'
+      else if (!/\s/.test(character ?? '')) state = 'attributeName'
+    } else if (state === 'beforeAttributeValue') {
+      if (character === '"' || character === "'") {
+        quote = character
+        state = 'quotedAttributeValue'
+      } else if (!/\s/.test(character ?? '')) {
+        state = 'unquotedAttributeValue'
+      }
+    } else if (state === 'afterQuotedAttributeValue' && /\s/.test(character ?? '')) {
+      state = 'beforeAttributeName'
     }
   }
   return undefined
