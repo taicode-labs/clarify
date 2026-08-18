@@ -155,7 +155,12 @@ describe('createViteAdapter', () => {
     const root = mkdtempSync(join(tmpdir(), 'clarify-pages-invalid-'))
     const sourceRoot = join(root, 'source')
     mkdirSync(sourceRoot)
-    writeFileSync(join(sourceRoot, 'guide.mdx'), '# Initially valid')
+    writeFileSync(join(sourceRoot, 'guide.mdx'), [
+      '---',
+      'title: Guide',
+      '---',
+      '# Initially valid',
+    ].join('\n'))
 
     try {
       const engine = new ClarifyEngine({
@@ -176,7 +181,7 @@ describe('createViteAdapter', () => {
         kind: 'markdown+jsx',
         title: 'Heading ID error',
         filePath: 'source/guide.mdx',
-        details: expect.stringContaining('Invalid heading ID "UPPER" at 3:1'),
+        details: expect.stringContaining('Invalid heading ID "UPPER" at 6:1'),
       })
     } finally {
       rmSync(root, { recursive: true, force: true })

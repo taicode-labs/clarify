@@ -97,7 +97,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
       const cleanPath = path.replace(/\/+/g, '/').replace(/\/$/, '') || '/'
 
       const source = await readFile(fullPath, 'utf-8')
-      const { frontmatter, content } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
+      const { frontmatter, content, lineOffset } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
       const updatedAt = resolveUpdatedAt(frontmatter, await getFileUpdatedAt(fullPath, base))
       const page: ClarifyPage = {
         path: cleanPath,
@@ -105,7 +105,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
         frontmatter,
         content,
       }
-      const analysis = analyzeHeadings(page.content, { kind, filePath: fullPath, projectRoot: base })
+      const analysis = analyzeHeadings(page.content, { kind, filePath: fullPath, projectRoot: base, lineOffset })
       const compileDiagnostic = await compileRouteDiagnostic(analysis.normalizedContent, fullPath, base)
       const { sections, headingAliases } = headingMetadata(analysis)
 
@@ -140,6 +140,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
           filePath: fullPath,
           frontmatter: page.frontmatter,
           content: page.content,
+          lineOffset,
         },
         diagnostic: analysis.diagnostic ?? compileDiagnostic,
       })

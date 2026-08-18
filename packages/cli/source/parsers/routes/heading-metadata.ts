@@ -45,6 +45,7 @@ export async function reanalyzeMarkdownRoute(route: ContentRoute, projectRoot: s
     kind: route.kind,
     filePath: route.source.filePath,
     projectRoot,
+    lineOffset: route.source.lineOffset,
   })
   const compile = route.kind === 'markdown' ? compileMarkdownContent : compileMdxContent
   const result = await compile(analysis.normalizedContent, { filePath: route.source.filePath, projectRoot })

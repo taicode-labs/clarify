@@ -5,6 +5,7 @@ import { parseFrontmatter } from '../markdown/frontmatter.js'
 export type ProcessedMdxContent = {
   frontmatter: Record<string, unknown>
   content: string
+  lineOffset: number
 }
 
 export type ContentTransform = (input: ClarifyContentTransformInput) => Promise<ClarifyContentTransformInput> | ClarifyContentTransformInput
@@ -21,7 +22,7 @@ async function transformContent(transform: ContentTransform | undefined, input: 
 export function createContentProcessor(transform?: ContentTransform): ContentProcessor {
   return {
     async processMdx(source, filePath) {
-      const { frontmatter, content } = parseFrontmatter(source)
+      const { frontmatter, content, lineOffset } = parseFrontmatter(source)
       const transformed = await transformContent(transform, {
         kind: 'markdown+jsx',
         source,
@@ -33,6 +34,7 @@ export function createContentProcessor(transform?: ContentTransform): ContentPro
       return {
         frontmatter: transformed.frontmatter,
         content: transformed.content,
+        lineOffset,
       }
     },
     async processText(source, kind, filePath) {

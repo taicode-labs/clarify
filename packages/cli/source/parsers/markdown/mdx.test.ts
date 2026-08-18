@@ -107,16 +107,34 @@ describe('mdx rehype plugins', () => {
     [
       'MDX intrinsic first',
       ['<h2>Duplicate</h2>', '', '## Duplicate {#stable}'].join('\n'),
-      ['duplicate-1', 'stable'],
+      ['duplicate', 'stable'],
+      'stable',
+      ['duplicate-1'],
     ],
     [
       'Markdown first',
       ['## Duplicate {#stable}', '', '<h2>Duplicate</h2>'].join('\n'),
       ['stable', 'duplicate-1'],
+      'stable',
+      ['duplicate'],
     ],
-  ])('keeps static intrinsic MDX fallback IDs out of the Markdown alias namespace with %s', async (_label, source, expectedIds) => {
-    // Catches an intrinsic MDX heading claiming a legacy alias before the
-    // Markdown heading's canonical ID is applied by the shared pipeline.
+    [
+      'MDX intrinsic first before an implicit Markdown heading',
+      ['<h2>Duplicate</h2>', '', '## Duplicate'].join('\n'),
+      ['duplicate', 'duplicate-1'],
+      'duplicate-1',
+      [],
+    ],
+    [
+      'implicit Markdown heading first',
+      ['## Duplicate', '', '<h2>Duplicate</h2>'].join('\n'),
+      ['duplicate', 'duplicate-1'],
+      'duplicate',
+      [],
+    ],
+  ])('preserves the full legacy heading order before canonical replacement with %s', async (_label, source, expectedIds, expectedCanonicalId, expectedAliases) => {
+    // Catches canonical and alias reservations renumbering an earlier static
+    // intrinsic heading away from the ID assigned by the old HAST-wide pass.
     const analysis = analyzeHeadings(source, { kind: 'markdown+jsx' })
     const compiled = String(await compile(analysis.normalizedContent, {
       jsx: true,
@@ -127,7 +145,7 @@ describe('mdx rehype plugins', () => {
 
     expect(ids).toEqual(expectedIds)
     expect(analysis.headings).toEqual([
-      expect.objectContaining({ title: 'Duplicate', canonicalId: 'stable', legacyIds: ['duplicate'] }),
+      expect.objectContaining({ title: 'Duplicate', canonicalId: expectedCanonicalId, legacyIds: expectedAliases }),
     ])
     expect(analysis.diagnostic).toBeUndefined()
   })
@@ -141,7 +159,7 @@ describe('mdx rehype plugins', () => {
     [
       'raw HTML first',
       ['<h2>Duplicate</h2>', '', '## Duplicate'].join('\n'),
-      ['duplicate-1', 'duplicate'],
+      ['duplicate', 'duplicate-1'],
     ],
     [
       'Markdown explicit ID first',
@@ -151,7 +169,7 @@ describe('mdx rehype plugins', () => {
     [
       'raw HTML first before a Markdown legacy alias',
       ['<h2>Duplicate</h2>', '', '## Duplicate {#stable}'].join('\n'),
-      ['duplicate-1', 'stable'],
+      ['duplicate', 'stable'],
     ],
   ])('keeps mixed duplicate heading IDs unique with %s', async (_label, source, expectedIds) => {
     // Catches the fallback slugger skipping canonical Markdown headings or

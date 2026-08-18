@@ -407,6 +407,8 @@ export type ContentRouteSource = {
   frontmatter?: Record<string, unknown>
   /** Original author content captured during route discovery. */
   content?: string
+  /** Number of physical source lines removed before the stored body content. */
+  lineOffset?: number
   /** Public edit URL for this route's source file. */
   sourceEditUrl?: string
 }
