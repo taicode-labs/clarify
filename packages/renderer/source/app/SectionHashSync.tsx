@@ -7,16 +7,22 @@ import { useSectionStore } from './SectionProvider'
 type SectionHashSyncProps = {
   hashScrollSuppressedUntilRef: RefObject<number>
   hashNavigationEpochRef: RefObject<number>
+  lastHandledLocationRef: HashNavigationDedupeRef
+}
+
+type HashNavigationDedupeRef = {
+  current: unknown
 }
 
 const HASH_UPDATE_DEBOUNCE_MS = 120
 
-function replaceHash(sectionId?: string) {
-  if (typeof window === 'undefined') return
+function replaceHash(sectionId?: string): boolean {
+  if (typeof window === 'undefined') return false
 
   const nextHash = sectionId ? `#${encodeURIComponent(sectionId)}` : ''
-  if (window.location.hash === nextHash) return
+  if (window.location.hash === nextHash) return false
   window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}${nextHash}`)
+  return true
 }
 
 export function installHashSyncManualInputRelease(hashScrollSuppressedUntilRef: RefObject<number>, hashNavigationEpochRef: RefObject<number>): () => void {
@@ -49,18 +55,18 @@ function useReleaseHashSyncOnManualScroll(hashScrollSuppressedUntilRef: RefObjec
   )
 }
 
-export function scheduleSectionHashUpdate(sectionId: string | undefined, hashScrollSuppressedUntilRef: RefObject<number>, hashNavigationEpochRef: RefObject<number>): () => void {
+export function scheduleSectionHashUpdate(sectionId: string | undefined, hashScrollSuppressedUntilRef: RefObject<number>, hashNavigationEpochRef: RefObject<number>, lastHandledLocationRef: HashNavigationDedupeRef): () => void {
   const scheduledEpoch = hashNavigationEpochRef.current
   const timeout = setTimeout(() => {
     if (scheduledEpoch !== hashNavigationEpochRef.current) return
     if (Date.now() < hashScrollSuppressedUntilRef.current) return
-    replaceHash(sectionId)
+    if (replaceHash(sectionId)) lastHandledLocationRef.current = undefined
   }, HASH_UPDATE_DEBOUNCE_MS)
   return () => clearTimeout(timeout)
 }
 
 export function SectionHashSync(arg0: SectionHashSyncProps) {
-  const { hashNavigationEpochRef, hashScrollSuppressedUntilRef } = arg0
+  const { hashNavigationEpochRef, hashScrollSuppressedUntilRef, lastHandledLocationRef } = arg0
   const location = useLocation()
   const sections = useSectionStore((state) => state.sections)
   const visibleSections = useSectionStore((state) => state.visibleSections)
@@ -76,8 +82,9 @@ export function SectionHashSync(arg0: SectionHashSyncProps) {
       visibleSections[0] === '_top' ? undefined : visibleSectionId,
       hashScrollSuppressedUntilRef,
       hashNavigationEpochRef,
+      lastHandledLocationRef,
     )
-  }, [hashNavigationEpochRef, hashScrollSuppressedUntilRef, location.hash, sections, visibleSections])
+  }, [hashNavigationEpochRef, hashScrollSuppressedUntilRef, lastHandledLocationRef, location.hash, sections, visibleSections])
 
   return null
 }
