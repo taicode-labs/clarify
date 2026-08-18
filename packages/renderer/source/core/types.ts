@@ -12,6 +12,7 @@ export type RouteSection = {
   id: string;
   title: string;
   level?: number;
+  aliases?: string[];
   badge?: string;
   tags?: string[];
 };
@@ -42,6 +43,7 @@ export type RouteItem = {
   lazy?: boolean;
   kind?: string;
   sections?: RouteSection[];
+  headingAliases?: Record<string, string>;
   contentArtifactUrl?: string;
   sourceEditUrl?: string;
   layout?: 'documentation' | 'blog';

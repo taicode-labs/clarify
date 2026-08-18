@@ -150,6 +150,93 @@ describe('findContentRoutes', () => {
     expect(result[0].meta.sections).toEqual([{ id: 'release-notes', title: 'Release Notes', level: 2 }])
   })
 
+  it.each([
+    ['page.md', 'markdown'],
+    ['page.mdx', 'markdown+jsx'],
+  ])('uses canonical heading IDs and legacy aliases for %s', async (fileName, kind) => {
+    const content = [
+      '# 概览',
+      '',
+      '## 推荐：自动配置 {#auto-config}',
+      '',
+      '### 详细说明 {#details}',
+    ].join('\n')
+    writeFileSync(join(tempDir, fileName), content, 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.kind).toBe(kind)
+    expect(route?.meta.sections).toEqual([
+      { id: 'auto-config', title: '推荐：自动配置', level: 2, aliases: ['推荐自动配置'] },
+      { id: 'details', title: '详细说明', level: 3, aliases: ['详细说明'] },
+    ])
+    expect(route?.meta.headingAliases).toEqual({
+      推荐自动配置: 'auto-config',
+      详细说明: 'details',
+    })
+    expect(route?.source.content).toBe(content)
+  })
+
+  it.each([
+    ['uppercase', '# 标题 {#Uppercase}', 'Invalid heading ID "Uppercase" at 1:1'],
+    ['Unicode', '# 标题 {#中文}', 'Invalid heading ID "中文" at 1:1'],
+    ['empty', '# 标题 {#}', 'Invalid heading ID "" at 1:1'],
+    ['leading hyphen', '# 标题 {#-title}', 'Invalid heading ID "-title" at 1:1'],
+  ])('reports invalid %s heading IDs', async (_name, content, detail) => {
+    const filePath = join(tempDir, 'invalid.mdx')
+    writeFileSync(filePath, content, 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.diagnostic).toMatchObject({
+      title: 'Heading ID error',
+      filePath: 'invalid.mdx',
+      details: expect.stringContaining(detail),
+    })
+  })
+
+  it('reports duplicate canonical heading IDs with both locations', async () => {
+    writeFileSync(join(tempDir, 'duplicate.mdx'), '# One {#same}\n\n## Two {#same}', 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.diagnostic).toMatchObject({
+      title: 'Heading ID error',
+      filePath: 'duplicate.mdx',
+      details: expect.stringContaining('Heading ID "same" at 3:1 conflicts with the heading at 1:1'),
+    })
+  })
+
+  it('reports canonical-to-alias heading ID collisions across H1, H2, and H3', async () => {
+    writeFileSync(join(tempDir, 'collision.mdx'), [
+      '# Alpha {#alpha-id}',
+      '',
+      '## Beta',
+      '',
+      '### Gamma {#alpha}',
+    ].join('\n'), 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.diagnostic).toMatchObject({
+      title: 'Heading ID error',
+      filePath: 'collision.mdx',
+      details: expect.stringContaining('Heading ID "alpha" at 5:1 conflicts with the heading at 1:1'),
+    })
+  })
+
+  it('suffixes repeated automatic headings without producing a diagnostic', async () => {
+    writeFileSync(join(tempDir, 'repeated.mdx'), '# 标题\n\n## 重复\n\n### 重复', 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.meta.sections).toEqual([
+      { id: '重复', title: '重复', level: 2 },
+      { id: '重复-1', title: '重复', level: 3 },
+    ])
+    expect(route?.diagnostic).toBeUndefined()
+  })
+
   it('runs content transforms before reading frontmatter title', async () => {
     writeFileSync(join(tempDir, 'page.mdx'), '---\ntitle: Product\ndescription: Tagline\n---\n\n# Hello', 'utf-8')
 

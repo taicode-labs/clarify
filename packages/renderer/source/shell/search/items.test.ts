@@ -182,6 +182,24 @@ describe('buildSearchItems', () => {
     expect(items[1].keywords).toContain('introduction')
   })
 
+  it('uses a canonical section ID for URLs while preserving the Chinese section title', () => {
+    const routes: RouteItem[] = [
+      {
+        path: '/guide',
+        title: '指南',
+        component: () => Promise.resolve({ default: () => null }),
+        sections: [{ id: 'auto-config', title: '推荐：自动配置', level: 2, aliases: ['推荐自动配置'] }],
+      },
+    ]
+
+    const items = buildSearchItems(routes, [])
+
+    expect(items[1]).toMatchObject({
+      title: '推荐：自动配置',
+      url: '/guide#auto-config',
+    })
+  })
+
   it('handles multiple sections correctly', () => {
     const routes: RouteItem[] = [
       {
