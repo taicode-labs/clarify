@@ -80,15 +80,15 @@ type IdOwner = {
 }
 
 type RenderedHeading = {
-  title: string
+  title?: string
   id?: string
   position: AnalyzedHeading['position']
   offset: number
-  openingTagEnd: number
+  attributeOffset: number
 }
 
 type DocumentHeading = {
-  title: string
+  title?: string
   offset: number
   markdown?: AnalyzedHeading
   rendered?: RenderedHeading
@@ -204,7 +204,7 @@ function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind'])
   }
 }
 
-function openingTagEnd(content: string, start: number, end: number): number | undefined {
+function openingTagAttributeOffset(content: string, start: number, end: number): number | undefined {
   let quote: '"' | "'" | undefined
   for (let index = start; index < end; index++) {
     const character = content[index]
@@ -213,6 +213,13 @@ function openingTagEnd(content: string, start: number, end: number): number | un
     } else if (character === '"' || character === "'") {
       quote = character
     } else if (character === '>') {
+      let cursor = index
+      while (cursor > start && /\s/.test(content[cursor - 1] ?? '')) cursor--
+      if (content[cursor - 1] === '/') {
+        cursor--
+        while (cursor > start && /\s/.test(content[cursor - 1] ?? '')) cursor--
+        return cursor
+      }
       return index
     }
   }
@@ -245,7 +252,7 @@ function rawHtmlHeadings(tree: MarkdownNode, content: string): RenderedHeading[]
     const offset = heading.position?.start.offset
     const headingEnd = heading.position?.end.offset
     if (offset === undefined || headingEnd === undefined || markdownOffsets.has(offset)) return
-    const tagEnd = openingTagEnd(content, offset, headingEnd)
+    const tagEnd = openingTagAttributeOffset(content, offset, headingEnd)
     if (tagEnd === undefined) return
     const rawId = heading.properties?.id
     headings.push({
@@ -256,7 +263,7 @@ function rawHtmlHeadings(tree: MarkdownNode, content: string): RenderedHeading[]
         column: heading.position?.start.column ?? 1,
       },
       offset,
-      openingTagEnd: tagEnd,
+      attributeOffset: tagEnd,
     })
   })
 
@@ -280,16 +287,21 @@ function staticMdxText(node: MarkdownNode): string | undefined {
   return parts.join('')
 }
 
-function staticMdxId(node: MarkdownNode): { analyzable: true; id?: string } | { analyzable: false } {
+function literalMdxId(node: MarkdownNode): { kind: 'literal'; id: string } | { kind: 'missing' | 'unknown' } {
   let id: string | undefined
   for (const attribute of node.attributes ?? []) {
-    if (attribute.type !== 'mdxJsxAttribute') return { analyzable: false }
-    if (attribute.value !== null && attribute.value !== undefined && typeof attribute.value !== 'string') return { analyzable: false }
+    if (attribute.type !== 'mdxJsxAttribute') return { kind: 'unknown' }
     if (attribute.name !== 'id') continue
-    if (typeof attribute.value !== 'string' || id !== undefined) return { analyzable: false }
+    if (typeof attribute.value !== 'string' || id !== undefined) return { kind: 'unknown' }
     id = attribute.value
   }
-  return { analyzable: true, ...(id !== undefined ? { id } : {}) }
+  return id === undefined ? { kind: 'missing' } : { kind: 'literal', id }
+}
+
+function hasOnlyStaticMdxAttributes(node: MarkdownNode): boolean {
+  return (node.attributes ?? []).every(attribute =>
+    attribute.type === 'mdxJsxAttribute'
+    && (attribute.value === null || attribute.value === undefined || typeof attribute.value === 'string'))
 }
 
 function mdxIntrinsicHeadings(tree: MarkdownNode, content: string): RenderedHeading[] {
@@ -299,16 +311,17 @@ function mdxIntrinsicHeadings(tree: MarkdownNode, content: string): RenderedHead
     const offset = position?.start.offset
     const end = position?.end.offset
     const title = staticMdxText(heading)
-    const staticId = staticMdxId(heading)
-    if (!position || offset === undefined || end === undefined || title === undefined || !staticId.analyzable) return
-    const tagEnd = openingTagEnd(content, offset, end)
+    const literalId = literalMdxId(heading)
+    if (!position || offset === undefined || end === undefined || literalId.kind === 'unknown') return
+    if (literalId.kind === 'missing' && (title === undefined || !hasOnlyStaticMdxAttributes(heading))) return
+    const tagEnd = openingTagAttributeOffset(content, offset, end)
     if (tagEnd === undefined) return
     headings.push({
-      title,
-      ...(staticId.id !== undefined ? { id: staticId.id } : {}),
+      ...(title !== undefined ? { title } : {}),
+      ...(literalId.kind === 'literal' ? { id: literalId.id } : {}),
       position: { line: position.start.line, column: position.start.column },
       offset,
-      openingTagEnd: tagEnd,
+      attributeOffset: tagEnd,
     })
   })
   return headings
@@ -376,7 +389,7 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
     ? rawHtmlHeadings(tree, content)
     : mdxIntrinsicHeadings(tree, content)
   for (const rendered of renderedHeadings) {
-    documentHeadings.push({ title: rendered.title, offset: rendered.offset, rendered })
+    documentHeadings.push({ ...(rendered.title !== undefined ? { title: rendered.title } : {}), offset: rendered.offset, rendered })
   }
 
   documentHeadings.sort((left, right) => left.offset - right.offset)
@@ -392,14 +405,15 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
   const fallbackSlugger = new GithubSlugger()
   const reservedIds = new Set(ids.keys())
   for (const documentHeading of documentHeadings) {
+    if (documentHeading.title === undefined) continue
     let fallbackId = fallbackSlugger.slug(documentHeading.title)
     const rendered = documentHeading.rendered
     if (!rendered || rendered.id !== undefined) continue
     while (reservedIds.has(fallbackId)) fallbackId = fallbackSlugger.slug(documentHeading.title)
     reservedIds.add(fallbackId)
     edits.push({
-      start: rendered.openingTagEnd,
-      end: rendered.openingTagEnd,
+      start: rendered.attributeOffset,
+      end: rendered.attributeOffset,
       replacement: ` id="${escapeHtmlAttribute(fallbackId)}"`,
     })
   }

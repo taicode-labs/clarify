@@ -278,13 +278,36 @@ describe('findContentRoutes', () => {
     })
   })
 
+  it.each([
+    [
+      'dynamic title',
+      ['<h2 id="stable">{dynamicTitle}</h2>', '', '## Markdown {#stable}'].join('\n'),
+    ],
+    [
+      'unrelated dynamic named attribute',
+      ['<h2 id="stable" className={tone}>Raw</h2>', '', '## Markdown {#stable}'].join('\n'),
+    ],
+  ])('claims a known intrinsic literal ID despite a %s', async (_label, content) => {
+    // Catches known literal IDs being hidden merely because fallback-title
+    // analysis or an unrelated named attribute cannot be evaluated statically.
+    writeFileSync(join(tempDir, 'known-intrinsic-id.mdx'), content, 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.diagnostic).toMatchObject({
+      title: 'Heading ID error',
+      filePath: 'known-intrinsic-id.mdx',
+      details: expect.stringContaining('Heading ID "stable" at 3:1 conflicts with the heading at 1:1'),
+    })
+  })
+
   it('leaves custom components and dynamic intrinsic MDX headings outside static ID analysis', async () => {
     // Catches static analysis guessing runtime component output, expression
     // IDs, or expression-derived heading text.
     const content = [
       '<Heading id="duplicate">Custom</Heading>',
       '<h2 id={dynamicId}>Dynamic ID</h2>',
-      '<h2 id="duplicate">{dynamicTitle}</h2>',
+      '<h2 id="duplicate" {...runtimeProps}>Spread override</h2>',
       '',
       '## Duplicate {#stable}',
     ].join('\n')
