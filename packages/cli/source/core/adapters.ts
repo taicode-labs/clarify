@@ -6,8 +6,8 @@ import react from '@vitejs/plugin-react'
 import rehypeRaw from 'rehype-raw'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
-import { createContentCompileDiagnostic, rehypePlugins, remarkPlugins } from '../parsers/markdown/mdx.js'
 import { analyzeHeadings } from '../parsers/markdown/headings.js'
+import { createContentCompileDiagnostic, rehypePlugins, remarkPlugins } from '../parsers/markdown/mdx.js'
 import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../parsers/router/dev-routes.js'
 import type { ContentRoute, NavigationTree } from '../types.js'
 

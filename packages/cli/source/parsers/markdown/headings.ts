@@ -49,6 +49,12 @@ type SourceEdit = {
   replacement: string
 }
 
+type ExplicitHeadingId = {
+  id: string
+  start: number
+  end: number
+}
+
 type IdOwner = {
   id: string
   position: AnalyzedHeading['position']
@@ -89,7 +95,7 @@ function contentEndOffset(heading: MarkdownNode): number | undefined {
   return finalChild?.position?.end.offset ?? heading.position?.end.offset
 }
 
-function explicitIdInfo(heading: MarkdownNode): { id: string; start: number; end: number } | undefined {
+function explicitIdInfo(heading: MarkdownNode): ExplicitHeadingId | undefined {
   const text = finalTextNode(heading)
   if (!text?.position || text.value === undefined) return undefined
 
@@ -105,7 +111,7 @@ function explicitIdInfo(heading: MarkdownNode): { id: string; start: number; end
   }
 }
 
-function headingTitle(heading: MarkdownNode, marker: { start: number } | undefined): string {
+function headingTitle(heading: MarkdownNode, marker: ExplicitHeadingId | undefined): string {
   const text = finalTextNode(heading)
   if (!text || !marker || text.value === undefined || text.position?.start.offset === undefined) return toString(heading as never)
 
