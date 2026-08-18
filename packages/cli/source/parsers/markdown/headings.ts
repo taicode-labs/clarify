@@ -21,6 +21,7 @@ export type AnalyzeHeadingsOptions = {
   kind: 'markdown' | 'markdown+jsx'
   filePath?: string
   projectRoot?: string
+  lineOffset?: number
 }
 
 export type HeadingAnalysis = {
@@ -129,9 +130,9 @@ function applySourceEdits(content: string, edits: SourceEdit[]): string {
     .reduce((result, edit) => result.slice(0, edit.start) + edit.replacement + result.slice(edit.end), content)
 }
 
-function headingPosition(node: MarkdownNode): AnalyzedHeading['position'] {
+function headingPosition(node: MarkdownNode, lineOffset: number): AnalyzedHeading['position'] {
   return {
-    line: node.position?.start.line ?? 1,
+    line: (node.position?.start.line ?? 1) + lineOffset,
     column: node.position?.start.column ?? 1,
   }
 }
@@ -291,7 +292,7 @@ function openingTagAttributeOffset(content: string, start: number, end: number, 
   return undefined
 }
 
-function rawHtmlHeadings(tree: MarkdownNode, content: string): RenderedHeading[] {
+function rawHtmlHeadings(tree: MarkdownNode, content: string, lineOffset: number): RenderedHeading[] {
   let hasRawHtml = false
   visitHtml(tree, () => { hasRawHtml = true })
   if (!hasRawHtml) return []
@@ -324,7 +325,7 @@ function rawHtmlHeadings(tree: MarkdownNode, content: string): RenderedHeading[]
       title: hastText(heading),
       ...(typeof rawId === 'string' && rawId ? { id: rawId } : {}),
       position: {
-        line: heading.position?.start.line ?? 1,
+        line: (heading.position?.start.line ?? 1) + lineOffset,
         column: heading.position?.start.column ?? 1,
       },
       offset,
@@ -373,7 +374,7 @@ function hasOnlyStaticMdxAttributes(node: MarkdownNode): boolean {
     && (attribute.value === null || attribute.value === undefined || typeof attribute.value === 'string'))
 }
 
-function mdxIntrinsicHeadings(tree: MarkdownNode, content: string): RenderedHeading[] {
+function mdxIntrinsicHeadings(tree: MarkdownNode, content: string, lineOffset: number): RenderedHeading[] {
   const headings: RenderedHeading[] = []
   visitMdxIntrinsicHeadings(tree, (heading) => {
     const position = heading.position
@@ -388,7 +389,7 @@ function mdxIntrinsicHeadings(tree: MarkdownNode, content: string): RenderedHead
     headings.push({
       ...(title !== undefined ? { title } : {}),
       ...(literalId.kind === 'literal' ? { id: literalId.id } : {}),
-      position: { line: position.start.line, column: position.start.column },
+      position: { line: position.start.line + lineOffset, column: position.start.column },
       offset,
       attributeOffset: tagEnd,
     })
@@ -401,12 +402,17 @@ function escapeHtmlAttribute(value: string): string {
 }
 
 export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions): HeadingAnalysis {
-  const slugger = new GithubSlugger()
+  const lineOffset = options.lineOffset ?? 0
   const headings: AnalyzedHeading[] = []
   const edits: SourceEdit[] = []
   const errors: string[] = []
   const ids = new Map<string, IdOwner>()
   const documentHeadings: DocumentHeading[] = []
+  const markdownHeadingInputs = new Map<AnalyzedHeading, {
+    marker?: ExplicitHeadingId
+    hasValidExplicitId: boolean
+    contentEnd?: number
+  }>()
   const tree = parseHeadingTree(content, options.kind)
   if (!tree) return { headings, normalizedContent: content }
   const renderedTitles = renderedMarkdownHeadingTitles(tree, content, options.kind)
@@ -423,16 +429,13 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
   visitHeadings(tree, (node) => {
     const marker = explicitIdInfo(node, content)
     const title = renderedTitles.get(node.position?.start.offset ?? 0) ?? ''
-    const legacySlug = slugger.slug(title)
     const hasValidExplicitId = marker !== undefined && HEADING_ID_PATTERN.test(marker.id)
-    const canonicalId = hasValidExplicitId ? marker.id : legacySlug
-    const legacyIds = marker !== undefined && legacySlug !== canonicalId ? [legacySlug] : []
     const heading: AnalyzedHeading = {
       level: (node.depth ?? 1) as AnalyzedHeading['level'],
       title,
-      canonicalId,
-      legacyIds,
-      position: headingPosition(node),
+      canonicalId: hasValidExplicitId ? marker.id : '',
+      legacyIds: [],
+      position: headingPosition(node, lineOffset),
     }
 
     if (marker && !hasValidExplicitId) {
@@ -440,29 +443,53 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
     }
 
     headings.push(heading)
+    markdownHeadingInputs.set(heading, {
+      ...(marker ? { marker } : {}),
+      hasValidExplicitId,
+      contentEnd: contentEndOffset(node),
+    })
     documentHeadings.push({
       title,
       offset: node.position?.start.offset ?? 0,
       markdown: heading,
     })
 
-    const link = ` [](clarify-internal-heading-id:${canonicalId})`
-    const contentEnd = contentEndOffset(node)
-    if (marker) {
-      edits.push({ start: marker.start, end: marker.end, replacement: link })
-    } else if (contentEnd !== undefined) {
-      edits.push({ start: contentEnd, end: contentEnd, replacement: link })
-    }
   })
 
   const renderedHeadings = options.kind === 'markdown'
-    ? rawHtmlHeadings(tree, content)
-    : mdxIntrinsicHeadings(tree, content)
+    ? rawHtmlHeadings(tree, content, lineOffset)
+    : mdxIntrinsicHeadings(tree, content, lineOffset)
   for (const rendered of renderedHeadings) {
     documentHeadings.push({ ...(rendered.title !== undefined ? { title: rendered.title } : {}), offset: rendered.offset, rendered })
   }
 
   documentHeadings.sort((left, right) => left.offset - right.offset)
+  const legacySlugger = new GithubSlugger()
+  for (const documentHeading of documentHeadings) {
+    if (documentHeading.title === undefined) continue
+    const legacyId = legacySlugger.slug(documentHeading.title)
+    if (documentHeading.markdown) {
+      const heading = documentHeading.markdown
+      const input = markdownHeadingInputs.get(heading)!
+      heading.canonicalId = input.hasValidExplicitId ? input.marker!.id : legacyId
+      heading.legacyIds = input.marker && legacyId !== heading.canonicalId ? [legacyId] : []
+
+      const link = ` [](clarify-internal-heading-id:${heading.canonicalId})`
+      if (input.marker) {
+        edits.push({ start: input.marker.start, end: input.marker.end, replacement: link })
+      } else if (input.contentEnd !== undefined) {
+        edits.push({ start: input.contentEnd, end: input.contentEnd, replacement: link })
+      }
+    } else if (documentHeading.rendered && documentHeading.rendered.id === undefined) {
+      documentHeading.rendered.id = legacyId
+      edits.push({
+        start: documentHeading.rendered.attributeOffset,
+        end: documentHeading.rendered.attributeOffset,
+        replacement: ` id="${escapeHtmlAttribute(legacyId)}"`,
+      })
+    }
+  }
+
   for (const documentHeading of documentHeadings) {
     if (documentHeading.markdown) {
       claimId(documentHeading.markdown.canonicalId, documentHeading.markdown.position)
@@ -470,22 +497,6 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
     } else if (documentHeading.rendered?.id) {
       claimId(documentHeading.rendered.id, documentHeading.rendered.position)
     }
-  }
-
-  const fallbackSlugger = new GithubSlugger()
-  const reservedIds = new Set(ids.keys())
-  for (const documentHeading of documentHeadings) {
-    if (documentHeading.title === undefined) continue
-    let fallbackId = fallbackSlugger.slug(documentHeading.title)
-    const rendered = documentHeading.rendered
-    if (!rendered || rendered.id !== undefined) continue
-    while (reservedIds.has(fallbackId)) fallbackId = fallbackSlugger.slug(documentHeading.title)
-    reservedIds.add(fallbackId)
-    edits.push({
-      start: rendered.attributeOffset,
-      end: rendered.attributeOffset,
-      replacement: ` id="${escapeHtmlAttribute(fallbackId)}"`,
-    })
   }
 
   const diagnostic = errors.length === 0 ? undefined : createContentDiagnostic({

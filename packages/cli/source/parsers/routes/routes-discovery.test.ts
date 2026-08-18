@@ -195,6 +195,21 @@ describe('findContentRoutes', () => {
     })
   })
 
+  it.each(['md', 'mdx'])('reports heading diagnostics at file-relative lines through %s frontmatter', async (extension) => {
+    // Catches frontmatter stripping resetting the analyzer to body-relative
+    // positions even though diagnostics identify locations in the source file.
+    const content = ['---', 'title: Page', '---', '# Broken {#UPPER}'].join('\n')
+    writeFileSync(join(tempDir, `frontmatter-invalid.${extension}`), content, 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.source.content).toBe('# Broken {#UPPER}')
+    expect(route?.diagnostic).toMatchObject({
+      title: 'Heading ID error',
+      details: expect.stringContaining('Invalid heading ID "UPPER" at 4:1'),
+    })
+  })
+
   it('reports duplicate canonical heading IDs with both locations', async () => {
     writeFileSync(join(tempDir, 'duplicate.mdx'), '# One {#same}\n\n## Two {#same}', 'utf-8')
 
@@ -279,6 +294,24 @@ describe('findContentRoutes', () => {
   })
 
   it.each([
+    ['fallback first in Markdown', 'md', '<h2>Stable</h2>\n\n## Other {#stable}'],
+    ['canonical first in Markdown', 'md', '## Other {#stable}\n\n<h2>Stable</h2>'],
+    ['fallback first in MDX', 'mdx', '<h2>Stable</h2>\n\n## Other {#stable}'],
+    ['canonical first in MDX', 'mdx', '## Other {#stable}\n\n<h2>Stable</h2>'],
+  ])('checks rendered fallback IDs against the unified namespace after legacy ordering: %s', async (_label, extension, content) => {
+    // Catches canonical reservations silently suffixing a rendered heading's
+    // true old ID instead of reporting the resulting DOM collision.
+    writeFileSync(join(tempDir, `fallback-conflict.${extension}`), content, 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.diagnostic).toMatchObject({
+      title: 'Heading ID error',
+      details: expect.stringContaining('Heading ID "stable" at 3:1 conflicts with the heading at 1:1'),
+    })
+  })
+
+  it.each([
     [
       'spread before the final literal ID',
       ['<h2 {...runtimeProps} id="stable">Raw</h2>', '', '## Markdown {#stable}'].join('\n'),
@@ -336,21 +369,22 @@ describe('findContentRoutes', () => {
     expect(route?.diagnostic).toBeUndefined()
   })
 
-  it('keeps raw HTML headings out of route sections while reserving Markdown aliases', async () => {
+  it.each([
+    ['raw-section.md', '<h2>Duplicate</h2>\n\n## Duplicate {#stable}', ['duplicate-1']],
+    ['intrinsic-section.mdx', '<h2>Duplicate</h2>\n\n## Duplicate {#stable}', ['duplicate-1']],
+    ['raw-section-reversed.md', '## Duplicate {#stable}\n\n<h2>Duplicate</h2>', ['duplicate']],
+    ['intrinsic-section-reversed.mdx', '## Duplicate {#stable}\n\n<h2>Duplicate</h2>', ['duplicate']],
+  ])('keeps rendered headings out of route sections while preserving ordered aliases for %s', async (fileName, content, aliases) => {
     // Catches namespace analysis accidentally promoting raw H2/H3 elements
-    // into navigation sections while protecting their rendered fallback IDs.
-    writeFileSync(join(tempDir, 'raw-section.md'), [
-      '<h2>Duplicate</h2>',
-      '',
-      '## Duplicate {#stable}',
-    ].join('\n'), 'utf-8')
+    // into navigation sections or reserving their true legacy fallback IDs.
+    writeFileSync(join(tempDir, fileName), content, 'utf-8')
 
     const [route] = await findContentRoutes(tempDir)
 
     expect(route?.meta.sections).toEqual([
-      { id: 'stable', title: 'Duplicate', level: 2, aliases: ['duplicate'] },
+      { id: 'stable', title: 'Duplicate', level: 2, aliases },
     ])
-    expect(route?.meta.headingAliases).toEqual({ duplicate: 'stable' })
+    expect(route?.meta.headingAliases).toEqual({ [aliases[0]!]: 'stable' })
     expect(route?.diagnostic).toBeUndefined()
   })
 

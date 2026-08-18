@@ -3,6 +3,7 @@ import matter from 'gray-matter'
 export type ParsedFrontmatter = {
   frontmatter: Record<string, unknown>
   content: string
+  lineOffset: number
 }
 
 /**
@@ -10,9 +11,12 @@ export type ParsedFrontmatter = {
  */
 export function parseFrontmatter(content: string): ParsedFrontmatter {
   const parsed = matter(content)
+  const body = parsed.content.replace(/^\r?\n/, '')
+  const prefix = content.slice(0, content.length - body.length)
   return {
     frontmatter: parsed.data,
-    content: parsed.content.replace(/^\r?\n/, ''),
+    content: body,
+    lineOffset: [...prefix.matchAll(/\r\n|\r|\n/g)].length,
   }
 }
 
