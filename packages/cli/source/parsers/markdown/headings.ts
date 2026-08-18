@@ -368,12 +368,6 @@ function literalMdxId(node: MarkdownNode): { kind: 'literal'; id: string } | { k
   return result
 }
 
-function hasOnlyStaticMdxAttributes(node: MarkdownNode): boolean {
-  return (node.attributes ?? []).every(attribute =>
-    attribute.type === 'mdxJsxAttribute'
-    && (attribute.value === null || attribute.value === undefined || typeof attribute.value === 'string'))
-}
-
 function mdxIntrinsicHeadings(tree: MarkdownNode, content: string, lineOffset: number): RenderedHeading[] {
   const headings: RenderedHeading[] = []
   visitMdxIntrinsicHeadings(tree, (heading) => {
@@ -382,13 +376,12 @@ function mdxIntrinsicHeadings(tree: MarkdownNode, content: string, lineOffset: n
     const end = position?.end.offset
     const title = staticMdxText(heading)
     const literalId = literalMdxId(heading)
-    if (!position || offset === undefined || end === undefined || literalId.kind === 'unknown') return
-    if (literalId.kind === 'missing' && (title === undefined || !hasOnlyStaticMdxAttributes(heading))) return
+    if (!position || offset === undefined || end === undefined || literalId.kind !== 'literal') return
     const tagEnd = openingTagAttributeOffset(content, offset, end, isMdxWhitespace)
     if (tagEnd === undefined) return
     headings.push({
       ...(title !== undefined ? { title } : {}),
-      ...(literalId.kind === 'literal' ? { id: literalId.id } : {}),
+      id: literalId.id,
       position: { line: position.start.line + lineOffset, column: position.start.column },
       offset,
       attributeOffset: tagEnd,

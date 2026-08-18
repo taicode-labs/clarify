@@ -296,9 +296,7 @@ describe('findContentRoutes', () => {
   it.each([
     ['fallback first in Markdown', 'md', '<h2>Stable</h2>\n\n## Other {#stable}'],
     ['canonical first in Markdown', 'md', '## Other {#stable}\n\n<h2>Stable</h2>'],
-    ['fallback first in MDX', 'mdx', '<h2>Stable</h2>\n\n## Other {#stable}'],
-    ['canonical first in MDX', 'mdx', '## Other {#stable}\n\n<h2>Stable</h2>'],
-  ])('checks rendered fallback IDs against the unified namespace after legacy ordering: %s', async (_label, extension, content) => {
+  ])('checks raw HTML fallback IDs against the unified namespace after legacy ordering: %s', async (_label, extension, content) => {
     // Catches canonical reservations silently suffixing a rendered heading's
     // true old ID instead of reporting the resulting DOM collision.
     writeFileSync(join(tempDir, `fallback-conflict.${extension}`), content, 'utf-8')
@@ -371,12 +369,12 @@ describe('findContentRoutes', () => {
 
   it.each([
     ['raw-section.md', '<h2>Duplicate</h2>\n\n## Duplicate {#stable}', ['duplicate-1']],
-    ['intrinsic-section.mdx', '<h2>Duplicate</h2>\n\n## Duplicate {#stable}', ['duplicate-1']],
+    ['intrinsic-section.mdx', '<h2>Duplicate</h2>\n\n## Duplicate {#stable}', ['duplicate']],
     ['raw-section-reversed.md', '## Duplicate {#stable}\n\n<h2>Duplicate</h2>', ['duplicate']],
     ['intrinsic-section-reversed.mdx', '## Duplicate {#stable}\n\n<h2>Duplicate</h2>', ['duplicate']],
   ])('keeps rendered headings out of route sections while preserving ordered aliases for %s', async (fileName, content, aliases) => {
-    // Catches namespace analysis accidentally promoting raw H2/H3 elements
-    // into navigation sections or reserving their true legacy fallback IDs.
+    // Catches namespace analysis promoting rendered H2/H3 elements into
+    // navigation or letting ID-less intrinsic MDX consume a legacy slug.
     writeFileSync(join(tempDir, fileName), content, 'utf-8')
 
     const [route] = await findContentRoutes(tempDir)
