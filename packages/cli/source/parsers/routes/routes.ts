@@ -9,17 +9,13 @@ import { compileMarkdownContent } from '../markdown/markdown.js'
 import { compileMdxContent } from '../markdown/mdx.js'
 
 import { getFileUpdatedAt, resolveUpdatedAt } from './git-metadata.js'
+import { headingMetadata, kebabToTitle } from './heading-metadata.js'
 
 export type FindContentRoutesOptions = {
   contentProcessor?: ContentProcessor
 }
 
-export function kebabToTitle(str: string): string {
-  return str
-    .split('-')
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ')
-}
+export { kebabToTitle }
 
 async function compileRouteDiagnostic(content: string, filePath: string, baseDir: string) {
   const compile = extname(filePath).toLowerCase() === '.md' ? compileMarkdownContent : compileMdxContent
@@ -111,17 +107,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
       }
       const analysis = analyzeHeadings(page.content, { kind, filePath: fullPath, projectRoot: base })
       const compileDiagnostic = await compileRouteDiagnostic(analysis.normalizedContent, fullPath, base)
-      const sections = analysis.headings
-        .filter(heading => heading.level === 2 || heading.level === 3)
-        .map(heading => ({
-          id: heading.canonicalId,
-          title: heading.title,
-          level: heading.level,
-          ...(heading.legacyIds.length > 0 ? { aliases: heading.legacyIds } : {}),
-        }))
-      const headingAliases = Object.fromEntries(
-        analysis.headings.flatMap(heading => heading.legacyIds.map(alias => [alias, heading.canonicalId])),
-      )
+      const { sections, headingAliases } = headingMetadata(analysis)
 
       let title = typeof page.frontmatter.title === 'string' ? page.frontmatter.title : ''
       if (!title) {
@@ -144,7 +130,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
           layout: page.frontmatter.layout === 'documentation' || page.frontmatter.layout === 'blog' ? page.frontmatter.layout : undefined,
           updatedAt,
           sections,
-          ...(Object.keys(headingAliases).length > 0 ? { headingAliases } : {}),
+          ...(headingAliases ? { headingAliases } : {}),
         },
         module: {
           pageVirtualModuleId: pageVirtualModuleId(relativePath.replace(/\.mdx?$/, '')),

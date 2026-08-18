@@ -1,5 +1,6 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
 import rehypeShiki from '@shikijs/rehype'
+import GithubSlugger from 'github-slugger'
 import { createCssVariablesTheme } from 'shiki'
 import { visit } from 'unist-util-visit'
 
@@ -47,8 +48,25 @@ export function rehypeParseCodeBlocks() {
   }
 }
 
+function hastText(node: HastNode): string {
+  if (node.type === 'text') return node.value ?? ''
+  return (node.children ?? []).map(hastText).join('')
+}
+
+export function rehypeAddMissingHeadingIds() {
+  return (tree: HastNode) => {
+    const slugger = new GithubSlugger()
+    visit(tree, 'element', (node: HastNode) => {
+      if (!node.tagName || !/^h[1-6]$/.test(node.tagName) || node.properties?.id) return
+      node.properties = node.properties ?? {}
+      node.properties.id = slugger.slug(hastText(node))
+    })
+  }
+}
+
 export const remarkPlugins: unknown[] = [remarkApplyHeadingIds, ...markdownRemarkPlugins]
 export const rehypePlugins: NonNullable<CompileOptions['rehypePlugins']> = [
+  rehypeAddMissingHeadingIds,
   rehypeParseCodeBlocks,
   [rehypeShiki, {
     theme: cssVariablesTheme,
