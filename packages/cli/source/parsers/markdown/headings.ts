@@ -1,6 +1,5 @@
 import { createProcessor } from '@mdx-js/mdx'
 import GithubSlugger from 'github-slugger'
-import { toString } from 'mdast-util-to-string'
 import rehypeRaw from 'rehype-raw'
 import { remark } from 'remark'
 
@@ -168,17 +167,6 @@ function explicitIdInfo(heading: MarkdownNode, content: string): ExplicitHeading
   }
 }
 
-function headingTitle(heading: MarkdownNode, marker: ExplicitHeadingId | undefined): string {
-  const text = finalTextNode(heading)
-  if (!text || !marker || text.value === undefined) return toString(heading as never)
-
-  const original = text.value
-  text.value = original.slice(0, -(marker.end - marker.start)).replace(/\s+$/, '')
-  const title = toString(heading as never)
-  text.value = original
-  return title
-}
-
 function maskExplicitHeadingMarkers(content: string): string {
   const tree = remark.parse(content) as unknown as MarkdownNode
   const edits: SourceEdit[] = []
@@ -201,6 +189,38 @@ function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind'])
     return createProcessor({ format: 'mdx' }).parse(maskedContent) as unknown as MarkdownNode
   } catch {
     return undefined
+  }
+}
+
+function renderedMarkdownHeadingTitles(tree: MarkdownNode, content: string, kind: AnalyzeHeadingsOptions['kind']): Map<number, string> {
+  const originalText = new Map<MarkdownNode, string>()
+  visitHeadings(tree, (heading) => {
+    const marker = explicitIdInfo(heading, content)
+    const text = finalTextNode(heading)
+    if (!marker || !text || text.value === undefined) return
+    originalText.set(text, text.value)
+    text.value = text.value.slice(0, -(marker.end - marker.start)).replace(/\s+$/, '')
+  })
+
+  try {
+    let hast: HastNode | undefined
+    const captureHast = () => (tree: HastNode) => { hast = tree }
+    const processor = createProcessor({
+      format: kind === 'markdown' ? 'md' : 'mdx',
+      ...(kind === 'markdown' ? { remarkRehypeOptions: { allowDangerousHtml: true } } : {}),
+      rehypePlugins: kind === 'markdown' ? [rehypeRaw, captureHast] : [captureHast],
+    })
+    processor.runSync(tree as never, { value: content } as never)
+
+    const titles = new Map<number, string>()
+    if (!hast) return titles
+    visitHastHeadings(hast, (heading) => {
+      const offset = heading.position?.start.offset
+      if (offset !== undefined) titles.set(offset, hastText(heading))
+    })
+    return titles
+  } finally {
+    for (const [text, value] of originalText) text.value = value
   }
 }
 
@@ -384,6 +404,7 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
   const documentHeadings: DocumentHeading[] = []
   const tree = parseHeadingTree(content, options.kind)
   if (!tree) return { headings, normalizedContent: content }
+  const renderedTitles = renderedMarkdownHeadingTitles(tree, content, options.kind)
 
   const claimId = (id: string, position: AnalyzedHeading['position']) => {
     const owner = ids.get(id)
@@ -396,7 +417,7 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
 
   visitHeadings(tree, (node) => {
     const marker = explicitIdInfo(node, content)
-    const title = headingTitle(node, marker)
+    const title = renderedTitles.get(node.position?.start.offset ?? 0) ?? ''
     const legacySlug = slugger.slug(title)
     const hasValidExplicitId = marker !== undefined && HEADING_ID_PATTERN.test(marker.id)
     const canonicalId = hasValidExplicitId ? marker.id : legacySlug
