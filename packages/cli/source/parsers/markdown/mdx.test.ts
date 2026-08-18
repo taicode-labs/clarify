@@ -38,8 +38,10 @@ function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties:
 
 describe('mdx rehype plugins', () => {
   it.each([
+    ['bare without whitespace', '<h2/>', '<h2 id=""/>'],
     ['bare', '<h2 />', '<h2 id="" />'],
     ['with static attributes', '<h2 className="x" />', '<h2 className="x" id="" />'],
+    ['with a quoted greater-than sign', '<h2 data-label="a > b" />', '<h2 data-label="a > b" id="" />'],
   ])('inserts fallback IDs before the slash of %s self-closing intrinsic MDX headings', async (_label, source, normalizedContent) => {
     // Catches compiler-internal ID insertion producing `<h2 / id="">`,
     // which is invalid MDX and replaces a valid author element with a syntax error.
@@ -199,6 +201,38 @@ describe('mdx rehype plugins', () => {
       rehypePlugins: [rehypeRaw, ...rehypePlugins],
     }))
     expect(compiled).toContain('<_components.h2 data-x="/" id="title">')
+  })
+
+  it('treats a slash after an attribute equals sign as an unquoted raw HTML value', async () => {
+    // Catches the first character of an unquoted value being classified as a
+    // self-closing marker before the scanner enters its value state.
+    const analysis = analyzeHeadings('<h2 data-x=/>Title</h2>', { kind: 'markdown' })
+
+    expect(analysis.normalizedContent).toBe('<h2 data-x=/ id="title">Title</h2>')
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+    expect(compiled).toContain('<_components.h2 data-x="/" id="title">')
+  })
+
+  it('preserves a trailing slash in an unquoted raw HTML URL when inserting a fallback ID', async () => {
+    // Catches a slash that is adjacent to `>` but still belongs to an
+    // unquoted attribute value being consumed as a self-closing marker.
+    const analysis = analyzeHeadings('<h2 data-url=https://example.com/>Title</h2>', { kind: 'markdown' })
+
+    expect(analysis.normalizedContent).toBe('<h2 data-url=https://example.com/ id="title">Title</h2>')
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+    expect(compiled).toContain('<_components.h2 data-url="https://example.com/" id="title">')
   })
 
   it('applies canonical IDs from normalized headings through the shared pipeline', async () => {
