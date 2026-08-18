@@ -1,11 +1,15 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
 import rehypeRaw from 'rehype-raw'
+import rehypeSlug from 'rehype-slug'
 import { describe, expect, it, vi } from 'vitest'
+
+import { markdownRemarkPlugins } from '@clarify-labs/renderer'
 
 import { analyzeHeadings } from './headings.js'
 import { compileMdxContent, rehypeParseCodeBlocks, rehypePlugins, remarkPlugins } from './mdx.js'
 
 const testRemarkPlugins = remarkPlugins as CompileOptions['remarkPlugins']
+const baselineRemarkPlugins = markdownRemarkPlugins as CompileOptions['remarkPlugins']
 
 type TestNode = {
   type: string
@@ -72,81 +76,52 @@ describe('mdx rehype plugins', () => {
   })
 
   it.each([
-    ['bare without whitespace', '<h2/>', '<h2 id=""/>'],
-    ['bare', '<h2 />', '<h2 id="" />'],
-    ['with static attributes', '<h2 className="x" />', '<h2 className="x" id="" />'],
-    ['with a quoted greater-than sign', '<h2 data-label="a > b" />', '<h2 data-label="a > b" id="" />'],
-  ])('inserts fallback IDs before the slash of %s self-closing intrinsic MDX headings', async (_label, source, normalizedContent) => {
-    // Catches compiler-internal ID insertion producing `<h2 / id="">`,
-    // which is invalid MDX and replaces a valid author element with a syntax error.
-    const analysis = analyzeHeadings(source, { kind: 'markdown+jsx' })
-
-    expect(analysis.normalizedContent).toBe(normalizedContent)
-    await expect(compile(analysis.normalizedContent, {
+    ['intrinsic before Markdown', '<h2>Duplicate</h2>\n\n## Duplicate'],
+    ['Markdown before intrinsic', '## Duplicate\n\n<h2>Duplicate</h2>'],
+    ['bare self-closing', '<h2/>'],
+    ['self-closing with whitespace', '<h2 />'],
+    ['self-closing with static attributes', '<h2 className="x" />'],
+    ['self-closing with a quoted greater-than sign', '<h2 data-label="a > b" />'],
+    ['NBSP attribute whitespace', '<h2\u00A0data-label="a > b">Title</h2>'],
+  ])('preserves exact origin/main compiler output for ID-less intrinsic MDX: %s', async (_label, source) => {
+    // Catches analyzer fallback injection changing source that origin/main's
+    // rehype-slug intentionally left alone, including its shared slug order.
+    const baseline = String(await compile(source, {
       jsx: true,
-      remarkPlugins: testRemarkPlugins,
-      rehypePlugins,
-    })).resolves.toBeDefined()
-  })
-
-  it('accepts NBSP as intrinsic MDX attribute whitespace when inserting a fallback ID', async () => {
-    // Catches the shared scanner applying raw HTML whitespace rules to MDX,
-    // then treating the greater-than sign in a quoted value as the tag end.
-    const analysis = analyzeHeadings('<h2\u00A0data-label="a > b">Title</h2>', { kind: 'markdown+jsx' })
-
-    expect(analysis.normalizedContent).toBe('<h2\u00A0data-label="a > b" id="title">Title</h2>')
-    const compiled = String(await compile(analysis.normalizedContent, {
-      jsx: true,
-      remarkPlugins: testRemarkPlugins,
-      rehypePlugins,
+      remarkPlugins: baselineRemarkPlugins,
+      rehypePlugins: [rehypeSlug],
     }))
-    expect(compiled).toContain('<h2 data-label="a > b" id="title">')
-  })
-
-  it.each([
-    [
-      'MDX intrinsic first',
-      ['<h2>Duplicate</h2>', '', '## Duplicate {#stable}'].join('\n'),
-      ['duplicate', 'stable'],
-      'stable',
-      ['duplicate-1'],
-    ],
-    [
-      'Markdown first',
-      ['## Duplicate {#stable}', '', '<h2>Duplicate</h2>'].join('\n'),
-      ['stable', 'duplicate-1'],
-      'stable',
-      ['duplicate'],
-    ],
-    [
-      'MDX intrinsic first before an implicit Markdown heading',
-      ['<h2>Duplicate</h2>', '', '## Duplicate'].join('\n'),
-      ['duplicate', 'duplicate-1'],
-      'duplicate-1',
-      [],
-    ],
-    [
-      'implicit Markdown heading first',
-      ['## Duplicate', '', '<h2>Duplicate</h2>'].join('\n'),
-      ['duplicate', 'duplicate-1'],
-      'duplicate',
-      [],
-    ],
-  ])('preserves the full legacy heading order before canonical replacement with %s', async (_label, source, expectedIds, expectedCanonicalId, expectedAliases) => {
-    // Catches canonical and alias reservations renumbering an earlier static
-    // intrinsic heading away from the ID assigned by the old HAST-wide pass.
     const analysis = analyzeHeadings(source, { kind: 'markdown+jsx' })
     const compiled = String(await compile(analysis.normalizedContent, {
       jsx: true,
       remarkPlugins: testRemarkPlugins,
       rehypePlugins,
     }))
-    const ids = [...compiled.matchAll(/<(?:h2|_components\.h2) id="([^"]+)">/g)].map(match => match[1])
 
-    expect(ids).toEqual(expectedIds)
+    expect(compiled).toBe(baseline)
+    expect(analysis.diagnostic).toBeUndefined()
+  })
+
+  it('keeps the origin/main implicit slug as the alias of a following canonical heading', async () => {
+    // Catches an ID-less intrinsic heading consuming `duplicate`, which changes
+    // both the old implicit ID and the compatibility alias to `duplicate-1`.
+    const baseline = String(await compile('<h2>Duplicate</h2>\n\n## Duplicate', {
+      jsx: true,
+      remarkPlugins: baselineRemarkPlugins,
+      rehypePlugins: [rehypeSlug],
+    }))
+    const analysis = analyzeHeadings('<h2>Duplicate</h2>\n\n## Duplicate {#stable}', { kind: 'markdown+jsx' })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(baseline).toContain('<h2>{"Duplicate"}</h2>{"\\n"}<_components.h2 id="duplicate">')
     expect(analysis.headings).toEqual([
-      expect.objectContaining({ title: 'Duplicate', canonicalId: expectedCanonicalId, legacyIds: expectedAliases }),
+      expect.objectContaining({ canonicalId: 'stable', legacyIds: ['duplicate'] }),
     ])
+    expect(compiled).toContain('<h2>{"Duplicate"}</h2>{"\\n"}<_components.h2 id="stable">')
     expect(analysis.diagnostic).toBeUndefined()
   })
 
