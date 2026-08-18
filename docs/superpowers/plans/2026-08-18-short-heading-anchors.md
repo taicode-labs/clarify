@@ -457,3 +457,36 @@ git commit -m "docs: document stable heading anchors"
 - [ ] **Step 5: Review the complete branch against Issue #32**
 
 Verify every acceptance item against the branch diff and test evidence: short Chinese anchors, canonical DOM/navigation/search/permalink/scroll sync, unchanged implicit IDs, legacy fragment scrolling and replacement, diagnostics, `.md`/`.mdx`, duplicate and H1/H2/H3 collisions, native hash changes, and Back/Forward. Then request a whole-branch code review before publishing.
+
+---
+
+### Task 5: Repair final-review heading regressions
+
+**Files:**
+
+- Modify: `packages/cli/source/parsers/markdown/headings.ts`
+- Modify: `packages/cli/source/parsers/markdown/headings.test.ts`
+- Modify: `packages/cli/source/parsers/markdown/mdx.ts`
+- Modify: the focused MDX compiler test file selected by the implementer
+
+**Contract:**
+
+- Literal or escaped `{#example}` text that is not a confirmed trailing explicit marker remains part of the visible heading title and generated slug.
+- The fallback HTML-heading slugger advances for every H1-H6 in document order, including headings that already carry canonical IDs, and only assigns its result when an ID is absent.
+- Mixed Markdown and raw HTML headings with the same title never receive duplicate DOM IDs, in either source order.
+
+- [ ] **Step 1: Add focused regression tests and capture RED output**
+
+Cover literal code `` `{#example}` ``, escaped/literal marker variants, and duplicate mixed Markdown/raw HTML titles in both orders. Each test must fail for the expected behavioral mismatch before production code changes.
+
+- [ ] **Step 2: Implement the smallest fixes and capture GREEN output**
+
+Avoid blanket masking of marker-shaped source. Preserve MDX syntax masking while restoring real heading title content. Advance the fallback slugger for every H1-H6 in document order, assigning only when the element lacks an ID.
+
+- [ ] **Step 3: Verify and commit**
+
+Run focused tests, the full CLI suite, CLI typecheck, CLI lint, and `git diff --check`, then commit the Task 5 changes.
+
+- [ ] **Step 4: Independent task review and fresh whole-branch review**
+
+Review Task 5 against this contract. After it is clean, rerun whole-repository verification and a fresh broad branch review before publishing.

@@ -53,13 +53,25 @@ function hastText(node: HastNode): string {
   return (node.children ?? []).map(hastText).join('')
 }
 
+function isHeadingElement(node: HastNode): boolean {
+  return Boolean(node.tagName && /^h[1-6]$/.test(node.tagName))
+}
+
 export function rehypeAddMissingHeadingIds() {
   return (tree: HastNode) => {
     const slugger = new GithubSlugger()
+    const reservedIds = new Set<string>()
     visit(tree, 'element', (node: HastNode) => {
-      if (!node.tagName || !/^h[1-6]$/.test(node.tagName) || node.properties?.id) return
+      if (isHeadingElement(node) && typeof node.properties?.id === 'string' && node.properties.id) reservedIds.add(node.properties.id)
+    })
+    visit(tree, 'element', (node: HastNode) => {
+      if (!isHeadingElement(node)) return
+      const title = hastText(node)
+      let fallbackId = slugger.slug(title)
+      if (node.properties?.id) return
+      while (reservedIds.has(fallbackId)) fallbackId = slugger.slug(title)
       node.properties = node.properties ?? {}
-      node.properties.id = slugger.slug(hastText(node))
+      node.properties.id = fallbackId
     })
   }
 }

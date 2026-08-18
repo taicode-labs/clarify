@@ -63,7 +63,6 @@ type IdOwner = {
 
 const INTERNAL_HEADING_ID_PREFIX = 'clarify-internal-heading-id:'
 const EXPLICIT_ID_PATTERN = /\s+\{#([^{}]*)\}$/
-const EXPLICIT_ID_CANDIDATE_PATTERN = /\{#[^{}\r\n]*\}/g
 
 function visitHeadings(node: MarkdownNode, callback: (heading: MarkdownNode) => void): void {
   if (node.type === 'heading') callback(node)
@@ -127,13 +126,24 @@ function headingTitle(heading: MarkdownNode, marker: ExplicitHeadingId | undefin
   return title
 }
 
+function maskExplicitHeadingMarkers(content: string): string {
+  const tree = remark.parse(content) as unknown as MarkdownNode
+  const edits: SourceEdit[] = []
+  visitHeadings(tree, (heading) => {
+    const marker = explicitIdInfo(heading, content)
+    if (marker) edits.push({ start: marker.start, end: marker.end, replacement: 'x'.repeat(marker.end - marker.start) })
+  })
+  return applySourceEdits(content, edits)
+}
+
 function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind']): MarkdownNode {
   if (kind === 'markdown') return remark.parse(content) as unknown as MarkdownNode
 
   // Explicit heading markers use braces, which MDX would otherwise parse as
-  // expressions. Mask candidates only for parsing, preserving every UTF-16
-  // offset so edits can still be derived from the untouched author source.
-  const maskedContent = content.replace(EXPLICIT_ID_CANDIDATE_PATTERN, marker => 'x'.repeat(marker.length))
+  // expressions. Mask only markers confirmed by a Markdown heading parse,
+  // preserving every UTF-16 offset and leaving literal marker-shaped text
+  // inside code or escapes intact.
+  const maskedContent = maskExplicitHeadingMarkers(content)
   try {
     return createProcessor({ format: 'mdx' }).parse(maskedContent) as unknown as MarkdownNode
   } catch {

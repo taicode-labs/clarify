@@ -37,6 +37,33 @@ function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties:
 }
 
 describe('mdx rehype plugins', () => {
+  it.each([
+    [
+      'Markdown first',
+      ['## Duplicate', '', '<h2>Duplicate</h2>'].join('\n'),
+      ['duplicate', 'duplicate-1'],
+    ],
+    [
+      'raw HTML first',
+      ['<h2>Duplicate</h2>', '', '## Duplicate'].join('\n'),
+      ['duplicate-1', 'duplicate'],
+    ],
+  ])('keeps mixed duplicate heading IDs unique with %s', async (_label, source, expectedIds) => {
+    // Catches the fallback slugger skipping canonical Markdown headings or
+    // assigning a raw heading an ID reserved by a later canonical heading.
+    const analysis = analyzeHeadings(source, { kind: 'markdown' })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+    const ids = [...compiled.matchAll(/<_components\.h2 id="([^"]+)">/g)].map(match => match[1])
+
+    expect(ids).toEqual(expectedIds)
+  })
+
   it('preserves entity source offsets from analysis through Markdown compilation', async () => {
     // Catches decoded mdast text indices being reused as raw source offsets,
     // which corrupts content before an explicit marker when an entity shrinks.
