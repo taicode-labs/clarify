@@ -66,6 +66,31 @@ describe('route resolution', () => {
     })
   })
 
+  it('uses the route stem when a page hook resolves the frontmatter title to an empty string', async () => {
+    // Catches post-hook reanalysis treating an empty title as authoritative
+    // even though discovery applies the route-stem fallback to the same value.
+    const route = contentRoute({
+      path: '/getting-started',
+      basePath: '/getting-started',
+      title: 'Before hook',
+      frontmatter: { title: 'Before hook' },
+      content: '# Welcome',
+    })
+    const plugins: ClarifyPlugin[] = [{
+      name: 'clear-page-title',
+      hooks: {
+        'pages:resolved': pages => pages.map(page => ({
+          ...page,
+          frontmatter: { ...page.frontmatter, title: '' },
+        })),
+      },
+    }]
+
+    const [resolved] = await resolveRoutePages([route], plugins, createContext())
+
+    expect(resolved?.meta.title).toBe('Getting Started')
+  })
+
   it('writes page hook results back to the matching route when paths conflict', async () => {
     const routes = [
       contentRoute({ path: '/api', filePath: '/site/source/api.md', content: 'markdown' }),

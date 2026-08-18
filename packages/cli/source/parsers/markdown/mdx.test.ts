@@ -48,6 +48,16 @@ describe('mdx rehype plugins', () => {
       ['<h2>Duplicate</h2>', '', '## Duplicate'].join('\n'),
       ['duplicate-1', 'duplicate'],
     ],
+    [
+      'Markdown explicit ID first',
+      ['## Duplicate {#stable}', '', '<h2>Duplicate</h2>'].join('\n'),
+      ['stable', 'duplicate-1'],
+    ],
+    [
+      'raw HTML first before a Markdown legacy alias',
+      ['<h2>Duplicate</h2>', '', '## Duplicate {#stable}'].join('\n'),
+      ['duplicate-1', 'stable'],
+    ],
   ])('keeps mixed duplicate heading IDs unique with %s', async (_label, source, expectedIds) => {
     // Catches the fallback slugger skipping canonical Markdown headings or
     // assigning a raw heading an ID reserved by a later canonical heading.
