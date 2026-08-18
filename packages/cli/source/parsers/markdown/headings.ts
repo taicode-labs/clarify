@@ -1,7 +1,8 @@
-import { createProcessor } from '@mdx-js/mdx'
+import { createProcessor, type CompileOptions } from '@mdx-js/mdx'
 import GithubSlugger from 'github-slugger'
 import rehypeRaw from 'rehype-raw'
-import { remark } from 'remark'
+
+import { markdownRemarkPlugins } from '@clarify-labs/renderer'
 
 import type { ContentDiagnostic } from '../../types.js'
 import { createContentDiagnostic } from '../content/diagnostic.js'
@@ -95,6 +96,7 @@ type DocumentHeading = {
 
 const INTERNAL_HEADING_ID_PREFIX = 'clarify-internal-heading-id:'
 const EXPLICIT_ID_PATTERN = /\s+\{#([^{}]*)\}$/
+const HEADING_REMARK_PLUGINS = markdownRemarkPlugins as CompileOptions['remarkPlugins']
 
 function visitHeadings(node: MarkdownNode, callback: (heading: MarkdownNode) => void): void {
   if (node.type === 'heading') callback(node)
@@ -168,7 +170,7 @@ function explicitIdInfo(heading: MarkdownNode, content: string): ExplicitHeading
 }
 
 function maskExplicitHeadingMarkers(content: string): string {
-  const tree = remark.parse(content) as unknown as MarkdownNode
+  const tree = createProcessor({ format: 'md', remarkPlugins: HEADING_REMARK_PLUGINS }).parse(content) as unknown as MarkdownNode
   const edits: SourceEdit[] = []
   visitHeadings(tree, (heading) => {
     const marker = explicitIdInfo(heading, content)
@@ -178,7 +180,9 @@ function maskExplicitHeadingMarkers(content: string): string {
 }
 
 function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind']): MarkdownNode | undefined {
-  if (kind === 'markdown') return remark.parse(content) as unknown as MarkdownNode
+  if (kind === 'markdown') {
+    return createProcessor({ format: 'md', remarkPlugins: HEADING_REMARK_PLUGINS }).parse(content) as unknown as MarkdownNode
+  }
 
   // Explicit heading markers use braces, which MDX would otherwise parse as
   // expressions. Mask only markers confirmed by a Markdown heading parse,
@@ -186,7 +190,7 @@ function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind'])
   // inside code or escapes intact.
   const maskedContent = maskExplicitHeadingMarkers(content)
   try {
-    return createProcessor({ format: 'mdx' }).parse(maskedContent) as unknown as MarkdownNode
+    return createProcessor({ format: 'mdx', remarkPlugins: HEADING_REMARK_PLUGINS }).parse(maskedContent) as unknown as MarkdownNode
   } catch {
     return undefined
   }
@@ -207,6 +211,7 @@ function renderedMarkdownHeadingTitles(tree: MarkdownNode, content: string, kind
     const captureHast = () => (tree: HastNode) => { hast = tree }
     const processor = createProcessor({
       format: kind === 'markdown' ? 'md' : 'mdx',
+      remarkPlugins: HEADING_REMARK_PLUGINS,
       ...(kind === 'markdown' ? { remarkRehypeOptions: { allowDangerousHtml: true } } : {}),
       rehypePlugins: kind === 'markdown' ? [rehypeRaw, captureHast] : [captureHast],
     })
