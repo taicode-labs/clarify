@@ -238,6 +238,27 @@ describe('heading hash navigation', () => {
     cleanup()
   })
 
+  it('resolves native hash aliases beneath the configured route prefix', () => {
+    vi.useFakeTimers()
+    const browser = stubBrowser('/docs/new-guide', '', '#legacy-heading')
+    const refs = createHashNavigationRefs()
+    const aliasesByRoutePath: Record<string, Record<string, string>> = {
+      '/new-guide': { 'legacy-heading': 'new-canonical' },
+    }
+    const cleanup = installNativeHashNavigationListener(
+      refs,
+      pathname => aliasesByRoutePath[pathname],
+      '/docs/',
+    )
+
+    browser.listeners.get('hashchange')?.(new Event('hashchange'))
+    vi.runAllTimers()
+
+    expect(browser.replaceState).toHaveBeenCalledWith(browser.historyState, '', '/docs/new-guide#new-canonical')
+    expect(browser.getElementById).toHaveBeenCalledWith('new-canonical')
+    cleanup()
+  })
+
   it('deduplicates StrictMode replay of the same router location key', () => {
     vi.useFakeTimers()
     const browser = stubBrowser('/guide', '', '#legacy-heading')

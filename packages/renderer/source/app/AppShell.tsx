@@ -145,14 +145,23 @@ export function coordinateHashNavigation(arg0: CoordinateHashNavigationArgs): vo
   })
 }
 
-export function installNativeHashNavigationListener(refs: HashNavigationRefs, getAliases: (pathname: string) => Record<string, string> | undefined): () => void {
+function routePathFromBrowserPath(pathname: string, routePrefix: string): string {
+  const prefixName = routePrefix.replace(/^\/+|\/+$/g, '')
+  if (!prefixName) return pathname
+
+  const prefix = `/${prefixName}`
+  if (pathname === prefix) return '/'
+  return pathname.startsWith(`${prefix}/`) ? pathname.slice(prefix.length) : pathname
+}
+
+export function installNativeHashNavigationListener(refs: HashNavigationRefs, getAliases: (pathname: string) => Record<string, string> | undefined, routePrefix = '/'): () => void {
   if (typeof window === 'undefined') return () => {}
 
   const handleHashChange = () => {
     coordinateHashNavigation({
       ...refs,
       location: window.location,
-      aliases: getAliases(window.location.pathname),
+      aliases: getAliases(routePathFromBrowserPath(window.location.pathname, routePrefix)),
       source: 'native',
     })
   }
@@ -399,7 +408,8 @@ function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
     hashScrollCleanupRef,
     hashScrollSuppressedUntilRef,
     lastHandledLocationRef,
-  }, nativePathname => routeForPath(routes, normalizeRoutePath(nativePathname))?.headingAliases), [
+  }, nativePathname => routeForPath(routes, normalizeRoutePath(nativePathname))?.headingAliases, config.routePrefix), [
+    config.routePrefix,
     hashNavigationEpochRef,
     hashScrollCleanupRef,
     hashScrollSuppressedUntilRef,
