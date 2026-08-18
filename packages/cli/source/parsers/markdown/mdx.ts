@@ -1,6 +1,5 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
 import rehypeShiki from '@shikijs/rehype'
-import rehypeSlug from 'rehype-slug'
 import { createCssVariablesTheme } from 'shiki'
 import { visit } from 'unist-util-visit'
 
@@ -8,6 +7,8 @@ import { markdownRemarkPlugins, parseCodeMeta } from '@clarify-labs/renderer'
 
 import type { ContentDiagnostic } from '../../types.js'
 import { createContentDiagnostic } from '../content/diagnostic.js'
+
+import { remarkApplyHeadingIds } from './headings.js'
 
 type HastNode = {
   type: string
@@ -46,9 +47,8 @@ export function rehypeParseCodeBlocks() {
   }
 }
 
-export const remarkPlugins: unknown[] = markdownRemarkPlugins
+export const remarkPlugins: unknown[] = [remarkApplyHeadingIds, ...markdownRemarkPlugins]
 export const rehypePlugins: NonNullable<CompileOptions['rehypePlugins']> = [
-  rehypeSlug,
   rehypeParseCodeBlocks,
   [rehypeShiki, {
     theme: cssVariablesTheme,
