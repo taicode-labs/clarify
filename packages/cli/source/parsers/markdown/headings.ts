@@ -459,7 +459,7 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
   documentHeadings.sort((left, right) => left.offset - right.offset)
   const legacySlugger = new GithubSlugger()
   for (const documentHeading of documentHeadings) {
-    if (documentHeading.rendered?.id) continue
+    if (documentHeading.rendered?.id !== undefined) continue
     if (documentHeading.title === undefined) continue
     const legacyId = legacySlugger.slug(documentHeading.title)
     if (documentHeading.markdown) {
