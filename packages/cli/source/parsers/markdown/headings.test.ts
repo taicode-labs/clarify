@@ -1,8 +1,34 @@
 import { describe, expect, it } from 'vitest'
 
 import { analyzeHeadings } from './headings.js'
+import { compileMdxContent } from './mdx.js'
 
 describe('analyzeHeadings', () => {
+  it('keeps invalid MDX unchanged instead of fabricating headings from ESM templates', async () => {
+    // Catches the invalid-MDX fallback reparsing ESM as plain Markdown and
+    // rewriting a template-string line before the compiler reports the real
+    // unrelated JSX syntax error.
+    const source = [
+      'export const snippet = `',
+      '## Not an ESM heading {#esm-fake}',
+      '`',
+      '',
+      '<BrokenComponent>',
+    ].join('\n')
+
+    const analysis = analyzeHeadings(source, { kind: 'markdown+jsx' })
+
+    expect(analysis.headings).toEqual([])
+    expect(analysis.normalizedContent).toBe(source)
+
+    const compilation = await compileMdxContent(analysis.normalizedContent)
+    expect(compilation.ok).toBe(false)
+    if (!compilation.ok) {
+      expect(compilation.diagnostic.title).toBe('MDX syntax error')
+      expect(compilation.diagnostic.details).toContain('Expected a closing tag for `<BrokenComponent>`')
+    }
+  })
+
   it.each([
     [
       'inline code',
