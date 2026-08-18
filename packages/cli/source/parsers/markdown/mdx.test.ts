@@ -44,9 +44,13 @@ describe('mdx rehype plugins', () => {
     ['Markdown image with an explicit ID', 'markdown', '## Hello ![logo](logo.png) {#stable}', 'Hello ', 'stable', ['hello-']],
     ['MDX image with an implicit ID', 'markdown+jsx', '## Hello ![logo](logo.png)', 'Hello ', 'hello-', []],
     ['MDX image with an explicit ID', 'markdown+jsx', '## Hello ![logo](logo.png) {#stable}', 'Hello ', 'stable', ['hello-']],
+    ['Markdown footnote with an implicit ID', 'markdown', '## Hello[^note]\n\n[^note]: Footnote', 'Hello1', 'hello1', []],
+    ['Markdown footnote with an explicit ID', 'markdown', '## Hello[^note] {#stable}\n\n[^note]: Footnote', 'Hello1', 'stable', ['hello1']],
+    ['MDX footnote with an implicit ID', 'markdown+jsx', '## Hello[^note]\n\n[^note]: Footnote', 'Hello1', 'hello1', []],
+    ['MDX footnote with an explicit ID', 'markdown+jsx', '## Hello[^note] {#stable}\n\n[^note]: Footnote', 'Hello1', 'stable', ['hello1']],
   ] as const)('preserves rendered heading text compatibility for %s', async (_label, kind, source, title, canonicalId, legacyIds) => {
-    // Catches mdast image alt text leaking into heading metadata and IDs while
-    // retaining descendant text from raw inline HTML in Markdown.
+    // Catches mdast-only text leaking into metadata and IDs while retaining
+    // rendered raw-HTML descendants and generated GFM footnote labels.
     const analysis = analyzeHeadings(source, { kind })
     const compiled = String(await compile(analysis.normalizedContent, {
       ...(kind === 'markdown'
