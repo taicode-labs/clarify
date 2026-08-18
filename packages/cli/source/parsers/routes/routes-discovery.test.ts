@@ -243,6 +243,62 @@ describe('findContentRoutes', () => {
     })
   })
 
+  it.each([
+    [
+      'intrinsic first against a canonical ID',
+      ['<h2 id="stable">Raw</h2>', '', '## Markdown {#stable}'].join('\n'),
+      'Heading ID "stable" at 3:1 conflicts with the heading at 1:1',
+    ],
+    [
+      'Markdown first against an intrinsic ID',
+      ['## Markdown {#stable}', '', '<h2 id="stable">Raw</h2>'].join('\n'),
+      'Heading ID "stable" at 3:1 conflicts with the heading at 1:1',
+    ],
+    [
+      'intrinsic first against a legacy alias',
+      ['<h2 id="duplicate">Raw</h2>', '', '## Duplicate {#stable}'].join('\n'),
+      'Heading ID "duplicate" at 3:1 conflicts with the heading at 1:1',
+    ],
+    [
+      'Markdown alias first against an intrinsic ID',
+      ['## Duplicate {#stable}', '', '<h2 id="duplicate">Raw</h2>'].join('\n'),
+      'Heading ID "duplicate" at 3:1 conflicts with the heading at 1:1',
+    ],
+  ])('reports static intrinsic MDX heading conflicts with source locations: %s', async (_label, content, detail) => {
+    // Catches intrinsic h1-h6 elements bypassing the canonical/legacy ID
+    // namespace solely because MDX represents them as JSX nodes.
+    writeFileSync(join(tempDir, 'intrinsic-conflict.mdx'), content, 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.diagnostic).toMatchObject({
+      title: 'Heading ID error',
+      filePath: 'intrinsic-conflict.mdx',
+      details: expect.stringContaining(detail),
+    })
+  })
+
+  it('leaves custom components and dynamic intrinsic MDX headings outside static ID analysis', async () => {
+    // Catches static analysis guessing runtime component output, expression
+    // IDs, or expression-derived heading text.
+    const content = [
+      '<Heading id="duplicate">Custom</Heading>',
+      '<h2 id={dynamicId}>Dynamic ID</h2>',
+      '<h2 id="duplicate">{dynamicTitle}</h2>',
+      '',
+      '## Duplicate {#stable}',
+    ].join('\n')
+    writeFileSync(join(tempDir, 'dynamic-headings.mdx'), content, 'utf-8')
+
+    const [route] = await findContentRoutes(tempDir)
+
+    expect(route?.source.content).toBe(content)
+    expect(route?.meta.sections).toEqual([
+      { id: 'stable', title: 'Duplicate', level: 2, aliases: ['duplicate'] },
+    ])
+    expect(route?.diagnostic).toBeUndefined()
+  })
+
   it('keeps raw HTML headings out of route sections while reserving Markdown aliases', async () => {
     // Catches namespace analysis accidentally promoting raw H2/H3 elements
     // into navigation sections while protecting their rendered fallback IDs.
