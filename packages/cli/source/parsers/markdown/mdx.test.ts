@@ -55,6 +55,20 @@ describe('mdx rehype plugins', () => {
     })).resolves.toBeDefined()
   })
 
+  it('accepts NBSP as intrinsic MDX attribute whitespace when inserting a fallback ID', async () => {
+    // Catches the shared scanner applying raw HTML whitespace rules to MDX,
+    // then treating the greater-than sign in a quoted value as the tag end.
+    const analysis = analyzeHeadings('<h2\u00A0data-label="a > b">Title</h2>', { kind: 'markdown+jsx' })
+
+    expect(analysis.normalizedContent).toBe('<h2\u00A0data-label="a > b" id="title">Title</h2>')
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+    expect(compiled).toContain('<h2 data-label="a > b" id="title">')
+  })
+
   it.each([
     [
       'MDX intrinsic first',
