@@ -7,6 +7,7 @@ import rehypeRaw from 'rehype-raw'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 
 import { createContentCompileDiagnostic, rehypePlugins, remarkPlugins } from '../parsers/markdown/mdx.js'
+import { analyzeHeadings } from '../parsers/markdown/headings.js'
 import { CLARIFY_DEV_ROUTE_ENDPOINT, handleDevRouteRequest } from '../parsers/router/dev-routes.js'
 import type { ContentRoute, NavigationTree } from '../types.js'
 
@@ -63,9 +64,14 @@ function createNormalizedContentPlugin(engine: ClarifyEngine): Plugin {
     transform(_code, id) {
       if (!/\.mdx?(?:\?|$)/.test(id)) return null
       const filePath = id.replace(/\?.*$/, '')
-      const route = engine.routes.find(route => (route.kind === 'markdown+jsx' || route.kind === 'markdown') && route.source.filePath === filePath)
-      if (!route || route.source.content === undefined) return null
-      return { code: route.source.content, map: null }
+      const route = engine.routes.find(route => route.source.filePath === filePath)
+      if (!route || (route.kind !== 'markdown+jsx' && route.kind !== 'markdown') || route.source.content === undefined) return null
+      const analysis = analyzeHeadings(route.source.content, {
+        kind: route.kind,
+        filePath,
+        projectRoot: engine.root,
+      })
+      return { code: analysis.normalizedContent, map: null }
     },
   }
 }

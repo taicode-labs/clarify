@@ -36,13 +36,17 @@ function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties:
 }
 
 describe('mdx rehype plugins', () => {
-  it('adds stable ids to headings through the shared pipeline', async () => {
+  it('applies canonical IDs from normalized headings through the shared pipeline', async () => {
+    // Catches a regression where the compiler leaves its internal link in the
+    // output or lets the generic slugger derive a non-canonical heading ID.
     const compiled = String(await compile([
-      '# Overview',
+      '# Overview [](clarify-internal-heading-id:overview)',
       '',
-      '## 中文标题',
+      '## 推荐：自动配置 [](clarify-internal-heading-id:auto-config)',
       '',
-      '### 中文标题',
+      '### 中文标题 [](clarify-internal-heading-id:中文标题)',
+      '',
+      '#### 中文标题 [](clarify-internal-heading-id:中文标题-1)',
       '',
       '<h2 id="custom-id">Custom</h2>',
     ].join('\n'), {
@@ -52,9 +56,12 @@ describe('mdx rehype plugins', () => {
     }))
 
     expect(compiled).toContain('<_components.h1 id="overview">')
-    expect(compiled).toContain('<_components.h2 id="中文标题">')
-    expect(compiled).toContain('<_components.h3 id="中文标题-1">')
+    expect(compiled).toContain('<_components.h2 id="auto-config">')
+    expect(compiled).toContain('<_components.h3 id="中文标题">')
+    expect(compiled).toContain('<_components.h4 id="中文标题-1">')
     expect(compiled).toContain('<h2 id="custom-id">')
+    expect(compiled).not.toContain('clarify-internal-heading-id')
+    expect(compiled).not.toContain('{#auto-config}')
   })
 
   it('copies fenced code language to the pre element', () => {
