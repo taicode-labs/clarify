@@ -280,6 +280,18 @@ describe('findContentRoutes', () => {
 
   it.each([
     [
+      'spread before the final literal ID',
+      ['<h2 {...runtimeProps} id="stable">Raw</h2>', '', '## Markdown {#stable}'].join('\n'),
+    ],
+    [
+      'dynamic ID before the final literal ID',
+      ['<h2 id={dynamicId} id="stable">Raw</h2>', '', '## Markdown {#stable}'].join('\n'),
+    ],
+    [
+      'different literal ID before the final literal ID',
+      ['<h2 id="first" id="stable">Raw</h2>', '', '## Markdown {#stable}'].join('\n'),
+    ],
+    [
       'dynamic title',
       ['<h2 id="stable">{dynamicTitle}</h2>', '', '## Markdown {#stable}'].join('\n'),
     ],
@@ -308,6 +320,8 @@ describe('findContentRoutes', () => {
       '<Heading id="duplicate">Custom</Heading>',
       '<h2 id={dynamicId}>Dynamic ID</h2>',
       '<h2 id="duplicate" {...runtimeProps}>Spread override</h2>',
+      '<h2 id="duplicate" id={dynamicId}>Dynamic override</h2>',
+      '<h2 id="duplicate" id="other">Literal override</h2>',
       '',
       '## Duplicate {#stable}',
     ].join('\n')

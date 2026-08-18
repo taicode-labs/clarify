@@ -185,6 +185,22 @@ describe('mdx rehype plugins', () => {
     expect(compiled).not.toContain('<_components.h1 id="markdown-heading">')
   })
 
+  it('preserves an unquoted raw HTML attribute ending in slash when inserting a fallback ID', async () => {
+    // Catches the slash in `data-x=/ ` being mistaken for a self-closing
+    // marker and moving the generated ID inside the unquoted attribute value.
+    const analysis = analyzeHeadings('<h2 data-x=/ >Title</h2>', { kind: 'markdown' })
+
+    expect(analysis.normalizedContent).toBe('<h2 data-x=/  id="title">Title</h2>')
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+    expect(compiled).toContain('<_components.h2 data-x="/" id="title">')
+  })
+
   it('applies canonical IDs from normalized headings through the shared pipeline', async () => {
     // Catches a regression where the compiler leaves its internal link in the
     // output or lets the generic slugger derive a non-canonical heading ID.
