@@ -4,6 +4,33 @@ import { analyzeHeadings } from './headings.js'
 
 describe('analyzeHeadings', () => {
   it.each([
+    [
+      'inline code',
+      '## Literal `{#example}`',
+      'Literal {#example}',
+      'literal-example',
+      '## Literal `{#example}` [](clarify-internal-heading-id:literal-example)',
+    ],
+    [
+      'escaped braces',
+      '## Escaped \\{#example\\}',
+      'Escaped {#example}',
+      'escaped-example',
+      '## Escaped \\{#example\\} [](clarify-internal-heading-id:escaped-example)',
+    ],
+  ])('preserves a literal marker-shaped suffix in MDX %s', (_label, source, title, canonicalId, normalizedContent) => {
+    // Catches length-preserving MDX syntax masking leaking placeholder text
+    // into a heading when the marker-shaped suffix is literal, not metadata.
+    const result = analyzeHeadings(source, { kind: 'markdown+jsx' })
+
+    expect(result.headings).toEqual([
+      expect.objectContaining({ title, canonicalId, legacyIds: [] }),
+    ])
+    expect(result.normalizedContent).toBe(normalizedContent)
+    expect(result.diagnostic).toBeUndefined()
+  })
+
+  it.each([
     ['ESM template', [
       'export const snippet = `',
       '## Not an ESM heading {#esm-fake}',
