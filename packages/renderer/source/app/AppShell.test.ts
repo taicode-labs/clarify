@@ -220,6 +220,63 @@ describe('heading hash navigation', () => {
     cleanup()
   })
 
+  it('resolves native hash aliases from the observed pathname during cross-route history navigation', () => {
+    vi.useFakeTimers()
+    const browser = stubBrowser('/new-guide', '', '#legacy-heading')
+    const refs = createHashNavigationRefs()
+    const aliasesByPath: Record<string, Record<string, string>> = {
+      '/old-guide': { 'legacy-heading': 'old-canonical' },
+      '/new-guide': { 'legacy-heading': 'new-canonical' },
+    }
+    const cleanup = installNativeHashNavigationListener(refs, pathname => aliasesByPath[pathname])
+
+    browser.listeners.get('hashchange')?.(new Event('hashchange'))
+    vi.runAllTimers()
+
+    expect(browser.replaceState).toHaveBeenCalledWith(browser.historyState, '', '/new-guide#new-canonical')
+    expect(browser.getElementById).toHaveBeenCalledWith('new-canonical')
+    cleanup()
+  })
+
+  it('deduplicates StrictMode replay of the same router location key', () => {
+    vi.useFakeTimers()
+    const browser = stubBrowser('/guide', '', '#legacy-heading')
+    const refs = createHashNavigationRefs()
+    const location = { pathname: '/guide', search: '', hash: '#legacy-heading', key: 'default' }
+
+    coordinateHashNavigation({ ...refs, location, aliases: { 'legacy-heading': 'canonical-heading' }, source: 'router' })
+    refs.hashScrollCleanupRef.current?.()
+    refs.hashScrollCleanupRef.current = undefined
+    coordinateHashNavigation({ ...refs, location, aliases: { 'legacy-heading': 'canonical-heading' }, source: 'router' })
+    vi.runAllTimers()
+
+    expect(refs.hashNavigationEpochRef.current).toBe(1)
+    expect(browser.replaceState).toHaveBeenCalledOnce()
+    expect(browser.getElementById).toHaveBeenCalledTimes(5)
+  })
+
+  it('handles a genuine same-URL router navigation with a new location key', () => {
+    vi.useFakeTimers()
+    const browser = stubBrowser('/guide', '', '#canonical-heading')
+    const refs = createHashNavigationRefs()
+
+    coordinateHashNavigation({
+      ...refs,
+      location: { pathname: '/guide', search: '', hash: '#canonical-heading', key: 'first-visit' },
+      source: 'router',
+    })
+    vi.runAllTimers()
+    coordinateHashNavigation({
+      ...refs,
+      location: { pathname: '/guide', search: '', hash: '#canonical-heading', key: 'second-visit' },
+      source: 'router',
+    })
+    vi.runAllTimers()
+
+    expect(refs.hashNavigationEpochRef.current).toBe(2)
+    expect(browser.getElementById).toHaveBeenCalledTimes(10)
+  })
+
   it('handles each Back or Forward location once across router and native observations', () => {
     vi.useFakeTimers()
     const browser = stubBrowser('/guide', '', '#first')
