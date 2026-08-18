@@ -235,6 +235,22 @@ describe('mdx rehype plugins', () => {
     expect(compiled).toContain('<_components.h2 data-url="https://example.com/" id="title">')
   })
 
+  it('preserves an NBSP and trailing slash in an unquoted raw HTML value', async () => {
+    // Catches JavaScript whitespace classification treating NBSP as HTML
+    // whitespace and truncating the unquoted value before fallback ID insertion.
+    const analysis = analyzeHeadings('<h2 data-x=foo\u00A0/>Title</h2>', { kind: 'markdown' })
+
+    expect(analysis.normalizedContent).toBe('<h2 data-x=foo\u00A0/ id="title">Title</h2>')
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+    expect(compiled).toContain('<_components.h2 data-x="foo\u00A0/" id="title">')
+  })
+
   it('applies canonical IDs from normalized headings through the shared pipeline', async () => {
     // Catches a regression where the compiler leaves its internal link in the
     // output or lets the generic slugger derive a non-canonical heading ID.
