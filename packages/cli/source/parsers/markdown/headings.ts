@@ -213,10 +213,8 @@ function openingTagAttributeOffset(content: string, start: number, end: number):
     } else if (character === '"' || character === "'") {
       quote = character
     } else if (character === '>') {
-      let cursor = index
-      while (cursor > start && /\s/.test(content[cursor - 1] ?? '')) cursor--
-      if (content[cursor - 1] === '/') {
-        cursor--
+      if (content[index - 1] === '/') {
+        let cursor = index - 1
         while (cursor > start && /\s/.test(content[cursor - 1] ?? '')) cursor--
         return cursor
       }
@@ -288,14 +286,18 @@ function staticMdxText(node: MarkdownNode): string | undefined {
 }
 
 function literalMdxId(node: MarkdownNode): { kind: 'literal'; id: string } | { kind: 'missing' | 'unknown' } {
-  let id: string | undefined
+  let result: { kind: 'literal'; id: string } | { kind: 'missing' | 'unknown' } = { kind: 'missing' }
   for (const attribute of node.attributes ?? []) {
-    if (attribute.type !== 'mdxJsxAttribute') return { kind: 'unknown' }
+    if (attribute.type !== 'mdxJsxAttribute') {
+      result = { kind: 'unknown' }
+      continue
+    }
     if (attribute.name !== 'id') continue
-    if (typeof attribute.value !== 'string' || id !== undefined) return { kind: 'unknown' }
-    id = attribute.value
+    result = typeof attribute.value === 'string'
+      ? { kind: 'literal', id: attribute.value }
+      : { kind: 'unknown' }
   }
-  return id === undefined ? { kind: 'missing' } : { kind: 'literal', id }
+  return result
 }
 
 function hasOnlyStaticMdxAttributes(node: MarkdownNode): boolean {
