@@ -38,6 +38,22 @@ function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties:
 
 describe('mdx rehype plugins', () => {
   it.each([
+    ['bare', '<h2 />', '<h2 id="" />'],
+    ['with static attributes', '<h2 className="x" />', '<h2 className="x" id="" />'],
+  ])('inserts fallback IDs before the slash of %s self-closing intrinsic MDX headings', async (_label, source, normalizedContent) => {
+    // Catches compiler-internal ID insertion producing `<h2 / id="">`,
+    // which is invalid MDX and replaces a valid author element with a syntax error.
+    const analysis = analyzeHeadings(source, { kind: 'markdown+jsx' })
+
+    expect(analysis.normalizedContent).toBe(normalizedContent)
+    await expect(compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    })).resolves.toBeDefined()
+  })
+
+  it.each([
     [
       'MDX intrinsic first',
       ['<h2>Duplicate</h2>', '', '## Duplicate {#stable}'].join('\n'),
