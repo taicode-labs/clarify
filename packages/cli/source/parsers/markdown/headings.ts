@@ -136,7 +136,7 @@ function maskExplicitHeadingMarkers(content: string): string {
   return applySourceEdits(content, edits)
 }
 
-function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind']): MarkdownNode {
+function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind']): MarkdownNode | undefined {
   if (kind === 'markdown') return remark.parse(content) as unknown as MarkdownNode
 
   // Explicit heading markers use braces, which MDX would otherwise parse as
@@ -147,9 +147,7 @@ function parseHeadingTree(content: string, kind: AnalyzeHeadingsOptions['kind'])
   try {
     return createProcessor({ format: 'mdx' }).parse(maskedContent) as unknown as MarkdownNode
   } catch {
-    // Keep invalid MDX on the diagnostic path instead of aborting discovery.
-    // The later MDX compile reports the syntax error with the original source.
-    return remark.parse(maskedContent) as unknown as MarkdownNode
+    return undefined
   }
 }
 
@@ -160,6 +158,7 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
   const errors: string[] = []
   const ids = new Map<string, IdOwner>()
   const tree = parseHeadingTree(content, options.kind)
+  if (!tree) return { headings, normalizedContent: content }
 
   const claimId = (id: string, heading: AnalyzedHeading) => {
     const owner = ids.get(id)
