@@ -39,6 +39,35 @@ function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties:
 describe('mdx rehype plugins', () => {
   it.each([
     [
+      'MDX intrinsic first',
+      ['<h2>Duplicate</h2>', '', '## Duplicate {#stable}'].join('\n'),
+      ['duplicate-1', 'stable'],
+    ],
+    [
+      'Markdown first',
+      ['## Duplicate {#stable}', '', '<h2>Duplicate</h2>'].join('\n'),
+      ['stable', 'duplicate-1'],
+    ],
+  ])('keeps static intrinsic MDX fallback IDs out of the Markdown alias namespace with %s', async (_label, source, expectedIds) => {
+    // Catches an intrinsic MDX heading claiming a legacy alias before the
+    // Markdown heading's canonical ID is applied by the shared pipeline.
+    const analysis = analyzeHeadings(source, { kind: 'markdown+jsx' })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+    const ids = [...compiled.matchAll(/<(?:h2|_components\.h2) id="([^"]+)">/g)].map(match => match[1])
+
+    expect(ids).toEqual(expectedIds)
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ title: 'Duplicate', canonicalId: 'stable', legacyIds: ['duplicate'] }),
+    ])
+    expect(analysis.diagnostic).toBeUndefined()
+  })
+
+  it.each([
+    [
       'Markdown first',
       ['## Duplicate', '', '<h2>Duplicate</h2>'].join('\n'),
       ['duplicate', 'duplicate-1'],
