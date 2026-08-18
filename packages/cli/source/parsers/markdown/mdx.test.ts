@@ -38,6 +38,36 @@ function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties:
 
 describe('mdx rehype plugins', () => {
   it.each([
+    ['Markdown raw HTML with an implicit ID', 'markdown', '## Hello <em>world</em>', 'Hello world', 'hello-world', []],
+    ['Markdown raw HTML with an explicit ID', 'markdown', '## Hello <em>world</em> {#stable}', 'Hello world', 'stable', ['hello-world']],
+    ['Markdown image with an implicit ID', 'markdown', '## Hello ![logo](logo.png)', 'Hello ', 'hello-', []],
+    ['Markdown image with an explicit ID', 'markdown', '## Hello ![logo](logo.png) {#stable}', 'Hello ', 'stable', ['hello-']],
+    ['MDX image with an implicit ID', 'markdown+jsx', '## Hello ![logo](logo.png)', 'Hello ', 'hello-', []],
+    ['MDX image with an explicit ID', 'markdown+jsx', '## Hello ![logo](logo.png) {#stable}', 'Hello ', 'stable', ['hello-']],
+  ] as const)('preserves rendered heading text compatibility for %s', async (_label, kind, source, title, canonicalId, legacyIds) => {
+    // Catches mdast image alt text leaking into heading metadata and IDs while
+    // retaining descendant text from raw inline HTML in Markdown.
+    const analysis = analyzeHeadings(source, { kind })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      ...(kind === 'markdown'
+        ? {
+            format: 'md',
+            remarkRehypeOptions: { allowDangerousHtml: true },
+            rehypePlugins: [rehypeRaw, ...rehypePlugins],
+          }
+        : { rehypePlugins }),
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+    }))
+
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ title, canonicalId, legacyIds }),
+    ])
+    expect(compiled).toContain(`id="${canonicalId}"`)
+    expect(analysis.diagnostic).toBeUndefined()
+  })
+
+  it.each([
     ['bare without whitespace', '<h2/>', '<h2 id=""/>'],
     ['bare', '<h2 />', '<h2 id="" />'],
     ['with static attributes', '<h2 className="x" />', '<h2 className="x" id="" />'],
