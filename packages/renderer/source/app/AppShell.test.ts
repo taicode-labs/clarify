@@ -306,6 +306,38 @@ describe('heading hash navigation', () => {
     expect(browser.getElementById).toHaveBeenCalledTimes(10)
   })
 
+  it('handles a repeated native legacy hash after section sync silently changes the URL', () => {
+    vi.useFakeTimers()
+    const browser = stubBrowser('/guide', '', '#legacy-heading')
+    const refs = createHashNavigationRefs()
+    const cleanup = installNativeHashNavigationListener(refs, () => ({ 'legacy-heading': 'canonical-heading' }))
+
+    browser.listeners.get('hashchange')?.(new Event('hashchange'))
+    vi.runAllTimers()
+
+    window.location.hash = '#canonical-heading'
+    refs.hashScrollSuppressedUntilRef.current = 0
+    scheduleSectionHashUpdate(
+      'other-section',
+      refs.hashScrollSuppressedUntilRef,
+      refs.hashNavigationEpochRef,
+      refs.lastHandledLocationRef,
+    )
+    vi.advanceTimersByTime(120)
+
+    window.location.hash = '#other-section'
+    window.location.hash = '#legacy-heading'
+    browser.listeners.get('hashchange')?.(new Event('hashchange'))
+    vi.runAllTimers()
+
+    expect(refs.hashNavigationEpochRef.current).toBe(2)
+    expect(browser.replaceState).toHaveBeenNthCalledWith(1, browser.historyState, '', '/guide#canonical-heading')
+    expect(browser.replaceState).toHaveBeenNthCalledWith(2, browser.historyState, '', '/guide#other-section')
+    expect(browser.replaceState).toHaveBeenNthCalledWith(3, browser.historyState, '', '/guide#canonical-heading')
+    expect(browser.getElementById.mock.calls.filter(([id]) => id === 'canonical-heading')).toHaveLength(10)
+    cleanup()
+  })
+
   it('handles each Back or Forward location once across router and native observations', () => {
     vi.useFakeTimers()
     const browser = stubBrowser('/guide', '', '#first')
@@ -330,7 +362,12 @@ describe('heading hash navigation', () => {
     vi.useFakeTimers()
     const browser = stubBrowser('/guide', '?lang=zh', '#%E6%8E%A8%E8%8D%90%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE')
     const refs = createHashNavigationRefs()
-    scheduleSectionHashUpdate('previous-section', refs.hashScrollSuppressedUntilRef, refs.hashNavigationEpochRef)
+    scheduleSectionHashUpdate(
+      'previous-section',
+      refs.hashScrollSuppressedUntilRef,
+      refs.hashNavigationEpochRef,
+      refs.lastHandledLocationRef,
+    )
 
     coordinateHashNavigation({
       ...refs,
@@ -350,7 +387,8 @@ describe('heading hash navigation', () => {
     const browser = stubBrowser('/guide', '', '#old-section')
     const suppressedUntilRef = { current: Number.POSITIVE_INFINITY }
     const epochRef = { current: 4 }
-    scheduleSectionHashUpdate('stale-section', suppressedUntilRef, epochRef)
+    const lastHandledLocationRef = { current: undefined }
+    scheduleSectionHashUpdate('stale-section', suppressedUntilRef, epochRef, lastHandledLocationRef)
     const cleanup = installHashSyncManualInputRelease(suppressedUntilRef, epochRef)
 
     browser.listeners.get('wheel')?.(new Event('wheel'))
@@ -363,7 +401,7 @@ describe('heading hash navigation', () => {
     expect(epochRef.current).toBe(8)
     expect(browser.replaceState).not.toHaveBeenCalled()
 
-    scheduleSectionHashUpdate('current-section', suppressedUntilRef, epochRef)
+    scheduleSectionHashUpdate('current-section', suppressedUntilRef, epochRef, lastHandledLocationRef)
     vi.advanceTimersByTime(120)
     expect(browser.replaceState).toHaveBeenCalledWith(browser.historyState, '', '/guide#current-section')
     cleanup()

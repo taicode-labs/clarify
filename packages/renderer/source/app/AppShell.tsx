@@ -538,6 +538,7 @@ export function AppShell(arg0: AppShellProps) {
           <SectionHashSync
             hashScrollSuppressedUntilRef={hashScrollSuppressedUntilRef}
             hashNavigationEpochRef={hashNavigationEpochRef}
+            lastHandledLocationRef={lastHandledLocationRef}
           />
           <AppShellLayout
             config={config}
