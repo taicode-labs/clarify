@@ -208,7 +208,11 @@ function isHtmlWhitespace(character: string | undefined): boolean {
   return character === '\t' || character === '\n' || character === '\f' || character === '\r' || character === ' '
 }
 
-function openingTagAttributeOffset(content: string, start: number, end: number): number | undefined {
+function isMdxWhitespace(character: string | undefined): boolean {
+  return /\s/u.test(character ?? '')
+}
+
+function openingTagAttributeOffset(content: string, start: number, end: number, isWhitespace: (character: string | undefined) => boolean): number | undefined {
   type State = 'tagName' | 'beforeAttributeName' | 'attributeName' | 'afterAttributeName'
     | 'beforeAttributeValue' | 'quotedAttributeValue' | 'afterQuotedAttributeValue' | 'unquotedAttributeValue'
 
@@ -228,34 +232,34 @@ function openingTagAttributeOffset(content: string, start: number, end: number):
     }
     if (state === 'unquotedAttributeValue') {
       if (closesTag) return index
-      if (isHtmlWhitespace(character)) state = 'beforeAttributeName'
+      if (isWhitespace(character)) state = 'beforeAttributeName'
       continue
     }
     if (closesTag) return index
     if (selfClosesTag && state !== 'beforeAttributeValue') {
       let cursor = index
-      while (cursor > start && isHtmlWhitespace(content[cursor - 1])) cursor--
+      while (cursor > start && isWhitespace(content[cursor - 1])) cursor--
       return cursor
     }
 
     if (state === 'tagName') {
-      if (isHtmlWhitespace(character)) state = 'beforeAttributeName'
+      if (isWhitespace(character)) state = 'beforeAttributeName'
     } else if (state === 'beforeAttributeName') {
-      if (!isHtmlWhitespace(character)) state = 'attributeName'
+      if (!isWhitespace(character)) state = 'attributeName'
     } else if (state === 'attributeName') {
       if (character === '=') state = 'beforeAttributeValue'
-      else if (isHtmlWhitespace(character)) state = 'afterAttributeName'
+      else if (isWhitespace(character)) state = 'afterAttributeName'
     } else if (state === 'afterAttributeName') {
       if (character === '=') state = 'beforeAttributeValue'
-      else if (!isHtmlWhitespace(character)) state = 'attributeName'
+      else if (!isWhitespace(character)) state = 'attributeName'
     } else if (state === 'beforeAttributeValue') {
       if (character === '"' || character === "'") {
         quote = character
         state = 'quotedAttributeValue'
-      } else if (!isHtmlWhitespace(character)) {
+      } else if (!isWhitespace(character)) {
         state = 'unquotedAttributeValue'
       }
-    } else if (state === 'afterQuotedAttributeValue' && isHtmlWhitespace(character)) {
+    } else if (state === 'afterQuotedAttributeValue' && isWhitespace(character)) {
       state = 'beforeAttributeName'
     }
   }
@@ -288,7 +292,7 @@ function rawHtmlHeadings(tree: MarkdownNode, content: string): RenderedHeading[]
     const offset = heading.position?.start.offset
     const headingEnd = heading.position?.end.offset
     if (offset === undefined || headingEnd === undefined || markdownOffsets.has(offset)) return
-    const tagEnd = openingTagAttributeOffset(content, offset, headingEnd)
+    const tagEnd = openingTagAttributeOffset(content, offset, headingEnd, isHtmlWhitespace)
     if (tagEnd === undefined) return
     const rawId = heading.properties?.id
     headings.push({
@@ -354,7 +358,7 @@ function mdxIntrinsicHeadings(tree: MarkdownNode, content: string): RenderedHead
     const literalId = literalMdxId(heading)
     if (!position || offset === undefined || end === undefined || literalId.kind === 'unknown') return
     if (literalId.kind === 'missing' && (title === undefined || !hasOnlyStaticMdxAttributes(heading))) return
-    const tagEnd = openingTagAttributeOffset(content, offset, end)
+    const tagEnd = openingTagAttributeOffset(content, offset, end, isMdxWhitespace)
     if (tagEnd === undefined) return
     headings.push({
       ...(title !== undefined ? { title } : {}),
