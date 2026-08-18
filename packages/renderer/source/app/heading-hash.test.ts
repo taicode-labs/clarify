@@ -30,6 +30,14 @@ describe('resolveHeadingHash', () => {
     })
   })
 
+  it('does not resolve inherited object properties as aliases', () => {
+    expect(resolveHeadingHash('#constructor', { 推荐自动配置: 'auto-config' })).toEqual({
+      requestedId: 'constructor',
+      canonicalId: 'constructor',
+      wasAlias: false,
+    })
+  })
+
   it('rejects malformed percent encoding without throwing', () => {
     expect(resolveHeadingHash('#%E0%A4%A', { 推荐自动配置: 'auto-config' })).toBeUndefined()
   })

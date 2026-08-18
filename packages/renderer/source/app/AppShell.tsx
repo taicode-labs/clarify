@@ -12,7 +12,7 @@ import { resolveLocalizedText } from '../utils/localized-text'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 
 import { AppShellLayout, type AppShellLayoutConfig } from './AppShellLayout'
-import { canonicalHeadingUrl, resolveHeadingHash } from './heading-hash'
+import { canonicalHeadingUrl, resolveHeadingHash, scrollToHeadingId } from './heading-hash'
 import { SectionHashSync } from './SectionHashSync'
 import { SectionProvider, type Section } from './SectionProvider'
 
@@ -51,8 +51,9 @@ function resolveRouteComponent(route: RouteItem): ComponentType {
   return route.component as ComponentType
 }
 
-const HASH_SCROLL_RETRY_DELAYS = [0, 100, 300, 700, 1200]
 const HASH_SCROLL_SUPPRESSION_MS = 1500
+
+export { scrollToHeadingId }
 
 type ValueRef<T> = {
   current: T
@@ -62,7 +63,8 @@ type HashNavigationSource = 'native' | 'router'
 
 type HandledHashLocation = {
   key: string
-  source: HashNavigationSource
+  nativeObserved: boolean
+  routerLocationKey?: string
 }
 
 export type HashNavigationRefs = {
@@ -73,50 +75,9 @@ export type HashNavigationRefs = {
 }
 
 type CoordinateHashNavigationArgs = HashNavigationRefs & {
-  location: Pick<Location, 'hash' | 'pathname' | 'search'>
+  location: Pick<Location, 'hash' | 'pathname' | 'search'> & { key?: string }
   aliases?: Record<string, string>
   source: HashNavigationSource
-}
-
-export function scrollToHeadingId(id: string): () => void {
-  if (typeof window === 'undefined' || typeof document === 'undefined' || !id) return () => {}
-
-  const timeouts: ReturnType<typeof setTimeout>[] = []
-  let cancelled = false
-
-  const cancel = () => {
-    cancelled = true
-    timeouts.forEach(clearTimeout)
-  }
-  const cancelOnScrollKey = (event: KeyboardEvent) => {
-    if (['ArrowDown', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp', ' '].includes(event.key)) cancel()
-  }
-  const tryScrollToTarget = (attempt: number) => {
-    if (cancelled) return
-    const target = document.getElementById(id)
-    if (!target) return
-
-    target.scrollIntoView({ behavior: attempt === 0 ? 'smooth' : 'auto', block: 'start' })
-    window.requestAnimationFrame(() => {
-      window.dispatchEvent(new Event('scroll'))
-    })
-  }
-
-  window.addEventListener('wheel', cancel, { passive: true })
-  window.addEventListener('touchmove', cancel, { passive: true })
-  window.addEventListener('pointerdown', cancel, { passive: true })
-  window.addEventListener('keydown', cancelOnScrollKey)
-  HASH_SCROLL_RETRY_DELAYS.forEach((delay, attempt) => {
-    timeouts.push(setTimeout(() => tryScrollToTarget(attempt), delay))
-  })
-
-  return () => {
-    cancel()
-    window.removeEventListener('wheel', cancel)
-    window.removeEventListener('touchmove', cancel)
-    window.removeEventListener('pointerdown', cancel)
-    window.removeEventListener('keydown', cancelOnScrollKey)
-  }
 }
 
 export function coordinateHashNavigation(arg0: CoordinateHashNavigationArgs): void {
@@ -134,12 +95,29 @@ export function coordinateHashNavigation(arg0: CoordinateHashNavigationArgs): vo
   const locationKey = `${location.pathname}${location.search}${location.hash}`
   const lastHandledLocation = lastHandledLocationRef.current
 
-  if (lastHandledLocation?.key === locationKey && lastHandledLocation.source !== source) {
-    lastHandledLocationRef.current = { key: locationKey, source }
-    return
+  if (lastHandledLocation?.key === locationKey) {
+    if (source === 'native') {
+      lastHandledLocationRef.current = { ...lastHandledLocation, nativeObserved: true }
+      return
+    }
+    if (lastHandledLocation.routerLocationKey === location.key) {
+      if (source === 'router' && location.hash && hashScrollCleanupRef.current === undefined) {
+        const resolvedHash = resolveHeadingHash(location.hash, aliases)
+        if (resolvedHash) hashScrollCleanupRef.current = scrollToHeadingId(resolvedHash.canonicalId)
+      }
+      return
+    }
+    if (lastHandledLocation.nativeObserved && lastHandledLocation.routerLocationKey === undefined) {
+      lastHandledLocationRef.current = { ...lastHandledLocation, routerLocationKey: location.key }
+      return
+    }
   }
 
-  lastHandledLocationRef.current = { key: locationKey, source }
+  lastHandledLocationRef.current = {
+    key: locationKey,
+    nativeObserved: source === 'native',
+    routerLocationKey: source === 'router' ? location.key : undefined,
+  }
   hashNavigationEpochRef.current += 1
   hashScrollCleanupRef.current?.()
   hashScrollCleanupRef.current = undefined
@@ -167,14 +145,14 @@ export function coordinateHashNavigation(arg0: CoordinateHashNavigationArgs): vo
   })
 }
 
-export function installNativeHashNavigationListener(refs: HashNavigationRefs, getAliases: () => Record<string, string> | undefined): () => void {
+export function installNativeHashNavigationListener(refs: HashNavigationRefs, getAliases: (pathname: string) => Record<string, string> | undefined): () => void {
   if (typeof window === 'undefined') return () => {}
 
   const handleHashChange = () => {
     coordinateHashNavigation({
       ...refs,
       location: window.location,
-      aliases: getAliases(),
+      aliases: getAliases(window.location.pathname),
       source: 'native',
     })
   }
@@ -359,6 +337,7 @@ function useBannerState(config: Config, currentLocale: string | undefined) {
 
 type StoredLocaleRedirectOptions = {
   config: Config
+  routes: RouteItem[]
   pathname: string
   currentRoute?: RouteItem
   storedLocale: string | null
@@ -381,6 +360,7 @@ function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
     location,
     navigate,
     pathname,
+    routes,
     storedLocale,
   } = arg0
   useEffect(() => {
@@ -419,15 +399,18 @@ function useAppShellNavigationEffects(arg0: AppShellNavigationEffectsArgs) {
     hashScrollCleanupRef,
     hashScrollSuppressedUntilRef,
     lastHandledLocationRef,
-  }, () => currentRoute?.headingAliases), [
-    currentRoute?.headingAliases,
+  }, nativePathname => routeForPath(routes, normalizeRoutePath(nativePathname))?.headingAliases), [
     hashNavigationEpochRef,
     hashScrollCleanupRef,
     hashScrollSuppressedUntilRef,
     lastHandledLocationRef,
+    routes,
   ])
 
-  useEffect(() => () => hashScrollCleanupRef.current?.(), [hashScrollCleanupRef])
+  useEffect(() => () => {
+    hashScrollCleanupRef.current?.()
+    hashScrollCleanupRef.current = undefined
+  }, [hashScrollCleanupRef])
 }
 
 type AppShellDocumentEffectsArgs = {
@@ -532,6 +515,7 @@ export function AppShell(arg0: AppShellProps) {
     location,
     navigate,
     pathname,
+    routes,
     storedLocale,
   })
   useAppShellDocumentEffects({ currentLocale, currentLocaleConfig, config, route: currentRoute ?? notFoundRoute })
