@@ -151,6 +151,35 @@ describe('mdx rehype plugins', () => {
   })
 
   it.each([
+    ['Markdown existing raw ID first', 'markdown', '<h2 id="duplicate">Duplicate</h2>\n\n## Duplicate {#stable}'],
+    ['Markdown canonical heading first', 'markdown', '## Duplicate {#stable}\n\n<h2 id="duplicate">Duplicate</h2>'],
+    ['MDX existing intrinsic ID first', 'markdown+jsx', '<h2 id="duplicate">Duplicate</h2>\n\n## Duplicate {#stable}'],
+    ['MDX canonical heading first', 'markdown+jsx', '## Duplicate {#stable}\n\n<h2 id="duplicate">Duplicate</h2>'],
+  ] as const)('does not advance the legacy slug sequence for %s', async (_label, kind, source) => {
+    // Catches an existing rendered ID consuming `duplicate` even though the
+    // old rehype-slug pass skipped headings that already had an ID.
+    const analysis = analyzeHeadings(source, { kind })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      ...(kind === 'markdown'
+        ? {
+            format: 'md',
+            remarkRehypeOptions: { allowDangerousHtml: true },
+            rehypePlugins: [rehypeRaw, ...rehypePlugins],
+          }
+        : { rehypePlugins }),
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+    }))
+    const ids = [...compiled.matchAll(/<(?:h2|_components\.h2) id="([^"]+)">/g)].map(match => match[1])
+
+    expect(ids).toEqual(source.startsWith('##') ? ['stable', 'duplicate'] : ['duplicate', 'stable'])
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ canonicalId: 'stable', legacyIds: ['duplicate'] }),
+    ])
+    expect(analysis.diagnostic?.details).toContain('Heading ID "duplicate" at 3:1 conflicts with the heading at 1:1')
+  })
+
+  it.each([
     [
       'Markdown first',
       ['## Duplicate', '', '<h2>Duplicate</h2>'].join('\n'),
