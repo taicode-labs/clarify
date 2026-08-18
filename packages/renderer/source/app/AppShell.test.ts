@@ -252,8 +252,16 @@ describe('heading hash navigation', () => {
     )
 
     browser.listeners.get('hashchange')?.(new Event('hashchange'))
+    coordinateHashNavigation({
+      ...refs,
+      location: { pathname: '/new-guide', search: '', hash: '#legacy-heading', key: 'history-visit' },
+      aliases: aliasesByRoutePath['/new-guide'],
+      source: 'router',
+    })
     vi.runAllTimers()
 
+    expect(refs.hashNavigationEpochRef.current).toBe(1)
+    expect(browser.replaceState).toHaveBeenCalledOnce()
     expect(browser.replaceState).toHaveBeenCalledWith(browser.historyState, '', '/docs/new-guide#new-canonical')
     expect(browser.getElementById).toHaveBeenCalledWith('new-canonical')
     cleanup()

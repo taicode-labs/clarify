@@ -158,10 +158,11 @@ export function installNativeHashNavigationListener(refs: HashNavigationRefs, ge
   if (typeof window === 'undefined') return () => {}
 
   const handleHashChange = () => {
+    const pathname = routePathFromBrowserPath(window.location.pathname, routePrefix)
     coordinateHashNavigation({
       ...refs,
-      location: window.location,
-      aliases: getAliases(routePathFromBrowserPath(window.location.pathname, routePrefix)),
+      location: { pathname, search: window.location.search, hash: window.location.hash },
+      aliases: getAliases(pathname),
       source: 'native',
     })
   }
