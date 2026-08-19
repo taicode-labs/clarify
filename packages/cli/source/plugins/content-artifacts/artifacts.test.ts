@@ -26,6 +26,11 @@ type RouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'sou
   tagFilter?: string[]
 }
 
+type AggregatedSpecFixture = {
+  paths: Record<string, Record<string, Record<string, unknown>>>
+  components: { securitySchemes: Record<string, unknown> }
+}
+
 function route(overrides: RouteFixture): ContentRoute {
   const { title, description, sections, filePath, content, tagFilter, kind = 'markdown+jsx', ...rest } = overrides
   const common = {
@@ -101,6 +106,66 @@ describe('content artifact helpers', () => {
     })
     expect(spec.components?.schemas).toEqual({ User: { type: 'object' }, Project: { type: 'object' } })
     expect(spec.tags).toEqual([{ name: 'Users' }, { name: 'Projects' }])
+  })
+
+  it('preserves different server and authentication contexts per service', () => {
+    const service = (title: string, path: string, server: string, scheme: Record<string, unknown>) => JSON.stringify({
+      openapi: '3.1.0',
+      info: { title, version: '1.0.0' },
+      servers: [{ url: server }],
+      security: [{ auth: [] }],
+      paths: {
+        [path]: {
+          get: { responses: { 200: { description: 'OK' } } },
+          post: { servers: [{ url: `${server}/write` }], security: [], responses: { 200: { description: 'OK' } } },
+        },
+      },
+      components: { securitySchemes: { auth: scheme } },
+    })
+
+    const spec = createRootOpenAPISpec([
+      route({ path: '/users', kind: 'openapi', filePath: '/tmp/users.openapi.json', content: service('Users', '/users', 'https://users.example.com', { type: 'http', scheme: 'bearer' }) }),
+      route({ path: '/billing', kind: 'openapi', filePath: '/tmp/billing.openapi.json', content: service('Billing', '/invoices', 'https://billing.example.com', { type: 'apiKey', in: 'header', name: 'X-API-Key' }) }),
+    ], projectConfig) as unknown as AggregatedSpecFixture
+
+    expect(spec.paths['/users'].get).toMatchObject({ servers: [{ url: 'https://users.example.com' }], security: [{ auth: [] }] })
+    expect(spec.paths['/users'].post).toMatchObject({ servers: [{ url: 'https://users.example.com/write' }], security: [] })
+    expect(spec.paths['/invoices'].get).toMatchObject({ servers: [{ url: 'https://billing.example.com' }], security: [{ billing__auth: [] }] })
+    expect(spec.components.securitySchemes).toEqual({
+      auth: { type: 'http', scheme: 'bearer' },
+      billing__auth: { type: 'apiKey', in: 'header', name: 'X-API-Key' },
+    })
+  })
+
+  it('inherits path-level servers and preserves operation-level authentication overrides', () => {
+    const content = JSON.stringify({
+      openapi: '3.1.0',
+      info: { title: 'Service', version: '1.0.0' },
+      servers: [{ url: 'https://fallback.example.com' }],
+      security: [{ apiKey: [] }],
+      paths: {
+        '/jobs': {
+          servers: [{ url: 'https://jobs.example.com' }],
+          get: { security: [{ oauth: ['jobs:read'] }], responses: { 200: { description: 'OK' } } },
+        },
+      },
+      components: {
+        securitySchemes: {
+          apiKey: { type: 'apiKey', in: 'header', name: 'X-API-Key' },
+          oauth: { type: 'oauth2', flows: {} },
+        },
+      },
+    })
+
+    const spec = createRootOpenAPISpec([
+      route({ path: '/jobs', kind: 'openapi', filePath: '/tmp/jobs.openapi.json', content }),
+    ], projectConfig) as unknown as AggregatedSpecFixture
+
+    expect(spec.paths['/jobs'].get).toMatchObject({
+      servers: [{ url: 'https://jobs.example.com' }],
+      security: [{ oauth: ['jobs:read'] }],
+    })
+    expect(Object.keys(spec.paths['/jobs'])).toEqual(['get'])
   })
 
   it('uses each full source once and excludes filtered, alias, and non-default locale routes', () => {
