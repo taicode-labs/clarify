@@ -20,6 +20,14 @@ type AggregatedSpecFixture = {
 }
 
 describe('OpenAPI source aggregation', () => {
+  it('creates an empty specification when no sources are available', () => {
+    expect(aggregateOpenAPISources([], info)).toEqual({
+      openapi: '3.1.0',
+      info: { ...info, version: '1.0.0' },
+      paths: {},
+    })
+  })
+
   it('merges paths, components, and tags from compatible sources', () => {
     const spec = aggregateOpenAPISources([
       source('users', {

@@ -139,7 +139,7 @@ export function aggregateOpenAPISources(sources: OpenAPISourceDocument[], info: 
     }
   }
 
-  if (Object.keys(components.securitySchemes).length === 0) delete components.securitySchemes
+  if (components.securitySchemes && Object.keys(components.securitySchemes).length === 0) delete components.securitySchemes
 
   return {
     openapi: openapiVersion ?? '3.1.0',
