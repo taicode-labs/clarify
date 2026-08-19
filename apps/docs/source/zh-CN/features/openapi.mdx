@@ -46,7 +46,10 @@ Clarify 会生成：
 |------|------|
 | `/api` | 完整 API Reference 页面 |
 | `/api.openapi.json` | 原始 OpenAPI 规范输出 |
+| `/openapi.json` | 聚合站点内所有完整 OpenAPI 源的站点级文档 |
 | `llms.txt` 中的 OpenAPI 链接 | 方便 AI 工具发现和读取 |
+
+需要在 Apifox 等工具中导入或同步整个站点的 API 定义时，可以直接使用稳定地址 `/openapi.json`。配置 `routePrefix: '/docs'` 后，公开地址为 `/docs/openapi.json`。Clarify 对每个完整源只聚合一次，排除按 tag 过滤的路由；多语言站点只使用默认语言。遇到 path、component、webhook 或 tag 定义冲突时，构建会失败而不是静默覆盖。
 
 如果你显式维护侧边栏，在 `tabs` 中加入：
 

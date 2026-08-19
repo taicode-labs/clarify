@@ -3,7 +3,7 @@ import { stringify as yamlStringify } from 'yaml'
 
 import type { ClarifyEmitAsset, ClarifyPlugin } from '../../types.js'
 
-import { attachContentArtifactUrls, createLlmsTxtArtifact, readRouteArtifactContent } from './artifacts.js'
+import { attachContentArtifactUrls, createLlmsTxtArtifact, createRootOpenAPISpec, readRouteArtifactContent } from './artifacts.js'
 import { serveContentArtifacts } from './server.js'
 
 export function createContentArtifactsPlugin(): ClarifyPlugin {
@@ -47,6 +47,12 @@ export function createContentArtifactsPlugin(): ClarifyPlugin {
         assets.push({
           fileName: 'llms.txt',
           source: createLlmsTxtArtifact(ctx.routes, ctx.projectConfig),
+        })
+
+        const rootOpenAPISpec = createRootOpenAPISpec(ctx.routes, ctx.projectConfig)
+        assets.push({
+          fileName: 'openapi.json',
+          source: JSON.stringify(rootOpenAPISpec, null, 2),
         })
 
         return assets

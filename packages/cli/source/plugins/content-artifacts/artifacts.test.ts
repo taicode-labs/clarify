@@ -4,7 +4,17 @@ import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, MarkdownContentRoute, OpenAPIContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, readRouteArtifactContent, readRouteContent } from './artifacts.js'
+import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, createRootOpenAPISpec, readRouteArtifactContent, readRouteContent } from './artifacts.js'
+
+const projectConfig: ResolvedProjectConfig = {
+  title: 'Docs',
+  description: '',
+  routePrefix: '',
+  assetPrefix: '/',
+  theme: resolveThemeConfig(),
+  variables: {},
+  features: resolveFeaturesConfig(),
+}
 
 type RouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'source' | 'openapi'>> & {
   kind?: ContentRoute['kind']
@@ -13,10 +23,11 @@ type RouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'sou
   sections?: ContentRoute['meta']['sections']
   filePath?: string
   content?: string
+  tagFilter?: string[]
 }
 
 function route(overrides: RouteFixture): ContentRoute {
-  const { title, description, sections, filePath, content, kind = 'markdown+jsx', ...rest } = overrides
+  const { title, description, sections, filePath, content, tagFilter, kind = 'markdown+jsx', ...rest } = overrides
   const common = {
     path: '/',
     meta: {
@@ -32,7 +43,7 @@ function route(overrides: RouteFixture): ContentRoute {
   }
 
   if (kind === 'openapi') {
-    return { ...common, kind, module: { pageVirtualModuleId: 'virtual:clarify-page/index' } } satisfies OpenAPIContentRoute
+    return { ...common, kind, module: { pageVirtualModuleId: 'virtual:clarify-page/index' }, openapi: { tagFilter } } satisfies OpenAPIContentRoute
   }
 
   return {
@@ -60,6 +71,80 @@ describe('content artifact helpers', () => {
       '/guide/start.md',
       '/api.openapi.json',
     ])
+  })
+
+  it('aggregates complete OpenAPI sources into a root document', () => {
+    const first = JSON.stringify({
+      openapi: '3.1.0',
+      info: { title: 'Users', version: '1.0.0' },
+      paths: { '/users': { get: { responses: { 200: { description: 'OK' } } } } },
+      components: { schemas: { User: { type: 'object' } } },
+      tags: [{ name: 'Users' }],
+    })
+    const second = JSON.stringify({
+      openapi: '3.1.1',
+      info: { title: 'Projects', version: '1.0.0' },
+      paths: { '/projects': { get: { responses: { 200: { description: 'OK' } } } } },
+      components: { schemas: { Project: { type: 'object' } } },
+      tags: [{ name: 'Projects' }],
+    })
+
+    const spec = createRootOpenAPISpec([
+      route({ path: '/users', kind: 'openapi', filePath: '/tmp/users.openapi.json', content: first }),
+      route({ path: '/projects', kind: 'openapi', filePath: '/tmp/projects.openapi.json', content: second }),
+    ], { ...projectConfig, title: 'Platform API', description: 'All endpoints.' })
+
+    expect(spec.info).toEqual({ title: 'Platform API', description: 'All endpoints.', version: '1.0.0' })
+    expect(spec.paths).toEqual({
+      '/users': { get: { responses: { 200: { description: 'OK' } } } },
+      '/projects': { get: { responses: { 200: { description: 'OK' } } } },
+    })
+    expect(spec.components?.schemas).toEqual({ User: { type: 'object' }, Project: { type: 'object' } })
+    expect(spec.tags).toEqual([{ name: 'Users' }, { name: 'Projects' }])
+  })
+
+  it('uses each full source once and excludes filtered, alias, and non-default locale routes', () => {
+    const spec = (path: string) => JSON.stringify({
+      openapi: '3.1.0',
+      info: { title: path, version: '1.0.0' },
+      paths: { [path]: { get: { responses: { 200: { description: 'OK' } } } } },
+    })
+    const config = {
+      ...projectConfig,
+      locales: {
+        default: 'zh-CN',
+        missing: 'fallback' as const,
+        locales: [{ code: 'zh-CN', label: '简体中文' }, { code: 'en-US', label: 'English' }],
+      },
+    }
+
+    const rootSpec = createRootOpenAPISpec([
+      route({ path: '/api', kind: 'openapi', locale: 'zh-CN', filePath: '/tmp/zh-CN/api.openapi.json', content: spec('/api') }),
+      route({ path: '/reference', kind: 'openapi', locale: 'zh-CN', filePath: '/tmp/zh-CN/api.openapi.json', content: spec('/api') }),
+      route({ path: '/api/projects', kind: 'openapi', locale: 'zh-CN', filePath: '/tmp/zh-CN/api.openapi.json', content: spec('/projects'), tagFilter: ['Projects'] }),
+      route({ path: '/', kind: 'openapi', isBareAlias: true, filePath: '/tmp/zh-CN/api.openapi.json', content: spec('/api') }),
+      route({ path: '/en-US/api', kind: 'openapi', locale: 'en-US', filePath: '/tmp/en-US/api.openapi.json', content: spec('/english') }),
+    ], config)
+
+    expect(rootSpec.paths).toEqual({ '/api': { get: { responses: { 200: { description: 'OK' } } } } })
+  })
+
+  it('rejects incompatible versions and conflicting entries', () => {
+    const spec = (version: string, path: string, description: string) => JSON.stringify({
+      openapi: version,
+      info: { title: path, version: '1.0.0' },
+      paths: { [path]: { get: { responses: { 200: { description } } } } },
+    })
+
+    expect(() => createRootOpenAPISpec([
+      route({ kind: 'openapi', filePath: '/tmp/v3.openapi.json', content: spec('3.0.3', '/users', 'OK') }),
+      route({ kind: 'openapi', filePath: '/tmp/v31.openapi.json', content: spec('3.1.0', '/projects', 'OK') }),
+    ], projectConfig)).toThrow('incompatible versions')
+
+    expect(() => createRootOpenAPISpec([
+      route({ kind: 'openapi', filePath: '/tmp/first.openapi.json', content: spec('3.1.0', '/users', 'First') }),
+      route({ kind: 'openapi', filePath: '/tmp/second.openapi.json', content: spec('3.1.1', '/users', 'Second') }),
+    ], projectConfig)).toThrow('conflicting paths entry "/users"')
   })
 
   it('returns route-normalized content via readRouteContent', () => {

@@ -4,7 +4,7 @@ import { stringify as yamlStringify } from 'yaml'
 
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { createLlmsTxtArtifact, readRouteArtifactContent } from './artifacts.js'
+import { createLlmsTxtArtifact, createRootOpenAPISpec, readRouteArtifactContent } from './artifacts.js'
 
 function normalizeRoutePrefix(routePrefix: string): string {
   if (!routePrefix || routePrefix === '/') return ''
@@ -33,6 +33,13 @@ export function serveContentArtifacts(req: IncomingMessage, res: ServerResponse,
     res.statusCode = 200
     res.setHeader('Content-Type', 'text/plain; charset=utf-8')
     res.end(createLlmsTxtArtifact(routes, projectConfig), 'utf8')
+    return true
+  }
+
+  if (contentPath === '/openapi.json') {
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+    res.end(JSON.stringify(createRootOpenAPISpec(routes, projectConfig), null, 2), 'utf8')
     return true
   }
 

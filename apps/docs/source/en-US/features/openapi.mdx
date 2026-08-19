@@ -46,7 +46,10 @@ Clarify generates:
 |------|------|
 | `/api` | The complete API reference page |
 | `/api.openapi.json` | The raw OpenAPI spec output |
+| `/openapi.json` | A site-level document aggregating all complete OpenAPI sources |
 | The OpenAPI link in `llms.txt` | Makes it easy for AI tools to discover and read |
+
+Use `/openapi.json` as a stable URL when importing or synchronizing the whole site's API definition with tools such as Apifox. With `routePrefix: '/docs'`, the public URL is `/docs/openapi.json`. Clarify includes each complete source once, excludes tag-filtered routes, and uses only the default locale in multilingual sites. Conflicting path, component, webhook, or tag definitions fail the build instead of being overwritten.
 
 If you maintain the sidebar explicitly, add this to `tabs`:
 

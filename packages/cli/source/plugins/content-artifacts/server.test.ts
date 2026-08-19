@@ -4,7 +4,7 @@ import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, MarkdownContentRoute, OpenAPIContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { resolveContentArtifactPath, resolveContentArtifactType } from './server.js'
+import { resolveContentArtifactPath, resolveContentArtifactType, serveContentArtifacts } from './server.js'
 
 import { createContentArtifactsPlugin } from './index.js'
 
@@ -63,6 +63,44 @@ describe('content artifacts plugin server helpers', () => {
 
   it('uses json content type for OpenAPI routes', () => {
     expect(resolveContentArtifactType(createRoute('openapi', '/api.openapi.json'))).toBe('application/json; charset=utf-8')
+  })
+
+  it('serves the aggregated root OpenAPI JSON with route prefixes', () => {
+    const route = createRoute('openapi', '/api.openapi.json') as OpenAPIContentRoute
+    route.source.content = JSON.stringify({
+      openapi: '3.1.0',
+      info: { title: 'API', version: '1.0.0' },
+      paths: { '/users': { get: { responses: { 200: { description: 'OK' } } } } },
+    })
+    const headers = new Map<string, string>()
+    let body = ''
+    const response = {
+      statusCode: 0,
+      setHeader: (name: string, value: string) => headers.set(name, value),
+      end: (value: string) => { body = value },
+    }
+
+    expect(serveContentArtifacts(
+      { url: '/docs/openapi.json' } as never,
+      response as never,
+      { ...projectConfig, routePrefix: '/docs' },
+      [route],
+    )).toBe(true)
+    expect(response.statusCode).toBe(200)
+    expect(headers.get('Content-Type')).toBe('application/json; charset=utf-8')
+    expect(JSON.parse(body).paths).toHaveProperty('/users')
+  })
+
+  it('emits only the root JSON aggregate in addition to existing artifacts', async () => {
+    const route = createRoute('openapi', '/api.openapi.json') as OpenAPIContentRoute
+    route.source.content = JSON.stringify({ openapi: '3.1.0', info: { title: 'API', version: '1.0.0' }, paths: {} })
+    const plugin = createContentArtifactsPlugin()
+    const buildAssets = plugin.hooks?.['build:assets']
+    if (!buildAssets) throw new Error('build:assets hook is missing')
+
+    const assets = await buildAssets({ projectConfig, routes: [route] } as never)
+    expect(assets?.map(asset => asset.fileName)).toEqual(['api.openapi.json', 'api.openapi.yaml', 'llms.txt', 'openapi.json'])
+    expect(JSON.parse(String(assets?.find(asset => asset.fileName === 'openapi.json')?.source)).openapi).toBe('3.1.0')
   })
 
   it('registers artifact serving after Vite internal middleware', async () => {
