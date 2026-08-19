@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, MarkdownContentRoute, OpenAPIContentRoute, ResolvedProjectConfig } from '../../types.js'
+import { createRootOpenAPISpec } from '../openapi/artifacts.js'
 
-import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, createRootOpenAPISpec, readRouteArtifactContent, readRouteContent } from './artifacts.js'
+import { attachContentArtifactUrls, createLlmsTxt, createLlmsTxtArtifact, readRouteArtifactContent, readRouteContent } from './artifacts.js'
 
 const projectConfig: ResolvedProjectConfig = {
   title: 'Docs',
@@ -24,11 +25,6 @@ type RouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'sou
   filePath?: string
   content?: string
   tagFilter?: string[]
-}
-
-type AggregatedSpecFixture = {
-  paths: Record<string, Record<string, Record<string, unknown>>>
-  components: { securitySchemes: Record<string, unknown> }
 }
 
 function route(overrides: RouteFixture): ContentRoute {
@@ -78,97 +74,7 @@ describe('content artifact helpers', () => {
     ])
   })
 
-  it('aggregates complete OpenAPI sources into a root document', () => {
-    const first = JSON.stringify({
-      openapi: '3.1.0',
-      info: { title: 'Users', version: '1.0.0' },
-      paths: { '/users': { get: { responses: { 200: { description: 'OK' } } } } },
-      components: { schemas: { User: { type: 'object' } } },
-      tags: [{ name: 'Users' }],
-    })
-    const second = JSON.stringify({
-      openapi: '3.1.1',
-      info: { title: 'Projects', version: '1.0.0' },
-      paths: { '/projects': { get: { responses: { 200: { description: 'OK' } } } } },
-      components: { schemas: { Project: { type: 'object' } } },
-      tags: [{ name: 'Projects' }],
-    })
-
-    const spec = createRootOpenAPISpec([
-      route({ path: '/users', kind: 'openapi', filePath: '/tmp/users.openapi.json', content: first }),
-      route({ path: '/projects', kind: 'openapi', filePath: '/tmp/projects.openapi.json', content: second }),
-    ], { ...projectConfig, title: 'Platform API', description: 'All endpoints.' })
-
-    expect(spec.info).toEqual({ title: 'Platform API', description: 'All endpoints.', version: '1.0.0' })
-    expect(spec.paths).toEqual({
-      '/users': { get: { responses: { 200: { description: 'OK' } } } },
-      '/projects': { get: { responses: { 200: { description: 'OK' } } } },
-    })
-    expect(spec.components?.schemas).toEqual({ User: { type: 'object' }, Project: { type: 'object' } })
-    expect(spec.tags).toEqual([{ name: 'Users' }, { name: 'Projects' }])
-  })
-
-  it('preserves different server and authentication contexts per service', () => {
-    const service = (title: string, path: string, server: string, scheme: Record<string, unknown>) => JSON.stringify({
-      openapi: '3.1.0',
-      info: { title, version: '1.0.0' },
-      servers: [{ url: server }],
-      security: [{ auth: [] }],
-      paths: {
-        [path]: {
-          get: { responses: { 200: { description: 'OK' } } },
-          post: { servers: [{ url: `${server}/write` }], security: [], responses: { 200: { description: 'OK' } } },
-        },
-      },
-      components: { securitySchemes: { auth: scheme } },
-    })
-
-    const spec = createRootOpenAPISpec([
-      route({ path: '/users', kind: 'openapi', filePath: '/tmp/users.openapi.json', content: service('Users', '/users', 'https://users.example.com', { type: 'http', scheme: 'bearer' }) }),
-      route({ path: '/billing', kind: 'openapi', filePath: '/tmp/billing.openapi.json', content: service('Billing', '/invoices', 'https://billing.example.com', { type: 'apiKey', in: 'header', name: 'X-API-Key' }) }),
-    ], projectConfig) as unknown as AggregatedSpecFixture
-
-    expect(spec.paths['/users'].get).toMatchObject({ servers: [{ url: 'https://users.example.com' }], security: [{ auth: [] }] })
-    expect(spec.paths['/users'].post).toMatchObject({ servers: [{ url: 'https://users.example.com/write' }], security: [] })
-    expect(spec.paths['/invoices'].get).toMatchObject({ servers: [{ url: 'https://billing.example.com' }], security: [{ billing__auth: [] }] })
-    expect(spec.components.securitySchemes).toEqual({
-      auth: { type: 'http', scheme: 'bearer' },
-      billing__auth: { type: 'apiKey', in: 'header', name: 'X-API-Key' },
-    })
-  })
-
-  it('inherits path-level servers and preserves operation-level authentication overrides', () => {
-    const content = JSON.stringify({
-      openapi: '3.1.0',
-      info: { title: 'Service', version: '1.0.0' },
-      servers: [{ url: 'https://fallback.example.com' }],
-      security: [{ apiKey: [] }],
-      paths: {
-        '/jobs': {
-          servers: [{ url: 'https://jobs.example.com' }],
-          get: { security: [{ oauth: ['jobs:read'] }], responses: { 200: { description: 'OK' } } },
-        },
-      },
-      components: {
-        securitySchemes: {
-          apiKey: { type: 'apiKey', in: 'header', name: 'X-API-Key' },
-          oauth: { type: 'oauth2', flows: {} },
-        },
-      },
-    })
-
-    const spec = createRootOpenAPISpec([
-      route({ path: '/jobs', kind: 'openapi', filePath: '/tmp/jobs.openapi.json', content }),
-    ], projectConfig) as unknown as AggregatedSpecFixture
-
-    expect(spec.paths['/jobs'].get).toMatchObject({
-      servers: [{ url: 'https://jobs.example.com' }],
-      security: [{ oauth: ['jobs:read'] }],
-    })
-    expect(Object.keys(spec.paths['/jobs'])).toEqual(['get'])
-  })
-
-  it('uses each full source once and excludes filtered, alias, and non-default locale routes', () => {
+  it('uses each full OpenAPI source once and excludes filtered, alias, and non-default locale routes', () => {
     const spec = (path: string) => JSON.stringify({
       openapi: '3.1.0',
       info: { title: path, version: '1.0.0' },
@@ -192,24 +98,6 @@ describe('content artifact helpers', () => {
     ], config)
 
     expect(rootSpec.paths).toEqual({ '/api': { get: { responses: { 200: { description: 'OK' } } } } })
-  })
-
-  it('rejects incompatible versions and conflicting entries', () => {
-    const spec = (version: string, path: string, description: string) => JSON.stringify({
-      openapi: version,
-      info: { title: path, version: '1.0.0' },
-      paths: { [path]: { get: { responses: { 200: { description } } } } },
-    })
-
-    expect(() => createRootOpenAPISpec([
-      route({ kind: 'openapi', filePath: '/tmp/v3.openapi.json', content: spec('3.0.3', '/users', 'OK') }),
-      route({ kind: 'openapi', filePath: '/tmp/v31.openapi.json', content: spec('3.1.0', '/projects', 'OK') }),
-    ], projectConfig)).toThrow('incompatible versions')
-
-    expect(() => createRootOpenAPISpec([
-      route({ kind: 'openapi', filePath: '/tmp/first.openapi.json', content: spec('3.1.0', '/users', 'First') }),
-      route({ kind: 'openapi', filePath: '/tmp/second.openapi.json', content: spec('3.1.1', '/users', 'Second') }),
-    ], projectConfig)).toThrow('conflicting paths entry "/users"')
   })
 
   it('returns route-normalized content via readRouteContent', () => {

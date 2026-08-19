@@ -555,6 +555,11 @@ export type ClarifyEmitAsset = {
   source: string | Uint8Array
 }
 
+export type ClarifyArtifact = ClarifyEmitAsset & {
+  /** MIME type used when the artifact is served in development. */
+  contentType: string
+}
+
 export type MaybePromise<T> = T | Promise<T>
 
 export type ClarifyTapHook = (ctx: ClarifyHookContext) => MaybePromise<void>

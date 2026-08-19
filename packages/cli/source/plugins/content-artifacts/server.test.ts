@@ -4,6 +4,7 @@ import { resolveFeaturesConfig } from '../../core/config/config.js'
 import { resolveThemeConfig } from '../../parsers/theme.js'
 import type { ContentRoute, MarkdownContentRoute, OpenAPIContentRoute, ResolvedProjectConfig } from '../../types.js'
 
+import { createContentArtifacts } from './provider.js'
 import { resolveContentArtifactPath, resolveContentArtifactType, serveContentArtifacts } from './server.js'
 
 import { createContentArtifactsPlugin } from './index.js'
@@ -91,14 +92,16 @@ describe('content artifacts plugin server helpers', () => {
     expect(JSON.parse(body).paths).toHaveProperty('/users')
   })
 
-  it('emits only the root JSON aggregate in addition to existing artifacts', async () => {
+  it('uses one artifact collection for build output and development serving', async () => {
     const route = createRoute('openapi', '/api.openapi.json') as OpenAPIContentRoute
     route.source.content = JSON.stringify({ openapi: '3.1.0', info: { title: 'API', version: '1.0.0' }, paths: {} })
+    const expectedArtifacts = createContentArtifacts([route], projectConfig)
     const plugin = createContentArtifactsPlugin()
     const buildAssets = plugin.hooks?.['build:assets']
     if (!buildAssets) throw new Error('build:assets hook is missing')
 
     const assets = await buildAssets({ projectConfig, routes: [route] } as never)
+    expect(assets).toEqual(expectedArtifacts)
     expect(assets?.map(asset => asset.fileName)).toEqual(['api.openapi.json', 'api.openapi.yaml', 'llms.txt', 'openapi.json'])
     expect(JSON.parse(String(assets?.find(asset => asset.fileName === 'openapi.json')?.source)).openapi).toBe('3.1.0')
   })

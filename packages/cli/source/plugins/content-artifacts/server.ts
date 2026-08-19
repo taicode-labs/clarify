@@ -1,10 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 
-import { stringify as yamlStringify } from 'yaml'
-
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
 
-import { createLlmsTxtArtifact, createRootOpenAPISpec, readRouteArtifactContent } from './artifacts.js'
+import { findContentArtifact } from './provider.js'
 
 function normalizeRoutePrefix(routePrefix: string): string {
   if (!routePrefix || routePrefix === '/') return ''
@@ -28,40 +26,11 @@ export function resolveContentArtifactType(route: ContentRoute): string {
 
 export function serveContentArtifacts(req: IncomingMessage, res: ServerResponse, projectConfig: ResolvedProjectConfig, routes: ContentRoute[]): boolean {
   const contentPath = resolveContentArtifactPath(req.url, projectConfig)
-
-  if (contentPath === '/llms.txt') {
-    res.statusCode = 200
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-    res.end(createLlmsTxtArtifact(routes, projectConfig), 'utf8')
-    return true
-  }
-
-  if (contentPath === '/openapi.json') {
-    res.statusCode = 200
-    res.setHeader('Content-Type', 'application/json; charset=utf-8')
-    res.end(JSON.stringify(createRootOpenAPISpec(routes, projectConfig), null, 2), 'utf8')
-    return true
-  }
-
-  // Handle YAML variant for OpenAPI routes: /api.openapi.yaml → serve YAML
-  if (contentPath.endsWith('.openapi.yaml')) {
-    const jsonPath = contentPath.replace(/\.yaml$/, '.json')
-    const route = routes.find(route => route.artifacts?.contentArtifactUrl === jsonPath)
-    if (route?.kind === 'openapi' && route.source.content) {
-      const spec = JSON.parse(route.source.content)
-      res.statusCode = 200
-      res.setHeader('Content-Type', 'text/yaml; charset=utf-8')
-      res.end(yamlStringify(spec, { lineWidth: 0 }), 'utf8')
-      return true
-    }
-    return false
-  }
-
-  const route = routes.find(route => route.artifacts?.contentArtifactUrl === contentPath)
-  if (!route) return false
+  const artifact = findContentArtifact(contentPath, routes, projectConfig)
+  if (!artifact) return false
 
   res.statusCode = 200
-  res.setHeader('Content-Type', resolveContentArtifactType(route))
-  res.end(readRouteArtifactContent(route), 'utf8')
+  res.setHeader('Content-Type', artifact.contentType)
+  res.end(artifact.source)
   return true
 }
