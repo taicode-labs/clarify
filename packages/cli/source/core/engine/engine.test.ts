@@ -1,3 +1,7 @@
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
 import type { ViteDevServer } from 'vite'
 import { describe, expect, it } from 'vitest'
 
@@ -252,5 +256,30 @@ describe('ClarifyEngine phase hooks', () => {
     }
 
     expect(calls).toEqual(['before:ssg', 'after:ssg', 'build:done'])
+  })
+
+  it('builds the SSR bundle outside the public output and removes it after rendering', async () => {
+    const outputDirectory = mkdtempSync(join(tmpdir(), 'clarify-output-'))
+    const engine = new ClarifyEngine({ projectRoot: '/site', outputDirectory })
+    let ssrOutputDirectory: string | undefined
+
+    writeFileSync(join(outputDirectory, 'index.html'), '<div id="root"></div>', 'utf-8')
+    engine.configureRuntime({
+      outputDirectory,
+      buildSSRBundle: async ({ ssrOutDir }) => {
+        ssrOutputDirectory = ssrOutDir
+        writeFileSync(join(ssrOutDir, 'entry-server.js'), 'export async function render() { return "" }', 'utf-8')
+      },
+    })
+
+    try {
+      await engine.runSSG()
+
+      expect(ssrOutputDirectory).toBeDefined()
+      expect(ssrOutputDirectory?.startsWith(outputDirectory)).toBe(false)
+      expect(existsSync(ssrOutputDirectory!)).toBe(false)
+    } finally {
+      rmSync(outputDirectory, { recursive: true, force: true })
+    }
   })
 })

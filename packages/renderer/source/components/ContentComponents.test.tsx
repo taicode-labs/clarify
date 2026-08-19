@@ -1,3 +1,4 @@
+import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
@@ -37,8 +38,8 @@ describe('content components', () => {
     const html = renderPage(
       wrapper({
         children: [
-          h1({ children: 'Page title' }),
-          h1({ children: 'Unexpected second title' }),
+          createElement(h1, { key: 'primary' }, 'Page title'),
+          createElement(h1, { key: 'secondary' }, 'Unexpected second title'),
         ],
       }),
     )

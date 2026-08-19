@@ -38,19 +38,12 @@ let autoOpenDisposable: vscode.Disposable | undefined
 let statusBar: vscode.StatusBarItem
 let extensionContext: vscode.ExtensionContext
 let managedInstall: Promise<void> | undefined
-let isInstallingCli = false
-let isUpgradingCli = false
+let cliOperation: 'installing' | 'upgrading' | undefined
 
 // Current project conventions for file detection. Replaced by live CLI values
 // after `/dev/project-info` has been fetched.
 let conventions: ProjectConventions = BOOTSTRAP_CONVENTIONS
 
-/**
- * Activate the Clarify extension.
- *
- * This sets up the status bar, registers commands, starts any background
- * CLI installation, and optionally begins a silent dev server startup.
- */
 /**
  * Activate the Clarify VS Code extension.
  *
@@ -64,8 +57,7 @@ export function activate(context: vscode.ExtensionContext): void {
   cliUpdateChecker = new CliUpdateChecker(context, dependencies, {
     isServerRunning: () => devServer.isRunning(),
     onUpgradeStateChange: (upgrading) => {
-      isInstallingCli = upgrading
-      isUpgradingCli = upgrading
+      cliOperation = upgrading ? 'upgrading' : undefined
       updateStatusBar()
     },
   })
@@ -287,11 +279,12 @@ function detectProjectRoot(): string | undefined {
 }
 
 function updateStatusBar(): void {
-  if (isInstallingCli) {
-    statusBar.text = isUpgradingCli
+  if (cliOperation) {
+    const upgrading = cliOperation === 'upgrading'
+    statusBar.text = upgrading
       ? '$(loading~spin) Clarify: Upgrading CLI...'
       : '$(loading~spin) Clarify: Installing CLI...'
-    statusBar.tooltip = isUpgradingCli
+    statusBar.tooltip = upgrading
       ? 'Upgrading the Clarify CLI managed by this extension'
       : 'Installing the Clarify CLI managed by this extension'
     statusBar.show()
@@ -330,11 +323,11 @@ function ensureCliAvailable(projectRoot: string): Promise<void> {
   if (dependencies.isVersionInstalled(version)) return Promise.resolve()
   if (managedInstall) return managedInstall
 
-  isInstallingCli = true
+  cliOperation = 'installing'
   updateStatusBar()
   managedInstall = dependencies.ensureInstalled(version).finally(() => {
     managedInstall = undefined
-    isInstallingCli = false
+    cliOperation = undefined
     updateStatusBar()
   })
   return managedInstall

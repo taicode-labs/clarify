@@ -1,4 +1,4 @@
-import { existsSync, rmSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 import type { ConfigEnv, Plugin } from 'vite'
@@ -13,6 +13,7 @@ import { findClarifyConfigFile } from '../config/user-config.js'
 import { runBuildAssetsHooks, runBuildDoneHooks, runDevConfigureServerHooks, runHooks } from '../plugin/hooks.js'
 import { loadBuildPlugins } from '../plugin/manager.js'
 import { resolveProjectContext } from '../project/project-context.js'
+import { createClarifyTempDir, removeClarifyTempDir } from '../project/temp-dir.js'
 import { resolveRoutePages, resolveRouteState } from '../routing/route-resolution.js'
 import { writeClarifyEnvDts } from '../runtime/env-types.js'
 import {
@@ -132,8 +133,9 @@ export class ClarifyEngine {
    * - `skipModules`: skip `buildModules()` (check command).
    * - `skipHints`: skip `logStartupHints()` (check command).
    *
-   * Idempotent: calling prepare() again with the same env is a no-op unless
-   * `force` is set.
+   * Configuration initialization is cached unless `force` is set. Discovery
+   * and virtual module generation intentionally run on every call so callers
+   * observe content changes without rebuilding the Engine instance.
    */
   async prepare(env: ConfigEnv = { command: this.runtime.command, mode: this.runtime.mode }, options: ClarifyBuildOptions = this.options, prepareOptions: PrepareOptions = {}): Promise<ClarifyBuildOptions> {
     this.configureRuntime({ command: env.command, mode: env.mode })
@@ -284,11 +286,12 @@ export class ClarifyEngine {
       const outputDir = this.runtime.outputDirectory ?? this.generateOptions.outputDirectory
       if (!outputDir) throw new Error('[clarify] outputDirectory is required before SSG runs')
 
-      const ssrOutputDir = join(outputDir, '.ssr')
+      let ssrOutputDir: string | undefined
       let tempEntryPath: string | undefined
 
       try {
         tempEntryPath = createTempEntryFile(SSR_ENTRY_CODE)
+        ssrOutputDir = createClarifyTempDir('ssr-output')
         const buildSSR = this.runtime.buildSSRBundle ?? ((options: BuildSSRBundleOptions) => buildSSRBundle(options.root, options.ssrEntry, options.ssrOutDir, options.plugins))
 
         await buildSSR({
@@ -304,13 +307,8 @@ export class ClarifyEngine {
         console.error('[clarify] SSG failed:', err)
         throw err
       } finally {
-        if (tempEntryPath) {
-          try {
-            rmSync(tempEntryPath, { force: true })
-          } catch {
-            // ignore cleanup errors
-          }
-        }
+        removeClarifyTempDir(tempEntryPath ? resolve(tempEntryPath, '..') : undefined)
+        removeClarifyTempDir(ssrOutputDir)
       }
 
     })

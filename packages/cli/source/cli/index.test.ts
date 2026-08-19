@@ -6,6 +6,8 @@ vi.mock('./commands/init.js', () => ({
   runInit: runInitSpy,
 }))
 
+const { main } = await import('./program.js')
+
 describe('createCli', () => {
   const originalArgv = process.argv
 
@@ -20,7 +22,6 @@ describe('createCli', () => {
   it('passes the positional init directory as the project root', async () => {
     process.argv = ['node', 'clarify', 'init', 'my-docs', '--content', 'docs', '--template', 'minimal', '--install']
 
-    const { main } = await import('./program.js')
     await main(process.argv)
 
     expect(runInitSpy).toHaveBeenCalledWith(expect.objectContaining({
@@ -28,12 +29,11 @@ describe('createCli', () => {
       content: 'docs',
       output: 'output',
     }), false, 'minimal', true)
-  }, 10_000)
+  })
 
   it('uses the current working directory when init directory is omitted', async () => {
     process.argv = ['node', 'clarify', 'init']
 
-    const { main } = await import('./program.js')
     await main(process.argv)
 
     expect(runInitSpy).toHaveBeenCalledWith(expect.objectContaining({
