@@ -1,10 +1,15 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
 import rehypeRaw from 'rehype-raw'
+import rehypeSlug from 'rehype-slug'
 import { describe, expect, it, vi } from 'vitest'
 
+import { markdownRemarkPlugins } from '@clarify-labs/renderer'
+
+import { analyzeHeadings } from './headings.js'
 import { compileMdxContent, rehypeParseCodeBlocks, rehypePlugins, remarkPlugins } from './mdx.js'
 
 const testRemarkPlugins = remarkPlugins as CompileOptions['remarkPlugins']
+const baselineRemarkPlugins = markdownRemarkPlugins as CompileOptions['remarkPlugins']
 
 type TestNode = {
   type: string
@@ -36,13 +41,337 @@ function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties:
 }
 
 describe('mdx rehype plugins', () => {
-  it('adds stable ids to headings through the shared pipeline', async () => {
+  it.each([
+    ['Markdown raw HTML with an implicit ID', 'markdown', '## Hello <em>world</em>', 'Hello world', 'hello-world', []],
+    ['Markdown raw HTML with an explicit ID', 'markdown', '## Hello <em>world</em> {#stable}', 'Hello world', 'stable', ['hello-world']],
+    ['Markdown image with an implicit ID', 'markdown', '## Hello ![logo](logo.png)', 'Hello ', 'hello-', []],
+    ['Markdown image with an explicit ID', 'markdown', '## Hello ![logo](logo.png) {#stable}', 'Hello ', 'stable', ['hello-']],
+    ['MDX image with an implicit ID', 'markdown+jsx', '## Hello ![logo](logo.png)', 'Hello ', 'hello-', []],
+    ['MDX image with an explicit ID', 'markdown+jsx', '## Hello ![logo](logo.png) {#stable}', 'Hello ', 'stable', ['hello-']],
+    ['Markdown footnote with an implicit ID', 'markdown', '## Hello[^note]\n\n[^note]: Footnote', 'Hello1', 'hello1', []],
+    ['Markdown footnote with an explicit ID', 'markdown', '## Hello[^note] {#stable}\n\n[^note]: Footnote', 'Hello1', 'stable', ['hello1']],
+    ['MDX footnote with an implicit ID', 'markdown+jsx', '## Hello[^note]\n\n[^note]: Footnote', 'Hello1', 'hello1', []],
+    ['MDX footnote with an explicit ID', 'markdown+jsx', '## Hello[^note] {#stable}\n\n[^note]: Footnote', 'Hello1', 'stable', ['hello1']],
+  ] as const)('preserves rendered heading text compatibility for %s', async (_label, kind, source, title, canonicalId, legacyIds) => {
+    // Catches mdast-only text leaking into metadata and IDs while retaining
+    // rendered raw-HTML descendants and generated GFM footnote labels.
+    const analysis = analyzeHeadings(source, { kind })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      ...(kind === 'markdown'
+        ? {
+            format: 'md',
+            remarkRehypeOptions: { allowDangerousHtml: true },
+            rehypePlugins: [rehypeRaw, ...rehypePlugins],
+          }
+        : { rehypePlugins }),
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+    }))
+
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ title, canonicalId, legacyIds }),
+    ])
+    expect(compiled).toContain(`id="${canonicalId}"`)
+    expect(analysis.diagnostic).toBeUndefined()
+  })
+
+  it.each([
+    ['intrinsic before Markdown', '<h2>Duplicate</h2>\n\n## Duplicate'],
+    ['Markdown before intrinsic', '## Duplicate\n\n<h2>Duplicate</h2>'],
+    ['bare self-closing', '<h2/>'],
+    ['self-closing with whitespace', '<h2 />'],
+    ['self-closing with static attributes', '<h2 className="x" />'],
+    ['self-closing with a quoted greater-than sign', '<h2 data-label="a > b" />'],
+    ['NBSP attribute whitespace', '<h2\u00A0data-label="a > b">Title</h2>'],
+  ])('preserves exact origin/main compiler output for ID-less intrinsic MDX: %s', async (_label, source) => {
+    // Catches analyzer fallback injection changing source that origin/main's
+    // rehype-slug intentionally left alone, including its shared slug order.
+    const baseline = String(await compile(source, {
+      jsx: true,
+      remarkPlugins: baselineRemarkPlugins,
+      rehypePlugins: [rehypeSlug],
+    }))
+    const analysis = analyzeHeadings(source, { kind: 'markdown+jsx' })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(compiled).toBe(baseline)
+    expect(analysis.diagnostic).toBeUndefined()
+  })
+
+  it('preserves exact origin/main compiler output when an empty intrinsic ID precedes an implicit heading', async () => {
+    // Catches an existing-but-empty intrinsic ID advancing the legacy slugger
+    // even though origin/main leaves the intrinsic ID and slug order unchanged.
+    const source = '<h2 id="">Duplicate</h2>\n\n## Duplicate'
+    const baseline = String(await compile(source, {
+      jsx: true,
+      remarkPlugins: baselineRemarkPlugins,
+      rehypePlugins: [rehypeSlug],
+    }))
+    const analysis = analyzeHeadings(source, { kind: 'markdown+jsx' })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(compiled).toBe(baseline)
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ canonicalId: 'duplicate', legacyIds: [] }),
+    ])
+    expect(analysis.diagnostic).toBeUndefined()
+  })
+
+  it('keeps the origin/main implicit slug as the alias of a following canonical heading', async () => {
+    // Catches an ID-less intrinsic heading consuming `duplicate`, which changes
+    // both the old implicit ID and the compatibility alias to `duplicate-1`.
+    const baseline = String(await compile('<h2>Duplicate</h2>\n\n## Duplicate', {
+      jsx: true,
+      remarkPlugins: baselineRemarkPlugins,
+      rehypePlugins: [rehypeSlug],
+    }))
+    const analysis = analyzeHeadings('<h2>Duplicate</h2>\n\n## Duplicate {#stable}', { kind: 'markdown+jsx' })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(baseline).toContain('<h2>{"Duplicate"}</h2>{"\\n"}<_components.h2 id="duplicate">')
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ canonicalId: 'stable', legacyIds: ['duplicate'] }),
+    ])
+    expect(compiled).toContain('<h2>{"Duplicate"}</h2>{"\\n"}<_components.h2 id="stable">')
+    expect(analysis.diagnostic).toBeUndefined()
+  })
+
+  it('keeps the origin/main implicit slug when an empty intrinsic ID precedes a canonical heading', async () => {
+    // Catches an existing-but-empty intrinsic ID being mistaken for a missing
+    // ID and consuming the compatibility slug before the Markdown heading.
+    const analysis = analyzeHeadings('<h2 id="">Duplicate</h2>\n\n## Duplicate {#stable}', { kind: 'markdown+jsx' })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ canonicalId: 'stable', legacyIds: ['duplicate'] }),
+    ])
+    expect(compiled).toContain('<h2 id="">{"Duplicate"}</h2>{"\\n"}<_components.h2 id="stable">')
+    expect(analysis.diagnostic).toBeUndefined()
+  })
+
+  it.each([
+    ['Markdown existing raw ID first', 'markdown', '<h2 id="duplicate">Duplicate</h2>\n\n## Duplicate {#stable}'],
+    ['Markdown canonical heading first', 'markdown', '## Duplicate {#stable}\n\n<h2 id="duplicate">Duplicate</h2>'],
+    ['MDX existing intrinsic ID first', 'markdown+jsx', '<h2 id="duplicate">Duplicate</h2>\n\n## Duplicate {#stable}'],
+    ['MDX canonical heading first', 'markdown+jsx', '## Duplicate {#stable}\n\n<h2 id="duplicate">Duplicate</h2>'],
+  ] as const)('does not advance the legacy slug sequence for %s', async (_label, kind, source) => {
+    // Catches an existing rendered ID consuming `duplicate` even though the
+    // old rehype-slug pass skipped headings that already had an ID.
+    const analysis = analyzeHeadings(source, { kind })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      ...(kind === 'markdown'
+        ? {
+            format: 'md',
+            remarkRehypeOptions: { allowDangerousHtml: true },
+            rehypePlugins: [rehypeRaw, ...rehypePlugins],
+          }
+        : { rehypePlugins }),
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+    }))
+    const ids = [...compiled.matchAll(/<(?:h2|_components\.h2) id="([^"]+)">/g)].map(match => match[1])
+
+    expect(ids).toEqual(source.startsWith('##') ? ['stable', 'duplicate'] : ['duplicate', 'stable'])
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ canonicalId: 'stable', legacyIds: ['duplicate'] }),
+    ])
+    expect(analysis.diagnostic?.details).toContain('Heading ID "duplicate" at 3:1 conflicts with the heading at 1:1')
+  })
+
+  it.each([
+    [
+      'Markdown first',
+      ['## Duplicate', '', '<h2>Duplicate</h2>'].join('\n'),
+      ['duplicate', 'duplicate-1'],
+    ],
+    [
+      'raw HTML first',
+      ['<h2>Duplicate</h2>', '', '## Duplicate'].join('\n'),
+      ['duplicate', 'duplicate-1'],
+    ],
+    [
+      'Markdown explicit ID first',
+      ['## Duplicate {#stable}', '', '<h2>Duplicate</h2>'].join('\n'),
+      ['stable', 'duplicate-1'],
+    ],
+    [
+      'raw HTML first before a Markdown legacy alias',
+      ['<h2>Duplicate</h2>', '', '## Duplicate {#stable}'].join('\n'),
+      ['duplicate', 'stable'],
+    ],
+  ])('keeps mixed duplicate heading IDs unique with %s', async (_label, source, expectedIds) => {
+    // Catches the fallback slugger skipping canonical Markdown headings or
+    // assigning a raw heading an ID reserved by a later canonical heading.
+    const analysis = analyzeHeadings(source, { kind: 'markdown' })
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+    const ids = [...compiled.matchAll(/<_components\.h2 id="([^"]+)">/g)].map(match => match[1])
+
+    expect(ids).toEqual(expectedIds)
+  })
+
+  it('preserves entity source offsets from analysis through Markdown compilation', async () => {
+    // Catches decoded mdast text indices being reused as raw source offsets,
+    // which corrupts content before an explicit marker when an entity shrinks.
+    const analysis = analyzeHeadings('## A &amp; B {#stable}', { kind: 'markdown' })
+
+    expect(analysis.normalizedContent).toBe('## A &amp; B [](clarify-internal-heading-id:stable)')
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ title: 'A & B', canonicalId: 'stable', legacyIds: ['a--b'] }),
+    ])
+
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+
+    expect(compiled).toContain('<_components.h2 id="stable">')
+    expect(compiled).toContain('{"A & B"}')
+    expect(compiled).not.toContain('{#stable}')
+  })
+
+  it('preserves escaped source offsets from analysis through MDX compilation', async () => {
+    // Catches backslash escapes shortening mdast text and shifting the raw
+    // marker edit into visible heading content.
+    const analysis = analyzeHeadings('## Use \\*literal\\* {#escaped}', { kind: 'markdown+jsx' })
+
+    expect(analysis.normalizedContent).toBe('## Use \\*literal\\* [](clarify-internal-heading-id:escaped)')
+    expect(analysis.headings).toEqual([
+      expect.objectContaining({ title: 'Use *literal*', canonicalId: 'escaped', legacyIds: ['use-literal'] }),
+    ])
+
+    const compiled = String(await compile(analysis.normalizedContent, {
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      rehypePlugins,
+    }))
+
+    expect(compiled).toContain('<_components.h2 id="escaped">')
+    expect(compiled).toContain('{"Use *literal*"}')
+    expect(compiled).not.toContain('{#escaped}')
+  })
+
+  it('adds IDs to raw HTML Markdown headings without replacing canonical Markdown IDs', async () => {
+    // Catches removing rehype-slug from the Markdown raw-HTML pipeline without
+    // restoring IDs for H1-H6 elements the Markdown analyzer cannot see.
+    const analysis = analyzeHeadings([
+      '# Markdown heading {#canonical-heading}',
+      '',
+      '<h2>Raw HTML heading</h2>',
+    ].join('\n'), { kind: 'markdown' })
+
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+
+    expect(compiled).toContain('<_components.h1 id="canonical-heading">')
+    expect(compiled).toContain('<_components.h2 id="raw-html-heading">')
+    expect(compiled).not.toContain('<_components.h1 id="markdown-heading">')
+  })
+
+  it('preserves an unquoted raw HTML attribute ending in slash when inserting a fallback ID', async () => {
+    // Catches the slash in `data-x=/ ` being mistaken for a self-closing
+    // marker and moving the generated ID inside the unquoted attribute value.
+    const analysis = analyzeHeadings('<h2 data-x=/ >Title</h2>', { kind: 'markdown' })
+
+    expect(analysis.normalizedContent).toBe('<h2 data-x=/  id="title">Title</h2>')
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+    expect(compiled).toContain('<_components.h2 data-x="/" id="title">')
+  })
+
+  it('treats a slash after an attribute equals sign as an unquoted raw HTML value', async () => {
+    // Catches the first character of an unquoted value being classified as a
+    // self-closing marker before the scanner enters its value state.
+    const analysis = analyzeHeadings('<h2 data-x=/>Title</h2>', { kind: 'markdown' })
+
+    expect(analysis.normalizedContent).toBe('<h2 data-x=/ id="title">Title</h2>')
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+    expect(compiled).toContain('<_components.h2 data-x="/" id="title">')
+  })
+
+  it('preserves a trailing slash in an unquoted raw HTML URL when inserting a fallback ID', async () => {
+    // Catches a slash that is adjacent to `>` but still belongs to an
+    // unquoted attribute value being consumed as a self-closing marker.
+    const analysis = analyzeHeadings('<h2 data-url=https://example.com/>Title</h2>', { kind: 'markdown' })
+
+    expect(analysis.normalizedContent).toBe('<h2 data-url=https://example.com/ id="title">Title</h2>')
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+    expect(compiled).toContain('<_components.h2 data-url="https://example.com/" id="title">')
+  })
+
+  it('preserves an NBSP and trailing slash in an unquoted raw HTML value', async () => {
+    // Catches JavaScript whitespace classification treating NBSP as HTML
+    // whitespace and truncating the unquoted value before fallback ID insertion.
+    const analysis = analyzeHeadings('<h2 data-x=foo\u00A0/>Title</h2>', { kind: 'markdown' })
+
+    expect(analysis.normalizedContent).toBe('<h2 data-x=foo\u00A0/ id="title">Title</h2>')
+    const compiled = String(await compile(analysis.normalizedContent, {
+      format: 'md',
+      jsx: true,
+      remarkPlugins: testRemarkPlugins,
+      remarkRehypeOptions: { allowDangerousHtml: true },
+      rehypePlugins: [rehypeRaw, ...rehypePlugins],
+    }))
+    expect(compiled).toContain('<_components.h2 data-x="foo\u00A0/" id="title">')
+  })
+
+  it('applies canonical IDs from normalized headings through the shared pipeline', async () => {
+    // Catches a regression where the compiler leaves its internal link in the
+    // output or lets the generic slugger derive a non-canonical heading ID.
     const compiled = String(await compile([
-      '# Overview',
+      '# Overview [](clarify-internal-heading-id:overview)',
       '',
-      '## 中文标题',
+      '## 推荐：自动配置 [](clarify-internal-heading-id:auto-config)',
       '',
-      '### 中文标题',
+      '### 中文标题 [](clarify-internal-heading-id:中文标题)',
+      '',
+      '#### 中文标题 [](clarify-internal-heading-id:中文标题-1)',
       '',
       '<h2 id="custom-id">Custom</h2>',
     ].join('\n'), {
@@ -52,9 +381,12 @@ describe('mdx rehype plugins', () => {
     }))
 
     expect(compiled).toContain('<_components.h1 id="overview">')
-    expect(compiled).toContain('<_components.h2 id="中文标题">')
-    expect(compiled).toContain('<_components.h3 id="中文标题-1">')
+    expect(compiled).toContain('<_components.h2 id="auto-config">')
+    expect(compiled).toContain('<_components.h3 id="中文标题">')
+    expect(compiled).toContain('<_components.h4 id="中文标题-1">')
     expect(compiled).toContain('<h2 id="custom-id">')
+    expect(compiled).not.toContain('clarify-internal-heading-id')
+    expect(compiled).not.toContain('{#auto-config}')
   })
 
   it('copies fenced code language to the pre element', () => {

@@ -1,3 +1,4 @@
+import { reanalyzeMarkdownRoute } from '../../parsers/routes/heading-metadata.js'
 import { applyConfiguredPageRoutePaths, buildLocalizedNavigationFromTabsConfig, buildNavigation, buildNavigationFromTabsConfig } from '../../parsers/routes/routes.js'
 import type { ClarifyHookContext, ClarifyNavigationNode, ClarifyPage, ClarifyPlugin, ContentDiagnostic, ContentRoute, NavigationTree } from '../../types.js'
 import { runHooks } from '../plugin/hooks.js'
@@ -33,7 +34,7 @@ export async function resolveRoutePages(routes: ContentRoute[], plugins: Clarify
     throw new Error('[clarify] pages:resolved hooks must return exactly one page for each route')
   }
 
-  return routes.map((route, routeIndex) => {
+  const updatedRoutes = routes.map((route, routeIndex) => {
     const page = pageByRouteIndex.get(routeIndex)!
     return {
       ...route,
@@ -44,6 +45,8 @@ export async function resolveRoutePages(routes: ContentRoute[], plugins: Clarify
       },
     }
   })
+
+  return Promise.all(updatedRoutes.map(route => reanalyzeMarkdownRoute(route, ctx.projectRoot)))
 }
 
 function buildNavigationTree(routes: ContentRoute[], ctx: ClarifyHookContext): NavigationTree {

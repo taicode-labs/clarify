@@ -14,6 +14,7 @@ type RouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'sou
   keywords?: string[]
   updatedAt?: string
   sections?: ContentRoute['meta']['sections']
+  headingAliases?: ContentRoute['meta']['headingAliases']
   filePath?: string
   pageVirtualModuleId?: string
   contentVirtualModuleId?: string
@@ -22,7 +23,7 @@ type RouteFixture = Partial<Omit<ContentRoute, 'kind' | 'meta' | 'module' | 'sou
 }
 
 function route(overrides: RouteFixture): ContentRoute {
-  const { title, description, keywords, updatedAt, sections, filePath, pageVirtualModuleId, contentVirtualModuleId, sourceEditUrl, openapi, kind = 'markdown+jsx', ...rest } = overrides
+  const { title, description, keywords, updatedAt, sections, headingAliases, filePath, pageVirtualModuleId, contentVirtualModuleId, sourceEditUrl, openapi, kind = 'markdown+jsx', ...rest } = overrides
   const common = {
     path: '/',
     meta: {
@@ -31,6 +32,7 @@ function route(overrides: RouteFixture): ContentRoute {
       keywords,
       updatedAt,
       sections,
+      headingAliases,
     },
     source: {
       filePath: filePath ?? 'index.mdx',
@@ -117,6 +119,41 @@ describe('generateRoutesModule', () => {
     expect(code).toContain('title: "About"')
     expect(code).toContain('updatedAt: "2025-02-03T04:05:06.000Z"')
     expect(code).toContain('sourceEditUrl: "https://github.com/acme/docs/edit/main/index.mdx"')
+  })
+
+  it('serializes section aliases and heading aliases for client and server manifests', () => {
+    const routes: ContentRoute[] = [
+      route({
+        path: '/guide',
+        sections: [{ id: 'auto-config', title: '推荐：自动配置', level: 2, aliases: ['推荐自动配置'] }],
+        headingAliases: { 推荐自动配置: 'auto-config' },
+      }),
+    ]
+
+    for (const mode of ['client', 'server'] as const) {
+      const code = generateRoutesModule(routes, { kind: 'flat', nodes: [] }, mode)
+      expect(code).toContain('aliases: ["推荐自动配置"]')
+      expect(code).toContain('headingAliases: {"推荐自动配置":"auto-config"}')
+    }
+  })
+
+  it('preserves __proto__ as an own heading-alias key at runtime', async () => {
+    // Catches generated object-literal syntax interpreting __proto__ as a
+    // prototype setter instead of a dynamic manifest record key.
+    const headingAliases = Object.fromEntries([['__proto__', 'stable-heading']])
+    const routes: ContentRoute[] = [
+      route({ path: '/guide', headingAliases }),
+    ]
+    const code = generateRoutesModule(routes, { kind: 'flat', nodes: [] })
+      .replace(
+        "import { createContentDiagnosticComponent } from '@clarify-labs/renderer';",
+        'const createContentDiagnosticComponent = () => undefined;',
+      )
+    const runtime = await import(`data:text/javascript,${encodeURIComponent(code)}#heading-alias-proto`)
+    const aliases = runtime.routes[0].headingAliases as Record<string, string>
+
+    expect(Object.hasOwn(aliases, '__proto__')).toBe(true)
+    expect(aliases.__proto__).toBe('stable-heading')
   })
 
   it('omits plugin-specific route fields from the runtime route manifest', () => {

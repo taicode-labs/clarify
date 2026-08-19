@@ -128,6 +128,7 @@ type RuntimeRouteMetadata = {
   layout?: 'documentation' | 'blog'
   updatedAt?: string
   sections?: ContentSection[]
+  headingAliases?: Record<string, string>
 }
 
 type RuntimeRouteContentLinks = {
@@ -163,8 +164,9 @@ function routeToRuntimeManifestEntry(route: ContentRoute, component: RuntimeRout
   if (route.artifacts?.contentArtifactUrl) entry.contentArtifactUrl = route.artifacts.contentArtifactUrl
   if (route.source?.sourceEditUrl) entry.sourceEditUrl = route.source.sourceEditUrl
   if (route.meta.sections?.length) {
-    entry.sections = route.meta.sections.map(section => ({ id: section.id, title: section.title, level: section.level, badge: section.badge, tags: section.tags }))
+    entry.sections = route.meta.sections.map(section => ({ id: section.id, title: section.title, level: section.level, aliases: section.aliases, badge: section.badge, tags: section.tags }))
   }
+  if (route.meta.headingAliases && Object.keys(route.meta.headingAliases).length > 0) entry.headingAliases = route.meta.headingAliases
 
   return entry
 }
@@ -194,6 +196,7 @@ export function generateRoutesModule(routes: ContentRoute[], navigation: Navigat
     // turned into a bare key.
     const jsObject = json
       .replace(`"${placeholder}"`, component)
+      .replace(/"__proto__":/g, '["__proto__"]:')
       .replace(/"([A-Za-z_$][\w$]*)":/g, '$1: ')
     return `  ${jsObject}`
   }).join(',\n')

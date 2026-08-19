@@ -355,6 +355,7 @@ export type ContentSection = {
   id: string
   title: string
   level: number
+  aliases?: string[]
   badge?: string
   tags?: string[]
 }
@@ -368,6 +369,7 @@ export type ContentRouteMeta = {
   /** Latest source update as an ISO 8601 timestamp. */
   updatedAt?: string
   sections?: ContentSection[]
+  headingAliases?: Record<string, string>
 }
 
 export type PageRouteModule = {
@@ -403,8 +405,10 @@ export type ContentRouteArtifacts = {
 export type ContentRouteSource = {
   filePath: string
   frontmatter?: Record<string, unknown>
-  /** Normalized source content captured during route discovery. */
+  /** Original author content captured during route discovery. */
   content?: string
+  /** Number of physical source lines removed before the stored body content. */
+  lineOffset?: number
   /** Public edit URL for this route's source file. */
   sourceEditUrl?: string
 }

@@ -1,3 +1,7 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
 import type { HmrContext, ModuleNode, Plugin, ViteDevServer } from 'vite'
 import { describe, expect, it } from 'vitest'
 
@@ -81,6 +85,109 @@ function resultCode(result: Awaited<ReturnType<typeof transform>>): string {
 }
 
 describe('createViteAdapter', () => {
+  it('keeps final page-hook DOM, metadata, and navigation heading IDs aligned', async () => {
+    // Catches route metadata being analyzed before pages:resolved while the
+    // Vite adapter compiles the hook's replacement content afterward.
+    const root = mkdtempSync(join(tmpdir(), 'clarify-pages-resolved-'))
+    const sourceRoot = join(root, 'source')
+    const filePath = join(sourceRoot, 'guide.md')
+    mkdirSync(sourceRoot)
+    writeFileSync(filePath, [
+      '---',
+      'title: Before hook',
+      '---',
+      '',
+      '# Before DOM',
+      '## Before section {#before-section}',
+    ].join('\n'))
+
+    try {
+      const engine = new ClarifyEngine({
+        projectRoot: root,
+        plugins: [{
+          name: 'replace-page',
+          hooks: {
+            'pages:resolved': pages => pages.map(page => ({
+              ...page,
+              frontmatter: { ...page.frontmatter, title: 'After hook' },
+              content: '# Final DOM\n\n## 推荐：自动配置 {#auto-config}',
+            })),
+          },
+        }],
+      })
+      await engine.prepare(undefined, undefined, { skipHints: true })
+
+      const route = engine.routes[0]
+      expect(route?.source.content).toBe('# Final DOM\n\n## 推荐：自动配置 {#auto-config}')
+      expect(route?.meta).toMatchObject({
+        title: 'After hook',
+        sections: [{ id: 'auto-config', title: '推荐：自动配置', level: 2, aliases: ['推荐自动配置'] }],
+        headingAliases: { 推荐自动配置: 'auto-config' },
+      })
+      expect(engine.navigation).toMatchObject({
+        kind: 'flat',
+        nodes: [{
+          path: '/guide',
+          title: 'After hook',
+          sections: [{ id: 'auto-config', title: '推荐：自动配置', level: 2 }],
+        }],
+      })
+
+      const plugins = createViteAdapter(engine)
+      const normalizedContentPlugin = plugins.find(plugin => plugin.name === 'clarify:normalized-content')
+      const markdownPlugin = plugins.find(plugin => plugin.name === '@mdx-js/rollup')
+      if (!normalizedContentPlugin || !markdownPlugin) throw new Error('Markdown plugin chain not found')
+
+      const normalizedContent = await transform(normalizedContentPlugin, '', filePath)
+      const markdownModule = await transform(markdownPlugin, resultCode(normalizedContent), filePath)
+      const compiled = resultCode(markdownModule)
+      expect(compiled).toContain('id: "auto-config"')
+      expect(compiled).toContain('推荐：自动配置')
+      expect(compiled).not.toContain('before-section')
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
+  })
+
+  it('reports invalid heading IDs introduced by a final page hook', async () => {
+    // Catches pages:resolved replacing valid content with invalid IDs after
+    // discovery diagnostics have already been computed.
+    const root = mkdtempSync(join(tmpdir(), 'clarify-pages-invalid-'))
+    const sourceRoot = join(root, 'source')
+    mkdirSync(sourceRoot)
+    writeFileSync(join(sourceRoot, 'guide.mdx'), [
+      '---',
+      'title: Guide',
+      '---',
+      '# Initially valid',
+    ].join('\n'))
+
+    try {
+      const engine = new ClarifyEngine({
+        projectRoot: root,
+        plugins: [{
+          name: 'inject-invalid-heading',
+          hooks: {
+            'pages:resolved': pages => pages.map(page => ({
+              ...page,
+              content: '# Final\n\n## Broken {#UPPER}',
+            })),
+          },
+        }],
+      })
+      await engine.prepare(undefined, undefined, { skipModules: true, skipHints: true })
+
+      expect(engine.routes[0]?.diagnostic).toMatchObject({
+        kind: 'markdown+jsx',
+        title: 'Heading ID error',
+        filePath: 'source/guide.mdx',
+        details: expect.stringContaining('Invalid heading ID "UPPER" at 6:1'),
+      })
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
+  })
+
   it.each([
     ['markdown', 'md', 'Markdown'],
     ['markdown+jsx', 'mdx', 'MDX'],

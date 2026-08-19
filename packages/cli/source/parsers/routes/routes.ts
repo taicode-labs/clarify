@@ -1,63 +1,26 @@
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { extname, join, relative } from 'node:path'
 
-import GithubSlugger from 'github-slugger'
-import { toString } from 'mdast-util-to-string'
-import { remark } from 'remark'
-import { visit } from 'unist-util-visit'
-
 import { contentVirtualModuleId, pageVirtualModuleId, pageVirtualModuleIdFromRef } from '../../core/runtime/module-ids.js'
 import type { ClarifyPage, ClarifyPageRouteIntent, ContentRoute, ContentSection, ClarifyNavigationNode, ClarifyPagesConfig, ClarifyPagesGroup, ClarifyPagesItem, ClarifyRouteIntent, ClarifyLocalizedText, ClarifyTabsConfig, LocalizedNavigation, LocalizedTabbedNavigation, MarkdownContentRoute, NavigationSection, ResolvedClarifyLocalesConfig, TabbedNavigation } from '../../types.js'
 import { createContentProcessor, type ContentProcessor } from '../content/content.js'
+import { analyzeHeadings } from '../markdown/headings.js'
 import { compileMarkdownContent } from '../markdown/markdown.js'
 import { compileMdxContent } from '../markdown/mdx.js'
 
 import { getFileUpdatedAt, resolveUpdatedAt } from './git-metadata.js'
+import { headingMetadata, kebabToTitle } from './heading-metadata.js'
 
 export type FindContentRoutesOptions = {
   contentProcessor?: ContentProcessor
 }
 
-export function kebabToTitle(str: string): string {
-  return str
-    .split('-')
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ')
-}
-
-function parseMdxTree(content: string) {
-  return remark.parse(content)
-}
+export { kebabToTitle }
 
 async function compileRouteDiagnostic(content: string, filePath: string, baseDir: string) {
   const compile = extname(filePath).toLowerCase() === '.md' ? compileMarkdownContent : compileMdxContent
   const result = await compile(content, { filePath, projectRoot: baseDir })
   return result.ok ? undefined : result.diagnostic
-}
-
-/** 从内容中提取第一个 H1 标题 */
-function extractH1(content: string): string {
-  const tree = parseMdxTree(content)
-  let title = ''
-  visit(tree, 'heading', (node) => {
-    if (!title && node.depth === 1) {
-      title = toString(node)
-    }
-  })
-  return title
-}
-
-/** 从 MDX/Markdown 内容中提取 H2/H3 章节 */
-function extractMdxSections(content: string): ContentSection[] {
-  const sections: ContentSection[] = []
-  const slugger = new GithubSlugger()
-  const tree = parseMdxTree(content)
-  visit(tree, 'heading', (node) => {
-    if (node.depth !== 2 && node.depth !== 3) return
-    const title = toString(node)
-    sections.push({ id: slugger.slug(title), title, level: node.depth })
-  })
-  return sections
 }
 
 function navigationSections(sections: ContentSection[]): NavigationSection[] {
@@ -127,13 +90,14 @@ export async function findContentRoutes(dir: string, base: string = dir, options
     if (entry.isDirectory()) {
       routes.push(...await findContentRoutes(fullPath, base, options))
     } else if (entry.isFile() && /\.mdx?$/.test(entry.name)) {
+      const kind = entry.name.toLowerCase().endsWith('.mdx') ? 'markdown+jsx' : 'markdown'
       const relativePath = relative(base, fullPath)
       const pathParts = relativePath.replace(/\.mdx?$/, '').split('/')
       const path = '/' + pathParts.map(p => p === 'index' ? '' : p).filter(Boolean).join('/')
       const cleanPath = path.replace(/\/+/g, '/').replace(/\/$/, '') || '/'
 
       const source = await readFile(fullPath, 'utf-8')
-      const { frontmatter, content } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
+      const { frontmatter, content, lineOffset } = await (options.contentProcessor ?? createContentProcessor()).processMdx(source, fullPath)
       const updatedAt = resolveUpdatedAt(frontmatter, await getFileUpdatedAt(fullPath, base))
       const page: ClarifyPage = {
         path: cleanPath,
@@ -141,19 +105,21 @@ export async function findContentRoutes(dir: string, base: string = dir, options
         frontmatter,
         content,
       }
-      const diagnostic = await compileRouteDiagnostic(page.content, fullPath, base)
+      const analysis = analyzeHeadings(page.content, { kind, filePath: fullPath, projectRoot: base, lineOffset })
+      const compileDiagnostic = await compileRouteDiagnostic(analysis.normalizedContent, fullPath, base)
+      const { sections, headingAliases } = headingMetadata(analysis)
 
       let title = typeof page.frontmatter.title === 'string' ? page.frontmatter.title : ''
       if (!title) {
         const lastPart = pathParts[pathParts.length - 1] ?? ''
         const stem = lastPart === 'index'
-          ? (pathParts.length >= 2 ? pathParts[pathParts.length - 2]! : extractH1(page.content))
+          ? (pathParts.length >= 2 ? pathParts[pathParts.length - 2]! : analysis.headings.find(heading => heading.level === 1)?.title ?? '')
           : lastPart
         title = kebabToTitle(stem) || 'Untitled'
       }
 
       routes.push({
-        kind: entry.name.toLowerCase().endsWith('.mdx') ? 'markdown+jsx' : 'markdown',
+        kind,
         path: cleanPath,
         basePath: cleanPath,
         meta: {
@@ -163,7 +129,8 @@ export async function findContentRoutes(dir: string, base: string = dir, options
           group: typeof page.frontmatter.group === 'string' ? page.frontmatter.group : undefined,
           layout: page.frontmatter.layout === 'documentation' || page.frontmatter.layout === 'blog' ? page.frontmatter.layout : undefined,
           updatedAt,
-          sections: extractMdxSections(page.content),
+          sections,
+          ...(headingAliases ? { headingAliases } : {}),
         },
         module: {
           pageVirtualModuleId: pageVirtualModuleId(relativePath.replace(/\.mdx?$/, '')),
@@ -173,8 +140,9 @@ export async function findContentRoutes(dir: string, base: string = dir, options
           filePath: fullPath,
           frontmatter: page.frontmatter,
           content: page.content,
+          lineOffset,
         },
-        diagnostic,
+        diagnostic: analysis.diagnostic ?? compileDiagnostic,
       })
     }
   }
