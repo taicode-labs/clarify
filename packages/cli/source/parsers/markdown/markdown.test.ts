@@ -23,6 +23,14 @@ describe('compileMarkdownContent', () => {
     expect(result.ok).toBe(true)
   })
 
+  it('accepts normalized stable-anchor input without invoking Shiki', async () => {
+    // Catches a regression where compiler-only anchor syntax becomes an MD
+    // diagnostic before the full Vite compiler can consume it.
+    const result = await compileMarkdownContent('## Auto config [](clarify-internal-heading-id:auto-config)')
+
+    expect(result.ok).toBe(true)
+  })
+
   it('does not invoke Shiki during the diagnostic compile', async () => {
     // Content with a fenced code block that WOULD trigger Shiki if the rehype
     // pipeline ran. The diagnostic path must skip rehypePlugins entirely so

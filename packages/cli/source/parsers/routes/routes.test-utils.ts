@@ -52,6 +52,7 @@ export function contentRoute(route: ContentRouteFixture = {}): ContentRoute {
       filePath: filePath ?? source?.filePath ?? 'index.mdx',
       frontmatter: frontmatter ?? source?.frontmatter,
       content: content ?? source?.content,
+      lineOffset: source?.lineOffset,
       sourceEditUrl: sourceEditUrl ?? source?.sourceEditUrl,
     },
     ...rest,

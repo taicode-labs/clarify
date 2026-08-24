@@ -23,6 +23,18 @@ keywords:
 # Writing content
 ```
 
+## Stable heading links
+
+Add an explicit ID when a heading link must stay stable even if its visible title changes. This works in both `.md` and `.mdx` files.
+
+```mdx
+## 推荐：自动配置 {#auto-config}
+```
+
+The explicit ID replaces the generated ID and becomes the heading's only fragment. IDs may contain lowercase ASCII letters, numbers, and single hyphens. If you omit the marker, Clarify keeps using the generated ID.
+
+Invalid or duplicate final IDs are build errors that include the source location. Changing or removing an explicit ID breaks links that use the old fragment, just like renaming an automatically generated heading ID.
+
 ## Callouts
 
 <Callout title="Use callouts for important notes">

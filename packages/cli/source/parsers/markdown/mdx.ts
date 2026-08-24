@@ -1,6 +1,6 @@
 import { compile, type CompileOptions } from '@mdx-js/mdx'
 import rehypeShiki from '@shikijs/rehype'
-import rehypeSlug from 'rehype-slug'
+import GithubSlugger from 'github-slugger'
 import { createCssVariablesTheme } from 'shiki'
 import { visit } from 'unist-util-visit'
 
@@ -8,6 +8,8 @@ import { markdownRemarkPlugins, parseCodeMeta } from '@clarify-labs/renderer'
 
 import type { ContentDiagnostic } from '../../types.js'
 import { createContentDiagnostic } from '../content/diagnostic.js'
+
+import { remarkApplyHeadingIds } from './headings.js'
 
 type HastNode = {
   type: string
@@ -46,9 +48,37 @@ export function rehypeParseCodeBlocks() {
   }
 }
 
-export const remarkPlugins: unknown[] = markdownRemarkPlugins
+function hastText(node: HastNode): string {
+  if (node.type === 'text') return node.value ?? ''
+  return (node.children ?? []).map(hastText).join('')
+}
+
+function isHeadingElement(node: HastNode): boolean {
+  return Boolean(node.tagName && /^h[1-6]$/.test(node.tagName))
+}
+
+export function rehypeAddMissingHeadingIds() {
+  return (tree: HastNode) => {
+    const slugger = new GithubSlugger()
+    const reservedIds = new Set<string>()
+    visit(tree, 'element', (node: HastNode) => {
+      if (isHeadingElement(node) && typeof node.properties?.id === 'string' && node.properties.id) reservedIds.add(node.properties.id)
+    })
+    visit(tree, 'element', (node: HastNode) => {
+      if (!isHeadingElement(node)) return
+      const title = hastText(node)
+      let fallbackId = slugger.slug(title)
+      if (node.properties?.id) return
+      while (reservedIds.has(fallbackId)) fallbackId = slugger.slug(title)
+      node.properties = node.properties ?? {}
+      node.properties.id = fallbackId
+    })
+  }
+}
+
+export const remarkPlugins: unknown[] = [remarkApplyHeadingIds, ...markdownRemarkPlugins]
 export const rehypePlugins: NonNullable<CompileOptions['rehypePlugins']> = [
-  rehypeSlug,
+  rehypeAddMissingHeadingIds,
   rehypeParseCodeBlocks,
   [rehypeShiki, {
     theme: cssVariablesTheme,

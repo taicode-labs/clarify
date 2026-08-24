@@ -62,6 +62,16 @@ describe('parseFrontmatter', () => {
     expect(parseFrontmatter(content)).toEqual({
       frontmatter: { title: '入门概览', icon: 'lucide:rocket' },
       content: '# 正文标题',
+      lineOffset: 5,
+    })
+  })
+
+  it('counts frontmatter lines before a body with no separating blank line', () => {
+    const content = ['---', 'title: Page', '---', '# Body'].join('\n')
+
+    expect(parseFrontmatter(content)).toMatchObject({
+      content: '# Body',
+      lineOffset: 3,
     })
   })
 })
