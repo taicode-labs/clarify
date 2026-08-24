@@ -12,19 +12,15 @@ export function kebabToTitle(str: string): string {
     .join(' ')
 }
 
-export function headingMetadata(analysis: HeadingAnalysis): Pick<ContentRoute['meta'], 'sections' | 'headingAliases'> {
+export function headingMetadata(analysis: HeadingAnalysis): Pick<ContentRoute['meta'], 'sections'> {
   const sections = analysis.headings
     .filter(heading => heading.level === 2 || heading.level === 3)
     .map(heading => ({
-      id: heading.canonicalId,
+      id: heading.id,
       title: heading.title,
       level: heading.level,
-      ...(heading.legacyIds.length > 0 ? { aliases: heading.legacyIds } : {}),
     }))
-  const headingAliases = Object.fromEntries(
-    analysis.headings.flatMap(heading => heading.legacyIds.map(alias => [alias, heading.canonicalId])),
-  )
-  return { sections, ...(Object.keys(headingAliases).length > 0 ? { headingAliases } : {}) }
+  return { sections }
 }
 
 function resolvedRouteTitle(route: ContentRoute, analysis: HeadingAnalysis): string {
@@ -49,11 +45,9 @@ export async function reanalyzeMarkdownRoute(route: ContentRoute, projectRoot: s
   })
   const compile = route.kind === 'markdown' ? compileMarkdownContent : compileMdxContent
   const result = await compile(analysis.normalizedContent, { filePath: route.source.filePath, projectRoot })
-  const { headingAliases: _headingAliases, ...meta } = route.meta
-
   return {
     ...route,
-    meta: { ...meta, title: resolvedRouteTitle(route, analysis), ...headingMetadata(analysis) },
+    meta: { ...route.meta, title: resolvedRouteTitle(route, analysis), ...headingMetadata(analysis) },
     diagnostic: analysis.diagnostic ?? (result.ok ? undefined : result.diagnostic),
   }
 }

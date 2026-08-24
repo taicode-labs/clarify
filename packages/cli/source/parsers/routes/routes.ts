@@ -107,7 +107,7 @@ export async function findContentRoutes(dir: string, base: string = dir, options
       }
       const analysis = analyzeHeadings(page.content, { kind, filePath: fullPath, projectRoot: base, lineOffset })
       const compileDiagnostic = await compileRouteDiagnostic(analysis.normalizedContent, fullPath, base)
-      const { sections, headingAliases } = headingMetadata(analysis)
+      const { sections } = headingMetadata(analysis)
 
       let title = typeof page.frontmatter.title === 'string' ? page.frontmatter.title : ''
       if (!title) {
@@ -130,7 +130,6 @@ export async function findContentRoutes(dir: string, base: string = dir, options
           layout: page.frontmatter.layout === 'documentation' || page.frontmatter.layout === 'blog' ? page.frontmatter.layout : undefined,
           updatedAt,
           sections,
-          ...(headingAliases ? { headingAliases } : {}),
         },
         module: {
           pageVirtualModuleId: pageVirtualModuleId(relativePath.replace(/\.mdx?$/, '')),

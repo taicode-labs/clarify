@@ -44,13 +44,13 @@ describe('analyzeHeadings', () => {
       'escaped-example',
       '## Escaped \\{#example\\} [](clarify-internal-heading-id:escaped-example)',
     ],
-  ])('preserves a literal marker-shaped suffix in MDX %s', (_label, source, title, canonicalId, normalizedContent) => {
+  ])('preserves a literal marker-shaped suffix in MDX %s', (_label, source, title, id, normalizedContent) => {
     // Catches length-preserving MDX syntax masking leaking placeholder text
     // into a heading when the marker-shaped suffix is literal, not metadata.
     const result = analyzeHeadings(source, { kind: 'markdown+jsx' })
 
     expect(result.headings).toEqual([
-      expect.objectContaining({ title, canonicalId, legacyIds: [] }),
+      expect.objectContaining({ title, id }),
     ])
     expect(result.normalizedContent).toBe(normalizedContent)
     expect(result.diagnostic).toBeUndefined()
@@ -89,7 +89,7 @@ describe('analyzeHeadings', () => {
     const result = analyzeHeadings(source, { kind: 'markdown+jsx' })
 
     expect(result.headings).toEqual([
-      expect.objectContaining({ level: 2, title: 'Real section', canonicalId: 'real-section' }),
+      expect.objectContaining({ level: 2, title: 'Real section', id: 'real-section' }),
     ])
     expect(result.normalizedContent).toContain(mdxBoundary)
     expect(result.normalizedContent).toContain('## Real section [](clarify-internal-heading-id:real-section)')
@@ -99,9 +99,7 @@ describe('analyzeHeadings', () => {
     expect(result.normalizedContent).not.toContain('clarify-internal-heading-id:jsx-fake')
   })
 
-  it('keeps display titles while assigning explicit and legacy IDs in document order', () => {
-    // Catches a regression where the explicit marker is included in the title,
-    // or an explicit ID stops the shared legacy slug sequence.
+  it('uses one final ID and lets explicit IDs bypass the automatic slug sequence', () => {
     const result = analyzeHeadings([
       '# 页面',
       '## 推荐：自动配置 {#auto-config}',
@@ -109,9 +107,9 @@ describe('analyzeHeadings', () => {
     ].join('\n'), { kind: 'markdown+jsx' })
 
     expect(result.headings).toEqual([
-      expect.objectContaining({ level: 1, title: '页面', canonicalId: '页面', legacyIds: [] }),
-      expect.objectContaining({ level: 2, title: '推荐：自动配置', canonicalId: 'auto-config', legacyIds: ['推荐自动配置'] }),
-      expect.objectContaining({ level: 3, title: '推荐：自动配置', canonicalId: '推荐自动配置-1', legacyIds: [] }),
+      expect.objectContaining({ level: 1, title: '页面', id: '页面' }),
+      expect.objectContaining({ level: 2, title: '推荐：自动配置', id: 'auto-config' }),
+      expect.objectContaining({ level: 3, title: '推荐：自动配置', id: '推荐自动配置' }),
     ])
     expect(result.normalizedContent).not.toContain('{#auto-config}')
     expect(result.normalizedContent).toContain('clarify-internal-heading-id:auto-config')
@@ -131,9 +129,9 @@ describe('analyzeHeadings', () => {
     ].join('\n'), { kind: 'markdown' })
 
     expect(result.headings).toEqual([
-      expect.objectContaining({ title: 'Closing hashes', canonicalId: 'closing-hashes' }),
-      expect.objectContaining({ title: 'Setext heading', canonicalId: 'setext-heading' }),
-      expect.objectContaining({ title: 'Formatted heading', canonicalId: 'formatted-heading' }),
+      expect.objectContaining({ title: 'Closing hashes', id: 'closing-hashes' }),
+      expect.objectContaining({ title: 'Setext heading', id: 'setext-heading' }),
+      expect.objectContaining({ title: 'Formatted heading', id: 'formatted-heading' }),
     ])
     expect(result.normalizedContent).toContain('## Closing hashes [](clarify-internal-heading-id:closing-hashes) ##')
     expect(result.normalizedContent).toContain('Setext **heading** [](clarify-internal-heading-id:setext-heading)')
@@ -152,7 +150,7 @@ describe('analyzeHeadings', () => {
       '###### Same',
     ].join('\n'), { kind: 'markdown' })
 
-    expect(result.headings.map(heading => heading.canonicalId)).toEqual([
+    expect(result.headings.map(heading => heading.id)).toEqual([
       'same',
       'same-1',
       'same-2',
@@ -162,9 +160,7 @@ describe('analyzeHeadings', () => {
     ])
   })
 
-  it('reports invalid and conflicting canonical and legacy IDs with source locations', () => {
-    // Catches a regression where broken IDs silently render or aliases shadow
-    // a later canonical ID.
+  it('reports invalid and duplicate final IDs with source locations', () => {
     const result = analyzeHeadings([
       '# Alpha {#duplicate}',
       '## Beta {#duplicate}',

@@ -153,7 +153,7 @@ describe('findContentRoutes', () => {
   it.each([
     ['page.md', 'markdown'],
     ['page.mdx', 'markdown+jsx'],
-  ])('uses canonical heading IDs and legacy aliases for %s', async (fileName, kind) => {
+  ])('uses explicit heading IDs without alias metadata for %s', async (fileName, kind) => {
     const content = [
       '# 概览',
       '',
@@ -167,13 +167,9 @@ describe('findContentRoutes', () => {
 
     expect(route?.kind).toBe(kind)
     expect(route?.meta.sections).toEqual([
-      { id: 'auto-config', title: '推荐：自动配置', level: 2, aliases: ['推荐自动配置'] },
-      { id: 'details', title: '详细说明', level: 3, aliases: ['详细说明'] },
+      { id: 'auto-config', title: '推荐：自动配置', level: 2 },
+      { id: 'details', title: '详细说明', level: 3 },
     ])
-    expect(route?.meta.headingAliases).toEqual({
-      推荐自动配置: 'auto-config',
-      详细说明: 'details',
-    })
     expect(route?.source.content).toBe(content)
   })
 
@@ -210,7 +206,7 @@ describe('findContentRoutes', () => {
     })
   })
 
-  it('reports duplicate canonical heading IDs with both locations', async () => {
+  it('reports duplicate final heading IDs with both locations', async () => {
     writeFileSync(join(tempDir, 'duplicate.mdx'), '# One {#same}\n\n## Two {#same}', 'utf-8')
 
     const [route] = await findContentRoutes(tempDir)
@@ -222,7 +218,7 @@ describe('findContentRoutes', () => {
     })
   })
 
-  it('reports canonical-to-alias heading ID collisions across H1, H2, and H3', async () => {
+  it('does not reserve an automatic slug for a heading with an explicit ID', async () => {
     writeFileSync(join(tempDir, 'collision.mdx'), [
       '# Alpha {#alpha-id}',
       '',
@@ -233,14 +229,14 @@ describe('findContentRoutes', () => {
 
     const [route] = await findContentRoutes(tempDir)
 
-    expect(route?.diagnostic).toMatchObject({
-      title: 'Heading ID error',
-      filePath: 'collision.mdx',
-      details: expect.stringContaining('Heading ID "alpha" at 5:1 conflicts with the heading at 1:1'),
-    })
+    expect(route?.meta.sections).toEqual([
+      { id: 'beta', title: 'Beta', level: 2 },
+      { id: 'alpha', title: 'Gamma', level: 3 },
+    ])
+    expect(route?.diagnostic).toBeUndefined()
   })
 
-  it('reports raw HTML ID conflicts with Markdown canonical IDs at both source locations', async () => {
+  it('reports raw HTML ID conflicts with explicit Markdown IDs at both source locations', async () => {
     // Catches raw HTML headings bypassing the analyzer namespace and leaving
     // duplicate IDs for the browser to resolve ambiguously.
     writeFileSync(join(tempDir, 'raw-conflict.md'), [
@@ -260,28 +256,18 @@ describe('findContentRoutes', () => {
 
   it.each([
     [
-      'intrinsic first against a canonical ID',
+      'intrinsic first against an explicit ID',
       ['<h2 id="stable">Raw</h2>', '', '## Markdown {#stable}'].join('\n'),
       'Heading ID "stable" at 3:1 conflicts with the heading at 1:1',
     ],
     [
-      'Markdown first against an intrinsic ID',
+      'explicit Markdown ID first against an intrinsic ID',
       ['## Markdown {#stable}', '', '<h2 id="stable">Raw</h2>'].join('\n'),
       'Heading ID "stable" at 3:1 conflicts with the heading at 1:1',
     ],
-    [
-      'intrinsic first against a legacy alias',
-      ['<h2 id="duplicate">Raw</h2>', '', '## Duplicate {#stable}'].join('\n'),
-      'Heading ID "duplicate" at 3:1 conflicts with the heading at 1:1',
-    ],
-    [
-      'Markdown alias first against an intrinsic ID',
-      ['## Duplicate {#stable}', '', '<h2 id="duplicate">Raw</h2>'].join('\n'),
-      'Heading ID "duplicate" at 3:1 conflicts with the heading at 1:1',
-    ],
   ])('reports static intrinsic MDX heading conflicts with source locations: %s', async (_label, content, detail) => {
-    // Catches intrinsic h1-h6 elements bypassing the canonical/legacy ID
-    // namespace solely because MDX represents them as JSX nodes.
+    // Catches intrinsic h1-h6 elements bypassing the final ID namespace
+    // solely because MDX represents them as JSX nodes.
     writeFileSync(join(tempDir, 'intrinsic-conflict.mdx'), content, 'utf-8')
 
     const [route] = await findContentRoutes(tempDir)
@@ -295,10 +281,9 @@ describe('findContentRoutes', () => {
 
   it.each([
     ['fallback first in Markdown', 'md', '<h2>Stable</h2>\n\n## Other {#stable}'],
-    ['canonical first in Markdown', 'md', '## Other {#stable}\n\n<h2>Stable</h2>'],
-  ])('checks raw HTML fallback IDs against the unified namespace after legacy ordering: %s', async (_label, extension, content) => {
-    // Catches canonical reservations silently suffixing a rendered heading's
-    // true old ID instead of reporting the resulting DOM collision.
+    ['explicit ID first in Markdown', 'md', '## Other {#stable}\n\n<h2>Stable</h2>'],
+  ])('checks raw HTML fallback IDs against the final ID namespace: %s', async (_label, extension, content) => {
+    // Catches duplicate final IDs being silently suffixed instead of reported.
     writeFileSync(join(tempDir, `fallback-conflict.${extension}`), content, 'utf-8')
 
     const [route] = await findContentRoutes(tempDir)
@@ -362,27 +347,25 @@ describe('findContentRoutes', () => {
 
     expect(route?.source.content).toBe(content)
     expect(route?.meta.sections).toEqual([
-      { id: 'stable', title: 'Duplicate', level: 2, aliases: ['duplicate'] },
+      { id: 'stable', title: 'Duplicate', level: 2 },
     ])
     expect(route?.diagnostic).toBeUndefined()
   })
 
   it.each([
-    ['raw-section.md', '<h2>Duplicate</h2>\n\n## Duplicate {#stable}', ['duplicate-1']],
-    ['intrinsic-section.mdx', '<h2>Duplicate</h2>\n\n## Duplicate {#stable}', ['duplicate']],
-    ['raw-section-reversed.md', '## Duplicate {#stable}\n\n<h2>Duplicate</h2>', ['duplicate']],
-    ['intrinsic-section-reversed.mdx', '## Duplicate {#stable}\n\n<h2>Duplicate</h2>', ['duplicate']],
-  ])('keeps rendered headings out of route sections while preserving ordered aliases for %s', async (fileName, content, aliases) => {
-    // Catches namespace analysis promoting rendered H2/H3 elements into
-    // navigation or letting ID-less intrinsic MDX consume a legacy slug.
+    ['raw-section.md', '<h2>Duplicate</h2>\n\n## Duplicate {#stable}'],
+    ['intrinsic-section.mdx', '<h2>Duplicate</h2>\n\n## Duplicate {#stable}'],
+    ['raw-section-reversed.md', '## Duplicate {#stable}\n\n<h2>Duplicate</h2>'],
+    ['intrinsic-section-reversed.mdx', '## Duplicate {#stable}\n\n<h2>Duplicate</h2>'],
+  ])('keeps rendered headings out of route sections for %s', async (fileName, content) => {
+    // Catches namespace analysis promoting rendered H2/H3 elements into navigation.
     writeFileSync(join(tempDir, fileName), content, 'utf-8')
 
     const [route] = await findContentRoutes(tempDir)
 
     expect(route?.meta.sections).toEqual([
-      { id: 'stable', title: 'Duplicate', level: 2, aliases },
+      { id: 'stable', title: 'Duplicate', level: 2 },
     ])
-    expect(route?.meta.headingAliases).toEqual({ [aliases[0]!]: 'stable' })
     expect(route?.diagnostic).toBeUndefined()
   })
 

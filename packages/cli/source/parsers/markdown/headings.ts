@@ -12,8 +12,7 @@ export const HEADING_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 export type AnalyzedHeading = {
   level: 1 | 2 | 3 | 4 | 5 | 6
   title: string
-  canonicalId: string
-  legacyIds: string[]
+  id: string
   position: { line: number; column: number }
 }
 
@@ -426,8 +425,7 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
     const heading: AnalyzedHeading = {
       level: (node.depth ?? 1) as AnalyzedHeading['level'],
       title,
-      canonicalId: hasValidExplicitId ? marker.id : '',
-      legacyIds: [],
+      id: hasValidExplicitId ? marker.id : '',
       position: headingPosition(node, lineOffset),
     }
 
@@ -457,37 +455,47 @@ export function analyzeHeadings(content: string, options: AnalyzeHeadingsOptions
   }
 
   documentHeadings.sort((left, right) => left.offset - right.offset)
-  const legacySlugger = new GithubSlugger()
+  const slugger = new GithubSlugger()
   for (const documentHeading of documentHeadings) {
-    if (documentHeading.rendered?.id !== undefined) continue
-    if (documentHeading.title === undefined) continue
-    const legacyId = legacySlugger.slug(documentHeading.title)
     if (documentHeading.markdown) {
       const heading = documentHeading.markdown
       const input = markdownHeadingInputs.get(heading)!
-      heading.canonicalId = input.hasValidExplicitId ? input.marker!.id : legacyId
-      heading.legacyIds = input.marker && legacyId !== heading.canonicalId ? [legacyId] : []
+      if (input.hasValidExplicitId) {
+        edits.push({
+          start: input.marker!.start,
+          end: input.marker!.end,
+          replacement: ` [](clarify-internal-heading-id:${heading.id})`,
+        })
+        continue
+      }
+    }
+    if (documentHeading.rendered?.id !== undefined) continue
+    if (documentHeading.title === undefined) continue
+    const generatedId = slugger.slug(documentHeading.title)
+    if (documentHeading.markdown) {
+      const heading = documentHeading.markdown
+      const input = markdownHeadingInputs.get(heading)!
+      heading.id = generatedId
 
-      const link = ` [](clarify-internal-heading-id:${heading.canonicalId})`
+      const link = ` [](clarify-internal-heading-id:${heading.id})`
       if (input.marker) {
         edits.push({ start: input.marker.start, end: input.marker.end, replacement: link })
       } else if (input.contentEnd !== undefined) {
         edits.push({ start: input.contentEnd, end: input.contentEnd, replacement: link })
       }
     } else if (documentHeading.rendered && documentHeading.rendered.id === undefined) {
-      documentHeading.rendered.id = legacyId
+      documentHeading.rendered.id = generatedId
       edits.push({
         start: documentHeading.rendered.attributeOffset,
         end: documentHeading.rendered.attributeOffset,
-        replacement: ` id="${escapeHtmlAttribute(legacyId)}"`,
+        replacement: ` id="${escapeHtmlAttribute(generatedId)}"`,
       })
     }
   }
 
   for (const documentHeading of documentHeadings) {
     if (documentHeading.markdown) {
-      claimId(documentHeading.markdown.canonicalId, documentHeading.markdown.position)
-      for (const legacyId of documentHeading.markdown.legacyIds) claimId(legacyId, documentHeading.markdown.position)
+      claimId(documentHeading.markdown.id, documentHeading.markdown.position)
     } else if (documentHeading.rendered?.id) {
       claimId(documentHeading.rendered.id, documentHeading.rendered.position)
     }

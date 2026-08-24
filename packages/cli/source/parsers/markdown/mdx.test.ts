@@ -42,17 +42,17 @@ function codeTree(language = 'ts', code = 'const answer = 42\n', codeProperties:
 
 describe('mdx rehype plugins', () => {
   it.each([
-    ['Markdown raw HTML with an implicit ID', 'markdown', '## Hello <em>world</em>', 'Hello world', 'hello-world', []],
-    ['Markdown raw HTML with an explicit ID', 'markdown', '## Hello <em>world</em> {#stable}', 'Hello world', 'stable', ['hello-world']],
-    ['Markdown image with an implicit ID', 'markdown', '## Hello ![logo](logo.png)', 'Hello ', 'hello-', []],
-    ['Markdown image with an explicit ID', 'markdown', '## Hello ![logo](logo.png) {#stable}', 'Hello ', 'stable', ['hello-']],
-    ['MDX image with an implicit ID', 'markdown+jsx', '## Hello ![logo](logo.png)', 'Hello ', 'hello-', []],
-    ['MDX image with an explicit ID', 'markdown+jsx', '## Hello ![logo](logo.png) {#stable}', 'Hello ', 'stable', ['hello-']],
-    ['Markdown footnote with an implicit ID', 'markdown', '## Hello[^note]\n\n[^note]: Footnote', 'Hello1', 'hello1', []],
-    ['Markdown footnote with an explicit ID', 'markdown', '## Hello[^note] {#stable}\n\n[^note]: Footnote', 'Hello1', 'stable', ['hello1']],
-    ['MDX footnote with an implicit ID', 'markdown+jsx', '## Hello[^note]\n\n[^note]: Footnote', 'Hello1', 'hello1', []],
-    ['MDX footnote with an explicit ID', 'markdown+jsx', '## Hello[^note] {#stable}\n\n[^note]: Footnote', 'Hello1', 'stable', ['hello1']],
-  ] as const)('preserves rendered heading text compatibility for %s', async (_label, kind, source, title, canonicalId, legacyIds) => {
+    ['Markdown raw HTML with an implicit ID', 'markdown', '## Hello <em>world</em>', 'Hello world', 'hello-world'],
+    ['Markdown raw HTML with an explicit ID', 'markdown', '## Hello <em>world</em> {#stable}', 'Hello world', 'stable'],
+    ['Markdown image with an implicit ID', 'markdown', '## Hello ![logo](logo.png)', 'Hello ', 'hello-'],
+    ['Markdown image with an explicit ID', 'markdown', '## Hello ![logo](logo.png) {#stable}', 'Hello ', 'stable'],
+    ['MDX image with an implicit ID', 'markdown+jsx', '## Hello ![logo](logo.png)', 'Hello ', 'hello-'],
+    ['MDX image with an explicit ID', 'markdown+jsx', '## Hello ![logo](logo.png) {#stable}', 'Hello ', 'stable'],
+    ['Markdown footnote with an implicit ID', 'markdown', '## Hello[^note]\n\n[^note]: Footnote', 'Hello1', 'hello1'],
+    ['Markdown footnote with an explicit ID', 'markdown', '## Hello[^note] {#stable}\n\n[^note]: Footnote', 'Hello1', 'stable'],
+    ['MDX footnote with an implicit ID', 'markdown+jsx', '## Hello[^note]\n\n[^note]: Footnote', 'Hello1', 'hello1'],
+    ['MDX footnote with an explicit ID', 'markdown+jsx', '## Hello[^note] {#stable}\n\n[^note]: Footnote', 'Hello1', 'stable'],
+  ] as const)('preserves rendered heading text and final IDs for %s', async (_label, kind, source, title, id) => {
     // Catches mdast-only text leaking into metadata and IDs while retaining
     // rendered raw-HTML descendants and generated GFM footnote labels.
     const analysis = analyzeHeadings(source, { kind })
@@ -69,9 +69,9 @@ describe('mdx rehype plugins', () => {
     }))
 
     expect(analysis.headings).toEqual([
-      expect.objectContaining({ title, canonicalId, legacyIds }),
+      expect.objectContaining({ title, id }),
     ])
-    expect(compiled).toContain(`id="${canonicalId}"`)
+    expect(compiled).toContain(`id="${id}"`)
     expect(analysis.diagnostic).toBeUndefined()
   })
 
@@ -103,7 +103,7 @@ describe('mdx rehype plugins', () => {
   })
 
   it('preserves exact origin/main compiler output when an empty intrinsic ID precedes an implicit heading', async () => {
-    // Catches an existing-but-empty intrinsic ID advancing the legacy slugger
+    // Catches an existing-but-empty intrinsic ID advancing the automatic slugger
     // even though origin/main leaves the intrinsic ID and slug order unchanged.
     const source = '<h2 id="">Duplicate</h2>\n\n## Duplicate'
     const baseline = String(await compile(source, {
@@ -120,14 +120,12 @@ describe('mdx rehype plugins', () => {
 
     expect(compiled).toBe(baseline)
     expect(analysis.headings).toEqual([
-      expect.objectContaining({ canonicalId: 'duplicate', legacyIds: [] }),
+      expect.objectContaining({ id: 'duplicate' }),
     ])
     expect(analysis.diagnostic).toBeUndefined()
   })
 
-  it('keeps the origin/main implicit slug as the alias of a following canonical heading', async () => {
-    // Catches an ID-less intrinsic heading consuming `duplicate`, which changes
-    // both the old implicit ID and the compatibility alias to `duplicate-1`.
+  it('keeps an explicit ID independent from a preceding ID-less intrinsic heading', async () => {
     const baseline = String(await compile('<h2>Duplicate</h2>\n\n## Duplicate', {
       jsx: true,
       remarkPlugins: baselineRemarkPlugins,
@@ -142,15 +140,13 @@ describe('mdx rehype plugins', () => {
 
     expect(baseline).toContain('<h2>{"Duplicate"}</h2>{"\\n"}<_components.h2 id="duplicate">')
     expect(analysis.headings).toEqual([
-      expect.objectContaining({ canonicalId: 'stable', legacyIds: ['duplicate'] }),
+      expect.objectContaining({ id: 'stable' }),
     ])
     expect(compiled).toContain('<h2>{"Duplicate"}</h2>{"\\n"}<_components.h2 id="stable">')
     expect(analysis.diagnostic).toBeUndefined()
   })
 
-  it('keeps the origin/main implicit slug when an empty intrinsic ID precedes a canonical heading', async () => {
-    // Catches an existing-but-empty intrinsic ID being mistaken for a missing
-    // ID and consuming the compatibility slug before the Markdown heading.
+  it('keeps an explicit ID independent from a preceding empty intrinsic ID', async () => {
     const analysis = analyzeHeadings('<h2 id="">Duplicate</h2>\n\n## Duplicate {#stable}', { kind: 'markdown+jsx' })
     const compiled = String(await compile(analysis.normalizedContent, {
       jsx: true,
@@ -159,7 +155,7 @@ describe('mdx rehype plugins', () => {
     }))
 
     expect(analysis.headings).toEqual([
-      expect.objectContaining({ canonicalId: 'stable', legacyIds: ['duplicate'] }),
+      expect.objectContaining({ id: 'stable' }),
     ])
     expect(compiled).toContain('<h2 id="">{"Duplicate"}</h2>{"\\n"}<_components.h2 id="stable">')
     expect(analysis.diagnostic).toBeUndefined()
@@ -167,12 +163,10 @@ describe('mdx rehype plugins', () => {
 
   it.each([
     ['Markdown existing raw ID first', 'markdown', '<h2 id="duplicate">Duplicate</h2>\n\n## Duplicate {#stable}'],
-    ['Markdown canonical heading first', 'markdown', '## Duplicate {#stable}\n\n<h2 id="duplicate">Duplicate</h2>'],
+    ['Markdown explicit heading first', 'markdown', '## Duplicate {#stable}\n\n<h2 id="duplicate">Duplicate</h2>'],
     ['MDX existing intrinsic ID first', 'markdown+jsx', '<h2 id="duplicate">Duplicate</h2>\n\n## Duplicate {#stable}'],
-    ['MDX canonical heading first', 'markdown+jsx', '## Duplicate {#stable}\n\n<h2 id="duplicate">Duplicate</h2>'],
-  ] as const)('does not advance the legacy slug sequence for %s', async (_label, kind, source) => {
-    // Catches an existing rendered ID consuming `duplicate` even though the
-    // old rehype-slug pass skipped headings that already had an ID.
+    ['MDX explicit heading first', 'markdown+jsx', '## Duplicate {#stable}\n\n<h2 id="duplicate">Duplicate</h2>'],
+  ] as const)('keeps rendered IDs and explicit Markdown IDs independent for %s', async (_label, kind, source) => {
     const analysis = analyzeHeadings(source, { kind })
     const compiled = String(await compile(analysis.normalizedContent, {
       ...(kind === 'markdown'
@@ -189,9 +183,9 @@ describe('mdx rehype plugins', () => {
 
     expect(ids).toEqual(source.startsWith('##') ? ['stable', 'duplicate'] : ['duplicate', 'stable'])
     expect(analysis.headings).toEqual([
-      expect.objectContaining({ canonicalId: 'stable', legacyIds: ['duplicate'] }),
+      expect.objectContaining({ id: 'stable' }),
     ])
-    expect(analysis.diagnostic?.details).toContain('Heading ID "duplicate" at 3:1 conflicts with the heading at 1:1')
+    expect(analysis.diagnostic).toBeUndefined()
   })
 
   it.each([
@@ -208,16 +202,16 @@ describe('mdx rehype plugins', () => {
     [
       'Markdown explicit ID first',
       ['## Duplicate {#stable}', '', '<h2>Duplicate</h2>'].join('\n'),
-      ['stable', 'duplicate-1'],
+      ['stable', 'duplicate'],
     ],
     [
-      'raw HTML first before a Markdown legacy alias',
+      'raw HTML first before an explicit Markdown ID',
       ['<h2>Duplicate</h2>', '', '## Duplicate {#stable}'].join('\n'),
       ['duplicate', 'stable'],
     ],
   ])('keeps mixed duplicate heading IDs unique with %s', async (_label, source, expectedIds) => {
-    // Catches the fallback slugger skipping canonical Markdown headings or
-    // assigning a raw heading an ID reserved by a later canonical heading.
+    // Catches the fallback slugger advancing for explicit Markdown headings
+    // or assigning duplicate final IDs across raw and Markdown headings.
     const analysis = analyzeHeadings(source, { kind: 'markdown' })
     const compiled = String(await compile(analysis.normalizedContent, {
       format: 'md',
@@ -238,7 +232,7 @@ describe('mdx rehype plugins', () => {
 
     expect(analysis.normalizedContent).toBe('## A &amp; B [](clarify-internal-heading-id:stable)')
     expect(analysis.headings).toEqual([
-      expect.objectContaining({ title: 'A & B', canonicalId: 'stable', legacyIds: ['a--b'] }),
+      expect.objectContaining({ title: 'A & B', id: 'stable' }),
     ])
 
     const compiled = String(await compile(analysis.normalizedContent, {
@@ -261,7 +255,7 @@ describe('mdx rehype plugins', () => {
 
     expect(analysis.normalizedContent).toBe('## Use \\*literal\\* [](clarify-internal-heading-id:escaped)')
     expect(analysis.headings).toEqual([
-      expect.objectContaining({ title: 'Use *literal*', canonicalId: 'escaped', legacyIds: ['use-literal'] }),
+      expect.objectContaining({ title: 'Use *literal*', id: 'escaped' }),
     ])
 
     const compiled = String(await compile(analysis.normalizedContent, {
@@ -275,7 +269,7 @@ describe('mdx rehype plugins', () => {
     expect(compiled).not.toContain('{#escaped}')
   })
 
-  it('adds IDs to raw HTML Markdown headings without replacing canonical Markdown IDs', async () => {
+  it('adds IDs to raw HTML Markdown headings without replacing explicit Markdown IDs', async () => {
     // Catches removing rehype-slug from the Markdown raw-HTML pipeline without
     // restoring IDs for H1-H6 elements the Markdown analyzer cannot see.
     const analysis = analyzeHeadings([
@@ -361,9 +355,9 @@ describe('mdx rehype plugins', () => {
     expect(compiled).toContain('<_components.h2 data-x="foo\u00A0/" id="title">')
   })
 
-  it('applies canonical IDs from normalized headings through the shared pipeline', async () => {
+  it('applies final IDs from normalized headings through the shared pipeline', async () => {
     // Catches a regression where the compiler leaves its internal link in the
-    // output or lets the generic slugger derive a non-canonical heading ID.
+    // output or lets the generic slugger replace the selected heading ID.
     const compiled = String(await compile([
       '# Overview [](clarify-internal-heading-id:overview)',
       '',

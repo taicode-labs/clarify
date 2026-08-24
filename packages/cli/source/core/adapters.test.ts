@@ -121,8 +121,7 @@ describe('createViteAdapter', () => {
       expect(route?.source.content).toBe('# Final DOM\n\n## 推荐：自动配置 {#auto-config}')
       expect(route?.meta).toMatchObject({
         title: 'After hook',
-        sections: [{ id: 'auto-config', title: '推荐：自动配置', level: 2, aliases: ['推荐自动配置'] }],
-        headingAliases: { 推荐自动配置: 'auto-config' },
+        sections: [{ id: 'auto-config', title: '推荐：自动配置', level: 2 }],
       })
       expect(engine.navigation).toMatchObject({
         kind: 'flat',

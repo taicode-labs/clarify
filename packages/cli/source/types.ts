@@ -355,7 +355,6 @@ export type ContentSection = {
   id: string
   title: string
   level: number
-  aliases?: string[]
   badge?: string
   tags?: string[]
 }
@@ -369,7 +368,6 @@ export type ContentRouteMeta = {
   /** Latest source update as an ISO 8601 timestamp. */
   updatedAt?: string
   sections?: ContentSection[]
-  headingAliases?: Record<string, string>
 }
 
 export type PageRouteModule = {
