@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -84,6 +84,27 @@ export async function buildSSRBundle(root: string, ssrEntry: string, ssrOutDir: 
       },
     },
   })
+}
+
+export function resolveSSRBundlePath(ssrOutputDir: string): string {
+  const preferredEntries = ['entry-server.js', 'entry-server.mjs', 'entry-server.cjs']
+  for (const entryName of preferredEntries) {
+    const candidate = join(ssrOutputDir, entryName)
+    if (existsSync(candidate)) return candidate
+  }
+
+  const fallback = readdirSync(ssrOutputDir)
+    .filter(name => name.startsWith('entry-server.'))
+    .sort((a, b) => a.localeCompare(b))[0]
+  if (fallback) return join(ssrOutputDir, fallback)
+
+  const files = readdirSync(ssrOutputDir)
+    .sort((a, b) => a.localeCompare(b))
+    .slice(0, 20)
+
+  throw new Error(
+    `[clarify] SSR entry bundle not found in "${ssrOutputDir}". Tried entry-server.js, entry-server.mjs, entry-server.cjs. Found files: ${files.length > 0 ? files.join(', ') : '(empty directory)'}`
+  )
 }
 
 export async function renderSSGRoutes(routes: ContentRoute[], contextOrConfig: ClarifyProjectContext | ResolvedProjectConfig, outputDirectory: string, ssrBundlePath: string): Promise<void> {

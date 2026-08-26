@@ -9,7 +9,7 @@ import type { MarkdownContentRoute, ResolvedProjectConfig } from '../../types.js
 import { resolveFeaturesConfig } from '../config/config.js'
 
 import { injectSSRIntoTemplate } from './html-template.js'
-import { readIndexHtml, isNotFoundRoute, routeOutputFiles } from './ssg.js'
+import { readIndexHtml, isNotFoundRoute, resolveSSRBundlePath, routeOutputFiles } from './ssg.js'
 
 type RouteFixture = Partial<Omit<MarkdownContentRoute, 'kind' | 'meta' | 'module' | 'source'>> & {
   title?: string
@@ -267,5 +267,37 @@ describe('routeOutputFiles', () => {
     const route = { ...baseRoute, path: '/zh-CN/404', basePath: '/404', locale: 'zh-CN' }
     expect(isNotFoundRoute(route)).toBe(true)
     expect(routeOutputFiles(outputDirectory, route)).toEqual(['/site/output/zh-CN/404/index.html'])
+  })
+})
+
+describe('resolveSSRBundlePath', () => {
+  it('resolves entry-server.js when present', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'clarify-ssr-entry-'))
+    try {
+      writeFileSync(join(dir, 'entry-server.js'), 'export {}', 'utf-8')
+      expect(resolveSSRBundlePath(dir)).toBe(join(dir, 'entry-server.js'))
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('falls back to entry-server.mjs when .js is absent', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'clarify-ssr-entry-'))
+    try {
+      writeFileSync(join(dir, 'entry-server.mjs'), 'export {}', 'utf-8')
+      expect(resolveSSRBundlePath(dir)).toBe(join(dir, 'entry-server.mjs'))
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  it('throws with a helpful message when no entry-server bundle exists', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'clarify-ssr-entry-'))
+    try {
+      writeFileSync(join(dir, 'other-file.mjs'), 'export {}', 'utf-8')
+      expect(() => resolveSSRBundlePath(dir)).toThrow('SSR entry bundle not found')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })

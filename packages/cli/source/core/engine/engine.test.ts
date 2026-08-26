@@ -282,4 +282,24 @@ describe('ClarifyEngine phase hooks', () => {
       rmSync(outputDirectory, { recursive: true, force: true })
     }
   })
+
+  it('renders SSG when the SSR entry is emitted as entry-server.mjs', async () => {
+    const outputDirectory = mkdtempSync(join(tmpdir(), 'clarify-output-'))
+    const engine = new ClarifyEngine({ projectRoot: '/site', outputDirectory })
+
+    writeFileSync(join(outputDirectory, 'index.html'), '<div id="root"></div>', 'utf-8')
+    engine.configureRuntime({
+      outputDirectory,
+      buildSSRBundle: async ({ ssrOutDir }) => {
+        writeFileSync(join(ssrOutDir, 'entry-server.mjs'), 'export async function render() { return "<h1>ok</h1>" }', 'utf-8')
+      },
+    })
+
+    try {
+      await engine.runSSG()
+      expect(existsSync(join(outputDirectory, 'index.html'))).toBe(true)
+    } finally {
+      rmSync(outputDirectory, { recursive: true, force: true })
+    }
+  })
 })

@@ -20,6 +20,7 @@ import {
   SSR_ENTRY_CODE,
   buildSSRBundle,
   createTempEntryFile,
+  resolveSSRBundlePath,
   renderSSGRoutes,
 } from '../runtime/ssg.js'
 import { logStartupHints } from '../runtime/startup.js'
@@ -301,7 +302,7 @@ export class ClarifyEngine {
           plugins: this.runtime.ssrPlugins ?? [],
         })
 
-        const ssrBundlePath = join(ssrOutputDir, 'entry-server.js')
+        const ssrBundlePath = resolveSSRBundlePath(ssrOutputDir)
         await renderSSGRoutes(this.routes, this.runtimeContext(), outputDir, ssrBundlePath)
       } catch (err) {
         console.error('[clarify] SSG failed:', err)
