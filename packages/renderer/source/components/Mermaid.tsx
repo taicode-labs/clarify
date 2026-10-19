@@ -71,8 +71,8 @@ export function Mermaid(arg0: MermaidProps): ReactNode {
 
   if (error) {
     return (
-      <div className={clsx('clarify-mermaid clarify-mermaid-error my-6 overflow-x-auto rounded-2xl border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4', className)}>
-        <p className="text-sm font-semibold text-(--clarify-error-accent-text)">{t('mermaid.renderError')}</p>
+      <div className={clsx('clarify-mermaid clarify-mermaid-error my-6 overflow-x-auto rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-tone-danger-border) bg-(--clarify-tone-danger-background) p-4', className)}>
+        <p className="text-sm font-semibold text-(--clarify-tone-danger-text)">{t('mermaid.renderError')}</p>
         <pre className="mt-2 text-xs whitespace-pre-wrap text-(--clarify-ui-text-soft)">{error}</pre>
         <pre className="mt-2 text-xs whitespace-pre-wrap text-(--clarify-ui-text-faint)">{chart.trim()}</pre>
       </div>
@@ -83,7 +83,7 @@ export function Mermaid(arg0: MermaidProps): ReactNode {
     // Before hydration / while loading, keep the raw source visible so the
     // diagram still conveys information and the layout does not jump abruptly.
     return (
-      <div className={clsx('clarify-mermaid clarify-mermaid-loading not-prose my-6 overflow-x-auto rounded-2xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-4', className)}>
+      <div className={clsx('clarify-mermaid clarify-mermaid-loading not-prose my-6 overflow-x-auto rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-4', className)}>
         <pre className="text-xs text-(--clarify-ui-text-soft)">{chart.trim()}</pre>
       </div>
     )
@@ -102,7 +102,7 @@ function MermaidStaticSvg(arg0: MermaidStaticSvgProps): ReactNode {
   const { svg, className } = arg0
 
   return (
-    <div className={clsx('clarify-mermaid not-prose my-6 overflow-x-auto rounded-2xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-4', className)}>
+    <div className={clsx('clarify-mermaid not-prose my-6 overflow-x-auto rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-4', className)}>
       <div className="flex w-full justify-center [&_svg]:h-auto [&_svg]:max-w-full" dangerouslySetInnerHTML={{ __html: svg }} />
     </div>
   )

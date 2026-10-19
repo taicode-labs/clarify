@@ -39,7 +39,7 @@ type OptionContentProps = {
 }
 
 const defaultButtonClassName = 'inline-flex min-w-0 items-center justify-between gap-1 border-0 bg-transparent font-medium text-(--clarify-ui-text-strong) outline-hidden transition hover:bg-(--clarify-ui-hover-background) focus:ring-2 focus:ring-inset focus:ring-(--clarify-theme-tokens-colors-primary) data-disabled:cursor-not-allowed data-open:bg-(--clarify-ui-active-background)'
-const optionsClassName = 'z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 text-xs shadow-lg shadow-black/10 [--anchor-gap:--spacing(1)] focus:outline-none'
+const optionsClassName = 'z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 text-xs shadow-(--clarify-ui-shadow-popover) shadow-black/10 [--anchor-gap:--spacing(1)] focus:outline-none'
 const optionClassName = 'group flex min-h-9 cursor-default items-center justify-between gap-3 rounded-(--clarify-theme-tokens-radius-md) px-2.5 py-2 text-xs text-(--clarify-ui-text) select-none data-focus:bg-(--clarify-ui-hover-background) data-focus:text-(--clarify-ui-text-strong) data-selected:bg-(--clarify-ui-active-background) data-selected:text-(--clarify-ui-accent-text)'
 
 function OptionContent(arg0: OptionContentProps): ReactNode {

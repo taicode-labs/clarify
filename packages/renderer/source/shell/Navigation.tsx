@@ -38,15 +38,15 @@ function containsActivePath(node: NavigationNode, pathname: string, currentLocal
 }
 
 const sectionBadgeColorStyles: Record<string, string> = {
-  GET: 'text-emerald-500 dark:text-emerald-400',
-  POST: 'text-sky-500 dark:text-sky-400',
-  PUT: 'text-amber-500 dark:text-amber-400',
-  PATCH: 'text-amber-500 dark:text-amber-400',
-  DELETE: 'text-red-500 dark:text-rose-500',
-  OPTIONS: 'text-violet-500 dark:text-violet-400',
-  HEAD: 'text-zinc-500 dark:text-zinc-400',
-  TRACE: 'text-fuchsia-500 dark:text-fuchsia-400',
-  WEBHOOK: 'text-violet-500 dark:text-violet-400',
+  GET: 'text-(--clarify-http-method-get-text)',
+  POST: 'text-(--clarify-http-method-post-text)',
+  PUT: 'text-(--clarify-http-method-put-text)',
+  PATCH: 'text-(--clarify-http-method-patch-text)',
+  DELETE: 'text-(--clarify-http-method-delete-text)',
+  OPTIONS: 'text-(--clarify-http-method-options-text)',
+  HEAD: 'text-(--clarify-http-method-head-text)',
+  TRACE: 'text-(--clarify-http-method-trace-text)',
+  WEBHOOK: 'text-(--clarify-http-method-webhook-text)',
 }
 
 type SectionBadgeProps = { children: string }

@@ -43,18 +43,6 @@
 }
 
 @layer base {
-  :root {
-    --shiki-color-text: var(--color-white);
-    --shiki-token-constant: var(--color-emerald-300);
-    --shiki-token-string: var(--color-emerald-300);
-    --shiki-token-comment: var(--color-zinc-500);
-    --shiki-token-keyword: var(--color-sky-300);
-    --shiki-token-parameter: var(--color-pink-300);
-    --shiki-token-function: var(--color-violet-300);
-    --shiki-token-string-expression: var(--color-emerald-300);
-    --shiki-token-punctuation: var(--color-zinc-200);
-  }
-
   html {
     height: 100%;
     scroll-behavior: smooth;
@@ -118,42 +106,192 @@
 }
 
 @layer components {
+  /*
+   * Token layers
+   * ---------------------------------------------------------------------------
+   * 1. --clarify-theme-tokens-* : themeable palette + radii (presets, ThemeEditor)
+   * 2. --clarify-ui-*           : semantic surface/text/border layer
+   * 3. --clarify-tone-*         : status tones (callouts, tags, badges)
+   * 4. --clarify-*-layout-*     : internal metrics, never themed
+   *
+   * Components may only consume layers 2 and 3 so a preset swap re-skins the
+   * whole surface without component changes. Anything declared here must stay
+   * derivable from the theme tokens; both light and dark share one formula
+   * wherever the mixing stays legible in both modes.
+   */
+
   :root,
   .clarify-app {
+    /* ── Text ───────────────────────────────────────────────────────────── */
     --clarify-ui-text-strong: var(--clarify-theme-tokens-colors-foreground);
-    --clarify-ui-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 90%, transparent);
-    --clarify-ui-text-soft: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 84%, var(--clarify-theme-tokens-colors-background));
-    --clarify-ui-text-faint: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 74%, var(--clarify-theme-tokens-colors-background));
-    --clarify-ui-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 6%, transparent);
-    --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 12%, transparent);
-    --clarify-ui-tab-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 7%, var(--clarify-theme-tokens-colors-surface));
-    --clarify-ui-tab-indicator: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 78%, var(--clarify-theme-tokens-colors-foreground));
-    --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 5%, transparent);
-    --clarify-ui-overlay-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-muted) 28%, transparent);
+    --clarify-ui-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 92%, var(--clarify-theme-tokens-colors-background));
+    --clarify-ui-text-soft: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 78%, var(--clarify-theme-tokens-colors-background));
+    --clarify-ui-text-faint: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 62%, var(--clarify-theme-tokens-colors-background));
+
+    /* ── Surfaces ───────────────────────────────────────────────────────── */
+    --clarify-ui-surface: var(--clarify-theme-tokens-colors-surface);
+    --clarify-ui-surface-sunken: var(--clarify-theme-tokens-colors-background);
+    --clarify-ui-surface-elevated: color-mix(in srgb, var(--clarify-theme-tokens-colors-surface) 96%, var(--clarify-theme-tokens-colors-foreground));
+
+    /* ── Borders ────────────────────────────────────────────────────────── */
+    --clarify-ui-border: var(--clarify-theme-tokens-colors-border);
+    --clarify-ui-border-subtle: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 7%, transparent);
+    --clarify-ui-border-strong: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 20%, transparent);
+
+    /* ── Interaction states ─────────────────────────────────────────────── */
+    /* Neutral on purpose: a page where rows, tabs and menus all sit on a wash
+       of the brand colour reads as tinted rather than designed. Colour is
+       reserved for affordances (links, CTAs, focus rings) instead. */
+    --clarify-ui-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 5%, transparent);
+    --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 4%, transparent);
+    --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 8%, transparent);
+    --clarify-ui-tab-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 5%, var(--clarify-theme-tokens-colors-surface));
+    --clarify-ui-tab-indicator: var(--clarify-brand-tab-indicator);
+    --clarify-ui-overlay-background: rgb(9 12 11 / 0.42);
+
+    /* ── Accent ─────────────────────────────────────────────────────────── */
     --clarify-ui-accent-text: var(--clarify-theme-tokens-colors-primary);
     --clarify-ui-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 10%, transparent);
-    --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 22%, transparent);
+    --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 24%, transparent);
     --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 18%, transparent);
-    --clarify-code-background: #18181b;
-    --clarify-code-surface: #202023;
-    --clarify-code-header-background: #242427;
-    --clarify-code-border: rgb(255 255 255 / 0.1);
-    --clarify-code-text: var(--color-zinc-100);
-    --clarify-code-control-text: var(--color-zinc-300);
-    --clarify-code-muted: var(--color-zinc-400);
-    --clarify-code-faint: var(--color-zinc-500);
-    --clarify-code-control-background: rgb(255 255 255 / 0.06);
-    --clarify-code-control-background-hover: rgb(255 255 255 / 0.1);
-    --clarify-code-control-background-active: rgb(255 255 255 / 0.14);
-    --clarify-code-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 58%, white);
-    --clarify-code-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 20%, transparent);
-    --clarify-code-property: #0369a1;
-    --clarify-code-string: #047857;
-    --clarify-code-number: #a16207;
-    --clarify-code-success: #047857;
-    --clarify-code-danger: #be123c;
-    --clarify-code-danger-border: rgb(251 113 133 / 0.28);
-    --clarify-code-danger-background: rgb(251 113 133 / 0.1);
+    --clarify-ui-on-accent: #ffffff;
+    --clarify-ui-focus-ring: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 55%, transparent);
+
+    /* ── Brand accents (opt-in) ─────────────────────────────────────────── */
+    /* Every place that used to paint chrome with the brand colour reads one of
+       these instead. They ship neutral, so a preset swap changes links, CTAs
+       and focus rings without staining navigation rails, tab underlines or
+       the hero wash. To bring the tinted look back, override this block alone:
+         :root {
+           --clarify-brand-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 12%, transparent);
+           --clarify-brand-active-text: var(--clarify-theme-tokens-colors-primary);
+           --clarify-brand-tab-indicator: var(--clarify-theme-tokens-colors-primary);
+           --clarify-brand-navigation-marker: var(--clarify-theme-tokens-colors-primary);
+           --clarify-brand-navigation-icon: var(--clarify-theme-tokens-colors-primary);
+           --clarify-brand-search-highlight: var(--clarify-ui-accent-text);
+         }
+    */
+    --clarify-brand-active-background: var(--clarify-ui-active-background);
+    --clarify-brand-active-text: var(--clarify-ui-text-strong);
+    --clarify-brand-tab-indicator: var(--clarify-ui-text-strong);
+    --clarify-brand-navigation-marker: var(--clarify-ui-text-soft);
+    --clarify-brand-navigation-icon: var(--clarify-ui-text-faint);
+    --clarify-brand-search-highlight: var(--clarify-ui-text-strong);
+    --clarify-brand-skeleton-accent: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 12%, transparent);
+    --clarify-brand-hero-gradient: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 55%, transparent),
+      color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 12%, transparent)
+    );
+
+    /* ── Elevation ──────────────────────────────────────────────────────── */
+    --clarify-ui-shadow-color: color-mix(in srgb, #0b0e0d 16%, transparent);
+    --clarify-ui-shadow-raised: 0 1px 2px 0 var(--clarify-ui-shadow-color);
+    --clarify-ui-shadow-lifted:
+      0 6px 16px -8px var(--clarify-ui-shadow-color),
+      0 2px 4px -2px var(--clarify-ui-shadow-color);
+    --clarify-ui-shadow-popover:
+      0 16px 40px -16px var(--clarify-ui-shadow-color),
+      0 4px 12px -6px var(--clarify-ui-shadow-color);
+
+    /* ── Decorative pattern ─────────────────────────────────────────────── */
+    --clarify-hero-pattern-fill: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 40%, transparent);
+    --clarify-hero-pattern-stroke: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 50%, transparent);
+
+    /* ── Status tones ───────────────────────────────────────────────────── */
+    --clarify-tone-neutral-text: var(--clarify-ui-text-strong);
+    --clarify-tone-neutral-border: var(--clarify-ui-border);
+    --clarify-tone-neutral-background: var(--clarify-ui-subtle-background);
+    --clarify-tone-neutral-icon: var(--clarify-ui-text-soft);
+    --clarify-tone-neutral-icon-background: var(--clarify-ui-hover-background);
+
+    --clarify-tone-info-text: var(--color-sky-800);
+    --clarify-tone-info-border: color-mix(in srgb, var(--color-sky-500) 24%, transparent);
+    --clarify-tone-info-background: color-mix(in srgb, var(--color-sky-500) 7%, var(--clarify-theme-tokens-colors-surface));
+    --clarify-tone-info-icon: var(--color-sky-600);
+    --clarify-tone-info-icon-background: color-mix(in srgb, var(--color-sky-500) 13%, var(--clarify-theme-tokens-colors-surface));
+
+    --clarify-tone-success-text: var(--color-emerald-800);
+    --clarify-tone-success-border: color-mix(in srgb, var(--color-emerald-500) 24%, transparent);
+    --clarify-tone-success-background: color-mix(in srgb, var(--color-emerald-500) 7%, var(--clarify-theme-tokens-colors-surface));
+    --clarify-tone-success-icon: var(--color-emerald-600);
+    --clarify-tone-success-icon-background: color-mix(in srgb, var(--color-emerald-500) 13%, var(--clarify-theme-tokens-colors-surface));
+
+    --clarify-tone-warning-text: var(--color-amber-800);
+    --clarify-tone-warning-border: color-mix(in srgb, var(--color-amber-500) 28%, transparent);
+    --clarify-tone-warning-background: color-mix(in srgb, var(--color-amber-500) 8%, var(--clarify-theme-tokens-colors-surface));
+    --clarify-tone-warning-icon: var(--color-amber-600);
+    --clarify-tone-warning-icon-background: color-mix(in srgb, var(--color-amber-500) 15%, var(--clarify-theme-tokens-colors-surface));
+
+    --clarify-tone-danger-text: var(--color-rose-800);
+    --clarify-tone-danger-border: color-mix(in srgb, var(--color-rose-500) 24%, transparent);
+    --clarify-tone-danger-background: color-mix(in srgb, var(--color-rose-500) 7%, var(--clarify-theme-tokens-colors-surface));
+    --clarify-tone-danger-icon: var(--color-rose-600);
+    --clarify-tone-danger-icon-background: color-mix(in srgb, var(--color-rose-500) 13%, var(--clarify-theme-tokens-colors-surface));
+
+    /* ── Code surfaces ──────────────────────────────────────────────────── */
+    /* Code is a dark island in both color modes. A light grey panel sitting in
+       a light page reads as a big empty box, and syntax highlighting is far
+       more legible on a dark canvas. `codeBackground` still owns the block
+       background, so presets and the theme editor keep driving it; the ink,
+       borders and syntax hues below are mixed from white so they stay correct
+       whatever dark value a preset supplies. */
+    --clarify-code-background: var(--clarify-theme-tokens-colors-code-background);
+    --clarify-code-surface: color-mix(in srgb, #ffffff 4%, var(--clarify-code-background));
+    --clarify-code-header-background: color-mix(in srgb, #ffffff 7%, var(--clarify-code-background));
+    --clarify-code-border: color-mix(in srgb, #ffffff 14%, var(--clarify-code-background));
+    --clarify-code-text: color-mix(in srgb, #ffffff 92%, var(--clarify-code-background));
+    --clarify-code-control-text: color-mix(in srgb, #ffffff 80%, var(--clarify-code-background));
+    --clarify-code-muted: color-mix(in srgb, #ffffff 66%, var(--clarify-code-background));
+    --clarify-code-faint: color-mix(in srgb, #ffffff 48%, var(--clarify-code-background));
+    --clarify-code-control-background: color-mix(in srgb, #ffffff 8%, var(--clarify-code-background));
+    --clarify-code-control-background-hover: color-mix(in srgb, #ffffff 14%, var(--clarify-code-background));
+    --clarify-code-control-background-active: color-mix(in srgb, #ffffff 20%, var(--clarify-code-background));
+    --clarify-code-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 38%, #ffffff);
+    --clarify-code-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 30%, transparent);
+    --clarify-code-property: var(--color-sky-300);
+    --clarify-code-string: var(--color-emerald-300);
+    --clarify-code-number: var(--color-amber-300);
+    --clarify-code-success: var(--color-emerald-300);
+    --clarify-code-danger: var(--color-rose-300);
+    --clarify-code-danger-border: color-mix(in srgb, var(--color-rose-400) 35%, transparent);
+    --clarify-code-danger-background: color-mix(in srgb, var(--color-rose-400) 12%, transparent);
+
+    /* Inline code is not a block: it sits in running text, so it stays a
+       neutral chip instead of importing the dark canvas into a paragraph. */
+    --clarify-code-inline-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 6%, var(--clarify-theme-tokens-colors-surface));
+    --clarify-code-inline-ring: var(--clarify-ui-border);
+
+    /* Shiki syntax palette (createCssVariablesTheme reads these names) */
+    --shiki-color-text: var(--clarify-code-text);
+    --shiki-color-background: var(--clarify-code-background);
+    --shiki-token-constant: var(--color-emerald-300);
+    --shiki-token-string: var(--color-emerald-300);
+    --shiki-token-string-expression: var(--color-emerald-300);
+    --shiki-token-comment: var(--clarify-code-faint);
+    --shiki-token-keyword: var(--color-sky-300);
+    --shiki-token-parameter: var(--color-rose-300);
+    --shiki-token-function: var(--color-violet-300);
+    --shiki-token-punctuation: var(--clarify-code-muted);
+
+    /* ── Typography (UI chrome, not prose) ──────────────────────────────── */
+    --clarify-ui-control-font-size: 0.875rem;
+    --clarify-ui-control-line-height: 1.25rem;
+    --clarify-ui-menu-font-size: 0.875rem;
+    --clarify-ui-menu-line-height: 1.5rem;
+    --clarify-ui-description-font-size: 0.75rem;
+    --clarify-ui-description-line-height: 1.25rem;
+    --clarify-ui-tight-letter-spacing: 0;
+    --clarify-ui-search-field-font-size: 0.9375rem;
+    --clarify-ui-search-field-line-height: 1.5rem;
+    --clarify-ui-navigation-section-font-size: var(--clarify-ui-menu-font-size);
+    --clarify-ui-navigation-section-line-height: var(--clarify-ui-menu-line-height);
+    --clarify-ui-navigation-section-badge-font-size: var(--clarify-ui-description-font-size);
+    --clarify-ui-navigation-section-badge-line-height: var(--clarify-ui-menu-line-height);
+    --clarify-preview-count-badge-font-size: var(--clarify-ui-description-font-size);
+    --clarify-preview-count-badge-line-height: var(--clarify-ui-description-line-height);
+
+    /* ── Layout metrics (internal, never themed) ────────────────────────── */
     --clarify-ui-menu-width: 13rem;
     --clarify-ui-action-menu-width: 19.5rem;
     --clarify-layout-sidebar-grid: 18rem minmax(0, 1fr);
@@ -172,9 +310,11 @@
     --clarify-error-page-min-height: 34rem;
     --clarify-error-details-max-height: 20rem;
     --clarify-error-component-stack-max-height: 12rem;
-    --clarify-error-accent-text: #e11d48;
+    /* Pinned to the danger tone instead of a literal rose so error accents
+       track light/dark instead of staying mid-rose on a near-black page. */
+    --clarify-error-accent-text: var(--clarify-tone-danger-icon);
     --clarify-skeleton-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-muted) 22%, transparent);
-    --clarify-skeleton-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 18%, transparent);
+    --clarify-skeleton-accent-background: var(--clarify-brand-skeleton-accent);
     --clarify-skeleton-radius: 9999px;
     --clarify-skeleton-title-width: 24rem;
     --clarify-skeleton-heading-width: 28rem;
@@ -186,76 +326,129 @@
     --clarify-server-url-max-width: min(36%, 16rem);
     --clarify-openapi-control-grid: minmax(0, 1fr) minmax(0, 1.2fr);
     --clarify-openapi-variable-grid: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
-    --clarify-http-method-get-background: color-mix(in srgb, var(--color-emerald-400) 24%, transparent);
+    --clarify-search-dialog-padding-block-lg: 15vh;
+    --clarify-search-max-width: 36vw;
+
+    /* ── HTTP method tones (OpenAPI badges) ─────────────────────────────── */
+    --clarify-http-method-get-background: color-mix(in srgb, var(--color-emerald-500) 12%, transparent);
     --clarify-http-method-get-text: var(--color-emerald-700);
-    --clarify-http-method-post-background: color-mix(in srgb, var(--color-sky-400) 24%, transparent);
+    --clarify-http-method-post-background: color-mix(in srgb, var(--color-sky-500) 12%, transparent);
     --clarify-http-method-post-text: var(--color-sky-700);
-    --clarify-http-method-put-background: color-mix(in srgb, var(--color-amber-400) 28%, transparent);
+    --clarify-http-method-put-background: color-mix(in srgb, var(--color-amber-500) 14%, transparent);
     --clarify-http-method-put-text: var(--color-amber-700);
     --clarify-http-method-patch-background: var(--clarify-http-method-put-background);
     --clarify-http-method-patch-text: var(--clarify-http-method-put-text);
-    --clarify-http-method-delete-background: color-mix(in srgb, var(--color-rose-400) 24%, transparent);
+    --clarify-http-method-delete-background: color-mix(in srgb, var(--color-rose-500) 12%, transparent);
     --clarify-http-method-delete-text: var(--color-rose-700);
-    --clarify-http-method-webhook-background: color-mix(in srgb, var(--color-violet-400) 24%, transparent);
+    --clarify-http-method-webhook-background: color-mix(in srgb, var(--color-violet-500) 12%, transparent);
     --clarify-http-method-webhook-text: var(--color-violet-700);
-    --clarify-http-method-default-background: color-mix(in srgb, var(--color-zinc-400) 20%, transparent);
-    --clarify-http-method-default-text: var(--color-zinc-800);
-    --clarify-search-dialog-padding-block-lg: 15vh;
-    --clarify-search-max-width: 36vw;
-    --clarify-ui-control-font-size: 0.875rem;
-    --clarify-ui-control-line-height: 1.25rem;
-    --clarify-ui-menu-font-size: 0.875rem;
-    --clarify-ui-menu-line-height: 1.5rem;
-    --clarify-ui-description-font-size: 0.75rem;
-    --clarify-ui-description-line-height: 1.25rem;
-    --clarify-ui-tight-letter-spacing: 0;
-    --clarify-ui-search-field-font-size: 0.9375rem;
-    --clarify-ui-search-field-line-height: 1.5rem;
-    --clarify-ui-navigation-section-font-size: var(--clarify-ui-menu-font-size);
-    --clarify-ui-navigation-section-line-height: var(--clarify-ui-menu-line-height);
-    --clarify-ui-navigation-section-badge-font-size: var(--clarify-ui-description-font-size);
-    --clarify-ui-navigation-section-badge-line-height: var(--clarify-ui-menu-line-height);
-    --clarify-preview-count-badge-font-size: var(--clarify-ui-description-font-size);
-    --clarify-preview-count-badge-line-height: var(--clarify-ui-description-line-height);
+    --clarify-http-method-options-background: color-mix(in srgb, var(--color-violet-500) 12%, transparent);
+    --clarify-http-method-options-text: var(--color-violet-700);
+    --clarify-http-method-head-background: color-mix(in srgb, var(--color-zinc-500) 10%, transparent);
+    --clarify-http-method-head-text: var(--color-zinc-600);
+    --clarify-http-method-trace-background: color-mix(in srgb, var(--color-fuchsia-500) 12%, transparent);
+    --clarify-http-method-trace-text: var(--color-fuchsia-700);
+    --clarify-http-method-default-background: color-mix(in srgb, var(--color-zinc-500) 12%, transparent);
+    --clarify-http-method-default-text: var(--color-zinc-700);
   }
 
+  /*
+   * Dark mode only overrides what cannot be expressed through a single
+   * formula: text needs to mix toward the surface (not the ink), tone text
+   * must invert to light shades, and the http method badges brighten.
+   * Everything else is inherited from :root above.
+   */
   .dark,
   .dark .clarify-app {
-    --clarify-ui-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 92%, transparent);
-    --clarify-ui-text-soft: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 74%, transparent);
-    --clarify-ui-text-faint: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 60%, transparent);
+    /* Text ramps toward the background, so the same formula keeps working */
+    --clarify-ui-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 88%, var(--clarify-theme-tokens-colors-background));
+    --clarify-ui-text-soft: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 70%, var(--clarify-theme-tokens-colors-background));
+    --clarify-ui-text-faint: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 52%, var(--clarify-theme-tokens-colors-background));
+
+    /* Surfaces step up instead of down so elevation reads on a dark canvas */
+    --clarify-ui-surface-elevated: color-mix(in srgb, var(--clarify-theme-tokens-colors-surface) 88%, #ffffff);
+
+    --clarify-ui-border-subtle: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 9%, transparent);
+    --clarify-ui-border-strong: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 26%, transparent);
+
     --clarify-ui-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 8%, transparent);
-    --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 18%, transparent);
-    --clarify-ui-tab-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 10%, var(--clarify-theme-tokens-colors-surface));
-    --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 10%, transparent);
-    --clarify-ui-overlay-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-background) 76%, transparent);
-    --clarify-ui-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 72%, var(--clarify-theme-tokens-colors-foreground));
+    --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 6%, transparent);
+    --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 11%, transparent);
+    --clarify-ui-tab-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 8%, var(--clarify-theme-tokens-colors-surface));
+    --clarify-ui-overlay-background: rgb(2 4 4 / 0.62);
+
+    --clarify-ui-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 76%, var(--clarify-theme-tokens-colors-foreground));
     --clarify-ui-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 16%, transparent);
-    --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 30%, transparent);
-    --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 28%, transparent);
-    --clarify-code-background: #18181b;
-    --clarify-code-surface: #202023;
-    --clarify-code-header-background: #242427;
-    --clarify-code-border: rgb(255 255 255 / 0.12);
-    --clarify-code-property: #7dd3fc;
-    --clarify-code-string: #6ee7b7;
-    --clarify-code-number: #fcd34d;
-    --clarify-code-success: #6ee7b7;
-    --clarify-code-danger: #fda4af;
-    --clarify-code-danger-border: rgb(251 113 133 / 0.35);
-    --clarify-code-danger-background: rgb(251 113 133 / 0.12);
-    --clarify-http-method-get-background: color-mix(in srgb, var(--color-emerald-400) 30%, transparent);
+    --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 32%, transparent);
+    --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 26%, transparent);
+    --clarify-ui-on-accent: var(--color-zinc-950);
+
+    --clarify-ui-shadow-color: rgb(0 0 0 / 0.5);
+    --clarify-ui-shadow-lifted:
+      0 8px 20px -10px var(--clarify-ui-shadow-color),
+      0 3px 6px -3px var(--clarify-ui-shadow-color);
+    --clarify-ui-shadow-popover:
+      0 20px 48px -20px var(--clarify-ui-shadow-color),
+      0 6px 16px -8px var(--clarify-ui-shadow-color);
+
+    /* Grid lines read as hairlines on a dark canvas */
+    --clarify-hero-pattern-fill: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 3%, transparent);
+    --clarify-hero-pattern-stroke: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 6%, transparent);
+
+    /* Tones invert: light text, translucent tint over the dark surface */
+    --clarify-tone-neutral-text: var(--clarify-ui-text-strong);
+    --clarify-tone-neutral-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 12%, transparent);
+    --clarify-tone-neutral-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 5%, transparent);
+    --clarify-tone-neutral-icon: var(--clarify-ui-text-soft);
+    --clarify-tone-neutral-icon-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 8%, transparent);
+
+    --clarify-tone-info-text: var(--color-sky-100);
+    --clarify-tone-info-border: color-mix(in srgb, var(--color-sky-400) 26%, transparent);
+    --clarify-tone-info-background: color-mix(in srgb, var(--color-sky-400) 8%, transparent);
+    --clarify-tone-info-icon: var(--color-sky-300);
+    --clarify-tone-info-icon-background: color-mix(in srgb, var(--color-sky-400) 14%, transparent);
+
+    --clarify-tone-success-text: var(--color-emerald-100);
+    --clarify-tone-success-border: color-mix(in srgb, var(--color-emerald-400) 26%, transparent);
+    --clarify-tone-success-background: color-mix(in srgb, var(--color-emerald-400) 8%, transparent);
+    --clarify-tone-success-icon: var(--color-emerald-300);
+    --clarify-tone-success-icon-background: color-mix(in srgb, var(--color-emerald-400) 14%, transparent);
+
+    --clarify-tone-warning-text: var(--color-amber-100);
+    --clarify-tone-warning-border: color-mix(in srgb, var(--color-amber-400) 30%, transparent);
+    --clarify-tone-warning-background: color-mix(in srgb, var(--color-amber-400) 9%, transparent);
+    --clarify-tone-warning-icon: var(--color-amber-300);
+    --clarify-tone-warning-icon-background: color-mix(in srgb, var(--color-amber-400) 16%, transparent);
+
+    --clarify-tone-danger-text: var(--color-rose-100);
+    --clarify-tone-danger-border: color-mix(in srgb, var(--color-rose-400) 26%, transparent);
+    --clarify-tone-danger-background: color-mix(in srgb, var(--color-rose-400) 8%, transparent);
+    --clarify-tone-danger-icon: var(--color-rose-300);
+    --clarify-tone-danger-icon-background: color-mix(in srgb, var(--color-rose-400) 14%, transparent);
+
+    /* The code block itself needs no overrides: it is dark in both modes and
+       derives its ink from white. Only the inline chip follows the surface. */
+    --clarify-code-inline-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 10%, var(--clarify-theme-tokens-colors-surface));
+    --clarify-code-inline-ring: var(--clarify-ui-border-subtle);
+
+    --clarify-http-method-get-background: color-mix(in srgb, var(--color-emerald-400) 18%, transparent);
     --clarify-http-method-get-text: var(--color-emerald-200);
-    --clarify-http-method-post-background: color-mix(in srgb, var(--color-sky-400) 30%, transparent);
+    --clarify-http-method-post-background: color-mix(in srgb, var(--color-sky-400) 18%, transparent);
     --clarify-http-method-post-text: var(--color-sky-200);
-    --clarify-http-method-put-background: color-mix(in srgb, var(--color-amber-400) 34%, transparent);
+    --clarify-http-method-put-background: color-mix(in srgb, var(--color-amber-400) 20%, transparent);
     --clarify-http-method-put-text: var(--color-amber-200);
-    --clarify-http-method-delete-background: color-mix(in srgb, var(--color-rose-400) 30%, transparent);
+    --clarify-http-method-delete-background: color-mix(in srgb, var(--color-rose-400) 18%, transparent);
     --clarify-http-method-delete-text: var(--color-rose-200);
-    --clarify-http-method-webhook-background: color-mix(in srgb, var(--color-violet-400) 30%, transparent);
+    --clarify-http-method-webhook-background: color-mix(in srgb, var(--color-violet-400) 18%, transparent);
     --clarify-http-method-webhook-text: var(--color-violet-200);
-    --clarify-http-method-default-background: color-mix(in srgb, var(--color-zinc-400) 26%, transparent);
-    --clarify-http-method-default-text: var(--color-zinc-100);
+    --clarify-http-method-options-background: color-mix(in srgb, var(--color-violet-400) 18%, transparent);
+    --clarify-http-method-options-text: var(--color-violet-200);
+    --clarify-http-method-head-background: color-mix(in srgb, var(--color-zinc-400) 14%, transparent);
+    --clarify-http-method-head-text: var(--color-zinc-300);
+    --clarify-http-method-trace-background: color-mix(in srgb, var(--color-fuchsia-400) 18%, transparent);
+    --clarify-http-method-trace-text: var(--color-fuchsia-200);
+    --clarify-http-method-default-background: color-mix(in srgb, var(--color-zinc-400) 16%, transparent);
+    --clarify-http-method-default-text: var(--color-zinc-200);
   }
 
   .clarify-content-blog .clarify-mdx-page {
@@ -274,39 +467,11 @@
     line-height: 1.05;
   }
 
+  /* The response panel is a code surface: it keeps the dark code island so
+     headers, bodies and status rows stay legible next to the request form
+     instead of switching back to page ink on a white background. */
   .clarify-api-response {
-    --shiki-color-text: var(--clarify-ui-text-strong);
-    --shiki-token-constant: #047857;
-    --shiki-token-string: #047857;
-    --shiki-token-comment: #52525b;
-    --shiki-token-keyword: #0369a1;
-    --shiki-token-parameter: #be123c;
-    --shiki-token-function: #6d28d9;
-    --shiki-token-string-expression: #047857;
-    --shiki-token-punctuation: #52525b;
-    --clarify-code-background: var(--clarify-theme-tokens-colors-surface);
-    --clarify-code-surface: var(--clarify-theme-tokens-colors-surface);
-    --clarify-code-header-background: var(--clarify-ui-subtle-background);
-    --clarify-code-border: var(--clarify-theme-tokens-colors-border);
-    --clarify-code-text: var(--clarify-ui-text-strong);
-    --clarify-code-control-text: var(--clarify-ui-text);
-    --clarify-code-muted: var(--clarify-ui-text-soft);
-    --clarify-code-faint: var(--clarify-ui-text-faint);
-    --clarify-code-control-background: var(--clarify-ui-subtle-background);
-    --clarify-code-control-background-hover: var(--clarify-ui-hover-background);
-    --clarify-code-control-background-active: var(--clarify-ui-active-background);
-  }
-
-  .dark .clarify-api-response {
-    --shiki-color-text: var(--color-white);
-    --shiki-token-constant: var(--color-emerald-300);
-    --shiki-token-string: var(--color-emerald-300);
-    --shiki-token-comment: var(--color-zinc-500);
-    --shiki-token-keyword: var(--color-sky-300);
-    --shiki-token-parameter: var(--color-pink-300);
-    --shiki-token-function: var(--color-violet-300);
-    --shiki-token-string-expression: var(--color-emerald-300);
-    --shiki-token-punctuation: var(--color-zinc-200);
+    --clarify-code-border: color-mix(in srgb, #ffffff 14%, var(--clarify-code-background));
   }
 
   .clarify-ui-control {
@@ -339,9 +504,9 @@
   }
 
   .clarify-code-copy-copied {
-    border-color: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 48%, var(--clarify-code-border));
-    background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 28%, var(--clarify-code-control-background));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 42%, transparent);
+    border-color: var(--clarify-code-border);
+    background: var(--clarify-code-control-background-hover);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--clarify-code-text) 22%, transparent);
   }
 
   .clarify-openapi-header .lead {
@@ -364,7 +529,7 @@
   }
 
   .clarify-hero-pattern-gradient {
-    background: linear-gradient(to right, var(--clarify-theme-tokens-colors-primary), var(--clarify-theme-tokens-colors-accent));
+    background: var(--clarify-brand-hero-gradient);
     mask-image: radial-gradient(farthest-side at top, white, transparent);
   }
 
@@ -393,8 +558,8 @@
   }
 
   .clarify-ui-menu-item-active {
-    color: var(--clarify-ui-accent-text);
-    background: var(--clarify-ui-active-background);
+    color: var(--clarify-brand-active-text);
+    background: var(--clarify-brand-active-background);
   }
 
   .clarify-ui-menu-title {
@@ -439,8 +604,8 @@
   }
 
   .clarify-ui-top-link-active {
-    color: var(--clarify-ui-text-strong);
-    background: var(--clarify-ui-active-background);
+    color: var(--clarify-brand-active-text);
+    background: var(--clarify-brand-active-background);
   }
 
   .clarify-content-tab:hover,
@@ -511,7 +676,7 @@
   }
 
   .clarify-product-tabs-scroll:focus-visible {
-    outline: 2px solid var(--clarify-theme-tokens-colors-primary);
+    outline: 2px solid var(--clarify-ui-focus-ring);
     outline-offset: 2px;
   }
 
@@ -631,7 +796,7 @@
   }
 
   .clarify-navigation-group-title-icon {
-    color: var(--clarify-theme-tokens-colors-primary);
+    color: var(--clarify-brand-navigation-icon);
   }
 
   .clarify-navigation-link {
@@ -654,7 +819,7 @@
   }
 
   .clarify-navigation-active-marker {
-    background: var(--clarify-theme-tokens-colors-primary);
+    background: var(--clarify-brand-navigation-marker);
   }
 
   .clarify-navigation-item-icon,
@@ -682,7 +847,7 @@
 
   .clarify-navigation-branch-trigger[data-active='true'] .clarify-navigation-chevron,
   .clarify-navigation-branch-trigger[data-active='true'] .clarify-navigation-item-icon {
-    color: var(--clarify-theme-tokens-colors-primary);
+    color: var(--clarify-brand-navigation-icon);
   }
 
   .clarify-navigation-branch-count {
@@ -856,7 +1021,7 @@
 
   .clarify-search-result[aria-selected='true'] .clarify-search-result-title,
   .clarify-search-result:hover .clarify-search-result-title {
-    color: var(--clarify-ui-accent-text);
+    color: var(--clarify-brand-search-highlight);
   }
 
   .clarify-search-result-hierarchy {

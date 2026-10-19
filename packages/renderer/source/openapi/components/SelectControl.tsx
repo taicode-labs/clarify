@@ -48,7 +48,7 @@ export function SelectControl(arg0: SelectControlProps): ReactNode {
         </ListboxButton>
         <ListboxOptions
           anchor="bottom end"
-          className="clarify-openai-select-options z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-code-surface) p-1 text-xs shadow-lg shadow-black/20 ring-1 ring-(--clarify-code-border) [--anchor-gap:--spacing(1)] focus:outline-none"
+          className="clarify-openai-select-options z-30 mt-1 max-h-64 w-max min-w-(--button-width) max-w-(--clarify-popover-max-width) overflow-auto rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-code-surface) p-1 text-xs shadow-(--clarify-ui-shadow-popover) shadow-black/20 ring-1 ring-(--clarify-code-border) [--anchor-gap:--spacing(1)] focus:outline-none"
         >
           {normalizedOptions.map((option) => (
             <ListboxOption

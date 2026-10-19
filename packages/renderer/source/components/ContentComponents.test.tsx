@@ -68,7 +68,7 @@ describe('content components', () => {
     expect(html).toContain('2026-07-25')
     expect(html).toContain('clarify-release-item')
     expect(html).toContain('sm:sticky')
-    expect(html).not.toContain('shadow-sm')
+    expect(html).not.toContain('shadow-')
   })
 
   it('renders grouped collapses as one surface', () => {

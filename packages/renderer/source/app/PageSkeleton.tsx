@@ -26,7 +26,7 @@ export function PageSkeleton() {
     <section className="clarify-page-skeleton animate-pulse space-y-10 py-8" aria-label="Loading page">
       <div className="space-y-5">
         <SkeletonBlock className="h-3 w-24 rounded-full bg-(--clarify-skeleton-accent-background)" />
-        <SkeletonBlock className="h-11 w-full max-w-(--clarify-skeleton-title-width) rounded-3xl" />
+        <SkeletonBlock className="h-11 w-full max-w-(--clarify-skeleton-title-width) rounded-(--clarify-theme-tokens-radius-lg)" />
         <div className="max-w-3xl space-y-3">
           <SkeletonBlock className="h-4 w-full" />
           <SkeletonBlock className="h-4 w-5/6" />
@@ -35,7 +35,7 @@ export function PageSkeleton() {
 
       <div className="grid gap-4 xl:grid-cols-2">
         {[0, 1].map((item) => (
-          <div key={item} className="rounded-(--clarify-skeleton-card-radius) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-sm shadow-zinc-900/5">
+          <div key={item} className="rounded-(--clarify-skeleton-card-radius) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-(--clarify-ui-shadow-raised) shadow-zinc-900/5">
             <div className="flex items-start gap-4">
               <SkeletonBlock className="h-10 w-10 shrink-0 bg-(--clarify-skeleton-accent-background)" />
               <div className="min-w-0 flex-1 space-y-4">
@@ -49,15 +49,15 @@ export function PageSkeleton() {
 
       <div className="space-y-8">
         <article className="space-y-5">
-          <SkeletonBlock className="h-7 w-full max-w-(--clarify-skeleton-heading-width) rounded-2xl" />
+          <SkeletonBlock className="h-7 w-full max-w-(--clarify-skeleton-heading-width) rounded-(--clarify-theme-tokens-radius-lg)" />
           <SkeletonParagraph />
-          <div className="rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4">
+          <div className="rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-ui-border) bg-(--clarify-ui-subtle-background) p-4">
             <SkeletonBlock className="h-4 w-full max-w-(--clarify-skeleton-line-width) bg-(--clarify-skeleton-accent-background)" />
           </div>
         </article>
 
-        <div className="overflow-hidden rounded-(--clarify-skeleton-block-radius) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-code-background)">
-          <div className="flex items-center gap-2 border-b border-(--clarify-theme-tokens-colors-border) px-4 py-3">
+        <div className="overflow-hidden rounded-(--clarify-skeleton-block-radius) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-surface-elevated)">
+          <div className="flex items-center gap-2 border-b border-(--clarify-ui-border) bg-(--clarify-ui-subtle-background) px-4 py-3">
             <SkeletonBlock className="h-3 w-3 rounded-full" />
             <SkeletonBlock className="h-3 w-3 rounded-full" />
             <SkeletonBlock className="h-3 w-3 rounded-full" />
@@ -71,7 +71,7 @@ export function PageSkeleton() {
         </div>
 
         <article className="space-y-5">
-          <SkeletonBlock className="h-7 w-full max-w-(--clarify-skeleton-heading-short-width) rounded-2xl" />
+          <SkeletonBlock className="h-7 w-full max-w-(--clarify-skeleton-heading-short-width) rounded-(--clarify-theme-tokens-radius-lg)" />
           <div className="grid gap-3 sm:grid-cols-2">
             {[0, 1, 2, 3].map((item) => (
               <div key={item} className="rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) p-4">

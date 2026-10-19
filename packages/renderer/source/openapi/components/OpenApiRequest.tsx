@@ -235,7 +235,7 @@ export function OpenApiRequestDialog(arg0: OpenApiRequestDialogProps): ReactNode
     <Dialog open={open} onClose={() => {}} className="relative z-50">
       <DialogBackdrop className="fixed inset-0 bg-(--clarify-ui-overlay-background) backdrop-blur-sm" />
       <div className="fixed inset-0 grid place-items-center overflow-y-auto p-3 sm:p-6">
-          <DialogPanel className="relative flex h-[min(46rem,calc(100dvh-1.5rem))] w-full max-w-7xl flex-col overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) shadow-2xl sm:h-[min(46rem,calc(100dvh-3rem))]">
+          <DialogPanel className="relative flex h-[min(46rem,calc(100dvh-1.5rem))] w-full max-w-7xl flex-col overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) shadow-(--clarify-ui-shadow-popover) sm:h-[min(46rem,calc(100dvh-3rem))]">
             <DialogTitle className="sr-only">{t('openapi.tryRequest')}</DialogTitle>
             <OpenApiRequestWorkbench {...workbenchProps} compact onClose={onClose} />
           </DialogPanel>

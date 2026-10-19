@@ -88,7 +88,7 @@ export function RenderErrorPanel(props: RenderErrorPanelProps) {
           </dl>
         ) : null}
 
-        <div className="mt-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-code-background)">
+        <div className="mt-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-surface-elevated)">
           <div className="flex items-center justify-between gap-3 border-b border-(--clarify-theme-tokens-colors-border) px-4 py-3">
             <p className="text-sm/6 font-semibold text-(--clarify-ui-text-strong)">{detailsLabel}</p>
             {detailsHeaderAction ? <div className="shrink-0">{detailsHeaderAction}</div> : null}

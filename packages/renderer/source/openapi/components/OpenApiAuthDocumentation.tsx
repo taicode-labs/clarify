@@ -55,7 +55,7 @@ export function OpenApiAuthDocumentation(props: OpenApiAuthDocumentationProps): 
             <div className="py-4 first:pt-2">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-mono text-sm/6 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{schemeOption.name}</span>
-                <span className="rounded bg-(--clarify-ui-subtle-background) px-1.5 py-0.5 text-2xs font-semibold text-(--clarify-ui-text-soft)">{authSchemeType(schemeOption, t('openapi.authApiKey'))}</span>
+                <span className="rounded-(--clarify-theme-tokens-radius-sm) bg-(--clarify-ui-subtle-background) px-1.5 py-0.5 text-2xs font-semibold text-(--clarify-ui-text-soft)">{authSchemeType(schemeOption, t('openapi.authApiKey'))}</span>
               </div>
               {scheme.description ? <Markdown className="mt-2 text-sm/6 text-(--clarify-ui-text-soft) *:first:mt-0 *:last:mb-0">{scheme.description}</Markdown> : null}
               {details.length > 0 ? (

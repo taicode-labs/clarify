@@ -41,8 +41,8 @@ const FeedbackThanks = forwardRef<ElementRef<'div'>, ComponentPropsWithoutRef<'d
 
   return (
     <div {...props} ref={ref} className={clsx(className, 'clarify-feedback-thanks absolute inset-0 flex justify-center md:justify-start')}>
-      <div className="flex items-center gap-3 rounded-full bg-(--clarify-ui-accent-background) py-1 pr-3 pl-1.5 text-sm text-(--clarify-ui-accent-text) ring-1 ring-(--clarify-ui-accent-border) ring-inset">
-        <CircleCheck className="h-5 w-5 flex-none stroke-(--clarify-ui-accent-text)" />
+      <div className="flex items-center gap-3 rounded-full bg-(--clarify-tone-success-background) py-1 pr-3 pl-1.5 text-sm text-(--clarify-tone-success-text) ring-1 ring-(--clarify-tone-success-border) ring-inset">
+        <CircleCheck className="h-5 w-5 flex-none stroke-(--clarify-tone-success-icon)" />
         {t('feedback.thanks')}
       </div>
     </div>

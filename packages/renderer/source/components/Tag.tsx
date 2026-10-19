@@ -3,29 +3,29 @@ import type { ReactNode } from 'react'
 
 const tagVariantStyles = {
   small: '',
-  medium: 'rounded-lg px-1.5 ring-1 ring-inset',
+  medium: 'rounded-(--clarify-theme-tokens-radius-md) px-1.5 ring-1 ring-inset',
 }
 
 const tagColorStyles = {
   emerald: {
-    small: 'text-emerald-500 dark:text-emerald-400',
-    medium: 'bg-emerald-400/10 text-emerald-500 ring-emerald-300 dark:text-emerald-400 dark:ring-emerald-400/30',
+    small: 'text-(--clarify-tone-success-icon)',
+    medium: 'bg-(--clarify-tone-success-background) text-(--clarify-tone-success-text) ring-(--clarify-tone-success-border)',
   },
   sky: {
-    small: 'text-sky-500 dark:text-sky-400',
-    medium: 'bg-sky-400/10 text-sky-500 ring-sky-300 dark:text-sky-400 dark:ring-sky-400/30',
+    small: 'text-(--clarify-tone-info-icon)',
+    medium: 'bg-(--clarify-tone-info-background) text-(--clarify-tone-info-text) ring-(--clarify-tone-info-border)',
   },
   amber: {
-    small: 'text-amber-500 dark:text-amber-400',
-    medium: 'bg-amber-400/10 text-amber-500 ring-amber-300 dark:text-amber-400 dark:ring-amber-400/30',
+    small: 'text-(--clarify-tone-warning-icon)',
+    medium: 'bg-(--clarify-tone-warning-background) text-(--clarify-tone-warning-text) ring-(--clarify-tone-warning-border)',
   },
   rose: {
-    small: 'text-red-500 dark:text-rose-500',
-    medium: 'bg-rose-50 text-red-500 ring-rose-200 dark:bg-rose-400/10 dark:text-rose-400 dark:ring-rose-500/20',
+    small: 'text-(--clarify-tone-danger-icon)',
+    medium: 'bg-(--clarify-tone-danger-background) text-(--clarify-tone-danger-text) ring-(--clarify-tone-danger-border)',
   },
   zinc: {
     small: 'text-(--clarify-theme-tokens-colors-muted)',
-    medium: 'bg-(--clarify-theme-tokens-colors-code-background) text-(--clarify-theme-tokens-colors-muted) ring-(--clarify-theme-tokens-colors-border)',
+    medium: 'bg-(--clarify-tone-neutral-background) text-(--clarify-theme-tokens-colors-muted) ring-(--clarify-tone-neutral-border)',
   },
 }
 

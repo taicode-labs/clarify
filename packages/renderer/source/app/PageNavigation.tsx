@@ -64,7 +64,7 @@ function PageNavigationLink(arg0: PageNavigationLinkProps) {
           {isNext ? t('navigation.next') : t('navigation.previous')}
           {isNext ? <ChevronRight className="size-3.5 transition-transform group-hover:translate-x-0.5" /> : null}
         </span>
-        <span className="clarify-page-navigation-title mt-1 block truncate text-base/6 font-semibold text-(--clarify-theme-tokens-colors-foreground) transition-colors group-hover:text-(--clarify-theme-tokens-colors-primary)">{route.title}</span>
+        <span className="clarify-page-navigation-title mt-1 block truncate text-base/6 font-semibold text-(--clarify-theme-tokens-colors-foreground) transition-colors group-hover:text-(--clarify-ui-text-strong)">{route.title}</span>
       </span>
     </Link>
   )

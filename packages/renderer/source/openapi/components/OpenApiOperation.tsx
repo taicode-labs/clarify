@@ -43,8 +43,8 @@ export function EndpointPath(arg0: EndpointPathProps): ReactNode {
           title={copied ? t('actions.copied') : t('actions.copy')}
           onClick={onCopy}
           className={clsx(
-            'flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) text-(--clarify-ui-text-soft) transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
-            copied && 'border-emerald-400/70 bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-200',
+            'flex h-7 w-7 shrink-0 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) text-(--clarify-ui-text-soft) transition hover:border-(--clarify-ui-border-strong) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-ui-focus-ring)',
+            copied && 'border-(--clarify-tone-success-border) bg-(--clarify-tone-success-background) text-(--clarify-tone-success-text)',
           )}
         >
           {copied ? <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" /> : <CopyIcon className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -111,11 +111,11 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
     return (
       <span
         aria-label="Server"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5"
       >
         <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
         <span className="hidden min-w-0 items-center gap-1.5 overflow-hidden sm:flex">
-          {protocolLabel ? <span className="shrink-0 rounded bg-sky-100 px-1.5 py-0.5 text-2xs font-black text-sky-700 dark:bg-sky-400/15 dark:text-sky-200">{protocolLabel}</span> : null}
+          {protocolLabel ? <span className="shrink-0 rounded-(--clarify-theme-tokens-radius-sm) bg-(--clarify-tone-info-background) px-1.5 py-0.5 text-2xs font-black text-(--clarify-tone-info-text)">{protocolLabel}</span> : null}
           <span className="truncate font-semibold text-xs">{url}</span>
         </span>
       </span>
@@ -134,14 +134,14 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
         }))}
         onChange={onSelect}
         className="w-8 shrink-0 sm:w-fit sm:min-w-16 sm:max-w-(--clarify-server-url-max-width)"
-        buttonClassName="group flex h-8 w-full min-w-0 cursor-pointer items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) px-0 text-(--clarify-ui-text) transition-colors hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) data-open:bg-(--clarify-ui-active-background) data-open:text-(--clarify-theme-tokens-colors-foreground) sm:px-1.5"
+        buttonClassName="group flex h-8 w-full min-w-0 cursor-pointer items-center justify-center rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-ui-subtle-background) px-0 text-(--clarify-ui-text) transition-colors hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) data-open:bg-(--clarify-ui-active-background) data-open:text-(--clarify-theme-tokens-colors-foreground) sm:px-1.5"
         buttonContent={(
           <>
             <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
             <span className="hidden min-w-0 items-center gap-1 overflow-hidden sm:flex">
-              {protocolLabel ? <span className="shrink-0 rounded bg-sky-100 px-1.5 py-0.5 text-2xs font-black text-sky-700 dark:bg-sky-400/15 dark:text-sky-200">{protocolLabel}</span> : null}
+              {protocolLabel ? <span className="shrink-0 rounded-(--clarify-theme-tokens-radius-sm) bg-(--clarify-tone-info-background) px-1.5 py-0.5 text-2xs font-black text-(--clarify-tone-info-text)">{protocolLabel}</span> : null}
               <span className="truncate font-semibold text-xs">{url}</span>
-              <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-zinc-400 transition-transform group-data-open:rotate-180" aria-hidden="true" />
+              <ChevronDownIcon className="h-3.5 w-3.5 shrink-0 text-(--clarify-ui-text-faint) transition-transform group-data-open:rotate-180" aria-hidden="true" />
             </span>
           </>
         )}
@@ -156,15 +156,15 @@ function ServerUrlValue(arg0: ServerUrlValueProps): ReactNode {
       aria-label="Server"
       onClick={onToggle}
       className={clsx(
-        'flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text) transition-colors hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5',
+        'flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text) transition-colors hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) sm:w-auto sm:min-w-16 sm:max-w-(--clarify-server-url-max-width) sm:px-1.5',
         open ? 'bg-(--clarify-ui-active-background) text-(--clarify-theme-tokens-colors-foreground)' : null,
       )}
     >
       <span className="sm:hidden"><ServerIcon className="h-4 w-4" aria-hidden="true" /></span>
         <span className="hidden min-w-0 items-center gap-1 overflow-hidden sm:flex">
-          {protocolLabel ? <span className="shrink-0 rounded bg-sky-100 px-1.5 py-0.5 text-2xs font-black text-sky-700 dark:bg-sky-400/15 dark:text-sky-200">{protocolLabel}</span> : null}
+          {protocolLabel ? <span className="shrink-0 rounded-(--clarify-theme-tokens-radius-sm) bg-(--clarify-tone-info-background) px-1.5 py-0.5 text-2xs font-black text-(--clarify-tone-info-text)">{protocolLabel}</span> : null}
         <span className="truncate font-semibold text-xs">{url}</span>
-        <ChevronDownIcon className={clsx('h-3.5 w-3.5 shrink-0 text-zinc-400 transition-transform', open && 'rotate-180')} aria-hidden="true" />
+        <ChevronDownIcon className={clsx('h-3.5 w-3.5 shrink-0 text-(--clarify-ui-text-faint) transition-transform', open && 'rotate-180')} aria-hidden="true" />
       </span>
     </button>
   )
@@ -189,7 +189,7 @@ function ServerVariableControl(arg0: ServerVariableControlProps): ReactNode {
         options={variable.enum.map((option) => ({ value: option, label: option }))}
         onChange={onChange}
         compact={compact}
-        buttonClassName="inline-flex min-h-8 w-full min-w-0 items-center justify-between gap-1 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) focus:ring-2 focus:ring-inset focus:ring-(--clarify-theme-tokens-colors-primary) data-open:bg-(--clarify-ui-active-background)"
+        buttonClassName="inline-flex min-h-8 w-full min-w-0 items-center justify-between gap-1 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-(--clarify-ui-shadow-raised) outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) focus:ring-2 focus:ring-inset focus:ring-(--clarify-theme-tokens-colors-primary) data-open:bg-(--clarify-ui-active-background)"
       />
     )
   }
@@ -201,7 +201,7 @@ function ServerVariableControl(arg0: ServerVariableControlProps): ReactNode {
       placeholder={variable?.default ?? name}
       onChange={(event) => onChange(event.target.value)}
       className={clsx(
-        'pointer-events-auto rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-hidden transition placeholder:text-(--clarify-ui-text-faint) hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) focus:border-(--clarify-theme-tokens-colors-primary) focus:bg-(--clarify-theme-tokens-colors-surface)',
+        'pointer-events-auto rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-(--clarify-ui-shadow-raised) outline-hidden transition placeholder:text-(--clarify-ui-text-faint) hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) focus:border-(--clarify-theme-tokens-colors-primary) focus:bg-(--clarify-theme-tokens-colors-surface)',
         compact ? 'mx-0.5 w-24 px-1.5 py-0.5' : 'w-full px-2.5 py-1.5',
       )}
     />
@@ -237,7 +237,7 @@ function ServerPanel(arg0: ServerPanelProps): ReactNode {
                 description: server.description,
               }))}
               onChange={onSelectServer}
-              buttonClassName="inline-flex min-h-8 w-full min-w-0 items-center justify-between gap-1 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) focus:ring-2 focus:ring-inset focus:ring-(--clarify-theme-tokens-colors-primary) data-open:bg-(--clarify-ui-active-background)"
+              buttonClassName="inline-flex min-h-8 w-full min-w-0 items-center justify-between gap-1 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 text-xs font-semibold text-(--clarify-theme-tokens-colors-foreground) shadow-(--clarify-ui-shadow-raised) outline-hidden transition hover:border-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) focus:ring-2 focus:ring-inset focus:ring-(--clarify-theme-tokens-colors-primary) data-open:bg-(--clarify-ui-active-background)"
             />
           </label>
         ) : null}
@@ -312,7 +312,7 @@ export function EndpointIdentity(arg0: EndpointIdentityProps): ReactNode {
   }
 
   return (
-    <div className="clarify-openai-endpoint-identity not-prose flex w-full flex-col overflow-hidden rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs">
+    <div className="clarify-openai-endpoint-identity not-prose flex w-full flex-col overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-(--clarify-ui-shadow-raised)">
       <div className="flex min-w-0 items-center gap-1.5 overflow-hidden px-2.5 py-2">
         <EndpointMethodBadge method={method} />
         {operationSource === 'webhook' ? <EndpointMethodBadge method="WEBHOOK" /> : null}

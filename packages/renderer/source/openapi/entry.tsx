@@ -52,7 +52,7 @@ function OpenApiHeader(arg0: OpenApiHeaderProps): ReactNode {
   const t = useBuiltInText()
   return (
     <header className="clarify-openapi-header mb-16 border-b border-(--clarify-theme-tokens-colors-border) pb-8">
-      <p className="mb-3 text-xs/6 font-medium tracking-widest text-(--clarify-ui-accent-text) uppercase">
+      <p className="mb-3 text-xs/6 font-medium tracking-widest text-(--clarify-ui-text-faint) uppercase">
         {t('openapi.openApiReference')}
       </p>
       <h1 className="clarify-page-title">{spec.info?.title ?? t('openapi.apiDocumentation')}</h1>
@@ -80,7 +80,7 @@ function OpenApiPaths(arg0: OpenApiPathsProps): ReactNode {
     }))
 
   return (
-    <div className="clarify-openai-endpoints divide-y divide-zinc-200/70 dark:divide-white/10">
+    <div className="clarify-openai-endpoints divide-y divide-(--clarify-ui-border-subtle)">
       {entries.map(({ path, method, operation, source }) => (
         <OpenApiOperationComponent key={`${source}-${method}-${path}`} spec={spec} path={path} method={method} operation={operation} operationSource={source} />
       ))}
@@ -92,8 +92,8 @@ function WarningBox(arg0: WarningBoxProps): ReactNode {
   const { children, tone = 'amber' } = arg0
 
   const classes = tone === 'red'
-    ? 'rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200'
-    : 'rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200'
+    ? 'rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-tone-danger-border) bg-(--clarify-tone-danger-background) p-4 text-sm text-(--clarify-tone-danger-text)'
+    : 'rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-tone-warning-border) bg-(--clarify-tone-warning-background) p-4 text-sm text-(--clarify-tone-warning-text)'
 
   return <div className={`clarify-warning ${classes}`}>{children}</div>
 }

@@ -37,7 +37,7 @@ export function SchemaSearchButton(arg0: SchemaSearchButtonProps): ReactNode {
       className={clsx(
         'flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-(--clarify-theme-tokens-radius-md) transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)',
         open
-          ? 'bg-(--clarify-ui-hover-background) text-(--clarify-theme-tokens-colors-primary)'
+          ? 'bg-(--clarify-ui-active-background) text-(--clarify-ui-text-strong)'
           : 'text-(--clarify-ui-text-faint) hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground)',
       )}
     >

@@ -25,7 +25,7 @@ export function HighlightQuery(arg0: HighlightQueryProps) {
     <>
       {parts.map((part, index) =>
         part.toLowerCase() === query.toLowerCase() ? (
-          <mark key={index} className="bg-transparent text-(--clarify-theme-tokens-colors-primary) underline">
+          <mark key={index} className="bg-transparent text-(--clarify-brand-search-highlight) underline">
             {part}
           </mark>
         ) : (
@@ -45,7 +45,7 @@ function renderExcerptNode(node: ChildNode, key: string): ReactNode {
 
   if (element.tagName.toLowerCase() === 'mark') {
     return (
-      <mark key={key} className="bg-transparent text-(--clarify-theme-tokens-colors-primary) underline">
+      <mark key={key} className="bg-transparent text-(--clarify-brand-search-highlight) underline">
         {children}
       </mark>
     )

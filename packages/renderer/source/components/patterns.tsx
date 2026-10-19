@@ -62,13 +62,13 @@ export function HeroPattern() {
               [7, 3],
               [10, 6],
             ]}
-            className="clarify-hero-pattern-grid absolute inset-x-0 w-full -skew-y-18 fill-black/40 stroke-black/50 mix-blend-overlay dark:fill-white/2.5 dark:stroke-white/5"
+            className="clarify-hero-pattern-grid absolute inset-x-0 w-full -skew-y-18 fill-(--clarify-hero-pattern-fill) stroke-(--clarify-hero-pattern-stroke) mix-blend-overlay"
           />
         </div>
         <svg
           viewBox="0 0 1113 440"
           aria-hidden="true"
-          className="absolute top-0 left-1/2 -ml-76 w-278.25 fill-white blur-xl dark:hidden"
+          className="absolute top-0 left-1/2 -ml-76 w-278.25 fill-(--clarify-theme-tokens-colors-background) blur-xl dark:hidden"
         >
           <path d="M.016 439.5s-9.5-300 434-300S882.516 20 882.516 20V0h230.004v439.5H.016Z" />
         </svg>

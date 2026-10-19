@@ -20,20 +20,40 @@
 }
 
 @layer base {
+  /*
+   * The marketing site renders outside the CLI html-shell, so it has to declare
+   * the palette itself. These values are `themePresets.default` verbatim -
+   * light and dark - so the site and every generated docs build stay in sync.
+   *
+   * The semantic layers (`--clarify-ui-*`, `--clarify-tone-*`) are deliberately
+   * NOT redeclared here: `@clarify-labs/renderer/style.css` owns them and
+   * derives everything from the tokens below.
+   */
   :root {
     --clarify-theme-tokens-colors-primary: #047857;
-    --clarify-theme-tokens-colors-accent: #0d9488;
-    --clarify-theme-tokens-colors-background: #ffffff;
-    --clarify-theme-tokens-colors-foreground: #111827;
+    --clarify-theme-tokens-colors-accent: #0f766e;
+    --clarify-theme-tokens-colors-background: #f8fafc;
+    --clarify-theme-tokens-colors-foreground: #172033;
     --clarify-theme-tokens-colors-surface: #ffffff;
-    --clarify-theme-tokens-colors-muted: #64748b;
-    --clarify-theme-tokens-colors-border: rgb(15 23 42 / 0.12);
-    --clarify-theme-tokens-colors-code-background: #f6fbf8;
+    --clarify-theme-tokens-colors-muted: #667085;
+    --clarify-theme-tokens-colors-border: rgb(15 23 42 / 0.11);
+    --clarify-theme-tokens-colors-code-background: #18181b;
     --clarify-theme-tokens-radius-sm: 6px;
-    --clarify-theme-tokens-radius-md: 10px;
-    --clarify-theme-tokens-radius-lg: 14px;
-    --clarify-theme-tokens-radius-xl: 18px;
+    --clarify-theme-tokens-radius-md: 8px;
+    --clarify-theme-tokens-radius-lg: 12px;
+    --clarify-theme-tokens-radius-xl: 16px;
     --clarify-theme-layout-max-width: 82rem;
+  }
+
+  .dark {
+    --clarify-theme-tokens-colors-primary: #34d399;
+    --clarify-theme-tokens-colors-accent: #5eead4;
+    --clarify-theme-tokens-colors-background: #0a0a0b;
+    --clarify-theme-tokens-colors-foreground: #f4f4f5;
+    --clarify-theme-tokens-colors-surface: #18181b;
+    --clarify-theme-tokens-colors-muted: #a1a1aa;
+    --clarify-theme-tokens-colors-border: rgb(255 255 255 / 0.11);
+    --clarify-theme-tokens-colors-code-background: #171719;
   }
 
   html {
@@ -47,7 +67,7 @@
   }
 
   html.dark {
-    background-color: var(--color-zinc-950);
+    background-color: var(--clarify-theme-tokens-colors-background, var(--color-zinc-950));
   }
 
   body {
@@ -56,11 +76,6 @@
     background: var(--clarify-theme-tokens-colors-background, var(--color-white));
     color: var(--clarify-theme-tokens-colors-foreground, var(--color-zinc-900));
     font-family: var(--font-sans);
-  }
-
-  .dark body {
-    background: var(--color-zinc-950);
-    color: white;
   }
 
   body,
@@ -111,70 +126,10 @@
 }
 
 @layer components {
-  :root,
-  .clarify-app {
-    --clarify-ui-text-strong: var(--clarify-theme-tokens-colors-foreground);
-    --clarify-ui-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 88%, transparent);
-    --clarify-ui-text-soft: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 68%, transparent);
-    --clarify-ui-text-faint: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 54%, transparent);
-    --clarify-ui-hover-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 5%, transparent);
-    --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 10%, transparent);
-    --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-foreground) 4%, transparent);
-    --clarify-ui-overlay-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-muted) 25%, transparent);
-    --clarify-ui-accent-text: var(--clarify-theme-tokens-colors-primary);
-    --clarify-ui-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 9%, transparent);
-    --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 18%, transparent);
-    --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 18%, transparent);
-    --clarify-ui-menu-width: 13rem;
-    --clarify-ui-action-menu-width: 19.5rem;
-    --clarify-ui-control-font-size: 0.875rem;
-    --clarify-ui-control-line-height: 1.25rem;
-    --clarify-ui-menu-font-size: 0.875rem;
-    --clarify-ui-menu-line-height: 1.5rem;
-    --clarify-ui-description-font-size: 0.75rem;
-    --clarify-ui-description-line-height: 1.25rem;
-    --clarify-ui-tight-letter-spacing: -0.01em;
-    --clarify-ui-search-field-font-size: 0.9375rem;
-    --clarify-ui-search-field-line-height: 1.5rem;
-    --clarify-ui-navigation-section-font-size: var(--clarify-ui-menu-font-size);
-    --clarify-ui-navigation-section-line-height: var(--clarify-ui-menu-line-height);
-    --clarify-ui-navigation-section-badge-font-size: var(--clarify-ui-description-font-size);
-    --clarify-ui-navigation-section-badge-line-height: var(--clarify-ui-menu-line-height);
-    --clarify-preview-count-badge-font-size: var(--clarify-ui-description-font-size);
-    --clarify-preview-count-badge-line-height: var(--clarify-ui-description-line-height);
-  }
-
-  .dark,
-  .dark .clarify-app {
-    --clarify-theme-tokens-colors-background: var(--color-zinc-950);
-    --clarify-theme-tokens-colors-foreground: var(--color-white);
-    --clarify-theme-tokens-colors-surface: var(--color-zinc-900);
-    --clarify-theme-tokens-colors-muted: var(--color-zinc-400);
-    --clarify-theme-tokens-colors-border: rgb(255 255 255 / 0.1);
-    --clarify-theme-tokens-colors-code-background: rgb(255 255 255 / 0.05);
-    --clarify-ui-text-strong: var(--color-white);
-    --clarify-ui-text: var(--color-zinc-200);
-    --clarify-ui-text-soft: var(--color-zinc-300);
-    --clarify-ui-text-faint: var(--color-zinc-400);
-    --clarify-ui-hover-background: rgb(255 255 255 / 0.05);
-    --clarify-ui-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 18%, transparent);
-    --clarify-ui-subtle-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 10%, transparent);
-    --clarify-ui-overlay-background: rgb(0 0 0 / 0.4);
-    --clarify-ui-accent-text: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 72%, white);
-    --clarify-ui-accent-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 16%, transparent);
-    --clarify-ui-accent-border: color-mix(in srgb, var(--clarify-theme-tokens-colors-accent) 28%, transparent);
-    --clarify-ui-accent-glow: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 28%, transparent);
-  }
-
   .www-app {
     min-height: 100vh;
     background: var(--clarify-theme-tokens-colors-background, var(--color-white));
     color: var(--clarify-theme-tokens-colors-foreground, var(--color-zinc-900));
-  }
-
-  .dark .www-app {
-    background: var(--color-zinc-950);
-    color: var(--color-white);
   }
 
   .www-heading-display {

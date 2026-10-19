@@ -14,7 +14,7 @@ function ZoomControls(): ReactNode {
   const { zoomIn, zoomOut, resetTransform } = useControls()
   const t = useBuiltInText()
 
-  const buttonClassName = 'flex h-7 w-7 items-center justify-center rounded-md bg-(--clarify-theme-tokens-colors-surface) text-(--clarify-ui-text-soft) shadow-xs ring-1 ring-(--clarify-theme-tokens-colors-border) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground)'
+  const buttonClassName = 'flex h-7 w-7 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-theme-tokens-colors-surface) text-(--clarify-ui-text-soft) shadow-(--clarify-ui-shadow-raised) ring-1 ring-(--clarify-theme-tokens-colors-border) transition hover:bg-(--clarify-ui-hover-background) hover:text-(--clarify-theme-tokens-colors-foreground)'
 
   return (
     <div className="clarify-mermaid-controls absolute top-2 right-2 z-10 flex gap-1 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
@@ -46,7 +46,7 @@ export function MermaidViewer(arg0: MermaidViewerProps): ReactNode {
       onPointerDown={() => containerRef.current?.focus()}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
-      className={clsx('clarify-mermaid group not-prose relative my-6 resize-y overflow-hidden rounded-2xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)', className)}
+      className={clsx('clarify-mermaid group not-prose relative my-6 resize-y overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)', className)}
     >
       <TransformWrapper
         minScale={0.5}
@@ -66,7 +66,7 @@ export function MermaidViewer(arg0: MermaidViewerProps): ReactNode {
         </TransformComponent>
         <p
           className={clsx(
-            'clarify-mermaid-hint pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-(--clarify-theme-tokens-colors-surface)/90 px-2.5 py-1 text-2xs text-(--clarify-ui-text-soft) shadow-xs ring-1 ring-(--clarify-theme-tokens-colors-border) backdrop-blur-sm transition',
+            'clarify-mermaid-hint pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-(--clarify-theme-tokens-colors-surface)/90 px-2.5 py-1 text-2xs text-(--clarify-ui-text-soft) shadow-(--clarify-ui-shadow-raised) ring-1 ring-(--clarify-theme-tokens-colors-border) backdrop-blur-sm transition',
             focused ? 'opacity-0' : 'opacity-0 group-hover:opacity-100',
           )}
         >

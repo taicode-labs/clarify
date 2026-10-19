@@ -27,7 +27,7 @@ export function CopyCodeButton(arg0: CopyCodeButtonProps): ReactNode {
       className="ml-auto flex shrink-0 items-center gap-1.5 rounded-full bg-(--clarify-code-control-background) px-2.5 py-1.5 text-2xs font-medium whitespace-nowrap text-(--clarify-code-muted) transition hover:bg-(--clarify-code-control-background-hover) hover:text-(--clarify-code-text) focus:bg-(--clarify-code-control-background-hover) focus:text-(--clarify-code-text)"
     >
       {copied ? (
-        <CheckIcon className="h-3.5 w-3.5 text-(--clarify-theme-tokens-colors-primary)" aria-hidden="true" />
+        <CheckIcon className="h-3.5 w-3.5 text-(--clarify-code-success)" aria-hidden="true" />
       ) : (
         <ClipboardIcon className="h-3.5 w-3.5 text-(--clarify-code-faint)" aria-hidden="true" />
       )}

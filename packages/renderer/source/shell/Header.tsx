@@ -57,7 +57,7 @@ function LanguageSwitcher(arg0: LanguageSwitcherProps) {
       <MenuItems
         transition
         modal={false}
-        className="clarify-language-switcher-menu clarify-ui-menu absolute right-0 z-50 mt-2 w-(--clarify-ui-menu-width) rounded-(--clarify-theme-tokens-radius-xl) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg ring-1 shadow-zinc-900/5 ring-(--clarify-theme-tokens-colors-border) transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-zinc-900 dark:ring-white/10"
+        className="clarify-language-switcher-menu clarify-ui-menu absolute right-0 z-50 mt-2 w-(--clarify-ui-menu-width) rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-border) bg-(--clarify-ui-surface-elevated) p-1 shadow-(--clarify-ui-shadow-popover) transition data-closed:scale-95 data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
       >
         {locales.locales.flatMap((locale: LocaleConfig) => {
           const localizedPath = localizedRoutePath(config, locale.code, currentRoute)
@@ -227,7 +227,7 @@ function NavbarMenus(arg0: NavbarMenusProps) {
                   <span className="flex items-center gap-2"><NavigationIcon name={menu.icon} className="h-4 w-4" />{label}</span>
                   <ChevronRight className="ml-1 h-3.5 w-3.5 rotate-90" />
                 </MenuButton>
-                <MenuItems anchor="bottom start" transition className="clarify-ui-menu z-50 mt-2 min-w-48 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900">
+                <MenuItems anchor="bottom start" transition className="clarify-ui-menu z-50 mt-2 min-w-48 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-border) bg-(--clarify-ui-surface-elevated) p-1 shadow-(--clarify-ui-shadow-popover) transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0">
                   <NavbarMenuItems items={menu.items} config={config} currentLocale={currentLocale} />
                 </MenuItems>
               </Menu>
@@ -258,7 +258,7 @@ function MobileNavbarMenu(arg0: MobileNavbarMenuProps) {
       <MenuItems
         transition
         anchor="bottom end"
-        className="clarify-mobile-navbar-menu-list clarify-ui-menu z-50 mt-2 w-(--clarify-ui-menu-width) rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0 dark:border-white/10 dark:bg-zinc-900"
+        className="clarify-mobile-navbar-menu-list clarify-ui-menu z-50 mt-2 w-(--clarify-ui-menu-width) rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-border) bg-(--clarify-ui-surface-elevated) p-1 shadow-(--clarify-ui-shadow-popover) transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
       >
         <NavbarMenuItems items={menus} config={config} currentLocale={currentLocale} />
       </MenuItems>
@@ -327,7 +327,7 @@ function ProductTabs(arg0: ProductTabsProps) {
   if (!tabs?.length) return null
 
   return (
-    <div data-clarify-header-tabs className="clarify-product-tabs hidden h-14 border-t border-(--clarify-theme-tokens-colors-border) lg:block dark:border-white/10">
+    <div data-clarify-header-tabs className="clarify-product-tabs hidden h-14 border-t border-(--clarify-ui-border) lg:block">
       <div
         className="clarify-product-tabs-frame relative mx-auto h-full w-full max-w-(--clarify-theme-layout-max-width)"
         data-at-start={scrollState.start || undefined}
@@ -447,7 +447,7 @@ export const Header = forwardRef<
         {tabsInNavbar ? <Search compact routes={routes} navigation={navigation} /> : null}
         {tabsInNavbar ? <NavbarTabs tabs={tabs} currentLocale={currentLocale} /> : null}
         {renderTopLinks()}
-        {hasNavbarMenus ? <div className="mx-2 hidden h-5 w-px bg-(--clarify-theme-tokens-colors-border) md:block md:dark:bg-white/15" /> : null}
+        {hasNavbarMenus ? <div className="mx-2 hidden h-5 w-px bg-(--clarify-ui-border-strong) md:block" /> : null}
         <MobileSearch routes={routes} navigation={navigation} />
         <LanguageSwitcher config={config} currentLocale={currentLocale} currentRoute={currentRoute} />
         <ThemeToggle />
@@ -498,8 +498,8 @@ export const Header = forwardRef<
       data-pagefind-ignore
       className={clsx(
         className,
-        'clarify-header fixed inset-x-0 top-0 z-50 border-b border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background)/(--bg-opacity-light) backdrop-blur-xs transition dark:border-white/10 dark:bg-zinc-950/(--bg-opacity-dark) dark:backdrop-blur-sm',
-        isInsideMobileNavigation && 'bg-(--clarify-theme-tokens-colors-background) dark:bg-zinc-950',
+        'clarify-header fixed inset-x-0 top-0 z-50 border-b border-(--clarify-ui-border) bg-(--clarify-theme-tokens-colors-background)/(--bg-opacity-light) backdrop-blur-xs transition dark:bg-(--clarify-theme-tokens-colors-background)/(--bg-opacity-dark) dark:backdrop-blur-sm',
+        isInsideMobileNavigation && 'bg-(--clarify-theme-tokens-colors-background)',
       )}
       style={
         {

@@ -98,7 +98,7 @@ function TextField(props: TextFieldProps) {
             type="color"
             value={value}
             aria-label={`${label} color`}
-            className="h-5 w-8 shrink-0 cursor-pointer rounded border border-(--clarify-theme-tokens-colors-border) bg-transparent p-0"
+            className="h-5 w-8 shrink-0 cursor-pointer rounded-(--clarify-theme-tokens-radius-sm) border border-(--clarify-theme-tokens-colors-border) bg-transparent p-0"
             onChange={handleTextChange}
           />
         ) : null}
@@ -107,7 +107,7 @@ function TextField(props: TextFieldProps) {
         id={id}
         value={value}
         spellCheck={false}
-        className="h-9 w-full min-w-0 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 font-mono text-xs text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
+        className="h-9 w-full min-w-0 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 font-mono text-xs text-(--clarify-theme-tokens-colors-foreground) shadow-(--clarify-ui-shadow-raised) outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
         onChange={handleTextChange}
       />
     </label>
@@ -161,7 +161,7 @@ function ColorModeInput(props: ColorModeInputProps) {
             type="color"
             value={value}
             aria-label={`${id} color`}
-            className="h-4 w-6 shrink-0 cursor-pointer rounded border border-(--clarify-theme-tokens-colors-border) bg-transparent p-0"
+            className="h-4 w-6 shrink-0 cursor-pointer rounded-(--clarify-theme-tokens-radius-sm) border border-(--clarify-theme-tokens-colors-border) bg-transparent p-0"
             onChange={handleTextChange}
           />
         ) : null}
@@ -170,7 +170,7 @@ function ColorModeInput(props: ColorModeInputProps) {
         id={id}
         value={value}
         spellCheck={false}
-        className="h-8 w-full min-w-0 rounded-(--clarify-theme-tokens-radius-sm) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2 font-mono text-xs text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
+        className="h-8 w-full min-w-0 rounded-(--clarify-theme-tokens-radius-sm) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2 font-mono text-xs text-(--clarify-theme-tokens-colors-foreground) shadow-(--clarify-ui-shadow-raised) outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
         onChange={handleTextChange}
       />
     </label>
@@ -330,7 +330,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
               <select
                 id="clarify-theme-editor-preset"
                 value={theme.preset}
-                className="h-9 w-full appearance-none rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 pr-9 text-sm text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
+                className="h-9 w-full appearance-none rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 pr-9 text-sm text-(--clarify-theme-tokens-colors-foreground) shadow-(--clarify-ui-shadow-raised) outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
                 onChange={(event) => updatePreset(event.target.value as ThemePreset)}
               >
                 <option value="default">default</option>
@@ -379,7 +379,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
                   <select
                     id="clarify-theme-editor-tabs-position"
                     value={config.layout?.tabs ?? 'subnav'}
-                    className="h-9 w-full appearance-none rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 pr-9 text-sm text-(--clarify-theme-tokens-colors-foreground) shadow-xs outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
+                    className="h-9 w-full appearance-none rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-2.5 pr-9 text-sm text-(--clarify-theme-tokens-colors-foreground) shadow-(--clarify-ui-shadow-raised) outline-none transition focus:border-(--clarify-theme-tokens-colors-primary) focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
                     onChange={(event) => updateConfig(currentConfig => ({
                       ...currentConfig,
                       layout: { ...currentConfig.layout, tabs: event.target.value as 'subnav' | 'navbar' },
@@ -429,7 +429,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
         </div>
         <button
           type="button"
-          className="rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-theme-tokens-colors-primary) px-3 py-1.5 text-xs/5 font-semibold text-white shadow-xs transition hover:opacity-90"
+          className="rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-theme-tokens-colors-primary) px-3 py-1.5 text-xs/5 font-semibold text-(--clarify-ui-on-accent) shadow-(--clarify-ui-shadow-raised) transition hover:opacity-90"
           onClick={copyConfig}
         >
           {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy config'}
@@ -443,7 +443,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
 
     return (
       <section
-        className="mb-3 flex max-h-(--clarify-theme-editor-panel-max-height) w-(--clarify-theme-editor-width) flex-col overflow-hidden rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/95 shadow-2xl shadow-zinc-900/15 backdrop-blur"
+        className="mb-3 flex max-h-(--clarify-theme-editor-panel-max-height) w-(--clarify-theme-editor-width) flex-col overflow-hidden rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/95 shadow-(--clarify-ui-shadow-popover) shadow-zinc-900/15 backdrop-blur"
         aria-label="Clarify theme editor"
       >
         {renderPanelHeader()}
@@ -459,7 +459,7 @@ export function ThemeEditor(props: ThemeEditorProps) {
 
       <button
         type="button"
-        className="ml-auto flex size-12 items-center justify-center rounded-full border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/95 text-(--clarify-theme-tokens-colors-primary) shadow-xl shadow-zinc-900/15 backdrop-blur transition hover:scale-105 hover:bg-(--clarify-ui-accent-background) focus:outline-none focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
+        className="ml-auto flex size-12 items-center justify-center rounded-full border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface)/95 text-(--clarify-theme-tokens-colors-primary) shadow-(--clarify-ui-shadow-popover) shadow-zinc-900/15 backdrop-blur transition hover:scale-105 hover:bg-(--clarify-ui-accent-background) focus:outline-none focus:ring-2 focus:ring-(--clarify-ui-accent-border)"
         aria-label={isOpen ? 'Close Clarify theme editor' : 'Open Clarify theme editor'}
         aria-expanded={isOpen}
         onClick={() => setIsOpen((value) => !value)}

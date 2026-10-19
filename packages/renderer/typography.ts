@@ -18,8 +18,8 @@ export default {
           '--tw-prose-quote-borders': 'var(--clarify-theme-tokens-colors-border)',
           '--tw-prose-captions': 'var(--clarify-theme-tokens-colors-muted)',
           '--tw-prose-code': 'var(--clarify-theme-tokens-colors-foreground)',
-          '--tw-prose-code-bg': 'var(--clarify-theme-tokens-colors-code-background)',
-          '--tw-prose-code-ring': 'var(--clarify-theme-tokens-colors-border)',
+          '--tw-prose-code-bg': 'var(--clarify-code-inline-background)',
+          '--tw-prose-code-ring': 'var(--clarify-code-inline-ring)',
           '--tw-prose-th-borders': 'var(--clarify-theme-tokens-colors-border)',
           '--tw-prose-td-borders': 'color-mix(in srgb, var(--clarify-theme-tokens-colors-border) 80%, transparent)',
 
@@ -36,8 +36,8 @@ export default {
           '--tw-prose-invert-quote-borders': 'var(--clarify-theme-tokens-colors-border)',
           '--tw-prose-invert-captions': 'var(--clarify-ui-text-faint)',
           '--tw-prose-invert-code': 'var(--clarify-ui-text-strong)',
-          '--tw-prose-invert-code-bg': 'var(--clarify-theme-tokens-colors-code-background)',
-          '--tw-prose-invert-code-ring': 'var(--clarify-theme-tokens-colors-border)',
+          '--tw-prose-invert-code-bg': 'var(--clarify-code-inline-background)',
+          '--tw-prose-invert-code-ring': 'var(--clarify-code-inline-ring)',
           '--tw-prose-invert-th-borders': 'var(--clarify-theme-tokens-colors-border)',
           '--tw-prose-invert-td-borders': 'color-mix(in srgb, var(--clarify-theme-tokens-colors-border) 78%, transparent)',
 

@@ -33,7 +33,7 @@ export function Step(arg0: StepProps) {
       className={clsx('clarify-step relative m-0 pb-10 pl-9 last:pb-0', className)}
       {...props}
     >
-      <span className="absolute top-0 -left-3.5 flex size-7 items-center justify-center rounded-full bg-(--clarify-theme-tokens-colors-primary) text-xs font-semibold text-white shadow-[0_0_0_4px_var(--clarify-theme-tokens-colors-background)] before:content-[counter(list-item)] dark:text-zinc-950" aria-hidden="true" />
+      <span className="absolute top-0 -left-3.5 flex size-7 items-center justify-center rounded-full bg-(--clarify-ui-text-strong) text-xs font-semibold text-(--clarify-theme-tokens-colors-background) shadow-[0_0_0_4px_var(--clarify-theme-tokens-colors-background)] before:content-[counter(list-item)]" aria-hidden="true" />
       {title ? <h3 className="m-0 pt-0.5 text-base font-semibold text-(--clarify-theme-tokens-colors-foreground)">{title}</h3> : null}
       <div className={clsx('text-sm/6 text-(--clarify-ui-text-soft) *:last:mb-0', title && 'mt-2.5', !title && '*:first:mt-0')}>
         {children}

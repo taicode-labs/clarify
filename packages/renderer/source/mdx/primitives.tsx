@@ -17,7 +17,7 @@ export function Release(arg0: ReleaseProps) {
   return (
     <section id={version} className="clarify-release my-14 grid gap-7 border-t border-(--clarify-theme-tokens-colors-border) pt-8 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-12">
       <header className="self-start sm:sticky sm:top-24">
-        <h2 className="m-0! inline-flex rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-ui-accent-background) px-2.5 py-1 text-sm font-semibold text-(--clarify-ui-accent-text)">
+        <h2 className="m-0! inline-flex rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-ui-subtle-background) px-2.5 py-1 text-sm font-semibold text-(--clarify-ui-text-strong) ring-1 ring-(--clarify-ui-border) ring-inset">
           {version}
         </h2>
         {date
@@ -99,8 +99,8 @@ export function Note(arg0: NoteProps) {
   const { children } = arg0
 
   return (
-    <div className="clarify-note my-6 flex gap-3 rounded-r-(--clarify-theme-tokens-radius-lg) border-l-2 border-(--clarify-theme-tokens-colors-primary) bg-(--clarify-ui-subtle-background) px-4 py-3 text-sm/6 text-(--clarify-ui-text-soft) [--tw-prose-links-hover:var(--clarify-ui-accent-text)] [--tw-prose-links:var(--clarify-theme-tokens-colors-foreground)]">
-      <Info className="mt-1 size-4 flex-none stroke-(--clarify-ui-accent-text)" />
+    <div className="clarify-note my-6 flex gap-3 rounded-r-(--clarify-theme-tokens-radius-lg) border-l-2 border-(--clarify-ui-border-strong) bg-(--clarify-ui-subtle-background) px-4 py-3 text-sm/6 text-(--clarify-ui-text-soft) [--tw-prose-links-hover:var(--clarify-ui-accent-text)] [--tw-prose-links:var(--clarify-theme-tokens-colors-foreground)]">
+      <Info className="mt-1 size-4 flex-none stroke-(--clarify-ui-text-soft)" />
       <div className="*:first:mt-0 *:last:mb-0">{children}</div>
     </div>
   )

@@ -21,8 +21,8 @@ function Eyebrow(arg0: EyebrowProps) {
   return (
     <div className="flex items-center gap-x-3">
       {tag ? <Tag>{tag}</Tag> : null}
-      {tag && label ? <span className="h-0.5 w-0.5 rounded-full bg-zinc-300 dark:bg-zinc-600" /> : null}
-      {label ? <span className="text-xs text-zinc-400">{label}</span> : null}
+      {tag && label ? <span className="h-0.5 w-0.5 rounded-full bg-(--clarify-ui-border-strong)" /> : null}
+      {label ? <span className="text-xs text-(--clarify-ui-text-faint)">{label}</span> : null}
     </div>
   )
 }
@@ -36,7 +36,7 @@ function Anchor(arg0: AnchorProps) {
     <a href={`#${id}`} className="clarify-anchor group text-inherit no-underline hover:text-inherit">
       {inView ? (
         <div className="absolute mt-1 -ml-(--width) hidden w-(--width) opacity-0 transition [--width:var(--clarify-heading-anchor-width)] group-hover:opacity-100 group-focus:opacity-100 md:block lg:z-50 2xl:[--width:var(--clarify-heading-anchor-width-wide)]">
-          <LinkIcon className="h-5 w-5 text-(--clarify-theme-tokens-colors-primary) opacity-80 transition group-hover:opacity-100" />
+          <LinkIcon className="h-5 w-5 text-(--clarify-ui-text-soft) opacity-0 transition group-hover:opacity-100" />
         </div>
       ) : null}
       {children}

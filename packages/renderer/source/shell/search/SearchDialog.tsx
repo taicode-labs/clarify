@@ -195,11 +195,11 @@ export function SearchDialog(arg0: SearchDialogProps) {
 
   function renderResultsPanel() {
     return (
-      <div className="border-t border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) empty:hidden dark:border-zinc-100/5 dark:bg-white/2.5">
+      <div className="border-t border-(--clarify-ui-border) bg-(--clarify-ui-surface) empty:hidden">
         {showNoResults ? (
           <div className="p-6 text-center">
-            <SearchX className="mx-auto h-5 w-5 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-zinc-600" />
-            <p className="mt-2 text-xs text-(--clarify-theme-tokens-colors-muted) dark:text-zinc-400">
+            <SearchX className="mx-auto h-5 w-5 stroke-(--clarify-ui-text-faint)" />
+            <p className="mt-2 text-xs text-(--clarify-ui-text-soft)">
               {t('search.noResults', { query })}
             </p>
           </div>
@@ -232,7 +232,7 @@ export function SearchDialog(arg0: SearchDialogProps) {
       <div className="fixed inset-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-20 md:py-32 lg:px-8 lg:py-(--clarify-search-dialog-padding-block-lg)">
         <DialogPanel
           transition
-          className="clarify-search-panel mx-auto transform-gpu overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-theme-tokens-colors-surface) shadow-xl ring-1 ring-(--clarify-theme-tokens-colors-border) data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
+          className="clarify-search-panel mx-auto transform-gpu overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-ui-surface-elevated) shadow-(--clarify-ui-shadow-popover) ring-1 ring-(--clarify-ui-border) data-closed:scale-95 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:max-w-xl"
           onKeyDown={(event) => {
             if (event.key === 'ArrowDown') {
               event.preventDefault()

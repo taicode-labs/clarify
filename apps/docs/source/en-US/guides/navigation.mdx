@@ -172,8 +172,48 @@ Current presets:
 Notes:
 
 - You do not need to create a `tailwind.config.js`.
-- There is currently no stable project-level custom CSS entry.
 - Light, dark, and system-preference detection are built into the renderer.
+- The shipped interface is neutral: the brand color shows up on links, primary buttons, and focus rings. Navigation rails, tab underlines, and selected rows stay grayscale on purpose — flooding them with the brand color is what makes a page look muddy.
+
+### Bringing the brand tint back
+
+If you want the tinted navigation, tabs, and menus back, override the `--clarify-brand-*` layer instead of editing selectors:
+
+```css
+:root {
+  --clarify-brand-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 12%, transparent);
+  --clarify-brand-active-text: var(--clarify-theme-tokens-colors-primary);
+  --clarify-brand-tab-indicator: var(--clarify-theme-tokens-colors-primary);
+  --clarify-brand-navigation-marker: var(--clarify-theme-tokens-colors-primary);
+  --clarify-brand-navigation-icon: var(--clarify-theme-tokens-colors-primary);
+  --clarify-brand-search-highlight: var(--clarify-ui-accent-text);
+}
+```
+
+Every one of these defaults to a neutral value, so overriding two or three of them is enough; the rest keep the default.
+
+Injection goes through a plugin: there is no project-level custom CSS entry yet, and the smallest hook is `html:transform` adding a `<style>` tag to the head.
+
+```ts title="clarify.plugin.ts"
+import type { ClarifyPlugin } from '@clarify-labs/cli'
+
+export function brandTintPlugin(): ClarifyPlugin {
+  const css = `:root {
+    --clarify-brand-tab-indicator: var(--clarify-theme-tokens-colors-primary);
+    --clarify-brand-navigation-marker: var(--clarify-theme-tokens-colors-primary);
+  }`
+
+  return {
+    name: 'brand-tint',
+    hooks: {
+      'html:transform': (input) => ({
+        ...input,
+        tags: [...input.tags, { tag: 'style', children: css, injectTo: 'head' }],
+      }),
+    },
+  }
+}
+```
 
 ---
 

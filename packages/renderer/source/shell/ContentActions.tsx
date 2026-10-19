@@ -162,29 +162,29 @@ export function ContentActions(arg0: ContentActionsProps) {
               onClick={primaryAction.run}
               disabled={primaryPhase === 'copying'}
               aria-live="polite"
-              className="clarify-content-actions-primary clarify-ui-control inline-flex h-9 min-w-0 items-center gap-2 rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-3 shadow-xs shadow-zinc-900/5 transition"
+              className="clarify-content-actions-primary clarify-ui-control inline-flex h-9 min-w-0 items-center gap-2 rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-3 shadow-(--clarify-ui-shadow-raised) shadow-zinc-900/5 transition"
             >
               <PrimaryIcon className={`h-4 w-4 shrink-0 ${primaryPhase === 'copying' ? 'animate-spin' : ''}`} />
               <span className="truncate">{primaryPhase === 'idle' ? primaryAction.label : feedbackLabel}</span>
             </button>
           ) : null}
-          <MenuButton className="clarify-content-actions-trigger clarify-ui-control inline-flex size-9 items-center justify-center rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-xs shadow-zinc-900/5 transition" aria-label={t('contentActions.copyOptions')}>
+          <MenuButton className="clarify-content-actions-trigger clarify-ui-control inline-flex size-9 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) shadow-(--clarify-ui-shadow-raised) shadow-zinc-900/5 transition" aria-label={t('contentActions.copyOptions')}>
             <ChevronDown className="h-3.5 w-3.5" />
           </MenuButton>
         </div>
         {feedbackAction && copyPhase !== 'idle' && copied !== primaryAction?.key ? (
           <div
             role="status"
-            className="absolute top-full right-0 mt-2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 text-xs shadow-lg shadow-zinc-900/10"
+            className="absolute top-full right-0 mt-2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) px-2.5 py-1.5 text-xs shadow-(--clarify-ui-shadow-popover) shadow-zinc-900/10"
           >
-            {copyPhase === 'copying' ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : copyPhase === 'copied' ? <Check className="h-3.5 w-3.5 text-(--clarify-theme-tokens-colors-primary)" /> : <X className="h-3.5 w-3.5" />}
+            {copyPhase === 'copying' ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : copyPhase === 'copied' ? <Check className="h-3.5 w-3.5 text-(--clarify-tone-success-icon)" /> : <X className="h-3.5 w-3.5" />}
             <span>{feedbackLabel}</span>
           </div>
         ) : null}
         <MenuItems
           modal={false}
           anchor="bottom end"
-          className="clarify-content-actions-list clarify-ui-menu z-30 mt-2 w-(--clarify-ui-action-menu-width) origin-top-right rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1.5 shadow-xl shadow-zinc-900/5 transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
+          className="clarify-content-actions-list clarify-ui-menu z-30 mt-2 w-(--clarify-ui-action-menu-width) origin-top-right rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1.5 shadow-(--clarify-ui-shadow-popover) shadow-zinc-900/5 transition [--anchor-gap:--spacing(2)] focus:outline-none data-closed:scale-95 data-closed:opacity-0"
         >
           {actions.slice(0, 1).map((action) => {
             const Icon = action.icon
@@ -204,7 +204,7 @@ export function ContentActions(arg0: ContentActionsProps) {
                     <span className="clarify-ui-menu-title">{isCopied ? t('contentActions.copiedContent') : action.label}</span>
                     <span className="clarify-ui-menu-description truncate">{action.description}</span>
                   </span>
-                  <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${isCopied ? 'opacity-100' : 'opacity-0'}`} />
+                  <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-tone-success-icon) transition ${isCopied ? 'opacity-100' : 'opacity-0'}`} />
                 </button>
               </MenuItem>
             )
@@ -227,7 +227,7 @@ export function ContentActions(arg0: ContentActionsProps) {
                   </span>
                   <span className="clarify-ui-menu-description truncate">{viewDescription}</span>
                 </span>
-                <Check className="h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) opacity-0" />
+                <Check className="h-3.5 w-3.5 shrink-0 text-(--clarify-tone-success-icon) opacity-0" />
               </a>
             </MenuItem>
           ) : null}
@@ -249,7 +249,7 @@ export function ContentActions(arg0: ContentActionsProps) {
                     <span className="clarify-ui-menu-title">{isCopied ? action.copiedLabel ?? action.label : action.label}</span>
                     <span className="clarify-ui-menu-description truncate">{action.description}</span>
                   </span>
-                  <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${isCopied ? 'opacity-100' : 'opacity-0'}`} />
+                  <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-tone-success-icon) transition ${isCopied ? 'opacity-100' : 'opacity-0'}`} />
                 </button>
               </MenuItem>
             )
@@ -267,7 +267,7 @@ export function ContentActions(arg0: ContentActionsProps) {
                 <span className="clarify-ui-menu-title">{copied === llmsAction.key ? llmsAction.copiedLabel ?? llmsAction.label : llmsAction.label}</span>
                 <span className="clarify-ui-menu-description truncate">{llmsAction.description}</span>
               </span>
-              <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${copied === llmsAction.key ? 'opacity-100' : 'opacity-0'}`} />
+              <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-tone-success-icon) transition ${copied === llmsAction.key ? 'opacity-100' : 'opacity-0'}`} />
             </button>
           </MenuItem> : null}
           {mcpEnabled ? <MenuItem key={mcpAction.key}>
@@ -283,7 +283,7 @@ export function ContentActions(arg0: ContentActionsProps) {
                 <span className="clarify-ui-menu-title">{copied === mcpAction.key ? mcpAction.copiedLabel ?? mcpAction.label : mcpAction.label}</span>
                 <span className="clarify-ui-menu-description truncate">{mcpAction.description}</span>
               </span>
-              <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-theme-tokens-colors-primary) transition ${copied === mcpAction.key ? 'opacity-100' : 'opacity-0'}`} />
+              <Check className={`h-3.5 w-3.5 shrink-0 text-(--clarify-tone-success-icon) transition ${copied === mcpAction.key ? 'opacity-100' : 'opacity-0'}`} />
             </button>
           </MenuItem> : null}
         </MenuItems>

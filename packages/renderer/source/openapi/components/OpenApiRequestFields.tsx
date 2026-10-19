@@ -66,8 +66,8 @@ export function RequestField(arg0: RequestFieldProps): ReactNode {
     <Tooltip
       content={<Markdown className="max-w-80 text-left *:first:mt-0 *:last:mb-0">{description}</Markdown>}
       side="bottom"
-      className="mr-1 shrink-0 *:[[role=tooltip]]:w-80 *:[[role=tooltip]]:max-w-[min(20rem,calc(100vw-2rem))] *:[[role=tooltip]]:border *:[[role=tooltip]]:border-(--clarify-theme-tokens-colors-border) *:[[role=tooltip]]:bg-(--clarify-theme-tokens-colors-surface) *:[[role=tooltip]]:p-3 *:[[role=tooltip]]:text-(--clarify-ui-text) *:[[role=tooltip]]:shadow-xl"
-      triggerClassName="clarify-field-description-trigger clarify-ui-control inline-flex size-7 items-center justify-center rounded-md !border-b-0 text-(--clarify-ui-text-faint) transition-colors"
+      className="mr-1 shrink-0 *:[[role=tooltip]]:w-80 *:[[role=tooltip]]:max-w-[min(20rem,calc(100vw-2rem))] *:[[role=tooltip]]:border *:[[role=tooltip]]:border-(--clarify-theme-tokens-colors-border) *:[[role=tooltip]]:bg-(--clarify-theme-tokens-colors-surface) *:[[role=tooltip]]:p-3 *:[[role=tooltip]]:text-(--clarify-ui-text) *:[[role=tooltip]]:shadow-(--clarify-ui-shadow-popover)"
+      triggerClassName="clarify-field-description-trigger clarify-ui-control inline-flex size-7 items-center justify-center rounded-(--clarify-theme-tokens-radius-md) !border-b-0 text-(--clarify-ui-text-faint) transition-colors"
     >
       <InfoIcon className="size-4" aria-hidden="true" />
       <span className="sr-only">{t('openapi.fieldDescription')}</span>

@@ -56,7 +56,7 @@ export function Tooltip(arg0: TooltipProps) {
         ref={triggerRef}
         aria-describedby={contentId}
         aria-expanded={open}
-        className={clsx('cursor-help appearance-none rounded-sm border-0 border-b border-dotted border-current bg-transparent p-0 font-inherit text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)', triggerClassName)}
+        className={clsx('cursor-help appearance-none rounded-(--clarify-theme-tokens-radius-sm) border-0 border-b border-dotted border-current bg-transparent p-0 font-inherit text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary)', triggerClassName)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onClick={() => setOpen(true)}
@@ -73,7 +73,7 @@ export function Tooltip(arg0: TooltipProps) {
         popover="manual"
         style={position}
         className={clsx(
-          'pointer-events-none fixed right-auto bottom-auto z-60 m-0 w-max max-w-64 -translate-x-1/2 rounded-md border-0 bg-(--clarify-theme-tokens-colors-foreground) px-2.5 py-1.5 text-center text-xs/5 font-normal text-(--clarify-theme-tokens-colors-background) shadow-lg transition duration-150',
+          'pointer-events-none fixed right-auto bottom-auto z-60 m-0 w-max max-w-64 -translate-x-1/2 rounded-(--clarify-theme-tokens-radius-md) border-0 bg-(--clarify-theme-tokens-colors-foreground) px-2.5 py-1.5 text-center text-xs/5 font-normal text-(--clarify-theme-tokens-colors-background) shadow-(--clarify-ui-shadow-popover) transition duration-150',
           side === 'top' && '-translate-y-full',
           open && position ? 'visible opacity-100' : 'invisible opacity-0',
         )}

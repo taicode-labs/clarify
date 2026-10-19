@@ -133,7 +133,7 @@ const previewConfig = {
         surface: '#ffffff',
         muted: '#71717a',
         border: 'rgb(24 24 27 / 0.1)',
-        codeBackground: '#f4f4f5',
+        codeBackground: '#18181b',
       },
       radius: {
         sm: '0.375rem',
@@ -199,13 +199,13 @@ function Chrome(arg0: ChromeProps) {
   const { title, status, headerAction, children } = arg0
 
   return (
-    <div className="clarify-app clarify-preview h-full overflow-hidden bg-(--clarify-theme-tokens-colors-background) text-(--clarify-ui-text) shadow-2xl ring-1 ring-(--clarify-theme-tokens-colors-border) dark:bg-zinc-950 dark:text-white dark:ring-white/10">
-      <div className="flex items-center gap-3 border-b border-(--clarify-theme-tokens-colors-border) px-4 py-3 text-xs/6 text-(--clarify-ui-text-faint) dark:border-white/10">
+    <div className="clarify-app clarify-preview h-full overflow-hidden bg-(--clarify-theme-tokens-colors-background) text-(--clarify-ui-text) shadow-(--clarify-ui-shadow-popover) ring-1 ring-(--clarify-ui-border) shadow-(--clarify-ui-shadow-popover)">
+      <div className="flex items-center gap-3 border-b border-(--clarify-ui-border) px-4 py-3 text-xs/6 text-(--clarify-ui-text-faint)">
         <span className="size-2 rounded-full bg-rose-400" />
         <span className="size-2 rounded-full bg-amber-400" />
         <span className="size-2 rounded-full bg-emerald-400" />
         <span className="ml-2 min-w-0 flex-1 truncate font-medium text-(--clarify-ui-text-soft)">{title}</span>
-        {status ? <span className="hidden rounded-full bg-emerald-400/15 px-2 py-0.5 font-medium text-emerald-700 sm:inline dark:text-emerald-300">{status}</span> : null}
+        {status ? <span className="hidden rounded-full bg-(--clarify-tone-success-background) px-2 py-0.5 font-medium text-(--clarify-tone-success-text) sm:inline">{status}</span> : null}
         {headerAction}
       </div>
       {children}
@@ -219,7 +219,7 @@ function MethodBadge(arg0: MethodBadgeProps) {
   const method = arg0.method.toUpperCase()
 
   return (
-    <span className={`rounded-md px-2.5 py-0.5 text-xs/6 font-black tracking-wide ${methodStyleVars[method] ?? 'bg-(--clarify-http-method-default-background) text-(--clarify-http-method-default-text)'}`}>
+    <span className={`rounded-(--clarify-theme-tokens-radius-sm) px-2.5 py-0.5 text-xs/6 font-black tracking-wide ${methodStyleVars[method] ?? 'bg-(--clarify-http-method-default-background) text-(--clarify-http-method-default-text)'}`}>
       {method}
     </span>
   )
@@ -277,14 +277,14 @@ function MainPreviewMobileNavigation(arg0: MainPreviewMobileNavigationProps) {
       {isOpen ? (
         <button
           type="button"
-          className="absolute inset-0 bg-zinc-950/20 backdrop-blur-[1px] dark:bg-black/30"
+          className="absolute inset-0 bg-(--clarify-ui-overlay-background) backdrop-blur-[1px]"
           aria-label="Close documentation menu"
           onClick={onClose}
         />
       ) : null}
       <aside
         id={navigationId}
-        className="pointer-events-auto absolute top-0 bottom-0 left-0 w-64 max-w-[82%] overflow-y-auto border-r border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-background) px-1 py-4 text-sm/7 shadow-2xl shadow-zinc-900/20 transition-transform duration-200 ease-out data-closed:-translate-x-full dark:border-white/10 dark:bg-zinc-950 dark:shadow-black/40"
+        className="pointer-events-auto absolute top-0 bottom-0 left-0 w-64 max-w-[82%] overflow-y-auto border-r border-(--clarify-ui-border) bg-(--clarify-theme-tokens-colors-background) px-1 py-4 text-sm/7 shadow-(--clarify-ui-shadow-popover) transition-transform duration-200 ease-out data-closed:-translate-x-full"
         data-closed={!isOpen ? 'true' : undefined}
       >
         <PreviewNavigation {...navigationProps} />
@@ -301,7 +301,7 @@ function PreviewMetricGrid(arg0: PreviewMetricGridProps) {
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
       {metrics.map((metric) => (
-        <div key={metric.label} className="rounded-xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-2.5 shadow-sm dark:border-white/10 dark:bg-zinc-900/50">
+        <div key={metric.label} className="g-900/50">
           <div className="text-xs/5 text-(--clarify-ui-text-faint)">{metric.label}</div>
           <div className="text-base/6 font-semibold text-(--clarify-ui-text-strong)">{metric.value}</div>
           {metric.hint ? <div className="text-xs/5 text-(--clarify-ui-text-faint)">{metric.hint}</div> : null}
@@ -323,11 +323,11 @@ function GuideSummaryPreview(arg0: GuideSummaryPreviewProps) {
   const { guide } = arg0
 
   return (
-    <header className="border-b border-(--clarify-theme-tokens-colors-border) pb-4 dark:border-white/10">
+    <header className="border-b border-(--clarify-ui-border) pb-4">
       <PreviewLabel>{guide.label}</PreviewLabel>
       <h2 className="mt-1 text-xl/7 font-semibold tracking-tight text-(--clarify-ui-text-strong)">{guide.title}</h2>
       <p className="mt-2 max-w-2xl text-sm/6 text-(--clarify-ui-text-soft)">{guide.body}</p>
-      <pre className="mt-3 overflow-hidden rounded-xl bg-zinc-950 px-3 py-2 text-xs/5 whitespace-pre-wrap text-zinc-300">{guide.embed}</pre>
+      <pre className="mt-3 overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) bg-(--clarify-code-background) px-3 py-2 text-xs/5 whitespace-pre-wrap text-(--clarify-code-text)">{guide.embed}</pre>
     </header>
   )
 }
@@ -355,7 +355,7 @@ function EmbeddedApiPreview(arg0: EmbeddedApiPreviewProps) {
   const { endpoint } = arg0
 
   return (
-    <div className="clarify-preview-api-frame min-w-0 overflow-hidden border-t border-(--clarify-theme-tokens-colors-border) pt-4 dark:border-white/10">
+    <div className="clarify-preview-api-frame min-w-0 overflow-hidden border-t border-(--clarify-ui-border) pt-4">
       <div className="clarify-preview-api-content clarify-preview-api-content-embedded">
         <OpenApiExamplesPreview endpoint={endpoint} />
       </div>
@@ -369,11 +369,11 @@ function OutputListPreview(arg0: OutputListPreviewProps) {
   const { outputs } = arg0
 
   return (
-    <div className="border-t border-(--clarify-theme-tokens-colors-border) pt-4 dark:border-white/10">
+    <div className="border-t border-(--clarify-ui-border) pt-4">
       <PreviewLabel>Static output</PreviewLabel>
       <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {outputs.map((output) => (
-          <div key={output} className="flex items-center gap-2 rounded-lg bg-(--clarify-ui-subtle-background) px-3 py-2 text-xs/5 text-(--clarify-ui-text-soft) dark:bg-white/5">
+          <div key={output} className="flex items-center gap-2 rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-ui-subtle-background) px-3 py-2 text-xs/5 text-(--clarify-ui-text-soft)">
             <span className="size-1.5 rounded-full bg-emerald-400" />
             <span className="truncate font-mono">{output}</span>
           </div>
@@ -385,7 +385,7 @@ function OutputListPreview(arg0: OutputListPreviewProps) {
 
 function MainContentPreview() {
   return (
-    <section className="min-w-0 bg-(--clarify-theme-tokens-colors-background) px-5 py-4 dark:bg-zinc-950">
+    <section className="min-w-0 bg-(--clarify-theme-tokens-colors-background) px-5 py-4">
       <div className="clarify-preview-content-window overflow-hidden">
         <div className="space-y-4">
           <GuideSummaryPreview guide={embeddedGuide} />
@@ -429,7 +429,7 @@ export function MainPreview() {
       >
         <div className="clarify-preview-shell relative grid overflow-hidden">
           <MainPreviewMobileNavigation {...navigationProps} isOpen={isMobileNavigationOpen} onClose={() => setMobileNavigationOpen(false)} />
-          <aside className="clarify-preview-sidebar border-r border-(--clarify-theme-tokens-colors-border) px-1 py-4 text-sm/7 dark:border-white/10 dark:bg-white/5">
+          <aside className="clarify-preview-sidebar border-r border-(--clarify-ui-border) px-1 py-4 text-sm/7">
             <PreviewNavigation {...navigationProps} />
           </aside>
           <MainContentPreview />
@@ -443,26 +443,26 @@ export function MdxPreview() {
   return (
     <PreviewEnvironment>
       <Chrome title="source/started/index.mdx" status="Rendered by renderer">
-        <div className="clarify-preview-body overflow-x-hidden overflow-y-auto bg-(--clarify-theme-tokens-colors-background) p-4 sm:p-5 dark:bg-zinc-950">
+        <div className="clarify-preview-body overflow-x-hidden overflow-y-auto bg-(--clarify-theme-tokens-colors-background) p-4 sm:p-5">
           <article className="max-w-3xl text-sm/7 text-(--clarify-ui-text-soft)">
-            <div className="inline-flex rounded-full bg-(--clarify-ui-accent-background) px-3 py-1 text-xs/5 font-semibold text-(--clarify-ui-accent-text)">MDX page</div>
+            <div className="inline-flex rounded-full bg-(--clarify-ui-subtle-background) px-3 py-1 text-xs/5 font-semibold text-(--clarify-ui-text-soft) ring-1 ring-(--clarify-ui-border) ring-inset">MDX page</div>
             <h2 className="mt-3 text-xl/7 font-semibold tracking-tight text-(--clarify-ui-text-strong) sm:text-2xl/8">Get Started</h2>
             <p className="mt-3">Write pages in source/. Clarify turns MDX, config, and OpenAPI files into routes.</p>
-            <div className="mt-4 rounded-2xl border border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) p-4 text-sm/6 text-(--clarify-ui-text-strong) sm:mt-5">
+            <div className="mt-4 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-border) bg-(--clarify-ui-subtle-background) p-4 text-sm/6 text-(--clarify-ui-text-strong) sm:mt-5">
               <div className="font-semibold text-(--clarify-ui-text-strong)">Static output ready</div>
               <p className="mt-1">output/ is plain static files.</p>
             </div>
             <div className="mt-4 grid gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-4">
-              <div className="rounded-2xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-sm dark:border-white/10 dark:bg-zinc-900/50">
+              <div className="rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-(--clarify-ui-shadow-raised)">
                 <h3 className="text-base/6 font-semibold text-(--clarify-ui-text-strong)">MDX pages</h3>
                 <p className="mt-2 text-sm/6">Guides live beside code.</p>
               </div>
-              <div className="rounded-2xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-sm dark:border-white/10 dark:bg-zinc-900/50">
+              <div className="rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-(--clarify-ui-shadow-raised)">
                 <h3 className="text-base/6 font-semibold text-(--clarify-ui-text-strong)">API embeds</h3>
                 <p className="mt-2 text-sm/6">Specs render inline.</p>
               </div>
             </div>
-            <div className="mt-5 rounded-2xl border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-sm dark:border-white/10 dark:bg-zinc-900/50">
+            <div className="mt-5 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-border) bg-(--clarify-theme-tokens-colors-surface) p-5 shadow-(--clarify-ui-shadow-raised)">
               <div className="flex items-center gap-3">
                 <MethodBadge method={embeddedEndpoint.method} />
                 <code className="text-sm font-medium text-(--clarify-ui-text)">{embeddedEndpoint.path}</code>
@@ -480,7 +480,7 @@ export function OpenApiPreview() {
   return (
     <PreviewEnvironment>
       <Chrome title="source/api.openapi.json" status="Endpoint + examples">
-        <div className="clarify-preview-openapi-window overflow-x-hidden overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-3 py-3 sm:px-4 sm:py-4 dark:bg-zinc-950">
+        <div className="clarify-preview-openapi-window overflow-x-hidden overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-3 py-3 sm:px-4 sm:py-4">
           <div className="clarify-preview-openapi-mask min-h-full">
             <div className="clarify-preview-api-content clarify-preview-api-content-openapi origin-top pb-6 sm:pb-10">
               <OpenApiExamplesPreview endpoint={staticOutputEndpoint} />

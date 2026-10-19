@@ -70,7 +70,7 @@ export function PageBanner(props: PageBannerProps) {
   const linkLabel = link ? resolveLocalizedText(link.label, currentLocale, config.locales?.default) : ''
 
   return (
-    <div className="clarify-banner relative flex h-12 items-center border-b border-(--clarify-ui-accent-border) bg-(--clarify-ui-accent-background) px-4 text-sm text-(--clarify-ui-text) dark:border-white/10">
+    <div className="clarify-banner relative flex h-12 items-center border-b border-(--clarify-theme-tokens-colors-border) bg-(--clarify-ui-subtle-background) px-4 text-sm text-(--clarify-ui-text)">
       <div className="mx-auto flex min-w-0 w-full max-w-(--clarify-theme-layout-max-width) items-center justify-center gap-1 pr-9 sm:gap-2">
         <p className="clarify-banner-content m-0 min-w-0 truncate text-left font-medium sm:text-center">{content}</p>
         {link ? <PageBannerLink href={link.href} label={linkLabel} config={config} locale={currentLocale} /> : null}

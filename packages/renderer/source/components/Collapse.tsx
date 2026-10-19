@@ -30,7 +30,7 @@ export function Collapse(arg0: CollapseProps) {
     <div
       className={clsx(
         'clarify-collapse my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) transition-colors',
-        open && 'border-(--clarify-ui-accent-border)',
+        open && 'border-(--clarify-ui-border-strong)',
         className,
       )}
       {...props}

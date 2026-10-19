@@ -86,7 +86,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
           value={tag}
           options={tagOptions}
           onChange={onSelectTag}
-          className="clarify-openai-example-status font-semibold text-emerald-400"
+          className="clarify-openai-example-status font-semibold text-(--clarify-code-success)"
         />
       ) : null}
       {tag && label ? <span className="h-0.5 w-0.5 shrink-0 rounded-full bg-(--clarify-code-faint)" /> : null}
@@ -103,7 +103,7 @@ function ApiExampleCodeGroup(arg0: ApiExampleCodeGroupProps): ReactNode {
   )
 
   return (
-    <div className="clarify-openai-example my-6 overflow-hidden rounded-lg border border-(--clarify-code-border) bg-(--clarify-code-background) shadow-sm">
+    <div className="clarify-openai-example my-6 overflow-hidden rounded-(--clarify-theme-tokens-radius-md) border border-(--clarify-code-border) bg-(--clarify-code-background) shadow-(--clarify-ui-shadow-raised)">
       <div className="not-prose">
         <div className="clarify-openai-example-header flex min-h-11 items-center gap-3 border-b border-(--clarify-code-border) bg-(--clarify-code-header-background) px-3.5 py-1.5">
           <h3 className="mr-auto min-w-16 truncate py-1 text-sm font-semibold text-(--clarify-code-text)">{title}</h3>

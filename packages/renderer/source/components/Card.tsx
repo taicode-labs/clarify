@@ -20,7 +20,7 @@ function CardIcon(arg0: CardIconProps) {
   if (!Icon) return null
 
   return (
-    <span className="flex size-8 flex-none items-center justify-center rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-ui-accent-background) text-(--clarify-ui-accent-text) ring-1 ring-inset ring-(--clarify-ui-accent-border) transition-colors group-hover:bg-(--clarify-theme-tokens-colors-primary) group-hover:text-white dark:group-hover:text-zinc-950">
+    <span className="flex size-8 flex-none items-center justify-center rounded-(--clarify-theme-tokens-radius-md) bg-(--clarify-ui-subtle-background) text-(--clarify-ui-text-soft) ring-1 ring-inset ring-(--clarify-ui-border) transition-colors group-hover:bg-(--clarify-ui-active-background) group-hover:text-(--clarify-ui-text-strong)">
       <Icon className="size-4" aria-hidden="true" />
     </span>
   )
@@ -67,7 +67,7 @@ export function Card(arg0: CardProps) {
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <h3 className="m-0 text-sm/6 font-semibold text-(--clarify-theme-tokens-colors-foreground)">{title}</h3>
-            {href ? <ArrowUpRight className="mt-1 size-3.5 shrink-0 text-(--clarify-ui-text-faint) transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-(--clarify-ui-accent-text)" aria-hidden="true" /> : null}
+            {href ? <ArrowUpRight className="mt-1 size-3.5 shrink-0 text-(--clarify-ui-text-faint) transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-(--clarify-ui-text-strong)" aria-hidden="true" /> : null}
           </div>
           {children ? (
             <div className="mt-1.5 text-sm/6 text-(--clarify-ui-text-soft) *:m-0">
@@ -82,7 +82,7 @@ export function Card(arg0: CardProps) {
 
   const classes = clsx(
     'group relative block rounded-(--clarify-theme-tokens-radius-lg) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-4 transition duration-200',
-    href && 'hover:-translate-y-0.5 hover:border-(--clarify-ui-accent-border) hover:shadow-md hover:shadow-zinc-900/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2 dark:hover:shadow-none',
+    href && 'hover:-translate-y-0.5 hover:border-(--clarify-ui-border-strong) hover:shadow-(--clarify-ui-shadow-lifted) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--clarify-theme-tokens-colors-primary) focus-visible:ring-offset-2',
     className,
   )
 

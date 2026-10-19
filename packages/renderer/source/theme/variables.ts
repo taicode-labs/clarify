@@ -23,7 +23,7 @@ export const themePresets = {
         surface: { light: '#ffffff', dark: '#18181b' },
         muted: { light: '#667085', dark: '#a1a1aa' },
         border: { light: 'rgb(15 23 42 / 0.11)', dark: 'rgb(255 255 255 / 0.11)' },
-        codeBackground: { light: '#f1f5f3', dark: '#171719' },
+        codeBackground: { light: '#18181b', dark: '#171719' },
       },
       radius: {
         sm: '6px',
@@ -47,7 +47,7 @@ export const themePresets = {
         surface: { light: '#ffffff', dark: '#18181b' },
         muted: { light: '#71717a', dark: '#a1a1aa' },
         border: { light: 'rgb(24 24 27 / 0.12)', dark: 'rgb(255 255 255 / 0.1)' },
-        codeBackground: { light: '#f4f4f5', dark: '#18181b' },
+        codeBackground: { light: '#18181b', dark: '#18181b' },
       },
       radius: {
         sm: '6px',

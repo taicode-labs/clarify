@@ -172,8 +172,48 @@ export default defineConfig({
 注意：
 
 - 不需要创建 `tailwind.config.js`。
-- 当前没有稳定的项目级自定义 CSS 入口。
 - 亮色、暗色和系统偏好检测由渲染器内置。
+- 默认界面是中性色：品牌色只出现在链接、主按钮和焦点环上。导航外框、页签下划线、选中行等「大面积铺色」的地方刻意保持灰阶，否则整页看起来会发脏。
+
+### 让界面重新带上品牌色
+
+如果希望导航、页签、菜单恢复品牌着色，覆盖 `--clarify-brand-*` 这一层即可，不需要改 CSS 选择器：
+
+```css
+:root {
+  --clarify-brand-active-background: color-mix(in srgb, var(--clarify-theme-tokens-colors-primary) 12%, transparent);
+  --clarify-brand-active-text: var(--clarify-theme-tokens-colors-primary);
+  --clarify-brand-tab-indicator: var(--clarify-theme-tokens-colors-primary);
+  --clarify-brand-navigation-marker: var(--clarify-theme-tokens-colors-primary);
+  --clarify-brand-navigation-icon: var(--clarify-theme-tokens-colors-primary);
+  --clarify-brand-search-highlight: var(--clarify-ui-accent-text);
+}
+```
+
+这些变量默认都是中性值，覆盖其中几条即可，未覆盖的继续沿用默认。
+
+样式通过插件注入：目前没有项目级自定义 CSS 入口，最小的做法是用 `html:transform` 往 `<head>` 里插入一段 `<style>`。
+
+```ts title="clarify.plugin.ts"
+import type { ClarifyPlugin } from '@clarify-labs/cli'
+
+export function brandTintPlugin(): ClarifyPlugin {
+  const css = `:root {
+    --clarify-brand-tab-indicator: var(--clarify-theme-tokens-colors-primary);
+    --clarify-brand-navigation-marker: var(--clarify-theme-tokens-colors-primary);
+  }`
+
+  return {
+    name: 'brand-tint',
+    hooks: {
+      'html:transform': (input) => ({
+        ...input,
+        tags: [...input.tags, { tag: 'style', children: css, injectTo: 'head' }],
+      }),
+    },
+  }
+}
+```
 
 ---
 

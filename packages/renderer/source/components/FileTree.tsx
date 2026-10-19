@@ -41,7 +41,7 @@ export function FileTreeItem(arg0: FileTreeItemProps) {
     >
       <div className="flex min-h-6 items-center gap-2 whitespace-nowrap">
         {isFolder ? (
-          <FolderIcon className="size-4 flex-none text-(--clarify-ui-accent-text)" aria-hidden="true" />
+          <FolderIcon className="size-4 flex-none text-(--clarify-ui-text-soft)" aria-hidden="true" />
         ) : (
           <File className="size-4 flex-none text-(--clarify-ui-text-faint)" aria-hidden="true" />
         )}

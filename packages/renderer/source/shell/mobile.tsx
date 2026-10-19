@@ -35,14 +35,14 @@ function MobileTabsSelect(arg0: MobileTabsSelectProps) {
 
   return (
     <Menu as="div" className="clarify-mobile-tabs-select mb-6">
-      <MenuButton className="clarify-mobile-tabs-select-trigger clarify-ui-control group flex h-10 w-full items-center justify-between gap-2 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) px-4 text-left font-semibold shadow-xs shadow-zinc-900/5 transition dark:border-white/10">
+      <MenuButton className="clarify-mobile-tabs-select-trigger clarify-ui-control group flex h-10 w-full items-center justify-between gap-2 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-border) bg-(--clarify-ui-surface) px-4 text-left font-semibold shadow-(--clarify-ui-shadow-raised) transition">
         <span className="flex min-w-0 items-center gap-2">
-          <NavigationIcon name={activeTab.icon} className="h-4 w-4 shrink-0 text-(--clarify-theme-tokens-colors-primary)" />
+          <NavigationIcon name={activeTab.icon} className="h-4 w-4 shrink-0 text-(--clarify-brand-navigation-icon)" />
           <span className="truncate">{activeTab.title}</span>
         </span>
         <ChevronDown className="h-4 w-4 shrink-0 text-(--clarify-theme-tokens-colors-muted) transition-transform group-aria-expanded:rotate-180" />
       </MenuButton>
-      <MenuItems className="clarify-mobile-tabs-select-list clarify-ui-menu mt-2 flex flex-col gap-1 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-theme-tokens-colors-border) bg-(--clarify-theme-tokens-colors-surface) p-1 shadow-lg shadow-zinc-900/5 focus:outline-none dark:border-white/10 dark:bg-zinc-900 dark:shadow-none">
+      <MenuItems className="clarify-mobile-tabs-select-list clarify-ui-menu mt-2 flex flex-col gap-1 rounded-(--clarify-theme-tokens-radius-xl) border border-(--clarify-ui-border) bg-(--clarify-ui-surface-elevated) p-1 shadow-(--clarify-ui-shadow-popover) focus:outline-none">
         {tabs.map((tab) => {
           const active = isActiveTab(tab, pathname, currentLocale)
 
@@ -112,7 +112,7 @@ function MobileNavigationDialog(arg0: MobileNavigationDialogProps) {  const {
         <TransitionChild>
           <motion.div
             layoutScroll
-            className="clarify-mobile-navigation-panel fixed top-14 bottom-0 left-0 w-full max-w-sm overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-4 pt-6 pb-4 shadow-lg ring-1 shadow-zinc-900/10 ring-(--clarify-theme-tokens-colors-border) duration-500 ease-in-out data-closed:-translate-x-full sm:px-6 sm:pb-10 dark:bg-zinc-950 dark:ring-zinc-800"
+            className="clarify-mobile-navigation-panel fixed top-14 bottom-0 left-0 w-full max-w-sm overflow-y-auto bg-(--clarify-theme-tokens-colors-background) px-4 pt-6 pb-4 ring-1 ring-(--clarify-ui-border) duration-500 ease-in-out data-closed:-translate-x-full sm:px-6 sm:pb-10"
           >
             <MobileTabsSelect tabs={tabs} currentLocale={currentLocale} />
             <Navigation navigation={navigation} currentLocale={currentLocale} />
@@ -169,7 +169,7 @@ export function MobileNavigation(arg0: MobileNavigationProps) {  const {
         onClick={toggle}
       >
         <span className="absolute size-11 pointer-fine:hidden" />
-        <ToggleIcon className="h-4 w-4 stroke-(--clarify-theme-tokens-colors-foreground) dark:stroke-white" />
+        <ToggleIcon className="h-4 w-4 stroke-(--clarify-ui-text-strong)" />
       </button>
       {!isInsideMobileNavigation ? (
         <Suspense fallback={null}>
