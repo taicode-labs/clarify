@@ -24,7 +24,7 @@ async function compileRouteDiagnostic(content: string, filePath: string, baseDir
 }
 
 function navigationSections(sections: ContentSection[]): NavigationSection[] {
-  return sections.map(section => ({ id: section.id, title: section.title, level: section.level, badge: section.badge, tags: section.tags }))
+  return sections.map(section => ({ id: section.id, title: section.title, level: section.level, badge: section.badge, deprecated: section.deprecated, tags: section.tags }))
 }
 
 export function normalizePath(path: string): string {

@@ -133,7 +133,7 @@ export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[],
       if (!op || !operationMatchesTags(tags, filterTags)) continue
       const title = typeof op.summary === 'string' ? op.summary : `${method.toUpperCase()} ${path}`
       entries.push({
-        section: { id: operationSectionId(op), title, level: 2, badge: kind === 'webhook' ? 'WEBHOOK' : method.toUpperCase(), tags },
+        section: { id: operationSectionId(op), title, level: 2, badge: kind === 'webhook' ? 'WEBHOOK' : method.toUpperCase(), deprecated: op.deprecated === true ? true : undefined, tags },
         operationId: typeof op.operationId === 'string' ? op.operationId : undefined,
       })
     }

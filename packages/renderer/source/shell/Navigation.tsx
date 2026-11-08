@@ -7,6 +7,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 import { useSectionStore } from '../app/SectionProvider'
 import { useBuiltInText } from '../i18n'
+import { DeprecatedBadge } from '../openapi/components/DeprecatedBadge'
 import type { NavigationNode } from '../types'
 import { isSameRoutePath, normalizeRoutePath } from '../utils/path'
 import { remToPx } from '../utils/remToPx'
@@ -160,6 +161,7 @@ function NavigationPage(arg0: NavigationPageProps) {
                   <span className="flex min-w-0 flex-1 items-center gap-2">
                     {section.badge ? <SectionBadge>{section.badge}</SectionBadge> : null}
                     <span className="min-w-0 flex-1 truncate whitespace-nowrap">{section.title}</span>
+                    {section.deprecated ? <DeprecatedBadge /> : null}
                   </span>
                 </CloseButton>
               </li>

@@ -19,6 +19,7 @@ export interface Section {
   level?: number
   offsetRem?: number
   badge?: string
+  deprecated?: boolean
   tags?: string[]
   headingRef?: RefObject<HTMLHeadingElement | null>
 }

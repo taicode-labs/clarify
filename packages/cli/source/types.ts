@@ -356,6 +356,7 @@ export type ContentSection = {
   title: string
   level: number
   badge?: string
+  deprecated?: boolean
   tags?: string[]
 }
 
@@ -483,6 +484,7 @@ export type NavigationSection = {
   title: string
   level?: number
   badge?: string
+  deprecated?: boolean
   tags?: string[]
 }
 
