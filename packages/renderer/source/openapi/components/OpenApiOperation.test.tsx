@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { SectionProvider } from '../../app/SectionProvider'
 import { ConfigContext, LocaleContext } from '../../core/context'
 import type { Config } from '../../core/types'
-import type { OpenAPIOperation, OpenAPISpec } from '../lib/utils'
+import { getOpenApiOperation, type OpenAPIOperation, type OpenAPISpec } from '../lib/utils'
 
 import { OpenApiOperation } from './OpenApiOperation'
 
@@ -14,12 +14,13 @@ const spec: OpenAPISpec = {
   paths: {},
 }
 
-const operation: OpenAPIOperation = {
+const operation = {
   operationId: 'listPets',
-  'x-clarify-section-id': 'listPets',
   summary: 'List pets',
   responses: { 200: { description: 'OK' } },
-}
+} satisfies OpenAPIOperation
+
+getOpenApiOperation({ ...spec, paths: { '/pets': { get: operation } } }, '/pets', 'GET')
 
 describe('OpenApiOperation', () => {
   it('renders documentation without the request control when the playground is disabled', () => {

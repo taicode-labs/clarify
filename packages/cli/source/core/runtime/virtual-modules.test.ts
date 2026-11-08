@@ -361,3 +361,21 @@ describe('createRuntimeSlotsModule', () => {
     )
   })
 })
+
+describe('deprecated operation route serialization', () => {
+  it.each(['client', 'server'] as const)('preserves deprecation in %s route and navigation metadata', (target) => {
+    const sections = [
+      { id: 'old', title: 'Old operation', level: 2, badge: 'GET', deprecated: true },
+      { id: 'active', title: 'Active operation', level: 2, badge: 'POST' },
+    ]
+    const routes = [route({ kind: 'openapi', path: '/api', title: 'API', sections })]
+    const navigation = buildNavigation(routes)
+    const code = generateRoutesModule(routes, { kind: 'flat', nodes: navigation }, target)
+
+    expect(navigation[0]?.sections).toEqual(sections)
+    expect(code).toContain('id: "old",title: "Old operation",level: 2,badge: "GET",deprecated: true')
+    expect(code).not.toMatch(/id: "active"[^}]*deprecated: true/)
+    expect(code).toMatch(/"id": "old",\s*"title": "Old operation",\s*"level": 2,\s*"badge": "GET",\s*"deprecated": true/)
+    expect(code).not.toMatch(/"id": "active"[^}]*"deprecated": true/)
+  })
+})
