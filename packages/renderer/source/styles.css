@@ -467,11 +467,24 @@
     line-height: 1.05;
   }
 
-  /* The response panel is a code surface: it keeps the dark code island so
-     headers, bodies and status rows stay legible next to the request form
-     instead of switching back to page ink on a white background. */
+  /* The response panel is a code surface: it keeps the dark code island in
+     both color modes so headers, bodies and status rows stay legible next to
+     the request form. Shared components reused here (RequestSection, Tabs)
+     speak the page-level UI layers, which would land near-black page ink on
+     the dark canvas in light mode. Shadow both layers for the whole subtree
+     so anything reused inside reads as part of the island. */
   .clarify-api-response {
-    --clarify-code-border: color-mix(in srgb, #ffffff 14%, var(--clarify-code-background));
+    --clarify-theme-tokens-colors-border: var(--clarify-code-border);
+
+    --clarify-ui-text-strong: var(--clarify-code-text);
+    --clarify-ui-text: var(--clarify-code-control-text);
+    --clarify-ui-text-soft: var(--clarify-code-muted);
+    --clarify-ui-text-faint: var(--clarify-code-faint);
+    --clarify-ui-subtle-background: var(--clarify-code-control-background);
+    --clarify-ui-hover-background: var(--clarify-code-control-background-hover);
+    --clarify-ui-active-background: var(--clarify-code-control-background-active);
+    --clarify-ui-tab-indicator: var(--clarify-code-text);
+    --clarify-ui-border: var(--clarify-code-border);
   }
 
   .clarify-ui-control {
