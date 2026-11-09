@@ -3,14 +3,23 @@ name: Publish
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to publish (e.g. v0.11.23)'
+        required: true
+        type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || inputs.tag }}
   cancel-in-progress: false
 
 permissions:
   contents: write
   id-token: write
+
+env:
+  RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
 
 jobs:
   verify:
@@ -18,15 +27,15 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node 24
-        uses: actions/setup-node@v6.4.0
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           package-manager-cache: false
@@ -35,27 +44,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify release version
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: |
-          node - <<'NODE'
-          const fs = require('node:fs')
-          const paths = [
-            'package.json',
-            'apps/apis/package.json',
-            'apps/docs/package.json',
-            'apps/www/package.json',
-            'extensions/vscode/package.json',
-            'packages/cli/package.json',
-            'packages/renderer/package.json',
-            'packages/templates/package.json',
-          ]
-          const releaseVersion = process.env.RELEASE_TAG.replace(/^v/, '')
-          const mismatches = paths.filter(path => JSON.parse(fs.readFileSync(path, 'utf8')).version !== releaseVersion)
-          if (mismatches.length > 0) {
-            throw new Error(`Release ${releaseVersion} does not match: ${mismatches.join(', ')}`)
-          }
-          NODE
+        run: node scripts/bump-version.mjs --check "$RELEASE_TAG"
 
       - name: Lint
         run: pnpm lint
@@ -78,15 +67,15 @@ jobs:
     needs: verify
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node 24
-        uses: actions/setup-node@v6.4.0
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           package-manager-cache: false
@@ -104,12 +93,13 @@ jobs:
 
       - id: find-extension-asset
         run: |
-          file=$(ls extensions/vscode/*.vsix | head -n 1)
+          file=$(find extensions/vscode -maxdepth 1 -name '*.vsix' -print -quit)
           echo "asset=$file" >> "$GITHUB_OUTPUT"
 
       - name: Upload VS Code extension asset
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
+          tag_name: ${{ env.RELEASE_TAG }}
           files: ${{ steps.find-extension-asset.outputs.asset }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -119,15 +109,15 @@ jobs:
     needs: verify
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node 24
-        uses: actions/setup-node@v6.4.0
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
@@ -139,7 +129,7 @@ jobs:
       - name: Check renderer package exists
         id: check-renderer
         run: |
-          if npm view @clarify-labs/renderer@${{ github.event.release.tag_name }} version >/dev/null 2>&1; then
+          if npm view @clarify-labs/renderer@${{ env.RELEASE_TAG }} version >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -159,15 +149,15 @@ jobs:
     needs: verify
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node 24
-        uses: actions/setup-node@v6.4.0
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
@@ -179,7 +169,7 @@ jobs:
       - name: Check templates package exists
         id: check-templates
         run: |
-          if npm view @clarify-labs/templates@${{ github.event.release.tag_name }} version >/dev/null 2>&1; then
+          if npm view @clarify-labs/templates@${{ env.RELEASE_TAG }} version >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -199,15 +189,15 @@ jobs:
     needs: [publish-renderer, publish-templates]
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ env.RELEASE_TAG }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node 24
-        uses: actions/setup-node@v6.4.0
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
@@ -219,7 +209,7 @@ jobs:
       - name: Check CLI package exists
         id: check-cli
         run: |
-          if npm view @clarify-labs/cli@${{ github.event.release.tag_name }} version >/dev/null 2>&1; then
+          if npm view @clarify-labs/cli@${{ env.RELEASE_TAG }} version >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"

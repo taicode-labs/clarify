@@ -24,13 +24,13 @@ jobs:
         template: [minimal, standard, complete]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node 24
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: 'pnpm'
@@ -43,8 +43,8 @@ jobs:
 
       - name: Configure pnpm global binaries
         run: |
-          echo "PNPM_HOME=$HOME/.local/share/pnpm" >> $GITHUB_ENV
-          echo "$HOME/.local/share/pnpm" >> $GITHUB_PATH
+          echo "PNPM_HOME=$HOME/.local/share/pnpm" >> "$GITHUB_ENV"
+          echo "$HOME/.local/share/pnpm" >> "$GITHUB_PATH"
           pnpm config set global-bin-dir "$HOME/.local/share/pnpm" --location global
 
       - name: Install local clarify globally

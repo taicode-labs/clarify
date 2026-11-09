@@ -1,0 +1,160 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, without the leading "v" (e.g. 0.11.23)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark the GitHub release as a pre-release and skip npm publishing'
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: 'Run every validation but skip commit, tag, release and publish'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.version }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Resolve release tag
+        id: release
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          version="${INPUT_VERSION#v}"
+          if ! [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid version: $INPUT_VERSION" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Ensure tag does not already exist
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Tag $TAG already exists" >&2
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists on origin" >&2
+            exit 1
+          fi
+
+      - name: Bump versions
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: node scripts/bump-version.mjs "$VERSION"
+
+      - name: Verify versions
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: node scripts/bump-version.mjs --check "$VERSION"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Commit and push version bump
+        if: ${{ !inputs.dry_run }}
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          git add -u -- '*/package.json' 'package.json'
+          if git diff --cached --quiet; then
+            echo "No version changes to commit"
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m "chore(release): bump version to $TAG"
+            git push origin HEAD:main
+          fi
+
+      - name: Create and push tag
+        if: ${{ !inputs.dry_run }}
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          git tag "$TAG"
+          git push origin "refs/tags/$TAG"
+
+      - name: Create GitHub release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          args=(--title "$TAG" --generate-notes)
+          if [ "$PRERELEASE" = 'true' ]; then
+            args+=(--prerelease)
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping creation"
+          else
+            gh release create "$TAG" "${args[@]}"
+          fi
+
+      - name: Trigger publish workflow
+        if: ${{ !inputs.dry_run && !inputs.prerelease }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: gh workflow run publish.yaml --ref main -f "tag=$TAG"
+
+      - name: Summary
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          {
+            echo "### Release $TAG"
+            echo ""
+            if [ "$DRY_RUN" = 'true' ]; then
+              echo "Dry run: versions were bumped and validated, but nothing was committed or published."
+            else
+              echo "Version bump committed, tag pushed, release created and publishing triggered."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
