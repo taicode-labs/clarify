@@ -28,14 +28,18 @@ export function generateOpenAPISpecModule(spec: OpenAPISpec): string {
 type OpenAPIPageModuleOptions = {
   specModuleId: string
   operationOrder?: string[]
+  title?: string
 }
 
 export function generateOpenAPIPageModule(opts: OpenAPIPageModuleOptions): string {
-  const routeData = opts.operationOrder?.length ? { operationOrder: opts.operationOrder } : {}
+  const routeData: { operationOrder?: string[]; title?: string } = {}
+  if (opts.operationOrder?.length) routeData.operationOrder = opts.operationOrder
+  if (opts.title) routeData.title = opts.title
+  const serialized = Object.keys(routeData).length ? routeData : {}
   return `import { createOpenApiRouteComponent } from '@clarify-labs/renderer';
 import spec from ${JSON.stringify(opts.specModuleId)};
 
-export const routeData = ${JSON.stringify(routeData)};
+export const routeData = ${JSON.stringify(serialized)};
 
 export default createOpenApiRouteComponent({ ...routeData, spec });
 `

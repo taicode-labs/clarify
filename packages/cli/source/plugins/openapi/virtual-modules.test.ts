@@ -65,6 +65,15 @@ describe('openapi virtual modules', () => {
     expect(code).toContain('export const routeData = {"operationOrder":["createUser","getUser"]};')
   })
 
+  it('serializes the configured page title into route data', () => {
+    const code = generateOpenAPIPageModule({
+      specModuleId: 'virtual:clarify/openapi-spec/api',
+      title: '页面接口',
+    })
+
+    expect(code).toContain('export const routeData = {"title":"页面接口"};')
+  })
+
   it('shares the same diagnostic intent across CLI and renderer', () => {
     const cliDiagnostic: CliDiagnostic = {
       kind: 'markdown+jsx',

@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 
 import { pageVirtualModuleId } from '../../core/runtime/module-ids.js'
-import { localizedRoutePath, openAPIPagePathFromRef, routeIntentFromPagesItem, withAlternates } from '../../parsers/routes/routes.js'
+import { localizedRoutePath, openAPIPagePathFromRef, resolveLocalizedText, routeIntentFromPagesItem, withAlternates } from '../../parsers/routes/routes.js'
 import type { ClarifyOpenAPIRouteIntent, ClarifyPagesConfig, ClarifyPagesItem, ContentRoute, OpenAPIContentRoute, ResolvedClarifyLocalesConfig, ResolvedProjectConfig } from '../../types.js'
 
 import { findOpenAPIRoutes } from './parser.js'
@@ -16,7 +16,7 @@ function collectOpenAPIPageIntents(config: ResolvedProjectConfig): ClarifyOpenAP
         continue
       }
       const intent = routeIntentFromPagesItem(item)
-      if (intent.kind === 'openapi' && (intent.path || intent.tagFilter?.length || intent.operationOrder?.length)) intents.push(intent)
+      if (intent.kind === 'openapi' && (intent.path || intent.tagFilter?.length || intent.operationOrder?.length || intent.title)) intents.push(intent)
     }
   }
 
@@ -101,12 +101,17 @@ export function expandConfiguredOpenAPIRoutes(routes: ContentRoute[], config: Re
     const sourceBasePath = openAPIPagePathFromRef(intent.ref)
     const targetBasePath = openAPIPagePathFromRef(intent.ref, tagFilter, intent.path)
     if (sourceBasePath === targetBasePath && !tagFilter?.length) {
-      if (!operationOrder?.length) continue
+      if (!operationOrder?.length && !intent.title) continue
       for (let index = 0; index < routes.length; index++) {
         const route = routes[index]
         if (route.kind !== 'openapi' || (route.basePath ?? route.path) !== sourceBasePath) continue
+        const configuredTitle = resolveLocalizedText(intent.title, route.locale ?? config.locales?.default ?? '', config.locales?.default)
         routes[index] = cloneOpenAPIRoute(route, {
-          openapi: { ...route.openapi, operationOrder: [...operationOrder] },
+          openapi: {
+            ...route.openapi,
+            operationOrder: operationOrder?.length ? [...operationOrder] : route.openapi?.operationOrder,
+            configuredTitle: configuredTitle ?? route.openapi?.configuredTitle,
+          },
         })
       }
       continue
@@ -119,6 +124,7 @@ export function expandConfiguredOpenAPIRoutes(routes: ContentRoute[], config: Re
       existingKeys.add(key)
 
       const path = route.locale && config.locales ? localizedRoutePath(targetBasePath, route.locale, config.locales) : targetBasePath
+      const configuredTitle = resolveLocalizedText(intent.title, route.locale ?? config.locales?.default ?? '', config.locales?.default)
       additions.push(cloneOpenAPIRoute(route, {
         path,
         basePath: targetBasePath,
@@ -127,6 +133,7 @@ export function expandConfiguredOpenAPIRoutes(routes: ContentRoute[], config: Re
           ...route.openapi,
           tagFilter: tagFilter?.length ? tagFilter : undefined,
           operationOrder: operationOrder?.length ? [...operationOrder] : undefined,
+          configuredTitle,
         },
       }))
     }

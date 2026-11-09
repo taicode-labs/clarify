@@ -66,7 +66,7 @@ export function localizedRoutePath(basePath: string, locale: string, _i18n: Reso
   return normalizedBasePath === '/' ? prefix : normalizePath(`${prefix}${normalizedBasePath}`)
 }
 
-function resolveLocalizedText(text: ClarifyLocalizedText | undefined, locale: string, fallbackLocale?: string): string | undefined {
+export function resolveLocalizedText(text: ClarifyLocalizedText | undefined, locale: string, fallbackLocale?: string): string | undefined {
   if (typeof text === 'string') return text
   if (text === undefined) return undefined
   return text[locale] ?? (fallbackLocale ? text[fallbackLocale] : undefined) ?? Object.values(text)[0]

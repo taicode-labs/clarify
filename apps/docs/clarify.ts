@@ -310,22 +310,35 @@ export default defineConfig({
         pages: [
           {
             group: {
-              'zh-CN': 'OpenAPI 能力',
-              'en-US': 'OpenAPI Capabilities',
+              'zh-CN': '完整参考',
+              'en-US': 'Complete Reference',
             },
-            icon: 'FileJson2',
+            icon: 'BookMarked',
             pages: [
               {
                 openapi: 'api.openapi.json',
-                icon: 'FileJson2',
+                title: {
+                  'zh-CN': '完整 API 参考',
+                  'en-US': 'Complete API Reference',
+                },
+                icon: 'BookMarked',
               },
-              {
-                openapi: 'response-body-types.openapi.json',
-                icon: 'ScanSearch',
-              },
+            ],
+          },
+          {
+            group: {
+              'zh-CN': '按业务域浏览',
+              'en-US': 'Browse by Domain',
+            },
+            icon: 'LayoutList',
+            pages: [
               {
                 openapi: 'api.openapi.json',
                 path: 'openapi/pages',
+                title: {
+                  'zh-CN': '页面接口',
+                  'en-US': 'Pages API',
+                },
                 icon: 'BookOpenCheck',
                 filter: {
                   tags: ['Pages'],
@@ -334,13 +347,79 @@ export default defineConfig({
               {
                 openapi: 'api.openapi.json',
                 path: 'openapi/assets',
+                title: {
+                  'zh-CN': '资源接口',
+                  'en-US': 'Assets API',
+                },
                 icon: 'ImageUp',
                 filter: {
                   tags: ['Assets'],
                 },
               },
               {
+                openapi: 'api.openapi.json',
+                path: 'openapi/search',
+                title: {
+                  'zh-CN': '搜索接口',
+                  'en-US': 'Search API',
+                },
+                icon: 'Search',
+                filter: {
+                  tags: ['Search'],
+                },
+              },
+              {
+                openapi: 'api.openapi.json',
+                path: 'openapi/system',
+                title: {
+                  'zh-CN': '系统接口',
+                  'en-US': 'System API',
+                },
+                icon: 'Server',
+                filter: {
+                  tags: ['System'],
+                },
+              },
+            ],
+          },
+          {
+            group: {
+              'zh-CN': '渲染能力演示',
+              'en-US': 'Rendering Demos',
+            },
+            icon: 'FlaskConical',
+            pages: [
+              {
+                openapi: 'request-body-types.openapi.json',
+                title: {
+                  'zh-CN': '请求体类型',
+                  'en-US': 'Request Body Types',
+                },
+                icon: 'FileInput',
+              },
+              {
+                openapi: 'response-body-types.openapi.json',
+                title: {
+                  'zh-CN': '响应体类型',
+                  'en-US': 'Response Body Types',
+                },
+                icon: 'FileOutput',
+              },
+            ],
+          },
+          {
+            group: {
+              'zh-CN': '使用指南',
+              'en-US': 'Guides',
+            },
+            icon: 'CodeXml',
+            pages: [
+              {
                 page: 'openapi/embedding',
+                title: {
+                  'zh-CN': '在 MDX 中嵌入接口',
+                  'en-US': 'Embedding Operations in MDX',
+                },
                 icon: 'CodeXml',
               },
             ],

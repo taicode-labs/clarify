@@ -394,6 +394,8 @@ export type OpenAPIContentRouteState = {
   sourceSpecId?: string
   /** Spec virtual module id fragment used by this route after route-level filtering. */
   routeSpecModuleId?: string
+  /** Navigation title configured for this route, already resolved for the route locale. */
+  configuredTitle?: string
 }
 
 export type ContentRouteArtifacts = {

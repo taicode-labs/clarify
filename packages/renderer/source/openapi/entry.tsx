@@ -13,7 +13,7 @@ import type { OpenAPISpec } from './lib/utils'
 
 type OpenApiPathsProps = { spec: OpenAPISpec; tagFilter?: string[]; operationOrder?: string[] }
 
-type OpenApiHeaderProps = { spec: OpenAPISpec }
+type OpenApiHeaderProps = { spec: OpenAPISpec; title?: string }
 
 type WarningBoxProps = {
   children: ReactNode
@@ -23,12 +23,14 @@ type WarningBoxProps = {
 export type OpenApiDocumentProps = {
   spec?: OpenAPISpec
   specPath?: string
+  title?: string
   tagFilter?: string[]
   operationOrder?: string[]
 }
 
 export type OpenApiRouteData = {
   spec: OpenAPISpec
+  title?: string
   operationOrder?: string[]
 }
 
@@ -47,7 +49,7 @@ export type OpenApiRequestProps = OpenApiOperationProps & {
 }
 
 function OpenApiHeader(arg0: OpenApiHeaderProps): ReactNode {
-  const { spec } = arg0
+  const { spec, title } = arg0
 
   const t = useBuiltInText()
   return (
@@ -55,7 +57,7 @@ function OpenApiHeader(arg0: OpenApiHeaderProps): ReactNode {
       <p className="mb-3 text-xs/6 font-medium tracking-widest text-(--clarify-ui-text-faint) uppercase">
         {t('openapi.openApiReference')}
       </p>
-      <h1 className="clarify-page-title">{spec.info?.title ?? t('openapi.apiDocumentation')}</h1>
+      <h1 className="clarify-page-title">{title ?? spec.info?.title ?? t('openapi.apiDocumentation')}</h1>
       {spec.info?.description ? <Markdown className="lead mt-4 *:first:mt-0 *:last:mb-0">{spec.info.description}</Markdown> : null}
       {spec.info?.version ? <p className="mt-4 text-sm text-(--clarify-ui-text-faint)">{t('openapi.version', { version: spec.info.version })}</p> : null}
     </header>
@@ -99,7 +101,7 @@ function WarningBox(arg0: WarningBoxProps): ReactNode {
 }
 
 export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
-  const { spec, specPath, tagFilter, operationOrder } = arg0
+  const { spec, specPath, title, tagFilter, operationOrder } = arg0
   const t = useBuiltInText()
   const { spec: resolved, loading } = useOpenApiSpec(spec, specPath)
 
@@ -116,7 +118,7 @@ export function OpenApiDocument(arg0: OpenApiDocumentProps): ReactNode {
         <PageActions />
       </div>
       <Prose className="flex-auto">
-        <OpenApiHeader spec={resolved} />
+        <OpenApiHeader spec={resolved} title={title} />
         <OpenApiPaths spec={resolved} tagFilter={tagFilter} operationOrder={operationOrder} />
       </Prose>
     </article>
@@ -176,6 +178,6 @@ export function OpenApiRequest(arg0: OpenApiRequestProps): ReactNode {
 
 export function createOpenApiRouteComponent(data: OpenApiRouteData) {
   return function OpenApiRoutePage() {
-    return <OpenApiDocument spec={data.spec} operationOrder={data.operationOrder} />
+    return <OpenApiDocument spec={data.spec} title={data.title} operationOrder={data.operationOrder} />
   }
 }
