@@ -163,7 +163,7 @@ function routeToRuntimeManifestEntry(route: ContentRoute, component: RuntimeRout
   if (route.artifacts?.contentArtifactUrl) entry.contentArtifactUrl = route.artifacts.contentArtifactUrl
   if (route.source?.sourceEditUrl) entry.sourceEditUrl = route.source.sourceEditUrl
   if (route.meta.sections?.length) {
-    entry.sections = route.meta.sections.map(section => ({ id: section.id, title: section.title, level: section.level, badge: section.badge, tags: section.tags }))
+    entry.sections = route.meta.sections.map(section => ({ id: section.id, title: section.title, level: section.level, badge: section.badge, deprecated: section.deprecated, tags: section.tags }))
   }
 
   return entry

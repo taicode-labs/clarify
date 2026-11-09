@@ -13,6 +13,7 @@ export type RouteSection = {
   title: string;
   level?: number;
   badge?: string;
+  deprecated?: boolean;
   tags?: string[];
 };
 

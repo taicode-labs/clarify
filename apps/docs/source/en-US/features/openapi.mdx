@@ -29,6 +29,12 @@ OpenAPI pages are more than static field tables. Clarify turns the spec into int
 
 ---
 
+## Deprecated operations
+
+Set `deprecated: true` on an OpenAPI operation to show a **Deprecated** badge beside its heading and in its sidebar entry. The badge is localized with the site language. Deprecated operations remain readable and can still be tried in the playground; the flag does not disable the endpoint. Use `description` to explain the replacement or migration steps. Operations with `deprecated: false` or no flag keep their normal appearance.
+
+---
+
 ## Minimal example
 
 Place an OpenAPI file in the content directory:

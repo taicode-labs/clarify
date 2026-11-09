@@ -139,6 +139,7 @@
   "openapi.specNotFound": "未找到 OpenAPI 描述文件：{specPath}",
   "openapi.specPathMissing": "未提供 spec 或 specPath",
   "openapi.status": "状态",
+  "openapi.deprecated": "已弃用",
   "openapi.tryRequest": "发起测试请求",
   "openapi.version": "版本 {version}",
   "openapi.webhookResponse": "Webhook 响应",

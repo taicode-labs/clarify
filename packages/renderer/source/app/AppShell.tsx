@@ -41,6 +41,7 @@ function sectionsForRoute(route?: RouteItem): Section[] {
       title: section.title,
       level: section.level,
       badge: section.badge,
+      deprecated: section.deprecated,
       tags: section.tags,
     })) ?? []
   )

@@ -31,3 +31,34 @@ describe('extractOpenAPISections', () => {
     ])
   })
 })
+
+describe('operation deprecation metadata', () => {
+  it('preserves deprecation through filtering and ordering for paths and webhooks', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/pets': {
+          get: { operationId: 'old', deprecated: true, tags: ['Pets'], responses: {} },
+          post: { operationId: 'active', deprecated: false, tags: ['Pets'], responses: {} },
+          put: { operationId: 'unspecified', tags: ['Pets'], responses: {} },
+          delete: { operationId: 'filtered', deprecated: true, tags: ['Other'], responses: {} },
+        },
+      },
+      webhooks: {
+        petCreated: {
+          post: { operationId: 'oldWebhook', deprecated: true, tags: ['Pets'], responses: {} },
+        },
+      },
+    }
+
+    const sections = extractOpenAPISections(spec, ['Pets'], ['oldWebhook', 'old'])
+
+    expect(sections.map(({ id, deprecated, badge }) => ({ id, deprecated, badge }))).toEqual([
+      { id: 'oldWebhook', deprecated: true, badge: 'WEBHOOK' },
+      { id: 'old', deprecated: true, badge: 'GET' },
+      { id: 'unspecified', deprecated: undefined, badge: 'PUT' },
+      { id: 'active', deprecated: undefined, badge: 'POST' },
+    ])
+  })
+})

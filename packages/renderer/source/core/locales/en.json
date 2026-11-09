@@ -139,6 +139,7 @@
   "openapi.specNotFound": "OpenAPI spec not found: {specPath}",
   "openapi.specPathMissing": "spec or specPath was not provided",
   "openapi.status": "Status",
+  "openapi.deprecated": "Deprecated",
   "openapi.tryRequest": "Try request",
   "openapi.version": "Version {version}",
   "openapi.webhookResponse": "Webhook response",

@@ -10,6 +10,7 @@ import { getMediaTypeEntries, getResponseEntries, joinPath } from '../lib/helper
 import { getOpenApiOperationSectionId, type OpenAPIOperation, type OpenAPIOperationSource, type OpenAPISpec } from '../lib/utils'
 import type { OpenApiServer, OpenApiServerVariable } from '../types'
 
+import { DeprecatedBadge } from './DeprecatedBadge'
 import { EndpointMethodBadge } from './EndpointMethodBadge'
 import { EndpointRequest, EndpointResponse } from './EndpointSections'
 import { getServerKey, getServerLabel } from './ExamplePanels'
@@ -364,6 +365,7 @@ export function OpenApiOperation(arg0: OpenApiOperationProps): ReactNode {
     <section className="clarify-openai-endpoint scroll-mt-24 pb-16 first:pt-0 last:pb-0" aria-labelledby={id}>
       <Heading id={id}>
         {summary}
+        {operation.deprecated === true ? <DeprecatedBadge className="ml-2" /> : null}
       </Heading>
       <EndpointIdentity
         method={method}

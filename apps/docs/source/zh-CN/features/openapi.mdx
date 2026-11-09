@@ -29,6 +29,12 @@ OpenAPI 页面不只是静态字段表。Clarify 会把规范转成面向开发�
 
 ---
 
+## 已弃用的接口
+
+在 OpenAPI operation 上设置 `deprecated: true`，即可在接口标题旁和侧边栏条目中显示 **已弃用** 徽标。徽标随站点语言切换。已弃用的接口仍可阅读和在 playground 中试调用；此标记不会停用接口。可以在 `description` 中说明替代接口或迁移步骤。`deprecated: false` 或未设置此字段的接口保持原样。
+
+---
+
 ## 最小示例
 
 把 OpenAPI 文件放入内容目录：
