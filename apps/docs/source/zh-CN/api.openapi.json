@@ -70,6 +70,97 @@
     }
   ],
   "paths": {
+    "/examples/deprecated-page-list": {
+      "get": {
+        "tags": [
+          "Pages"
+        ],
+        "operationId": "demoDeprecatedPageList",
+        "summary": "已弃用的页面列表",
+        "description": "已被 `demoBasicRequest` 取代，后者使用当前参数返回同一份页面列表。这个接口刻意声明在规范最前面：已弃用的接口始终会被排到所属分组的末尾，侧边栏和正文都是如此。",
+        "deprecated": true,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageLimit"
+          },
+          {
+            "name": "legacyStatus",
+            "in": "query",
+            "description": "旧的单值状态筛选，已被 `demoBasicRequest` 的 `status` 参数取代。",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "published"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "沿用旧响应包装的页面列表。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageList"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/examples/deprecated-asset-upload": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "demoDeprecatedAssetUpload",
+        "summary": "已弃用的资源上传",
+        "description": "已被当前的资源接口所使用的 multipart 上传流程取代。保留该接口是为了在 Assets 页面也能看到 **已弃用** 徽标和分组末尾排序的效果。",
+        "deprecated": true,
+        "requestBody": {
+          "required": true,
+          "description": "旧版单段上传请求体。",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Asset"
+              },
+              "examples": {
+                "legacyAsset": {
+                  "summary": "旧版上传请求体",
+                  "value": {
+                    "id": "asset_legacy_1",
+                    "url": "https://assets.clarify.local/v1/legacy/logo.png",
+                    "contentType": "image/png",
+                    "size": 4096
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "旧版资源记录。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/examples/basic-request": {
       "summary": "基础请求示例",
       "description": "演示常见请求参数和响应元数据。",

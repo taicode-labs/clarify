@@ -70,6 +70,12 @@
     }
   ],
   "paths": {
+    "/examples/deprecated-page-list": {
+      "$ref": "./api.openapi/paths/examples-deprecated-page-list.json"
+    },
+    "/examples/deprecated-asset-upload": {
+      "$ref": "./api.openapi/paths/examples-deprecated-asset-upload.json"
+    },
     "/examples/basic-request": {
       "$ref": "./api.openapi/paths/examples-basic-request.json"
     },

@@ -35,6 +35,27 @@ OpenAPI 页面不只是静态字段表。Clarify 会把规范转成面向开发�
 
 已弃用的接口始终排在所属分组的末尾，侧边栏与正文都是如此；其余接口仍按配置的 `operationOrder` 排序。
 
+```json
+{
+  "paths": {
+    "/pages/legacy": {
+      "get": {
+        "tags": ["Pages"],
+        "operationId": "listLegacyPages",
+        "summary": "旧版页面列表",
+        "deprecated": true,
+        "description": "请改用 GET /pages。此接口将在下一个大版本中移除。",
+        "responses": {
+          "200": { "description": "页面列表。" }
+        }
+      }
+    }
+  }
+}
+```
+
+本页站点的规范中，`demoDeprecatedPageList`（Pages）与 `demoDeprecatedAssetUpload`（Assets）就刻意声明在当前接口之前，可以在 API Reference 里同时看到徽标与「排在分组末尾」的效果。
+
 ---
 
 ## 最小示例

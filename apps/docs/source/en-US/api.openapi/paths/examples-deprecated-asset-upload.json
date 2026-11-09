@@ -1,0 +1,48 @@
+{
+  "post": {
+    "tags": [
+      "Assets"
+    ],
+    "operationId": "demoDeprecatedAssetUpload",
+    "summary": "Deprecated asset upload",
+    "description": "Replaced by the multipart upload flow documented under the current asset endpoints. Kept so the **Deprecated** badge and the end-of-group ordering can be inspected on the Assets page as well.",
+    "deprecated": true,
+    "requestBody": {
+      "required": true,
+      "description": "Legacy single-part upload payload.",
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../api.openapi.json#/components/schemas/Asset"
+          },
+          "examples": {
+            "legacyAsset": {
+              "summary": "Legacy upload payload",
+              "value": {
+                "id": "asset_legacy_1",
+                "url": "https://assets.clarify.local/v1/legacy/logo.png",
+                "contentType": "image/png",
+                "size": 4096
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Legacy asset record.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../api.openapi.json#/components/schemas/Asset"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "../../api.openapi.json#/components/responses/BadRequest"
+      }
+    }
+  }
+}

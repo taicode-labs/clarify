@@ -35,6 +35,27 @@ Set `deprecated: true` on an OpenAPI operation to show a **Deprecated** badge be
 
 Deprecated operations are always listed after the active ones in their group, so the sidebar and the page body both push them to the end while keeping the configured `operationOrder` for the remaining operations.
 
+```json
+{
+  "paths": {
+    "/pages/legacy": {
+      "get": {
+        "tags": ["Pages"],
+        "operationId": "listLegacyPages",
+        "summary": "Legacy page list",
+        "deprecated": true,
+        "description": "Use GET /pages instead. This endpoint will be removed in the next major version.",
+        "responses": {
+          "200": { "description": "Page collection." }
+        }
+      }
+    }
+  }
+}
+```
+
+`demoDeprecatedPageList` (Pages) and `demoDeprecatedAssetUpload` (Assets) in this site's own spec are declared **before** the current operations on purpose, so you can see both the badge and the end-of-group ordering in the API reference.
+
 ---
 
 ## Minimal example

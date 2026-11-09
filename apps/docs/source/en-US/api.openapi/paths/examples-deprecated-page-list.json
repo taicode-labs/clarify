@@ -1,0 +1,43 @@
+{
+  "get": {
+    "tags": [
+      "Pages"
+    ],
+    "operationId": "demoDeprecatedPageList",
+    "summary": "Deprecated page list",
+    "description": "Superseded by `demoBasicRequest`, which returns the same page collection with the current parameters. This operation is declared first in the spec on purpose: deprecated operations are always pushed to the end of their group in the sidebar and in the page body.",
+    "deprecated": true,
+    "parameters": [
+      {
+        "$ref": "../../api.openapi.json#/components/parameters/PageLimit"
+      },
+      {
+        "name": "legacyStatus",
+        "in": "query",
+        "description": "Old single-value status filter, replaced by the `status` parameter of `demoBasicRequest`.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "published"
+          ]
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Page collection in the legacy envelope.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../api.openapi.json#/components/schemas/PageList"
+            }
+          }
+        }
+      },
+      "404": {
+        "$ref": "../../api.openapi.json#/components/responses/NotFound"
+      }
+    }
+  }
+}
