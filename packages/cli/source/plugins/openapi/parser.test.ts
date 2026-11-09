@@ -55,10 +55,56 @@ describe('operation deprecation metadata', () => {
     const sections = extractOpenAPISections(spec, ['Pets'], ['oldWebhook', 'old'])
 
     expect(sections.map(({ id, deprecated, badge }) => ({ id, deprecated, badge }))).toEqual([
-      { id: 'oldWebhook', deprecated: true, badge: 'WEBHOOK' },
-      { id: 'old', deprecated: true, badge: 'GET' },
       { id: 'unspecified', deprecated: undefined, badge: 'PUT' },
       { id: 'active', deprecated: undefined, badge: 'POST' },
+      { id: 'oldWebhook', deprecated: true, badge: 'WEBHOOK' },
+      { id: 'old', deprecated: true, badge: 'GET' },
+    ])
+  })
+
+  it('moves deprecated operations to the end even when operationOrder puts them first', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.0.0',
+      info: { title: 'Pets', version: '1.0.0' },
+      paths: {
+        '/pets': {
+          get: { operationId: 'listPets', summary: 'List pets', responses: {} },
+          post: { operationId: 'legacyCreatePet', summary: 'Create pet (legacy)', deprecated: true, responses: {} },
+        },
+        '/pets/{id}': {
+          get: { operationId: 'getPet', summary: 'Get pet', responses: {} },
+          delete: { operationId: 'legacyDeletePet', summary: 'Delete pet (legacy)', deprecated: true, responses: {} },
+        },
+      },
+    }
+
+    const sections = extractOpenAPISections(spec, undefined, ['legacyDeletePet', 'legacyCreatePet', 'getPet', 'listPets'])
+
+    expect(sections.map(section => section.id)).toEqual([
+      'getPet',
+      'listPets',
+      'legacyDeletePet',
+      'legacyCreatePet',
+    ])
+  })
+
+  it('keeps spec order for deprecated operations when no operationOrder is configured', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.0.0',
+      info: { title: 'Pets', version: '1.0.0' },
+      paths: {
+        '/pets': {
+          get: { operationId: 'legacyListPets', deprecated: true, responses: {} },
+          post: { operationId: 'createPet', responses: {} },
+          delete: { operationId: 'deletePet', responses: {} },
+        },
+      },
+    }
+
+    expect(extractOpenAPISections(spec).map(section => section.id)).toEqual([
+      'createPet',
+      'deletePet',
+      'legacyListPets',
     ])
   })
 })

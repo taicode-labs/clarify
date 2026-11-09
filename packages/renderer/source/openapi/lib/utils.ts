@@ -117,11 +117,16 @@ export function listOpenApiOperations(spec: OpenAPISpec, operationOrder?: string
     ...(isRecord(webhooks) ? listOperationsFromPathItems(webhooks, 'webhook', spec) : []),
   ]
 
-  if (!operationOrder?.length) return operations
-
-  const orderByOperationId = new Map(operationOrder.map((operationId, index) => [operationId, index]))
+  const orderByOperationId = new Map((operationOrder ?? []).map((operationId, index) => [operationId, index]))
+  const fallbackOrder = operationOrder?.length ?? 0
+  // Deprecated operations always sink to the end of the page, keeping the configured order otherwise.
   return operations
-    .map((entry, index) => ({ entry, index, order: entry.operation.operationId ? orderByOperationId.get(entry.operation.operationId) : undefined }))
-    .sort((left, right) => (left.order ?? operationOrder.length) - (right.order ?? operationOrder.length) || left.index - right.index)
+    .map((entry, index) => ({
+      entry,
+      index,
+      deprecated: entry.operation.deprecated === true ? 1 : 0,
+      order: entry.operation.operationId ? orderByOperationId.get(entry.operation.operationId) ?? fallbackOrder : fallbackOrder,
+    }))
+    .sort((left, right) => left.deprecated - right.deprecated || left.order - right.order || left.index - right.index)
     .map(({ entry }) => entry)
 }

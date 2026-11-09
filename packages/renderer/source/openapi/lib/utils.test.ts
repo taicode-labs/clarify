@@ -114,4 +114,50 @@ describe('OpenAPI operation section ids', () => {
       'deleteAsset',
     ])
   })
+
+  it('lists deprecated operations last, even when operationOrder puts them first', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Assets API', version: '1.0.0' },
+      paths: {
+        '/assets': {
+          get: { operationId: 'listAssets', responses: { 200: { description: 'OK' } } },
+          post: { operationId: 'legacyCreateAsset', deprecated: true, responses: { 201: { description: 'Created' } } },
+        },
+        '/assets/{assetId}': {
+          get: { operationId: 'getAsset', responses: { 200: { description: 'OK' } } },
+          delete: { operationId: 'legacyDeleteAsset', deprecated: true, responses: { 204: { description: 'Deleted' } } },
+        },
+      },
+    }
+
+    const entries = listOpenApiOperations(spec, ['legacyDeleteAsset', 'getAsset', 'legacyCreateAsset', 'listAssets'])
+
+    expect(entries.map(({ operation }) => operation.operationId)).toEqual([
+      'getAsset',
+      'listAssets',
+      'legacyDeleteAsset',
+      'legacyCreateAsset',
+    ])
+  })
+
+  it('keeps spec order for deprecated operations when no operationOrder is configured', () => {
+    const spec: OpenAPISpec = {
+      openapi: '3.1.0',
+      info: { title: 'Assets API', version: '1.0.0' },
+      paths: {
+        '/assets': {
+          get: { operationId: 'legacyListAssets', deprecated: true, responses: { 200: { description: 'OK' } } },
+          post: { operationId: 'createAsset', responses: { 201: { description: 'Created' } } },
+          delete: { operationId: 'deleteAsset', responses: { 204: { description: 'Deleted' } } },
+        },
+      },
+    }
+
+    expect(listOpenApiOperations(spec).map(({ operation }) => operation.operationId)).toEqual([
+      'createAsset',
+      'deleteAsset',
+      'legacyListAssets',
+    ])
+  })
 })

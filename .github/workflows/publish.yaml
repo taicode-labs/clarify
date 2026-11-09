@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to publish (e.g. v0.11.23)'
+        description: 'Release tag to publish (e.g. 0.11.24; legacy v-prefixed tags such as v0.11.23 are still accepted)'
         required: true
         type: string
 

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release, without the leading "v" (e.g. 0.11.23)'
+        description: 'Version to release (e.g. 0.11.24). Tags never carry a "v" prefix; a leading "v" is stripped.'
         required: true
         type: string
       prerelease:
@@ -41,8 +41,9 @@ jobs:
             echo "Invalid version: $INPUT_VERSION" >&2
             exit 1
           fi
+          # Release tags are always plain semver so the tag matches package.json verbatim.
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$version" >> "$GITHUB_OUTPUT"
 
       - name: Checkout main
         uses: actions/checkout@v7

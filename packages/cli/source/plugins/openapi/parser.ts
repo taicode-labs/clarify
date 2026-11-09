@@ -138,12 +138,17 @@ export function extractOpenAPISections(spec: OpenAPISpec, filterTags?: string[],
       })
     }
   }
-  if (!operationOrder?.length) return entries.map(({ section }) => section)
-
-  const orderById = new Map(operationOrder.map((operationId, index) => [operationId, index]))
+  const orderById = new Map((operationOrder ?? []).map((operationId, index) => [operationId, index]))
+  const fallbackOrder = operationOrder?.length ?? 0
+  // Deprecated operations always sink to the end of the page, keeping the configured order otherwise.
   return entries
-    .map((entry, index) => ({ ...entry, index, order: entry.operationId ? orderById.get(entry.operationId) : undefined }))
-    .sort((left, right) => (left.order ?? operationOrder.length) - (right.order ?? operationOrder.length) || left.index - right.index)
+    .map((entry, index) => ({
+      section: entry.section,
+      index,
+      deprecated: entry.section.deprecated === true ? 1 : 0,
+      order: entry.operationId ? orderById.get(entry.operationId) ?? fallbackOrder : fallbackOrder,
+    }))
+    .sort((left, right) => left.deprecated - right.deprecated || left.order - right.order || left.index - right.index)
     .map(({ section }) => section)
 }
 
