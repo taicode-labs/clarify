@@ -85,3 +85,48 @@ describe('deprecated operation navigation', () => {
     expect(html).toContain('POST')
   })
 })
+
+
+describe('deprecated OpenAPI page navigation', () => {
+  const old = { id: 'old', title: 'Old', badge: 'GET', deprecated: true }
+
+  it.each([
+    ['all deprecated', [old, { ...old, id: 'second' }], true],
+    ['mixed', [old, { ...old, id: 'active', deprecated: false }], false],
+    ['unspecified', [old, { id: 'new', title: 'New', badge: 'POST' }], false],
+    ['empty', [], false],
+    ['missing or failed metadata', undefined, false],
+    ['ordinary headings', [{ ...old, badge: undefined }], false],
+  ] as const)('handles %s without opening the page', (_name, sections, expected) => {
+    for (const [locale, label] of [['en-US', 'Deprecated'], ['zh-CN', '已弃用']]) {
+      const html = renderToStaticMarkup(
+        <LocaleContext.Provider value={locale}>
+          <MemoryRouter initialEntries={['/other']}>
+            <SectionProvider sections={[old]}>
+              <Navigation navigation={[{ path: '/api', title: 'Assets', sections: sections ? [...sections] : undefined }]} />
+            </SectionProvider>
+          </MemoryRouter>
+        </LocaleContext.Provider>,
+      )
+      expect(html.includes('clarify-deprecated-badge')).toBe(expected)
+      expect(html.includes(label!)).toBe(expected)
+      expect(html).toContain('href="/api"')
+      expect(html).not.toContain('href="/api#old"')
+    }
+  })
+
+  it('does not mark enclosing API branches or documentation headings', () => {
+    const html = renderToStaticMarkup(
+      <MemoryRouter initialEntries={['/other']}>
+        <SectionProvider sections={[]}>
+          <Navigation navigation={[{ path: '/api', title: 'API', children: [
+            { path: '/api', title: 'Nested', children: [{ path: '/api', title: 'Assets', sections: [old] }] },
+          ] }]} />
+        </SectionProvider>
+      </MemoryRouter>,
+    )
+    expect(html.match(/clarify-deprecated-badge/g)).toHaveLength(1)
+    expect(html).toMatch(/href="\/api"[^>]*>[\s\S]*?Assets[\s\S]*?clarify-deprecated-badge/)
+    expect(html).toContain('aria-expanded="false"')
+  })
+})

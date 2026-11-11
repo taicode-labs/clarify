@@ -33,6 +33,8 @@ OpenAPI 页面不只是静态字段表。Clarify 会把规范转成面向开发�
 
 在 OpenAPI operation 上设置 `deprecated: true`，即可在接口标题旁和侧边栏条目中显示 **已弃用** 徽标。徽标随站点语言切换。已弃用的接口仍可阅读和在 playground 中试调用；此标记不会停用接口。可以在 `description` 中说明替代接口或迁移步骤。`deprecated: false` 或未设置此字段的接口保持原样。
 
+当导航页面至少展示一个接口，且所有展示的接口均明确设置 `deprecated: true` 时，该页面的侧栏名称旁也会显示徽标，无需先打开页面。判断基于该页面经过 tag/filter 筛选后的接口，而非整份规范。混合或空页面不会标记，状态不会传播到上层导航分组或整个 API 栏目。所有弃用徽标均提供稳定的 `.clarify-deprecated-badge` class，便于自定义 CSS；默认多语言文案及深浅主题样式保持不变。
+
 已弃用的接口始终排在所属分组的末尾，侧边栏与正文都是如此；其余接口仍按配置的 `operationOrder` 排序。
 
 ```json
