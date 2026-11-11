@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { resolveProjectConfig } from '../../core/config/config.js'
 import { resolveBuildOptions } from '../../core/config/options.js'
 import { ClarifyContext } from '../../core/engine/context.js'
+import { buildNavigationFromConfig } from '../../parsers/routes/routes.js'
 import { contentRoute } from '../../parsers/routes/routes.test-utils.js'
 import type { ContentRoute } from '../../types.js'
 
@@ -80,4 +81,36 @@ describe('OpenAPIPluginState', () => {
     expect(modules.get(`virtual:clarify/openapi-spec/${nativeModuleId}`)).toContain('Native chat')
     expect(modules.get(`virtual:clarify/openapi-spec/${compatibleModuleId}`)).toContain('Compatible chat')
   })
+  it('refreshes filtered navigation metadata after deprecation changes and parse failures', async () => {
+    const specPath = join(projectRoot, 'api.openapi.json')
+    const state = new OpenAPIPluginState()
+    const routes = ['Assets', 'Active', 'Missing'].map(tag => contentRoute({
+      path: `/api/${tag.toLowerCase()}`,
+      kind: 'openapi', filePath: specPath,
+      pageVirtualModuleId: `virtual:clarify-page/${tag}`,
+      openapi: { tagFilter: [tag] },
+    }))
+    const config = [{ group: 'API', pages: ['Assets', 'Active', 'Missing'].map(tag => ({
+      openapi: 'api.openapi.json', path: `/api/${tag.toLowerCase()}`, filter: { tags: [tag] },
+    })) }]
+    const writeSpec = (deprecated?: boolean) => writeFileSync(specPath, JSON.stringify({
+      openapi: '3.0.0', info: { title: 'API', version: '1' }, paths: {
+        '/assets': { get: { operationId: 'assets', tags: ['Assets'], deprecated, responses: {} } },
+        '/active': { get: { operationId: 'active', tags: ['Active'], responses: {} } },
+      },
+    }))
+    for (const deprecated of [true, false, undefined, true]) {
+      writeSpec(deprecated)
+      await state.enrichRoutes(routes, createContext(routes))
+      const nodes = buildNavigationFromConfig(routes, config)[0]!.children!
+      expect(nodes[0]!.sections).toEqual([expect.objectContaining({ id: 'assets', deprecated: deprecated === true ? true : undefined })])
+      expect(nodes[1]!.sections).toEqual([expect.objectContaining({ id: 'active', deprecated: undefined })])
+      expect(nodes[2]!.sections).toEqual([])
+    }
+    writeFileSync(specPath, '{invalid')
+    await state.enrichRoutes(routes, createContext(routes))
+    const nodes = buildNavigationFromConfig(routes, config)[0]!.children!
+    expect(nodes.every(node => node.sections?.length === 0)).toBe(true)
+  })
+
 })

@@ -33,6 +33,8 @@ OpenAPI pages are more than static field tables. Clarify turns the spec into int
 
 Set `deprecated: true` on an OpenAPI operation to show a **Deprecated** badge beside its heading and in its sidebar entry. The badge is localized with the site language. Deprecated operations remain readable and can still be tried in the playground; the flag does not disable the endpoint. Use `description` to explain the replacement or migration steps. Operations with `deprecated: false` or no flag keep their normal appearance.
 
+When a navigation page contains at least one operation and every displayed operation explicitly sets `deprecated: true`, its sidebar page label also shows the badge, even before opening the page. This uses the page’s filtered operations (including tag filters), not the whole specification. Mixed or empty pages are not marked, and the status does not propagate to enclosing navigation groups or API tabs. All deprecation badges expose the stable `.clarify-deprecated-badge` class for custom CSS; the default localized text and light/dark theme styling remain unchanged.
+
 Deprecated operations are always listed after the active ones in their group, so the sidebar and the page body both push them to the end while keeping the configured `operationOrder` for the remaining operations.
 
 ```json
