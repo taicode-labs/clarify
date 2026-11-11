@@ -118,6 +118,11 @@ function NavigationPage(arg0: NavigationPageProps) {
   const sections = useSectionStore(state => state.sections)
   const visibleSections = useSectionStore(state => state.visibleSections)
   const active = isSameRoutePath(node.path, pathname, currentLocale)
+  // Navigation metadata is already scoped to this page's tag/filter and is
+  // available before the page is opened, including during static rendering.
+  const deprecated = !!node.sections?.length && node.sections.every(section =>
+    section.deprecated === true && !!section.badge && section.badge in sectionBadgeColorStyles,
+  )
   const href = normalizePath(node.path)
   const highlightRange = active && ancestorsExpanded
     ? getVisibleSectionHighlightRange(sections.map(section => section.id), visibleSections)
@@ -135,6 +140,7 @@ function NavigationPage(arg0: NavigationPageProps) {
         <span className="clarify-navigation-active-marker absolute inset-y-1.5 left-0 w-0.5 rounded-full opacity-0 transition-opacity group-aria-current:opacity-100" />
         {node.icon ? <NavigationIcon name={node.icon} className="clarify-navigation-item-icon h-3.5 w-3.5 shrink-0" /> : null}
         <span className="min-w-0 flex-1 truncate whitespace-nowrap">{node.title}</span>
+        {deprecated ? <DeprecatedBadge /> : null}
       </CloseButton>
 
       <AnimatePresence initial={false}>
