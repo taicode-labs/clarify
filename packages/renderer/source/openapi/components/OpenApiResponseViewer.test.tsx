@@ -23,20 +23,24 @@ function createExchange(contentType: string, body: string) {
 }
 
 describe('response body previews', () => {
-  it('formats JSON and YAML before syntax highlighting', () => {
-    expect(getResponseTextPreview('application/json; charset=utf-8', '{"name":"Clarify","ready":true}')).toEqual({
+  it('formats JSON and YAML before syntax highlighting', async () => {
+    await expect(getResponseTextPreview('application/json; charset=utf-8', '{"name":"Clarify","ready":true}')).resolves.toEqual({
       code: '{\n  "name": "Clarify",\n  "ready": true\n}',
       language: 'json',
     })
-    expect(getResponseTextPreview('application/yaml', 'name: Clarify\nitems: [one, two]')).toEqual({
+    await expect(getResponseTextPreview('application/yaml', 'name: Clarify\nitems: [one, two]')).resolves.toEqual({
       code: 'name: Clarify\nitems:\n  - one\n  - two',
       language: 'yaml',
     })
   })
 
-  it('maps textual response types to syntax highlighting languages', () => {
-    expect(getResponseTextPreview('text/css', 'body { color: red; }')).toEqual({ code: 'body { color: red; }', language: 'css' })
-    expect(getResponseTextPreview('application/xml', '<message>ok</message>')).toEqual({ code: '<message>ok</message>', language: 'xml' })
+  it('keeps unparsable YAML bodies untouched', async () => {
+    await expect(getResponseTextPreview('application/yaml', 'name: [unclosed')).resolves.toEqual({ code: 'name: [unclosed', language: 'yaml' })
+  })
+
+  it('maps textual response types to syntax highlighting languages', async () => {
+    await expect(getResponseTextPreview('text/css', 'body { color: red; }')).resolves.toEqual({ code: 'body { color: red; }', language: 'css' })
+    await expect(getResponseTextPreview('application/xml', '<message>ok</message>')).resolves.toEqual({ code: '<message>ok</message>', language: 'xml' })
   })
 
   it('only enables preview for supported response types', () => {

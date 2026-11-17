@@ -1,32 +1,48 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { codeToTokens, createCssVariablesTheme, type BundledLanguage, type ThemedToken } from 'shiki'
 
-const cssVariablesTheme = createCssVariablesTheme()
+import { getHighlighterFor, type HighlightTokens } from './highlight/highlighter'
 
 type HighlightedCodeProps = {
   code: string
   language: string
 }
 
+type HighlightResult = {
+  key: string
+  lines: HighlightTokens
+}
+
+function highlightKey(code: string, language: string): string {
+  return `${language}\u0000${code}`
+}
+
+/**
+ * Renders syntax-highlighted code.
+ *
+ * The shiki runtime and grammars load lazily, so this renders plain text
+ * immediately and upgrades in place once the highlighter resolves.
+ */
 export function HighlightedCode(arg0: HighlightedCodeProps): ReactNode {
   const { code, language } = arg0
-  const [lines, setLines] = useState<ThemedToken[][]>()
+  const [result, setResult] = useState<HighlightResult>()
 
   useEffect(() => {
     let active = true
+    const key = highlightKey(code, language)
 
-    void codeToTokens(code, { lang: language as BundledLanguage, theme: cssVariablesTheme })
-      .then((result) => {
-        if (active) setLines(result.tokens)
+    void getHighlighterFor(language)
+      .then(highlighter => highlighter?.codeToTokens(code, { lang: language }).tokens)
+      .then((tokens) => {
+        if (active && tokens) setResult({ key, lines: tokens })
       })
-      .catch(() => {
-        if (active) setLines(undefined)
-      })
+      .catch(() => {})
 
     return () => {
       active = false
     }
   }, [code, language])
+
+  const lines = result?.key === highlightKey(code, language) ? result.lines : undefined
 
   if (!lines) return <code className={`language-${language}`}>{code}</code>
 

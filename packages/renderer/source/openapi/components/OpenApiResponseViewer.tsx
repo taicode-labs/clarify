@@ -1,13 +1,13 @@
 import clsx from 'clsx'
 import { CheckIcon, CircleAlertIcon, CopyIcon, DownloadIcon, FileX2Icon, SearchIcon, SendIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { parse as parseYaml, stringify as stringifyYaml } from 'yaml'
 
 import { HighlightedCode } from '../../components/HighlightedCode'
 import { Tabs } from '../../components/Tabs'
 import { useBuiltInText } from '../../core/i18n'
 import { copyTextToClipboard } from '../../utils/clipboard'
 import type { ApiResponseExchange } from '../lib/api-exchange'
+import { formatYamlPreview } from '../lib/yaml-preview'
 
 import { RequestSection } from './OpenApiRequestFields'
 
@@ -72,24 +72,32 @@ function normalizedMediaType(contentType: string): string {
   return contentType.split(';', 1)[0].trim().toLowerCase()
 }
 
-export function getResponseTextPreview(contentType: string, body: string): TextPreview | undefined {
+function isJsonMediaType(mediaType: string): boolean {
+  return mediaType === 'application/json' || mediaType.endsWith('+json')
+}
+
+const yamlMediaTypes = new Set(['application/yaml', 'application/x-yaml', 'text/yaml', 'text/x-yaml'])
+
+function isYamlMediaType(mediaType: string): boolean {
+  return yamlMediaTypes.has(mediaType) || mediaType.endsWith('+yaml')
+}
+
+function textPreviewLanguage(mediaType: string): string | undefined {
+  return textLanguages[mediaType]
+    ?? (mediaType.startsWith('text/') ? mediaType.slice('text/'.length) || 'text' : undefined)
+}
+
+export async function getResponseTextPreview(contentType: string, body: string): Promise<TextPreview | undefined> {
   const mediaType = normalizedMediaType(contentType)
 
-  if (mediaType === 'application/json' || mediaType.endsWith('+json')) {
+  if (isJsonMediaType(mediaType)) {
     const parsed = parseJson(body)
     return { code: typeof parsed === 'undefined' ? body : JSON.stringify(parsed, null, 2), language: 'json' }
   }
 
-  if (mediaType === 'application/yaml' || mediaType === 'application/x-yaml' || mediaType === 'text/yaml' || mediaType === 'text/x-yaml' || mediaType.endsWith('+yaml')) {
-    try {
-      return { code: stringifyYaml(parseYaml(body)).trimEnd(), language: 'yaml' }
-    } catch {
-      return { code: body, language: 'yaml' }
-    }
-  }
+  if (isYamlMediaType(mediaType)) return { code: await formatYamlPreview(body), language: 'yaml' }
 
-  const language = textLanguages[mediaType]
-    ?? (mediaType.startsWith('text/') ? mediaType.slice('text/'.length) || 'text' : undefined)
+  const language = textPreviewLanguage(mediaType)
 
   return language ? { code: body, language } : undefined
 }
@@ -97,7 +105,9 @@ export function getResponseTextPreview(contentType: string, body: string): TextP
 export function canPreviewResponse(contentType: string): boolean {
   const mediaType = normalizedMediaType(contentType)
   return Boolean(
-    getResponseTextPreview(contentType, '')
+    isJsonMediaType(mediaType)
+    || isYamlMediaType(mediaType)
+    || textPreviewLanguage(mediaType)
     || mediaType.startsWith('image/')
     || mediaType.startsWith('audio/')
     || mediaType.startsWith('video/'),
@@ -159,16 +169,37 @@ function ResponseMedia(arg0: ResponseMediaProps): ReactNode {
   return <video ref={elementRef} controls className="max-h-128 max-w-full" />
 }
 
+function useTextPreview(contentType: string, body: string): TextPreview | undefined {
+  const [result, setResult] = useState<{ key: string; preview?: TextPreview }>()
+  const key = `${contentType}\u0000${body}`
+
+  useEffect(() => {
+    let active = true
+
+    void getResponseTextPreview(contentType, body).then((preview) => {
+      if (active) setResult({ key, preview })
+    })
+
+    return () => {
+      active = false
+    }
+    // `key` is derived from `contentType` and `body`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [body, contentType])
+
+  return result?.key === key ? result.preview : undefined
+}
+
 function ResponsePreview(arg0: ResponsePreviewProps): ReactNode {
   const { exchange } = arg0
   const t = useBuiltInText()
   const contentType = normalizedMediaType(exchange.contentType)
+  const textPreview = useTextPreview(exchange.contentType, exchange.body)
   if (!exchange.size) return <ResponseState icon={FileX2Icon} title={t('openapi.responseBodyEmptyTitle')} description={t('openapi.responseBodyEmpty')} />
   if (contentType.startsWith('image/')) return <ResponseMedia blob={exchange.blob} type="image" />
   if (contentType.startsWith('audio/')) return <ResponseMedia blob={exchange.blob} type="audio" />
   if (contentType.startsWith('video/')) return <ResponseMedia blob={exchange.blob} type="video" />
   if (contentType === 'text/html' || contentType === 'application/xhtml+xml') return <iframe srcDoc={exchange.body} sandbox="" title="Response preview" className="h-96 w-full border-0 bg-white" />
-  const textPreview = getResponseTextPreview(exchange.contentType, exchange.body)
   if (textPreview) return <pre className="max-h-128 overflow-auto whitespace-pre-wrap wrap-break-word font-mono text-xs/5"><HighlightedCode code={textPreview.code} language={textPreview.language} /></pre>
   return <div className="grid min-h-56 place-items-center text-xs text-(--clarify-code-faint)">{t('openapi.binaryPreview')}</div>
 }

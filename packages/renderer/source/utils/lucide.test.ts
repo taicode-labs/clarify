@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveLucideIconName } from './lucide'
+import { lucideIconRegistry, resolveLucideIconName } from './lucide'
 
 describe('resolveLucideIconName', () => {
   it('returns undefined for undefined input', () => {
@@ -17,6 +17,13 @@ describe('resolveLucideIconName', () => {
 
   it('resolves space-separated to PascalCase', () => {
     expect(resolveLucideIconName('arrow right')).toBe('ArrowRight')
+  })
+
+  it('resolves icons outside the renderer allowlist', () => {
+    const iconName = resolveLucideIconName('accessibility')
+
+    expect(iconName).toBe('Accessibility')
+    if (iconName) expect(lucideIconRegistry[iconName]).toBeDefined()
   })
 
   it('returns undefined for non-existent icon', () => {

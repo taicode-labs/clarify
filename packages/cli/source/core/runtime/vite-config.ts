@@ -135,8 +135,13 @@ export async function createViteConfig(options: ClarifyViteConfigOptions, env: C
                 priority: 35,
               },
               {
-                name: 'ui-vendor',
-                test: /node_modules[\\/](@headlessui|framer-motion)[\\/]/,
+                name: 'motion-vendor',
+                test: /node_modules[\\/](?:framer-motion|motion-dom|motion-utils|@emotion[\\/]is-prop-valid)[\\/]/,
+                priority: 32,
+              },
+              {
+                name: 'headlessui-vendor',
+                test: /node_modules[\\/](@headlessui|@floating-ui)[\\/]/,
                 priority: 30,
               },
               {
@@ -153,8 +158,20 @@ export async function createViteConfig(options: ClarifyViteConfigOptions, env: C
                 priority: 20,
               },
               {
+                name: 'markdown-renderer-vendor',
+                test: /node_modules[\\/](?:react-markdown|hast-util-to-jsx-runtime|hast-util-whitespace|hast-util-parse-selector|hast-util-to-estree|property-information|space-separated-tokens)[\\/]/,
+                priority: 16,
+              },
+              {
+                name: 'markdown-parser-vendor',
+                test: /node_modules[\\/](?:react-markdown|remark-[^\\/]+|rehype-[^\\/]+|unified|micromark(?:-[^\\/]+)?|mdast-[^\\/]+|hast-[^\\/]+|vfile(?:-[^\\/]+)?|unist-util-[^\\/]+|property-information|space-separated-tokens|decode-named-character-reference|character-entities(?:-[^\\/]+)?|stringify-entities|ccount|trim-lines|bail|trough|zwitch|extend|comma-separated-tokens)[\\/]/,
+                priority: 15,
+              },
+              {
+                // Keep lazy-only shiki and yaml modules out of the eager vendor
+                // group so Rolldown can preserve their on-demand chunks.
                 name: 'vendor',
-                test: /node_modules[\\/]/,
+                test: /node_modules[\\/](?!(?:[^\\/]+[\\/])*(?:@shikijs[\\/]|shiki[\\/]|yaml[\\/]))/,
                 priority: 10
               },
             ],
