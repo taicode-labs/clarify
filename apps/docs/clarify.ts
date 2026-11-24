@@ -107,6 +107,14 @@ export default defineConfig({
               },
               {
                 label: {
+                  'zh-CN': 'Agentic Resource Discovery',
+                  'en-US': 'Agentic Resource Discovery',
+                },
+                icon: 'Radar',
+                page: 'features/ard',
+              },
+              {
+                label: {
                   'zh-CN': '插件',
                   'en-US': 'Plugins',
                 },
@@ -241,6 +249,10 @@ export default defineConfig({
               {
                 page: 'features/mcp',
                 icon: 'Bot',
+              },
+              {
+                page: 'features/ard',
+                icon: 'Radar',
               },
               {
                 page: 'features/vscode-extension',

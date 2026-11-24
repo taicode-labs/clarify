@@ -445,10 +445,28 @@ type ClarifyFeaturesConfig = {
   openapi?: ClarifyFeatureConfig<{
     playground?: boolean
   }>
+  ard?: ClarifyFeatureConfig<{
+    openapi?: boolean
+    entries?: ClarifyArdEntryConfig[]
+  }>
+}
+
+type ClarifyArdEntryConfig = {
+  identifier?: string
+  displayName?: string
+  type?: string
+  url: string
+  description?: string
+  tags?: string[]
+  capabilities?: string[]
+  representativeQueries?: string[]
+  version?: string
+  updatedAt?: string
+  metadata?: Record<string, unknown>
 }
 ```
 
-除生产环境的主题编辑器外，其他内置功能默认启用。每项都支持布尔简写：`false` 禁用整项，`true` 使用默认选项；需要细粒度控制时使用带 `enabled` 的对象。
+除生产环境的主题编辑器和 Agentic Resource Discovery 外，其他内置功能默认启用。每项都支持布尔简写：`false` 禁用整项，`true` 使用默认选项；需要细粒度控制时使用带 `enabled` 的对象。
 
 | 字段 | 默认解析结果 | 说明 |
 |------|--------------|------|
@@ -456,6 +474,7 @@ type ClarifyFeaturesConfig = {
 | `repository` | `{ enabled: true }` | 文档源码关联的代码仓库。配置 `url` 后可启用页面编辑链接等仓库能力；`branch` 默认使用 `main`，`directory` 对应仓库内的内容目录。 |
 | `themeEditor` | `{ enabled: false }` | 内置主题编辑器。开发服务器始终提供编辑器；生产站点需显式设为 `true` 才会展示。 |
 | `openapi` | `{ enabled: true, playground: true }` | OpenAPI 页面及请求工作台。响应预览和下载是页面内置能力。 |
+| `ard` | `{ enabled: false, openapi: true, entries: [] }` | 可选的 [Agentic Resource Discovery](/features/ard) 清单，输出到 `.well-known/ard.json`。启用后会自动适配已发布的 OpenAPI 路由（可用 `openapi: false` 关闭），`entries` 用于补充其他公开资源。需要配置 `siteUrl`。 |
 
 ```ts title="按需配置功能"
 export default defineConfig({

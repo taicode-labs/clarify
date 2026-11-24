@@ -128,6 +128,27 @@ const clarifyRepositoryConfigSchema = z.object({
   directory: z.string().optional(),
 }).strict()
 
+const clarifyArdEntryConfigSchema = z.object({
+  identifier: z.string().superRefine((value, ctx) => {
+    if (!value.startsWith('urn:air:') || /\s/.test(value) || value.split(':').length < 4) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'must use the domain-anchored URN form urn:air:<publisher>:<name>',
+      })
+    }
+  }).optional(),
+  displayName: z.string().optional(),
+  type: z.string().optional(),
+  url: z.string(),
+  description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  capabilities: z.array(z.string()).optional(),
+  representativeQueries: z.array(z.string()).optional(),
+  version: z.string().optional(),
+  updatedAt: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+}).strict()
+
 const clarifyPagesItemSchema: z.ZodType<
   import('../../types.js').ClarifyPagesItem,
   import('../../types.js').ClarifyPagesItem
@@ -242,6 +263,10 @@ export const clarifyFeaturesConfigSchema = z.object({
   openapi: featureSchema({
     playground: z.boolean().default(true),
   }, { playground: true }),
+  ard: featureSchema({
+    openapi: z.boolean().default(true),
+    entries: z.array(clarifyArdEntryConfigSchema).default([]),
+  }, { openapi: true, entries: [] }, false),
 }).strict()
 
 export const clarifyProjectConfigSchema = z.object({

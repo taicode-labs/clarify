@@ -293,6 +293,24 @@ describe('resolveProjectConfig', () => {
     expect(resolveProjectConfig({ features: { search: { mcp: false } } }).features.search).toEqual({ enabled: true, mcp: false })
   })
 
+  it('resolves the ARD feature as an opt-in capability', () => {
+    expect(resolveProjectConfig().features.ard).toEqual({ enabled: false, openapi: true, entries: [] })
+    expect(resolveProjectConfig({ features: { ard: true } }).features.ard).toEqual({ enabled: true, openapi: true, entries: [] })
+    expect(resolveProjectConfig({ features: { ard: { openapi: false } } }).features.ard).toEqual({ enabled: false, openapi: false, entries: [] })
+    expect(resolveProjectConfig({
+      features: { ard: { entries: [{ url: '/mcp.json', displayName: 'MCP' }] } },
+    }).features.ard.entries).toEqual([{ url: '/mcp.json', displayName: 'MCP' }])
+  })
+
+  it('rejects ARD identifiers that are not domain-anchored URNs', () => {
+    expect(() => clarifyProjectConfigSchema.parse({
+      features: { ard: { entries: [{ url: '/x.json', identifier: 'not-a-urn' }] } },
+    })).toThrow(/urn:air/)
+    expect(() => clarifyProjectConfigSchema.parse({
+      features: { ard: { entries: [{ url: '/x.json', data: {} }] } },
+    })).toThrow(/data/)
+  })
+
   it('rejects the removed artifacts feature', () => {
     expect(() => clarifyProjectConfigSchema.parse({ features: { artifacts: false } })).toThrow(/artifacts/)
   })

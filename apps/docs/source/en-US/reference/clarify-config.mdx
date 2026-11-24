@@ -445,10 +445,28 @@ type ClarifyFeaturesConfig = {
   openapi?: ClarifyFeatureConfig<{
     playground?: boolean
   }>
+  ard?: ClarifyFeatureConfig<{
+    openapi?: boolean
+    entries?: ClarifyArdEntryConfig[]
+  }>
+}
+
+type ClarifyArdEntryConfig = {
+  identifier?: string
+  displayName?: string
+  type?: string
+  url: string
+  description?: string
+  tags?: string[]
+  capabilities?: string[]
+  representativeQueries?: string[]
+  version?: string
+  updatedAt?: string
+  metadata?: Record<string, unknown>
 }
 ```
 
-Built-in features are enabled by default except for the production theme editor. Every feature supports a boolean shorthand: `false` disables the entire feature, while `true` uses its default options. Use an object with `enabled` when you need finer control.
+Built-in features are enabled by default except for the production theme editor and Agentic Resource Discovery. Every feature supports a boolean shorthand: `false` disables the entire feature, while `true` uses its default options. Use an object with `enabled` when you need finer control.
 
 | Field | Resolved default | Description |
 |-------|------------------|-------------|
@@ -456,6 +474,7 @@ Built-in features are enabled by default except for the production theme editor.
 | `repository` | `{ enabled: true }` | Repository associated with the documentation source. Set `url` to enable repository-aware capabilities such as page edit links; `branch` defaults to `main`, and `directory` maps to the content directory inside the repository. |
 | `themeEditor` | `{ enabled: false }` | Built-in theme editor. The development server always provides it; set this to `true` to expose it in production sites. |
 | `openapi` | `{ enabled: true, playground: true }` | OpenAPI pages and the request playground. Response preview and download are built-in page capabilities. |
+| `ard` | `{ enabled: false, openapi: true, entries: [] }` | Opt-in [Agentic Resource Discovery](/features/ard) manifest at `.well-known/ard.json`. When enabled, published OpenAPI routes are adapted automatically unless `openapi: false`; `entries` lists additional public resources. Requires `siteUrl`. |
 
 ```ts title="Configure features selectively"
 export default defineConfig({

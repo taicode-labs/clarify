@@ -20,6 +20,7 @@ Clarify 的定位很清晰：把“写文档、生成 API Reference、发布静�
 | **项目级变量** | 在 MDX、frontmatter 和 OpenAPI 规范中复用统一值，适合 OEM 文档、官方链接、API host 和发布版本 | [项目变量](/features/variables) |
 | **内置全文搜索** | 基于 Pagefind 生成静态全文索引，开发态和构建态都可用，支持当前语言过滤、摘要高亮和章节快速跳转回退 | [写作文档](/guides/writing-content#标题目录与搜索) |
 | **AI-ready 发布** | 原始 Markdown/OpenAPI 输出、页面复制操作、原始内容链接、`llms.txt` 发现入口与 MCP 文档搜索 | [MCP 文档搜索](/features/mcp) |
+| **Agentic 资源发现** | 可选的 `/.well-known/ard.json` 清单，自动适配已发布的 OpenAPI 路由，并只列出显式公开的资源供 AI Agent 发现 | [Agentic Resource Discovery](/features/ard) |
 | **多语言与导航** | locale 目录、缺失翻译策略、Tabs、分组侧边栏、redirect、OpenAPI tag filter、外链、图标和本地化文案 | [配置站点](/guides/navigation) |
 | **主题与品牌** | React 19 + Tailwind CSS 4 渲染器、主题预设、颜色 token、圆角 token、布局宽度、亮暗主题启动脚本 | [配置参考](/reference/clarify-config) |
 | **可扩展构建管线** | `routes:resolved`、`modules:before`、`build:done` Hook，可生成搜索索引、治理报告或内部平台产物 | [插件机制](/features/plugins) |

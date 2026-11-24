@@ -1,0 +1,132 @@
+---
+title: 'Agentic Resource Discovery'
+description: 'Clarify 可以发布 Agentic Resource Discovery 清单，让 AI Agent 和注册中心发现站点对外提供的机器可读资源。'
+keywords: ['clarify', 'documentation', 'features', 'ard', 'agentic resource discovery']
+---
+
+# Agentic Resource Discovery
+
+Clarify 可以在 `/.well-known/ard.json` 发布 [Agentic Resource Discovery](https://agenticresourcediscovery.org/spec)（ARD）清单。清单会列出站点对外提供的机器可读资源——已发布的 OpenAPI 文档，以及你显式允许公开的其他产物——让 AI Agent 和注册中心不必猜测 URL 就能发现它们。
+
+ARD 由内置插件实现。在 `clarify.ts` 中启用：
+
+```ts title="clarify.ts"
+export default defineConfig({
+  siteUrl: 'https://docs.example.com',
+  features: {
+    ard: true,
+  },
+})
+```
+
+<Callout type="info" title="默认关闭，且只公开显式声明的资源">
+  ARD 默认关闭。即使启用，Clarify 也只会列出已发布的 OpenAPI 路由和你配置的 `entries`。Markdown 页面、隐藏页面、别名路由以及没有机器可读产物的路由都不会被自动加入。`siteUrl` 是必填的，因为所有标识符和资源 URL 都以你的公开域名作为基准。
+</Callout>
+
+## 生成的产物
+
+生产构建会输出 `.well-known/ard.json`，并在每个经过转换的 HTML 页面 `<head>` 中写入发现链接：
+
+```html
+<link rel="ard" href="https://docs.example.com/.well-known/ard.json" />
+```
+
+只有清单至少包含一条记录时才会注入该链接。如果页面 HTML 中已经存在 `rel="ard"` 链接，Clarify 不会改动它。配置了 `routePrefix` 时，清单和链接都会移动到前缀下，例如 `https://docs.example.com/docs/.well-known/ard.json`。
+
+`clarify dev` 会在 `/.well-known/ard.json`（以及路由前缀下）提供同一份清单，方便部署前验证输出。
+
+## OpenAPI 资源
+
+启用该特性后，Clarify 会自动适配已发布的 OpenAPI 路由。每条记录都复用站点已有的元数据，不需要重复维护发现信息：
+
+| 记录字段 | 来源 |
+| --- | --- |
+| `displayName` | 页面标题，缺失时回退到站点标题 |
+| `url` | 路由已发布的 OpenAPI 产物 URL |
+| `description` | 页面描述 |
+| `version` | OpenAPI 文档中的 `info.version` |
+| `updatedAt` | frontmatter 中的 `updatedAt`（存在时） |
+| `type` | `application/vnd.oai.openapi+json` |
+| `tags` / `capabilities` | `openapi` / `OpenAPI` |
+| `representativeQueries` | 根据页面标题生成 |
+
+别名路由、带有校验诊断的路由，以及没有已发布产物的路由都会被跳过。设置 `openapi: false` 可以停止适配 OpenAPI 路由：
+
+```ts title="clarify.ts"
+export default defineConfig({
+  siteUrl: 'https://docs.example.com',
+  features: {
+    ard: {
+      openapi: false,
+      entries: [],
+    },
+  },
+})
+```
+
+## 其他资源
+
+用 `entries` 发布其他机器可读资源，例如 MCP server card、注册中心或外部目录。相对 URL 会基于 `siteUrl` 和 `routePrefix` 解析；绝对 URL 原样使用。
+
+```ts title="clarify.ts"
+export default defineConfig({
+  siteUrl: 'https://docs.example.com',
+  features: {
+    ard: {
+      entries: [
+        {
+          url: '/mcp/server-card.json',
+          displayName: 'Weather MCP Server',
+          description: '通过 MCP 提供的天气工具。',
+          representativeQueries: ['西雅图天气怎么样？'],
+        },
+        {
+          identifier: 'urn:air:docs.example.com:registry:public',
+          displayName: '公共 API 注册中心',
+          type: 'application/ai-registry+json',
+          url: 'https://registry.example.com/api/',
+          tags: ['registry'],
+          capabilities: ['Search'],
+        },
+      ],
+    },
+  },
+})
+```
+
+记录会在构建时校验。`identifier` 必须是符合 `urn:air:<publisher>[:<namespace>]:<name>` 的域名锚定 URN，且清单内不能重复。省略 `identifier` 时，Clarify 会根据发布方域名、`resource` 命名空间和记录的显示名称自动生成一个。
+
+除 OpenAPI 自动适配外，`entries` 是唯一的发布途径，因此只能通过直达链接访问的页面不会被带入发现结果，除非你显式列出它们。
+
+## 清单格式
+
+```json title=".well-known/ard.json"
+{
+  "entries": [
+    {
+      "@context": "https://agenticresourcediscovery.org/context/v1",
+      "identifier": "urn:air:docs.example.com:openapi:payments",
+      "displayName": "Payments API",
+      "type": "application/vnd.oai.openapi+json",
+      "url": "https://docs.example.com/payments.openapi.json",
+      "description": "在账户之间转账。",
+      "tags": ["openapi"],
+      "capabilities": ["OpenAPI"],
+      "representativeQueries": [
+        "Payments API 提供哪些接口？",
+        "如何使用 Payments API？"
+      ],
+      "version": "2.1.0",
+      "updatedAt": "2026-01-02T03:04:05.000Z"
+    }
+  ]
+}
+```
+
+`@context` 使用 ARD v1 上下文。每条记录都必须包含 `identifier`、`displayName`、`type`，以及 `url` 和 `data` 中的恰好一个；Clarify 只发布基于 `url` 的记录。`representativeQueries`、`description`、`tags`、`capabilities`、`version`、`updatedAt` 和 `metadata` 在可用时一并输出。
+
+## 相关文档
+
+- [配置参考](/reference/clarify-config#features)
+- [API 文档](/features/openapi)
+- [MCP 文档搜索](/features/mcp)

@@ -1,0 +1,132 @@
+---
+title: 'Agentic Resource Discovery'
+description: 'Clarify can publish an Agentic Resource Discovery manifest so AI agents and registries can find the machine-readable resources your site exposes.'
+keywords: ['clarify', 'documentation', 'features', 'ard', 'agentic resource discovery']
+---
+
+# Agentic Resource Discovery
+
+Clarify can publish an [Agentic Resource Discovery](https://agenticresourcediscovery.org/spec) (ARD) manifest at `/.well-known/ard.json`. The manifest lists the machine-readable resources your site exposes — published OpenAPI documents and any other artifacts you explicitly allow — so AI agents and registries can discover them instead of guessing URLs.
+
+ARD support is a built-in plugin. Enable it in `clarify.ts`:
+
+```ts title="clarify.ts"
+export default defineConfig({
+  siteUrl: 'https://docs.example.com',
+  features: {
+    ard: true,
+  },
+})
+```
+
+<Callout type="info" title="Opt-in and public by default">
+  ARD is disabled by default. Even when enabled, Clarify only lists OpenAPI routes that are published and explicit `entries` you configure. Markdown pages, hidden pages, alias routes, and routes without a machine-readable artifact are never added automatically. `siteUrl` is required because every identifier and resource URL is anchored to your public origin.
+</Callout>
+
+## Generated artifacts
+
+A production build emits `.well-known/ard.json`, and every transformed HTML page gets a discovery link in its `<head>`:
+
+```html
+<link rel="ard" href="https://docs.example.com/.well-known/ard.json" />
+```
+
+The link is injected only when the manifest will contain at least one entry. If your HTML already contains a `rel="ard"` link, Clarify leaves it untouched. With `routePrefix` configured, both the manifest and the link move under the prefix, for example `https://docs.example.com/docs/.well-known/ard.json`.
+
+`clarify dev` serves the same manifest at `/.well-known/ard.json` (and under the route prefix), so you can verify the output before deploying.
+
+## OpenAPI resources
+
+When the feature is enabled, Clarify adapts published OpenAPI routes automatically. Each entry reuses metadata the site already produces, so you do not maintain discovery metadata twice:
+
+| Entry field | Source |
+| --- | --- |
+| `displayName` | Page title, falling back to the site title |
+| `url` | The route's published OpenAPI artifact URL |
+| `description` | Page description |
+| `version` | `info.version` from the OpenAPI document |
+| `updatedAt` | Page `updatedAt` frontmatter, when present |
+| `type` | `application/vnd.oai.openapi+json` |
+| `tags` / `capabilities` | `openapi` / `OpenAPI` |
+| `representativeQueries` | Generated from the page title |
+
+Routes marked as aliases, routes with validation diagnostics, and routes without a published artifact are skipped. Set `openapi: false` to stop adapting OpenAPI routes:
+
+```ts title="clarify.ts"
+export default defineConfig({
+  siteUrl: 'https://docs.example.com',
+  features: {
+    ard: {
+      openapi: false,
+      entries: [],
+    },
+  },
+})
+```
+
+## Additional resources
+
+Use `entries` to publish other machine-readable resources, such as an MCP server card, a registry, or an external catalog. Relative URLs are resolved against `siteUrl` and `routePrefix`; absolute URLs are used as-is.
+
+```ts title="clarify.ts"
+export default defineConfig({
+  siteUrl: 'https://docs.example.com',
+  features: {
+    ard: {
+      entries: [
+        {
+          url: '/mcp/server-card.json',
+          displayName: 'Weather MCP Server',
+          description: 'Weather tools exposed over MCP.',
+          representativeQueries: ['what is the weather in Seattle?'],
+        },
+        {
+          identifier: 'urn:air:docs.example.com:registry:public',
+          displayName: 'Public API Registry',
+          type: 'application/ai-registry+json',
+          url: 'https://registry.example.com/api/',
+          tags: ['registry'],
+          capabilities: ['Search'],
+        },
+      ],
+    },
+  },
+})
+```
+
+Entries are validated at build time. `identifier` must be a domain-anchored URN matching `urn:air:<publisher>[:<namespace>]:<name>`, and identifiers must be unique across the manifest. When you omit `identifier`, Clarify derives one from the publisher host, the `resource` namespace, and the entry's display name.
+
+Because `entries` is the only way to publish a resource besides OpenAPI adaptation, pages that are intentionally reachable by direct link stay out of discovery results unless you list them.
+
+## Manifest format
+
+```json title=".well-known/ard.json"
+{
+  "entries": [
+    {
+      "@context": "https://agenticresourcediscovery.org/context/v1",
+      "identifier": "urn:air:docs.example.com:openapi:payments",
+      "displayName": "Payments API",
+      "type": "application/vnd.oai.openapi+json",
+      "url": "https://docs.example.com/payments.openapi.json",
+      "description": "Move money between accounts.",
+      "tags": ["openapi"],
+      "capabilities": ["OpenAPI"],
+      "representativeQueries": [
+        "What endpoints does Payments API provide?",
+        "Show me how to call Payments API."
+      ],
+      "version": "2.1.0",
+      "updatedAt": "2026-01-02T03:04:05.000Z"
+    }
+  ]
+}
+```
+
+The `@context` value is the ARD v1 context. Each entry always includes `identifier`, `displayName`, `type`, and exactly one of `url` or `data`; Clarify publishes URL-based entries only. `representativeQueries`, `description`, `tags`, `capabilities`, `version`, `updatedAt`, and `metadata` are included when available.
+
+## Related docs
+
+- [Configuration Reference](/reference/clarify-config#features)
+- [API Documentation](/features/openapi)
+- [MCP Documentation Search](/features/mcp)

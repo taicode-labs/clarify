@@ -248,6 +248,33 @@ export type ClarifyNavigationConfig = {
   tabs?: ClarifyTabsConfig
 }
 
+export type ClarifyArdEntryConfig = {
+  /** Domain-anchored ARD identifier in URN form. Derived from siteUrl when omitted. */
+  identifier?: string
+  /** Human-readable resource name. Defaults to a value derived from the URL. */
+  displayName?: string
+  /** IANA media type of the artifact. Default: application/json. */
+  type?: string
+  /** Absolute URL, or a path relative to the deployed site root (under routePrefix). */
+  url: string
+  description?: string
+  tags?: string[]
+  capabilities?: string[]
+  /** Sample user queries used by registries to build semantic search indexes. */
+  representativeQueries?: string[]
+  version?: string
+  /** Resource update time as an ISO 8601 timestamp. */
+  updatedAt?: string
+  metadata?: Record<string, unknown>
+}
+
+export type ClarifyArdConfig = {
+  /** Expose every published OpenAPI route's machine-readable artifact. Default: true. */
+  openapi?: boolean
+  /** Additional resources to expose. Resources not listed here stay undiscoverable. */
+  entries?: ClarifyArdEntryConfig[]
+}
+
 export type ClarifyFeatureConfig<Options extends object = Record<never, never>> = boolean | ({ enabled?: boolean } & Options)
 
 export type ClarifyFeaturesConfig = {
@@ -260,6 +287,8 @@ export type ClarifyFeaturesConfig = {
   openapi?: ClarifyFeatureConfig<{
     playground?: boolean
   }>
+  /** Agentic Resource Discovery manifest at /.well-known/ard.json. Disabled by default. */
+  ard?: ClarifyFeatureConfig<ClarifyArdConfig>
 }
 
 export type ResolvedClarifyFeaturesConfig = {
@@ -269,6 +298,11 @@ export type ResolvedClarifyFeaturesConfig = {
   openapi: {
     enabled: boolean
     playground: boolean
+  }
+  ard: {
+    enabled: boolean
+    openapi: boolean
+    entries: ClarifyArdEntryConfig[]
   }
 }
 
