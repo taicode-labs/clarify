@@ -1,4 +1,6 @@
 import type { ClarifyArdEntryConfig, ContentRoute, ResolvedProjectConfig } from '../../types.js'
+import type { OpenAPISourceDocument } from '../openapi/aggregation.js'
+import { isRootOpenAPISourceRoute, selectRootOpenAPISources } from '../openapi/artifacts.js'
 
 export const ARD_CONTEXT_URL = 'https://agenticresourcediscovery.org/context/v1'
 export const ARD_MANIFEST_FILE_NAME = '.well-known/ard.json'
@@ -102,6 +104,33 @@ function openAPIQueries(title: string): string[] {
   ]
 }
 
+function rootOpenAPIVersion(sources: OpenAPISourceDocument[]): string | undefined {
+  const versions = new Set<string>()
+  for (const source of sources) {
+    const info = source.document.info as { version?: unknown } | undefined
+    if (typeof info?.version === 'string' && info.version) versions.add(info.version)
+  }
+  return versions.size === 1 ? versions.values().next().value : undefined
+}
+
+function createRootOpenAPIEntry(sources: OpenAPISourceDocument[], config: ResolvedProjectConfig, publisher: string, usedIdentifiers: Set<string>): ArdEntry {
+  const title = config.title
+  const entry: ArdEntry = {
+    '@context': ARD_CONTEXT_URL,
+    identifier: uniqueIdentifier(publisher, 'openapi', 'root', usedIdentifiers),
+    displayName: title,
+    type: OPENAPI_ARTIFACT_TYPE,
+    url: toPublicUrl(config, '/openapi.json'),
+    tags: ['openapi'],
+    capabilities: ['OpenAPI'],
+    representativeQueries: openAPIQueries(title),
+  }
+  if (config.description) entry.description = config.description
+  const version = rootOpenAPIVersion(sources)
+  if (version) entry.version = version
+  return entry
+}
+
 function createOpenAPIEntry(route: ContentRoute, config: ResolvedProjectConfig, publisher: string, usedIdentifiers: Set<string>): ArdEntry | undefined {
   const contentArtifactUrl = route.artifacts?.contentArtifactUrl
   if (!contentArtifactUrl) return undefined
@@ -157,7 +186,10 @@ export function hasArdEntries(routes: ContentRoute[], config: ResolvedProjectCon
   if (!config.features.ard.enabled || !config.siteUrl) return false
   if (config.features.ard.entries.length > 0) return true
   if (!config.features.ard.openapi) return false
-  return routes.some(route => route.kind === 'openapi' && !route.diagnostic && !route.isBareAlias && Boolean(route.artifacts?.contentArtifactUrl))
+  const defaultLocale = config.locales?.default
+  return routes.some(route =>
+    (route.kind === 'openapi' && !route.diagnostic && !route.isBareAlias && Boolean(route.artifacts?.contentArtifactUrl)) ||
+    isRootOpenAPISourceRoute(route, defaultLocale))
 }
 
 export function createArdManifest(routes: ContentRoute[], config: ResolvedProjectConfig): ArdManifest | undefined {
@@ -175,6 +207,9 @@ export function createArdManifest(routes: ContentRoute[], config: ResolvedProjec
   }
 
   if (config.features.ard.openapi) {
+    const rootSources = selectRootOpenAPISources(routes, config)
+    if (rootSources.length > 0) pushEntry(createRootOpenAPIEntry(rootSources, config, publisher, usedIdentifiers))
+
     for (const route of routes) {
       if (route.kind !== 'openapi' || route.diagnostic || route.isBareAlias) continue
       pushEntry(createOpenAPIEntry(route, config, publisher, usedIdentifiers))

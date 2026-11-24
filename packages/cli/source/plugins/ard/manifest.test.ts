@@ -92,6 +92,19 @@ describe('ARD manifest', () => {
     expect(manifest).toEqual({
       entries: [{
         '@context': 'https://agenticresourcediscovery.org/context/v1',
+        identifier: 'urn:air:docs.example.com:openapi:root',
+        displayName: 'Clarify Docs',
+        type: 'application/vnd.oai.openapi+json',
+        url: 'https://docs.example.com/openapi.json',
+        tags: ['openapi'],
+        capabilities: ['OpenAPI'],
+        representativeQueries: [
+          'What endpoints does Clarify Docs provide?',
+          'Show me how to call Clarify Docs.',
+        ],
+        version: '2.1.0',
+      }, {
+        '@context': 'https://agenticresourcediscovery.org/context/v1',
         identifier: 'urn:air:docs.example.com:openapi:payments',
         displayName: 'Payments API',
         type: 'application/vnd.oai.openapi+json',
@@ -117,7 +130,7 @@ describe('ARD manifest', () => {
     expect(hasArdEntries([markdownRoute('/guide')], projectConfig)).toBe(false)
   })
 
-  it('skips routes that have no machine-readable artifact and excludes aliases and diagnostics', () => {
+  it('keeps the aggregate entry but skips per-route artifacts, aliases, and diagnostics', () => {
     const projectConfig = config()
     const manifest = createArdManifest([
       openAPIRoute({ path: '/missing', artifactUrl: null }),
@@ -125,7 +138,7 @@ describe('ARD manifest', () => {
       openAPIRoute({ path: '/broken', diagnostic: { severity: 'error', code: 'invalid-openapi', message: 'Invalid' } as never }),
     ], projectConfig)
 
-    expect(manifest).toBeUndefined()
+    expect(manifest?.entries.map(entry => entry.url)).toEqual(['https://docs.example.com/openapi.json'])
   })
 
   it('applies routePrefix to resource URLs', () => {
@@ -133,7 +146,7 @@ describe('ARD manifest', () => {
     const manifest = createArdManifest([openAPIRoute()], projectConfig)
 
     expect(createArdManifestUrl(projectConfig)).toBe('https://docs.example.com/docs/.well-known/ard.json')
-    expect(manifest?.entries[0]?.url).toBe('https://docs.example.com/docs/payments.openapi.json')
+    expect(manifest?.entries.at(-1)?.url).toBe('https://docs.example.com/docs/payments.openapi.json')
   })
 
   it('publishes only explicitly configured resources with derived metadata', () => {
@@ -187,8 +200,7 @@ describe('ARD manifest', () => {
     })
     const manifest = createArdManifest([openAPIRoute()], projectConfig)
 
-    expect(manifest?.entries).toHaveLength(1)
-    expect(manifest?.entries[0]?.displayName).toBe('Payments API')
+    expect(manifest?.entries.map(entry => entry.displayName)).toEqual(['Clarify Docs', 'Payments API'])
   })
 
   it('rejects duplicate explicit identifiers', () => {
@@ -212,6 +224,7 @@ describe('ARD manifest', () => {
     ], projectConfig)
 
     expect(manifest?.entries.map(entry => entry.identifier)).toEqual([
+      'urn:air:docs.example.com:openapi:root',
       'urn:air:docs.example.com:openapi:payments',
       'urn:air:docs.example.com:openapi:payments-2',
     ])
@@ -223,7 +236,7 @@ describe('ARD manifest', () => {
     route.meta.title = ''
     const manifest = createArdManifest([route], projectConfig)
 
-    expect(manifest?.entries[0]?.displayName).toBe('Clarify Docs')
+    expect(manifest?.entries.at(-1)?.displayName).toBe('Clarify Docs')
   })
 
   it('reports configured entries even when no OpenAPI routes are published', () => {

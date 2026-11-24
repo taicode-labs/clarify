@@ -39,12 +39,14 @@ describe('ARD plugin', () => {
 
     expect(assets.map(asset => asset.fileName)).toEqual(['.well-known/ard.json'])
     const manifest = JSON.parse(String(assets[0]?.source)) as { entries: Array<{ identifier: string; url: string }> }
-    expect(manifest.entries).toEqual([
-      expect.objectContaining({
-        identifier: 'urn:air:docs.example.com:openapi:payments',
-        url: 'https://docs.example.com/payments.openapi.json',
-      }),
-    ])
+    expect(manifest.entries).toContainEqual(expect.objectContaining({
+      identifier: 'urn:air:docs.example.com:openapi:payments',
+      url: 'https://docs.example.com/payments.openapi.json',
+    }))
+    expect(manifest.entries).toContainEqual(expect.objectContaining({
+      identifier: 'urn:air:docs.example.com:openapi:root',
+      url: 'https://docs.example.com/openapi.json',
+    }))
   })
 
   it('emits no manifest while disabled or when nothing is publishable', async () => {
@@ -110,7 +112,7 @@ describe('ARD plugin', () => {
 
     expect(next).not.toHaveBeenCalled()
     expect(headers.get('Content-Type')).toBe('application/json; charset=utf-8')
-    expect(JSON.parse(body).entries[0].identifier).toBe('urn:air:docs.example.com:openapi:payments')
+    expect(JSON.parse(body).entries.at(-1).identifier).toBe('urn:air:docs.example.com:openapi:payments')
   })
 
   it('falls through for unrelated development requests', async () => {

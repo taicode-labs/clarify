@@ -1,4 +1,5 @@
 import type { ContentRoute, ResolvedProjectConfig } from '../../types.js'
+import { createArdManifestUrl, hasArdEntries } from '../ard/manifest.js'
 
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, '')
@@ -47,13 +48,15 @@ export function createSitemapXml(routes: ContentRoute[], config: ResolvedProject
   ].join('\n')
 }
 
-export function createRobotsTxt(config: ResolvedProjectConfig): string | undefined {
+export function createRobotsTxt(routes: ContentRoute[], config: ResolvedProjectConfig): string | undefined {
   if (!config.siteUrl) return undefined
   const sitemapUrl = routeUrl(config.siteUrl, config.routePrefix, '/sitemap.xml')
-  return [
+  const lines = [
     'User-agent: *',
     'Allow: /',
     `Sitemap: ${sitemapUrl}`,
-    '',
-  ].join('\n')
+  ]
+  const ardManifestUrl = hasArdEntries(routes, config) ? createArdManifestUrl(config) : undefined
+  if (ardManifestUrl) lines.push(`Agentmap: ${ardManifestUrl}`)
+  return `${lines.join('\n')}\n`
 }

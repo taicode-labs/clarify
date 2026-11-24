@@ -33,11 +33,20 @@ export default defineConfig({
 
 只有清单至少包含一条记录时才会注入该链接。如果页面 HTML 中已经存在 `rel="ard"` 链接，Clarify 不会改动它。配置了 `routePrefix` 时，清单和链接都会移动到前缀下，例如 `https://docs.example.com/docs/.well-known/ard.json`。
 
+配置了 `siteUrl` 后，`robots.txt` 还会通过 `Agentmap:` 记录声明清单位置，这样发现过程不依赖某个已渲染的 HTML 页面：
+
+```txt title="robots.txt"
+User-agent: *
+Allow: /
+Sitemap: https://docs.example.com/sitemap.xml
+Agentmap: https://docs.example.com/.well-known/ard.json
+```
+
 `clarify dev` 会在 `/.well-known/ard.json`（以及路由前缀下）提供同一份清单，方便部署前验证输出。
 
 ## OpenAPI 资源
 
-Clarify 会自动适配已发布的 OpenAPI 路由。每条记录都复用站点已有的元数据，不需要重复维护发现信息：
+Clarify 会自动适配已发布的 OpenAPI 路由：为 `/openapi.json`（站点所有 API 的聚合规范）生成一条汇总记录，并为每个已发布路由生成单独记录。每条记录都复用站点已有的元数据，不需要重复维护发现信息：
 
 | 记录字段 | 来源 |
 | --- | --- |

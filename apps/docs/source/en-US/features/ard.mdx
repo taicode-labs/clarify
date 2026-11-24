@@ -33,11 +33,20 @@ A production build emits `.well-known/ard.json`, and every transformed HTML page
 
 The link is injected only when the manifest will contain at least one entry. If your HTML already contains a `rel="ard"` link, Clarify leaves it untouched. With `routePrefix` configured, both the manifest and the link move under the prefix, for example `https://docs.example.com/docs/.well-known/ard.json`.
 
+When `siteUrl` is set, `robots.txt` also advertises the manifest with an `Agentmap:` record so discovery does not depend on a rendered HTML page:
+
+```txt title="robots.txt"
+User-agent: *
+Allow: /
+Sitemap: https://docs.example.com/sitemap.xml
+Agentmap: https://docs.example.com/.well-known/ard.json
+```
+
 `clarify dev` serves the same manifest at `/.well-known/ard.json` (and under the route prefix), so you can verify the output before deploying.
 
 ## OpenAPI resources
 
-Clarify adapts published OpenAPI routes automatically. Each entry reuses metadata the site already produces, so you do not maintain discovery metadata twice:
+Clarify adapts published OpenAPI routes automatically. It adds one aggregate entry for `/openapi.json` (the merged spec for the whole site) and one entry per published route. Each entry reuses metadata the site already produces, so you do not maintain discovery metadata twice:
 
 | Entry field | Source |
 | --- | --- |
