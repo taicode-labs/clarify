@@ -44,8 +44,20 @@ describe('SEO artifacts', () => {
     expect(createSitemapXml(routes, config)).not.toContain('/404')
   })
 
-  it('creates robots.txt with sitemap URL', () => {
+  it('creates robots.txt with sitemap and ARD manifest URLs', () => {
     const config = resolveProjectConfig({ siteUrl: 'https://docs.example.com', routePrefix: '/docs/' })
+
+    expect(createRobotsTxt(routes, config)).toBe(
+      'User-agent: *\nAllow: /\nSitemap: https://docs.example.com/docs/sitemap.xml\nAgentmap: https://docs.example.com/docs/.well-known/ard.json\n',
+    )
+  })
+
+  it('omits Agentmap when the ARD manifest would be empty', () => {
+    const config = resolveProjectConfig({
+      siteUrl: 'https://docs.example.com',
+      routePrefix: '/docs/',
+      features: { search: false },
+    })
 
     expect(createRobotsTxt(routes, config)).toBe(
       'User-agent: *\nAllow: /\nSitemap: https://docs.example.com/docs/sitemap.xml\n',

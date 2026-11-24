@@ -58,7 +58,10 @@ function markdownRoute(path = '/guide'): MarkdownContentRoute {
 
 function config(ard: ClarifyArdConfig | boolean = true, overrides: Partial<ResolvedProjectConfig> = {}): ResolvedProjectConfig {
   const feature = typeof ard === 'boolean' ? ard : { ...ard, enabled: true }
-  const resolved = resolveProjectConfig({ siteUrl: 'https://docs.example.com', features: { ard: feature } })
+  const resolved = resolveProjectConfig({
+    siteUrl: 'https://docs.example.com',
+    features: { ard: feature, search: false },
+  })
   return { ...resolved, ...overrides }
 }
 
@@ -92,6 +95,7 @@ describe('ARD manifest', () => {
     expect(manifest).toEqual({
       entries: [{
         '@context': 'https://agenticresourcediscovery.org/context/v1',
+        '@id': 'urn:air:docs.example.com:openapi:root',
         identifier: 'urn:air:docs.example.com:openapi:root',
         displayName: 'Clarify Docs',
         type: 'application/vnd.oai.openapi+json',
@@ -105,6 +109,7 @@ describe('ARD manifest', () => {
         version: '2.1.0',
       }, {
         '@context': 'https://agenticresourcediscovery.org/context/v1',
+        '@id': 'urn:air:docs.example.com:openapi:payments',
         identifier: 'urn:air:docs.example.com:openapi:payments',
         displayName: 'Payments API',
         type: 'application/vnd.oai.openapi+json',
@@ -174,6 +179,7 @@ describe('ARD manifest', () => {
       entries: [
         {
           '@context': 'https://agenticresourcediscovery.org/context/v1',
+          '@id': 'urn:air:docs.example.com:resource:server-card',
           identifier: 'urn:air:docs.example.com:resource:server-card',
           displayName: 'server-card',
           type: 'application/json',
@@ -183,11 +189,16 @@ describe('ARD manifest', () => {
         },
         {
           '@context': 'https://agenticresourcediscovery.org/context/v1',
+          '@id': 'urn:air:docs.example.com:registry:public',
           identifier: 'urn:air:docs.example.com:registry:public',
           displayName: 'Clarify Registry',
           type: 'application/ai-registry+json',
           url: 'https://registry.example.com/api/',
           capabilities: ['Search'],
+          representativeQueries: [
+            'What does Clarify Registry provide?',
+            'How do I use Clarify Registry?',
+          ],
           metadata: { tier: 'public' },
         },
       ],
@@ -241,9 +252,123 @@ describe('ARD manifest', () => {
 
   it('reports configured entries even when no OpenAPI routes are published', () => {
     const projectConfig = config({ entries: [{ displayName: 'MCP', url: '/mcp.json' }] })
-    const emptyConfig = resolveProjectConfig({ siteUrl: 'https://docs.example.com', features: { ard: true } })
+    const emptyConfig = resolveProjectConfig({ siteUrl: 'https://docs.example.com', features: { ard: true, search: false } })
 
     expect(hasArdEntries([], projectConfig)).toBe(true)
     expect(hasArdEntries([], emptyConfig)).toBe(false)
+  })
+
+  it('lists the MCP search descriptor when the search feature is enabled', () => {
+    const projectConfig = resolveProjectConfig({ siteUrl: 'https://docs.example.com' })
+    const manifest = createArdManifest([], projectConfig)
+
+    expect(manifest).toEqual({
+      entries: [{
+        '@context': 'https://agenticresourcediscovery.org/context/v1',
+        '@id': 'urn:air:docs.example.com:mcp:documentation-search',
+        identifier: 'urn:air:docs.example.com:mcp:documentation-search',
+        displayName: 'Clarify Docs MCP documentation search',
+        type: 'application/json',
+        url: 'https://docs.example.com/mcp.json',
+        description: 'Search the Clarify Docs documentation over the Model Context Protocol.',
+        tags: ['mcp', 'search'],
+        capabilities: ['DocumentSearch'],
+        representativeQueries: [
+          'How do I search the Clarify Docs documentation?',
+          'What documentation does Clarify Docs provide?',
+        ],
+        metadata: {
+          protocol: 'mcp',
+          transport: 'stdio',
+          server: {
+            command: 'npx',
+            args: ['@clarify-labs/cli', 'mcp', 'https://docs.example.com'],
+          },
+          descriptorVersion: 3,
+          indexPath: 'https://docs.example.com/mcp-search.msp',
+        },
+      }],
+    })
+  })
+
+  it('keeps mcp.json at the site root when routePrefix is set', () => {
+    const projectConfig = resolveProjectConfig({
+      siteUrl: 'https://docs.example.com',
+      routePrefix: '/docs/',
+    })
+    const entry = createArdManifest([], projectConfig)?.entries[0]
+
+    expect(entry?.url).toBe('https://docs.example.com/mcp.json')
+    expect(entry?.metadata?.indexPath).toBe('https://docs.example.com/docs/mcp-search.msp')
+  })
+
+  it('omits the MCP entry when search or ARD MCP output is disabled', () => {
+    const noSearch = resolveProjectConfig({
+      siteUrl: 'https://docs.example.com',
+      features: { search: false },
+    })
+    const noArdMcp = resolveProjectConfig({
+      siteUrl: 'https://docs.example.com',
+      features: { ard: { mcp: false } },
+    })
+
+    expect(createArdManifest([], noSearch)).toBeUndefined()
+    expect(createArdManifest([], noArdMcp)).toBeUndefined()
+  })
+
+  it('applies the default trust manifest unless an entry defines its own', () => {
+    const projectConfig = config({
+      trustManifest: { identity: 'https://docs.example.com/trust.json' },
+      entries: [{
+        displayName: 'Custom',
+        url: '/custom.json',
+        trustManifest: { identity: 'https://docs.example.com/custom.json' },
+      }],
+    })
+    const manifest = createArdManifest([openAPIRoute()], projectConfig)
+
+    expect(manifest?.entries.map(entry => entry.trustManifest)).toEqual([
+      { identity: 'https://docs.example.com/trust.json' },
+      { identity: 'https://docs.example.com/trust.json' },
+      { identity: 'https://docs.example.com/custom.json' },
+    ])
+  })
+
+  it('publishes inline data with trust metadata and extension terms', () => {
+    const identifier = 'urn:air:docs.example.com:skill:weather'
+    const projectConfig = config({
+      openapi: false,
+      entries: [{
+        identifier,
+        displayName: 'Weather Skill',
+        data: { name: 'weather', version: 1 },
+        capabilities: ['WeatherTool'],
+        trustManifest: { identity: 'https://docs.example.com' },
+        context: { acme: 'https://acme.example.com/vocab#' },
+        terms: { 'acme:serviceTier': 'enterprise' },
+      }],
+    })
+    const manifest = createArdManifest([], projectConfig)
+
+    expect(manifest).toEqual({
+      entries: [{
+        'acme:serviceTier': 'enterprise',
+        '@context': [
+          'https://agenticresourcediscovery.org/context/v1',
+          { acme: 'https://acme.example.com/vocab#' },
+        ],
+        '@id': identifier,
+        identifier,
+        displayName: 'Weather Skill',
+        type: 'application/json',
+        data: { name: 'weather', version: 1 },
+        capabilities: ['WeatherTool'],
+        representativeQueries: [
+          'What does Weather Skill provide?',
+          'How do I use Weather Skill?',
+        ],
+        trustManifest: { identity: 'https://docs.example.com' },
+      }],
+    })
   })
 })

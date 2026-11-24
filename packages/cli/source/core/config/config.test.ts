@@ -294,9 +294,9 @@ describe('resolveProjectConfig', () => {
   })
 
   it('resolves the ARD feature as enabled by default', () => {
-    expect(resolveProjectConfig().features.ard).toEqual({ enabled: true, openapi: true, entries: [] })
-    expect(resolveProjectConfig({ features: { ard: false } }).features.ard).toEqual({ enabled: false, openapi: true, entries: [] })
-    expect(resolveProjectConfig({ features: { ard: { openapi: false } } }).features.ard).toEqual({ enabled: true, openapi: false, entries: [] })
+    expect(resolveProjectConfig().features.ard).toEqual({ enabled: true, openapi: true, mcp: true, entries: [] })
+    expect(resolveProjectConfig({ features: { ard: false } }).features.ard).toEqual({ enabled: false, openapi: true, mcp: true, entries: [] })
+    expect(resolveProjectConfig({ features: { ard: { openapi: false } } }).features.ard).toEqual({ enabled: true, openapi: false, mcp: true, entries: [] })
     expect(resolveProjectConfig({
       features: { ard: { entries: [{ url: '/mcp.json', displayName: 'MCP' }] } },
     }).features.ard.entries).toEqual([{ url: '/mcp.json', displayName: 'MCP' }])
@@ -306,9 +306,24 @@ describe('resolveProjectConfig', () => {
     expect(() => clarifyProjectConfigSchema.parse({
       features: { ard: { entries: [{ url: '/x.json', identifier: 'not-a-urn' }] } },
     })).toThrow(/urn:air/)
+  })
+
+  it('requires exactly one of url or data on ARD entries', () => {
     expect(() => clarifyProjectConfigSchema.parse({
-      features: { ard: { entries: [{ url: '/x.json', data: {} }] } },
-    })).toThrow(/data/)
+      features: { ard: { entries: [{ displayName: 'Both', url: '/x.json', data: {} }] } },
+    })).toThrow(/exactly one of url or data/)
+    expect(() => clarifyProjectConfigSchema.parse({
+      features: { ard: { entries: [{ displayName: 'Neither' }] } },
+    })).toThrow(/exactly one of url or data/)
+    expect(() => clarifyProjectConfigSchema.parse({
+      features: { ard: { entries: [{ data: {} }] } },
+    })).toThrow(/displayName is required/)
+  })
+
+  it('rejects unprefixed ARD extension terms', () => {
+    expect(() => clarifyProjectConfigSchema.parse({
+      features: { ard: { entries: [{ url: '/x.json', terms: { tier: 'public' } }] } },
+    })).toThrow(/prefixed/)
   })
 
   it('rejects the removed artifacts feature', () => {

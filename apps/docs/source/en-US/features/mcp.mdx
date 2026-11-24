@@ -78,6 +78,8 @@ MCP search is enabled with site search by default. A production build emits:
 - `mcp.json`: the site descriptor, available locales, index metadata, and capability manifest.
 - `mcp-search.msp`: the serialized full-text search index consumed by the local MCP server.
 
+When `siteUrl` is configured, `mcp.json` is also listed in the [Agentic Resource Discovery](/features/ard) manifest so agents can discover the search server without reading the docs. Set `features.ard.mcp: false` to keep publishing the descriptor but omit that entry.
+
 Downloaded indexes are cached under `~/.clarify/mcp-cache`. The cache is refreshed when the deployed index metadata changes. Use `--no-cache` while diagnosing a stale deployment:
 
 ```bash

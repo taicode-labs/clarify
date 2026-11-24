@@ -78,6 +78,8 @@ MCP 搜索默认随站内搜索启用。生产构建会生成：
 - `mcp.json`：站点描述、可用语言、索引元数据和能力清单。
 - `mcp-search.msp`：供本地 MCP server 使用的序列化全文搜索索引。
 
+配置 `siteUrl` 后，`mcp.json` 也会被列入 [Agentic Resource Discovery](/features/ard) 清单，Agent 不必先读文档就能发现这个搜索服务。设置 `features.ard.mcp: false` 可以继续发布描述文件但不在清单中列出。
+
 下载的索引会缓存到 `~/.clarify/mcp-cache`。部署索引的元数据变化后，缓存会自动更新。排查旧索引问题时可以使用 `--no-cache`：
 
 ```bash

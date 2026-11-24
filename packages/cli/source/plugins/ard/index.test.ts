@@ -20,7 +20,11 @@ function openAPIRoute(path = '/payments'): OpenAPIContentRoute {
 }
 
 function config(ard: ClarifyArdConfig | boolean = true, routePrefix = '/'): ResolvedProjectConfig {
-  return resolveProjectConfig({ siteUrl: 'https://docs.example.com', routePrefix, features: { ard } })
+  return resolveProjectConfig({
+    siteUrl: 'https://docs.example.com',
+    routePrefix,
+    features: { ard, search: false },
+  })
 }
 
 function htmlInput(html = '<html><head></head><body></body></html>'): ClarifyHtmlTransformInput {
@@ -52,6 +56,18 @@ describe('ARD plugin', () => {
   it('emits no manifest while disabled or when nothing is publishable', async () => {
     expect(await runBuildAssets(resolveProjectConfig({ siteUrl: 'https://docs.example.com', features: { ard: false } }), [openAPIRoute()])).toEqual([])
     expect(await runBuildAssets(config(), [])).toEqual([])
+  })
+
+  it('includes the MCP descriptor when search is enabled', async () => {
+    const projectConfig = resolveProjectConfig({ siteUrl: 'https://docs.example.com' })
+    const assets = await runBuildAssets(projectConfig, [])
+
+    expect(assets.map(asset => asset.fileName)).toEqual(['.well-known/ard.json'])
+    const manifest = JSON.parse(String(assets[0]?.source)) as { entries: Array<{ identifier: string; url: string }> }
+    expect(manifest.entries).toContainEqual(expect.objectContaining({
+      identifier: 'urn:air:docs.example.com:mcp:documentation-search',
+      url: 'https://docs.example.com/mcp.json',
+    }))
   })
 
   it('injects a rel="ard" link into the document head', async () => {

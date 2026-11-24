@@ -447,6 +447,8 @@ type ClarifyFeaturesConfig = {
   }>
   ard?: ClarifyFeatureConfig<{
     openapi?: boolean
+    mcp?: boolean
+    trustManifest?: Record<string, unknown>
     entries?: ClarifyArdEntryConfig[]
   }>
 }
@@ -455,7 +457,8 @@ type ClarifyArdEntryConfig = {
   identifier?: string
   displayName?: string
   type?: string
-  url: string
+  url?: string
+  data?: unknown
   description?: string
   tags?: string[]
   capabilities?: string[]
@@ -463,6 +466,9 @@ type ClarifyArdEntryConfig = {
   version?: string
   updatedAt?: string
   metadata?: Record<string, unknown>
+  trustManifest?: Record<string, unknown>
+  context?: Record<string, string>
+  terms?: Record<string, unknown>
 }
 ```
 
@@ -474,7 +480,7 @@ type ClarifyArdEntryConfig = {
 | `repository` | `{ enabled: true }` | 文档源码关联的代码仓库。配置 `url` 后可启用页面编辑链接等仓库能力；`branch` 默认使用 `main`，`directory` 对应仓库内的内容目录。 |
 | `themeEditor` | `{ enabled: false }` | 内置主题编辑器。开发服务器始终提供编辑器；生产站点需显式设为 `true` 才会展示。 |
 | `openapi` | `{ enabled: true, playground: true }` | OpenAPI 页面及请求工作台。响应预览和下载是页面内置能力。 |
-| `ard` | `{ enabled: true, openapi: true, entries: [] }` | [Agentic Resource Discovery](/features/ard) 清单，输出到 `.well-known/ard.json`。会自动适配已发布的 OpenAPI 路由（可用 `openapi: false` 关闭），`entries` 用于补充其他公开资源。需要配置 `siteUrl`；设为 `false` 可完全停止发布清单。 |
+| `ard` | `{ enabled: true, openapi: true, mcp: true, entries: [] }` | [Agentic Resource Discovery](/features/ard) 清单，输出到 `.well-known/ard.json`。会自动适配已发布的 OpenAPI 路由与 MCP 搜索描述文件（可用 `openapi: false`、`mcp: false` 关闭），`entries` 用于补充其他公开资源，也支持内联 `data` 条目。`trustManifest` 会应用到没有自行定义的记录。需要配置 `siteUrl`；设为 `false` 可完全停止发布清单。 |
 
 ```ts title="按需配置功能"
 export default defineConfig({

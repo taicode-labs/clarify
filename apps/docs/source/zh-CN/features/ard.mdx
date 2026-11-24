@@ -6,7 +6,7 @@ keywords: ['clarify', 'documentation', 'features', 'ard', 'agentic resource disc
 
 # Agentic Resource Discovery
 
-Clarify 可以在 `/.well-known/ard.json` 发布 [Agentic Resource Discovery](https://agenticresourcediscovery.org/spec)（ARD）清单。清单会列出站点对外提供的机器可读资源——已发布的 OpenAPI 文档，以及你显式允许公开的其他产物——让 AI Agent 和注册中心不必猜测 URL 就能发现它们。
+Clarify 可以在 `/.well-known/ard.json` 发布 [Agentic Resource Discovery](https://agenticresourcediscovery.org/spec)（ARD）清单。清单会列出站点对外提供的机器可读资源——已发布的 OpenAPI 文档、MCP 文档搜索描述文件，以及你显式允许公开的其他产物——让 AI Agent 和注册中心不必猜测 URL 就能发现它们。
 
 ARD 由内置插件实现。配置了 `siteUrl` 后默认开启。如需停止发布清单，可以显式关闭：
 
@@ -20,7 +20,7 @@ export default defineConfig({
 ```
 
 <Callout type="info" title="只公开公开资源">
-  Clarify 只会列出已发布的 OpenAPI 路由和你配置的 `entries`。Markdown 页面、隐藏页面、别名路由以及没有机器可读产物的路由都不会被自动加入。`siteUrl` 是必填的，因为所有标识符和资源 URL 都以你的公开域名作为基准；未配置时不会生成清单。
+  Clarify 只会列出已发布的 OpenAPI 路由、搜索开启时的 MCP 描述文件，以及你配置的 `entries`。Markdown 页面、隐藏页面、别名路由以及没有机器可读产物的路由都不会被自动加入。`siteUrl` 是必填的，因为所有标识符和资源 URL 都以你的公开域名作为基准；未配置时不会生成清单。
 </Callout>
 
 ## 生成的产物
@@ -73,9 +73,24 @@ export default defineConfig({
 })
 ```
 
+## MCP 资源
+
+搜索功能会生成 MCP 描述文件（`features.search.mcp`，默认开启）时，清单也会列出 `/mcp.json`。这条记录描述的是 `clarify mcp <siteUrl>` 启动的 stdio server，而不是远程端点：
+
+| 记录字段 | 值 |
+| --- | --- |
+| `displayName` | 站点标题加上 `MCP documentation search` |
+| `url` | `<siteUrl>/mcp.json`，始终位于站点根目录 |
+| `type` | `application/json` |
+| `tags` / `capabilities` | `mcp`、`search` / `DocumentSearch` |
+| `metadata` | `protocol`、`transport`、`npx @clarify-labs/cli mcp <siteUrl>` 命令、描述文件版本和索引 URL |
+| `representativeQueries` | 根据站点标题生成 |
+
+设置 `features.ard.mcp: false` 可以移除这条记录；关闭搜索功能则会同时移除 `mcp.json` 及其清单记录。
+
 ## 其他资源
 
-用 `entries` 发布其他机器可读资源，例如 MCP server card、注册中心或外部目录。相对 URL 会基于 `siteUrl` 和 `routePrefix` 解析；绝对 URL 原样使用。
+用 `entries` 发布其他机器可读资源，例如 MCP server card、注册中心或外部目录。相对 URL 会基于 `siteUrl` 和 `routePrefix` 解析；绝对 URL 原样使用。每条记录必须提供 `url` 或 `data` 中的恰好一个；需要把小型 JSON 文档直接写进清单时使用 `data`。
 
 ```ts title="clarify.ts"
 export default defineConfig({
@@ -103,9 +118,22 @@ export default defineConfig({
 })
 ```
 
-记录会在构建时校验。`identifier` 必须是符合 `urn:air:<publisher>[:<namespace>]:<name>` 的域名锚定 URN，且清单内不能重复。省略 `identifier` 时，Clarify 会根据发布方域名、`resource` 命名空间和记录的显示名称自动生成一个。
+记录会在构建时校验。`identifier` 必须是符合 `urn:air:<publisher>[:<namespace>]:<name>` 的域名锚定 URN，且清单内不能重复。省略 `identifier` 时，Clarify 会根据发布方域名、`resource` 命名空间和记录的显示名称自动生成一个。省略 `representativeQueries` 时会根据 `displayName` 生成两条查询，`@id` 会与 `identifier` 保持一致。
 
-除 OpenAPI 自动适配外，`entries` 是唯一的发布途径，因此只能通过直达链接访问的页面不会被带入发现结果，除非你显式列出它们。
+`trustManifest` 会原样发布，供注册中心核验发布方身份或合规声明。配置 `features.ard.trustManifest` 后，包括自动生成的 OpenAPI 和 MCP 记录在内的所有记录都会带上该声明；记录自身的 `trustManifest` 优先。需要 ARD 词汇表之外的过滤维度时，可以用 `context` 和 `terms` 添加带前缀的词条：
+
+```ts title="clarify.ts"
+entries: [{
+  identifier: 'urn:air:docs.example.com:skill:weather',
+  displayName: 'Weather Skill',
+  data: { name: 'weather', tools: ['forecast'] },
+  trustManifest: { identity: 'https://docs.example.com' },
+  context: { acme: 'https://acme.example.com/vocab#' },
+  terms: { 'acme:serviceTier': 'enterprise' },
+}]
+```
+
+除 OpenAPI 和 MCP 自动适配外，`entries` 是唯一的发布途径，因此只能通过直达链接访问的页面不会被带入发现结果，除非你显式列出它们。
 
 ## 清单格式
 
@@ -114,6 +142,7 @@ export default defineConfig({
   "entries": [
     {
       "@context": "https://agenticresourcediscovery.org/context/v1",
+      "@id": "urn:air:docs.example.com:openapi:payments",
       "identifier": "urn:air:docs.example.com:openapi:payments",
       "displayName": "Payments API",
       "type": "application/vnd.oai.openapi+json",
@@ -132,7 +161,7 @@ export default defineConfig({
 }
 ```
 
-`@context` 使用 ARD v1 上下文。每条记录都必须包含 `identifier`、`displayName`、`type`，以及 `url` 和 `data` 中的恰好一个；Clarify 只发布基于 `url` 的记录。`representativeQueries`、`description`、`tags`、`capabilities`、`version`、`updatedAt` 和 `metadata` 在可用时一并输出。
+`@context` 使用 ARD v1 上下文；记录定义了 `context` 时会一并扩展。每条记录都必须包含 `identifier`、`displayName`、`type`、`url` 和 `data` 中的恰好一个，以及与 `identifier` 相同的 `@id`。`representativeQueries` 始终存在（省略时自动生成）；`description`、`tags`、`capabilities`、`version`、`updatedAt`、`metadata`、`trustManifest` 和带前缀的词条在可用时一并输出。
 
 ## 相关文档
 

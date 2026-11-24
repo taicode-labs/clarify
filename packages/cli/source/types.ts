@@ -255,22 +255,34 @@ export type ClarifyArdEntryConfig = {
   displayName?: string
   /** IANA media type of the artifact. Default: application/json. */
   type?: string
-  /** Absolute URL, or a path relative to the deployed site root (under routePrefix). */
-  url: string
+  /** Absolute URL, or a path relative to the deployed site root (under routePrefix). Exactly one of url or data. */
+  url?: string
+  /** Inline JSON resource. Exactly one of url or data. */
+  data?: unknown
   description?: string
   tags?: string[]
   capabilities?: string[]
-  /** Sample user queries used by registries to build semantic search indexes. */
+  /** Sample user queries used by registries to build semantic search indexes. Generated from displayName when omitted. */
   representativeQueries?: string[]
   version?: string
   /** Resource update time as an ISO 8601 timestamp. */
   updatedAt?: string
   metadata?: Record<string, unknown>
+  /** Identity and attestations published for this resource. */
+  trustManifest?: Record<string, unknown>
+  /** Additional JSON-LD prefixes, emitted alongside the ARD base context. */
+  context?: Record<string, string>
+  /** Additional prefixed terms (e.g. `acme:serviceTier`) emitted on the entry. */
+  terms?: Record<string, unknown>
 }
 
 export type ClarifyArdConfig = {
   /** Expose every published OpenAPI route's machine-readable artifact. Default: true. */
   openapi?: boolean
+  /** Expose the MCP search descriptor (`mcp.json`) when search is enabled. Default: true. */
+  mcp?: boolean
+  /** Trust manifest applied to entries that do not define their own. */
+  trustManifest?: Record<string, unknown>
   /** Additional resources to expose. Resources not listed here stay undiscoverable. */
   entries?: ClarifyArdEntryConfig[]
 }
@@ -302,6 +314,8 @@ export type ResolvedClarifyFeaturesConfig = {
   ard: {
     enabled: boolean
     openapi: boolean
+    mcp: boolean
+    trustManifest?: Record<string, unknown>
     entries: ClarifyArdEntryConfig[]
   }
 }
