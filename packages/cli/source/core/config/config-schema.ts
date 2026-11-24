@@ -128,6 +128,57 @@ const clarifyRepositoryConfigSchema = z.object({
   directory: z.string().optional(),
 }).strict()
 
+const clarifyArdEntryConfigSchema = z.object({
+  identifier: z.string().superRefine((value, ctx) => {
+    if (!value.startsWith('urn:air:') || /\s/.test(value) || value.split(':').length < 4) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'must use the domain-anchored URN form urn:air:<publisher>:<name>',
+      })
+    }
+  }).optional(),
+  displayName: z.string().optional(),
+  type: z.string().optional(),
+  url: z.string().optional(),
+  data: z.unknown().optional(),
+  description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  capabilities: z.array(z.string()).optional(),
+  representativeQueries: z.array(z.string()).optional(),
+  version: z.string().optional(),
+  updatedAt: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+  trustManifest: z.record(z.string(), z.unknown()).optional(),
+  context: z.record(z.string(), z.string()).optional(),
+  terms: z.record(z.string(), z.unknown()).optional(),
+}).strict().superRefine((value, ctx) => {
+  const hasUrl = value.url !== undefined
+  const hasData = value.data !== undefined
+  if (hasUrl === hasData) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: hasUrl ? ['data'] : ['url'],
+      message: 'exactly one of url or data is required',
+    })
+  }
+  if (hasData && !value.displayName) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['displayName'],
+      message: 'displayName is required when data is used',
+    })
+  }
+  for (const key of Object.keys(value.terms ?? {})) {
+    if (!/^[A-Za-z][\w-]*:[^\s]+$/.test(key)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['terms', key],
+        message: 'term names must be prefixed, e.g. acme:serviceTier',
+      })
+    }
+  }
+})
+
 const clarifyPagesItemSchema: z.ZodType<
   import('../../types.js').ClarifyPagesItem,
   import('../../types.js').ClarifyPagesItem
@@ -242,6 +293,12 @@ export const clarifyFeaturesConfigSchema = z.object({
   openapi: featureSchema({
     playground: z.boolean().default(true),
   }, { playground: true }),
+  ard: featureSchema({
+    openapi: z.boolean().default(true),
+    mcp: z.boolean().default(true),
+    trustManifest: z.record(z.string(), z.unknown()).optional(),
+    entries: z.array(clarifyArdEntryConfigSchema).default([]),
+  }, { openapi: true, mcp: true, entries: [] }),
 }).strict()
 
 export const clarifyProjectConfigSchema = z.object({

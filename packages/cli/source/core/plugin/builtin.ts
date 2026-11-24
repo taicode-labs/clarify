@@ -1,3 +1,4 @@
+import { createArdPlugin } from '../../plugins/ard/index.js'
 import { createContentArtifactsPlugin } from '../../plugins/content-artifacts/index.js'
 import { createHtmlShellPlugin } from '../../plugins/html-shell/index.js'
 import { createMcpSearchPlugin } from '../../plugins/mcp-search/index.js'
@@ -23,6 +24,7 @@ export function createBuiltinPlugins(options: BuiltinPluginOptions = {}): Clarif
     createSourceLinksPlugin(),
     createContentArtifactsPlugin(),
     createSeoPlugin(),
+    createArdPlugin(),
     createPageSearchPlugin(),
     createMcpSearchPlugin(),
   ]

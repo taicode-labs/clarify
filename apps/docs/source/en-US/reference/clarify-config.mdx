@@ -445,6 +445,30 @@ type ClarifyFeaturesConfig = {
   openapi?: ClarifyFeatureConfig<{
     playground?: boolean
   }>
+  ard?: ClarifyFeatureConfig<{
+    openapi?: boolean
+    mcp?: boolean
+    trustManifest?: Record<string, unknown>
+    entries?: ClarifyArdEntryConfig[]
+  }>
+}
+
+type ClarifyArdEntryConfig = {
+  identifier?: string
+  displayName?: string
+  type?: string
+  url?: string
+  data?: unknown
+  description?: string
+  tags?: string[]
+  capabilities?: string[]
+  representativeQueries?: string[]
+  version?: string
+  updatedAt?: string
+  metadata?: Record<string, unknown>
+  trustManifest?: Record<string, unknown>
+  context?: Record<string, string>
+  terms?: Record<string, unknown>
 }
 ```
 
@@ -456,6 +480,7 @@ Built-in features are enabled by default except for the production theme editor.
 | `repository` | `{ enabled: true }` | Repository associated with the documentation source. Set `url` to enable repository-aware capabilities such as page edit links; `branch` defaults to `main`, and `directory` maps to the content directory inside the repository. |
 | `themeEditor` | `{ enabled: false }` | Built-in theme editor. The development server always provides it; set this to `true` to expose it in production sites. |
 | `openapi` | `{ enabled: true, playground: true }` | OpenAPI pages and the request playground. Response preview and download are built-in page capabilities. |
+| `ard` | `{ enabled: true, openapi: true, mcp: true, entries: [] }` | [Agentic Resource Discovery](/features/ard) manifest at `.well-known/ard.json`. Published OpenAPI routes and the MCP search descriptor are adapted automatically unless disabled with `openapi: false` or `mcp: false`; `entries` lists additional public resources, including inline `data` entries. `trustManifest` is applied to entries that do not define their own. Requires `siteUrl`; set `false` to stop publishing the manifest entirely. |
 
 ```ts title="Configure features selectively"
 export default defineConfig({

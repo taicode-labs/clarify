@@ -4,19 +4,21 @@ import type { ClarifyArtifact, ContentRoute, OpenAPISpec, ResolvedProjectConfig 
 
 import { aggregateOpenAPISources, type OpenAPISourceDocument } from './aggregation.js'
 
+export function isRootOpenAPISourceRoute(route: ContentRoute, defaultLocale?: string): boolean {
+  return route.kind === 'openapi' &&
+    !route.diagnostic &&
+    Boolean(route.source.content) &&
+    !route.openapi?.tagFilter?.length &&
+    !route.isBareAlias &&
+    (!defaultLocale || !route.locale || route.locale === defaultLocale)
+}
+
 export function selectRootOpenAPISources(routes: ContentRoute[], projectConfig: ResolvedProjectConfig): OpenAPISourceDocument[] {
   const defaultLocale = projectConfig.locales?.default
   const sourcesByFilePath = new Map<string, OpenAPISourceDocument>()
 
   for (const route of routes) {
-    if (
-      route.kind !== 'openapi' ||
-      route.diagnostic ||
-      !route.source.content ||
-      route.openapi?.tagFilter?.length ||
-      route.isBareAlias ||
-      (defaultLocale && route.locale && route.locale !== defaultLocale)
-    ) continue
+    if (!isRootOpenAPISourceRoute(route, defaultLocale) || !route.source.content) continue
 
     sourcesByFilePath.set(route.source.filePath, {
       id: route.openapi?.sourceSpecId ?? route.source.filePath.split(/[\\/]/).pop()?.replace(/\.openapi\.(?:json|ya?ml)$/i, '') ?? 'service',

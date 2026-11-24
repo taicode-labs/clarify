@@ -9,7 +9,7 @@ export function createSeoPlugin(): ClarifyPlugin {
       'build:assets'(ctx) {
         const assets: ClarifyEmitAsset[] = []
         const sitemap = createSitemapXml(ctx.routes, ctx.projectConfig)
-        const robots = createRobotsTxt(ctx.projectConfig)
+        const robots = createRobotsTxt(ctx.routes, ctx.projectConfig)
         if (sitemap) assets.push({ fileName: 'sitemap.xml', source: sitemap })
         if (robots) assets.push({ fileName: 'robots.txt', source: robots })
         return assets

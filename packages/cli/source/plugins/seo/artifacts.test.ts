@@ -34,7 +34,7 @@ describe('SEO artifacts', () => {
     const config = resolveProjectConfig({})
 
     expect(createSitemapXml(routes, config)).toBeUndefined()
-    expect(createRobotsTxt(config)).toBeUndefined()
+    expect(createRobotsTxt(routes, config)).toBeUndefined()
   })
 
   it('creates sitemap.xml with routePrefix and excludes 404', () => {
@@ -44,11 +44,42 @@ describe('SEO artifacts', () => {
     expect(createSitemapXml(routes, config)).not.toContain('/404')
   })
 
-  it('creates robots.txt with sitemap URL', () => {
+  it('creates robots.txt with sitemap and ARD manifest URLs', () => {
     const config = resolveProjectConfig({ siteUrl: 'https://docs.example.com', routePrefix: '/docs/' })
 
-    expect(createRobotsTxt(config)).toBe(
+    expect(createRobotsTxt(routes, config)).toBe(
+      'User-agent: *\nAllow: /\nSitemap: https://docs.example.com/docs/sitemap.xml\nAgentmap: https://docs.example.com/docs/.well-known/ard.json\n',
+    )
+  })
+
+  it('omits Agentmap when the ARD manifest would be empty', () => {
+    const config = resolveProjectConfig({
+      siteUrl: 'https://docs.example.com',
+      routePrefix: '/docs/',
+      features: { search: false },
+    })
+
+    expect(createRobotsTxt(routes, config)).toBe(
       'User-agent: *\nAllow: /\nSitemap: https://docs.example.com/docs/sitemap.xml\n',
+    )
+  })
+
+  it('advertises the ARD manifest with Agentmap when discovery entries exist', () => {
+    const config = resolveProjectConfig({ siteUrl: 'https://docs.example.com', routePrefix: '/docs/' })
+    const openapiRoutes: ContentRoute[] = [{
+      path: '/api',
+      kind: 'openapi',
+      meta: { title: 'API' },
+      module: { pageVirtualModuleId: 'virtual:clarify-page/api' },
+      source: {
+        filePath: '/docs/source/api.openapi.json',
+        content: JSON.stringify({ openapi: '3.1.0', info: { title: 'API', version: '1.0.0' }, paths: {} }),
+      },
+      artifacts: { contentArtifactUrl: '/api.openapi.json' },
+    }]
+
+    expect(createRobotsTxt(openapiRoutes, config)).toBe(
+      'User-agent: *\nAllow: /\nSitemap: https://docs.example.com/docs/sitemap.xml\nAgentmap: https://docs.example.com/docs/.well-known/ard.json\n',
     )
   })
 
