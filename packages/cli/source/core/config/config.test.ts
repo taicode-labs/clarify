@@ -293,10 +293,10 @@ describe('resolveProjectConfig', () => {
     expect(resolveProjectConfig({ features: { search: { mcp: false } } }).features.search).toEqual({ enabled: true, mcp: false })
   })
 
-  it('resolves the ARD feature as an opt-in capability', () => {
-    expect(resolveProjectConfig().features.ard).toEqual({ enabled: false, openapi: true, entries: [] })
-    expect(resolveProjectConfig({ features: { ard: true } }).features.ard).toEqual({ enabled: true, openapi: true, entries: [] })
-    expect(resolveProjectConfig({ features: { ard: { openapi: false } } }).features.ard).toEqual({ enabled: false, openapi: false, entries: [] })
+  it('resolves the ARD feature as enabled by default', () => {
+    expect(resolveProjectConfig().features.ard).toEqual({ enabled: true, openapi: true, entries: [] })
+    expect(resolveProjectConfig({ features: { ard: false } }).features.ard).toEqual({ enabled: false, openapi: true, entries: [] })
+    expect(resolveProjectConfig({ features: { ard: { openapi: false } } }).features.ard).toEqual({ enabled: true, openapi: false, entries: [] })
     expect(resolveProjectConfig({
       features: { ard: { entries: [{ url: '/mcp.json', displayName: 'MCP' }] } },
     }).features.ard.entries).toEqual([{ url: '/mcp.json', displayName: 'MCP' }])

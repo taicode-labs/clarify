@@ -287,7 +287,7 @@ export type ClarifyFeaturesConfig = {
   openapi?: ClarifyFeatureConfig<{
     playground?: boolean
   }>
-  /** Agentic Resource Discovery manifest at /.well-known/ard.json. Disabled by default. */
+  /** Agentic Resource Discovery manifest at /.well-known/ard.json. Enabled when siteUrl is set. */
   ard?: ClarifyFeatureConfig<ClarifyArdConfig>
 }
 

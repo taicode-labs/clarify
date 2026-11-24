@@ -8,19 +8,19 @@ keywords: ['clarify', 'documentation', 'features', 'ard', 'agentic resource disc
 
 Clarify 可以在 `/.well-known/ard.json` 发布 [Agentic Resource Discovery](https://agenticresourcediscovery.org/spec)（ARD）清单。清单会列出站点对外提供的机器可读资源——已发布的 OpenAPI 文档，以及你显式允许公开的其他产物——让 AI Agent 和注册中心不必猜测 URL 就能发现它们。
 
-ARD 由内置插件实现。在 `clarify.ts` 中启用：
+ARD 由内置插件实现。配置了 `siteUrl` 后默认开启。如需停止发布清单，可以显式关闭：
 
 ```ts title="clarify.ts"
 export default defineConfig({
   siteUrl: 'https://docs.example.com',
   features: {
-    ard: true,
+    ard: false,
   },
 })
 ```
 
-<Callout type="info" title="默认关闭，且只公开显式声明的资源">
-  ARD 默认关闭。即使启用，Clarify 也只会列出已发布的 OpenAPI 路由和你配置的 `entries`。Markdown 页面、隐藏页面、别名路由以及没有机器可读产物的路由都不会被自动加入。`siteUrl` 是必填的，因为所有标识符和资源 URL 都以你的公开域名作为基准。
+<Callout type="info" title="只公开公开资源">
+  Clarify 只会列出已发布的 OpenAPI 路由和你配置的 `entries`。Markdown 页面、隐藏页面、别名路由以及没有机器可读产物的路由都不会被自动加入。`siteUrl` 是必填的，因为所有标识符和资源 URL 都以你的公开域名作为基准；未配置时不会生成清单。
 </Callout>
 
 ## 生成的产物
@@ -37,7 +37,7 @@ export default defineConfig({
 
 ## OpenAPI 资源
 
-启用该特性后，Clarify 会自动适配已发布的 OpenAPI 路由。每条记录都复用站点已有的元数据，不需要重复维护发现信息：
+Clarify 会自动适配已发布的 OpenAPI 路由。每条记录都复用站点已有的元数据，不需要重复维护发现信息：
 
 | 记录字段 | 来源 |
 | --- | --- |

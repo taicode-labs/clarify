@@ -8,19 +8,19 @@ keywords: ['clarify', 'documentation', 'features', 'ard', 'agentic resource disc
 
 Clarify can publish an [Agentic Resource Discovery](https://agenticresourcediscovery.org/spec) (ARD) manifest at `/.well-known/ard.json`. The manifest lists the machine-readable resources your site exposes — published OpenAPI documents and any other artifacts you explicitly allow — so AI agents and registries can discover them instead of guessing URLs.
 
-ARD support is a built-in plugin. Enable it in `clarify.ts`:
+ARD support is a built-in plugin and is enabled by default when `siteUrl` is configured. To stop publishing the manifest, disable it:
 
 ```ts title="clarify.ts"
 export default defineConfig({
   siteUrl: 'https://docs.example.com',
   features: {
-    ard: true,
+    ard: false,
   },
 })
 ```
 
-<Callout type="info" title="Opt-in and public by default">
-  ARD is disabled by default. Even when enabled, Clarify only lists OpenAPI routes that are published and explicit `entries` you configure. Markdown pages, hidden pages, alias routes, and routes without a machine-readable artifact are never added automatically. `siteUrl` is required because every identifier and resource URL is anchored to your public origin.
+<Callout type="info" title="Public resources only">
+  Clarify only lists OpenAPI routes that are published and explicit `entries` you configure. Markdown pages, hidden pages, alias routes, and routes without a machine-readable artifact are never added automatically. `siteUrl` is required because every identifier and resource URL is anchored to your public origin; without it no manifest is produced.
 </Callout>
 
 ## Generated artifacts
@@ -37,7 +37,7 @@ The link is injected only when the manifest will contain at least one entry. If 
 
 ## OpenAPI resources
 
-When the feature is enabled, Clarify adapts published OpenAPI routes automatically. Each entry reuses metadata the site already produces, so you do not maintain discovery metadata twice:
+Clarify adapts published OpenAPI routes automatically. Each entry reuses metadata the site already produces, so you do not maintain discovery metadata twice:
 
 | Entry field | Source |
 | --- | --- |

@@ -63,13 +63,17 @@ function config(ard: ClarifyArdConfig | boolean = true, overrides: Partial<Resol
 }
 
 describe('ARD manifest', () => {
-  it('is disabled by default', () => {
+  it('is enabled by default and can be disabled explicitly', () => {
     const projectConfig = resolveProjectConfig({ siteUrl: 'https://docs.example.com' })
     const routes = [openAPIRoute()]
 
-    expect(projectConfig.features.ard.enabled).toBe(false)
-    expect(hasArdEntries(routes, projectConfig)).toBe(false)
-    expect(createArdManifest(routes, projectConfig)).toBeUndefined()
+    expect(projectConfig.features.ard.enabled).toBe(true)
+    expect(hasArdEntries(routes, projectConfig)).toBe(true)
+
+    const disabledConfig = resolveProjectConfig({ siteUrl: 'https://docs.example.com', features: { ard: false } })
+    expect(disabledConfig.features.ard.enabled).toBe(false)
+    expect(hasArdEntries(routes, disabledConfig)).toBe(false)
+    expect(createArdManifest(routes, disabledConfig)).toBeUndefined()
   })
 
   it('requires siteUrl to build domain-anchored identifiers and absolute URLs', () => {

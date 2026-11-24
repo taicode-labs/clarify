@@ -48,7 +48,7 @@ describe('ARD plugin', () => {
   })
 
   it('emits no manifest while disabled or when nothing is publishable', async () => {
-    expect(await runBuildAssets(resolveProjectConfig({ siteUrl: 'https://docs.example.com' }), [openAPIRoute()])).toEqual([])
+    expect(await runBuildAssets(resolveProjectConfig({ siteUrl: 'https://docs.example.com', features: { ard: false } }), [openAPIRoute()])).toEqual([])
     expect(await runBuildAssets(config(), [])).toEqual([])
   })
 

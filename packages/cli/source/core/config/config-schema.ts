@@ -266,7 +266,7 @@ export const clarifyFeaturesConfigSchema = z.object({
   ard: featureSchema({
     openapi: z.boolean().default(true),
     entries: z.array(clarifyArdEntryConfigSchema).default([]),
-  }, { openapi: true, entries: [] }, false),
+  }, { openapi: true, entries: [] }),
 }).strict()
 
 export const clarifyProjectConfigSchema = z.object({
